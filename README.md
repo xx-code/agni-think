@@ -6,46 +6,51 @@ This project is an application designed to help you track your expenses, analyze
 
 To get the most out of this tool, treat it like a financial notebook — consistent usage is key to long-term insight and improvement.
 
-`why agni name? In my culture an Agni ethnic with a majority of her people are stingy, but I think be stingy a not a bad treat when you don't put yourself in miserable situation
-just to keep money but a way to think for his financial health (be econome)`
+## 🔥 Why the Name "Agni"?
 
-## 📐 Stacks
+In my culture, the Agni ethnic group is often stereotyped as stingy. However, I believe that being "stingy" isn't necessarily a bad trait — as long as it doesn't lead to a miserable lifestyle. Instead, it can be a mindset focused on financial health and responsibility. I see it as being economical and intentional with money.
 
-front:
-- Vuejs with nuxt (migration from react)
+## 📐 Stack
 
-backend:
-- Nodejs with express
-- Database with knex 
+**Frontend**  
+- Vue.js with Nuxt (migrating from React)
 
-mobile:
-- swift and switf ui (soon)
+**Backend**  
+- Node.js with Express  
+- Database handled using Knex
 
-monorepo:
-- turbo-repo (no implemented)
+**Mobile**  
+- Swift with SwiftUI (coming soon)
 
-## 📐 Architecture
+**Monorepo**  
+- Turborepo (not yet implemented)
 
-> The backend server in node and express is implemented with a structure in clean architecture and a modelisation philosophie in DDD (domain, driven, design) 
 
-struct
+## 🏗️ Architecture
+
+The backend (Node.js + Express) follows **Clean Architecture** principles combined with a **Domain-Driven Design (DDD)** approach for modeling business logic.
+
+### 📂 Folder Structure
 apps/
-    agni-server/
-        config/ here we but all configuration settings, di_contenaire
-        controllers/ a interface to execute and inject our usecases
-        core/ 
-            adapters/ 
-            domains/ our domain all core logic of the system that don't need automation, entities, value object etc..
-            interactions/ the usecase to allow and add behavoir for our domains
-            repositories/ interface for our repositories of data
-        infra/ adpater implementation of external api, service to inject in core
-    agni-web/
-    agni-mobile/
-
+    agni-server/ # Backend server
+    config/             # Configuration files and dependency injection container # Includes environment setup, constants, and app-wide settings
+    controllers/        # HTTP controllers or interfaces to execute use cases # Responsible for parsing requests, calling use cases, and formatting responses
+    core/               # The heart of the application (domain and use cases)
+      adapters/         # Interface adapters to connect the domain with external systems or frameworks# Example: data mappers, serializers, or gateways
+      domains/          # Pure domain logic — no framework or DB logic here # Includes: # - Entities (business objects with identity) # - Value Objects (immutable, behavior-driven types) # - Domain services (pure logic with no side-effects)
+      interactions/     # Application-level use cases # Defines how the outside world interacts with domain logic # Example: "CreateTransaction", "GenerateSpendingReport"
+      repositories/     # Interfaces that define how to interact with data sources # These are implemented later in the infrastructure layer
+    infra/              # Infrastructure implementations for external services
+                        # Includes:
+                        # - Database adapters (e.g., PostgreSQL, SQLite)
+                        # - External APIs
+                        # - Repository implementations that fulfill `core/repositories` interfaces
+    agni-web/ # Frontend web application (Nuxt.js), Handles all user interface and client-side logic
+    
+    agni-mobile/ # Mobile app (Swift + SwiftUI, coming soon); # Will share logic where possible with agni-web
 
 ## ✨ Features
 <!--TODO list feature, future features-->
-
 
 ## 🚀 Installation
 
