@@ -33,44 +33,25 @@ The backend (Node.js + Express) follows **Clean Architecture** principles combin
 ```
 apps/
     agni-server/ # Backend server
-        config/             # Configuration files and dependency injection container
-                            # Includes environment setup, constants, and app-wide settings
-        
-        controllers/        # HTTP controllers or interfaces to execute use cases
-                            # Responsible for parsing requests, calling use cases, and formatting responses
-        
-        core/               # The heart of the application (domain and use cases)
-          adapters/         # Interface adapters to connect the domain with external systems or frameworks
-                            # Example: data mappers, serializers, or gateways
-        
-          domains/          # Pure domain logic — no framework or DB logic here
-                            # Includes:
-                            # - Entities (business objects with identity)
-                            # - Value Objects (immutable, behavior-driven types)
-                            # - Domain services (pure logic with no side-effects)
-        
-          interactions/     # Application-level use cases
-                            # Defines how the outside world interacts with domain logic
-                            # Example: "CreateTransaction", "GenerateSpendingReport"
-        
-          repositories/     # Interfaces that define how to interact with data sources
-                            # These are implemented later in the infrastructure layer
-        
-        infra/              # Infrastructure implementations for external services
-                            # Includes:
-                            # - Database adapters (e.g., PostgreSQL, SQLite)
-                            # - External APIs
-                            # - Repository implementations that fulfill `core/repositories` interfaces
-    agni-web/ # Frontend web application (Nuxt.js)
-    # Handles all user interface and client-side logic
+    config/             # Configuration files and dependency injection container # Includes environment setup, constants, and app-wide settings
+    controllers/        # HTTP controllers or interfaces to execute use cases # Responsible for parsing requests, calling use cases, and formatting responses
+    core/               # The heart of the application (domain and use cases)
+      adapters/         # Interface adapters to connect the domain with external systems or frameworks# Example: data mappers, serializers, or gateways
+      domains/          # Pure domain logic — no framework or DB logic here # Includes: # - Entities (business objects with identity) # - Value Objects (immutable, behavior-driven types) # - Domain services (pure logic with no side-effects)
+      interactions/     # Application-level use cases # Defines how the outside world interacts with domain logic # Example: "CreateTransaction", "GenerateSpendingReport"
+      repositories/     # Interfaces that define how to interact with data sources # These are implemented later in the infrastructure layer
+    infra/              # Infrastructure implementations for external services
+                        # Includes:
+                        # - Database adapters (e.g., PostgreSQL, SQLite)
+                        # - External APIs
+                        # - Repository implementations that fulfill `core/repositories` interfaces
+    agni-web/ # Frontend web application (Nuxt.js), Handles all user interface and client-side logic
     
-    agni-mobile/ # Mobile app (Swift + SwiftUI, coming soon)
-    # Will share logic where possible with agni-web
+    agni-mobile/ # Mobile app (Swift + SwiftUI, coming soon); # Will share logic where possible with agni-web
 ```
 
 ## ✨ Features
 <!--TODO list feature, future features-->
-
 
 ## 🚀 Installation
 
