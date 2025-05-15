@@ -10,13 +10,13 @@
                 <NavBarLogoTitle title=".Agin" />
             </div>
             <div>
-                <NavBarItem title="Dashboard" link="/" icon="" />
-                <NavBarItem title="Transactions" link="/transactions" icon="" />
-                <NavBarItem title="Wallets" link="/wallets" icon="" />
-                <NavBarItem title="Budgets" link="/budgtes" icon="" />
-                <NavBarItem title="Saving" link="/savings" icon="" />
-                <NavBarItem title="Analystics" link="/analysts" icon="" />
-                <NavBarItem title="Settings" link="/settings" icon="" />
+                <NavBarItem title="Dashboard" link="/" icon="fa-solid fa-house" />
+                <NavBarItem title="Transactions" link="/transactions" icon="fa-solid fa-money-bill-transfer" />
+                <NavBarItem title="Wallets" link="/wallets" icon="fa-solid fa-wallet" />
+                <NavBarItem title="Budgets" link="/budgets" icon="fa-solid fa-coins" />
+                <NavBarItem title="Goals" link="/goals" icon="fa-solid fa-bullseye" />
+                <NavBarItem title="Analystics" link="/analystcs" icon="fa-solid fa-chart-line" />
+                <NavBarItem title="Settings" link="/settings" icon="fa-solid fa-gear" />
             </div>
         </div>
     </div>
