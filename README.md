@@ -31,6 +31,7 @@ In my culture, the Agni ethnic group is often stereotyped as stingy. However, I 
 The backend (Node.js + Express) follows **Clean Architecture** principles combined with a **Domain-Driven Design (DDD)** approach for modeling business logic.
 
 ### 📂 Folder Structure
+```
 apps/
     agni-server/ # Backend server
     config/             # Configuration files and dependency injection container # Includes environment setup, constants, and app-wide settings
@@ -48,6 +49,7 @@ apps/
     agni-web/ # Frontend web application (Nuxt.js), Handles all user interface and client-side logic
     
     agni-mobile/ # Mobile app (Swift + SwiftUI, coming soon); # Will share logic where possible with agni-web
+```
 
 ## ✨ Features
 <!--TODO list feature, future features-->
