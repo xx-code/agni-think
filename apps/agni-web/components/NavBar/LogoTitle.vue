@@ -10,7 +10,7 @@ defineProps(['title'])
 
 <style scoped>
 .title {
-    color: "#1E3050";
+    color: #1E3050;
     font-size: 2em;
     font-weight: bold;
 }
