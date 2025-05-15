@@ -25,7 +25,6 @@ In my culture, the Agni ethnic group is often stereotyped as stingy. However, I 
 **Monorepo**  
 - Turborepo (not yet implemented)
 
-
 ## 🏗️ Architecture
 
 The backend (Node.js + Express) follows **Clean Architecture** principles combined with a **Domain-Driven Design (DDD)** approach for modeling business logic.
