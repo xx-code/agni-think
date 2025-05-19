@@ -5,14 +5,11 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 
 library.add(fas)
 </script>
-<template>
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout> 
-</template>
 
-<style scoped>
-body {
-  margin: 0;
-}
-</style>
+<template>
+  <UApp>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout> 
+  </UApp>
+</template>

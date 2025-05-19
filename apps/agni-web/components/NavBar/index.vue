@@ -25,7 +25,7 @@ const isResponsive = computed(() => width.value <= 975)
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .top-nav {
     margin-bottom: 75px;
     margin-left: 1em;
@@ -35,10 +35,10 @@ const isResponsive = computed(() => width.value <= 975)
 .nav-container {
     background-color: rgba(103, 85, 215, 0.1);
     width: 225px;
+    transition: 250ms ease-out;
     @media (max-width: 975px) {
         width: 75px;
     };
-    transition: 250ms ease-out;
 }
 .nav-content {
     padding: 1rem;
