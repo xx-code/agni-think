@@ -1,13 +1,20 @@
 <template>
     <div class="container">
         <NavBar />
-        <slot />
+        <UContainer class="content">
+            <TopBar />
+            <slot />
+        </UContainer>
     </div>
 </template>
 
 <style scoped>
 .container {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
+}
+.content {
+    width: 100%;
+    padding: 0.5rem;
 }
 </style>

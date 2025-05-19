@@ -1,10 +1,16 @@
-body {
-  font-family: 'lexend';
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: 'lexend';
   width: 100%;
-  min-height: 100vh;
+  height: 100%;
   font-size: 15px;
 }
+
 
 :root {
   --foreground-rgb: 0, 0, 0;
