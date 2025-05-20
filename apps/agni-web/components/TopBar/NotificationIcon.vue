@@ -11,10 +11,9 @@ library.add(fas)
 
 <template>
     <div class="container-notification-icon">
-        <div style="position: relative;">
+        <UChip color="error">
             <font-awesome-icon class="icon" icon="fa-solid fa-bell" />
-            <div class="alert-btn"/>
-        </div>
+        </UChip>
     </div>
 </template>
 
@@ -23,15 +22,10 @@ library.add(fas)
 .container-notification-icon {
     background: rgba(103, 85, 215, 0.1);
     border-radius: 12px;
-    padding: 1rem;
-}
-.alert-btn {
-    height: 10px;
-    width: 10px;
-    border-radius: 100%;
-    background-color: #DC4C4C;
-    position: absolute;
-    bottom: -5px;
-    right: -5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 45px;
+    width: 45px;
 }
 </style>

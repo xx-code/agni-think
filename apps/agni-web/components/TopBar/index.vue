@@ -25,12 +25,12 @@ const routeInfo = useCurrentRouteInfo();
     margin-top: 1.05rem;
 }
 .title {
-   color: #000;   
-   margin: 0;
+   color: #000; 
+   font-size: 2em;
+   font-weight: bolder;
 }
 
 .sub-title {
     color: #ADADAD;
-    margin: 0;
 }
 </style>
