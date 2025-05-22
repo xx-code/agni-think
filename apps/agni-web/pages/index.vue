@@ -6,6 +6,7 @@ import { computed, ref } from 'vue'
 import { useFetchResumeAccount } from '../composables/account';
 import { useListTransactions } from '../composables/transactions';
 import { useListGoals } from '../composables/goals';
+import { useListBudget, formatBudgetDataForChart} from '../composables/budgets';
 
 library.add(fas)
 
@@ -25,6 +26,10 @@ const dataChart = computed(() => ({
         borderWidth: 1
     }],
 }))
+
+const budgets = useListBudget()
+
+const budgetChart = computed(() => (formatBudgetDataForChart(budgets.value)))
 
 const accounts = useFetchResumeAccount()
 const transactionAccountSelected = ref(accounts.value[0].title)
@@ -142,7 +147,7 @@ const listTypeDateDisplay =computed(() => (
                     <UButton icon="i-lucide-external-link" variant="outline" color="neutral" />
                 </CustomCardTitle>
                 <div class="flex justify-center" style="height: 280px;">
-                    <DoughnutChart :data="dataChart" :options="optionsChart"/>
+                    <DoughnutChart :data="budgetChart" :options="optionsChart"/>
                 </div>
             </div>
             <div class="card-grid rounded-md md:col-span-2 flex flex-col gap-2">
