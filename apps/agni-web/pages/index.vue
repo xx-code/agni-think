@@ -6,6 +6,18 @@ import { computed, ref } from 'vue'
 import { useFetchResumeAccount } from '../composables/account';
 import { useListTransactions } from '../composables/transactions';
 import { useListGoals } from '../composables/goals';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, type ChartData } from 'chart.js';
+import { Bar } from 'vue-chartjs';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+
+const data = {
+        labels: ['Jan', 'Feb', 'Marc'],
+        datasets: [{data: [40, 20, 12]}]
+}
+const optionData = {
+    responsive: true
+}
 
 library.add(fas)
 
@@ -117,7 +129,7 @@ const listTypeDateDisplay =computed(() => (
 
             <div class="card-grid rounded-md md:col-span-2">
                 <CustomCardTitle title="Money flow" />
-
+                <Bar :data="data" :options="optionData" /> 
             </div>
             <div class="card-grid rounded-md">
                 <CustomCardTitle title="Budgets" />
