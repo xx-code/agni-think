@@ -6,21 +6,25 @@ import { computed, ref } from 'vue'
 import { useFetchResumeAccount } from '../composables/account';
 import { useListTransactions } from '../composables/transactions';
 import { useListGoals } from '../composables/goals';
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, type ChartData } from 'chart.js';
-import { Bar } from 'vue-chartjs';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
-
-const data = {
-        labels: ['Jan', 'Feb', 'Marc'],
-        datasets: [{data: [40, 20, 12]}]
-}
-const optionData = {
-    responsive: true
-}
 
 library.add(fas)
 
+const labelsDate = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+const optionsChart = computed(() => ({responsive: true})) 
+const dataChart = computed(() => ({
+    labels: labelsDate, 
+    datasets: [{
+        label: 'Income',
+        data: [65, 59, 80, 81, 56, 55],
+        backgroundColor: '#6655d7',
+        borderWidth: 1,
+    }, {
+        label: 'Spend',
+        data: [60, 89, 45, 34, 60, 65],
+        backgroundColor: 'rgba(103, 85, 215, 0.1)',
+        borderWidth: 1
+    }],
+}))
 
 const accounts = useFetchResumeAccount()
 const transactionAccountSelected = ref(accounts.value[0].title)
@@ -129,7 +133,9 @@ const listTypeDateDisplay =computed(() => (
 
             <div class="card-grid rounded-md md:col-span-2">
                 <CustomCardTitle title="Money flow" />
-                <Bar :data="data" :options="optionData" /> 
+                <div class="flex justify-center" style="height: 280px;">
+                    <BarChart  :data="dataChart" :options="optionsChart" />
+                </div>
             </div>
             <div class="card-grid rounded-md">
                 <CustomCardTitle title="Budgets" />
