@@ -133,14 +133,18 @@ const listTypeDateDisplay =computed(() => (
 
             <div class="card-grid rounded-md md:col-span-2">
                 <CustomCardTitle title="Money flow" />
-                <div class="flex justify-center" style="height: 280px;">
+                <div class="flex justify-center items-center" style="height: 280px;">
                     <BarChart  :data="dataChart" :options="optionsChart" />
                 </div>
             </div>
             <div class="card-grid rounded-md">
-                <CustomCardTitle title="Budgets" />
+                <CustomCardTitle title="Budgets">
+                    <UButton icon="i-lucide-external-link" variant="outline" color="neutral" />
+                </CustomCardTitle>
+                <div class="flex justify-center" style="height: 280px;">
+                    <DoughnutChart :data="dataChart" :options="optionsChart"/>
+                </div>
             </div>
-
             <div class="card-grid rounded-md md:col-span-2 flex flex-col gap-2">
                 <CustomCardTitle title="Transactions">
                     <div class="flex gap-1">
