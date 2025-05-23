@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { fas } from '@fortawesome/free-solid-svg-icons'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import {  useRoute } from 'nuxt/app'
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 
 
 library.add(fas)
@@ -39,6 +39,7 @@ const isActive = computed(() => route.path === props.link)
         display: flex;
         align-items: center;
         padding-left: 20px;
+        padding-block: 0.9rem;
         &:hover {
             background: rgba(103, 85, 215, 0.1);
         }
