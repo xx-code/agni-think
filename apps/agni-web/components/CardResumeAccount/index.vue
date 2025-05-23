@@ -14,7 +14,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <div class="card rounded-md">
+    <div class="card rounded-md shrink-0">
         <div class="content">
             <div class="card-title">
                 <div class="content">

@@ -1,3 +1,4 @@
+export const ALL_ACCOUNT_ID = 'all';
 export type ResumeAccountType = {
     id: string,
     title: string,
@@ -65,7 +66,7 @@ export const useFetchResumeAccount = (): Ref<ResumeAccountType[]> => {
     ]
     const totals = sumTotalBalance(accounts)
     const totalAccount: ResumeAccountType = {
-        id: 'all',
+        id: ALL_ACCOUNT_ID,
         title: 'Total Balance',
         balance: totals[0],
         pastBalanceDetail: {
