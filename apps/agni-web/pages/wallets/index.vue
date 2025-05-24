@@ -3,23 +3,61 @@ import { ref } from "vue";
 import { useFetchResumeAccount, ALL_ACCOUNT_ID} from "../../composables/account";
 
 const accounts = useFetchResumeAccount();
-const selectedAccountId = ref(ALL_ACCOUNT_ID);
+const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
+const selectedAccountId = ref(ALL_ACCOUNT_ID)
+
+const onSelectAccount = (id: string) => {
+    selectedAccount.value = accounts.value.find(acc => acc.id === id) 
+    selectedAccountId.value = id
+}
+const getAccount = (id: string) => {
+    return accounts.value.find(acc => acc.id === id)
+}
 </script>
 
 <template>
-    <div class="grid grid-cols-4">
+    <div class="grid xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-1">
         <div>
+            <div class="card rounded-md">
+                <CustomCardTitle :title="getAccount(selectedAccountId)?.title">
+                   <USelect v-model="selectedAccountId" value-key="id" label-key="title" :items="accounts"/> 
+                </CustomCardTitle>
+                <div class="card-money" style="margin-top: 1rem;">
+                    <h2>
+                        ${{ getAccount(selectedAccountId)?.balance }}
+                    </h2>
+                </div>
 
+                <div class="card-bottom" style="margin-top: 1rem;">
+                    <div class="flex items-center">
+                        <UBadge 
+                            variant="subtle"
+                            :color="getAccount(selectedAccountId)?.pastBalanceDetail.doIncrease ? 'success' : 'error'"
+                            :icon="getAccount(selectedAccountId)?.pastBalanceDetail.doIncrease ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'">
+                            {{ getAccount(selectedAccountId)?.pastBalanceDetail.diffPercent }}%
+                        </UBadge>
+                        <p>Vs {{ }} precendent</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-5">
+                    <UButton icon="i-lucide-banknote" size="xl" />
+                    <UButton icon="i-lucide-arrow-right-left" size="xl" />
+                    <UButton icon="i-lucide-snowflake" size="xl"/>
+                </div>
+            </div>
         </div>
-        <div class="col-span-3 flex flex-col" style="width: 100%;">
+
+        <div class="xs:col-1 sm:col-span-1 md:col-span-3 flex flex-col" >
             <div class="self-end" style="margin-bottom: 1rem;">
                 <UButton icon="i-lucide-plus" size="xl" variant="solid">Ajouter Carte</UButton>
             </div>
             <div class="flex overflow-x-auto gap-2"  >
                 <div v-for="account in accounts" :key="account.id">
                     <CardResumeAccount 
+                        @click="onSelectAccount(account.id)"
                         style="width: 200px;"
-                        v-if="account.id !== selectedAccountId"
+                        v-if="account.id !== getAccount(selectedAccountId)?.id"
                         :id="account.id"
                         :title="account.title"
                         :balance="account.balance"
@@ -34,6 +72,24 @@ const selectedAccountId = ref(ALL_ACCOUNT_ID);
     </div> 
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+.card {
+    border: solid 1px #E6E6E6;
+    padding: 0.5rem;
 
+    .card-money {
+        font-weight: bold;
+        font-size: x-large;
+        color: #1E3050;
+    }
+    
+    .card-bottom {
+        p {
+            font-size: small;
+            margin-left: 2.5px;
+            color: #ADADAD;
+        }
+    }
+    
+}
 </style>

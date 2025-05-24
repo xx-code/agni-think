@@ -41,6 +41,7 @@ const props = defineProps({
                 <div class="content">
                     <div>
                         <UBadge 
+                            variant="subtle"
                             :color="isPositif ? 'success' : 'error'"
                             :icon="isPositif ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'">
                             {{ diffPastBalancePer }}%
