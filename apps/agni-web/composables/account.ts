@@ -3,6 +3,7 @@ export type ResumeAccountType = {
     id: string,
     title: string,
     balance: number,
+    typeAccount: string,
     pastBalanceDetail: {
         balance: number,
         diffPercent: number,
@@ -30,8 +31,9 @@ export const useFetchResumeAccount = (): Ref<ResumeAccountType[]> => {
             pastBalanceDetail: {
                 balance: 1425,
                 diffPercent: Number((Math.abs(((1425/1500) * 100) - 100)).toFixed(2)),
-                doIncrease: true 
-            }
+                doIncrease: true
+            },
+            typeAccount: 'Checking'
         },
         {
             id: 'acc-2',
@@ -41,7 +43,8 @@ export const useFetchResumeAccount = (): Ref<ResumeAccountType[]> => {
                 balance: 8000,
                 diffPercent: Number((Math.abs(((8000/7500) * 100) - 100)).toFixed(2)),
                 doIncrease: false 
-            }
+            },
+            typeAccount: 'Checking'
         },
         {
             id: 'acc-3',
@@ -51,7 +54,8 @@ export const useFetchResumeAccount = (): Ref<ResumeAccountType[]> => {
                 balance: 584,
                 diffPercent: Number((Math.abs(((584/385) * 100) - 100)).toFixed(2)),
                 doIncrease: false 
-            }
+            },
+            typeAccount: 'Checking'
         },
         {
             id: 'acc-4',
@@ -61,11 +65,12 @@ export const useFetchResumeAccount = (): Ref<ResumeAccountType[]> => {
                 balance: 10000,
                 diffPercent: Number((Math.abs(((10751/10000) * 100) - 100)).toFixed(2)),
                 doIncrease: true 
-            }
+            },
+            typeAccount: 'Saving'
         },
     ]
     const totals = sumTotalBalance(accounts)
-    const totalAccount: ResumeAccountType = {
+    const totalAccount: ResumeAccountType= {
         id: ALL_ACCOUNT_ID,
         title: 'Total Balance',
         balance: totals[0],
@@ -73,10 +78,64 @@ export const useFetchResumeAccount = (): Ref<ResumeAccountType[]> => {
             balance: totals[1],
             diffPercent: Number((Math.abs(((10751/10000) * 100) - 100)).toFixed(2)), 
             doIncrease: totals[1] < totals[0]
-        }
+        },
+        typeAccount: ''
     }
 
     accounts.unshift(totalAccount)
 
     return ref(accounts)
+}
+
+export type AccountType = {
+    id: string,
+    label: string
+}
+
+export const useFetchAccountTypes = (): Ref<AccountType[]> => {
+    const accountTypes = ref([
+        {
+            id: "Checking",
+            label: "Debit"
+        },
+        {
+            id: "Saving",
+            label: "Epargne"
+        },
+        {
+            id: "Business",
+            label: "Business"
+        },
+        {
+            id: "Broking",
+            label: "Investissement"
+        }
+    ])
+
+    return accountTypes;
+}
+
+export type NewAccountRequest = {
+    accountName: string
+    accountType: string
+}
+export async function addNewAccount(request: NewAccountRequest){
+    const toast = useToast();
+
+    toast.add({ title: 'Success', description: 'Nouveau compte ajoute', color: 'success'})
+
+    console.log(request);
+}
+
+export type UpdateAccountRequest = {
+    accountId: string
+    accountName: string
+    accountType: string
+}
+export async function updateAccount(request: UpdateAccountRequest){
+    const toast = useToast()
+
+    toast.add({ title: 'Success', description: 'Mise a jour de compte', color: 'success'})
+
+    console.log(request)
 }

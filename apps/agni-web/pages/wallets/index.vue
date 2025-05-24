@@ -1,10 +1,16 @@
 <script  setup lang="ts">
 import { ref } from "vue";
-import { useFetchResumeAccount, ALL_ACCOUNT_ID} from "../../composables/account";
-
+import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType} from "../../composables/account";
+import { EditAccountModal } from "#components";
 const accounts = useFetchResumeAccount();
 const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
 const selectedAccountId = ref(ALL_ACCOUNT_ID)
+const editAccount = ref({accountId: '', accountName: "", accountType: ""})
+
+const overlay = useOverlay()
+const modalAccount = overlay.create(EditAccountModal, {
+    props: editAccount.value 
+})
 
 const onSelectAccount = (id: string) => {
     selectedAccount.value = accounts.value.find(acc => acc.id === id) 
@@ -13,6 +19,13 @@ const onSelectAccount = (id: string) => {
 const getAccount = (id: string) => {
     return accounts.value.find(acc => acc.id === id)
 }
+const onEditAccount = (account: ResumeAccountType|null) => {
+    editAccount.value = {accountId: account?.id ?? '', accountName: account?.title || '', accountType: account?.typeAccount || ''}
+    if(account)
+        modalAccount.patch(editAccount.value)
+    modalAccount.open()
+}
+
 </script>
 
 <template>
@@ -50,12 +63,12 @@ const getAccount = (id: string) => {
 
         <div class="xs:col-1 sm:col-span-1 md:col-span-3 flex flex-col" >
             <div class="self-end" style="margin-bottom: 1rem;">
-                <UButton icon="i-lucide-plus" size="xl" variant="solid">Ajouter Carte</UButton>
+                <UButton icon="i-lucide-plus" size="xl" variant="solid" @click="onEditAccount(null)">Ajouter Carte</UButton>
             </div>
             <div class="flex overflow-x-auto gap-2"  >
                 <div v-for="account in accounts" :key="account.id">
                     <CardResumeAccount 
-                        @click="onSelectAccount(account.id)"
+                        @customClick="onSelectAccount(account.id)"
                         style="width: 200px;"
                         v-if="account.id !== getAccount(selectedAccountId)?.id"
                         :id="account.id"
@@ -63,8 +76,9 @@ const getAccount = (id: string) => {
                         :balance="account.balance"
                         :diff-past-balance-per="account.pastBalanceDetail.diffPercent"
                         :is-positif="account.pastBalanceDetail.doIncrease"
-                        :allow-edit="true"
-                        :allow-open="true"
+                        :allow-edit="account.id === ALL_ACCOUNT_ID ? false:true"
+                        :allow-delete="account.id === ALL_ACCOUNT_ID ? false:true" 
+                        @edit="onEditAccount(account)"
                     /> 
                 </div>
             </div> 
