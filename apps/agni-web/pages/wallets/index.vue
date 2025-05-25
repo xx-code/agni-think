@@ -1,19 +1,22 @@
 <script  setup lang="ts">
 import { ref } from "vue";
 import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType} from "../../composables/account";
-import { EditAccountModal, TransferModal } from "#components";
+import { EditAccountModal, EditTransactionModal, TransferModal } from "#components";
 const accounts = useFetchResumeAccount();
 const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
 const selectedAccountId = ref(ALL_ACCOUNT_ID)
 const editAccount = ref({accountId: '', accountName: "", accountType: ""})
 
 const overlay = useOverlay()
-const overlay2 = useOverlay()
 const modalAccount = overlay.create(EditAccountModal, {
     props: editAccount.value 
 })
 
-const modalTransfer = overlay2.create(TransferModal, {
+const modalTransfer = overlay.create(TransferModal, {
+})
+
+const modalTransaction = overlay.create(EditTransactionModal, {
+    props: {isEdit: false}
 })
 
 const onSelectAccount = (id: string) => {
@@ -34,6 +37,10 @@ const onTransferAccount = (accountId: string = '') => {
     const filterId = accountId === ALL_ACCOUNT_ID ? '': accountId
     modalTransfer.patch({accountFromId: filterId})
     modalTransfer.open()
+}
+
+const onEditTransaction = () => {
+    modalTransaction.open()
 }
 
 </script>
@@ -64,7 +71,7 @@ const onTransferAccount = (accountId: string = '') => {
                 </div>
 
                 <div class="flex justify-between mt-5">
-                    <UButton icon="i-lucide-banknote" size="xl" />
+                    <UButton icon="i-lucide-banknote" size="xl" @click="onEditTransaction()"/>
                     <UButton icon="i-lucide-arrow-right-left" size="xl" @click="onTransferAccount(selectedAccountId)" />
                     <UButton icon="i-lucide-snowflake" size="xl"/>
                 </div>
@@ -89,6 +96,7 @@ const onTransferAccount = (accountId: string = '') => {
                         :allow-edit="account.id === ALL_ACCOUNT_ID ? false:true"
                         :allow-delete="account.id === ALL_ACCOUNT_ID ? false:true" 
                         @edit="onEditAccount(account)"
+
                     /> 
                 </div>
             </div> 
