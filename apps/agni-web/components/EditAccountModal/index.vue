@@ -44,15 +44,15 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     <template #body>
         <UForm :schema="schema" :state="form" class="space-y-4" @submit="onSubmit">
             <UFormField label="Nom de compte" name="accountName">
-                <UInput v-model="form.accountName"/>
+                <UInput v-model="form.accountName" class="w-full"/>
             </UFormField>
 
             <UFormField label="Type de compte" name="accountType">
-                <USelect v-model="form.accountType" value-key="id" :items="types">
+                <USelect v-model="form.accountType" value-key="id" :items="types" class="w-full">
 
                 </USelect>
             </UFormField>
-            <UButton type="submit" :label="isEdit ? 'Ajouter nouveau' : 'Mettre a jour'"/>
+            <UButton type="submit" :label="isEdit ? 'Mettre a jour' : 'Ajouter nouveau'"/>
         </UForm>
     </template>
    </UModal> 

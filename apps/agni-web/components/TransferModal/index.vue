@@ -36,11 +36,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         <template #body>
             <UForm :schema="schema" :state="form" class="space-y-4" @submit="onSubmit">
                 <UFormField label="Compte de" name="accountIdFrom">
-                    <USelect v-model="form.accountIdFrom"  value-key="id" label-key="title" :items="accounts.filter(acc => acc.id !== ALL_ACCOUNT_ID)"/>
+                    <USelect v-model="form.accountIdFrom"  value-key="id" label-key="title" :items="accounts.filter(acc => acc.id !== ALL_ACCOUNT_ID)"
+                        class="w-full"/>
                 </UFormField>
 
                 <UFormField label="Compte vers" name="accountIdTo">
-                    <USelect v-model="form.accountIdTo" label-key="title" value-key="id" :items="accounts.filter(acc => acc.id !== ALL_ACCOUNT_ID)" />
+                    <USelect v-model="form.accountIdTo" label-key="title" value-key="id" :items="accounts.filter(acc => acc.id !== ALL_ACCOUNT_ID)" 
+                        class="w-full"/>
                 </UFormField>
 
                 <UFormField label="Argent" name="amount">

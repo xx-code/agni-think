@@ -75,7 +75,7 @@ title="Transaction"
             </UFormField>
 
             <UFormField label="Prix" name="amount">
-                <UInput v-model="form.amount" type="number" class="w-full"/>
+                <UInput v-model="form.amount" type="number" />
             </UFormField>
             
             <UFormField label="Description" name="description">

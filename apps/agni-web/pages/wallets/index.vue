@@ -29,7 +29,7 @@ const getAccount = (id: string) => {
 const onEditAccount = (account: ResumeAccountType|null) => {
     editAccount.value = {accountId: account?.id ?? '', accountName: account?.title || '', accountType: account?.typeAccount || ''}
     if(account)
-        modalAccount.patch(editAccount.value)
+        modalAccount.patch({...editAccount.value, isEdit: true})
     modalAccount.open()
 }
 
