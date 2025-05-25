@@ -2,10 +2,13 @@
 import { ref } from "vue";
 import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType} from "../../composables/account";
 import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, TransferModal } from "#components";
+import { useListTransactions } from "../../composables/transactions";
 const accounts = useFetchResumeAccount();
 const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
 const selectedAccountId = ref(ALL_ACCOUNT_ID)
 const editAccount = ref({accountId: '', accountName: "", accountType: ""})
+
+const transactions = useListTransactions(0, 4) // add compute for change in selected Account
 
 const overlay = useOverlay()
 const modalAccount = overlay.create(EditAccountModal, {
@@ -53,7 +56,7 @@ const onEditFreezeTransaction = (accountId: string = '') => {
 </script>
 
 <template>
-    <div class="grid xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-1">
+    <div class="grid xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-1" style="margin-top: 1rem;">
         <div>
             <div class="card rounded-md">
                 <CustomCardTitle :title="getAccount(selectedAccountId)?.title">
@@ -100,8 +103,8 @@ const onEditFreezeTransaction = (accountId: string = '') => {
                         :balance="account.balance"
                         :diff-past-balance-per="account.pastBalanceDetail.diffPercent"
                         :is-positif="account.pastBalanceDetail.doIncrease"
-                        :allow-edit="account.id === ALL_ACCOUNT_ID ? false:true"
-                        :allow-delete="account.id === ALL_ACCOUNT_ID ? false:true" 
+                        :allow-edit="account.id === ALL_ACCOUNT_ID ? false : true"
+                        :allow-delete="account.id === ALL_ACCOUNT_ID ? false :true" 
                         @edit="onEditAccount(account)"
 
                     /> 
@@ -109,6 +112,50 @@ const onEditFreezeTransaction = (accountId: string = '') => {
             </div> 
         </div>
     </div> 
+
+    <div class="grid md:grid-cols-3 gap-2" style="margin-top: 1rem;">
+        <div class="card rounded-md col-span-2 ">
+            <CustomCardTitle title="Recente transaction">
+                <div class="flex gap-1">
+                    <!-- <USelect class="rounded-full" v-model="transactionAccountSelected" :items="accounts.map(acc => (acc.title))" /> -->
+                    <UButton class="rounded-full" size="sm" label="Voir plus" variant="outline" color="neutral" />
+                </div>
+            </CustomCardTitle>
+            <div class="flex flex-col gap-1" style="margin-top: 1rem;">
+                <div v-for="trans in transactions" :key="trans.id">
+                    <RowTransaction 
+                        :id="trans.id" :balance="trans.amount" :title="trans.title" 
+                        :description="trans.description" :icon="trans.icon" 
+                        :tags="trans.tags.map(tag=>tag.title)"/>    
+                </div>
+            </div>
+        </div>
+    
+        <div class="card rounded-md md:row-span-2">
+            <CustomCardTitle title="Gestion financière responsable">
+
+            </CustomCardTitle>
+            <div>
+                <p>Graph 50%/30%/20%</p>
+            </div>
+        </div>
+
+        <div class="card rounded-md col-span-2">
+            <CustomCardTitle title="Freeze transaction et future transaction">
+
+            </CustomCardTitle>
+            <div class="flex flex-col gap-1" style="margin-top: 1rem;">
+                <div v-for="trans in transactions" :key="trans.id">
+                    <RowTransaction 
+                        :id="trans.id" :balance="trans.amount" :title="trans.title" 
+                        :description="trans.description" :icon="trans.icon" 
+                        :tags="trans.tags.map(tag=>tag.title)" />    
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
 </template>
 
 <style scoped lang="scss">
