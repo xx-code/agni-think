@@ -14,7 +14,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <div class="card rounded-md">
+    <div class="card rounded-md shrink-0">
         <div class="content">
             <div class="card-title">
                 <div class="content">
@@ -27,30 +27,36 @@ const props = defineProps({
                 </div>
             </div>
 
-            <!--- -->
+            <div @click="$emit('customClick', id)" style="cursor: pointer;">
+                <!--- -->
 
-            <div class="card-content">
-                <div class="content">
-                    <p>${{ balance }}</p>
+                <div class="card-content">
+                    <div class="content">
+                        <p>${{ balance }}</p>
+                    </div>
                 </div>
+
+                <!--- -->
+
+                <div class="card-bottom">
+                    <div class="content">
+                        <div>
+                            <UBadge 
+                                variant="subtle"
+                                :color="isPositif ? 'success' : 'error'"
+                                :icon="isPositif ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'">
+                                {{ diffPastBalancePer }}%
+                            </UBadge>
+                        </div>
+                        <div>
+                            <p>Vs {{ pastDateInfo }} precendent</p>
+                        </div>
+                    </div> 
+                </div>
+
             </div>
 
-            <!--- -->
-
-            <div class="card-bottom">
-                <div class="content">
-                    <div>
-                        <UBadge 
-                            :color="isPositif ? 'success' : 'error'"
-                            :icon="isPositif ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'">
-                            {{ diffPastBalancePer }}%
-                        </UBadge>
-                    </div>
-                    <div>
-                        <p>Vs {{ pastDateInfo }} precendent</p>
-                    </div>
-                </div> 
-            </div>
+            
         </div>
     </div> 
 </template>

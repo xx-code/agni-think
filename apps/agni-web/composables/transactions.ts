@@ -8,6 +8,11 @@ export type RowTransactionType = {
     tags: {color: string, title: string}[]
 }
 
+export type PrincipalCategory = {
+    id: string
+    label: string
+}
+
 export const useListTransactions = (page: number, size: number): Ref<RowTransactionType[]> => {
     const offset = page - 1
     const fetchTransactions: RowTransactionType[] = [
@@ -81,3 +86,22 @@ export const useListTransactions = (page: number, size: number): Ref<RowTransact
 
     return trans
 } 
+
+export const useFetchMainCategories = (): Ref<PrincipalCategory[]> => {
+    const categories = ref([
+        {
+            id: 'cat-diver',
+            label: 'Cout divers'
+        },
+        {
+            id: 'cat-fix',
+            label: 'Cout fix'
+        },
+        {
+            id: 'cat-variable',
+            label: 'Cout variable'
+        },
+    ])
+
+    return categories
+}
