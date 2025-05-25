@@ -1,7 +1,7 @@
 <script  setup lang="ts">
 import { ref } from "vue";
 import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType} from "../../composables/account";
-import { EditAccountModal, EditTransactionModal, TransferModal } from "#components";
+import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, TransferModal } from "#components";
 const accounts = useFetchResumeAccount();
 const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
 const selectedAccountId = ref(ALL_ACCOUNT_ID)
@@ -18,6 +18,8 @@ const modalTransfer = overlay.create(TransferModal, {
 const modalTransaction = overlay.create(EditTransactionModal, {
     props: {isEdit: false}
 })
+
+const modalFreezeTransaction = overlay.create(EditFreezeTransaction, {})
 
 const onSelectAccount = (id: string) => {
     selectedAccount.value = accounts.value.find(acc => acc.id === id) 
@@ -41,6 +43,11 @@ const onTransferAccount = (accountId: string = '') => {
 
 const onEditTransaction = () => {
     modalTransaction.open()
+}
+
+const onEditFreezeTransaction = (accountId: string = '') => {
+    modalFreezeTransaction.patch({accountId: accountId})
+    modalFreezeTransaction.open()
 }
 
 </script>
@@ -73,7 +80,7 @@ const onEditTransaction = () => {
                 <div class="flex justify-between mt-5">
                     <UButton icon="i-lucide-banknote" size="xl" @click="onEditTransaction()"/>
                     <UButton icon="i-lucide-arrow-right-left" size="xl" @click="onTransferAccount(selectedAccountId)" />
-                    <UButton icon="i-lucide-snowflake" size="xl"/>
+                    <UButton icon="i-lucide-snowflake" size="xl" @click="onEditFreezeTransaction(selectedAccountId)"/>
                 </div>
             </div>
         </div>
