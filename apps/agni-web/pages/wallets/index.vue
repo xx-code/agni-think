@@ -1,15 +1,19 @@
 <script  setup lang="ts">
 import { ref } from "vue";
 import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType} from "../../composables/account";
-import { EditAccountModal } from "#components";
+import { EditAccountModal, TransferModal } from "#components";
 const accounts = useFetchResumeAccount();
 const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
 const selectedAccountId = ref(ALL_ACCOUNT_ID)
 const editAccount = ref({accountId: '', accountName: "", accountType: ""})
 
 const overlay = useOverlay()
+const overlay2 = useOverlay()
 const modalAccount = overlay.create(EditAccountModal, {
     props: editAccount.value 
+})
+
+const modalTransfer = overlay2.create(TransferModal, {
 })
 
 const onSelectAccount = (id: string) => {
@@ -24,6 +28,12 @@ const onEditAccount = (account: ResumeAccountType|null) => {
     if(account)
         modalAccount.patch(editAccount.value)
     modalAccount.open()
+}
+
+const onTransferAccount = (accountId: string = '') => { 
+    const filterId = accountId === ALL_ACCOUNT_ID ? '': accountId
+    modalTransfer.patch({accountFromId: filterId})
+    modalTransfer.open()
 }
 
 </script>
@@ -55,7 +65,7 @@ const onEditAccount = (account: ResumeAccountType|null) => {
 
                 <div class="flex justify-between mt-5">
                     <UButton icon="i-lucide-banknote" size="xl" />
-                    <UButton icon="i-lucide-arrow-right-left" size="xl" />
+                    <UButton icon="i-lucide-arrow-right-left" size="xl" @click="onTransferAccount(selectedAccountId)" />
                     <UButton icon="i-lucide-snowflake" size="xl"/>
                 </div>
             </div>
