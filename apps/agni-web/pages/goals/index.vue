@@ -1,22 +1,35 @@
 <script setup lang="ts">
 import { useListGoals } from "../../composables/goals";
+import { EditSavingGoal } from "#components";
 
+const overlay = useOverlay()
+const modalCreateSavingGoal = overlay.create(EditSavingGoal, {
+    props: {
 
+    }
+})
 const savingGoals = useListGoals()
+
+const onEditSavingGoal = (goal: any | null = null) => {
+    if (goal)
+        modalCreateSavingGoal.patch({goalId: goal.id, title: goal.title, targetAmount: goal.targetAmount})
+
+    modalCreateSavingGoal.open()
+}
 
 </script>
 
 <template>
     <div>
        <div class="flex flex-row-reverse" style="margin-top: 1rem;">
-            <UButton icon="i-lucide-plus" label="Ajouter un but" size="xl"/>
+            <UButton icon="i-lucide-plus" label="Ajouter un but" size="xl" @click="onEditSavingGoal()"/>
        </div> 
        <div style="margin-top: 1rem;">
             <div class="grid xs:grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 <div v-for="goal of savingGoals" :key="goal.id">
                     <div class="card-grid">
                         <CustomCardTitle :title="goal.title">
-                            <UButton icon="i-lucide-pencil" variant="outline" color="neutral" size="xl"/>
+                            <UButton icon="i-lucide-pencil" variant="outline" color="neutral" size="xl" @click="onEditSavingGoal(goal)"/>
                         </CustomCardTitle>
                         <div class="flex items-center" style="margin-top: 1rem;">
                             <AmountTitle :amount="goal.amount" /> 
