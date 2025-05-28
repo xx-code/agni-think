@@ -10,7 +10,7 @@ export const routeInfos: Map<string, RouteInfoType> = new Map([
     ['/transactions', {url: '/transactions', title: 'Transactions', routeName: 'Transactions', subtitle: 'Un angle de vue global sur votre flux d\'argent'}],
     ['/wallets', {url: '/wallets', title: 'Vos comptes', routeName: 'Wallets', subtitle: 'Rien ne fait plus mal qu’au portefeuille. Alors protège-le'}],
     ['/budgets', {url: '/budgets', title: '', routeName: 'Budgets', subtitle: ''}],
-    ['/goals', {url: '/goals', title: '', routeName: 'Goals', subtitle: ''}],
+    ['/goals', {url: '/goals', title: 'But d\'epargne', routeName: 'Goals', subtitle: 'Prêt à mettre un peu d\'argent de côté pour le plaisir.'}],
     ['/analystics', {url: '/analystics', title: '', routeName: 'Analystics', subtitle: ''}],
     ['/settings', {url: '/settings', title: '', routeName: 'Settings', subtitle: ''}],
 ])
