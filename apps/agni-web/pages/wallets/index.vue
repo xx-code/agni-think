@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType} from "../../composables/account";
 import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, TransferModal } from "#components";
 import { useListTransactions } from "../../composables/transactions";
-const accounts = useFetchResumeAccount();
+const accounts = useFetchResumeAccount(); // Compute Value for remove select accountId
 const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
 const selectedAccountId = ref(ALL_ACCOUNT_ID)
 const editAccount = ref({accountId: '', accountName: "", accountType: ""})

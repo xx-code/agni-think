@@ -11,7 +11,7 @@ export const useListGoals = (): Ref<GoalRowType[]> => {
             {
                 id: '1',
                 title: 'Eco pour nouvelle voitre',
-                amount: 1245,
+                amount: 1245.94,
                 targetAmount: 13556
             },
             {
