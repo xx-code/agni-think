@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { useListGoals } from "../../composables/goals";
-import { EditSavingGoal } from "#components";
+import { EditSavingGoal, EditSavingGoalUpdate } from "#components";
 
 const overlay = useOverlay()
 const modalCreateSavingGoal = overlay.create(EditSavingGoal, {
     props: {
-
     }
 })
+const modalUpdateAmountSavingGoal = overlay.create(EditSavingGoalUpdate, {
+    props: {}
+})
+
 const savingGoals = useListGoals()
 
 const onEditSavingGoal = (goal: any | null = null) => {
@@ -15,6 +18,11 @@ const onEditSavingGoal = (goal: any | null = null) => {
         modalCreateSavingGoal.patch({goalId: goal.id, title: goal.title, targetAmount: goal.targetAmount})
 
     modalCreateSavingGoal.open()
+}
+
+const onEditUpdateAmountSavingGoal = (goalId: string, isIncrease: boolean) => {
+    modalUpdateAmountSavingGoal.patch({goalId: goalId, isIncrease: isIncrease})
+    modalUpdateAmountSavingGoal.open()
 }
 
 </script>
@@ -25,11 +33,15 @@ const onEditSavingGoal = (goal: any | null = null) => {
             <UButton icon="i-lucide-plus" label="Ajouter un but" size="xl" @click="onEditSavingGoal()"/>
        </div> 
        <div style="margin-top: 1rem;">
-            <div class="grid xs:grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            <div class="grid xs:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
                 <div v-for="goal of savingGoals" :key="goal.id">
-                    <div class="card-grid">
+                    <div class="card-grid" >
                         <CustomCardTitle :title="goal.title">
-                            <UButton icon="i-lucide-pencil" variant="outline" color="neutral" size="xl" @click="onEditSavingGoal(goal)"/>
+                            <div class="flex gap-1">
+                                <UButton icon="i-lucide-plus" variant="outline" color="neutral" size="xl" @click="onEditUpdateAmountSavingGoal(goal.id, true)"/>
+                                <UButton icon="i-lucide-minus" variant="outline" color="neutral" size="xl" @click="onEditUpdateAmountSavingGoal(goal.id, false)"/>
+                                <UButton icon="i-lucide-pencil" variant="outline" color="neutral" size="xl" @click="onEditSavingGoal(goal)"/>
+                            </div>
                         </CustomCardTitle>
                         <div class="flex items-center" style="margin-top: 1rem;">
                             <AmountTitle :amount="goal.amount" /> 
