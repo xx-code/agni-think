@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { useListBudget } from "../../composables/budgets"
+import { EditBudgetModal } from "#components"
+
+const overlay = useOverlay()
+const modalEditBudget = overlay.create(EditBudgetModal, {
+    props: {}
+})
 
 const budgets = useListBudget()
 
@@ -57,6 +63,13 @@ const listTypeDateDisplay = computed(() => (
     }
 ]
 ))
+
+const onEditModalBudget = (budgetId: string) => {
+    const budget = budgets.value.find(budget => budget.id === budgetId)
+    if (budget)
+        modalEditBudget.patch({title: budget?.title, target: budget?.target})
+    modalEditBudget.open();
+}
 </script>
 
 <template>
@@ -69,16 +82,16 @@ const listTypeDateDisplay = computed(() => (
                 {{ dateDisplayed }}
             </UButton>
         </div>
-        <UButton icon="i-lucide-plus" label="Ajouter un budget" size="xl"/>
+        <UButton icon="i-lucide-plus" label="Ajouter un budget" size="xl" @click="onEditModalBudget('')" />
     </div> 
 
     <div style="margin-top: 1rem;">
         <div class="grid xs:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
             <div v-for="budget of budgets" :key="budget.id">
-                <div class="card-grid" >
+                <div class="card-grid rounded-md" >
                     <CustomCardTitle :title="budget.title">
                         <div class="flex gap-1">
-                            <UButton icon="i-lucide-pencil" variant="outline" color="neutral" size="xl" />
+                            <UButton icon="i-lucide-pencil" variant="outline" color="neutral" size="xl" @click="onEditModalBudget(budget.id)"/>
                         </div>
                     </CustomCardTitle>
                     <div  style="margin-top: 1rem;">
