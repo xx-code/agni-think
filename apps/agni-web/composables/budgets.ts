@@ -6,6 +6,24 @@ export type BudgetType = {
     amount: number
 }
 
+export const useListPeriodBudget = (): Ref<{title: string, value: string}[]> => {
+    const period = [
+        {
+            title: "Semaine",
+            value: "week"
+        },
+        {
+            title: "Mois",
+            value: "Month"
+        },
+        {
+            title: "Annee",
+            value: "Year"
+        }
+    ]
+    return ref(period);
+}
+
 export const useListBudget = (): Ref<BudgetType[]> => {
 
     const budgets: BudgetType[] = [
