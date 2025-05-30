@@ -10,7 +10,7 @@ const props = defineProps({
     <div class="bar-budget">
         <p>{{ title }}</p>
         <div class="flex justify-end text-sm">${{ targetAmount }}</div>
-        <UProgress size="lg" :v-model="amount" :max="targetAmount" />
+        <UProgress size="lg" v-model="props.amount" :max="props.targetAmount" />
     </div>
 </template>
 
