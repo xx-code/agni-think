@@ -11,7 +11,8 @@ import type { FormSubmitEvent } from '@nuxt/ui';
 import { useFetchMainCategories } from '../../composables/transactions';
 const props = defineProps({
     isEdit: Boolean,
-    accountId: String
+    accountId: String,
+    amount: Number
 })
 
 const schema = z.object({
@@ -39,7 +40,7 @@ const form = reactive({
     description: '',
     tagIds: [],
     budgetIds: [],
-    amount: 0,
+    amount: props.amount,
 })
 
 const date = shallowRef(new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()))

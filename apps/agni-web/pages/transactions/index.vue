@@ -5,6 +5,13 @@ import type { DropdownMenuItem } from "@nuxt/ui";
 import { useFetchCategories } from "../../composables/categories";
 import { useFetchTags } from "../../composables/tags";
 import { useListBudget } from "../../composables/budgets";
+import { useListTransactions } from "../../composables/transactions";
+import { EditTransactionModal } from "#components";
+
+const overlay = useOverlay()
+const modalTransaction = overlay.create(EditTransactionModal, {
+    props: {}
+})
 
 const accounts = useFetchResumeAccount()
 const selectedAccounts = ref(accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID)
@@ -114,25 +121,36 @@ const filtersDropdown = computed(() => [
             }
         }
     }
-])
+]satisfies DropdownMenuItem[])
 
+const page = ref(1)
+const transactions = useListTransactions(page.value, 25)
+
+const onEditTransaction = (id: string|null=null) => {
+    if(id){
+        const trans = transactions.value.find(tran => tran.id === id)
+        modalTransaction.patch({amount: trans?.amount})
+    }
+   
+    modalTransaction.open()
+}
 
 </script>
 
 <template>
     <div>
-        <div class="flex justify-between" style="margin-top: 1rem;">
+        <div class="flex justify-between flex-wrap" style="margin-top: 1rem;">
             <div class="flex items-center gap-3">
                 <UDropdownMenu :items="accountsDropdown">
                     <UButton color="neutral" variant="outline" icon="i-lucide-menu" label="Comptes" size="xl"/>
                 </UDropdownMenu>
                 <UButton variant="outline" color="neutral" label="value" size="xl"/>
-                <UDropdownMenu :items="filtersDropdown">
+                <UDropdownMenu class="xs:mt-2" :items="filtersDropdown">
                     <UButton color="neutral" variant="outline" icon="i-lucide-sliders-horizontal" size="xl" label="Filtres"/>
                 </UDropdownMenu>
             </div>
 
-            <UButton icon="i-lucide-plus" label="Ajouter transaction" size="xl" />
+            <UButton icon="i-lucide-plus" label="Ajouter transaction" size="xl" @click="onEditTransaction()" />
         </div>
 
         <div class="mt-2">
@@ -169,6 +187,24 @@ const filtersDropdown = computed(() => [
                     <UInput placeholder="Max" type="number" :min="0" />
                 </div>
             </UFormField>
+        </div>
+
+        <div style="margin-top: 1rem;">
+            <div class="transaction-box flex flex-col gap-2 rounded-md">
+                <div v-for="trans of transactions" :key="trans.id">
+                    <RowTransaction 
+                        :id="trans.id" 
+                        :balance="trans.amount"
+                        :title="trans.title"
+                        :description="trans.description"
+                        :icon="trans.icon"
+                        :doShowEdit="true"
+                        :tags="trans.tags.map(tag => tag.title)"
+                        @update="(id) => onEditTransaction(id)"
+                     />
+                </div>
+            </div>
+            <UPagination class="mt-3" v-model:page="page" :total="100" />
         </div>
     </div>
 </template>
