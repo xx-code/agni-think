@@ -1,5 +1,5 @@
 import { DateService, GetUID } from "@core/adapters/libs";
-import { SAVING_CATEGORY_ID } from "@core/domains/constants";
+import { SAVING_CATEGORY_ID, TransactionMainCategory } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { Record, TransactionType } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
@@ -85,7 +85,9 @@ export class IncreaseSaveGoalUseCase implements IIncreaseSaveGoalUseCase {
             await this.recordRepository.save(newRecordFrom)
        
             let idTransFrom = GetUID()
-            let newTransactionFrom = new Transaction(idTransFrom, request.accountRef, idRecordFrom, SAVING_CATEGORY_ID, date)
+            let newTransactionFrom = new Transaction(idTransFrom, request.accountRef, idRecordFrom, SAVING_CATEGORY_ID, date,
+                TransactionMainCategory.OTHER
+            )
             await this.transactionRepository.save(newTransactionFrom);
             
             await this.savingRepository.update(savingGoal)

@@ -27,7 +27,7 @@ import TransactionRoute from './routes/transactions';
 import SaveGoalRoute from './routes/savingGoals';
 import BudgetRoute from './routes/budgets';
 import { Account } from "@core/domains/entities/account";
-import { AccountType, FREEZE_CATEGORY_ID, mapperTransactionType, SAVING_CATEGORY_ID, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
+import { AccountType, FREEZE_CATEGORY_ID, mapperTransactionType, SAVING_CATEGORY_ID, TransactionMainCategory, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
 import { Category } from "@core/domains/entities/category";
 import { Tag } from "@core/domains/entities/tag";
 import { Record, TransactionType } from "@core/domains/entities/record";
@@ -159,7 +159,7 @@ app.get('/migration-test', async (req: Request, res: Response) => {
           
           await rec_pg.save(record)
 
-          let newTransaction = new Transaction(GetUID(), account.getId(), record.getId(), category.getId(), record.getDate(), tags.map(t => t.getId()))
+          let newTransaction = new Transaction(GetUID(), account.getId(), record.getId(), category.getId(), record.getDate(), TransactionMainCategory.FIXEDCOST, tags.map(t => t.getId()))
           if (is_Freeze)
             newTransaction.setIsFreeze()
 

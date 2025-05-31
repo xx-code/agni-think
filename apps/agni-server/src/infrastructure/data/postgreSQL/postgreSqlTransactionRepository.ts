@@ -85,7 +85,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
 
         if (filterBy.accounts.length) query.whereIn('account_id', filterBy.accounts);
         if (filterBy.categories.length) query.whereIn('category_id', filterBy.categories);
-        if (filterBy.mainCategory) query.whereIn('type', filterBy.type);
+        if (filterBy.mainCategory) query.where('type', '=', filterBy.type);
         if (filterBy.tags.length) {
             query.whereIn('transaction_id', function() {
                 this.select('transaction_id').from('transaction_tags').whereIn('tag_id', filterBy.tags);
