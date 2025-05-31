@@ -29,6 +29,7 @@ export type TransactionResponse = {
     date: string
     description: string
     type: string
+    mainCategory: string
     category: TransactionCategoryResponse
     tags: TransactionTagResponse[]
 }
@@ -94,6 +95,7 @@ export class GetTransactionUseCase implements IGetTransactionUseCase {
                     icon: category.getIconId(),
                     color: category.getColor()
                 },
+                mainCategory: transaction.getTransactionType(),
                 tags: tags
             }
 

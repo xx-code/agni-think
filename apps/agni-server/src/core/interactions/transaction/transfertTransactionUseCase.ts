@@ -2,7 +2,7 @@ import { RecordRepository } from "../../repositories/recordRepository";
 import { AccountRepository } from "../../repositories/accountRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
 import { DateService, GetUID } from "@core/adapters/libs";
-import { FREEZE_CATEGORY_ID, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
+import { FREEZE_CATEGORY_ID, TransactionMainCategory, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { Record, TransactionType } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
@@ -93,10 +93,10 @@ export class TransfertTransactionUseCase implements ITransfertTransactionUseCase
 
             let date = this.dateService.formatDateWithtime(request.date)
 
-            let transFrom = new Transaction(GetUID(), accountFrom.getId(), fromRecord.getId(), TRANSFERT_CATEGORY_ID, date)
+            let transFrom = new Transaction(GetUID(), accountFrom.getId(), fromRecord.getId(), TRANSFERT_CATEGORY_ID, date, TransactionMainCategory.OTHER)
             await this.transactionRepository.save(transFrom)
 
-            let transTo = new Transaction(GetUID(), accountTo.getId(), toRecord.getId(), TRANSFERT_CATEGORY_ID, date)
+            let transTo = new Transaction(GetUID(), accountTo.getId(), toRecord.getId(), TRANSFERT_CATEGORY_ID, date, TransactionMainCategory.OTHER)
             await this.transactionRepository.save(transTo);
 
             await this.unitOfWork.commit()

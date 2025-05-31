@@ -27,6 +27,7 @@ class CreateTransactionModel {
             amount: reqBody.amount ? reqBody.amount : 0,
             description: reqBody.description,
             tagRefs: reqBody.tagIds,
+            mainCategory: reqBody.mainCategory,
             type: reqBody.typeTransaction,
             date: reqBody.date
         }
@@ -46,6 +47,9 @@ class CreateTransactionModel {
 
         if (isEmpty(this.model.type)) 
             errors.push({field: "type", message: "you have to choose type of transaction 'credit' or 'debit' "})
+
+        if (isEmpty(this.model.mainCategory)) 
+            errors.push({field: "type", message: "you have to choose main category transactions"})
 
         if (isEmpty(this.model.date))
             errors.push({field: "date", message: "date field is"})
@@ -153,6 +157,7 @@ class PaginationTransactionModel {
             dateStart: reqQuery.dateStart ? reqQuery.dateStart : '',
             dateEnd: reqQuery.dateEnd ? reqQuery.dateEnd : '',
             type: reqQuery.type ? reqQuery.type : '',
+            mainCategory: reqQuery.type ? reqQuery.type : '', 
             minPrice: reqQuery.minPrice ? reqQuery.minPrice : undefined,
             maxPrice: reqQuery.maxPrice ? reqQuery.maxPrice : undefined
         }
@@ -291,6 +296,7 @@ class GetBalanceModel {
             dateStart: reqQuery.dateStart ? reqQuery.dateStart : '',
             dateEnd: reqQuery.dateEnd ? reqQuery.dateEnd : '',
             type: reqQuery.type ? reqQuery.type : '' ,
+            mainCategory: reqQuery.mainCategory ? reqQuery.mainCategory : '' ,
             minPrice: reqQuery.minPrice ? reqQuery.minPrice : '',
             maxPrice: reqQuery.maxPrice ? reqQuery.maxPrice : '' 
         }
@@ -353,6 +359,7 @@ class UpdateTransactionModel {
             description: reqBody.description ? reqBody.description : '',
             tagsRef: reqBody.tagIds ? reqBody.tagIds : [],
             type: reqBody.typeTransaction ? reqBody.typeTransaction : '',
+            mainCategory: reqBody.mainCategory ? reqBody.mainCategory : '' ,
             date: reqBody.date ? reqBody.date : ''
         }
     }

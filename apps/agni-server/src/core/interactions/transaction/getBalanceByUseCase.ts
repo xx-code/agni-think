@@ -1,4 +1,4 @@
-import { mapperTransactionType } from "@core/domains/constants";
+import { mapperMainTransactionCategory, mapperTransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { TransactionType } from "@core/domains/entities/record";
 import { isEmpty, DateParser } from "@core/domains/helpers";
@@ -13,6 +13,7 @@ export type RequestGetBalanceBy = {
     dateStart: string,
     dateEnd: string,
     type: string,
+    mainCategory: string,
     minPrice: number,
     maxPrice: number
 }
@@ -46,6 +47,10 @@ export class GetBalanceByUseCase implements IGetBalanceByUseCase {
                 }
             }
 
+            let mainCat = null
+            if (!isEmpty(request.mainCategory))
+                mainCat = mapperMainTransactionCategory(request.mainCategory)
+
             let type = null;
             if (!isEmpty(request.type)) {
                 type = mapperTransactionType(request.type!)
@@ -65,6 +70,7 @@ export class GetBalanceByUseCase implements IGetBalanceByUseCase {
                 tags: request.tagsIds,
                 startDate: request.dateStart,
                 endDate: request.dateEnd,
+                mainCategory: mainCat,
                 type: type,
                 minPrice: minPrice,
                 maxPrice: maxPrice

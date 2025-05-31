@@ -1,4 +1,7 @@
 import { ValueError } from "@core/errors/valueError";
+import { TransactionMainCategory } from '@core/domains/constants';
+
+// Refactoring
 
 export class Transaction {
     private id: string;
@@ -8,13 +11,14 @@ export class Transaction {
     private recordRef: string
     private isFreeze: boolean
     private date: string
+    private type: TransactionMainCategory
 
     private change: boolean = false
 
     __add_event_tag: string[] = []
     __delete_event_tag: string[] = []
 
-    constructor(id: string, accountRef: string, recordRef: string, categoryRef: string,  date: string, tagRefs: string[]=[]) {
+    constructor(id: string, accountRef: string, recordRef: string, categoryRef: string,  date: string, type: TransactionMainCategory, tagRefs: string[]=[]) {
         this.id = id 
         this.accountRef = accountRef
         this.recordRef = recordRef
@@ -22,6 +26,7 @@ export class Transaction {
         this.categoryRef = categoryRef
         this.isFreeze = false
         this.date = date
+        this.type = type
     }
 
     setId(id: string) {
@@ -107,12 +112,22 @@ export class Transaction {
 
     setDate(date: string) {
         if (this.date !== date) 
-            this.date = date
+            this.change = true
         this.date = date
     }
 
     getDate(): string {
         return this.date
+    }
+
+    setTransactionType(type: TransactionMainCategory) {
+        if (this.type !== type)
+            this.change = true
+        this.type = type;
+    }
+
+    getTransactionType(): TransactionMainCategory {
+        return this.type
     }
 
     hasChange(): boolean {

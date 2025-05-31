@@ -107,6 +107,7 @@ export class GetAllBudgetUseCase implements IGetAllBudgetUseCase {
                    type: TransactionType.DEBIT,
                    startDate: budget.getDateStart(),
                    endDate: budget.getDateEnd(),
+                   mainCategory: null,
                    minPrice: null, 
                    maxPrice: null
                });

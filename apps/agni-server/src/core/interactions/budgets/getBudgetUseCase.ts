@@ -100,6 +100,7 @@ async execute(id: string): Promise<void> {
             type: TransactionType.DEBIT,
             startDate: budget.getDateStart(),
             endDate: budget.getDateEnd(),
+            mainCategory: null,
             minPrice: null, 
             maxPrice: null
         });

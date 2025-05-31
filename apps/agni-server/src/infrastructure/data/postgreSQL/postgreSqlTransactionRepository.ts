@@ -5,6 +5,7 @@ import { TransactionPaginationResponse } from "@core/domains/metaData/transactio
 import { Knex } from "knex";
 import { isEmpty } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { mapperMainTransactionCategory } from "@core/domains/constants";
 
 export class PostgreSqlTransactionRepository extends KnexConnector implements TransactionRepository {
     constructor(connector: Knex) {
@@ -19,6 +20,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
                 table.uuid('account_id')
                 table.uuid('record_id')
                 table.uuid('category_id')
+                table.string('type')
                 table.date('date')
                 table.boolean('is_freeze')
             })
@@ -40,6 +42,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
             record_id: request.getRecordRef(),
             category_id: request.getCategoryRef(),
             date: request.getDate(),
+            type: request.getTransactionType(),
             is_freeze: request.getIsFreeze()
         });
 
@@ -67,6 +70,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
             result[0]['record_id'],
             result[0]['category_id'],
             result[0]['date'],
+            mapperMainTransactionCategory(result[0]['type']),
             tags
         );
     }
@@ -81,6 +85,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
 
         if (filterBy.accounts.length) query.whereIn('account_id', filterBy.accounts);
         if (filterBy.categories.length) query.whereIn('category_id', filterBy.categories);
+        if (filterBy.mainCategory) query.where('type', '=', filterBy.type);
         if (filterBy.tags.length) {
             query.whereIn('transaction_id', function() {
                 this.select('transaction_id').from('transaction_tags').whereIn('tag_id', filterBy.tags);
@@ -97,7 +102,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
 
         results.forEach(async (result) =>  {
             let tags = (await (this.connector('transaction_tags').where('transaction_id', result['transaction_id']).select('tag_id'))).map(result => result['tag_id'])
-            let transaction = new Transaction(result['transaction_id'], result['account_id'], result['record_id'], result['category_id'], result['date'], tags)
+            let transaction = new Transaction(result['transaction_id'], result['account_id'], result['record_id'], result['category_id'], result['date'], result['type'], tags)
             transactions.push(transaction)
         })
 
@@ -132,7 +137,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
         
         for(let result of results) {
             let tags = (await (this.connector('transaction_tags').where('transaction_id', result['transaction_id']).select('tag_id'))).map(result => result['tag_id'])
-            let transaction = new Transaction(result['transaction_id'], result['account_id'], result['record_id'], result['category_id'], result['date'], tags)
+            let transaction = new Transaction(result['transaction_id'], result['account_id'], result['record_id'], result['category_id'], result['date'], result['type'], tags)
             transactions.push(transaction)
         }
 
@@ -148,6 +153,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
             account_id: request.getAccountRef(),
             record_id: request.getRecordRef(),
             category_id: request.getCategoryRef(),
+            type: request.getTransactionType(),
             is_freeze: request.getIsFreeze()
         });
 
