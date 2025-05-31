@@ -3,7 +3,7 @@ import { Money } from "./money"
 export enum TransactionType {
     DEBIT = 'Debit',
     CREDIT = 'Credit'
-}
+} // TOOD: refactoring by transaction mouvement
 
 export type typeTransactionType = keyof typeof TransactionType 
 

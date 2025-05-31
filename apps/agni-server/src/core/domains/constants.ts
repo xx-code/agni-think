@@ -2,6 +2,8 @@ import { ValueError } from "@core/errors/valueError"
 import { TransactionType } from "./entities/record"
 import { isEmpty } from "./helpers"
 
+// TODO: #refactoring
+
 export enum Period {
     YEAR = 'Year',
     MONTH = 'Month',
@@ -14,6 +16,13 @@ export enum AccountType {
     SAVING = "Saving",
     BUSINESS = "Business",
     BROKING = "Broking"
+}
+
+export enum TransactionMainCategory {
+    INCOME = "Income",
+    FIXEDCOST = "FixedCost",
+    VARIABLECOST = "VariableCost",
+    OTHER = "Other"
 }
 
 export const periodsSystem = [
@@ -94,7 +103,21 @@ export function mapperTransactionType(value: string): TransactionType {
             throw new ValueError(`${value} is not Credit or Debit`)
     }
 }
- 
+
+export function mapperMainTransactionCategory(value: string) {
+    switch (value.toLowerCase()) {
+        case TransactionMainCategory.FIXEDCOST.toLocaleLowerCase():
+            return TransactionMainCategory.FIXEDCOST
+        case TransactionMainCategory.INCOME.toLocaleLowerCase():
+            return TransactionMainCategory.INCOME
+        case TransactionMainCategory.VARIABLECOST.toLocaleLowerCase():
+            return TransactionMainCategory.VARIABLECOST
+        case TransactionMainCategory.OTHER.toLocaleLowerCase():
+            return TransactionMainCategory.OTHER
+        default:
+            throw new ValueError(`${value} is not Transaction main category`)
+    }
+}
 
 export const FREEZE_CATEGORY_ID = '1d462fd7-698d-4a08-a72a-1c96a5f82d50'
 

@@ -4,7 +4,7 @@ import { TagRepository } from "../../repositories/tagRepository";
 import { CategoryRepository } from "../../repositories/categoryRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
 import { DateService } from "@core/adapters/libs";
-import { FREEZE_CATEGORY_ID, mapperTransactionType, SAVING_CATEGORY_ID } from "@core/domains/constants";
+import { FREEZE_CATEGORY_ID, mapperMainTransactionCategory, mapperTransactionType, SAVING_CATEGORY_ID } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
@@ -22,6 +22,7 @@ export type RequestUpdateTransactionUseCase = {
     description: string
     date: string
     amount: number
+    mainCategory: string
 }
 
 export interface IUpdateTransactionUseCase {
@@ -117,6 +118,8 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
 
             transaction.setCategoryRef(request.categoryRef)
 
+            transaction.setTransactionType(mapperMainTransactionCategory(request.mainCategory))
+
             if (!(await this.tagRepository.isTagExistByIds(request.tagsRef)))
                 throw new ResourceNotFoundError("a tag not found")
 
@@ -142,7 +145,8 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
                     tagRefs: transaction.getTags(),
                     date: record.getDate(),
                     description: record.getDescription(),
-                    type: record.getType()
+                    type: record.getType(),
+                    mainCategory: transaction.getTransactionType()
                 })
 
                 newTransationId = this.resultatAddTransaction

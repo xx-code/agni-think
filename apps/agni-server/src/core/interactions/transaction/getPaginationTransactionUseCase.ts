@@ -3,7 +3,7 @@ import { RecordRepository } from "../../repositories/recordRepository";
 import { AccountRepository } from "../../repositories/accountRepository";
 import { TagRepository } from "../../repositories/tagRepository";
 import { CategoryRepository } from "../../repositories/categoryRepository";
-import { mapperTransactionType } from "@core/domains/constants";
+import { mapperMainTransactionCategory, mapperTransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { isEmpty, DateParser } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
@@ -21,6 +21,7 @@ export type RequestGetPagination = {
     dateStart: string
     dateEnd: string
     type: string | null | undefined;
+    mainCategory: string 
     minPrice: number
     maxPrice: number
 }
@@ -45,6 +46,7 @@ export type TransactionResponse = {
     date: string
     description: string
     type: string
+    mainCategory: string
     category: TransactionCategoryResponse
     tags: TransactionTagResponse[]
 }
@@ -121,6 +123,10 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
                 if (DateParser.fromString(request.dateEnd!).compare(DateParser.fromString(request.dateStart!)) < 0)
                     throw new ValidationError('Date start must be less than date end')
 
+            let mainCat = null
+            if (!isEmpty(request.mainCategory))
+                mainCat = mapperMainTransactionCategory(request.mainCategory)
+
             let type = null;
             if (!isEmpty(request.type))
                 type = mapperTransactionType(request.type!)
@@ -140,6 +146,7 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
                 startDate: request.dateStart,
                 endDate: request.dateEnd,
                 type: type,
+                mainCategory: mainCat,
                 minPrice: minPrice,
                 maxPrice: maxPrice
             };
@@ -184,6 +191,7 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
                     tags: tagsRes,
                     description: record.getDescription(),
                     type: record.getType(),
+                    mainCategory: transaction.getTransactionType()
                 })
             }
 

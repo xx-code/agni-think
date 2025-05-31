@@ -4,7 +4,7 @@ import { CategoryRepository } from "../../repositories/categoryRepository"
 import { TagRepository } from "../../repositories/tagRepository"
 import { RecordRepository } from "../../repositories/recordRepository"
 import { DateService, GetUID } from "@core/adapters/libs"
-import { mapperTransactionType } from "@core/domains/constants"
+import { mapperMainTransactionCategory, mapperTransactionType } from "@core/domains/constants"
 import { Money } from "@core/domains/entities/money"
 import { Record, TransactionType } from "@core/domains/entities/record"
 import { Transaction } from "@core/domains/entities/transaction"
@@ -20,6 +20,7 @@ export type RequestAddTransactionUseCase = {
     date: string
     tagRefs: string[]
     type: string
+    mainCategory: string
 }
 
 export interface IAddTransactionUseCase {
@@ -90,8 +91,8 @@ export class AddTransactionUseCase implements IAddTransactionUseCase {
             await this.accountRepository.update(account)
 
             
-
-            let newTransaction = new Transaction(GetUID(), request.accountRef, newRecord.getId(), request.categoryRef, date, request.tagRefs)    
+            const mainCat = mapperMainTransactionCategory(request.mainCategory)
+            let newTransaction = new Transaction(GetUID(), request.accountRef, newRecord.getId(), request.categoryRef, date, mainCat, request.tagRefs)    
             await this.transactionRepository.save(newTransaction);
             
             await this.unitOfWork.commit()
