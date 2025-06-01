@@ -159,7 +159,10 @@ app.get('/migration-test', async (req: Request, res: Response) => {
           
           await rec_pg.save(record)
 
-          let newTransaction = new Transaction(GetUID(), account.getId(), record.getId(), category.getId(), record.getDate(), TransactionMainCategory.FIXEDCOST, tags.map(t => t.getId()))
+          
+
+          let newTransaction = new Transaction(GetUID(), account.getId(), record.getId(), category.getId(), record.getDate(), 
+          TransactionMainCategory.FIXEDCOST, tags.map(t => t.getId()))
           if (is_Freeze)
             newTransaction.setIsFreeze()
 

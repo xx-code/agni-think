@@ -7,6 +7,7 @@ import { TransactionMainCategory } from "@core/domains/constants";
 export type TransactionFilter = {
     accounts: Array<string>;
     categories: Array<string>;
+    budgets: Array<string>,
     tags: Array<string>;
     startDate: string
     endDate: string

@@ -8,6 +8,7 @@ import { Money } from "@core/domains/entities/money";
 import { isEmpty, DateParser } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import ValidationError from "@core/errors/validationError";
+import { BudgetRepository } from "@core/repositories/budgetRepository";
 
 
 export type RequestGetPagination = {
@@ -15,12 +16,13 @@ export type RequestGetPagination = {
     limit: number
     sortBy: string
     sortSense: string
-    accountFilter: Array<string>;
-    categoryFilter: Array<string>;
-    tagFilter: Array<string>;
+    accountFilter: Array<string>
+    budgetFilter: Array<string>
+    categoryFilter: Array<string>
+    tagFilter: Array<string>
     dateStart: string
     dateEnd: string
-    type: string | null | undefined;
+    type: string | null | undefined
     mainCategory: string 
     minPrice: number
     maxPrice: number
@@ -49,6 +51,7 @@ export type TransactionResponse = {
     mainCategory: string
     category: TransactionCategoryResponse
     tags: TransactionTagResponse[]
+    budgets: string[]
 }
 
 export type TransactionPaginationResponse = {
@@ -69,6 +72,7 @@ export interface IGetPaginationTransactionResponse {
 export interface IGetPaginationTransactionAdapter {
     transactionRepository: TransactionRepository
     accountRepository: AccountRepository
+    budgetRepository: BudgetRepository
     categoryRepository: CategoryRepository
     tagRepository: TagRepository
     recordRepository: RecordRepository
@@ -78,6 +82,7 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
     private transactionRepository: TransactionRepository;
     private accountRepository: AccountRepository;
     private categoryRepository: CategoryRepository;
+    private budgetRepository: BudgetRepository;
     private tagRepository: TagRepository;
     private recordRepository: RecordRepository;
     private presenter: IGetPaginationTransactionResponse;
@@ -86,6 +91,7 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
         this.transactionRepository = adapter.transactionRepository;
         this.accountRepository = adapter.accountRepository;
         this.categoryRepository = adapter.categoryRepository;
+        this.budgetRepository = adapter.budgetRepository;
         this.tagRepository = adapter.tagRepository;
         this.recordRepository = adapter.recordRepository;
         this.presenter = presenter;
@@ -100,7 +106,7 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
                 page = request.page
             }
 
-            let limit = 30
+            let limit = 30 // refactoring to be set by controller
             if (request.limit) {
                 if (request.limit <= 0)
                     throw new ValidationError('Size must be greather than 0')
@@ -118,6 +124,10 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
             if (request.tagFilter.length > 0)
                 if (!(await this.tagRepository.isTagExistByIds(request.tagFilter)))
                     throw new ResourceNotFoundError("an tag to filter not valid")
+            
+            if (request.budgetFilter.length > 0)
+                if (!(await this.budgetRepository.isBudgetExistByIds(request.budgetFilter)))
+                    throw new ResourceNotFoundError("an budget to filter not valid")
 
             if (!isEmpty(request.dateStart) && !isEmpty(request.dateEnd))
                 if (DateParser.fromString(request.dateEnd!).compare(DateParser.fromString(request.dateStart!)) < 0)
@@ -145,6 +155,7 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
                 categories: request.categoryFilter,
                 startDate: request.dateStart,
                 endDate: request.dateEnd,
+                budgets: request.budgetFilter,
                 type: type,
                 mainCategory: mainCat,
                 minPrice: minPrice,
@@ -155,7 +166,7 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
 
             request.sortBy = 'date';
             request.sortSense = 'desc'
-      
+
             let response = await this.transactionRepository.getPaginations(page, limit, null, filters);
 
             let transactions: TransactionResponse[] = []
@@ -191,7 +202,8 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
                     tags: tagsRes,
                     description: record.getDescription(),
                     type: record.getType(),
-                    mainCategory: transaction.getTransactionType()
+                    mainCategory: transaction.getTransactionType(),
+                    budgets: transaction.getBudgetRefs()
                 })
             }
 

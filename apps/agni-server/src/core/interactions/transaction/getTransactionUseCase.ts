@@ -32,6 +32,7 @@ export type TransactionResponse = {
     mainCategory: string
     category: TransactionCategoryResponse
     tags: TransactionTagResponse[]
+    budgets: string[]
 }
 
 export interface IGetTransactionUseCaseResponse {
@@ -96,7 +97,8 @@ export class GetTransactionUseCase implements IGetTransactionUseCase {
                     color: category.getColor()
                 },
                 mainCategory: transaction.getTransactionType(),
-                tags: tags
+                tags: tags,
+                budgets: transaction.getBudgetRefs()
             }
 
             this.presenter.success(response);

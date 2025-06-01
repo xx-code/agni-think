@@ -2,6 +2,11 @@ import { DateService } from "@core/adapters/libs";
 import { Period } from "@core/domains/constants";
 
 export class MockDateService implements DateService {
+
+    isValidDateFormat(dateStr: string): boolean {
+        throw new Error("Method not implemented.");
+    }
+
     formatDate(date: string): string {
         return "2025-03-23"; // Mocked formatted date
     }

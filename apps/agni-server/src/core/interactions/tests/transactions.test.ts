@@ -17,7 +17,7 @@ import { AccountRepository } from "@core/repositories/accountRepository";
 import { CategoryRepository } from "@core/repositories/categoryRepository";
 import { RecordRepository } from "@core/repositories/recordRepository";
 import { TagRepository } from "@core/repositories/tagRepository";
-import { TransactionRepository } from "@core/repositories/transactionRepository";
+import { TransactionFilter, TransactionRepository } from "@core/repositories/transactionRepository";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 
 // Mock dependencies
@@ -42,13 +42,16 @@ describe("AddTransactionUseCase", () => {
     let useCase: AddTransactionUseCase;
 
     beforeEach(() => {
-        mockTransactionRepo = new TransactionRepository() as jest.Mocked<TransactionRepository>;
-        mockRecordRepo = new RecordRepository() as jest.Mocked<RecordRepository>;
-        mockCategoryRepo = new CategoryRepository() as jest.Mocked<CategoryRepository>;
-        mockTagRepo = new TagRepository() as jest.Mocked<TagRepository>;
-        mockAccountRepo = new AccountRepository() as jest.Mocked<AccountRepository>;
-        mockUnitOfWorkRepo = new UnitOfWorkRepository() as jest.Mocked<UnitOfWorkRepository>;
-        mockPresenter = { success: jest.fn(), fail: jest.fn() };
+        mockTransactionRepo = jest.mocked<TransactionRepository>({
+            save: jest.fn(),
+            get: jest.fn(),
+            delete: jest.fn(),
+            isTransactionExistById: jest.fn(),
+            getPaginations: jest.fn(),
+            getTransactions: jest.fn(),
+            update: jest.fn() 
+        });
+         mockPresenter = { success: jest.fn(), fail: jest.fn() };
         mockDateService = { formatDateWithtime: jest.fn() } as any;
 
         useCase = new AddTransactionUseCase(

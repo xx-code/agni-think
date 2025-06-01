@@ -11,6 +11,7 @@ import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { AddTransactionUseCase, IAddTransactionUseCaseResponse } from "./addTransactionUseCase";
 import { DeleteTransactionUseCase, IDeleteTransactoinUseCaseResponse } from "./deleteTransactionUseCase";
 import { ValueError } from "@core/errors/valueError";
+import { BudgetRepository } from "@core/repositories/budgetRepository";
 
 
 export type RequestUpdateTransactionUseCase = {
@@ -35,6 +36,7 @@ export interface IUpdateTransactionUseCaseResponse {
 }
 
 export interface IUpdateTransactionAdapter {
+    budgetRepository: BudgetRepository
     transactionRepository: TransactionRepository
     categoryRepository: CategoryRepository
     tagRepository: TagRepository
@@ -51,6 +53,7 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
     private categoryRepository: CategoryRepository;
     private tagRepository: TagRepository;
     private accountRepository: AccountRepository;
+    private budgetRepository: BudgetRepository;
     private unitOfWork: UnitOfWorkRepository;
 
     private dateService: DateService
@@ -83,6 +86,7 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
         this.categoryRepository = adapter.categoryRepository;
         this.tagRepository = adapter.tagRepository;
         this.accountRepository = adapter.accountRepository;
+        this.budgetRepository = adapter.budgetRepository;
         this.presenter = presenter;
         this.unitOfWork = adapter.unitOfWork
         this.dateService = adapter.dateService
@@ -137,6 +141,7 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
                     recordRepository: this.recordRepository,
                     tagRepository: this.tagRepository,
                     transactionRepository: this.transactionRepository,
+                    budgetRepository: this.budgetRepository,
                     unitOfWork: this.unitOfWork,
                 }, this.addTransactionPresenter)).execute({
                     accountRef: transaction.getAccountRef(),
@@ -146,7 +151,8 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
                     date: record.getDate(),
                     description: record.getDescription(),
                     type: record.getType(),
-                    mainCategory: transaction.getTransactionType()
+                    mainCategory: transaction.getTransactionType(),
+                    budgetRefs: transaction.getBudgetRefs()
                 })
 
                 newTransationId = this.resultatAddTransaction

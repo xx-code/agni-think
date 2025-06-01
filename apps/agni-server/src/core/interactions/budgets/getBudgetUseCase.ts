@@ -75,31 +75,14 @@ async execute(id: string): Promise<void> {
     try {
         let budget = await this.budgetRepository.get(id);
            
-        let categories: BudgetCategoryOutput[] =  []
-        for(let categoryId of budget.getCategories()) {
-            let category = await this.categoryRepository.get(categoryId)
-            categories.push({
-                id: category.getId(), 
-                title: category.getTitle(), 
-                icon: category.getIconId(), 
-                color: category.getColor()
-            })
-        }
-
-        let tags: BudgetTagOutput[] = []
-        for (let tagId of budget.getTags()) {
-            let tag = await this.tagRepository.get(tagId)
-            tags.push({id: tag.getId(), title: tag.getValue(), color: tag.getColor() })
-        }
-
-    
         let transactions = await this.transactionRepository.getTransactions({
-            categories: budget.getCategories(),
+            categories: [],
             accounts: [],
-            tags: budget.getTags(),
+            tags: [],
+            budgets: [budget.getId()],
             type: TransactionType.DEBIT,
             startDate: budget.getDateStart(),
-            endDate: budget.getDateEnd(),
+            endDate: budget.getDateEnd() ?? '',
             mainCategory: null,
             minPrice: null, 
             maxPrice: null
@@ -115,7 +98,7 @@ async execute(id: string): Promise<void> {
         let budgetDisplay: BudgetOutput = {
             id: budget.getId(),
             title: budget.getTitle(),
-            categories: categories,
+            categories: [],
             currentBalance: currentBalance,
             period: budget.getPeriod(),
             periodTime: budget.getPeriodTime(),
@@ -123,7 +106,7 @@ async execute(id: string): Promise<void> {
             startDate: budget.getDateStart(),
             updateDate: budget.getDateUpdate(),
             endDate: budget.getDateEnd(),
-            tags: tags
+            tags: []
         };
         this.presenter.success(budgetDisplay);
     } catch(err) {
