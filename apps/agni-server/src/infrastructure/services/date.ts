@@ -3,12 +3,29 @@ import { Period } from "@core/domains/constants";
 import { ValueError } from "@core/errors/valueError";
 const moment = require('moment');
 
+function isValidDateFormat(dateStr: string) {
+    // bot code 
+    const iso8601Regex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?(Z|([+-]\d{2}:\d{2}))?)?$/;
+    const rfc2822Regex = /^[a-zA-Z]{3}, \d{2} [a-zA-Z]{3} \d{4} \d{2}:\d{2}:\d{2} GMT$/;
+
+    return iso8601Regex.test(dateStr) || rfc2822Regex.test(dateStr);
+}
+
+
+
 export class MomentDateService implements DateService {
     constructor() {
-        
+        moment.defineLocale('fr', [])
+    }
+
+    assertValidDate(dateStr: string) {
+        if (!isValidDateFormat(dateStr))
+            throw new ValueError(`Date ${dateStr} format is not valid`)
     }
 
     formatDate(date: string): string {
+        this.assertValidDate(date)
+
         let formatted = moment(date)
         if (!formatted.isValid())
             throw new ValueError(`${date} is not valid`)
@@ -18,6 +35,8 @@ export class MomentDateService implements DateService {
     }
 
     formatDateWithtime(date: string): string {
+        this.assertValidDate(date)
+
         let formatted = moment()
         if (!formatted.isValid())
             throw new ValueError(`${date} is not valid`)
@@ -38,10 +57,12 @@ export class MomentDateService implements DateService {
     }
 
     getDateAddition(date: string, period: Period, periodTime: number): string {
+        this.assertValidDate(date)
+
         let formatted = moment(date)
         if (!formatted.isValid())
             throw new ValueError(`${date} is not valid`)
-
+      
         let value = ""
         switch(period) {
             case Period.DAY:
@@ -64,6 +85,9 @@ export class MomentDateService implements DateService {
     }
 
     compareDate(date1: string, date2: string): 0 | 1 | -1 {
+        this.assertValidDate(date1)
+        this.assertValidDate(date2)
+
         let formatted1 = moment(date1)
         if (!formatted1.isValid())
             throw new ValueError(`date1: ${date1} is not valid`)
@@ -81,3 +105,4 @@ export class MomentDateService implements DateService {
         return 0
     }
 }
+

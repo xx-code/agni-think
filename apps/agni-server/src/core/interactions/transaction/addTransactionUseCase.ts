@@ -11,6 +11,7 @@ import { Transaction } from "@core/domains/entities/transaction"
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError"
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository"
 import { ValueError } from "@core/errors/valueError"
+import { BudgetRepository } from "@core/repositories/budgetRepository"
 
 export type RequestAddTransactionUseCase = {
     accountRef: string
@@ -19,6 +20,7 @@ export type RequestAddTransactionUseCase = {
     description: string
     date: string
     tagRefs: string[]
+    budgetRefs: string[]
     type: string
     mainCategory: string
 }
@@ -34,6 +36,7 @@ export interface IAddTransactionUseCaseResponse {
 
 export interface IAddTransactionAdapter {
     transactionRepository: TransactionRepository
+    budgetRepository: BudgetRepository
     recordRepository: RecordRepository
     categoryRepository: CategoryRepository
     tagRepository: TagRepository
@@ -46,6 +49,7 @@ export class AddTransactionUseCase implements IAddTransactionUseCase {
     private transactionRepository: TransactionRepository;
     private recordRepository: RecordRepository;
     private categoryRepository: CategoryRepository;
+    private budgetRepository: BudgetRepository;
     private tagRepository: TagRepository;
     private accountRepository: AccountRepository;
     private unitOfWork: UnitOfWorkRepository
@@ -54,6 +58,7 @@ export class AddTransactionUseCase implements IAddTransactionUseCase {
 
     constructor(adapters: IAddTransactionAdapter, presenter: IAddTransactionUseCaseResponse) {
         this.transactionRepository = adapters.transactionRepository
+        this.budgetRepository = adapters.budgetRepository
         this.recordRepository = adapters.recordRepository
         this.categoryRepository = adapters.categoryRepository
         this.tagRepository = adapters.tagRepository
@@ -72,8 +77,11 @@ export class AddTransactionUseCase implements IAddTransactionUseCase {
             if (!(await this.categoryRepository.isCategoryExistById(request.categoryRef)))
                 throw new ResourceNotFoundError("Category not found")
 
-            if (!(await this.tagRepository.isTagExistByIds(request.tagRefs)))
+            if (request.tagRefs.length > 0 && !(await this.tagRepository.isTagExistByIds(request.tagRefs)))
                 throw new ResourceNotFoundError("A tag are not found")
+
+            if (request.budgetRefs.length > 0 && !(await this.budgetRepository.isBudgetExistByIds(request.budgetRefs)))
+                throw new ResourceNotFoundError("A Budget are not found")
            
             if (request.amount <= 0)
                 throw new ValueError("You can 't add transaction less or equal to 0")
@@ -92,7 +100,8 @@ export class AddTransactionUseCase implements IAddTransactionUseCase {
 
             
             const mainCat = mapperMainTransactionCategory(request.mainCategory)
-            let newTransaction = new Transaction(GetUID(), request.accountRef, newRecord.getId(), request.categoryRef, date, mainCat, request.tagRefs)    
+            let newTransaction = new Transaction(GetUID(), request.accountRef, newRecord.getId(), request.categoryRef, 
+            date, mainCat, request.tagRefs, request.budgetRefs)    
             await this.transactionRepository.save(newTransaction);
             
             await this.unitOfWork.commit()

@@ -7,6 +7,7 @@ export class Transaction {
     private id: string;
     private accountRef: string
     private tagRefs: string[]
+    private budgetRefs: string[]
     private categoryRef: string
     private recordRef: string
     private isFreeze: boolean
@@ -18,11 +19,16 @@ export class Transaction {
     __add_event_tag: string[] = []
     __delete_event_tag: string[] = []
 
-    constructor(id: string, accountRef: string, recordRef: string, categoryRef: string,  date: string, type: TransactionMainCategory, tagRefs: string[]=[]) {
+    __add_event_budget: string[] = []
+    __delete_event_budget: string[] = []
+
+    constructor(id: string, accountRef: string, recordRef: string, categoryRef: string,  date: string, 
+        type: TransactionMainCategory, tagRefs: string[]=[], budgetRefs: string[]=[]) {
         this.id = id 
         this.accountRef = accountRef
         this.recordRef = recordRef
         this.tagRefs = tagRefs
+        this.budgetRefs = budgetRefs
         this.categoryRef = categoryRef
         this.isFreeze = false
         this.date = date
@@ -51,12 +57,34 @@ export class Transaction {
         }
     }
     
+    setBudgets(budgetRefs: string[]) {
+        // Check version
+        let budget_to_add = budgetRefs.filter(budget => this.budgetRefs.findIndex(el => el === budget) === -1)
+        let budget_to_delete = this.budgetRefs.filter(budget => budgetRefs.findIndex(compbudget => compbudget === budget) === -1)
+
+        if (budget_to_add.length > 0 || budget_to_delete.length > 0) {
+            this.__add_event_budget = budget_to_add
+            this.__delete_event_budget = budget_to_delete
+
+            this.change = true
+            this.budgetRefs = budgetRefs
+        }
+    }
+    
     addTag(tag: string) {
         if (this.tagRefs.includes(tag))
             throw new ValueError('Tag already exist, in transaction. Not duplicate allow.')
         this.__add_event_tag.push(tag)
         this.change = true
         this.tagRefs.push(tag)
+    }
+
+    addBudget(budget: string) {
+        if (this.budgetRefs.includes(budget))
+            throw new ValueError('Budget already exist, in transaction. Not duplicate allow.')
+        this.__add_event_budget.push(budget)
+        this.change = true
+        this.budgetRefs.push(budget)
     }
 
     deleteTag(tag: string) {
@@ -66,6 +94,19 @@ export class Transaction {
         this.__delete_event_tag.push(tag)
         this.change = true
         this.tagRefs.splice(index_tag, 1)
+    }
+
+    deleteBudget(budget: string) {
+        let index_budget = this.budgetRefs.indexOf(budget)
+        if (index_budget < 0)
+            throw new ValueError('budget do not exist, in Transaction.')
+        this.__delete_event_budget.push(budget)
+        this.change = true
+        this.budgetRefs.splice(index_budget, 1)
+    }
+
+    getBudgetRefs(): string[] {
+        return this.budgetRefs
     }
 
     getTags(): string[] {

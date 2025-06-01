@@ -9,6 +9,7 @@ import { TransactionRepository, TransactionFilter } from "@core/repositories/tra
 export type RequestGetBalanceBy = {
     accountsIds: string[],
     tagsIds: string[],
+    budgetIds: string[],
     categoriesIds: string[],
     dateStart: string,
     dateEnd: string,
@@ -67,6 +68,7 @@ export class GetBalanceByUseCase implements IGetBalanceByUseCase {
             let filter: TransactionFilter = {
                 accounts: request.accountsIds,
                 categories: request.categoriesIds,
+                budgets: request.budgetIds,
                 tags: request.tagsIds,
                 startDate: request.dateStart,
                 endDate: request.dateEnd,

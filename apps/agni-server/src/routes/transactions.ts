@@ -10,6 +10,7 @@ const router = Router()
 
 const createTransactionAdapter: IAddTransactionAdapter = {
     accountRepository: diContainer.accountRepository!,
+    budgetRepository: diContainer.budgetRepository!,
     categoryRepository: diContainer.categoryRepository!,
     recordRepository: diContainer.recordRepository!,
     tagRepository: diContainer.tagRepository!,
@@ -28,6 +29,7 @@ const getTransactionAdapter: IGetTransactionAdapter = {
 const getPaginationTransaction: IGetPaginationTransactionAdapter = {
     transactionRepository: diContainer.transactionRepository!,
     accountRepository: diContainer.accountRepository!,
+    budgetRepository: diContainer.budgetRepository!,
     categoryRepository: diContainer.categoryRepository!,
     tagRepository: diContainer.tagRepository!,
     recordRepository: diContainer.recordRepository!
@@ -36,6 +38,7 @@ const getPaginationTransaction: IGetPaginationTransactionAdapter = {
 const updatePaginationTransaction: IUpdateTransactionAdapter = {
     transactionRepository: diContainer.transactionRepository!,
     categoryRepository: diContainer.categoryRepository!,
+    budgetRepository: diContainer.budgetRepository!,
     tagRepository: diContainer.tagRepository!,
     recordRepository: diContainer.recordRepository!,
     accountRepository: diContainer.accountRepository!,

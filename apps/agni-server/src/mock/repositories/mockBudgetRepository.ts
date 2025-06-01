@@ -5,6 +5,10 @@ import { BudgetRepository } from "@core/repositories/budgetRepository";
 export class MockBudgetRepository implements BudgetRepository {
     private budgets: Map<string, Budget> = new Map();
 
+    async isBudgetExistByIds(ids: string[]): Promise<boolean> {
+        return ids.every(id => this.budgets.has(id));
+    }
+
     async isBudgetExistById(id: string): Promise<boolean> {
         return this.budgets.has(id);
     }
