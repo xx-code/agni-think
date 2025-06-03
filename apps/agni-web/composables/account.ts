@@ -1,15 +1,20 @@
 export const ALL_ACCOUNT_ID = 'all';
-export type ResumeAccountType = {
-    id: string,
-    title: string,
-    balance: number,
-    typeAccount: string,
+
+export type AccountType = {
+    id: string
+    title: string
+    balance: number
+    type: string
+}
+
+export type ResumeAccountType = AccountType & {
     pastBalanceDetail: {
         balance: number,
         diffPercent: number,
         doIncrease: boolean
     }
 }
+
 
 function sumTotalBalance(accounts: ResumeAccountType[]): [number, number] {
     let total = 0 
@@ -22,54 +27,15 @@ function sumTotalBalance(accounts: ResumeAccountType[]): [number, number] {
     return [total, pastTotal]
 }
 
-export const useFetchResumeAccount = (): Ref<ResumeAccountType[]> => {
-    const accounts: ResumeAccountType[] = [
-        {
-            id: 'acc-1',
-            title: 'Principal',
-            balance: 1500,
-            pastBalanceDetail: {
-                balance: 1425,
-                diffPercent: Number((Math.abs(((1425/1500) * 100) - 100)).toFixed(2)),
-                doIncrease: true
-            },
-            typeAccount: 'Checking'
-        },
-        {
-            id: 'acc-2',
-            title: 'Secondaire',
-            balance: 7500,
-            pastBalanceDetail: {
-                balance: 8000,
-                diffPercent: Number((Math.abs(((8000/7500) * 100) - 100)).toFixed(2)),
-                doIncrease: false 
-            },
-            typeAccount: 'Checking'
-        },
-        {
-            id: 'acc-3',
-            title: 'Vehicule',
-            balance: 385,
-            pastBalanceDetail: {
-                balance: 584,
-                diffPercent: Number((Math.abs(((584/385) * 100) - 100)).toFixed(2)),
-                doIncrease: false 
-            },
-            typeAccount: 'Checking'
-        },
-        {
-            id: 'acc-4',
-            title: 'Epargne',
-            balance: 10751,
-            pastBalanceDetail: {
-                balance: 10000,
-                diffPercent: Number((Math.abs(((10751/10000) * 100) - 100)).toFixed(2)),
-                doIncrease: true 
-            },
-            typeAccount: 'Saving'
-        },
-    ]
-    const totals = sumTotalBalance(accounts)
+export const useFetchResumeAccount = async (): Promise<Ref<ResumeAccountType[]>> => {
+
+    const accounts = await useFetchListAccount();
+    const resumeAccounts: ResumeAccountType[] = []
+    for(const account of accounts.value) {
+        resumeAccounts.push({...account, pastBalanceDetail: {balance: 0, diffPercent: 0, doIncrease: true}})
+    } 
+
+    const totals = sumTotalBalance(resumeAccounts)
     const totalAccount: ResumeAccountType= {
         id: ALL_ACCOUNT_ID,
         title: 'Total Balance',
@@ -79,52 +45,67 @@ export const useFetchResumeAccount = (): Ref<ResumeAccountType[]> => {
             diffPercent: Number((Math.abs(((10751/10000) * 100) - 100)).toFixed(2)), 
             doIncrease: totals[1] < totals[0]
         },
-        typeAccount: ''
+        type: ''
     }
 
-    accounts.unshift(totalAccount)
+    resumeAccounts.unshift(totalAccount)
 
-    return ref(accounts)
+    return ref(resumeAccounts)
 }
 
-export type AccountType = {
+export const useFetchListAccount = async (): Promise<Ref<AccountType[]>> => {
+    const {data, error} = await useFetch('http://localhost:5001/v1/accounts')
+    if (error.value) {
+        const toast = useToast()
+        toast.add({title: 'Oops! Erreur type de compte', description: error.value.data, color: 'error'})
+        return ref([])
+    }
+
+    let results = ref<AccountType[]>((data.value as {data: {accountId: string, title: string, balance: number, type: string} }[]).data.map(val => ({id: val.accountId, title: val.title, balance: val.balance, type: val.type})))
+
+    return ref(results)
+}
+
+export type AccountTypeType = {
     id: string,
     label: string
 }
 
-export const useFetchAccountTypes = (): Ref<AccountType[]> => {
-    const accountTypes = ref([
-        {
-            id: "Checking",
-            label: "Debit"
-        },
-        {
-            id: "Saving",
-            label: "Epargne"
-        },
-        {
-            id: "Business",
-            label: "Business"
-        },
-        {
-            id: "Broking",
-            label: "Investissement"
-        }
-    ])
-
-    return accountTypes;
+export const useFetchListAccountTypes = async (): Promise<Ref<AccountTypeType[]>> => { 
+    const { data, error } = await useFetch('http://localhost:5001/v1/internal/account-type')
+    if (error.value) {
+        const toast = useToast()
+        toast.add({title: 'Oops! Erreur type de compte', description: error.value.data, color: 'error'})
+        return ref([])
+    }
+    let results = ref<AccountTypeType[]>((data.value as { id: string, value: string }[]).map(val => ({id: val.id, label: val.value})))
+    
+    return results 
 }
 
-export type NewAccountRequest = {
+export type CreateAccountRequest = {
     accountName: string
     accountType: string
 }
-export async function addNewAccount(request: NewAccountRequest){
+export async function useFetchCreateAccount(request: CreateAccountRequest){
+    const {data, error} = await useFetch('http://localhost:5001/v1/accounts', {
+        method: 'POST',
+        body: {
+            title: request.accountName,
+            type: request.accountType
+        }
+    })
+
     const toast = useToast();
+    if (error.value) {
+        const resError = error.value.cause as {field: string, message: string}
+        console.log(resError)
+        toast.add({ title: 'Oops! Erreur', description: resError.message, color: 'error'})
+        return
+    }
 
-    toast.add({ title: 'Success', description: 'Nouveau compte ajoute', color: 'success'})
-
-    console.log(request);
+    const resData = data.value as {data: {accountId: string}}
+    toast.add({ title: 'Success', description: `Nouveau compte ajoute ID:${resData.data.accountId}`, color: 'success'})
 }
 
 export type UpdateAccountRequest = {

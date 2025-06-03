@@ -1,9 +1,9 @@
-<script  setup lang="ts">
+<script setup lang="ts">
 import { ref } from "vue";
 import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType} from "../../composables/account";
 import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, TransferModal } from "#components";
 import { useListTransactions } from "../../composables/transactions";
-const accounts = useFetchResumeAccount(); // Compute Value for remove select accountId
+const accounts = await useFetchResumeAccount(); // Compute Value for remove select accountId
 const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
 const selectedAccountId = ref(ALL_ACCOUNT_ID)
 const editAccount = ref({accountId: '', accountName: "", accountType: ""})
@@ -32,7 +32,7 @@ const getAccount = (id: string) => {
     return accounts.value.find(acc => acc.id === id)
 }
 const onEditAccount = (account: ResumeAccountType|null) => {
-    editAccount.value = {accountId: account?.id ?? '', accountName: account?.title || '', accountType: account?.typeAccount || ''}
+    editAccount.value = {accountId: account?.id ?? '', accountName: account?.title || '', accountType: account?.type || ''}
     if(account)
         modalAccount.patch({...editAccount.value, isEdit: true})
     modalAccount.open()

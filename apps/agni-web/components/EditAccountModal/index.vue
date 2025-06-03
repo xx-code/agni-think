@@ -2,7 +2,7 @@
 import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { reactive } from 'vue';
-import { addNewAccount, updateAccount, useFetchAccountTypes } from '../../composables/account';
+import { useFetchCreateAccount, updateAccount, useFetchListAccountTypes } from '../../composables/account';
 
 const props = defineProps({
     isEdit: Boolean,
@@ -11,8 +11,7 @@ const props = defineProps({
     accountType: String
 })
 
-
-const types = useFetchAccountTypes()
+const types = await useFetchListAccountTypes()
 
 const schema = z.object({
     accountName: z.string().nonempty('Le nom du compte est vide'),
@@ -28,7 +27,7 @@ const form = reactive({
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
     if (!props.isEdit)
-        addNewAccount({accountName: form.accountName, accountType: form.accountType})
+        useFetchCreateAccount({accountName: form.accountName, accountType: form.accountType})
     else 
         updateAccount({accountId: props.accountId??'', accountName: form.accountName, accountType: form.accountType})
     form.accountName = ""
