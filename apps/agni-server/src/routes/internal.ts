@@ -1,4 +1,4 @@
-import { AccountType, Period } from '@core/domains/constants';
+import { AccountType, Period, TransactionMainCategory } from '@core/domains/constants';
 import { Router } from 'express';
 
 const router = Router();
@@ -44,6 +44,31 @@ router.get('/v1/internal/period-type', (req, res) => {
                 break;
             case Period.YEAR:
                 typeAccounts.push({id: 'Year', value: 'Année'})
+                break
+            default:
+                break;
+        }
+    })
+        
+    res.status(200).send(typeAccounts)
+});
+
+router.get('/v1/internal/transaction-type', (req, res) => {
+    const typeAccounts: {id: string, value: string}[] = []
+    Object.keys(TransactionMainCategory).forEach(key => {
+        const valueAcc = TransactionMainCategory[key as keyof typeof TransactionMainCategory]
+        switch(valueAcc) {
+            case TransactionMainCategory.FIXEDCOST:
+                typeAccounts.push({id: 'FixedCost', value: 'Depense Fix'})
+                break;
+            case TransactionMainCategory.INCOME:
+                typeAccounts.push({id: 'Income', value: 'Gains'})
+                break;
+            case TransactionMainCategory.OTHER:
+                typeAccounts.push({id: 'Other', value: 'Autre'})
+                break;
+            case TransactionMainCategory.VARIABLECOST:
+                typeAccounts.push({id: 'VaraibleCost', value: 'Depense Variable'})
                 break
             default:
                 break;

@@ -4,7 +4,7 @@ import { CategoryRepository } from "../../repositories/categoryRepository"
 import { TagRepository } from "../../repositories/tagRepository"
 import { RecordRepository } from "../../repositories/recordRepository"
 import { DateService, GetUID } from "@core/adapters/libs"
-import { mapperMainTransactionCategory, mapperTransactionType } from "@core/domains/constants"
+import { mapperMainTransactionCategory, mapperTransactionType, TransactionMainCategory } from "@core/domains/constants"
 import { Money } from "@core/domains/entities/money"
 import { Record, TransactionType } from "@core/domains/entities/record"
 import { Transaction } from "@core/domains/entities/transaction"
@@ -22,7 +22,6 @@ export type RequestAddTransactionUseCase = {
     tagRefs: string[]
     budgetRefs: string[]
     type: string
-    mainCategory: string
 }
 
 export interface IAddTransactionUseCase {
@@ -90,18 +89,22 @@ export class AddTransactionUseCase implements IAddTransactionUseCase {
 
             let date = this.dateService.formatDateWithtime(request.date)
 
-            let newRecord = new Record(GetUID(), amount, date, mapperTransactionType(request.type))
-            newRecord.setDescription(request.description)
+            const type = mapperMainTransactionCategory(request.type)
+
+            let newRecord = new Record(
+                GetUID(), 
+                amount, 
+                date, 
+                type === TransactionMainCategory.INCOME ? TransactionType.CREDIT : TransactionType.DEBIT, 
+                request.description)
             await this.recordRepository.save(newRecord)
 
             newRecord.getType() === TransactionType.CREDIT ? account.addOnBalance(amount) : account.substractBalance(amount)
 
             await this.accountRepository.update(account)
-
             
-            const mainCat = mapperMainTransactionCategory(request.mainCategory)
             let newTransaction = new Transaction(GetUID(), request.accountRef, newRecord.getId(), request.categoryRef, 
-            date, mainCat, request.tagRefs, request.budgetRefs)    
+            date, type, request.tagRefs, request.budgetRefs)    
             await this.transactionRepository.save(newTransaction);
             
             await this.unitOfWork.commit()

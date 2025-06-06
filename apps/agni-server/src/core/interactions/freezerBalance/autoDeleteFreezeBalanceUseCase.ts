@@ -43,8 +43,7 @@ export class AutoDeleteFreezeBalanceUseCase  implements IAutoDeleteFreezeBalance
                 categories: categoriesIds,
                 startDate: '',
                 endDate: '',
-                mainCategory: null,
-                type: null,
+                types: [],
                 minPrice: null,
                 maxPrice: null
             };

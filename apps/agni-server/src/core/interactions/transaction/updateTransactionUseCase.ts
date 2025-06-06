@@ -150,8 +150,7 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
                     tagRefs: transaction.getTags(),
                     date: record.getDate(),
                     description: record.getDescription(),
-                    type: record.getType(),
-                    mainCategory: transaction.getTransactionType(),
+                    type: transaction.getTransactionType(),
                     budgetRefs: transaction.getBudgetRefs()
                 })
 

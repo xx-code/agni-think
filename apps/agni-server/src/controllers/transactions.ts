@@ -28,8 +28,7 @@ class CreateTransactionModel {
             description: reqBody.description,
             tagRefs: reqBody.tagIds,
             budgetRefs: reqBody.budgetIds,
-            mainCategory: reqBody.mainCategory,
-            type: reqBody.typeTransaction,
+            type: reqBody.type,
             date: reqBody.date
         }
     }
@@ -47,10 +46,7 @@ class CreateTransactionModel {
             errors.push({field: "amount", message: "amout must be greater than 0"})
 
         if (isEmpty(this.model.type)) 
-            errors.push({field: "type", message: "you have to choose type of transaction 'credit' or 'debit' "})
-
-        if (isEmpty(this.model.mainCategory)) 
-            errors.push({field: "type", message: "you have to choose main category transactions"})
+            errors.push({field: "type", message: "you have to choose type of transaction "})
 
         if (isEmpty(this.model.date))
             errors.push({field: "date", message: "date field is"})
@@ -158,8 +154,7 @@ class PaginationTransactionModel {
             tagFilter: reqQuery.tagFilter ? reqQuery.tagFilter.split(";") : [],
             dateStart: reqQuery.dateStart ? reqQuery.dateStart : '',
             dateEnd: reqQuery.dateEnd ? reqQuery.dateEnd : '',
-            type: reqQuery.type ? reqQuery.type : '',
-            mainCategory: reqQuery.type ? reqQuery.type : '', 
+            types: reqQuery.types ? reqQuery.types.split(";"): [],
             minPrice: reqQuery.minPrice ? reqQuery.minPrice : undefined,
             maxPrice: reqQuery.maxPrice ? reqQuery.maxPrice : undefined
         }
@@ -298,8 +293,7 @@ class GetBalanceModel {
             budgetIds: reqQuery.BudgetIds ? reqQuery.budgetIds.split(';'):[],
             dateStart: reqQuery.dateStart ? reqQuery.dateStart : '',
             dateEnd: reqQuery.dateEnd ? reqQuery.dateEnd : '',
-            type: reqQuery.type ? reqQuery.type : '' ,
-            mainCategory: reqQuery.mainCategory ? reqQuery.mainCategory : '' ,
+            types: reqQuery.types ? reqQuery.types.split(";"): [],
             minPrice: reqQuery.minPrice ? reqQuery.minPrice : '',
             maxPrice: reqQuery.maxPrice ? reqQuery.maxPrice : '' 
         }

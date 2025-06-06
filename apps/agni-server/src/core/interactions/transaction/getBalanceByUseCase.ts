@@ -13,8 +13,7 @@ export type RequestGetBalanceBy = {
     categoriesIds: string[],
     dateStart: string,
     dateEnd: string,
-    type: string,
-    mainCategory: string,
+    types: string[],
     minPrice: number,
     maxPrice: number
 }
@@ -48,13 +47,12 @@ export class GetBalanceByUseCase implements IGetBalanceByUseCase {
                 }
             }
 
-            let mainCat = null
-            if (!isEmpty(request.mainCategory))
-                mainCat = mapperMainTransactionCategory(request.mainCategory)
-
-            let type = null;
-            if (!isEmpty(request.type)) {
-                type = mapperTransactionType(request.type!)
+            let types = []
+            if (!isEmpty(request.types))
+            {
+                for(const type of request.types) {
+                    types.push(mapperMainTransactionCategory(type))
+                }
             }
 
             let minPrice = null;
@@ -72,8 +70,7 @@ export class GetBalanceByUseCase implements IGetBalanceByUseCase {
                 tags: request.tagsIds,
                 startDate: request.dateStart,
                 endDate: request.dateEnd,
-                mainCategory: mainCat,
-                type: type,
+                types: types,
                 minPrice: minPrice,
                 maxPrice: maxPrice
             }
