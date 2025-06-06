@@ -26,6 +26,7 @@ import TagRoute from './routes/tags';
 import TransactionRoute from './routes/transactions';
 import SaveGoalRoute from './routes/savingGoals';
 import BudgetRoute from './routes/budgets';
+import InternalRoute from './routes/internal';
 import { Account } from "@core/domains/entities/account";
 import { AccountType, FREEZE_CATEGORY_ID, mapperTransactionType, SAVING_CATEGORY_ID, TransactionMainCategory, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
 import { Category } from "@core/domains/entities/category";
@@ -51,7 +52,7 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.urlencoded())
 app.use(bodyParser.json())
 app.use(cors({
-  origin: 'http://localhost:3001', // Remplace '*' par l'origine exacte
+  origin: 'http://localhost:3000', // Remplace '*' par l'origine exacte
   credentials: true
 }
 ))
@@ -68,6 +69,7 @@ app.use(TagRoute)
 app.use(TransactionRoute)
 app.use(SaveGoalRoute)
 app.use(BudgetRoute)
+app.use(InternalRoute)
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);

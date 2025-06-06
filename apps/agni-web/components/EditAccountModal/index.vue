@@ -2,17 +2,17 @@
 import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { reactive } from 'vue';
-import { addNewAccount, updateAccount, useFetchAccountTypes } from '../../composables/account';
+import { useFetchListAccountTypes, fetchUpdateAccount, fetchCreateAccount } from '../../composables/account';
 
 const props = defineProps({
     isEdit: Boolean,
     accountId: String,
     accountName: String,
-    accountType: String
+    accountType: String,
+    onSaved: Function
 })
 
-
-const types = useFetchAccountTypes()
+const types = await useFetchListAccountTypes()
 
 const schema = z.object({
     accountName: z.string().nonempty('Le nom du compte est vide'),
@@ -26,13 +26,20 @@ const form = reactive({
     accountType: props.accountType ?? (types.value[0].id ?? '')
 })
 
+const  emit = defineEmits(['close', 'saved'])
+
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-    if (!props.isEdit)
-        addNewAccount({accountName: form.accountName, accountType: form.accountType})
-    else 
-        updateAccount({accountId: props.accountId??'', accountName: form.accountName, accountType: form.accountType})
+    if (!props.isEdit) {
+        await fetchCreateAccount({accountName: form.accountName, accountType: form.accountType})
+    } else {
+        await fetchUpdateAccount({accountId: props.accountId??'', accountName: form.accountName, accountType: form.accountType})
+    }
+        
     form.accountName = ""
     form.accountType = ""
+
+    if (props.onSaved) props.onSaved()
+    emit('close')
 }
 
 </script>

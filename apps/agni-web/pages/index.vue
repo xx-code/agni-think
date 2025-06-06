@@ -31,7 +31,7 @@ const budgets = useListBudget()
 
 const budgetChart = computed(() => (formatBudgetDataForChart(budgets.value)))
 
-const accounts = useFetchResumeAccount()
+const accounts = await useFetchResumeAccount()
 const transactionAccountSelected = ref(accounts.value[0].title)
 const accountsChecked = ref(accounts.value.map(acc => ({id: acc.id, checked: true})))
 const items = computed(() => accounts.value.map(acc => (

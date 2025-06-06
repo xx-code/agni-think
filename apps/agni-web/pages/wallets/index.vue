@@ -1,9 +1,10 @@
-<script  setup lang="ts">
+<script setup lang="ts">
 import { ref } from "vue";
-import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType} from "../../composables/account";
+import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType, fetchDeleteAccount} from "../../composables/account";
 import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, TransferModal } from "#components";
 import { useListTransactions } from "../../composables/transactions";
-const accounts = useFetchResumeAccount(); // Compute Value for remove select accountId
+
+const accounts = await useFetchResumeAccount(); // Compute Value for remove select accountId
 const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
 const selectedAccountId = ref(ALL_ACCOUNT_ID)
 const editAccount = ref({accountId: '', accountName: "", accountType: ""})
@@ -12,7 +13,12 @@ const transactions = useListTransactions(0, 4) // add compute for change in sele
 
 const overlay = useOverlay()
 const modalAccount = overlay.create(EditAccountModal, {
-    props: editAccount.value 
+    props:{
+        ...editAccount.value,
+         onSaved: async () => {
+            accounts.value = (await useFetchResumeAccount()).value
+        }},
+    
 })
 
 const modalTransfer = overlay.create(TransferModal, {
@@ -32,9 +38,8 @@ const getAccount = (id: string) => {
     return accounts.value.find(acc => acc.id === id)
 }
 const onEditAccount = (account: ResumeAccountType|null) => {
-    editAccount.value = {accountId: account?.id ?? '', accountName: account?.title || '', accountType: account?.typeAccount || ''}
-    if(account)
-        modalAccount.patch({...editAccount.value, isEdit: true})
+    editAccount.value = {accountId: account?.id ?? '', accountName: account?.title || '', accountType: account?.type || ''}
+    modalAccount.patch({...editAccount.value, isEdit: account !== null})
     modalAccount.open()
 }
 
@@ -51,6 +56,11 @@ const onEditTransaction = () => {
 const onEditFreezeTransaction = (accountId: string = '') => {
     modalFreezeTransaction.patch({accountId: accountId})
     modalFreezeTransaction.open()
+}
+
+const onDeleteAccount = async (accountId: string) => {
+    await fetchDeleteAccount(accountId)
+    accounts.value = (await useFetchResumeAccount()).value
 }
 
 </script>
@@ -106,6 +116,7 @@ const onEditFreezeTransaction = (accountId: string = '') => {
                         :allow-edit="account.id === ALL_ACCOUNT_ID ? false : true"
                         :allow-delete="account.id === ALL_ACCOUNT_ID ? false :true" 
                         @edit="onEditAccount(account)"
+                        @delete="onDeleteAccount(account.id)"
 
                     /> 
                 </div>
