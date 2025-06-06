@@ -35,7 +35,7 @@ export class PostgreSqlCategoryRepository extends KnexConnector implements Categ
     }
 
     async isCategoryExistByName(name: string): Promise<boolean> {
-        let result = await this.connector('categories').where('title', 'like', `%${name}%`).first()
+        let result = await this.connector('categories').where('title', 'like', `${name}`).first()
 
         return !isEmpty(result)
     }

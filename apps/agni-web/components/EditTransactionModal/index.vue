@@ -5,7 +5,7 @@ import * as z from 'zod';
 import { reactive, ref, shallowRef } from "vue";
 import { useFetchResumeAccount } from "../../composables/account";
 import { useListBudget, type BudgetType } from '../../composables/budgets';
-import { useFetchCategories } from '../../composables/categories';
+import { useFetchListCategories } from '../../composables/categories';
 import { useFetchTags, type TagType } from '../../composables/tags';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { useFetchMainCategories } from '../../composables/transactions';
@@ -27,7 +27,7 @@ type Schema = z.output<typeof schema>
 
 const accounts = useFetchResumeAccount()
 
-const categories = useFetchCategories()
+const categories = await useFetchListCategories()
 const tags = useFetchTags()
 const budgets = useListBudget()
 const mainCategories = useFetchMainCategories()
