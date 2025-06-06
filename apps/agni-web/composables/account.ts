@@ -177,7 +177,6 @@ export async function fetchUpdateAccount(request: UpdateAccountRequest): Promise
 }
 
 export async function fetchDeleteAccount(accountId: string): Promise<boolean> {
-    console.log(accountId)
     const response = await $fetch(`${API_LINK}/accounts/${accountId}`, {
         method: 'DELETE'
     })

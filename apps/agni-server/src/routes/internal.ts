@@ -1,4 +1,4 @@
-import { AccountType } from '@core/domains/constants';
+import { AccountType, Period } from '@core/domains/constants';
 import { Router } from 'express';
 
 const router = Router();
@@ -19,6 +19,31 @@ router.get('/v1/internal/account-type', (req, res) => {
                 break;
             case AccountType.BUSINESS:
                 typeAccounts.push({id: 'Business', value: 'Pro'})
+                break
+            default:
+                break;
+        }
+    })
+        
+    res.status(200).send(typeAccounts)
+});
+
+router.get('/v1/internal/period-type', (req, res) => {
+    const typeAccounts: {id: string, value: string}[] = []
+    Object.keys(Period).forEach(key => {
+        const valueAcc = Period[key as keyof typeof Period]
+        switch(valueAcc) {
+            case Period.DAY:
+                typeAccounts.push({id: 'Day', value: 'Jour'})
+                break;
+            case Period.WEEK:
+                typeAccounts.push({id: 'Week', value: 'Semaine'})
+                break;
+            case Period.MONTH:
+                typeAccounts.push({id: 'Month', value: 'Mois'})
+                break;
+            case Period.YEAR:
+                typeAccounts.push({id: 'Year', value: 'Année'})
                 break
             default:
                 break;

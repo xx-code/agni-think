@@ -6,7 +6,7 @@ import { computed, ref } from 'vue'
 import { useFetchResumeAccount } from '../composables/account';
 import { useListTransactions } from '../composables/transactions';
 import { useListGoals } from '../composables/goals';
-import { useListBudget, formatBudgetDataForChart} from '../composables/budgets';
+import { useFetchListBudget, formatBudgetDataForChart} from '../composables/budgets';
 
 library.add(fas)
 
@@ -27,7 +27,7 @@ const dataChart = computed(() => ({
     }],
 }))
 
-const budgets = useListBudget()
+const budgets = await useFetchListBudget()
 
 const budgetChart = computed(() => (formatBudgetDataForChart(budgets.value)))
 

@@ -161,7 +161,7 @@ class UpdateBudgetModel {
             period: reqBody.period ? reqBody.period : '',
             periodTime: reqBody.periodTime ? reqBody.periodItem : 0,
             dateStart: reqBody.dateStart ? reqBody.dateStart : '',
-            dateEnd: reqBody.dateEnd ? reqBody.dateEnd : ''
+            dateEnd: reqBody.dateEnd ? reqBody.dateEnd : null
         }
     }
 
