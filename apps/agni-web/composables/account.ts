@@ -27,11 +27,12 @@ function sumTotalBalance(accounts: ResumeAccountType[]): [number, number] {
     return [total, pastTotal]
 }
 
-export const useFetchResumeAccount = async (): Promise<Ref<ResumeAccountType[]>> => {
+export const useFetchResumeAccount = async (): Promise<{data: Ref<ResumeAccountType[]>, refresh: () => Promise<void>}> => {
 
-    const accounts = await useFetchListAccount();
+    const {data, refresh} = await useFetchListAccount();
     const resumeAccounts: ResumeAccountType[] = []
-    for(const account of accounts.value) {
+    for(const account of data.value) {
+        // fetch passs data
         resumeAccounts.push({...account, pastBalanceDetail: {balance: 0, diffPercent: 0, doIncrease: true}})
     } 
 
@@ -50,20 +51,23 @@ export const useFetchResumeAccount = async (): Promise<Ref<ResumeAccountType[]>>
 
     resumeAccounts.unshift(totalAccount)
 
-    return ref(resumeAccounts)
+    return {data: ref(resumeAccounts), refresh: refresh}
 }
 
-export const useFetchListAccount = async (): Promise<Ref<AccountType[]>> => {
-    const {data, error} = await useFetch('http://localhost:5001/v1/accounts')
+
+export const useFetchListAccount = async (): Promise<{data: Ref<AccountType[]>, refresh: () => Promise<void>}> => {
+    const {data, error, refresh} = await useFetch('http://localhost:5001/v1/accounts')
     if (error.value) {
         const toast = useToast()
         toast.add({title: 'Oops! Erreur type de compte', description: error.value.data, color: 'error'})
-        return ref([])
+        return {data: ref([]), refresh: refresh }
     }
 
-    let results = ref<AccountType[]>((data.value as {data: {accountId: string, title: string, balance: number, type: string} }[]).data.map(val => ({id: val.accountId, title: val.title, balance: val.balance, type: val.type})))
+    const resData = (data.value as {data: {accountId: string, title: string, balance: number, type: string}[]}) 
 
-    return ref(results)
+    let results = ref<AccountType[]>(resData.data.map(val => ({id: val.accountId, title: val.title, balance: val.balance, type: val.type})))
+
+    return {data: ref(results), refresh: refresh}
 }
 
 export type AccountTypeType = {
@@ -80,7 +84,21 @@ export const useFetchListAccountTypes = async (): Promise<Ref<AccountTypeType[]>
     }
     let results = ref<AccountTypeType[]>((data.value as { id: string, value: string }[]).map(val => ({id: val.id, label: val.value})))
     
-    return results 
+    return results
+}
+
+export const useFetchAccount = async (accountId: string): Promise<Ref<AccountType|null>> => {
+    const {data, error} = await useFetch(`http://localhost:5001/v1/accounts/${accountId}`)
+    if (error.value) {
+        const toast = useToast()
+        toast.add({title: 'Oops! Erreur type de compte', description: error.value.data, color: 'error'})
+        return ref(null)
+    }
+
+    let resData = (data.value as {data: {accountId: string, title: string, balance: number, type: string} }).data 
+    let result = ref<AccountType>({id: resData.accountId, title: resData.title, balance: resData.balance, type: resData.type})
+
+    return ref(result)
 }
 
 export type CreateAccountRequest = {
@@ -113,10 +131,40 @@ export type UpdateAccountRequest = {
     accountName: string
     accountType: string
 }
-export async function updateAccount(request: UpdateAccountRequest){
-    const toast = useToast()
 
-    toast.add({ title: 'Success', description: 'Mise a jour de compte', color: 'success'})
+export async function useFetchUpdateAccount(request: UpdateAccountRequest) {
+    const {data, error} = await useFetch(`http://localhost:5001/v1/accounts/${request.accountId}`, {
+        method: 'PUT',
+        body: {
+            title: request.accountName,
+            type: request.accountType
+        }
+    })
 
-    console.log(request)
+    const toast = useToast();
+    if (error.value) {
+        console.log(request.accountName)
+        const resError = error.value.data.error as {field: string, message: string}
+        console.log(error)
+        toast.add({ title: 'Oops! Erreur', description: resError.message, color: 'error'})
+        return
+    }
+
+    toast.add({ title: 'Success', description: `Compte mis a jour ID:${request.accountId}`, color: 'success'})
+}
+
+export async function useFetchDeleteAccont(accountId: string) {
+    const {data, error} = await useFetch(`http://localhost:5001/v1/accounts/${accountId}`, {
+        method: 'DELETE'
+    })
+
+    const toast = useToast();
+    if (error.value) {
+        const resError = error.value.cause as {field: string, message: string}
+        console.log(resError)
+        toast.add({ title: 'Oops! Erreur', description: resError.message, color: 'error'})
+        return
+    }
+
+    toast.add({ title: 'Success', description: `Compte ID:${accountId} supprime`, color: 'success'})
 }

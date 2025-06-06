@@ -3,8 +3,9 @@ import { ref } from "vue";
 import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType} from "../../composables/account";
 import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, TransferModal } from "#components";
 import { useListTransactions } from "../../composables/transactions";
-const accounts = await useFetchResumeAccount(); // Compute Value for remove select accountId
-const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
+
+const {data, refresh} = await useFetchResumeAccount(); // Compute Value for remove select accountId
+const selectedAccount = ref(data.value.find(acc => acc.id === ALL_ACCOUNT_ID));
 const selectedAccountId = ref(ALL_ACCOUNT_ID)
 const editAccount = ref({accountId: '', accountName: "", accountType: ""})
 
@@ -12,7 +13,12 @@ const transactions = useListTransactions(0, 4) // add compute for change in sele
 
 const overlay = useOverlay()
 const modalAccount = overlay.create(EditAccountModal, {
-    props: editAccount.value 
+    props:{
+        ...editAccount.value,
+         onSaved: async () => {
+            data.value = (await useFetchResumeAccount()).data.value
+         } } ,
+    
 })
 
 const modalTransfer = overlay.create(TransferModal, {
@@ -25,11 +31,11 @@ const modalTransaction = overlay.create(EditTransactionModal, {
 const modalFreezeTransaction = overlay.create(EditFreezeTransaction, {})
 
 const onSelectAccount = (id: string) => {
-    selectedAccount.value = accounts.value.find(acc => acc.id === id) 
+    selectedAccount.value = data.value.find(acc => acc.id === id) 
     selectedAccountId.value = id
 }
 const getAccount = (id: string) => {
-    return accounts.value.find(acc => acc.id === id)
+    return data.value.find(acc => acc.id === id)
 }
 const onEditAccount = (account: ResumeAccountType|null) => {
     editAccount.value = {accountId: account?.id ?? '', accountName: account?.title || '', accountType: account?.type || ''}
@@ -60,7 +66,7 @@ const onEditFreezeTransaction = (accountId: string = '') => {
         <div>
             <div class="card rounded-md">
                 <CustomCardTitle :title="getAccount(selectedAccountId)?.title">
-                   <USelect v-model="selectedAccountId" value-key="id" label-key="title" :items="accounts"/> 
+                   <USelect v-model="selectedAccountId" value-key="id" label-key="title" :items="data"/> 
                 </CustomCardTitle>
                 <div class="card-money" style="margin-top: 1rem;">
                     <h2>
@@ -93,7 +99,7 @@ const onEditFreezeTransaction = (accountId: string = '') => {
                 <UButton icon="i-lucide-plus" size="xl" variant="solid" @click="onEditAccount(null)">Ajouter Carte</UButton>
             </div>
             <div class="flex overflow-x-auto gap-2"  >
-                <div v-for="account in accounts" :key="account.id">
+                <div v-for="account in data" :key="account.id">
                     <CardResumeAccount 
                         @customClick="onSelectAccount(account.id)"
                         style="width: 200px;"
@@ -106,6 +112,7 @@ const onEditFreezeTransaction = (accountId: string = '') => {
                         :allow-edit="account.id === ALL_ACCOUNT_ID ? false : true"
                         :allow-delete="account.id === ALL_ACCOUNT_ID ? false :true" 
                         @edit="onEditAccount(account)"
+                        @delete="useFetchDeleteAccont(account.id)"
 
                     /> 
                 </div>
