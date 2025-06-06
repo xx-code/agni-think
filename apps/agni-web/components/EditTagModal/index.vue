@@ -2,34 +2,48 @@
 import * as z from 'zod'
 import { reactive } from "vue";
 import type { FormSubmitEvent } from '@nuxt/ui';
+import { fetchCreateTag, fetchUpdateTag} from '../../composables/tags';
 
 const props = defineProps({
     tagId: String,
+    isEdit: Boolean,
     value: String,
     icon: String,
-    color: String
+    color: String,
+    onSaved: Function
 })
 
 const schema = z.object({
     value: z.string().nonempty('Vous devez ajouter une valeur'),
-    icon: z.string().nonempty('Vous devez ajouter une icon'),
+    color: z.string().nonempty('Vous devez ajouter une icon'),
 })
 
 type Schema = z.output<typeof schema>
 
 const form = reactive({
-    tagId: props.tagId,
-    value: props.value,
-    color: props.color
+    value: props.value ?? '',
+    color: props.color ?? ''
 })
 
-function onSubmit(event: FormSubmitEvent<Schema>) {
-    console.log('submit')
+const emit = defineEmits(['close'])
+
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+    if (!props.isEdit)
+        await fetchCreateTag({value: form.value, color: form.color}) 
+    else 
+        await fetchUpdateTag({tagId: props.tagId ?? '', value: form.value, color: form.color})
+
+    form.value = ''
+    form.color = ''
+
+    if (props.onSaved) props.onSaved()
+
+    emit('close')
 }
 </script>
 
 <template>
-    <UModal title="Edit Categorie">
+    <UModal title="Edit Tag">
         <template #body>
             <UForm :schema="schema" :state="form" @submit="onSubmit" class=" space-y-4">
                 <UFormField label="Nom" name="value">

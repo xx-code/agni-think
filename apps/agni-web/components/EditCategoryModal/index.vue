@@ -2,12 +2,15 @@
 import * as z from 'zod'
 import { reactive } from "vue";
 import type { FormSubmitEvent } from '@nuxt/ui';
+import { fetchCreateCategory, fetchUpdateCategory} from '../../composables/categories';
 
 const props = defineProps({
+    isEdit: Boolean,
     categoryId: String,
     title: String,
     icon: String,
-    color: String
+    color: String,
+    onSaved: Function
 })
 
 const schema = z.object({
@@ -18,14 +21,27 @@ const schema = z.object({
 type Schema = z.output<typeof schema>
 
 const form = reactive({
-    categoryId: props.categoryId,
-    title: props.title,
-    icon: props.icon,
-    color: props.color
+    title: props.title ?? '',
+    icon: props.icon ?? '',
+    color: props.color ?? ''
 })
 
-function onSubmit(event: FormSubmitEvent<Schema>) {
-    console.log('submit')
+const emit = defineEmits(['close'])
+
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+    if (!props.isEdit) {
+        await fetchCreateCategory({title: form.title, icon: form.icon, color: form.color})
+    } else {
+        await fetchUpdateCategory({categoryId: props.categoryId??'', title: form.title, color: form.color, icon: form.icon})
+    }
+
+    form.title = ""
+    form.icon = ""
+    form.color = ""
+
+    if (props.onSaved) props.onSaved()
+
+    emit('close')
 }
 </script>
 

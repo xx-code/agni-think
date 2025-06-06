@@ -1,30 +1,44 @@
 <script setup lang="ts">
-import { EditCategoryModal, EditTagModal } from "#components";
-import { useFetchCategories } from "../../composables/categories";
-import { useFetchTags } from "../../composables/tags";
+import { ref } from "vue";
+import { EditCategoryModal, EditTagModal } from "#components"
+import { fetchListCategories, useFetchListCategories } from "../../composables/categories"
+import { fetchListTags, useFetchListTags } from "../../composables/tags"
+
+
+const categories = await useFetchListCategories()
+const tags = await useFetchListTags()
 
 const overlay = useOverlay()
 const modalCategory = overlay.create(EditCategoryModal, {
-    props: {}
+    props: {
+        onSaved: async () => {
+            categories.value = await fetchListCategories()
+        }
+    }
 })
 const modalTag = overlay.create(EditTagModal, {
-    props: {}
+    props: {
+        onSaved: async () => {
+            tags.value = await fetchListTags()
+        }
+    }
 })
 
-const categories = useFetchCategories()
-const tags = useFetchTags()
-
 const onModalCategory = (categoryId: string) => { 
-    let cat = categories.value.find(cat => cat.id === categoryId)
+    let cat = categories.value!.find(cat => cat.id === categoryId)
     if (cat)
-        modalCategory.patch({categoryId: cat.id, title: cat.title, color: cat.color, icon: cat.icon})
+        modalCategory.patch({ isEdit: true, categoryId: cat.id, title: cat.title, color: cat.color, icon: cat.icon})
+    else 
+        modalCategory.patch({isEdit: false, title: "", color: "", icon: ""})
     modalCategory.open()
 }
 
 const onModalTag = (tagId: string) => { 
     let tag = tags.value.find(tag => tag.id === tagId)
     if (tag)
-        modalTag.patch({tagId: tag.id, value: tag.value, color: tag.color })
+        modalTag.patch({ isEdit:true, tagId: tag.id, value: tag.value, color: tag.color })
+    else 
+        modalTag.patch({ isEdit: false, value: '', color: ''})
     modalTag.open()
 }
 
