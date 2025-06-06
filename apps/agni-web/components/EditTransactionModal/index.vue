@@ -6,7 +6,7 @@ import { reactive, ref, shallowRef } from "vue";
 import { useFetchResumeAccount } from "../../composables/account";
 import { useListBudget, type BudgetType } from '../../composables/budgets';
 import { useFetchListCategories } from '../../composables/categories';
-import { useFetchTags, type TagType } from '../../composables/tags';
+import { useFetchListTags, type TagType } from '../../composables/tags';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { useFetchMainCategories } from '../../composables/transactions';
 const props = defineProps({
@@ -28,7 +28,7 @@ type Schema = z.output<typeof schema>
 const accounts = useFetchResumeAccount()
 
 const categories = await useFetchListCategories()
-const tags = useFetchTags()
+const tags = useFetchListTags()
 const budgets = useListBudget()
 const mainCategories = useFetchMainCategories()
 

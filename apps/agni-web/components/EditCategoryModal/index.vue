@@ -35,6 +35,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         await fetchUpdateCategory({categoryId: props.categoryId??'', title: form.title, color: form.color, icon: form.icon})
     }
 
+    form.title = ""
+    form.icon = ""
+    form.color = ""
+
     if (props.onSaved) props.onSaved()
 
     emit('close')

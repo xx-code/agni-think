@@ -2,11 +2,11 @@
 import { ref } from "vue";
 import { EditCategoryModal, EditTagModal } from "#components"
 import { fetchListCategories, useFetchListCategories } from "../../composables/categories"
-import { useFetchTags } from "../../composables/tags"
+import { fetchListTags, useFetchListTags } from "../../composables/tags"
 
 
 const categories = await useFetchListCategories()
-const tags = useFetchTags()
+const tags = await useFetchListTags()
 
 const overlay = useOverlay()
 const modalCategory = overlay.create(EditCategoryModal, {
@@ -17,7 +17,11 @@ const modalCategory = overlay.create(EditCategoryModal, {
     }
 })
 const modalTag = overlay.create(EditTagModal, {
-    props: {}
+    props: {
+        onSaved: async () => {
+            tags.value = await fetchListTags()
+        }
+    }
 })
 
 const onModalCategory = (categoryId: string) => { 
@@ -32,7 +36,9 @@ const onModalCategory = (categoryId: string) => {
 const onModalTag = (tagId: string) => { 
     let tag = tags.value.find(tag => tag.id === tagId)
     if (tag)
-        modalTag.patch({ tagId: tag.id, value: tag.value, color: tag.color })
+        modalTag.patch({ isEdit:true, tagId: tag.id, value: tag.value, color: tag.color })
+    else 
+        modalTag.patch({ isEdit: false, value: '', color: ''})
     modalTag.open()
 }
 
