@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType} from "../../composables/account";
+import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType, fetchDeleteAccount} from "../../composables/account";
 import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, TransferModal } from "#components";
 import { useListTransactions } from "../../composables/transactions";
 
-const {data, refresh} = await useFetchResumeAccount(); // Compute Value for remove select accountId
-const selectedAccount = ref(data.value.find(acc => acc.id === ALL_ACCOUNT_ID));
+const accounts = await useFetchResumeAccount(); // Compute Value for remove select accountId
+const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
 const selectedAccountId = ref(ALL_ACCOUNT_ID)
 const editAccount = ref({accountId: '', accountName: "", accountType: ""})
 
@@ -16,8 +16,8 @@ const modalAccount = overlay.create(EditAccountModal, {
     props:{
         ...editAccount.value,
          onSaved: async () => {
-            data.value = (await useFetchResumeAccount()).data.value
-         } } ,
+            accounts.value = (await useFetchResumeAccount()).value
+        }},
     
 })
 
@@ -31,16 +31,15 @@ const modalTransaction = overlay.create(EditTransactionModal, {
 const modalFreezeTransaction = overlay.create(EditFreezeTransaction, {})
 
 const onSelectAccount = (id: string) => {
-    selectedAccount.value = data.value.find(acc => acc.id === id) 
+    selectedAccount.value = accounts.value.find(acc => acc.id === id) 
     selectedAccountId.value = id
 }
 const getAccount = (id: string) => {
-    return data.value.find(acc => acc.id === id)
+    return accounts.value.find(acc => acc.id === id)
 }
 const onEditAccount = (account: ResumeAccountType|null) => {
     editAccount.value = {accountId: account?.id ?? '', accountName: account?.title || '', accountType: account?.type || ''}
-    if(account)
-        modalAccount.patch({...editAccount.value, isEdit: true})
+    modalAccount.patch({...editAccount.value, isEdit: account !== null})
     modalAccount.open()
 }
 
@@ -59,6 +58,11 @@ const onEditFreezeTransaction = (accountId: string = '') => {
     modalFreezeTransaction.open()
 }
 
+const onDeleteAccount = async (accountId: string) => {
+    await fetchDeleteAccount(accountId)
+    accounts.value = (await useFetchResumeAccount()).value
+}
+
 </script>
 
 <template>
@@ -66,7 +70,7 @@ const onEditFreezeTransaction = (accountId: string = '') => {
         <div>
             <div class="card rounded-md">
                 <CustomCardTitle :title="getAccount(selectedAccountId)?.title">
-                   <USelect v-model="selectedAccountId" value-key="id" label-key="title" :items="data"/> 
+                   <USelect v-model="selectedAccountId" value-key="id" label-key="title" :items="accounts"/> 
                 </CustomCardTitle>
                 <div class="card-money" style="margin-top: 1rem;">
                     <h2>
@@ -99,7 +103,7 @@ const onEditFreezeTransaction = (accountId: string = '') => {
                 <UButton icon="i-lucide-plus" size="xl" variant="solid" @click="onEditAccount(null)">Ajouter Carte</UButton>
             </div>
             <div class="flex overflow-x-auto gap-2"  >
-                <div v-for="account in data" :key="account.id">
+                <div v-for="account in accounts" :key="account.id">
                     <CardResumeAccount 
                         @customClick="onSelectAccount(account.id)"
                         style="width: 200px;"
@@ -112,7 +116,7 @@ const onEditFreezeTransaction = (accountId: string = '') => {
                         :allow-edit="account.id === ALL_ACCOUNT_ID ? false : true"
                         :allow-delete="account.id === ALL_ACCOUNT_ID ? false :true" 
                         @edit="onEditAccount(account)"
-                        @delete="useFetchDeleteAccont(account.id)"
+                        @delete="onDeleteAccount(account.id)"
 
                     /> 
                 </div>

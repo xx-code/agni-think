@@ -38,7 +38,7 @@ export class PostgreSqlAccountRepository extends KnexConnector implements Accoun
     }
 
     async isExistByName(account_title: string): Promise<boolean> {
-        let result = await this.connector('accounts').where('title', 'like', `%${account_title}%`).select('account_id').first()
+        let result = await this.connector('accounts').where('title', 'like', `${account_title}`).select('account_id').first()
         return !isEmpty(result)
     }
 

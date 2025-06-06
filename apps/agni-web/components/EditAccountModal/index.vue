@@ -2,7 +2,7 @@
 import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { reactive } from 'vue';
-import { useFetchCreateAccount, useFetchUpdateAccount, useFetchListAccountTypes, useFetchResumeAccount } from '../../composables/account';
+import { useFetchListAccountTypes, fetchUpdateAccount, fetchCreateAccount } from '../../composables/account';
 
 const props = defineProps({
     isEdit: Boolean,
@@ -30,9 +30,9 @@ const  emit = defineEmits(['close', 'saved'])
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
     if (!props.isEdit) {
-        await useFetchCreateAccount({accountName: form.accountName, accountType: form.accountType})
+        await fetchCreateAccount({accountName: form.accountName, accountType: form.accountType})
     } else {
-        await useFetchUpdateAccount({accountId: props.accountId??'', accountName: form.accountName, accountType: form.accountType})
+        await fetchUpdateAccount({accountId: props.accountId??'', accountName: form.accountName, accountType: form.accountType})
     }
         
     form.accountName = ""

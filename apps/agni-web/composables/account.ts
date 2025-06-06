@@ -27,11 +27,11 @@ function sumTotalBalance(accounts: ResumeAccountType[]): [number, number] {
     return [total, pastTotal]
 }
 
-export const useFetchResumeAccount = async (): Promise<{data: Ref<ResumeAccountType[]>, refresh: () => Promise<void>}> => {
+export const useFetchResumeAccount = async (): Promise<Ref<ResumeAccountType[]>> => {
 
-    const {data, refresh} = await useFetchListAccount();
+    const data = await fetchListAccounts();
     const resumeAccounts: ResumeAccountType[] = []
-    for(const account of data.value) {
+    for(const account of data) {
         // fetch passs data
         resumeAccounts.push({...account, pastBalanceDetail: {balance: 0, diffPercent: 0, doIncrease: true}})
     } 
@@ -51,23 +51,7 @@ export const useFetchResumeAccount = async (): Promise<{data: Ref<ResumeAccountT
 
     resumeAccounts.unshift(totalAccount)
 
-    return {data: ref(resumeAccounts), refresh: refresh}
-}
-
-
-export const useFetchListAccount = async (): Promise<{data: Ref<AccountType[]>, refresh: () => Promise<void>}> => {
-    const {data, error, refresh} = await useFetch('http://localhost:5001/v1/accounts')
-    if (error.value) {
-        const toast = useToast()
-        toast.add({title: 'Oops! Erreur type de compte', description: error.value.data, color: 'error'})
-        return {data: ref([]), refresh: refresh }
-    }
-
-    const resData = (data.value as {data: {accountId: string, title: string, balance: number, type: string}[]}) 
-
-    let results = ref<AccountType[]>(resData.data.map(val => ({id: val.accountId, title: val.title, balance: val.balance, type: val.type})))
-
-    return {data: ref(results), refresh: refresh}
+    return ref(resumeAccounts)
 }
 
 export type AccountTypeType = {
@@ -75,55 +59,90 @@ export type AccountTypeType = {
     label: string
 }
 
-export const useFetchListAccountTypes = async (): Promise<Ref<AccountTypeType[]>> => { 
-    const { data, error } = await useFetch('http://localhost:5001/v1/internal/account-type')
+export const useFetchListAccountTypes = async (): Promise<Ref<AccountTypeType[]|null>> => { 
+    const { data, error } = await useAsyncData(() => fetchListAccountTypes())
+
     if (error.value) {
         const toast = useToast()
-        toast.add({title: 'Oops! Erreur type de compte', description: error.value.data, color: 'error'})
+        const resError = error.value.data as ErrorApi
+        toast.add({title: 'Oops! Erreur type de compte', description: resError.data.error.message, color: 'error'})
         return ref([])
     }
-    let results = ref<AccountTypeType[]>((data.value as { id: string, value: string }[]).map(val => ({id: val.id, label: val.value})))
     
-    return results
+    return data
+}
+
+export const useFetchListAccount = async (): Promise<Ref<AccountType[] | null>> => {
+    const { data, error } = await useAsyncData('accounts', () => fetchListAccounts())
+    if (error.value) {
+        const toast = useToast()
+        const resError = error.value.data as ErrorApi
+        toast.add({title: 'Oops! Erreur type de compte', description: resError.data.error.message, color: 'error'})
+        return ref([])
+    }
+
+    return data
 }
 
 export const useFetchAccount = async (accountId: string): Promise<Ref<AccountType|null>> => {
-    const {data, error} = await useFetch(`http://localhost:5001/v1/accounts/${accountId}`)
+    const {data, error} = await useAsyncData('account', () => fetchAccount(accountId))
     if (error.value) {
         const toast = useToast()
-        toast.add({title: 'Oops! Erreur type de compte', description: error.value.data, color: 'error'})
+        const resError = error.value.data as ErrorApi
+        toast.add({title: 'Oops! Erreur type de compte', description: resError.data.error.message, color: 'error'})
         return ref(null)
     }
 
-    let resData = (data.value as {data: {accountId: string, title: string, balance: number, type: string} }).data 
-    let result = ref<AccountType>({id: resData.accountId, title: resData.title, balance: resData.balance, type: resData.type})
+    return data
+}
 
-    return ref(result)
+export async function fetchListAccountTypes(): Promise<AccountTypeType[]> {
+    const response = await $fetch(`${API_LINK}/internal/account-type`)
+    const data = (response as {id: string, value: string}[])
+
+    return data.map(value => ({id: value.id, label: value.value}))
+}
+
+export async function fetchListAccounts(): Promise<AccountType[]> {
+    const response = await $fetch(`${API_LINK}/accounts`)
+    const data = (response as {data: {accountId: string, title: string, balance: number, type: string}[]}).data
+
+    return data.map(value => ({id: value.accountId, title: value.title, balance: value.balance, type: value.type}))
+}
+
+export async function fetchAccount(accountId: string): Promise<AccountType>{
+    const response = await $fetch(`${API_LINK}/accounts/${accountId}`)
+    const data = (response as {accountId: string, title: string, balance: number, type: string})
+
+    return {id: data.accountId, title: data.title, balance: data.balance, type: data.type}
 }
 
 export type CreateAccountRequest = {
     accountName: string
     accountType: string
 }
-export async function useFetchCreateAccount(request: CreateAccountRequest){
-    const {data, error} = await useFetch('http://localhost:5001/v1/accounts', {
-        method: 'POST',
-        body: {
-            title: request.accountName,
-            type: request.accountType
-        }
-    })
-
+export async function fetchCreateAccount(request: CreateAccountRequest): Promise<void>{
     const toast = useToast();
-    if (error.value) {
-        const resError = error.value.cause as {field: string, message: string}
-        console.log(resError)
-        toast.add({ title: 'Oops! Erreur', description: resError.message, color: 'error'})
-        return
-    }
+    try {
+        const response = await $fetch(`${API_LINK}/accounts`, {
+            method: 'post',
+            body: {
+                title: request.accountName,
+                type: request.accountType
+            }
+        })
 
-    const resData = data.value as {data: {accountId: string}}
-    toast.add({ title: 'Success', description: `Nouveau compte ajoute ID:${resData.data.accountId}`, color: 'success'})
+        const data = response as {success: boolean, data: {accountId: string}}
+
+        if (!data.success) {
+            toast.add({ title: 'Oops! Erreur', description: "", color: 'error'})
+        }
+
+        toast.add({ title: 'Success', description: `Compte ${request.accountName} cree`, color: 'success' })
+    } catch (err) {
+        const resData = err as ErrorApi
+        toast.add({ title: 'Oops! Erreur', description: resData.data.error.message, color: 'error'})
+    }
 }
 
 export type UpdateAccountRequest = {
@@ -131,40 +150,38 @@ export type UpdateAccountRequest = {
     accountName: string
     accountType: string
 }
-
-export async function useFetchUpdateAccount(request: UpdateAccountRequest) {
-    const {data, error} = await useFetch(`http://localhost:5001/v1/accounts/${request.accountId}`, {
-        method: 'PUT',
-        body: {
-            title: request.accountName,
-            type: request.accountType
-        }
-    })
-
+export async function fetchUpdateAccount(request: UpdateAccountRequest): Promise<void> {
     const toast = useToast();
-    if (error.value) {
-        console.log(request.accountName)
-        const resError = error.value.data.error as {field: string, message: string}
-        console.log(error)
-        toast.add({ title: 'Oops! Erreur', description: resError.message, color: 'error'})
-        return
-    }
+    try {
+        const response = await $fetch(`${API_LINK}/accounts/${request.accountId}`, {
+            method: 'PUT',
+            body: {
+                title: request.accountName,
+                type: request.accountType
+            }
+        })
 
-    toast.add({ title: 'Success', description: `Compte mis a jour ID:${request.accountId}`, color: 'success'})
+        const data = response as {success: boolean}
+
+        if (!data.success) {
+            toast.add({ title: 'Oops! Erreur', description: "", color: 'error'})
+        }
+
+        toast.add({ title: 'Success', description: `Compte ${request.accountName} mettre a jour`, color: 'success'})
+    } catch(err) {
+        const resData = err as ErrorApi
+        
+        toast.add({ title: 'Oops! Erreur', description: resData.data.error.message, color: 'error'})
+    }
+    
 }
 
-export async function useFetchDeleteAccont(accountId: string) {
-    const {data, error} = await useFetch(`http://localhost:5001/v1/accounts/${accountId}`, {
+export async function fetchDeleteAccount(accountId: string): Promise<boolean> {
+    console.log(accountId)
+    const response = await $fetch(`${API_LINK}/accounts/${accountId}`, {
         method: 'DELETE'
     })
 
-    const toast = useToast();
-    if (error.value) {
-        const resError = error.value.cause as {field: string, message: string}
-        console.log(resError)
-        toast.add({ title: 'Oops! Erreur', description: resError.message, color: 'error'})
-        return
-    }
-
-    toast.add({ title: 'Success', description: `Compte ID:${accountId} supprime`, color: 'success'})
+    const data = response as {success: boolean}
+    return data.success 
 }
