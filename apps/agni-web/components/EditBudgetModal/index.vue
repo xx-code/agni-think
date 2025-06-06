@@ -2,7 +2,7 @@
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import * as z from 'zod';
 import { reactive, shallowRef } from "vue";
-import { useListPeriodBudget } from '../../composables/budgets';
+import { fetchCreateBudget, fetchUpdateBudget, useFetchBudget, useFetchListBudget } from '../../composables/budgets';
 import type { FormSubmitEvent } from '@nuxt/ui';
 
 const schema = z.object({
@@ -14,34 +14,83 @@ const schema = z.object({
 
 const props = defineProps({
     isEdit: Boolean,
-    title: String,
-    target: Number,
-    periodTime: Number,
-    period: String,
-    startDate: Date,
-    endDate: Date
+    budgetId: String,
+    onSaved: Function
+    // title: String,
+    // target: Number,
+    // periodTime: Number,
+    // period: String,
+    // startDate: Date,
+    // endDate: Date
 })
 
-const listPeriods = useListPeriodBudget()
+const listPeriods = await useFetchListBudget()
+let budget = null
+if (props.budgetId)
+    budget = await useFetchBudget(props.budgetId)
 
 const form = reactive({
-    title: props.title,
-    target: props.target ? props.target : 0,
-    period: props.period ? props.period : listPeriods.value[0].value,
-    periodTime: props.periodTime,
-    hasEndDate: false
+    title: budget ? budget.value?.title ?? '' : '',
+    target: budget ? budget.value?.target ?? 0 : 0,
+    period: budget ? budget.value?.period ?? '' : listPeriods.value[0].id,
+    periodTime: budget ? budget.value?.periodTime ?? 0 : 0,
+    hasEndDate: budget ? budget.value?.dateEnd !== null : false
 })
 
-const startDate = shallowRef(new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()))
-const endDate = shallowRef(new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()))
+let valStartDate = new Date()
+if (budget)
+    valStartDate = new Date(budget.value?.dateStart ?? '')
+
+let valEndDate = new Date()
+if (budget && budget.value?.dateEnd !== null)
+    valEndDate = new Date(budget.value?.dateEnd ?? '') 
+
+console.log(valEndDate)
+
+const startDate = shallowRef(new CalendarDate(valStartDate.getFullYear(), valStartDate.getMonth() + 1, valStartDate.getDate()))
+const endDate = shallowRef(new CalendarDate(valEndDate.getFullYear(), valEndDate.getMonth() + 1, valEndDate.getDate()))
+
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
 })
 
 type Schema = z.output<typeof schema>
 
-function onSubmit(event: FormSubmitEvent<Schema>) {
-    console.log(form)
+const emit = defineEmits(['close'])
+
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+    if (!props.isEdit) {
+        await fetchCreateBudget({
+            title: form.title,
+            target: form.target,
+            period: form.period, 
+            dateStart: startDate.value.toString(),
+            dateEnd: form.hasEndDate ? endDate.value.toString() : null,
+            periodTime: form.periodTime
+        });
+    }
+    else {
+        await fetchUpdateBudget({
+            budgetId: props.budgetId ?? '',
+            title: form.title,
+            target: form.target,
+            period: form.period, 
+            dateStart: startDate.value.toString(),
+            dateEnd: form.hasEndDate ? endDate.value.toString() : null,
+            periodTime: form.periodTime
+        });
+    }
+
+    form.periodTime = 0
+    form.title = ''
+    form.target = 0
+    form.period = listPeriods.value[0].id
+    form.periodTime = 0
+
+    
+    if (props.onSaved) props.onSaved()
+    
+    emit('close')
 }
 </script>
 
@@ -75,7 +124,7 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
                 <UFormField label="Date de fin" name="endDate" v-if="form.hasEndDate">
                     <UPopover>
                         <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
-                            {{ endDate ? df.format(startDate.toDate(getLocalTimeZone())) : 'Selectionnez une de fin' }}
+                            {{ endDate ? df.format(endDate.toDate(getLocalTimeZone())) : 'Selectionnez une de fin' }}
                         </UButton>
                         <template #content>
                             <UCalendar v-model="endDate" />
@@ -84,7 +133,7 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
                 </UFormField>
 
                 <UFormField label="Periode" name="period">
-                    <USelect v-model="form.period" value-key="value" label-key="title" :items="listPeriods"/>
+                    <USelect v-model="form.period" value-key="id" :items="listPeriods"/>
                 </UFormField>
 
                 <UFormField label="Nombre de temps" name="periodTime">

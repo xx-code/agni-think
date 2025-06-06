@@ -4,85 +4,190 @@ export type BudgetType = {
     title: string
     target: number
     amount: number
+    dateStart: string
+    dateEnd: string|null
+    period: string|null
+    periodTime: number
 }
 
-export const useListPeriodBudget = (): Ref<{title: string, value: string}[]> => {
-    const period = [
-        {
-            title: "Semaine",
-            value: "week"
-        },
-        {
-            title: "Mois",
-            value: "Month"
-        },
-        {
-            title: "Annee",
-            value: "Year"
+export type PeriodType = {
+    id: string
+    label: string
+}
+
+export const useFetchListPeriod = async (): Promise<Ref<PeriodType[]>> => {
+    const {data, error} = await useAsyncData('period-types', () => fetchListPeriodTypes())
+
+    if (error.value) {
+        const toast = useToast()
+        const resError = error.value.data as ErrorApi
+        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
+        return ref([])
+    }
+
+    const items = ref(data.value!)
+
+    return items
+}
+
+export const useFetchListBudget = async (): Promise<Ref<BudgetType[]>> => {
+    const { data, error}  = await useAsyncData('budgets', () => fetchListBudgets())  
+
+    if (error.value) {
+        const toast = useToast()
+        const resError = error.value.data as ErrorApi
+        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
+        return ref([])
+    }
+
+    const items = ref(data.value!)
+
+    return items
+}
+
+export const useFetchBudget = async (budget_id: string): Promise<Ref<BudgetType|null>> => {
+    const { data, error}  = await useAsyncData(`budget-${budget_id}` , () => fetchBudget(budget_id))  
+
+    if (error.value) {
+        const toast = useToast()
+        const resError = error.value.data as ErrorApi
+        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
+        return data
+    }
+
+    return data
+}
+
+export async function fetchListPeriodTypes(): Promise<PeriodType[]> {
+    const response = await $fetch(`${API_LINK}/internal/period-type`)
+    const data = (response as {id: string, value: string}[])
+
+    return data.map(value => ({id: value.id, label: value.value}))
+}
+
+type BudgetApiType = {
+    id: string
+    title: string
+    currentBalance: number
+    period: string|null
+    periodTime: number
+    target: number
+    startDate: string
+    updateDate: string
+    endDate: string|null
+}
+
+export async function fetchListBudgets(): Promise<BudgetType[]> {
+    const response = await $fetch(`${API_LINK}/budgets`)
+    const data = (response as {data: BudgetApiType[]}).data
+
+    return data.map(val => ({id: val.id, title: val.title, target: val.target, 
+        amount: val.currentBalance, dateEnd: val.endDate ?? null, dateStart: val.startDate, 
+        period: val.period ?? null, periodTime: val.periodTime}))
+}
+
+export async function fetchBudget(budgetId: string): Promise<BudgetType> {
+    const response = await $fetch(`${API_LINK}/budgets/${budgetId}`)
+
+    const data = (response as {data: BudgetApiType}).data
+
+    return {id: data.id, title: data.title, target: data.target, 
+        amount: data.currentBalance, dateEnd: data.endDate ?? null, dateStart: data.startDate, 
+        period: data.period ?? null, periodTime: data.periodTime}
+}
+
+export type CreateBudgetRequest = {
+    title: string,
+    target: number,
+    dateStart: string,
+    period: string,
+    periodTime: number,
+    dateEnd: string|null
+}
+
+export async function fetchCreateBudget(request: CreateBudgetRequest): Promise<void> {
+    const toast = useToast()
+    try {
+        const response = await $fetch(`${API_LINK}/budgets`, {
+            method: 'POST',
+            body: {
+                title: request.title,
+                target: request.target,
+                period: request.period,
+                periodTime: request.periodTime,
+                dateStart: request.dateStart,
+                dateEnd: request.dateEnd
+            }
+        })
+
+        const data = (response as {success: boolean})
+
+        if (!data.success)
+            toast.add({ title: 'Oops! Erreur', description: "", color: 'error'})
+    
+        toast.add({ title: 'Success', description: `Budget ${request.title} cree`, color: 'success' })
+    } catch(err) {
+        const resData = err as ErrorApi
+        toast.add({ title: 'Oops! Erreur', description: resData.data.error.message, color: 'error'})
+    }
+}
+
+export type UpdateBudgetRequest = {
+    budgetId: string
+    title: string,
+    target: number,
+    dateStart: string,
+    period: string,
+    periodTime: number,
+    dateEnd: string|null
+}
+export async function fetchUpdateBudget(request: UpdateBudgetRequest): Promise<void> {
+    const toast = useToast()
+    try {
+        const response = await $fetch(`${API_LINK}/budgets/${request.budgetId}`, {
+            method: 'PUT',
+            body: {
+                title: request.title,
+                target: request.target,
+                period: request.period,
+                periodTime: request.periodTime,
+                dateStart: request.dateStart,
+                dateEnd: request.dateEnd
+            }
+        })
+
+        const data = (response as {success: boolean})
+
+        if (!data.success)
+            toast.add({ title: 'Oops! Erreur', description: "", color: 'error'})
+    
+        toast.add({ title: 'Success', description: `Budget ${request.title} mis a jour`, color: 'success' })
+    } catch(err) {
+        const resData = err as ErrorApi
+        toast.add({ title: 'Oops! Erreur', description: resData.data.error.message, color: 'error'})
+    }
+}
+
+export async function fetchDeleteBudget(budgetId: string): Promise<void> {
+   const toast = useToast();
+    try {
+        const response = await $fetch(`${API_LINK}/budgets/${budgetId}`, {
+            method: 'DELETE'
+        })
+
+        const data = response as {success: boolean}
+
+        if (!data.success) {
+            toast.add({ title: 'Oops! Erreur', description: "", color: 'error'})
         }
-    ]
-    return ref(period);
+
+        toast.add({ title: 'Success', description: `Budget supprime`, color: 'success'})
+    } catch(err) {
+        const resData = err as ErrorApi
+        
+        toast.add({ title: 'Oops! Erreur', description: resData.data.error.message, color: 'error'})
+    }
 }
-
-export const useListBudget = (): Ref<BudgetType[]> => {
-
-    const budgets: BudgetType[] = [
-        {
-            id: 'bud-1',
-            title: 'Budget 1',
-            target: 150,
-            amount: 83.56
-        },
-        {
-            id: 'bud-2',
-            title: 'Budget 2',
-            target: 85,
-            amount: 56
-        },
-        {
-            id: 'bud-3',
-            title: 'Budget 3',
-            target:  50,
-            amount: 50
-        },
-        {
-            id: 'bud-4',
-            title: 'Budget 4',
-            target:  100,
-            amount: 50
-        }
-    ]
-
-    return ref(budgets)
-}
-
-function generateFlatRGBColor(alpha: number) {
-  // Define a list of flat UI colors (based on Flat UI palette)
-  const flatColors = [
-    [26, 188, 156],   // Turquoise
-    [46, 204, 113],   // Emerald
-    [52, 152, 219],   // Peter River
-    [155, 89, 182],   // Amethyst
-    [241, 196, 15],   // Sun Flower
-    [230, 126, 34],   // Carrot
-    [231, 76, 60],    // Alizarin
-    [149, 165, 166],  // Concrete
-    [52, 73, 94],     // Wet Asphalt
-    [22, 160, 133],   // Green Sea
-    [39, 174, 96],    // Nephritis
-    [41, 128, 185],   // Belize Hole
-    [142, 68, 173],   // Wisteria
-    [243, 156, 18],   // Orange
-    [211, 84, 0],     // Pumpkin
-    [192, 57, 43],    // Pomegranate
-    [127, 140, 141],  // Asbestos
-    [44, 62, 80]      // Midnight Blue
-  ];
-
-  const color = flatColors[Math.floor(Math.random() * flatColors.length)];
-  return `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha})`;
-}
-
 
 export const formatBudgetDataForChart = (budgets: BudgetType[]) => {
 const labels = budgets.map(budget => budget.title + " - " + ((budget.amount/budget.target)* 100).toFixed(1) + "%")
@@ -103,3 +208,4 @@ const labels = budgets.map(budget => budget.title + " - " + ((budget.amount/budg
         }]
     }
 }
+

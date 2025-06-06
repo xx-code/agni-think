@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { useListBudget } from "../../composables/budgets"
+import { fetchDeleteBudget, fetchListBudgets, useFetchListBudget } from "../../composables/budgets"
 import { EditBudgetModal } from "#components"
+
+const budgets = await useFetchListBudget()
 
 const overlay = useOverlay()
 const modalEditBudget = overlay.create(EditBudgetModal, {
-    props: {}
+    props: {
+        onSaved: async () => {
+            budgets.value = await fetchListBudgets()            
+        }
+    }
 })
 
-const budgets = useListBudget()
 
 const dateDisplayed = ref("Mois")
 const listTypeDateDisplay = computed(() => (
@@ -64,11 +69,18 @@ const listTypeDateDisplay = computed(() => (
 ]
 ))
 
-const onEditModalBudget = (budgetId: string) => {
-    const budget = budgets.value.find(budget => budget.id === budgetId)
-    if (budget)
-        modalEditBudget.patch({title: budget?.title, target: budget?.target})
+const onEditModalBudget = (budgetId: string | null=null) => {
+    if (budgetId)
+        modalEditBudget.patch({isEdit: true, budgetId: budgetId})
+    else
+        modalEditBudget.patch({isEdit: false, budgetId: ''})
+    
     modalEditBudget.open();
+}
+
+const onDeleteBudget = async (budgetId: string) => {
+    await fetchDeleteBudget(budgetId)
+    budgets.value = await fetchListBudgets()
 }
 </script>
 
@@ -92,6 +104,7 @@ const onEditModalBudget = (budgetId: string) => {
                     <CustomCardTitle :title="budget.title">
                         <div class="flex gap-1">
                             <UButton icon="i-lucide-pencil" variant="outline" color="neutral" size="xl" @click="onEditModalBudget(budget.id)"/>
+                            <UButton icon="i-lucide-trash" variant="outline" color="neutral" size="xl" @click="onDeleteBudget(budget.id)"/>
                         </div>
                     </CustomCardTitle>
                     <div  style="margin-top: 1rem;">
