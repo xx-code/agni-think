@@ -12,6 +12,7 @@ import { fetchCreateTransaction, fetchUpdateTransaction, useFetchListTransaction
 const props = defineProps({
     isEdit: Boolean,
     transactionId: String,
+    accountId: String,
     onSaved: Function
 })
 
@@ -36,8 +37,13 @@ let transaction = null
 if (props.transactionId)
     transaction = await useFetchTransaction(props.transactionId)
 
+
+let accountId = props.accountId ?? '' 
+if (transaction)
+    accountId = transaction.value?.accountId ?? ''
+
 const form = reactive({
-    accountId: transaction ? transaction.value?.accountId ?? '' : '',
+    accountId: accountId,
     transactionType: transaction ? transaction.value?.type ?? '' : '',
     categoryId: transaction ? transaction.value?.category.id ?? '' : '',
     description: transaction ? transaction.value?.description ?? '': '',
@@ -124,8 +130,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                         <UCalendar v-model="date" />
                     </template>
                 </UPopover>
-
-                
             </UFormField>
 
             <UFormField label="Tags" name="tagIds">

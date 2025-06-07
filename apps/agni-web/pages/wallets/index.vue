@@ -22,10 +22,20 @@ const modalAccount = overlay.create(EditAccountModal, {
 })
 
 const modalTransfer = overlay.create(TransferModal, {
+    props: {
+        onSaved: async () => {
+            accounts.value = (await useFetchResumeAccount()).value
+            await onUpateAccount(selectedAccount.value?.id ?? ALL_ACCOUNT_ID)
+        } 
+    }
 })
 
 const modalTransaction = overlay.create(EditTransactionModal, {
-    props: {isEdit: false}
+    props: {
+        onSaved: async () => {
+            await onUpateAccount(selectedAccount.value?.id ?? ALL_ACCOUNT_ID)
+        }
+    }
 })
 
 const modalFreezeTransaction = overlay.create(EditFreezeTransaction, {})
@@ -33,6 +43,7 @@ const modalFreezeTransaction = overlay.create(EditFreezeTransaction, {})
 const onSelectAccount = (id: string) => {
     selectedAccount.value = accounts.value.find(acc => acc.id === id) 
     selectedAccountId.value = id
+    onUpateAccount(id)
 }
 const getAccount = (id: string) => {
     return accounts.value.find(acc => acc.id === id)
@@ -50,6 +61,7 @@ const onTransferAccount = (accountId: string = '') => {
 }
 
 const onEditTransaction = () => {
+    modalTransaction.patch({ accountId: selectedAccountId.value})
     modalTransaction.open()
 }
 
@@ -143,7 +155,7 @@ const onUpateAccount = async (payload: string) => {
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
                 <div v-for="trans in transactions.transactions" :key="trans.id">
                     <RowTransaction 
-                        :id="trans.id" :balance="trans.amount" :title="trans.description" 
+                        :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 
                         :tags="trans.tags.map(tag=>tag.value)"/>    
                 </div>
@@ -166,7 +178,7 @@ const onUpateAccount = async (payload: string) => {
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
                 <div v-for="trans in transactions.transactions" :key="trans.id">
                     <RowTransaction 
-                        :id="trans.id" :balance="trans.amount" :title="trans.description" 
+                        :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 
                         :tags="trans.tags.map(tag=>tag.value)" />    
                 </div>

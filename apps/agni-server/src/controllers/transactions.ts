@@ -16,7 +16,6 @@ import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { CategoryRepository } from "@core/repositories/categoryRepository";
 import { AccountRepository } from "@core/repositories/accountRepository";
 import { DateService } from "@core/adapters/libs";
-import { isArrayBuffer } from "node:util/types";
 
 class CreateTransactionModel { 
     private model: RequestAddTransactionUseCase
@@ -232,8 +231,8 @@ class TransfertTransactionModel {
 
     constructor(reqBody: any) {
         this.model = {
-            accountRefTo: reqBody.accountFromTo,
-            accountRefFrom: reqBody.accountFromTo,
+            accountRefTo: reqBody.accountToId,
+            accountRefFrom: reqBody.accountFromId,
             amount: reqBody.amount,
             date: reqBody.date
         }
@@ -243,10 +242,10 @@ class TransfertTransactionModel {
         let errors: ApiError[] = []
 
         if (isEmpty(this.model.accountRefTo))
-            errors.push({field: "accountId", message: "account To field is empty"})
+            errors.push({field: "accountRefTo", message: "account To field is empty"})
 
         if (isEmpty(this.model.accountRefFrom))
-            errors.push({field: "categoryId", message: "account from field is empty"})
+            errors.push({field: "accountRefFrom", message: "account from field is empty"})
 
         if (this.model.amount <= 0) 
             errors.push({field: "amount", message: "Transaction is amount must be greater than 0"})
@@ -286,7 +285,7 @@ export class ApiTransfertTransactionController implements ITransfertTransactionU
 
     async execute(req: Request, res: Response): Promise<void> {
         this.modelView = initApiResponse()
-        let model = new TransfertTransactionModel(req)
+        let model = new TransfertTransactionModel(req.body)
         let errors = model.validateInput()
         if (errors.length > 0) {
             if (req.query.validate_all)

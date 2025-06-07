@@ -281,3 +281,67 @@ export async function fetchDeleteTransaction(transactionId: string): Promise<voi
         toast.add({ title: 'Oops! Erreur', description: resData.data.error.message, color: 'error'})
     }
 }
+
+export type TransfertRequest = {
+    accountFromId: string
+    accountToId: string
+    amount: number
+    date: string
+}
+export async function fetchTransfertBetweenAccount(request: TransfertRequest) {
+    const toast = useToast();
+    try {
+        const response = await $fetch(`${API_LINK}/transfert-transaction`, {
+            method: 'POST',
+            body: {
+                accountFromId: request.accountFromId,
+                accountToId: request.accountToId,
+                date: request.date,
+                amount: request.amount
+            }
+        })
+
+        const data = response as {success: boolean}
+
+        if (!data.success) {
+            toast.add({ title: 'Oops! Erreur', description: "", color: 'error'})
+        }
+
+        toast.add({ title: 'Success', description: `transfert de transaction`, color: 'success'})
+    } catch(err) {
+        const resData = err as ErrorApi
+        
+        toast.add({ title: 'Oops! Erreur', description: resData.data.error.message, color: 'error'})
+    }
+}
+
+export type FreezeTransactionRequest = {
+    accountId: string
+    amount: number
+    endDate: string
+}
+export async function fetchFreezeTransaction(request: FreezeTransactionRequest) {
+    const toast = useToast();
+    try {
+        const response = await $fetch(`${API_LINK}/freeze-transaction`, {
+            method: 'POST',
+            body: {
+                accountId: request.accountId,
+                amount: request.amount,
+                endDate: request.endDate
+            }
+        })
+
+        const data = response as {success: boolean}
+
+        if (!data.success) {
+            toast.add({ title: 'Oops! Erreur', description: "", color: 'error'})
+        }
+
+        toast.add({ title: 'Success', description: `transaction freezer`, color: 'success'})
+    } catch(err) {
+        const resData = err as ErrorApi
+        
+        toast.add({ title: 'Oops! Erreur', description: resData.data.error.message, color: 'error'})
+    }
+}
