@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import * as z from 'zod'
 import { useFetchResumeAccount } from '../../composables/account';
-import { reactive } from 'vue';
+import { reactive, shallowRef } from 'vue';
 import type { FormSubmitEvent } from '@nuxt/ui';
+import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
+import { fetchTransfertBetweenAccount } from '../../composables/transactions';
 
 const schema = z.object({
     accountIdFrom: z.string().nonempty('Vous devez selectionner un compte d\'origne'),
@@ -16,22 +18,33 @@ const props = defineProps({
     accountFromId: String
 })
 
-const accounts = useFetchResumeAccount()
+const date = shallowRef(new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()))
+const df = new DateFormatter('en-Us', {
+    dateStyle: 'medium'
+})
+
+const accounts = await useFetchResumeAccount()
 const form = reactive({
     accountIdFrom: props.accountFromId ?? '',
     accountIdTo: '',
     amount: 0
 })
 
+const emit = defineEmits(['close'])
+
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-    console.log('transfert')
+    await fetchTransfertBetweenAccount({
+        accountFromId: form.accountIdFrom,  
+        accountToId: form.accountIdTo, 
+        date: date.value.toString(), amount: form.amount})
+
+    emit('close')
 }
 
 </script>
 
 <template>
     <UModal 
-        :close="{ onClick: () => $emit('close', false)}"
         title="Transfert entre comptes">
         <template #body>
             <UForm :schema="schema" :state="form" class="space-y-4" @submit="onSubmit">
@@ -47,6 +60,17 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
                 <UFormField label="Argent" name="amount">
                     <UInput v-model="form.amount" type="number" />
+                </UFormField>
+
+                <UFormField label="Date" name="date">
+                    <UPopover>
+                        <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
+                            {{ date ? df.format(date.toDate(getLocalTimeZone())) : 'Selectionnez une date' }}
+                        </UButton>
+                        <template #content>
+                            <UCalendar v-model="date" />
+                        </template>
+                    </UPopover>
                 </UFormField>
 
                 <UButton type="submit" label="Transferer" />

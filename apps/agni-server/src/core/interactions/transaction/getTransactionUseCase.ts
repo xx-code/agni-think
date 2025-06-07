@@ -28,8 +28,8 @@ export type TransactionResponse = {
     amount: number
     date: string
     description: string
+    recordType: string
     type: string
-    mainCategory: string
     category: TransactionCategoryResponse
     tags: TransactionTagResponse[]
     budgets: string[]
@@ -89,14 +89,14 @@ export class GetTransactionUseCase implements IGetTransactionUseCase {
                 amount: record.getMoney().getAmount(),
                 date: transaction.getDate(),
                 description: record.getDescription(),
-                type: record.getType(),
+                recordType: record.getType(),
                 category: {
                     id: category.getId(),
                     title: category.getTitle(),
                     icon: category.getIconId(),
                     color: category.getColor()
                 },
-                mainCategory: transaction.getTransactionType(),
+                type: transaction.getTransactionType(),
                 tags: tags,
                 budgets: transaction.getBudgetRefs()
             }

@@ -169,7 +169,7 @@ export async function fetchUpdateBudget(request: UpdateBudgetRequest): Promise<v
 }
 
 export async function fetchDeleteBudget(budgetId: string): Promise<void> {
-   const toast = useToast();
+    const toast = useToast();
     try {
         const response = await $fetch(`${API_LINK}/budgets/${budgetId}`, {
             method: 'DELETE'

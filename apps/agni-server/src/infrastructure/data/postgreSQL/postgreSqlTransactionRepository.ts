@@ -103,9 +103,9 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
     async getPaginations(page: number, size: number, sortBy: SortBy | null, filterBy: TransactionFilter): Promise<TransactionPaginationResponse> {
         let query = this.connector('transactions').select('*');
 
-        if (filterBy.accounts.length) query.whereIn('account_id', filterBy.accounts);
-        if (filterBy.categories.length) query.whereIn('category_id', filterBy.categories);
-        if (filterBy.mainCategory) query.where('type', '=', filterBy.type);
+        if (filterBy.accounts.length > 0) query.whereIn('account_id', filterBy.accounts);
+        if (filterBy.categories.length > 0) query.whereIn('category_id', filterBy.categories);
+        if (filterBy.types.length > 0) query.whereIn('type', filterBy.types);
         if (filterBy.tags.length) {
             query.whereIn('transaction_id', function() {
                 this.select('transaction_id').from('transaction_tags').whereIn('tag_id', filterBy.tags);
@@ -132,12 +132,14 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
                 result['category_id'], result['date'], result['type'], tags, budgets))
         }
 
-        let total = await this.connector('transactions').count<number>('*').first()
+        let total = await this.connector('transactions').count<{count: number}>('* as count').first()
+        const totalCount = total?.count ?? 0
+        const maxPage = Math.ceil(totalCount/size)
 
         return {
             transactions: transactions,
             currentPage: page,
-            maxPage: total ? total : 0
+            maxPage
         };
     }
 
@@ -147,6 +149,8 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
         if (filterBy.accounts.length > 0) query.whereIn('account_id', filterBy.accounts);
             
         if (filterBy.categories.length > 0) query.whereIn('category_id', filterBy.categories);
+
+        if (filterBy.types.length > 0) query.whereIn('type', filterBy.types);
         
         if (filterBy.tags.length > 0) {
             query.whereIn('transaction_id', function() {

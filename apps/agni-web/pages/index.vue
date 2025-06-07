@@ -4,7 +4,7 @@ import { fas } from '@fortawesome/free-solid-svg-icons'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { computed, ref } from 'vue'
 import { useFetchResumeAccount } from '../composables/account';
-import { useListTransactions } from '../composables/transactions';
+import { useFetchListTransactions } from '../composables/transactions';
 import { useListGoals } from '../composables/goals';
 import { useFetchListBudget, formatBudgetDataForChart} from '../composables/budgets';
 
@@ -49,7 +49,7 @@ const items = computed(() => accounts.value.map(acc => (
         }
     }
 )))
-const transactions = useListTransactions(1, 4)
+const transactions = await useFetchListTransactions({page: 1, limit: 4})
 const goals = useListGoals()
 const dateDisplayed = ref("Mois")
 const listTypeDateDisplay =computed(() => (
@@ -159,11 +159,11 @@ const listTypeDateDisplay =computed(() => (
                 </CustomCardTitle>
                 <div>
                     <div class="flex flex-col gap-1" >
-                        <div v-for="trans in transactions" :key="trans.id">
+                        <div v-for="trans in transactions.transactions" :key="trans.id">
                             <RowTransaction 
-                                :id="trans.id" :balance="trans.amount" :title="trans.title" 
-                                :description="trans.description" :icon="trans.icon" 
-                                :tags="trans.tags.map(tag=>tag.title)"/>    
+                                :id="trans.id" :balance="trans.amount" :title="trans.description" 
+                                :description="trans.description" :icon="trans.category.icon" 
+                                :tags="trans.tags.map(tag=>tag.value)"/>    
                         </div>
                     </div>
                 </div> 

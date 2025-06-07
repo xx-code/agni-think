@@ -1,11 +1,14 @@
 <script lang="ts" setup>
 import * as z from 'zod'
-import { reactive } from "vue";
+import { reactive, shallowRef } from "vue";
 import { useFetchResumeAccount } from "../../composables/account";
 import type { FormSubmitEvent } from '@nuxt/ui';
+import { fetchFreezeTransaction } from '../../composables/transactions';
+import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 
 const props = defineProps({
-    accountId: String
+    accountId: String,
+    onSaved: Function
 })
 
 const schema = z.object({
@@ -15,15 +18,24 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>
 
-const accounts = useFetchResumeAccount()
+const accounts = await useFetchResumeAccount()
 
 const form = reactive({
     accountId: props.accountId ?? '',
     amount: 0
 })
 
-function onSubmit(event: FormSubmitEvent<Schema>) {
-    console.log('submit')
+const date = shallowRef(new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()))
+const df = new DateFormatter('en-Us', {
+    dateStyle: 'medium'
+})
+
+const emit = defineEmits(['close'])
+
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+    await fetchFreezeTransaction({accountId: form.accountId, amount: form.amount, endDate: date.value.toString()})   
+    if(props.onSaved) props.onSaved()
+    emit('close')
 }
 
 </script>
@@ -38,6 +50,17 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
 
                 <UFormField label="Prix" name="amount">
                     <UInput v-model="form.amount" class="w-full" type="number" />
+                </UFormField>
+
+                <UFormField label="Date" name="date">
+                    <UPopover>
+                        <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
+                            {{ date ? df.format(date.toDate(getLocalTimeZone())) : 'Selectionnez une date' }}
+                        </UButton>
+                        <template #content>
+                            <UCalendar v-model="date" />
+                        </template>
+                    </UPopover>
                 </UFormField>
 
                 <UButton label="Freeze" type="submit"/>

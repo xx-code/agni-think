@@ -22,8 +22,7 @@ export type RequestGetPagination = {
     tagFilter: Array<string>
     dateStart: string
     dateEnd: string
-    type: string | null | undefined
-    mainCategory: string 
+    types: string[]
     minPrice: number
     maxPrice: number
 }
@@ -47,8 +46,8 @@ export type TransactionResponse = {
     amount: number
     date: string
     description: string
+    recordType: string
     type: string
-    mainCategory: string
     category: TransactionCategoryResponse
     tags: TransactionTagResponse[]
     budgets: string[]
@@ -133,13 +132,13 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
                 if (DateParser.fromString(request.dateEnd!).compare(DateParser.fromString(request.dateStart!)) < 0)
                     throw new ValidationError('Date start must be less than date end')
 
-            let mainCat = null
-            if (!isEmpty(request.mainCategory))
-                mainCat = mapperMainTransactionCategory(request.mainCategory)
-
-            let type = null;
-            if (!isEmpty(request.type))
-                type = mapperTransactionType(request.type!)
+            let types = []
+            if (!isEmpty(request.types))
+            {
+                for(const type of request.types) {
+                    types.push(mapperMainTransactionCategory(type))
+                }
+            }
 
             let minPrice = null;
             if (!isEmpty(request.minPrice))
@@ -156,8 +155,7 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
                 startDate: request.dateStart,
                 endDate: request.dateEnd,
                 budgets: request.budgetFilter,
-                type: type,
-                mainCategory: mainCat,
+                types: types,
                 minPrice: minPrice,
                 maxPrice: maxPrice
             };
@@ -201,8 +199,8 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
                     date: transaction.getDate(),
                     tags: tagsRes,
                     description: record.getDescription(),
-                    type: record.getType(),
-                    mainCategory: transaction.getTransactionType(),
+                    recordType: record.getType(),
+                    type: transaction.getTransactionType(),
                     budgets: transaction.getBudgetRefs()
                 })
             }

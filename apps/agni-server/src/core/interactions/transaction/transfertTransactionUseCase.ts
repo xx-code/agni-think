@@ -80,18 +80,18 @@ export class TransfertTransactionUseCase implements ITransfertTransactionUseCase
 
             await this.accountRepository.update(accountFrom)
             await this.accountRepository.update(accountTo)
+
+            let date = this.dateService.formatDateWithtime(request.date)
             
-            let fromRecord: Record = new Record(GetUID(), amount, "date moment", TransactionType.DEBIT)
+            let fromRecord: Record = new Record(GetUID(), amount, date, TransactionType.DEBIT)
             fromRecord.setDescription(`Transfert du compte ${accountFrom.getTitle()}`) 
 
-            let toRecord: Record = new Record(GetUID(), amount, "date amout", TransactionType.CREDIT)
+            let toRecord: Record = new Record(GetUID(), amount, date, TransactionType.CREDIT)
             toRecord.setDescription(`Transfert au compte ${accountTo.getTitle()}`)
 
             await this.recordRepository.save(fromRecord);
 
             await this.recordRepository.save(toRecord);
-
-            let date = this.dateService.formatDateWithtime(request.date)
 
             let transFrom = new Transaction(GetUID(), accountFrom.getId(), fromRecord.getId(), TRANSFERT_CATEGORY_ID, date, TransactionMainCategory.OTHER)
             await this.transactionRepository.save(transFrom)

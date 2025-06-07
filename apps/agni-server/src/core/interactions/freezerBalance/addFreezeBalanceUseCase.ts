@@ -60,7 +60,9 @@ export class AddFreezeBalanceUseCase implements IAddFreezeBalanceUseCase {
 
             let amount = new Money(request.amount)
 
-            let newRecord = new Record(GetUID(), amount, request.endDate, TransactionType.DEBIT)
+            const endDate = this.dateService.formatDate(request.endDate)
+
+            let newRecord = new Record(GetUID(), amount, endDate, TransactionType.DEBIT)
             newRecord.setDescription("Freeze")
 
             fetchedAccount.substractBalance(amount)          
@@ -73,8 +75,6 @@ export class AddFreezeBalanceUseCase implements IAddFreezeBalanceUseCase {
             await this.recordRepository.save(newRecord);
 
             await this.accountRepository.update(fetchedAccount)
-
-            let endDate = this.dateService.formatDate(request.endDate)
 
             let newTransaction = new Transaction(GetUID(), request.accountRef, newRecord.getId(), FREEZE_CATEGORY_ID, endDate, TransactionMainCategory.OTHER)
             newTransaction.setIsFreeze()

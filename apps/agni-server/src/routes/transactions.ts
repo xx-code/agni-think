@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { ApiAutoDeleteFreezeTransactionController, ApiCreateFreezeTransactionController, ApiCreateTransactionController, ApiDeleteTransactionController, ApiGetBalanceController, ApiGetTransactionController, ApiPaginationTransactionController, ApiUpdateTransactionController } from "src/controllers/transactions";
+import { ApiAutoDeleteFreezeTransactionController, ApiCreateFreezeTransactionController, ApiCreateTransactionController, ApiDeleteTransactionController, ApiGetBalanceController, ApiGetTransactionController, ApiPaginationTransactionController, ApiTransfertTransactionController, ApiUpdateTransactionController } from "src/controllers/transactions";
 import { IAddTransactionAdapter } from '@core/interactions/transaction/addTransactionUseCase';
 import { IGetTransactionAdapter } from "@core/interactions/transaction/getTransactionUseCase";
 import { IGetPaginationTransactionAdapter } from "@core/interactions/transaction/getPaginationTransactionUseCase";
 import { IUpdateTransactionAdapter } from "@core/interactions/transaction/updateTransactionUseCase";
 import { diContainer } from "src";
+import { ITransfertTransactionAdapter } from "@core/interactions/transaction/transfertTransactionUseCase";
 
 const router = Router()
 
@@ -17,6 +18,15 @@ const createTransactionAdapter: IAddTransactionAdapter = {
     transactionRepository: diContainer.transactionRepository!,
     unitOfWork: diContainer.unitOfWork!,
     dateService: diContainer.dateService!
+}
+
+const transfertAdapter: ITransfertTransactionAdapter = {
+    transactionRepository: diContainer.transactionRepository!,
+    recordRepository: diContainer.recordRepository!,
+    accountRepository: diContainer.accountRepository!,
+    categoryRepository: diContainer.categoryRepository!,
+    dateService: diContainer.dateService!,
+    unitOfWork: diContainer.unitOfWork!
 }
 
 const getTransactionAdapter: IGetTransactionAdapter = {
@@ -72,8 +82,12 @@ router.delete('/v1/transactions/:id', async (req, res) => {
     await (new ApiDeleteTransactionController(diContainer.transactionRepository!, diContainer.recordRepository!, diContainer.unitOfWork!, diContainer.accountRepository!)).execute(req, res)
 })
 
-router.post('/v1/freeze-transactions', async (req, res) => {
+router.post('/v1/freeze-transaction', async (req, res) => {
     await (new ApiCreateFreezeTransactionController(diContainer.dateService!, diContainer.transactionRepository!, diContainer.accountRepository!, diContainer.categoryRepository!, diContainer.recordRepository!, diContainer.unitOfWork!)).execute(req, res)
+})
+
+router.post('/v1/transfert-transaction', async (req, res) => {
+    await (new ApiTransfertTransactionController(transfertAdapter)).execute(req, res)
 })
 
 router.post('/v1/freeze-transaciton/auto-delete-verification', async (req, res) => {

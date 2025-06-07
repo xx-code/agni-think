@@ -45,7 +45,6 @@ let valEndDate = new Date()
 if (budget && budget.value?.dateEnd !== null)
     valEndDate = new Date(budget.value?.dateEnd ?? '') 
 
-console.log(valEndDate)
 
 const startDate = shallowRef(new CalendarDate(valStartDate.getFullYear(), valStartDate.getMonth() + 1, valStartDate.getDate()))
 const endDate = shallowRef(new CalendarDate(valEndDate.getFullYear(), valEndDate.getMonth() + 1, valEndDate.getDate()))
