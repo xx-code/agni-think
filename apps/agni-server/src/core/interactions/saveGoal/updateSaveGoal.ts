@@ -1,6 +1,7 @@
 import { GetUID } from "@core/adapters/libs"
 import { Money } from "@core/domains/entities/money"
 import { SaveGoalItem } from "@core/domains/entities/saveGoal"
+import { ValueError } from "@core/errors/valueError"
 import { SavingRepository } from "@core/repositories/savingRepository"
 
 export type RequestUpdateItemSaveGoalUseCase = {
@@ -44,6 +45,10 @@ export class UpdateSaveGoalUseCase implements IUpdateSaveGoalUseCase {
             saveGoal.setTitle(request.title)
             saveGoal.setDescription(request.description)
             let target = new Money(request.target)
+
+            if (target.getAmount() < saveGoal.getBalance().getAmount())
+                throw new ValueError("You can't have a save goal target less than balance")
+
             saveGoal.setTarget(target)
 
             let items: SaveGoalItem[] = []

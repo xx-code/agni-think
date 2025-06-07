@@ -1,21 +1,32 @@
 <script setup lang="ts">
-import { useListGoals } from "../../composables/goals";
-import { EditSavingGoal, EditSavingGoalUpdate } from "#components";
+import { fetchDeleteSaveGoal, fetchListGoal, useFetchListGoals } from "../../composables/goals";
+import { EditSavingGoal, EditSavingGoalUpdate, UBadge, UButton, UInput, UPopover } from "#components";
+import { fetchDeleteAccount, fetchListAccounts } from "../../composables/account";
+import { ref } from "vue";
 
 const overlay = useOverlay()
 const modalCreateSavingGoal = overlay.create(EditSavingGoal, {
     props: {
+        onSaved: async () => {
+            savingGoals.value = await fetchListGoal();
+        }
     }
 })
 const modalUpdateAmountSavingGoal = overlay.create(EditSavingGoalUpdate, {
-    props: {}
+    props: {
+        onSaved: async () => {
+            savingGoals.value = await fetchListGoal()
+        }
+    }
 })
 
-const savingGoals = useListGoals()
+const savingGoals = await useFetchListGoals()
 
-const onEditSavingGoal = (goal: any | null = null) => {
-    if (goal)
-        modalCreateSavingGoal.patch({goalId: goal.id, title: goal.title, targetAmount: goal.targetAmount})
+const onEditSavingGoal = (goalId: string |null = null) => {
+    if (goalId)
+        modalCreateSavingGoal.patch({goalId: goalId, isEdit: true})
+    else 
+        modalCreateSavingGoal.patch({goalId: '', isEdit: false})
 
     modalCreateSavingGoal.open()
 }
@@ -23,6 +34,19 @@ const onEditSavingGoal = (goal: any | null = null) => {
 const onEditUpdateAmountSavingGoal = (goalId: string, isIncrease: boolean) => {
     modalUpdateAmountSavingGoal.patch({goalId: goalId, isIncrease: isIncrease})
     modalUpdateAmountSavingGoal.open()
+}
+
+let accounts = await fetchListAccounts()
+
+const deleteAccountDepositId = ref('')
+const deletePopOverOpen = ref(false)
+
+const onDeleteGoal = async (goalId: string) => {
+    if (deleteAccountDepositId.value !== '') {
+        await fetchDeleteSaveGoal(goalId, deleteAccountDepositId.value)
+        savingGoals.value = await fetchListGoal()
+        deletePopOverOpen.value = false
+    }
 }
 
 </script>
@@ -40,7 +64,16 @@ const onEditUpdateAmountSavingGoal = (goalId: string, isIncrease: boolean) => {
                             <div class="flex gap-1">
                                 <UButton icon="i-lucide-plus" variant="outline" color="neutral" size="xl" @click="onEditUpdateAmountSavingGoal(goal.id, true)"/>
                                 <UButton icon="i-lucide-minus" variant="outline" color="neutral" size="xl" @click="onEditUpdateAmountSavingGoal(goal.id, false)"/>
-                                <UButton icon="i-lucide-pencil" variant="outline" color="neutral" size="xl" @click="onEditSavingGoal(goal)"/>
+                                <UButton icon="i-lucide-pencil" variant="outline" color="neutral" size="xl" @click="onEditSavingGoal(goal.id)"/>
+                                <UPopover v-model="deletePopOverOpen">
+                                    <UButton icon="i-lucide-trash" variant="outline" color="neutral" size="xl" @click="deletePopOverOpen = true"/>
+                                    <template #content>
+                                        <div class="flex flex-col gap-2 p-2">
+                                            <USelect v-model="deleteAccountDepositId" value-key="id" label-key="title" :items="accounts" class="w-full" />
+                                            <UButton label="Suppmier" color="error" @click="onDeleteGoal(goal.id)"/>
+                                        </div>
+                                    </template>
+                                </UPopover>
                             </div>
                         </CustomCardTitle>
                         <div class="flex items-center" style="margin-top: 1rem;">
