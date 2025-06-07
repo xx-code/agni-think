@@ -58,9 +58,11 @@ export class DeleteSaveGoalUseCase implements IDeleteSaveGoalUseCase {
 
             let accountTranfert = await this.accountRepo.get(request.accountTranfertRef)
 
-            let newRecord = new Record(GetUID(), savingGoal.getBalance(), "Deposit from " + savingGoal.getDescription(), TransactionType.CREDIT)
+            let date = this.dateService.getTodayWithTime()
+
+            let newRecord = new Record(GetUID(), savingGoal.getBalance(), date, TransactionType.CREDIT, "Deposit from " + savingGoal.getDescription())
             let newTransaction = new Transaction(GetUID(), accountTranfert.getId(), newRecord.getId(), SAVING_CATEGORY_ID, 
-            this.dateService.getTodayWithTime(), TransactionMainCategory.OTHER, [])
+            date, TransactionMainCategory.OTHER, [])
 
             accountTranfert.addOnBalance(savingGoal.getBalance())
 

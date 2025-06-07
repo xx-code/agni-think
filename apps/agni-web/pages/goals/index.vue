@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { fetchListGoal, useFetchListGoals } from "../../composables/goals";
-import { EditSavingGoal, EditSavingGoalUpdate } from "#components";
+import { fetchDeleteSaveGoal, fetchListGoal, useFetchListGoals } from "../../composables/goals";
+import { EditSavingGoal, EditSavingGoalUpdate, UBadge, UButton, UInput, UPopover } from "#components";
+import { fetchDeleteAccount, fetchListAccounts } from "../../composables/account";
+import { ref } from "vue";
 
 const overlay = useOverlay()
 const modalCreateSavingGoal = overlay.create(EditSavingGoal, {
@@ -34,6 +36,19 @@ const onEditUpdateAmountSavingGoal = (goalId: string, isIncrease: boolean) => {
     modalUpdateAmountSavingGoal.open()
 }
 
+let accounts = await fetchListAccounts()
+
+const deleteAccountDepositId = ref('')
+const deletePopOverOpen = ref(false)
+
+const onDeleteGoal = async (goalId: string) => {
+    if (deleteAccountDepositId.value !== '') {
+        await fetchDeleteSaveGoal(goalId, deleteAccountDepositId.value)
+        savingGoals.value = await fetchListGoal()
+        deletePopOverOpen.value = false
+    }
+}
+
 </script>
 
 <template>
@@ -50,6 +65,15 @@ const onEditUpdateAmountSavingGoal = (goalId: string, isIncrease: boolean) => {
                                 <UButton icon="i-lucide-plus" variant="outline" color="neutral" size="xl" @click="onEditUpdateAmountSavingGoal(goal.id, true)"/>
                                 <UButton icon="i-lucide-minus" variant="outline" color="neutral" size="xl" @click="onEditUpdateAmountSavingGoal(goal.id, false)"/>
                                 <UButton icon="i-lucide-pencil" variant="outline" color="neutral" size="xl" @click="onEditSavingGoal(goal.id)"/>
+                                <UPopover v-model="deletePopOverOpen">
+                                    <UButton icon="i-lucide-trash" variant="outline" color="neutral" size="xl" @click="deletePopOverOpen = true"/>
+                                    <template #content>
+                                        <div class="flex flex-col gap-2 p-2">
+                                            <USelect v-model="deleteAccountDepositId" value-key="id" label-key="title" :items="accounts" class="w-full" />
+                                            <UButton label="Suppmier" color="error" @click="onDeleteGoal(goal.id)"/>
+                                        </div>
+                                    </template>
+                                </UPopover>
                             </div>
                         </CustomCardTitle>
                         <div class="flex items-center" style="margin-top: 1rem;">

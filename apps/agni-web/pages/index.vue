@@ -5,7 +5,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { computed, ref } from 'vue'
 import { useFetchResumeAccount } from '../composables/account';
 import { useFetchListTransactions } from '../composables/transactions';
-import { useListGoals } from '../composables/goals';
+import { useFetchListGoals } from '../composables/goals';
 import { useFetchListBudget, formatBudgetDataForChart} from '../composables/budgets';
 
 library.add(fas)
@@ -50,7 +50,7 @@ const items = computed(() => accounts.value.map(acc => (
     }
 )))
 const transactions = await useFetchListTransactions({page: 1, limit: 4})
-const goals = useListGoals()
+const goals = await useFetchListGoals()
 const dateDisplayed = ref("Mois")
 const listTypeDateDisplay =computed(() => (
 [
