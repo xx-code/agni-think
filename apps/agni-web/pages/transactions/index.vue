@@ -1,19 +1,56 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { ALL_ACCOUNT_ID, useFetchResumeAccount } from "../../composables/account";
-import type { DropdownMenuItem } from "@nuxt/ui";
-import { useFetchCategories } from "../../composables/categories";
-import { useFetchTags } from "../../composables/tags";
-import { useListBudget } from "../../composables/budgets";
-import { useListTransactions } from "../../composables/transactions";
+import { computed, ref, shallowRef, watch } from "vue"; import { ALL_ACCOUNT_ID, useFetchResumeAccount } from "../../composables/account"; import type { DropdownMenuItem } from "@nuxt/ui"; import { useFetchListCategories, type CategoryType } from "../../composables/categories";
+import { useFetchListTags, type TagType } from "../../composables/tags";
+import { useFetchListBudget, type BudgetType } from "../../composables/budgets";
+import { fetchBalance, fetchDeleteTransaction, fetchListTransaction, useFetchListTransactions } from "../../composables/transactions";
 import { EditTransactionModal } from "#components";
+
+const selectedBudgetIds = ref<string[]>([])
+const selectedCategoryIds = ref<string[]>([])
+const selectedTagIds = ref<string[]>([])
+const filterSelected = ref({
+    'category': false, 'tag': false, 'date': false,
+    'price': false, 'budget': false
+})
+const balance = ref(0)
+const page = ref(1)
+const maxPage = ref(1)
+
+const accounts = await useFetchResumeAccount()
+const budgets = await useFetchListBudget()
+const categories = await useFetchListCategories()
+const tags = await useFetchListTags()
+
+
+const transactions = await useFetchListTransactions({page:page.value, limit: 25})
+maxPage.value = transactions.value.maxPage
+
+const onTransacitonInfos = async () => {
+    transactions.value = await fetchListTransaction({
+        page:page.value, 
+        limit: 25,
+        accountFilter: selectedAccounts.value.filter(acc => acc.checked).map(accId => accId.id),
+        categoryFilter: selectedCategoryIds.value,
+        tagFilter: selectedTagIds.value,
+        budgetFilter: selectedBudgetIds.value
+    })
+    balance.value = await fetchBalance({
+        accountIds: selectedAccounts.value.filter(acc => acc.checked).map(val => val.id), 
+        categoryIds: selectedCategoryIds.value,
+        tagIds: selectedTagIds.value,
+        budgetIds: selectedBudgetIds.value, 
+    })
+}
 
 const overlay = useOverlay()
 const modalTransaction = overlay.create(EditTransactionModal, {
-    props: {}
+    props: {
+        onSaved: async () => {
+            await onTransacitonInfos()
+        }
+    }
 })
 
-const accounts = useFetchResumeAccount()
 const selectedAccounts = ref(accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID)
 .map(acc => ({id: acc.id, label: acc.title, checked: true})))
 
@@ -23,6 +60,7 @@ const onUpdateChecked = (id: string, checked: boolean) => {
         selectedAccounts.value[idx].checked = checked
 }
 
+await onTransacitonInfos()
 
 const accountsDropdown = computed(() =>{
    let base = [
@@ -55,17 +93,8 @@ const accountsDropdown = computed(() =>{
     return (base.concat(otherAccount) satisfies DropdownMenuItem[]) 
 }) 
 
-const budgets = useListBudget()
-const selectedBudgetIds = ref([])
-const categories = useFetchCategories()
-const selectedCategoryIds = ref([])
-const tags = useFetchTags()
-const selectedTagIds = ref([])
 
-const filterSelected = ref({
-    'category': false, 'tag': false, 'date': false,
-    'price': false, 'budget': false
-})
+
 
 const filtersDropdown = computed(() => [
     {
@@ -119,21 +148,34 @@ const filtersDropdown = computed(() => [
                 'category': false, 'tag': false, 'date': false,
                 'price': false, 'budget': false
             }
+            selectedAccounts.value = accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID).map(acc => ({id: acc.id, label: acc.title, checked: true}))
+            selectedCategoryIds.value = []
+            selectedTagIds.value = []
+            selectedBudgetIds.value = []
         }
     }
 ]satisfies DropdownMenuItem[])
 
-const page = ref(1)
-const transactions = useListTransactions(page.value, 25)
-
 const onEditTransaction = (id: string|null=null) => {
     if(id){
-        const trans = transactions.value.find(tran => tran.id === id)
-        modalTransaction.patch({amount: trans?.amount})
+        modalTransaction.patch({isEdit: true, transactionId: id})
+    } else {
+        modalTransaction.patch({isEdit: false, transactionId: ''})
     }
    
     modalTransaction.open()
 }
+
+const onDelete = async (id: string) => {
+    await fetchDeleteTransaction(id)
+    transactions.value = await fetchListTransaction({page:page.value, limit: 25})
+}
+
+watch([selectedAccounts, selectedTagIds, selectedCategoryIds, selectedBudgetIds], async () => {
+    console.log("DF")
+    await onTransacitonInfos()
+}, {deep: true})
+
 
 </script>
 
@@ -144,7 +186,7 @@ const onEditTransaction = (id: string|null=null) => {
                 <UDropdownMenu :items="accountsDropdown">
                     <UButton color="neutral" variant="outline" icon="i-lucide-menu" label="Comptes" size="xl"/>
                 </UDropdownMenu>
-                <UButton variant="outline" color="neutral" label="value" size="xl"/>
+                <UButton variant="outline" color="neutral" :label="'$' + balance" size="xl"/>
                 <UDropdownMenu class="xs:mt-2" :items="filtersDropdown">
                     <UButton color="neutral" variant="outline" icon="i-lucide-sliders-horizontal" size="xl" label="Filtres"/>
                 </UDropdownMenu>
@@ -165,46 +207,48 @@ const onEditTransaction = (id: string|null=null) => {
         </div>
 
         <div class="flex flex-wrap gap-2 mt-2 items-center">
-            <UFormField v-if="filterSelected.category">
-                <UInputMenu placeholder="Categories" multiple :v-model="selectedCategoryIds" mutliple value-key="id" label-key="title" :items="categories"/>
-            </UFormField>
+            <div v-if="filterSelected.category">
+                <UInputMenu placeholder="Categories" multiple v-model="selectedCategoryIds" mutliple value-key="id" label-key="title" :items="categories"/>
+            </div>
 
-            <UFormField v-if="filterSelected.tag">
-                <UInputMenu placeholder="Tags" multiple :v-model="selectedTagIds" mutliple value-key="id" label-key="value" :items="tags"/>
-            </UFormField> 
+            <div v-if="filterSelected.tag">
+                <UInputMenu placeholder="Tags" multiple v-model="selectedTagIds" mutliple  value-key="id" label-key="value" :items="tags"/>
+            </div> 
             
-            <UFormField v-if="filterSelected.budget">
-                <UInputMenu placeholder="Budgets" multiple :v-model="selectedBudgetIds" mutliple value-key="id" label-key="title" :items="budgets"/>
-            </UFormField> 
+            <div v-if="filterSelected.budget">
+                <UInputMenu placeholder="Budgets" multiple v-model="selectedBudgetIds" mutliple value-key="id" label-key="title" :items="budgets"/>
+            </div> 
             
-            <UFormField>
+            <div>
                 <MultiCalendarSelection v-if="filterSelected.date" />
-            </UFormField>
+            </div>
 
-            <UFormField v-if="filterSelected.price" >
+            <div v-if="filterSelected.price" >
                 <div class="flex gap-1">
                     <UInput placeholder="Min" type="number" :min="0"/>
                     <UInput placeholder="Max" type="number" :min="0" />
                 </div>
-            </UFormField>
+            </div>
         </div>
 
         <div style="margin-top: 1rem;">
             <div class="transaction-box flex flex-col gap-2 rounded-md">
-                <div v-for="trans of transactions" :key="trans.id">
+                <div v-for="trans of transactions.transactions" :key="trans.id">
                     <RowTransaction 
                         :id="trans.id" 
                         :balance="trans.amount"
-                        :title="trans.title"
+                        :title="trans.category.title"
                         :description="trans.description"
-                        :icon="trans.icon"
+                        :icon="trans.category.icon"
+                        :record-type="trans.recordType"
                         :doShowEdit="true"
-                        :tags="trans.tags.map(tag => tag.title)"
+                        :tags="trans.tags.map(tag => tag.value)"
                         @update="(id) => onEditTransaction(id)"
+                        @delete="(id) => onDelete(id)"
                      />
                 </div>
             </div>
-            <UPagination class="mt-3" v-model:page="page" :total="100" />
+            <UPagination class="mt-3" v-model:page="page" :total="maxPage" />
         </div>
     </div>
 </template>

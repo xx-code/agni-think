@@ -16,6 +16,7 @@ import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { CategoryRepository } from "@core/repositories/categoryRepository";
 import { AccountRepository } from "@core/repositories/accountRepository";
 import { DateService } from "@core/adapters/libs";
+import { isArrayBuffer } from "node:util/types";
 
 class CreateTransactionModel { 
     private model: RequestAddTransactionUseCase
@@ -143,18 +144,39 @@ class PaginationTransactionModel {
     private model: RequestGetPagination
 
     constructor(reqQuery: any) {
+
+        let accounts = []
+        if (reqQuery.accountFilter)
+            accounts = Array.isArray(reqQuery.accountFilter) ? reqQuery.accountFilter : [reqQuery.accountFilter]
+        
+        let budgets = []
+        if (reqQuery.budgetFilter)
+            budgets = Array.isArray(reqQuery.budgetFilter) ? reqQuery.budgetFilter : [reqQuery.budgetFilter]
+
+        let categories = []
+        if (reqQuery.categoryFilter)
+            categories = Array.isArray(reqQuery.categoryFilter) ? reqQuery.categoryFilter: [reqQuery.categoryFilter]
+
+        let tags = []
+        if (reqQuery.tagFilter)
+            tags = Array.isArray(reqQuery.tagFilter) ? reqQuery.tagFilter: [reqQuery.tagFilter]
+
+        let types = []
+        if (reqQuery.types)
+            types = Array.isArray(reqQuery.types) ? reqQuery.types: [reqQuery.types]
+       
         this.model = {
             page: reqQuery.page ? reqQuery.page : 0,
             limit: reqQuery.limit ? reqQuery.limit : 0,
             sortBy: reqQuery.sortBy ? reqQuery.sortBy : '',
             sortSense: reqQuery.sortSense ? reqQuery.sortSense : '',
-            accountFilter: reqQuery.accountFilter ? reqQuery.accountFilter.split(";") : [],
-            categoryFilter: reqQuery.categoryFilter ? reqQuery.categoryFilter.split(";") : [],
-            budgetFilter: reqQuery.budgetFilter ? reqQuery.budgetFilter.split(";") : [],
-            tagFilter: reqQuery.tagFilter ? reqQuery.tagFilter.split(";") : [],
+            accountFilter: accounts,
+            categoryFilter: categories,
+            budgetFilter: budgets ,
+            tagFilter: tags,
             dateStart: reqQuery.dateStart ? reqQuery.dateStart : '',
             dateEnd: reqQuery.dateEnd ? reqQuery.dateEnd : '',
-            types: reqQuery.types ? reqQuery.types.split(";"): [],
+            types: types,
             minPrice: reqQuery.minPrice ? reqQuery.minPrice : undefined,
             maxPrice: reqQuery.maxPrice ? reqQuery.maxPrice : undefined
         }
@@ -286,14 +308,34 @@ class GetBalanceModel {
     private model: RequestGetBalanceBy
 
     constructor(reqQuery: any) {
+        let accounts = []
+        if (reqQuery.accountIds)
+            accounts = Array.isArray(reqQuery.accountIds) ? reqQuery.accountIds : [reqQuery.accountIds]
+        
+        let budgets = []
+        if (reqQuery.budgetIds)
+            budgets = Array.isArray(reqQuery.budgetIds) ? reqQuery.budgetIds : [reqQuery.budgetIds]
+
+        let categories = []
+        if (reqQuery.categoryIds)
+            categories = Array.isArray(reqQuery.categoryIds) ? reqQuery.categoryIds: [reqQuery.categoryIds]
+
+        let tags = []
+        if (reqQuery.tagIds)
+            tags = Array.isArray(reqQuery.tagIds) ? reqQuery.tagIds: [reqQuery.tagIds]
+
+        let types = []
+        if (reqQuery.types)
+            types = Array.isArray(reqQuery.types) ? reqQuery.types: [reqQuery.type]
+
         this.model = {
-            accountsIds:reqQuery.accountIds ? reqQuery.accountIds.split(';') :[],
-            tagsIds:reqQuery.tagIds ? reqQuery.tagIds.split(';') : [],
-            categoriesIds:reqQuery.categoriesIds ? reqQuery.categoriesIds.split(';'): [],
-            budgetIds: reqQuery.BudgetIds ? reqQuery.budgetIds.split(';'):[],
+            accountsIds: accounts,
+            tagsIds: tags,
+            categoriesIds: categories,
+            budgetIds: budgets,
             dateStart: reqQuery.dateStart ? reqQuery.dateStart : '',
             dateEnd: reqQuery.dateEnd ? reqQuery.dateEnd : '',
-            types: reqQuery.types ? reqQuery.types.split(";"): [],
+            types: types,
             minPrice: reqQuery.minPrice ? reqQuery.minPrice : '',
             maxPrice: reqQuery.maxPrice ? reqQuery.maxPrice : '' 
         }
@@ -354,9 +396,9 @@ class UpdateTransactionModel {
             categoryRef: reqBody.categoryId ? reqBody.categoryId : '',
             amount: reqBody.amount ? reqBody.amount : '',
             description: reqBody.description ? reqBody.description : '',
-            tagsRef: reqBody.tagIds ? reqBody.tagIds : [],
-            type: reqBody.typeTransaction ? reqBody.typeTransaction : '',
-            mainCategory: reqBody.mainCategory ? reqBody.mainCategory : '' ,
+            tagRefs: reqBody.tagIds ? reqBody.tagIds : [],
+            type: reqBody.type ? reqBody.type : '',
+            budgetRefs: reqBody.budgetIds ? reqBody.budgetIds : [] ,
             date: reqBody.date ? reqBody.date : ''
         }
     }

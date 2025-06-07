@@ -37,7 +37,7 @@ export class MomentDateService implements DateService {
     formatDateWithtime(date: string): string {
         this.assertValidDate(date)
 
-        let formatted = moment()
+        let formatted = moment(date)
         if (!formatted.isValid())
             throw new ValueError(`${date} is not valid`)
 

@@ -68,7 +68,7 @@ router.get('/v1/internal/transaction-type', (req, res) => {
                 typeAccounts.push({id: 'Other', value: 'Autre'})
                 break;
             case TransactionMainCategory.VARIABLECOST:
-                typeAccounts.push({id: 'VaraibleCost', value: 'Depense Variable'})
+                typeAccounts.push({id: 'VariableCost', value: 'Depense Variable'})
                 break
             default:
                 break;

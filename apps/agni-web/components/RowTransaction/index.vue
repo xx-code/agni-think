@@ -13,11 +13,13 @@ const props = defineProps({
     id: String,
     balance: Number,
     title: String,
+    recordType: String,
     description: String,
     icon: String,
     tags: Array,
     doShowEdit: Boolean
 })
+
 </script>
 
 <template>
@@ -27,7 +29,7 @@ const props = defineProps({
                 <div class="col-span-2">
                     <div class="flex items-center gap-1">
                         <div class="icon rounded-md">
-                            <font-awesome-icon :icon="icon" />
+                            <UIcon :name="icon" />
                         </div>
                         <div >
                             <h3 class="font-semibold">{{ title }}</h3>
@@ -46,7 +48,7 @@ const props = defineProps({
                     </div>
                 </div>
                 <div class="justify-self-end">
-                    <h3 class="font-semibold">${{ balance }}</h3>
+                    <h3 class="font-semibold">${{ recordType === 'Debit' ? '-' : ''}}{{ balance }}</h3>
                 </div>
                 
                 

@@ -2,14 +2,14 @@
 import { ref } from "vue";
 import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType, fetchDeleteAccount} from "../../composables/account";
 import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, TransferModal } from "#components";
-import { useListTransactions } from "../../composables/transactions";
+import { fetchListTransaction, fetchTransaction, useFetchListTransactions } from "../../composables/transactions";
 
 const accounts = await useFetchResumeAccount(); // Compute Value for remove select accountId
 const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
 const selectedAccountId = ref(ALL_ACCOUNT_ID)
 const editAccount = ref({accountId: '', accountName: "", accountType: ""})
 
-const transactions = useListTransactions(0, 4) // add compute for change in selected Account
+const transactions = await useFetchListTransactions({page: 1, limit: 4}) // add compute for change in selected Account
 
 const overlay = useOverlay()
 const modalAccount = overlay.create(EditAccountModal, {
@@ -63,6 +63,14 @@ const onDeleteAccount = async (accountId: string) => {
     accounts.value = (await useFetchResumeAccount()).value
 }
 
+const onUpateAccount = async (payload: string) => {
+    let filterAcc: string[] = []
+    if (payload !== ALL_ACCOUNT_ID)
+        filterAcc = [payload]
+    
+    transactions.value = await fetchListTransaction({page: 1, limit: 4, accountFilter: filterAcc})
+}
+
 </script>
 
 <template>
@@ -70,7 +78,7 @@ const onDeleteAccount = async (accountId: string) => {
         <div>
             <div class="card rounded-md">
                 <CustomCardTitle :title="getAccount(selectedAccountId)?.title">
-                   <USelect v-model="selectedAccountId" value-key="id" label-key="title" :items="accounts"/> 
+                   <USelect v-model="selectedAccountId" @update:modelValue="onUpateAccount" value-key="id"  label-key="title" :items="accounts"/> 
                 </CustomCardTitle>
                 <div class="card-money" style="margin-top: 1rem;">
                     <h2>
@@ -133,11 +141,11 @@ const onDeleteAccount = async (accountId: string) => {
                 </div>
             </CustomCardTitle>
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
-                <div v-for="trans in transactions" :key="trans.id">
+                <div v-for="trans in transactions.transactions" :key="trans.id">
                     <RowTransaction 
-                        :id="trans.id" :balance="trans.amount" :title="trans.title" 
-                        :description="trans.description" :icon="trans.icon" 
-                        :tags="trans.tags.map(tag=>tag.title)"/>    
+                        :id="trans.id" :balance="trans.amount" :title="trans.description" 
+                        :description="trans.description" :icon="trans.category.icon" 
+                        :tags="trans.tags.map(tag=>tag.value)"/>    
                 </div>
             </div>
         </div>
@@ -156,11 +164,11 @@ const onDeleteAccount = async (accountId: string) => {
 
             </CustomCardTitle>
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
-                <div v-for="trans in transactions" :key="trans.id">
+                <div v-for="trans in transactions.transactions" :key="trans.id">
                     <RowTransaction 
-                        :id="trans.id" :balance="trans.amount" :title="trans.title" 
-                        :description="trans.description" :icon="trans.icon" 
-                        :tags="trans.tags.map(tag=>tag.title)" />    
+                        :id="trans.id" :balance="trans.amount" :title="trans.description" 
+                        :description="trans.description" :icon="trans.category.icon" 
+                        :tags="trans.tags.map(tag=>tag.value)" />    
                 </div>
             </div>
         </div>

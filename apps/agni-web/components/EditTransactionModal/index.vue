@@ -3,21 +3,21 @@ import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalize
 
 import * as z from 'zod';
 import { reactive, ref, shallowRef } from "vue";
-import { useFetchResumeAccount } from "../../composables/account";
-import { useListBudget, type BudgetType } from '../../composables/budgets';
+import { fetchListAccounts, useFetchResumeAccount } from "../../composables/account";
+import { useFetchListBudget, type BudgetType } from '../../composables/budgets';
 import { useFetchListCategories } from '../../composables/categories';
 import { useFetchListTags, type TagType } from '../../composables/tags';
 import type { FormSubmitEvent } from '@nuxt/ui';
-import { useFetchMainCategories } from '../../composables/transactions';
+import { fetchCreateTransaction, fetchUpdateTransaction, useFetchListTransactionType, useFetchTransaction } from '../../composables/transactions';
 const props = defineProps({
     isEdit: Boolean,
-    accountId: String,
-    amount: Number
+    transactionId: String,
+    onSaved: Function
 })
 
 const schema = z.object({
     accountId: z.string().nonempty('Vous devez selectionner un compte'),
-    mainCategoryId: z.string().nonempty('Vous devez selectionner une categories'),
+    transactionType: z.string().nonempty('Vous devez selectionner une categories'),
     categoryId: z.string().nonempty('Vous devez selectionner une categories'),
     description: z.string().nonempty('Vous devez ajouter une description'),
     amount: z.number().min(1, 'La somme doit etre plus grand que zero'),
@@ -25,54 +25,82 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>
 
-const accounts = useFetchResumeAccount()
+const accounts = await fetchListAccounts()
 
 const categories = await useFetchListCategories()
-const tags = useFetchListTags()
-const budgets = useListBudget()
-const mainCategories = useFetchMainCategories()
+const tags = await useFetchListTags()
+const budgets = await useFetchListBudget()
+const mainCategories = await useFetchListTransactionType()
+
+let transaction = null
+if (props.transactionId)
+    transaction = await useFetchTransaction(props.transactionId)
 
 const form = reactive({
-    isCredit: false,
-    accountId: props.accountId,
-    mainCategoryId: '',
-    categoryId: '',
-    description: '',
-    tagIds: [],
-    budgetIds: [],
-    amount: props.amount,
+    accountId: transaction ? transaction.value?.accountId ?? '' : '',
+    transactionType: transaction ? transaction.value?.type ?? '' : '',
+    categoryId: transaction ? transaction.value?.category.id ?? '' : '',
+    description: transaction ? transaction.value?.description ?? '': '',
+    tagIds: transaction ? transaction.value?.tags.map(tag => tag.id) ?? [] : [],
+    budgetIds: transaction ? transaction.value?.budgets.map(budg => budg.id) ?? [] : [],
+    amount: transaction ? transaction.value?.amount ?? 0 : 0
 })
 
-const date = shallowRef(new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()))
+let valDate = new Date()
+if (transaction)
+    valDate = new Date(transaction.value?.date ?? '')
+
+const date = shallowRef(new CalendarDate(valDate.getFullYear(), valDate.getMonth() + 1, valDate.getDate()))
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
 })
 
-function onSubmit(event: FormSubmitEvent<Schema>) {
+const emit = defineEmits(['close'])
+
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+    if (!props.isEdit) {
+        await fetchCreateTransaction({
+            description: form.description, 
+            categoryId: form.categoryId, 
+            accountId: form.accountId,
+            type: form.transactionType,
+            amount: form.amount,
+            date: date.value.toString(),
+            budgetIds: form.budgetIds,
+            tagIds: form.tagIds
+        })
+    } else {
+        await fetchUpdateTransaction({
+            transactionId: props.transactionId ?? '',
+            description: form.description,
+            categoryId: form.categoryId,
+            accountId: form.accountId,
+            type: form.transactionType,
+            amount: form.amount,
+            date: date.value.toString(),
+            budgetIds: form.budgetIds,
+            tagIds: form.tagIds
+        })
+    } 
+    
+    if (props.onSaved) props.onSaved()
+
+    emit('close')
 }
 
-function onClose(){
-    defineEmits({close})
-}
 
 </script>
 
 <template>
-<UModal 
-title="Transaction"
-:close="{ onClick: onClose}">
+<UModal title="Transaction">
     <template #body>
         <UForm :schema="schema" :state="form" class="space-y-4" @submit="onSubmit">
-            <UFormField label="" name="transactionType">
-                <UTabs :content="form.isCredit" :items="[{label:'debit'}, {label:'credit'}]" class="w-full"/> 
+            <UFormField label="Type de transaction" name="transactionType">
+                <USelect v-model="form.transactionType" value-key="id" :items="mainCategories" class="w-full"/>
             </UFormField>
 
             <UFormField label="Compte" name="accountId" >
                 <USelect v-model="form.accountId" value-key="id" label-key="title" :items="accounts.filter(acc => acc.id !== ALL_ACCOUNT_ID)" class="w-full" />
-            </UFormField>
-
-            <UFormField label="Categorie de transaction" name="mainCategoryId">
-                <USelect v-model="form.mainCategoryId" value-key="id" :items="mainCategories" class="w-full"/>
             </UFormField>
 
             <UFormField label="Prix" name="amount">
@@ -110,7 +138,7 @@ title="Transaction"
             
             <UFormField >
                 <UButton class="mr-2" type="submit" :label="isEdit ? 'Mettre a jour' : 'Ajouter'"  />
-                <UButton label="Annuler"  variant="outline" />
+                <UButton label="Annuler"  variant="outline" @click="emit('close')" />
             </UFormField>
         </UForm>
     </template>

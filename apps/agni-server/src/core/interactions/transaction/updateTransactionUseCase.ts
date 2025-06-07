@@ -4,7 +4,7 @@ import { TagRepository } from "../../repositories/tagRepository";
 import { CategoryRepository } from "../../repositories/categoryRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
 import { DateService } from "@core/adapters/libs";
-import { FREEZE_CATEGORY_ID, mapperMainTransactionCategory, mapperTransactionType, SAVING_CATEGORY_ID } from "@core/domains/constants";
+import { FREEZE_CATEGORY_ID, mapperMainTransactionCategory, mapperTransactionType, SAVING_CATEGORY_ID, TransactionMainCategory } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
@@ -12,18 +12,19 @@ import { AddTransactionUseCase, IAddTransactionUseCaseResponse } from "./addTran
 import { DeleteTransactionUseCase, IDeleteTransactoinUseCaseResponse } from "./deleteTransactionUseCase";
 import { ValueError } from "@core/errors/valueError";
 import { BudgetRepository } from "@core/repositories/budgetRepository";
+import { TransactionType } from "@core/domains/entities/record";
 
 
 export type RequestUpdateTransactionUseCase = {
     id: string;
     accountRef: string
-    tagsRef: string[]
+    tagRefs: string[]
+    budgetRefs: string[]
     categoryRef: string
     type: string
     description: string
     date: string
     amount: number
-    mainCategory: string
 }
 
 export interface IUpdateTransactionUseCase {
@@ -105,13 +106,15 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
             if (request.amount <= 0)
                 throw new ValueError("You can 't add transaction less or equal to 0")
 
+            let type = mapperMainTransactionCategory(request.type)
+
             let amount = new Money(request.amount)
 
             record.setMoney(amount)
             
             record.setDescription(request.description)
 
-            record.setType(mapperTransactionType(request.type))
+            record.setType(type === TransactionMainCategory.INCOME ? TransactionType.CREDIT : TransactionType.DEBIT)
             let date = this.dateService.formatDateWithtime(request.date)
             record.setDate(date)
 
@@ -122,12 +125,17 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
 
             transaction.setCategoryRef(request.categoryRef)
 
-            transaction.setTransactionType(mapperMainTransactionCategory(request.mainCategory))
+            transaction.setTransactionType(type)
 
-            if (!(await this.tagRepository.isTagExistByIds(request.tagsRef)))
+            if (!(await this.tagRepository.isTagExistByIds(request.tagRefs)))
                 throw new ResourceNotFoundError("a tag not found")
 
-            transaction.setTags(request.tagsRef)
+            if (!(await this.budgetRepository.isBudgetExistByIds(request.budgetRefs)))
+                throw new ResourceNotFoundError("a budgets not found")
+
+            transaction.setTags(request.tagRefs)
+            
+            transaction.setBudgets(request.budgetRefs)
 
             let newTransationId = request.id
             if (record.hasChange() || transaction.hasChange())  {
