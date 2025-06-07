@@ -6,14 +6,16 @@ export class Category {
     private title: string = ''
     private iconId = ''
     private color: string = ''
+    private isSystem: boolean = false
 
     private change: boolean = false
 
-    constructor(id: string, title: string, iconId: string, color:string='') {
+    constructor(id: string, title: string, iconId: string, color:string='', isSystem=false) {
         this.id = id
         this.setTitle(title)
         this.iconId = iconId
         this.setColor(color)
+        this.isSystem = isSystem
     }
 
     setId(id: string) {
@@ -58,6 +60,17 @@ export class Category {
 
     getIconId(): string {
         return this.iconId
+    }
+
+    getIsSystem(): boolean {
+        return this.isSystem
+    }
+
+    setIsSytem(isSystem: boolean) {
+        if (this.isSystem !== isSystem)
+            this.change = true
+
+        return this.isSystem
     }
 
     hasChange(): boolean {

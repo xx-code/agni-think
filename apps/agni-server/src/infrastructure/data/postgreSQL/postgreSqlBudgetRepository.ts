@@ -24,6 +24,7 @@ export class PostgresSqlBudgetRepository extends KnexConnector implements Budget
                 table.string('period').nullable()
                 table.integer('period_time').nullable()
                 table.boolean('is_archived')
+                table.boolean('is_system')
             })
         }
     }

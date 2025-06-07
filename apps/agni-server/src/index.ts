@@ -7,6 +7,7 @@ import bodyParser  = require("body-parser");
 import cors from "cors"
 import knex, { Knex } from "knex";
 import { DiContenair } from "./di_contenair";
+import { SystemSeeder } from './seeder';
 const db: Knex = knex( {
   client: 'pg',
   connection: {
@@ -42,12 +43,15 @@ import { PostgreSqlTransactionRepository } from "@infra/data/postgreSQL/postgreS
 import { PostgreSqlRecordRepository } from "@infra/data/postgreSQL/postgreSqlRecordRepository";
 import { Transaction } from "@core/domains/entities/transaction";
 
-
 dotenv.config();
 
 const app: Express = express();
 
 const port = process.env.PORT || 3000;
+
+const seeder = new SystemSeeder(diContainer.categoryRepository, diContainer.tagRepository)
+
+seeder.seed()
 
 app.use(bodyParser.urlencoded())
 app.use(bodyParser.json())

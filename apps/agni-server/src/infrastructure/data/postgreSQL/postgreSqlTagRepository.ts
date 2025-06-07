@@ -18,6 +18,7 @@ export class PostgreSqlTagRepository extends KnexConnector implements TagReposit
                 table.uuid('tag_id').primary();
                 table.string('value').unique().notNullable();
                 table.string('color').nullable();
+                table.boolean('is_system');
             })
         }
     }

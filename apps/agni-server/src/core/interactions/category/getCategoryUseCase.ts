@@ -9,6 +9,7 @@ export type CategoryResponse = {
     title: string
     icon: string
     color: string|null 
+    isSystem: boolean
 }
 
 export interface IGetCategoryUseCaseResponse {
@@ -33,7 +34,8 @@ export class GetCategoryUseCase implements IGetCategoryUseCase {
                 categoryId: category.getId(),
                 icon: category.getIconId(),
                 title: category.getTitle(),
-                color: category.getColor()
+                color: category.getColor(),
+                isSystem: category.getIsSystem()
             });
         } catch(err) {
             this.presenter.fail(err as Error);
