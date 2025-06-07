@@ -28,6 +28,19 @@ export const useFetchListGoals = async (): Promise<Ref<GoalRowType[]>> => {
     return budgets 
 }
 
+export const useFetchGoal = async (goalId: string): Promise<Ref<GoalRowType | null>> => {
+    const { data, error } = useAsyncData(`goal-${goalId}`, () =>  fetchGoal(goalId))
+
+    if (error.value) {
+        const toast = useToast()
+        const resError = error.value.data as ErrorApi
+        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
+        return data
+    }
+
+    return data
+}
+
 export async function fetchListGoal(): Promise<GoalRowType[]> {
     const response = await $fetch(`${API_LINK}/save-goals`)
 
