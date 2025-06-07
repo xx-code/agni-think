@@ -5,12 +5,15 @@ export class Tag {
     private id: string = ''
     private value: string = ''
     private color: string = ''
+    private isSystem: boolean = false
+
     private change: boolean = false 
 
-    constructor(id: string, value: string, color: string ='') {
+    constructor(id: string, value: string, color: string ='', isSystem: boolean=false) {
         this.id = id
         this.value = value
         this.color = color
+        this.isSystem = isSystem
     }
 
     setId(id: string) {
@@ -44,6 +47,17 @@ export class Tag {
 
     getValue(): string {
         return reverseFormatted(this.value)
+    }
+
+    getIsSystem(): boolean {
+        return this.isSystem
+    }
+
+    setIsSytem(isSystem: boolean) {
+        if (this.isSystem !== isSystem)
+            this.change = true
+
+        return this.isSystem
     }
 
     hasChange(): boolean {

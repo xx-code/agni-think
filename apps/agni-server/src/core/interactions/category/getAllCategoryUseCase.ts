@@ -6,6 +6,7 @@ export type CategoriesResponse = {
     title: string
     icon: string
     color: string|null 
+    isSystem: boolean
 }
 
 export interface IGetAllCategoryUseCase {
@@ -39,7 +40,8 @@ export class GetAllCategoryUseCase implements IGetAllCategoryUseCase {
                     categoryId: result.getId(),
                     title: result.getTitle(),
                     color: result.getColor(),
-                    icon: result.getIconId()
+                    icon: result.getIconId(),
+                    isSystem: result.getIsSystem()
                 });
             }
             

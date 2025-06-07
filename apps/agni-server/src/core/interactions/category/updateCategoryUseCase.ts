@@ -1,4 +1,3 @@
-import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { CategoryRepository } from "../../repositories/categoryRepository";
 import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError";
 
