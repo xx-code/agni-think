@@ -11,7 +11,11 @@ const modalCreateSavingGoal = overlay.create(EditSavingGoal, {
     }
 })
 const modalUpdateAmountSavingGoal = overlay.create(EditSavingGoalUpdate, {
-    props: {}
+    props: {
+        onSaved: async () => {
+            savingGoals.value = await fetchListGoal()
+        }
+    }
 })
 
 const savingGoals = await useFetchListGoals()

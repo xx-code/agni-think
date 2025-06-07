@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import * as z from 'zod';
 import { reactive } from 'vue';
-import { useFetchResumeAccount } from '../../composables/account';
+import { fetchListAccounts, useFetchResumeAccount } from '../../composables/account';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { UFormField } from '#components';
+import { fetchDescreaseSaveGoal, fetchIncreaseSaveGoal } from '../../composables/goals';
 
 const props = defineProps({
     goalId: String,
-    isIncrease: Boolean
+    isIncrease: Boolean,
+    onSaved: Function
 })
 
 const schema = z.object({
@@ -21,11 +23,21 @@ const form = reactive({
     amount: 0
 })
 
-const accounts = useFetchResumeAccount()
+const accounts = await fetchListAccounts()
 
 type Schema = z.output<typeof schema>
-function onSubmit(event: FormSubmitEvent<Schema>) {
-    console.log(form)
+
+const emit = defineEmits(['close'])
+
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+    if (form.isIncrease) 
+        await fetchIncreaseSaveGoal({accountFromId: form.accountId, amount: form.amount, saveGoalId: props.goalId!})
+    else 
+        await fetchDescreaseSaveGoal({accountToId: form.accountId, amount: form.amount, saveGoalId: props.goalId!})
+
+    if (props.onSaved) props.onSaved()
+
+    emit('close')
 }
 
 </script>
@@ -38,7 +50,7 @@ function onSubmit(event: FormSubmitEvent<Schema>) {
                     <UTabs v-model="form.isIncrease" :content="false" :items="[{label:'Ajouter'}, {label:'Retirer'}]" class="w-full"/> 
                 </UFormField>
                 <UFormField label="Compte" name="accountId">
-                    <USelect v-model="form.accountId" value-key="id" label-key="title" :items="accounts.filter(acc => acc.id !== ALL_ACCOUNT_ID)" class="w-full" />
+                    <USelect v-model="form.accountId" value-key="id" label-key="title" :items="accounts" class="w-full" />
                 </UFormField>
                 <UFormField label="Somme" name="amount">
                     <UInput v-model="form.amount" type="number" />
