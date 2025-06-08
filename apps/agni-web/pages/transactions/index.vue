@@ -34,6 +34,7 @@ const onTransacitonInfos = async () => {
         tagFilter: selectedTagIds.value,
         budgetFilter: selectedBudgetIds.value
     })
+    maxPage.value = transactions.value.maxPage
     balance.value = await fetchBalance({
         accountIds: selectedAccounts.value.filter(acc => acc.checked).map(val => val.id), 
         categoryIds: selectedCategoryIds.value,
@@ -168,7 +169,7 @@ const onEditTransaction = (id: string|null=null) => {
 
 const onDelete = async (id: string) => {
     await fetchDeleteTransaction(id)
-    transactions.value = await fetchListTransaction({page:page.value, limit: 25})
+    await onTransacitonInfos()
 }
 
 watch([selectedAccounts, selectedTagIds, selectedCategoryIds, selectedBudgetIds], async () => {

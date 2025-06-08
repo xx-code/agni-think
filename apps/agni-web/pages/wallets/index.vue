@@ -33,12 +33,20 @@ const modalTransfer = overlay.create(TransferModal, {
 const modalTransaction = overlay.create(EditTransactionModal, {
     props: {
         onSaved: async () => {
+            accounts.value = (await useFetchResumeAccount()).value
             await onUpateAccount(selectedAccount.value?.id ?? ALL_ACCOUNT_ID)
         }
     }
 })
 
-const modalFreezeTransaction = overlay.create(EditFreezeTransaction, {})
+const modalFreezeTransaction = overlay.create(EditFreezeTransaction, {
+    props: {
+        onSaved: async () => {
+            accounts.value = (await useFetchResumeAccount()).value
+            await onUpateAccount(selectedAccount.value?.id ?? ALL_ACCOUNT_ID)
+        }
+    } 
+})
 
 const onSelectAccount = (id: string) => {
     selectedAccount.value = accounts.value.find(acc => acc.id === id) 

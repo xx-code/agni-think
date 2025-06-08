@@ -15,7 +15,8 @@ const schema = z.object({
 type Schema = z.output<typeof schema>
 
 const props = defineProps({
-    accountFromId: String
+    accountFromId: String,
+    onSaved: Function
 })
 
 const date = shallowRef(new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()))
@@ -37,6 +38,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         accountFromId: form.accountIdFrom,  
         accountToId: form.accountIdTo, 
         date: date.value.toString(), amount: form.amount})
+
+    if (props.onSaved) props.onSaved()
 
     emit('close')
 }

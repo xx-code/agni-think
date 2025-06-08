@@ -33,7 +33,7 @@ import { MomentDateService } from '@infra/services/date';
 
 
 export class DiContenair { 
-    accountRepository: AccountRepository 
+    accountRepository: AccountRepository
     categoryRepository: CategoryRepository
     tagRepository: TagRepository
     recordRepository: RecordRepository
@@ -56,7 +56,6 @@ export class DiContenair {
         this.savingRepository = new PostgreSqlSavingRepository(knex)
 
         this.dateService = new MomentDateService()
-        
     }
 
     configMock() {

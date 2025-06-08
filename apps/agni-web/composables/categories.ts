@@ -6,7 +6,7 @@ export type CategoryType = {
 }
 
 
-export const  useFetchListCategories = async (): Promise<Ref<CategoryType[]|null>> => {
+export const  useFetchListCategories = async (): Promise<Ref<CategoryType[]>> => {
     const { data, error } = await useAsyncData('categories', () => fetchListCategories())
 
     
@@ -16,7 +16,9 @@ export const  useFetchListCategories = async (): Promise<Ref<CategoryType[]|null
         toast.add({ title: 'Oops! Erreur', description: resData.data.error.message, color: 'error'})
     } 
 
-    return data
+    const categories = ref(data.value!)
+
+    return categories
 }
 
 

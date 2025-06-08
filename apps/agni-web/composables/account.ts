@@ -59,7 +59,7 @@ export type AccountTypeType = {
     label: string
 }
 
-export const useFetchListAccountTypes = async (): Promise<Ref<AccountTypeType[]|null>> => { 
+export const useFetchListAccountTypes = async (): Promise<Ref<AccountTypeType[]>> => { 
     const { data, error } = await useAsyncData(() => fetchListAccountTypes())
 
     if (error.value) {
@@ -68,8 +68,10 @@ export const useFetchListAccountTypes = async (): Promise<Ref<AccountTypeType[]|
         toast.add({title: 'Oops! Erreur type de compte', description: resError.data.error.message, color: 'error'})
         return ref([])
     }
+
+    const accounts = ref(data.value!)
     
-    return data
+    return accounts
 }
 
 export const useFetchListAccount = async (): Promise<Ref<AccountType[] | null>> => {
