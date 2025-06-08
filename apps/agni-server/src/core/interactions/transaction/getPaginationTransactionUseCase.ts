@@ -160,12 +160,19 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
                 maxPrice: maxPrice
             };
 
-            let sortBy: SortBy|null = null;
+            let sortBy: SortBy|null = {
+                sortBy: 'date',
+                asc: false
+            };
 
-            request.sortBy = 'date';
-            request.sortSense = 'desc'
+            if (request.sortBy)
+                sortBy.sortBy = request.sortBy
 
-            let response = await this.transactionRepository.getPaginations(page, limit, null, filters);
+            if (request.sortSense)
+                if (!['asc', 'desc'].includes(request.sortSense))
+                    throw new ValidationError('Sort Sense must be asc or desc') 
+
+            let response = await this.transactionRepository.getPaginations(page, limit, sortBy, filters);
 
             let transactions: TransactionResponse[] = []
             for (let i = 0; i < response.transactions.length ; i++) {

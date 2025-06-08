@@ -87,7 +87,7 @@ export class GetBalanceByUseCase implements IGetBalanceByUseCase {
                     balance -= record.getMoney().getAmount()
             }
 
-            this.presenter.success(balance);
+            this.presenter.success(Number(balance.toFixed(2)));
         } catch(err) {
             this.presenter.fail(err as Error);
         }

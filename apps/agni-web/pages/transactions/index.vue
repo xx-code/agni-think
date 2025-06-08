@@ -15,6 +15,7 @@ const filterSelected = ref({
 const balance = ref(0)
 const page = ref(1)
 const maxPage = ref(1)
+const nbItems = ref(8)
 
 const accounts = await useFetchResumeAccount()
 const budgets = await useFetchListBudget()
@@ -22,13 +23,13 @@ const categories = await useFetchListCategories()
 const tags = await useFetchListTags()
 
 
-const transactions = await useFetchListTransactions({page:page.value, limit: 25})
+const transactions = await useFetchListTransactions({page:page.value, limit: nbItems.value})
 maxPage.value = transactions.value.maxPage
 
 const onTransacitonInfos = async () => {
     transactions.value = await fetchListTransaction({
         page:page.value, 
-        limit: 25,
+        limit: nbItems.value,
         accountFilter: selectedAccounts.value.filter(acc => acc.checked).map(accId => accId.id),
         categoryFilter: selectedCategoryIds.value,
         tagFilter: selectedTagIds.value,
@@ -172,8 +173,7 @@ const onDelete = async (id: string) => {
     await onTransacitonInfos()
 }
 
-watch([selectedAccounts, selectedTagIds, selectedCategoryIds, selectedBudgetIds], async () => {
-    console.log("DF")
+watch([selectedAccounts, selectedTagIds, selectedCategoryIds, selectedBudgetIds, page], async () => {
     await onTransacitonInfos()
 }, {deep: true})
 

@@ -1,4 +1,4 @@
-import { DiContenair } from "./di_contenair";
+import container, { DiContenair } from "./di_contenair";
 import { Database } from "sqlite3";
 import { open } from 'sqlite'
 import { Account } from "@core/domains/entities/account";
@@ -26,22 +26,14 @@ const db: Knex = knex( {
 })
 
 export class DbMigration {
-    private di: DiContenair
+    private di: DiContenair 
+
     constructor(di: DiContenair) {
         this.di=di
     }
 
     async migrate() {
-        const tables = await db.raw(`
-            SELECT tablename 
-            FROM pg_tables 
-            WHERE schemaname='public'
-        `);
-
-        for (const row of tables.rows) {
-            await db.raw(`DROP TABLE IF EXISTS "${row.tablename}" CASCADE`);
-        }
-        let seeder = new SystemSeeder(this.di.categoryRepository, this.di.tagRepository)
+        let seeder = new SystemSeeder(this.di.getRepository('category'), this.di.getRepository('tag'))
         await seeder.seed()
         await this.migrationSQLLiteToPostgre() 
     }
@@ -52,7 +44,7 @@ export class DbMigration {
             driver: Database
         })
 
-        await this.di.unitOfWork.start()
+        await this.di.getRepository('unit_of_work').start()
         try {
             let results = await sqliteDb.all(`SELECT id, title, is_saving FROM accounts where is_saving = 0`)
             let all_accounts: Map<string, Account> = new Map()
@@ -77,7 +69,7 @@ export class DbMigration {
 
                 let account = new Account(GetUID(), result["title"], type)
                 all_accounts.set(result["id"], account)
-                await this.di.accountRepository.save(account)
+                await this.di.getRepository('account').save(account)
             } 
 
             // const creditDesj = new Account(GetUID(), 'Desjardin carte de credit', AccountType.CHECKING)
@@ -94,14 +86,14 @@ export class DbMigration {
                 let category = new Category(GetUID(), result["title"], result["icon"], "#A9A9A9")
 
                 all_categories.set(result["id"], category)
-                await this.di.categoryRepository.save(category)
+                await this.di.getRepository('category').save(category)
             }
 
             results = await sqliteDb.all(`SELECT id, value, color FROM tags`)
             for (let result of results) {
                 let tag = new Tag(GetUID(), result["value"], "#A9A9A9")
                 all_tags.set(result["id"], tag)
-                await this.di.tagRepository.save(tag)
+                await this.di.getRepository('tag').save(tag)
             }
 
             results = await sqliteDb.all(`SELECT id, amount, date, description, type FROM records`)
@@ -129,11 +121,11 @@ export class DbMigration {
                 let is_Freeze = result["id_category"] === "category-freeze"
                 if (old_acc && record && category && result["id_category"] !== 'category-saving') {
 
-                    let account = await this.di.accountRepository.get(old_acc.getId())
+                    let account = await this.di.getRepository('account').get(old_acc.getId())
 
                     record.getType() === TransactionType.CREDIT ? account.addOnBalance(record.getMoney()) : account.substractBalance(record.getMoney())
                     
-                    await this.di.recordRepository.save(record)
+                    await this.di.getRepository('record').save(record)
 
                     let typeTrans = TransactionMainCategory.VARIABLECOST
                     if (['LOYER', 'SANTÉ_ET_SOINS', 'TÉLÉPHONE', 'MAISON_ET_ENTRETIEN'].includes(category.getTitle()))
@@ -150,25 +142,29 @@ export class DbMigration {
                     if (is_Freeze)
                         newTransaction.setIsFreeze()
 
-                    await this.di.accountRepository.update(account)
+                    await this.di.getRepository('account').update(account)
                     
-                    await this.di.transactionRepository.save(newTransaction)
+                    await this.di.getRepository('transaction').save(newTransaction)
                 } 
             }
 
-            await this.di.unitOfWork.commit()
+            await this.di.getRepository('unit_of_work').commit()
 
             console.log("done")
 
             } 
             catch (err: any) {
             console.log(err)
-            await this.di.unitOfWork.rollback()
+            await this.di.getRepository('unit_of_work').rollback()
         }
     }
 }
 
-export const diContainer = new DiContenair('postgreV1', db)
-const migrate = new DbMigration(diContainer)
+async function main() {
+    await container.config(db)
+    const migrate = new DbMigration(container)
 
-migrate.migrate()
+    await migrate.migrate()
+}
+
+main()

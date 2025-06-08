@@ -1,28 +1,26 @@
 import { Router } from "express";
-import { diContainer } from "src";
+import container from '../di_contenair'
 import { ApiCreateAccountControler, ApiDeleteAccountController, ApiGetAccountAccountController, ApiGetAllAccountController, ApiUpdateAccountController } from "src/controllers/accounts";
-
-
 
 const router = Router()
 
 router.post('/v1/accounts', async (req, res) => {
-    let api = new ApiCreateAccountControler(diContainer.accountRepository!)
+    let api = new ApiCreateAccountControler(container.getRepository('account'))
     await api.execute(req, res)
 })
 
 router.get('/v1/accounts', async (req, res) => {
-    let api = new ApiGetAllAccountController(diContainer.accountRepository!)
+    let api = new ApiGetAllAccountController(container.getRepository('account'))
     await api.execute(req, res)
 })
 
 router.get('/v1/accounts/:id', async (req, res) => {
-    let api = new ApiGetAccountAccountController(diContainer.accountRepository!)
+    let api = new ApiGetAccountAccountController(container.getRepository('account'))
     await api.execute(req, res)
 })
 
 router.put('/v1/accounts/:id', async (req, res) => {
-    let api = new ApiUpdateAccountController(diContainer.accountRepository!)
+    let api = new ApiUpdateAccountController(container.getRepository('account'))
     await api.execute(req, res)
 })
 
@@ -31,7 +29,7 @@ router.put('/v1/accounts/:id', async (req, res) => {
 // })
 
 router.delete('/v1/accounts/:id', async (req, res) => {
-    let api = new ApiDeleteAccountController(diContainer.accountRepository!)
+    let api = new ApiDeleteAccountController(container.getRepository('account'))
     await api.execute(req, res)
 })
 

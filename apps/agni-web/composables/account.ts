@@ -20,8 +20,9 @@ function sumTotalBalance(accounts: ResumeAccountType[]): [number, number] {
     let total = 0 
     let pastTotal = 0
     accounts.forEach(acc => {
-        total += acc.balance 
-        pastTotal += acc.pastBalanceDetail.balance
+        if (acc.type !== 'Saving')
+            total += acc.balance 
+            pastTotal += acc.pastBalanceDetail.balance
     }) 
 
     return [total, pastTotal]

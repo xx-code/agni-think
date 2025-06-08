@@ -5,7 +5,6 @@ export abstract class KnexConnector{
 
     constructor(connector: Knex) {
         this.connector = connector
-        this.initialisation()
     }
 
     
