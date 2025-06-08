@@ -1,3 +1,4 @@
+import { DateService } from "@core/adapters/libs";
 import { mapperMainTransactionCategory, mapperTransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { TransactionType } from "@core/domains/entities/record";
@@ -30,11 +31,13 @@ export interface IGetBalanceByUseCaseResponse {
 export class GetBalanceByUseCase implements IGetBalanceByUseCase {
     private transactionRepository: TransactionRepository;
     private recordRepository: RecordRepository
+    private dateService: DateService
     private presenter: IGetBalanceByUseCaseResponse;
 
-    constructor(transaction_repo: TransactionRepository, recordRepository: RecordRepository, presenter: IGetBalanceByUseCaseResponse) {
+    constructor(dateService: DateService, transaction_repo: TransactionRepository, recordRepository: RecordRepository, presenter: IGetBalanceByUseCaseResponse) {
         this.transactionRepository = transaction_repo;
         this.recordRepository = recordRepository
+        this.dateService = dateService
         this.presenter = presenter;
     }
 
@@ -63,20 +66,27 @@ export class GetBalanceByUseCase implements IGetBalanceByUseCase {
             if (!isEmpty(request.maxPrice))
                 maxPrice = new Money(request.maxPrice)
 
+            let dateStart = ''
+            if (request.dateStart)
+                dateStart = this.dateService.formatDate(request.dateStart)
+
+            let dateEnd = ''
+            if (request.dateEnd)
+                dateEnd = this.dateService.formatDate(request.dateStart)
+
             let filter: TransactionFilter = {
                 accounts: request.accountsIds,
                 categories: request.categoriesIds,
                 budgets: request.budgetIds,
                 tags: request.tagsIds,
-                startDate: request.dateStart,
-                endDate: request.dateEnd,
+                startDate: dateStart,
+                endDate: dateEnd,
                 types: types,
                 minPrice: minPrice,
                 maxPrice: maxPrice
             }
 
             let transactions = await this.transactionRepository.getTransactions(filter);
-            
 
             let records = await this.recordRepository.getManyById(transactions.map(transaction => transaction.getRecordRef()))
             let balance = 0

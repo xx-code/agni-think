@@ -2,7 +2,7 @@
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import * as z from 'zod';
 import { reactive, shallowRef } from "vue";
-import { fetchCreateBudget, fetchUpdateBudget, useFetchBudget, useFetchListBudget } from '../../composables/budgets';
+import { fetchCreateBudget, fetchUpdateBudget, useFetchBudget, useFetchListBudget, useFetchListPeriod } from '../../composables/budgets';
 import type { FormSubmitEvent } from '@nuxt/ui';
 
 const schema = z.object({
@@ -16,23 +16,20 @@ const props = defineProps({
     isEdit: Boolean,
     budgetId: String,
     onSaved: Function
-    // title: String,
-    // target: Number,
-    // periodTime: Number,
-    // period: String,
-    // startDate: Date,
-    // endDate: Date
 })
 
-const listPeriods = await useFetchListBudget()
+const listPeriods = await useFetchListPeriod()
 let budget = null
-if (props.budgetId)
+if (props.budgetId) {
     budget = await useFetchBudget(props.budgetId)
+}
+
+const defaultPeriod = listPeriods.value.length > 0 ? listPeriods.value[0].id : '' 
 
 const form = reactive({
     title: budget ? budget.value?.title ?? '' : '',
     target: budget ? budget.value?.target ?? 0 : 0,
-    period: budget ? budget.value?.period ?? '' : listPeriods.value[0].id,
+    period: budget ? budget.value?.period ?? '' : defaultPeriod,
     periodTime: budget ? budget.value?.periodTime ?? 0 : 0,
     hasEndDate: budget ? budget.value?.dateEnd !== null : false
 })

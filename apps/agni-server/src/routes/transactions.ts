@@ -24,7 +24,7 @@ router.post('/v1/transactions', async (req, res) => {
 })
 
 router.get('/v1/transactions-balance/', async (req, res) => {
-    await (new ApiGetBalanceController(container.getRepository('transaction'), container.getRepository('record')!)).execute(req, res)
+    await (new ApiGetBalanceController(container.getRepository('transaction'), container.getRepository('record'), container.getService('date_service'))).execute(req, res)
 })
 
 

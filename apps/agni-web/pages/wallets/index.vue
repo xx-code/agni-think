@@ -165,7 +165,7 @@ const onUpateAccount = async (payload: string) => {
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 
-                        :tags="trans.tags.map(tag=>tag.value)"/>    
+                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date"/>    
                 </div>
             </div>
         </div>
@@ -188,7 +188,8 @@ const onUpateAccount = async (payload: string) => {
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 
-                        :tags="trans.tags.map(tag=>tag.value)" />    
+                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date"/>    
+                        
                 </div>
             </div>
         </div>

@@ -20,7 +20,7 @@ function sumTotalBalance(accounts: ResumeAccountType[]): [number, number] {
     let total = 0 
     let pastTotal = 0
     accounts.forEach(acc => {
-        if (acc.type !== 'Saving')
+        if (acc.type !== 'Saving' && acc.type !== 'Booking')
             total += acc.balance 
             pastTotal += acc.pastBalanceDetail.balance
     }) 
@@ -29,12 +29,38 @@ function sumTotalBalance(accounts: ResumeAccountType[]): [number, number] {
 }
 
 export const useFetchResumeAccount = async (): Promise<Ref<ResumeAccountType[]>> => {
-
+    const computeDiffPercent = (pastBalance: number, balance: number) => {
+        if (pastBalance == 0)
+            return 0
+        return Number((Math.abs(((balance/pastBalance) * 100) - 100)).toFixed(2))
+    } 
     const data = await fetchListAccounts();
     const resumeAccounts: ResumeAccountType[] = []
+
+
+    // generate code
+    const now = new Date();
+    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+    const startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1)
+    .toISOString()
+    .split('T')[0];
+
+    const endDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0)
+    .toISOString()
+    .split('T')[0];
+    // 
+
     for(const account of data) {
-        // fetch passs data
-        resumeAccounts.push({...account, pastBalanceDetail: {balance: 0, diffPercent: 0, doIncrease: true}})
+        let pastBalance = await fetchBalance({accountIds: [account.id], dateStart: startDate, dateEnd: endDate})
+        resumeAccounts.push({
+            ...account, 
+            pastBalanceDetail: {
+                balance: pastBalance, 
+                diffPercent: computeDiffPercent(pastBalance, account.balance), 
+                doIncrease: true
+            }}
+        )
     } 
 
     const totals = sumTotalBalance(resumeAccounts)
@@ -44,7 +70,7 @@ export const useFetchResumeAccount = async (): Promise<Ref<ResumeAccountType[]>>
         balance: totals[0],
         pastBalanceDetail: {
             balance: totals[1],
-            diffPercent: Number((Math.abs(((10751/10000) * 100) - 100)).toFixed(2)), 
+            diffPercent: computeDiffPercent(totals[1], totals[0]), 
             doIncrease: totals[1] < totals[0]
         },
         type: ''

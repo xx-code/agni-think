@@ -243,6 +243,7 @@ watch([selectedAccounts, selectedTagIds, selectedCategoryIds, selectedBudgetIds,
                         :icon="trans.category.icon"
                         :record-type="trans.recordType"
                         :doShowEdit="true"
+                        :date="trans.date"
                         :tags="trans.tags.map(tag => tag.value)"
                         @update="(id) => onEditTransaction(id)"
                         @delete="(id) => onDelete(id)"
