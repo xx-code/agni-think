@@ -103,6 +103,8 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
     async getPaginations(page: number, size: number, sortBy: SortBy | null, filterBy: TransactionFilter): Promise<TransactionPaginationResponse> {
         let query = this.connector('transactions').select('*');
 
+        if (sortBy) query.orderBy(sortBy.sortBy, sortBy.asc ? 'asc' : 'desc')
+
         if (filterBy.accounts.length > 0) query.whereIn('account_id', filterBy.accounts);
         if (filterBy.categories.length > 0) query.whereIn('category_id', filterBy.categories);
         if (filterBy.types.length > 0) query.whereIn('type', filterBy.types);

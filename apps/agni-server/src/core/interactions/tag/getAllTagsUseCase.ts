@@ -4,6 +4,7 @@ export type TagsOutput = {
     id: string
     value: string
     color: string|null
+    isSystem: boolean
 }
  
 export interface IGetAllTagUseCase {
@@ -33,7 +34,8 @@ export class GetAllTagUseCase implements IGetAllTagUseCase {
                 tags.push({
                     id: result.getId(),
                     value: result.getValue(),
-                    color: result.getColor()
+                    color: result.getColor(),
+                    isSystem: result.getIsSystem()
                 })
             }  
 

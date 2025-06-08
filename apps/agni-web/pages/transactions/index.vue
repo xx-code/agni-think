@@ -15,6 +15,7 @@ const filterSelected = ref({
 const balance = ref(0)
 const page = ref(1)
 const maxPage = ref(1)
+const nbItems = ref(8)
 
 const accounts = await useFetchResumeAccount()
 const budgets = await useFetchListBudget()
@@ -22,18 +23,19 @@ const categories = await useFetchListCategories()
 const tags = await useFetchListTags()
 
 
-const transactions = await useFetchListTransactions({page:page.value, limit: 25})
+const transactions = await useFetchListTransactions({page:page.value, limit: nbItems.value})
 maxPage.value = transactions.value.maxPage
 
 const onTransacitonInfos = async () => {
     transactions.value = await fetchListTransaction({
         page:page.value, 
-        limit: 25,
+        limit: nbItems.value,
         accountFilter: selectedAccounts.value.filter(acc => acc.checked).map(accId => accId.id),
         categoryFilter: selectedCategoryIds.value,
         tagFilter: selectedTagIds.value,
         budgetFilter: selectedBudgetIds.value
     })
+    maxPage.value = transactions.value.maxPage
     balance.value = await fetchBalance({
         accountIds: selectedAccounts.value.filter(acc => acc.checked).map(val => val.id), 
         categoryIds: selectedCategoryIds.value,
@@ -168,11 +170,10 @@ const onEditTransaction = (id: string|null=null) => {
 
 const onDelete = async (id: string) => {
     await fetchDeleteTransaction(id)
-    transactions.value = await fetchListTransaction({page:page.value, limit: 25})
+    await onTransacitonInfos()
 }
 
-watch([selectedAccounts, selectedTagIds, selectedCategoryIds, selectedBudgetIds], async () => {
-    console.log("DF")
+watch([selectedAccounts, selectedTagIds, selectedCategoryIds, selectedBudgetIds, page], async () => {
     await onTransacitonInfos()
 }, {deep: true})
 
@@ -242,6 +243,7 @@ watch([selectedAccounts, selectedTagIds, selectedCategoryIds, selectedBudgetIds]
                         :icon="trans.category.icon"
                         :record-type="trans.recordType"
                         :doShowEdit="true"
+                        :date="trans.date"
                         :tags="trans.tags.map(tag => tag.value)"
                         @update="(id) => onEditTransaction(id)"
                         @delete="(id) => onDelete(id)"

@@ -355,8 +355,8 @@ export class ApiGetBalanceController implements IGetBalanceByUseCaseResponse {
     modelView: ApiResponse = initApiResponse()
     usecase: IGetBalanceByUseCase
 
-    constructor(transRepo: TransactionRepository, recordRepository: RecordRepository) {
-        this.usecase = new GetBalanceByUseCase(transRepo, recordRepository, this)
+    constructor(transRepo: TransactionRepository, recordRepository: RecordRepository, dateService: DateService) {
+        this.usecase = new GetBalanceByUseCase(dateService, transRepo, recordRepository, this)
     }
     success(balance: number): void {
         this.modelView.success = true

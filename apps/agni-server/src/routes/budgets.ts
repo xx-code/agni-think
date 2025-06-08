@@ -4,65 +4,61 @@ import { IGetBudgetAdpater } from "@core/interactions/budgets/getBudgetUseCase";
 import { IUpdateBudgetAdapter } from "@core/interactions/budgets/updateBudgetUseCase";
 import { Router } from "express";
 import { ApiAutoBudgetController, ApiCreateBudgetController, ApiDeleteBudgetController, ApiGetAllBudgetController, ApiGetBudgetController, ApiUpdateBudgetController } from "src/controllers/budgets";
-import { diContainer } from "src";
+import container from '../di_contenair'
 
 const router = Router()
-
-let createBudgetAdapter: ICreationBudgetAdapter = {
-    budgetRepository: diContainer.budgetRepository!,
-    categoryRepository: diContainer.categoryRepository!,
-    tagRepository: diContainer.tagRepository!,
-    dateService: diContainer.dateService!
-}
-
-let getBudgetAdapter: IGetBudgetAdpater = {
-    budgetRepository: diContainer.budgetRepository!,
-    transactionRepository: diContainer.transactionRepository!,
-    categoryRepository: diContainer.categoryRepository!,
-    recordRepository: diContainer.recordRepository!,
-    tagRepository: diContainer.tagRepository!
-}
-
-let getAllBudgetAdapter: IGetAllBudgetAdapter = {
-    budgetRepository: diContainer.budgetRepository!,
-    categoryRepository: diContainer.categoryRepository!,
-    tagRepository: diContainer.tagRepository!,
-    recordRepository: diContainer.recordRepository!,
-    transactionRepository: diContainer.transactionRepository!
-}
-
-let updateBudgetAdapter: IUpdateBudgetAdapter = {
-    budgetRepository: diContainer.budgetRepository!,
-    categoryRepository: diContainer.categoryRepository!,
-    tagRepository: diContainer.tagRepository!,
-    dateService: diContainer.dateService!
-}
 
 
 
 router.post('/v1/budgets', async (req, res) => {
-    await (new ApiCreateBudgetController(createBudgetAdapter, diContainer.dateService!)).execute(req, res)
+    let createBudgetAdapter: ICreationBudgetAdapter = {
+        budgetRepository: container.getRepository('budget'),
+        categoryRepository: container.getRepository('category'),
+        tagRepository: container.getRepository('tag'),
+        dateService: container.getService('date_service')
+    }
+
+    await (new ApiCreateBudgetController(createBudgetAdapter, container.getService('date_service'))).execute(req, res)
 })
 
 router.get('/v1/budgets', async (req, res) => {
+    let getAllBudgetAdapter: IGetAllBudgetAdapter = {
+        budgetRepository: container.getRepository('budget'),
+        categoryRepository: container.getRepository('category'),
+        tagRepository: container.getRepository('tag'),
+        recordRepository: container.getRepository('record'),
+        transactionRepository: container.getRepository('transaction')!
+    }
     await (new ApiGetAllBudgetController(getAllBudgetAdapter)).execute(req, res)
 })
 
 router.get('/v1/budgets/:id', async (req, res) => {
+    let getBudgetAdapter: IGetBudgetAdpater = {
+        budgetRepository: container.getRepository('budget'),
+        transactionRepository: container.getRepository('transaction'),
+        categoryRepository: container.getRepository('category'),
+        recordRepository: container.getRepository('record'),
+        tagRepository: container.getRepository('tag')
+    } 
     await (new ApiGetBudgetController(getBudgetAdapter)).execute(req, res)
 })
 
 router.put('/v1/budgets/:id', async (req, res) => {
+    let updateBudgetAdapter: IUpdateBudgetAdapter = {
+        budgetRepository: container.getRepository('budget'),
+        categoryRepository: container.getRepository('category'),
+        tagRepository: container.getRepository('tag'),
+        dateService: container.getService('date_service')
+    }
     await (new ApiUpdateBudgetController(updateBudgetAdapter)).execute(req, res)
 })
 
 router.delete('/v1/budgets/:id', async (req, res) => {
-    await (new ApiDeleteBudgetController(diContainer.budgetRepository!)).execute(req, res)
+    await (new ApiDeleteBudgetController(container.getRepository('budget'))).execute(req, res)
 })
 
 router.post('/v1/auto-budgets', async (req, res) => {
-    await (new ApiAutoBudgetController(diContainer.budgetRepository!, diContainer.dateService!)).execute(req, res)
+    await (new ApiAutoBudgetController(container.getRepository('budget'), container.getService('date_service'))).execute(req, res)
 })
-
 
 export default router

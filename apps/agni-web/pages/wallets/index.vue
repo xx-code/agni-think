@@ -33,12 +33,20 @@ const modalTransfer = overlay.create(TransferModal, {
 const modalTransaction = overlay.create(EditTransactionModal, {
     props: {
         onSaved: async () => {
+            accounts.value = (await useFetchResumeAccount()).value
             await onUpateAccount(selectedAccount.value?.id ?? ALL_ACCOUNT_ID)
         }
     }
 })
 
-const modalFreezeTransaction = overlay.create(EditFreezeTransaction, {})
+const modalFreezeTransaction = overlay.create(EditFreezeTransaction, {
+    props: {
+        onSaved: async () => {
+            accounts.value = (await useFetchResumeAccount()).value
+            await onUpateAccount(selectedAccount.value?.id ?? ALL_ACCOUNT_ID)
+        }
+    } 
+})
 
 const onSelectAccount = (id: string) => {
     selectedAccount.value = accounts.value.find(acc => acc.id === id) 
@@ -157,7 +165,7 @@ const onUpateAccount = async (payload: string) => {
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 
-                        :tags="trans.tags.map(tag=>tag.value)"/>    
+                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date"/>    
                 </div>
             </div>
         </div>
@@ -180,7 +188,8 @@ const onUpateAccount = async (payload: string) => {
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 
-                        :tags="trans.tags.map(tag=>tag.value)" />    
+                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date"/>    
+                        
                 </div>
             </div>
         </div>

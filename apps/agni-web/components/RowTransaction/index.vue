@@ -17,6 +17,7 @@ const props = defineProps({
     description: String,
     icon: String,
     tags: Array,
+    date: String,
     doShowEdit: Boolean
 })
 
@@ -43,7 +44,7 @@ const props = defineProps({
                                     </div>
                                 </div>
                             </div>
-                            
+                            <p class="text-xs">{{ date }}</p>
                         </div> 
                     </div>
                 </div>

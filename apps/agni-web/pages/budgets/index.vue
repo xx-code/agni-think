@@ -73,7 +73,7 @@ const onEditModalBudget = (budgetId: string | null=null) => {
     if (budgetId)
         modalEditBudget.patch({isEdit: true, budgetId: budgetId})
     else
-        modalEditBudget.patch({isEdit: false, budgetId: ''})
+        modalEditBudget.patch({isEdit: false})
     
     modalEditBudget.open();
 }

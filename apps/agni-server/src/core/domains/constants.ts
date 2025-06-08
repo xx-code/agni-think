@@ -125,4 +125,6 @@ export const SAVING_CATEGORY_ID = '98a57fb1-c890-4059-b678-b8d0814fa7ec'
 
 export const TRANSFERT_CATEGORY_ID = '6e57b8ed-2111-45d3-b55f-3994a40e7630'
 
+export const TAG_SUBSCRIPTION_ID = 'ce64ec0d-a663-4f76-855f-ce67be9b6a5b'
+
 export type typePeriod = keyof typeof Period

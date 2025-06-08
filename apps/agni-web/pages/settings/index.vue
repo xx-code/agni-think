@@ -52,7 +52,7 @@ const onModalTag = (tagId: string) => {
                 <UButton label="Ajouter categorie" icon="i-lucide-plus" @click="onModalCategory('')"/>
             </div>
             <USeparator class="mb-3"/>
-            <div class="flex gap-1">
+            <div class="flex flex-wrap gap-3">
                 <div v-for="category of categories" :key="category.id">
                     <div class="flex items-center gap-2 border-1 rounded-md p-1" :style="'color:'+category.color+';'">
                         <UIcon :name="category.icon" />
@@ -70,7 +70,7 @@ const onModalTag = (tagId: string) => {
                 <UButton label="Ajouter tag" icon="i-lucide-plus" @click="onModalTag('')"/>
             </div>
             <USeparator class="mb-3" />
-            <div class="flex gap-1">
+            <div class="flex flex-wrap gap-3">
                 <div v-for="tag of tags" :key="tag.id">
                     <div class="flex items-center gap-2 border-1 rounded-md p-1" :style="'color:'+tag.color+';'">
                         {{ tag.value }}
