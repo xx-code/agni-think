@@ -4,19 +4,22 @@ import { TagRepository } from "../../repositories/tagRepository";
 import { CategoryRepository } from "../../repositories/categoryRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
 import { DateService } from "@core/adapters/libs";
-import { FREEZE_CATEGORY_ID, mapperTransactionType, SAVING_CATEGORY_ID } from "@core/domains/constants";
+import { FREEZE_CATEGORY_ID, mapperMainTransactionCategory, mapperTransactionType, SAVING_CATEGORY_ID, TransactionMainCategory } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { AddTransactionUseCase, IAddTransactionUseCaseResponse } from "./addTransactionUseCase";
 import { DeleteTransactionUseCase, IDeleteTransactoinUseCaseResponse } from "./deleteTransactionUseCase";
 import { ValueError } from "@core/errors/valueError";
+import { BudgetRepository } from "@core/repositories/budgetRepository";
+import { TransactionType } from "@core/domains/entities/record";
 
 
 export type RequestUpdateTransactionUseCase = {
     id: string;
     accountRef: string
-    tagsRef: string[]
+    tagRefs: string[]
+    budgetRefs: string[]
     categoryRef: string
     type: string
     description: string
@@ -34,6 +37,7 @@ export interface IUpdateTransactionUseCaseResponse {
 }
 
 export interface IUpdateTransactionAdapter {
+    budgetRepository: BudgetRepository
     transactionRepository: TransactionRepository
     categoryRepository: CategoryRepository
     tagRepository: TagRepository
@@ -50,6 +54,7 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
     private categoryRepository: CategoryRepository;
     private tagRepository: TagRepository;
     private accountRepository: AccountRepository;
+    private budgetRepository: BudgetRepository;
     private unitOfWork: UnitOfWorkRepository;
 
     private dateService: DateService
@@ -82,6 +87,7 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
         this.categoryRepository = adapter.categoryRepository;
         this.tagRepository = adapter.tagRepository;
         this.accountRepository = adapter.accountRepository;
+        this.budgetRepository = adapter.budgetRepository;
         this.presenter = presenter;
         this.unitOfWork = adapter.unitOfWork
         this.dateService = adapter.dateService
@@ -100,13 +106,15 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
             if (request.amount <= 0)
                 throw new ValueError("You can 't add transaction less or equal to 0")
 
+            let type = mapperMainTransactionCategory(request.type)
+
             let amount = new Money(request.amount)
 
             record.setMoney(amount)
             
             record.setDescription(request.description)
 
-            record.setType(mapperTransactionType(request.type))
+            record.setType(type === TransactionMainCategory.INCOME ? TransactionType.CREDIT : TransactionType.DEBIT)
             let date = this.dateService.formatDateWithtime(request.date)
             record.setDate(date)
 
@@ -117,10 +125,17 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
 
             transaction.setCategoryRef(request.categoryRef)
 
-            if (!(await this.tagRepository.isTagExistByIds(request.tagsRef)))
+            transaction.setTransactionType(type)
+
+            if (!(await this.tagRepository.isTagExistByIds(request.tagRefs)))
                 throw new ResourceNotFoundError("a tag not found")
 
-            transaction.setTags(request.tagsRef)
+            if (!(await this.budgetRepository.isBudgetExistByIds(request.budgetRefs)))
+                throw new ResourceNotFoundError("a budgets not found")
+
+            transaction.setTags(request.tagRefs)
+            
+            transaction.setBudgets(request.budgetRefs)
 
             let newTransationId = request.id
             if (record.hasChange() || transaction.hasChange())  {
@@ -134,6 +149,7 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
                     recordRepository: this.recordRepository,
                     tagRepository: this.tagRepository,
                     transactionRepository: this.transactionRepository,
+                    budgetRepository: this.budgetRepository,
                     unitOfWork: this.unitOfWork,
                 }, this.addTransactionPresenter)).execute({
                     accountRef: transaction.getAccountRef(),
@@ -142,7 +158,8 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
                     tagRefs: transaction.getTags(),
                     date: record.getDate(),
                     description: record.getDescription(),
-                    type: record.getType()
+                    type: transaction.getTransactionType(),
+                    budgetRefs: transaction.getBudgetRefs()
                 })
 
                 newTransationId = this.resultatAddTransaction

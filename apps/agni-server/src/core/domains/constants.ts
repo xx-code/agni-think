@@ -2,6 +2,8 @@ import { ValueError } from "@core/errors/valueError"
 import { TransactionType } from "./entities/record"
 import { isEmpty } from "./helpers"
 
+// TODO: #refactoring
+
 export enum Period {
     YEAR = 'Year',
     MONTH = 'Month',
@@ -14,6 +16,13 @@ export enum AccountType {
     SAVING = "Saving",
     BUSINESS = "Business",
     BROKING = "Broking"
+}
+
+export enum TransactionMainCategory {
+    INCOME = "Income",
+    FIXEDCOST = "FixedCost",
+    VARIABLECOST = "VariableCost",
+    OTHER = "Other"
 }
 
 export const periodsSystem = [
@@ -94,12 +103,28 @@ export function mapperTransactionType(value: string): TransactionType {
             throw new ValueError(`${value} is not Credit or Debit`)
     }
 }
- 
+
+export function mapperMainTransactionCategory(value: string) {
+    switch (value.toLowerCase()) {
+        case TransactionMainCategory.FIXEDCOST.toLocaleLowerCase():
+            return TransactionMainCategory.FIXEDCOST
+        case TransactionMainCategory.INCOME.toLocaleLowerCase():
+            return TransactionMainCategory.INCOME
+        case TransactionMainCategory.VARIABLECOST.toLocaleLowerCase():
+            return TransactionMainCategory.VARIABLECOST
+        case TransactionMainCategory.OTHER.toLocaleLowerCase():
+            return TransactionMainCategory.OTHER
+        default:
+            throw new ValueError(`${value} is not Transaction main category`)
+    }
+}
 
 export const FREEZE_CATEGORY_ID = '1d462fd7-698d-4a08-a72a-1c96a5f82d50'
 
 export const SAVING_CATEGORY_ID = '98a57fb1-c890-4059-b678-b8d0814fa7ec'
 
 export const TRANSFERT_CATEGORY_ID = '6e57b8ed-2111-45d3-b55f-3994a40e7630'
+
+export const TAG_SUBSCRIPTION_ID = 'ce64ec0d-a663-4f76-855f-ce67be9b6a5b'
 
 export type typePeriod = keyof typeof Period

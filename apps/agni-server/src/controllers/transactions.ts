@@ -27,7 +27,8 @@ class CreateTransactionModel {
             amount: reqBody.amount ? reqBody.amount : 0,
             description: reqBody.description,
             tagRefs: reqBody.tagIds,
-            type: reqBody.typeTransaction,
+            budgetRefs: reqBody.budgetIds,
+            type: reqBody.type,
             date: reqBody.date
         }
     }
@@ -45,7 +46,7 @@ class CreateTransactionModel {
             errors.push({field: "amount", message: "amout must be greater than 0"})
 
         if (isEmpty(this.model.type)) 
-            errors.push({field: "type", message: "you have to choose type of transaction 'credit' or 'debit' "})
+            errors.push({field: "type", message: "you have to choose type of transaction "})
 
         if (isEmpty(this.model.date))
             errors.push({field: "date", message: "date field is"})
@@ -142,17 +143,39 @@ class PaginationTransactionModel {
     private model: RequestGetPagination
 
     constructor(reqQuery: any) {
+
+        let accounts = []
+        if (reqQuery.accountFilter)
+            accounts = Array.isArray(reqQuery.accountFilter) ? reqQuery.accountFilter : [reqQuery.accountFilter]
+        
+        let budgets = []
+        if (reqQuery.budgetFilter)
+            budgets = Array.isArray(reqQuery.budgetFilter) ? reqQuery.budgetFilter : [reqQuery.budgetFilter]
+
+        let categories = []
+        if (reqQuery.categoryFilter)
+            categories = Array.isArray(reqQuery.categoryFilter) ? reqQuery.categoryFilter: [reqQuery.categoryFilter]
+
+        let tags = []
+        if (reqQuery.tagFilter)
+            tags = Array.isArray(reqQuery.tagFilter) ? reqQuery.tagFilter: [reqQuery.tagFilter]
+
+        let types = []
+        if (reqQuery.types)
+            types = Array.isArray(reqQuery.types) ? reqQuery.types: [reqQuery.types]
+       
         this.model = {
             page: reqQuery.page ? reqQuery.page : 0,
             limit: reqQuery.limit ? reqQuery.limit : 0,
             sortBy: reqQuery.sortBy ? reqQuery.sortBy : '',
             sortSense: reqQuery.sortSense ? reqQuery.sortSense : '',
-            accountFilter: reqQuery.accountFilter ? reqQuery.accountFilter : [],
-            categoryFilter: reqQuery.categoryFilter ? reqQuery.categoryFilter : [],
-            tagFilter: reqQuery.tagFilter ? reqQuery.tagFilter : [],
+            accountFilter: accounts,
+            categoryFilter: categories,
+            budgetFilter: budgets ,
+            tagFilter: tags,
             dateStart: reqQuery.dateStart ? reqQuery.dateStart : '',
             dateEnd: reqQuery.dateEnd ? reqQuery.dateEnd : '',
-            type: reqQuery.type ? reqQuery.type : '',
+            types: types,
             minPrice: reqQuery.minPrice ? reqQuery.minPrice : undefined,
             maxPrice: reqQuery.maxPrice ? reqQuery.maxPrice : undefined
         }
@@ -208,8 +231,8 @@ class TransfertTransactionModel {
 
     constructor(reqBody: any) {
         this.model = {
-            accountRefTo: reqBody.accountFromTo,
-            accountRefFrom: reqBody.accountFromTo,
+            accountRefTo: reqBody.accountToId,
+            accountRefFrom: reqBody.accountFromId,
             amount: reqBody.amount,
             date: reqBody.date
         }
@@ -219,10 +242,10 @@ class TransfertTransactionModel {
         let errors: ApiError[] = []
 
         if (isEmpty(this.model.accountRefTo))
-            errors.push({field: "accountId", message: "account To field is empty"})
+            errors.push({field: "accountRefTo", message: "account To field is empty"})
 
         if (isEmpty(this.model.accountRefFrom))
-            errors.push({field: "categoryId", message: "account from field is empty"})
+            errors.push({field: "accountRefFrom", message: "account from field is empty"})
 
         if (this.model.amount <= 0) 
             errors.push({field: "amount", message: "Transaction is amount must be greater than 0"})
@@ -262,7 +285,7 @@ export class ApiTransfertTransactionController implements ITransfertTransactionU
 
     async execute(req: Request, res: Response): Promise<void> {
         this.modelView = initApiResponse()
-        let model = new TransfertTransactionModel(req)
+        let model = new TransfertTransactionModel(req.body)
         let errors = model.validateInput()
         if (errors.length > 0) {
             if (req.query.validate_all)
@@ -284,13 +307,34 @@ class GetBalanceModel {
     private model: RequestGetBalanceBy
 
     constructor(reqQuery: any) {
+        let accounts = []
+        if (reqQuery.accountIds)
+            accounts = Array.isArray(reqQuery.accountIds) ? reqQuery.accountIds : [reqQuery.accountIds]
+        
+        let budgets = []
+        if (reqQuery.budgetIds)
+            budgets = Array.isArray(reqQuery.budgetIds) ? reqQuery.budgetIds : [reqQuery.budgetIds]
+
+        let categories = []
+        if (reqQuery.categoryIds)
+            categories = Array.isArray(reqQuery.categoryIds) ? reqQuery.categoryIds: [reqQuery.categoryIds]
+
+        let tags = []
+        if (reqQuery.tagIds)
+            tags = Array.isArray(reqQuery.tagIds) ? reqQuery.tagIds: [reqQuery.tagIds]
+
+        let types = []
+        if (reqQuery.types)
+            types = Array.isArray(reqQuery.types) ? reqQuery.types: [reqQuery.type]
+
         this.model = {
-            accountsIds:reqQuery.accountIds ? reqQuery.accountIds.split(';') :[],
-            tagsIds:reqQuery.tagIds ? reqQuery.tagIds.split(';') : [],
-            categoriesIds:reqQuery.categoriesIds ? reqQuery.categoriesIds.split(';'): [],
+            accountsIds: accounts,
+            tagsIds: tags,
+            categoriesIds: categories,
+            budgetIds: budgets,
             dateStart: reqQuery.dateStart ? reqQuery.dateStart : '',
             dateEnd: reqQuery.dateEnd ? reqQuery.dateEnd : '',
-            type: reqQuery.type ? reqQuery.type : '' ,
+            types: types,
             minPrice: reqQuery.minPrice ? reqQuery.minPrice : '',
             maxPrice: reqQuery.maxPrice ? reqQuery.maxPrice : '' 
         }
@@ -311,8 +355,8 @@ export class ApiGetBalanceController implements IGetBalanceByUseCaseResponse {
     modelView: ApiResponse = initApiResponse()
     usecase: IGetBalanceByUseCase
 
-    constructor(transRepo: TransactionRepository, recordRepository: RecordRepository) {
-        this.usecase = new GetBalanceByUseCase(transRepo, recordRepository, this)
+    constructor(transRepo: TransactionRepository, recordRepository: RecordRepository, dateService: DateService) {
+        this.usecase = new GetBalanceByUseCase(dateService, transRepo, recordRepository, this)
     }
     success(balance: number): void {
         this.modelView.success = true
@@ -351,8 +395,9 @@ class UpdateTransactionModel {
             categoryRef: reqBody.categoryId ? reqBody.categoryId : '',
             amount: reqBody.amount ? reqBody.amount : '',
             description: reqBody.description ? reqBody.description : '',
-            tagsRef: reqBody.tagIds ? reqBody.tagIds : [],
-            type: reqBody.typeTransaction ? reqBody.typeTransaction : '',
+            tagRefs: reqBody.tagIds ? reqBody.tagIds : [],
+            type: reqBody.type ? reqBody.type : '',
+            budgetRefs: reqBody.budgetIds ? reqBody.budgetIds : [] ,
             date: reqBody.date ? reqBody.date : ''
         }
     }

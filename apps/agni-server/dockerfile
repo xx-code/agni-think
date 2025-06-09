@@ -1,0 +1,43 @@
+FROM node:24-alpine AS base
+
+FROM base AS builder
+RUN apk update
+RUN apk add --no-cache libc6-compat
+# Set working directory
+WORKDIR /app
+RUN yarn global add turbo
+COPY . .
+RUN turbo prune agni-server --docker
+
+# Add lockfile and package.json's of isolated subworkspace
+FROM base AS installer
+RUN apk update
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# First install the dependencies (as they change less often)
+COPY --from=builder /app/out/json/ .
+RUN yarn install
+
+# Build the project
+COPY --from=builder /app/out/full/ .
+
+# Uncomment and use build args to enable remote caching
+# ARG TURBO_TEAM
+# ENV TURBO_TEAM=$TURBO_TEAM
+
+# ARG TURBO_TOKEN
+# ENV TURBO_TOKEN=$TURBO_TOKEN
+
+RUN yarn turbo build
+
+FROM base AS runner
+WORKDIR /app
+
+ENV PORT 80
+ENV HOST 0.0.0.0
+EXPOSE 80
+
+COPY --from=installer /app .
+
+CMD ["node", "/app/apps/agni-server/dist/src/index.js"]

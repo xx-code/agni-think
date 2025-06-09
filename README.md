@@ -4,11 +4,11 @@
 
 This project is an application designed to help you track your expenses, analyze your financial behavior through graphs, and develop better money habits. It offers semi-automated features, and future versions will include AI and workflow automation.
 
-To get the most out of this tool, treat it like a financial notebook — consistent usage is key to long-term insight and improvement.
+To get the most out of this tool, treat it like a financial notebook consistent usage is key to long-term insight and improvement.
 
 ## 🔥 Why the Name "Agni"?
 
-In my culture, the Agni ethnic group is often stereotyped as stingy. However, I believe that being "stingy" isn't necessarily a bad trait — as long as it doesn't lead to a miserable lifestyle. Instead, it can be a mindset focused on financial health and responsibility. I see it as being economical and intentional with money.
+In my culture, the Agni ethnic group is often stereotyped as stingy. However, I believe that being "stingy" isn't necessarily a bad trait as long as it doesn't lead to a miserable lifestyle. Instead, it can be a mindset focused on financial health and responsibility. I see it as being economical and intentional with money.
 
 ## 📐 Stack
 

@@ -3,9 +3,8 @@ import { TagRepository } from "../../repositories/tagRepository";
 import { CategoryRepository } from "../../repositories/categoryRepository";
 import { DateService } from "@core/adapters/libs";
 import { mapperPeriod } from "@core/domains/constants";
-import { BudgetBuilder } from "@core/domains/entities/budget";
 import { isEmpty } from "@core/domains/helpers";
-import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { ValueError } from "@core/errors/valueError";
 
 export type RequestUpdateBudget = {
    id: string
@@ -15,8 +14,6 @@ export type RequestUpdateBudget = {
    dateEnd: string
    period: string
    periodTime: number
-   tagsRef: string[]
-   categoriesRef: string[]
 }
 
 export interface IUpdateBudgetUseCase {
@@ -38,58 +35,56 @@ export interface IUpdateBudgetAdapter {
 
 export class UpdateBudgetUseCase implements IUpdateBudgetUseCase {
    private budgetRepository: BudgetRepository;
-   private categoryRepository: CategoryRepository;
-   private tagRepository: TagRepository;
    private dateService: DateService
    private presenter: IUpdateBudgetUseCasePresenter;
 
 
    constructor(repo: IUpdateBudgetAdapter, presenter: IUpdateBudgetUseCasePresenter) {
        this.budgetRepository = repo.budgetRepository
-       this.tagRepository = repo.tagRepository
-       this.categoryRepository = repo.categoryRepository
        this.dateService = repo.dateService
        this.presenter = presenter
    }
 
    async execute(request: RequestUpdateBudget): Promise<void> {
        try {
-           let budget = await this.budgetRepository.get(request.id)
+        let budget = await this.budgetRepository.get(request.id)
+        
+        budget.setTitle(request.title)
+        budget.setTarget(request.target)
 
-           budget.setTitle(request.title)
-           budget.setTarget(request.target)
+        budget.setDateStart(request.dateStart)
+        budget.setDateStart(this.dateService.formatDate(request.dateStart))           
+        budget.setTarget(request.target) 
+        if (!isEmpty(request.dateEnd))
+            budget.setDateEnd(this.dateService.formatDate(request.dateEnd))
+        
+        if (!isEmpty(request.period)) {
+            let period = mapperPeriod(request.period)
+            budget.setPeriod(period)
+            budget.setPeriodTime(request.periodTime)
+        }
+        
+        if (isEmpty(budget.getDateEnd()) && budget.getPeriod() && budget.getPeriodTime() === 0) {
+            throw new ValueError('this type of budget don\'t exit, an budget must have date of end or period count or all in same time')
+        } 
 
-           budget.setDateStart(request.dateStart)
+        let dateUpdate = budget.getDateEnd()
 
-           if (!(await this.categoryRepository.isCategoryExistByIds(request.categoriesRef))) 
-                throw new ResourceNotFoundError("Category not exist")
-            
-            budget.setCategories(request.categoriesRef)
-            
-            if (!(await this.tagRepository.isTagExistByIds(request.tagsRef)))
-                throw new ResourceNotFoundError("an tag not found")
+        if (budget.getPeriod()) {
+            if (budget.getPeriodTime() <= 0)
+                throw new ValueError("Period not define")
+
+            dateUpdate = this.dateService.getDateAddition!(budget.getDateStart(), 
+            budget.getPeriod()!, budget.getPeriodTime())    
+        } 
+
+        budget.setDateUpdate(dateUpdate!)
                 
-            budget.setTags(request.tagsRef)
+        if (budget.hasChange())
+            await this.budgetRepository.update(budget);
 
-            budget.setDateStart(this.dateService.formatDate(request.dateStart))           
-            budget.setTarget(request.target) 
-            if (!isEmpty(request.dateEnd))
-                budget.setDateEnd(this.dateService.formatDate(request.dateEnd))
-            
-            if (!isEmpty(request.period)) {
-                let period = mapperPeriod(request.period)
-                budget.setPeriod(period)
-                budget.setPeriodTime(request.periodTime)
-            } 
+        this.presenter.success(true);
 
-            let budgetBuilder = new BudgetBuilder()
-            budgetBuilder.setBudget(budget)
-            budget = budgetBuilder.getBudget(this.dateService.getDateAddition)! 
-                    
-            if (budget.hasChange())
-                await this.budgetRepository.update(budget);
-
-           this.presenter.success(true);
        } catch(err) {
            this.presenter.fail(err as Error);
        }

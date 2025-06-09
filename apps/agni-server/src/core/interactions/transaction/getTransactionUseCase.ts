@@ -28,9 +28,11 @@ export type TransactionResponse = {
     amount: number
     date: string
     description: string
+    recordType: string
     type: string
     category: TransactionCategoryResponse
     tags: TransactionTagResponse[]
+    budgets: string[]
 }
 
 export interface IGetTransactionUseCaseResponse {
@@ -72,7 +74,7 @@ export class GetTransactionUseCase implements IGetTransactionUseCase {
             for(let tagRef of transaction.getTags()) {
                 let tag = await this.tagRepository.get(tagRef)
                 if (tag === null)
-                    throw new ResourceNotFoundError('No tag found in transaction')
+                    continue
 
                 tags.push({
                     id: tag.getId(),
@@ -87,14 +89,16 @@ export class GetTransactionUseCase implements IGetTransactionUseCase {
                 amount: record.getMoney().getAmount(),
                 date: transaction.getDate(),
                 description: record.getDescription(),
-                type: record.getType(),
+                recordType: record.getType(),
                 category: {
                     id: category.getId(),
                     title: category.getTitle(),
                     icon: category.getIconId(),
                     color: category.getColor()
                 },
-                tags: tags
+                type: transaction.getTransactionType(),
+                tags: tags,
+                budgets: transaction.getBudgetRefs()
             }
 
             this.presenter.success(response);

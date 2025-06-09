@@ -5,7 +5,6 @@ import { TagRepository } from "@core/repositories/tagRepository";
 import { TransactionType } from "@core/domains/entities/record";
 import { RecordRepository } from "@core/repositories/recordRepository";
 
-
 export type BudgetCategoryOutput = {
    id: string
    title: string
@@ -25,8 +24,6 @@ export type BudgetsOutput = {
    id: string,
    title: string,
    target: number,
-   categories: BudgetCategoryOutput[],
-   tags: BudgetTagsOutput[]
    period: string|null
    periodTime: number
    currentBalance: number
@@ -57,8 +54,6 @@ export interface IGetAllBudgetAdapter {
 export class GetAllBudgetUseCase implements IGetAllBudgetUseCase {
    private budgetRepository: BudgetRepository;
    private transactionRepository: TransactionRepository;
-   private categoryRepository: CategoryRepository
-   private tagRepository: TagRepository
    private recordRepository: RecordRepository
    private presenter: IGetAllBudgetUseCaseResponse;
   
@@ -66,8 +61,6 @@ export class GetAllBudgetUseCase implements IGetAllBudgetUseCase {
        this.budgetRepository = adapters.budgetRepository
        this.transactionRepository = adapters.transactionRepository
        this.recordRepository = adapters.recordRepository
-       this.categoryRepository = adapters.categoryRepository
-       this.tagRepository = adapters.tagRepository
        this.presenter = presenter;
    }
 
@@ -81,35 +74,18 @@ export class GetAllBudgetUseCase implements IGetAllBudgetUseCase {
            for (let i = 0; i < budgets.length; i++) {
                let budget = budgets[i];
 
-               let categories: BudgetCategoryOutput[] =  []
-               for(let categoryId of budget.getCategories()) {
-                   let category = await this.categoryRepository.get(categoryId)
-                    categories.push({
-                        id: category.getId(), 
-                        title: category.getTitle(), 
-                        icon: category.getIconId(), 
-                        color: category.getColor()
-                    })
-               }
-
-
-               let tags: BudgetTagsOutput[] = []
-               for (let tagId of budget.getTags()) {
-                   let tag = await this.tagRepository.get(tagId)
-                   tags.push({id: tag.getId(), title: tag.getValue(), color: tag.getColor() })
-               }
-
-          
                let transactions = await this.transactionRepository.getTransactions({
-                   categories: budget.getCategories(),
+                   categories: [],
                    accounts: [],
-                   tags: budget.getTags(),
-                   type: TransactionType.DEBIT,
+                   tags: [],
+                   budgets: [budget.getId()],
+                   types: [],
                    startDate: budget.getDateStart(),
-                   endDate: budget.getDateEnd(),
+                   endDate: budget.getDateEnd() ?? '',
                    minPrice: null, 
                    maxPrice: null
                });
+               
                let currentBalance = 0
                 let records = await this.recordRepository.getManyById(transactions.map(transaction => transaction.getRecordRef()))
                 for (let record of records) {
@@ -120,15 +96,13 @@ export class GetAllBudgetUseCase implements IGetAllBudgetUseCase {
                let budgetDisplay: BudgetsOutput = {
                    id: budget.getId(),
                    title: budget.getTitle(),
-                   categories: categories,
                    currentBalance: currentBalance,
                    period: budget.getPeriod(),
                    periodTime: budget.getPeriodTime(),
                    target: budget.getTarget(),
                    startDate: budget.getDateStart(),
                    updateDate: budget.getDateUpdate(),
-                   endDate: budget.getDateEnd(),
-                   tags: tags
+                   endDate: budget.getDateEnd()
                };
 
                budgetsDisplay.push(budgetDisplay);

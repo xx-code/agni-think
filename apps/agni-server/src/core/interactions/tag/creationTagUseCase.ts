@@ -7,6 +7,7 @@ import { TagRepository } from "@core/repositories/tagRepository";
 export type RequestCreationTagUseCase = {
     value: string
     color: string
+    isSystem?: boolean
 } 
 
 export interface ICreationTagUseCase {
@@ -32,7 +33,7 @@ export class CreationTagUseCase implements ICreationTagUseCase {
             if (await this.tagRepo.isTagExistByName(request.value))
                 throw new ResourceNotFoundError("Tag already exist")
 
-            let newTag = new Tag(GetUID(), request.value, request.color)
+            let newTag = new Tag(GetUID(), request.value, request.color, request.isSystem)
 
             await this.tagRepo.save(newTag);
 

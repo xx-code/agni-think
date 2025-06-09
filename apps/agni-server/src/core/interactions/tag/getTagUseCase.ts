@@ -4,6 +4,7 @@ export type TagOutput = {
     id: string
     value: string
     color: string|null
+    isSystem: boolean
 }
 
 export interface IGetTagUseCase {
@@ -31,7 +32,8 @@ export class GetTagUseCase implements IGetTagUseCase {
             this.presenter.success({
                 id: tag.getId(),
                 value: tag.getValue(),
-                color: tag.getColor()
+                color: tag.getColor(),
+                isSystem: tag.getIsSystem()
             })
         } catch(err) {
             this.presenter.fail(err as Error)

@@ -21,8 +21,9 @@ export class DeleteTagUseCase implements IDeleteTagUseCase {
 
     async execute(id: string): Promise<void> {
         try {
-           if (!(await this.repository.isTagExistById(id)))
-                throw new ResourceNotFoundError("Tag not found")
+            const tag = await this.repository.get(id)
+            if (tag.getIsSystem())
+                throw new ResourceNotFoundError("Can't delete system tag")
 
             await this.repository.delete(id);
             this.presenter.success(true);

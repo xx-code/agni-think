@@ -40,7 +40,7 @@ export class AutoUpdateBudgetUseCase implements IAutoUpdateBudgetUseCase {
         return new Promise(async (resolve, reject) => {
             try {
 
-                if (this.dateService.compareDate(this.dateService.getToday(), budget.getDateEnd()) > 0) {
+                if (this.dateService.compareDate(this.dateService.getToday(), budget.getDateEnd() ?? '') > 0) {
                     await this.budgetRepo.toggleArchived(budget.getId(), true)
                     resolve(true)
                 } else {

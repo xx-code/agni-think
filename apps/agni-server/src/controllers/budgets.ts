@@ -17,8 +17,6 @@ class CreateBudgetModel {
         this.model = { 
             title: reqBody.title ? reqBody.title : '',
             target: reqBody.target ? reqBody.target : '',
-            categoriesRef: reqBody.categoryIds ? reqBody.categoryIds : [],
-            tagRefs: reqBody.tagIds ? reqBody.tagIds : [],
             period: reqBody.period ? reqBody.period : '',
             periodTime: reqBody.periodTime ? reqBody.periodTime : 0,
             dateStart: reqBody.dateStart ? reqBody.dateStart : '',
@@ -34,9 +32,6 @@ class CreateBudgetModel {
 
         if (this.model.target <= 0)
             errors.push({field: "target", message: "Target field must be greater than 0"})
-
-        if (this.model.categoriesRef.length <= 0 && this.model.tagRefs.length <= 0)
-            errors.push({field: "", message: "you have to choose an tags or categories"})
 
         if (isEmpty(this.model.dateStart))
             errors.push({field: "date start", message: "You have to set date start"})
@@ -163,12 +158,10 @@ class UpdateBudgetModel {
             id: id,
             title: reqBody.title ? reqBody.title : '',
             target: reqBody.target ? reqBody.target : '',
-            categoriesRef: reqBody.categoryIds ? reqBody.categoryIds : [],
-            tagsRef: reqBody.tagIds ? reqBody.tagIds : [],
             period: reqBody.period ? reqBody.period : '',
             periodTime: reqBody.periodTime ? reqBody.periodItem : 0,
             dateStart: reqBody.dateStart ? reqBody.dateStart : '',
-            dateEnd: reqBody.dateEnd ? reqBody.dateEnd : ''
+            dateEnd: reqBody.dateEnd ? reqBody.dateEnd : null
         }
     }
 
@@ -180,9 +173,6 @@ class UpdateBudgetModel {
 
         if (this.model.target <= 0)
             errors.push({field: "target", message: "Target field must be greater than 0"})
-
-        if (this.model.categoriesRef.length <= 0 && this.model.tagsRef.length <= 0)
-            errors.push({field: "", message: "you have to choose an tags or categories"})
 
         return errors
     }

@@ -21,8 +21,10 @@ export class DeleteCategoryUseCase implements IDeleteCategoryUseCase {
 
     async execute(id: string): Promise<void> {
         try {
-            if (!(await this.repository.isCategoryExistById(id)))
-                throw new ResourceNotFoundError("Category not found")
+            let category = await this.repository.get(id);
+
+            if (category.getIsSystem())
+                throw new ResourceNotFoundError("Can't delete system value")
 
             await this.repository.delete(id);
      

@@ -1,16 +1,30 @@
+version: "3.8"
+
 services:
-  server:
+  web:
+    container_name: web
+    env_file: ./apps/agni-web/.env
     environment:
       - NODE_ENV=production
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: ./apps/agni-web/dockerfile
+    restart: always
     ports:
-      - "5000:3000"
-    volumes:
-      - type: bind
-        source: ./database.db
-        target: /app/database.db
+      - 3000:3000 # setup in varaible
+  api:
+    container_name: api
+    env_file: ./apps/agni-server/.env
+    environment:
+      - API_LINK=http://api:80/v1
+      - NODE_ENV=production
+    build:
+      context: .
+      dockerfile: ./apps/agni-server/dockerfile
+    restart: always
+    ports:
+      - 5001:5001 # setup in variable
+
   # nginx:
   #   image: nginx:1.26.0-alpine
   #   restart: always

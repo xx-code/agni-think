@@ -7,7 +7,8 @@ import { CategoryRepository } from "../../repositories/categoryRepository";
 export type RequestCreationCategoryUseCase = {
     title: string,
     icon: string,
-    color: string|null|undefined
+    color?: string
+    isSystem?: boolean
 } 
 
 export interface ICreationCategoryUseCase {
@@ -35,7 +36,7 @@ export class CreationCategoryUseCase implements ICreationCategoryUseCase {
                 throw new ValidationError(`This category ${request.title} is not valid`);
             }
 
-            let newCategory = new Category(GetUID(), request.title, request.icon, "#7f7f7f")
+            let newCategory = new Category(GetUID(), request.title, request.icon, "#7f7f7f", request.isSystem?request.isSystem : false)
             if (!isEmpty(request.color))
                 newCategory.setColor(request.color!)
 

@@ -1,4 +1,4 @@
-import { SAVING_CATEGORY_ID } from "@core/domains/constants";
+import { SAVING_CATEGORY_ID, TransactionMainCategory } from "@core/domains/constants";
 import { Transaction } from "@core/domains/entities/transaction";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { AccountRepository } from "../../repositories/accountRepository";
@@ -58,8 +58,11 @@ export class DeleteSaveGoalUseCase implements IDeleteSaveGoalUseCase {
 
             let accountTranfert = await this.accountRepo.get(request.accountTranfertRef)
 
-            let newRecord = new Record(GetUID(), savingGoal.getBalance(), "Deposit from " + savingGoal.getDescription(), TransactionType.CREDIT)
-            let newTransaction = new Transaction(GetUID(), accountTranfert.getId(), newRecord.getId(), SAVING_CATEGORY_ID, this.dateService.getTodayWithTime(), [])
+            let date = this.dateService.getTodayWithTime()
+
+            let newRecord = new Record(GetUID(), savingGoal.getBalance(), date, TransactionType.CREDIT, "Deposit from " + savingGoal.getDescription())
+            let newTransaction = new Transaction(GetUID(), accountTranfert.getId(), newRecord.getId(), SAVING_CATEGORY_ID, 
+            date, TransactionMainCategory.OTHER, [])
 
             accountTranfert.addOnBalance(savingGoal.getBalance())
 

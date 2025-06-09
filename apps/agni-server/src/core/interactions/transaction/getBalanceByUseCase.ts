@@ -1,4 +1,5 @@
-import { mapperTransactionType } from "@core/domains/constants";
+import { DateService } from "@core/adapters/libs";
+import { mapperMainTransactionCategory, mapperTransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { TransactionType } from "@core/domains/entities/record";
 import { isEmpty, DateParser } from "@core/domains/helpers";
@@ -9,10 +10,11 @@ import { TransactionRepository, TransactionFilter } from "@core/repositories/tra
 export type RequestGetBalanceBy = {
     accountsIds: string[],
     tagsIds: string[],
+    budgetIds: string[],
     categoriesIds: string[],
     dateStart: string,
     dateEnd: string,
-    type: string,
+    types: string[],
     minPrice: number,
     maxPrice: number
 }
@@ -29,11 +31,13 @@ export interface IGetBalanceByUseCaseResponse {
 export class GetBalanceByUseCase implements IGetBalanceByUseCase {
     private transactionRepository: TransactionRepository;
     private recordRepository: RecordRepository
+    private dateService: DateService
     private presenter: IGetBalanceByUseCaseResponse;
 
-    constructor(transaction_repo: TransactionRepository, recordRepository: RecordRepository, presenter: IGetBalanceByUseCaseResponse) {
+    constructor(dateService: DateService, transaction_repo: TransactionRepository, recordRepository: RecordRepository, presenter: IGetBalanceByUseCaseResponse) {
         this.transactionRepository = transaction_repo;
         this.recordRepository = recordRepository
+        this.dateService = dateService
         this.presenter = presenter;
     }
 
@@ -46,9 +50,12 @@ export class GetBalanceByUseCase implements IGetBalanceByUseCase {
                 }
             }
 
-            let type = null;
-            if (!isEmpty(request.type)) {
-                type = mapperTransactionType(request.type!)
+            let types = []
+            if (!isEmpty(request.types))
+            {
+                for(const type of request.types) {
+                    types.push(mapperMainTransactionCategory(type))
+                }
             }
 
             let minPrice = null;
@@ -59,19 +66,27 @@ export class GetBalanceByUseCase implements IGetBalanceByUseCase {
             if (!isEmpty(request.maxPrice))
                 maxPrice = new Money(request.maxPrice)
 
+            let dateStart = ''
+            if (request.dateStart)
+                dateStart = this.dateService.formatDate(request.dateStart)
+
+            let dateEnd = ''
+            if (request.dateEnd)
+                dateEnd = this.dateService.formatDate(request.dateStart)
+
             let filter: TransactionFilter = {
                 accounts: request.accountsIds,
                 categories: request.categoriesIds,
+                budgets: request.budgetIds,
                 tags: request.tagsIds,
-                startDate: request.dateStart,
-                endDate: request.dateEnd,
-                type: type,
+                startDate: dateStart,
+                endDate: dateEnd,
+                types: types,
                 minPrice: minPrice,
                 maxPrice: maxPrice
             }
 
             let transactions = await this.transactionRepository.getTransactions(filter);
-            
 
             let records = await this.recordRepository.getManyById(transactions.map(transaction => transaction.getRecordRef()))
             let balance = 0
@@ -82,7 +97,7 @@ export class GetBalanceByUseCase implements IGetBalanceByUseCase {
                     balance -= record.getMoney().getAmount()
             }
 
-            this.presenter.success(balance);
+            this.presenter.success(Number(balance.toFixed(2)));
         } catch(err) {
             this.presenter.fail(err as Error);
         }

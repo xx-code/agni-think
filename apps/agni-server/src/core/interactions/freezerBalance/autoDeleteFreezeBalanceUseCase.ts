@@ -39,10 +39,11 @@ export class AutoDeleteFreezeBalanceUseCase  implements IAutoDeleteFreezeBalance
             let filters: TransactionFilter = {
                 accounts: [], 
                 tags: [],
+                budgets: [],
                 categories: categoriesIds,
                 startDate: '',
                 endDate: '',
-                type: null,
+                types: [],
                 minPrice: null,
                 maxPrice: null
             };
