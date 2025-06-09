@@ -50,14 +50,16 @@ export class PostgreSqlTagRepository extends KnexConnector implements TagReposit
         await this.connector('tags').insert({
             tag_id: tag.getId(),
             value: tag.getValue(),
-            color: tag.getColor()
+            color: tag.getColor(),
+            is_system: tag.getIsSystem()
         });
     }
 
     async update(tag: Tag): Promise<void> {
         await this.connector('tags').where('tag_id', tag.getId()).update({
             value: tag.getValue(),
-            color: tag.getColor()
+            color: tag.getColor(),
+            is_system: tag.getIsSystem()
         });
     }
 

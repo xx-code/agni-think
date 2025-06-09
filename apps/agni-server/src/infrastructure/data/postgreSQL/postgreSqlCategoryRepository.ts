@@ -21,6 +21,7 @@ export class PostgreSqlCategoryRepository extends KnexConnector implements Categ
                     table.string('title')
                     table.string('color').notNullable()
                     table.string('icon_id')
+                    table.boolean('is_system')
                 })
             }
         } catch (err: any) {
@@ -55,7 +56,8 @@ export class PostgreSqlCategoryRepository extends KnexConnector implements Categ
                 category_id: dbCategory.getId(),
                 title: dbCategory.getTitle(),
                 color: dbCategory.getColor(),
-                icon_id: dbCategory.getIconId()
+                icon_id: dbCategory.getIconId(),
+                is_system: dbCategory.getIsSystem()
             })   
         } catch (error: any) {
             throw new RepositoryError(error)
@@ -73,7 +75,8 @@ export class PostgreSqlCategoryRepository extends KnexConnector implements Categ
         await this.connector('categories').where('category_id', category.getId()).update({
             title: category.getTitle(),
             color: category.getColor(),
-            icon_id: category.getIconId()
+            icon_id: category.getIconId(),
+            is_system: category.getIsSystem()
         })
     }
 
