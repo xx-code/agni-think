@@ -74,7 +74,7 @@ export class GetTransactionUseCase implements IGetTransactionUseCase {
             for(let tagRef of transaction.getTags()) {
                 let tag = await this.tagRepository.get(tagRef)
                 if (tag === null)
-                    throw new ResourceNotFoundError('No tag found in transaction')
+                    continue
 
                 tags.push({
                     id: tag.getId(),

@@ -156,6 +156,7 @@ export class DbMigration {
             catch (err: any) {
             console.log(err)
             await this.di.getRepository('unit_of_work').rollback()
+            sqliteDb.close()
         }
     }
 }
@@ -165,6 +166,8 @@ async function main() {
     const migrate = new DbMigration(container)
 
     await migrate.migrate()
+
+    process.exit(1)
 }
 
 main()
