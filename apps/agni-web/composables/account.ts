@@ -101,16 +101,16 @@ export const useFetchListAccountTypes = async (): Promise<Ref<AccountTypeType[]>
     return accounts
 }
 
-export const useFetchListAccount = async (): Promise<Ref<AccountType[] | null>> => {
-    const { data, error } = await useAsyncData('accounts', () => fetchListAccounts())
+export const useFetchListAccount = (): UseApiFetchReturn<AccountType[]> => {
+    const { data, error, refresh } = useAsyncData('accounts', () => fetchListAccounts())
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur type de compte', description: resError.data.error.message, color: 'error'})
-        return ref([])
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur type de compte', description: resError.value.data.error.message, color: 'error'})
+        return {data: data as Ref<[]>, error: resError, refresh}
     }
 
-    return data
+    return { data: data as Ref<AccountType[]>, error: error as Ref<ErrorApi>, refresh }
 }
 
 export const useFetchAccount = async (accountId: string): Promise<Ref<AccountType|null>> => {

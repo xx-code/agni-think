@@ -31,7 +31,7 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.urlencoded())
 app.use(bodyParser.json())
 app.use(cors({
-  origin: 'http://localhost:3000', // Remplace '*' par l'origine exacte
+  origin: process.env.ORIGIN || '*', // Remplace '*' par l'origine exacte
   credentials: true
 }
 ))
@@ -49,10 +49,21 @@ app.use(BudgetRoute)
 app.use(InternalRoute)
 
 app.listen(port, async () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
-  await container.config(db)
+  try {
+    await container.config(db)
 
-  const seeder = new SystemSeeder(container.getRepository('category'), container.getRepository('tag'))
-  seeder.seed()
+    const seeder = new SystemSeeder(container.getRepository('category'), container.getRepository('tag'))
+    seeder.seed()
+    console.log(`[server]: Server is running at http://localhost:${port}`);
+    console.log(`[server]: Server db connected`);
+  } catch(err) {
+    console.log(err)
+    console.log({
+      host: process.env.DB_HOST || '',
+      user: process.env.DB_USER || '',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_NAME || ''
+    });
+  }
 });
 

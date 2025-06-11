@@ -1,4 +1,4 @@
-export type GoalRowType = {
+export type GoalType = {
     id: string,
     title: string,
     amount: number,
@@ -14,35 +14,35 @@ type GoalApiType = {
     balance: number
 }
 
-export const useFetchListGoals = async (): Promise<Ref<GoalRowType[]>> => { 
-    const { data, error } = await useAsyncData('goals', () => fetchListGoal()) 
+export const useFetchListGoals = (): UseApiFetchReturn<GoalType[]> => { 
+    const { data, error, refresh } = useAsyncData('goals', () => fetchListGoal()) 
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return ref([])
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+
+        return {data: data as Ref<[]>, error: resError, refresh}
     }
 
-    const budgets = ref(data.value!)
 
-    return budgets 
+    return {data: data as Ref<GoalType[]>, error: error as Ref<null>, refresh} 
 }
 
-export const useFetchGoal = async (goalId: string): Promise<Ref<GoalRowType | null>> => {
-    const { data, error } =  await useAsyncData(`goal-${goalId}`, () =>  fetchGoal(goalId))
+export const useFetchGoal = (goalId: string): UseApiFetchReturn<GoalType | null> => {
+    const { data, error, refresh } =  useAsyncData(`goal-${goalId}`, () =>  fetchGoal(goalId))
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return data
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+        return {data, error: resError, refresh}
     }
 
-    return data
+    return {data, error: error as Ref<ErrorApi>, refresh}
 }
 
-export async function fetchListGoal(): Promise<GoalRowType[]> {
+export async function fetchListGoal(): Promise<GoalType[]> {
     const response = await $fetch(`${API_LINK}/save-goals`)
 
     const data = (await response as {data: GoalApiType[]}).data
@@ -50,7 +50,7 @@ export async function fetchListGoal(): Promise<GoalRowType[]> {
     return data.map(val => ({id: val.id, title: val.title, desciprtion: val.description, targetAmount: val.target, amount: val.balance}))
 }
 
-export async function fetchGoal(goalId: string): Promise<GoalRowType> {
+export async function fetchGoal(goalId: string): Promise<GoalType> {
     const response = await $fetch(`${API_LINK}/save-goals/${goalId}`)
 
     const data = (await response as {data: GoalApiType}).data

@@ -5,18 +5,18 @@ export type TagType = {
 }
 
 
-export const useFetchListTags = async (): Promise<Ref<TagType[]>> => { 
-    const { data, error } = await useAsyncData('tags', () => fetchListTags())
+export const useFetchListTags = (): UseApiFetchReturn<TagType[]> => { 
+    const { data, error, refresh } = useAsyncData('tags', () => fetchListTags())
 
     if (error.value) {
         const toast = useToast()
-        const resData = error.value as ErrorApi
-        toast.add({ title: 'Oops! Erreur', description: resData.data.error.message, color: 'error'})
+        const resData = error as Ref<ErrorApi>
+        toast.add({ title: 'Oops! Erreur', description: resData.value.data.error.message, color: 'error'})
+        
+        return {data: data as Ref<[]>, error: resData, refresh: refresh } 
     } 
-
-    const items = ref(data.value!)
     
-    return items
+    return {data: data as Ref<TagType[]>, error: error as Ref<null>, refresh: refresh }
 }
 
 export const fetchListTags = async (): Promise<TagType[]> => {
