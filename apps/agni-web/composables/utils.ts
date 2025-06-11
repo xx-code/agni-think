@@ -9,7 +9,7 @@ export type ErrorApi = {
 }
 
 export interface UseApiFetchReturn<T> {
-    data: Ref<T|null>,
+    data: Ref<T>,
     error: Ref<ErrorApi|null>,
     refresh: () => Promise<void> 
 }

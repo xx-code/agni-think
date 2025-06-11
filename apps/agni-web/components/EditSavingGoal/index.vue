@@ -18,14 +18,21 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>
 
-let saveGoal = null
-if (props.goalId)
-    saveGoal = await useFetchGoal(props.goalId)
+let goal = null
+if (props.goalId) {
+    const {data, error, refresh }= useFetchGoal(props.goalId)
+
+    if (error.value == null)
+        alert(`${props.goalId} not found`)
+
+    goal = data
+}
+    
 
 const form = reactive({
-    title: saveGoal ? saveGoal.value?.title ?? '' : '',
-    description: saveGoal ? saveGoal.value?.desciprtion ?? '' : '',
-    targetAmount: saveGoal ? saveGoal.value?.targetAmount ?? 0 : 0
+    title: goal ? goal.value?.title ?? '' : '',
+    description: goal ? goal.value?.desciprtion ?? '' : '',
+    targetAmount: goal ? goal.value?.targetAmount ?? 0 : 0
 })
 
 const emit = defineEmits(['close'])
