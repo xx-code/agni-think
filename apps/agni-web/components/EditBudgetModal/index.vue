@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import * as z from 'zod';
-import { reactive, shallowRef } from "vue";
-import { fetchCreateBudget, fetchUpdateBudget, useFetchBudget, useFetchListBudget, useFetchListPeriod } from '../../composables/budgets';
+import { reactive, ref, shallowRef, watchEffect, type Ref } from "vue";
+import { fetchCreateBudget, fetchUpdateBudget, useFetchBudget, useFetchListPeriod } from '../../composables/budgets';
 import type { FormSubmitEvent } from '@nuxt/ui';
 
 const schema = z.object({
@@ -18,33 +18,26 @@ const props = defineProps({
     onSaved: Function
 })
 
-const listPeriods = await useFetchListPeriod()
+const {data: listPeriods, error, refresh} = useFetchListPeriod()
 let budget = null
-if (props.budgetId) {
-    budget = await useFetchBudget(props.budgetId)
+if (props.budgetId !== undefined) {
+    const {data} = useFetchBudget(props.budgetId)
+    budget = data
 }
 
-const defaultPeriod = listPeriods.value.length > 0 ? listPeriods.value[0].id : '' 
 
 const form = reactive({
-    title: budget ? budget.value?.title ?? '' : '',
-    target: budget ? budget.value?.target ?? 0 : 0,
-    period: budget ? budget.value?.period ?? '' : defaultPeriod,
-    periodTime: budget ? budget.value?.periodTime ?? 0 : 0,
-    hasEndDate: budget ? budget.value?.dateEnd !== null : false
+    title: '',
+    target: 0,
+    period: '',
+    periodTime: 0,
+    hasEndDate: false
 })
 
-let valStartDate = new Date()
-if (budget)
-    valStartDate = new Date(budget.value?.dateStart ?? '')
+let today = new Date()
 
-let valEndDate = new Date()
-if (budget && budget.value?.dateEnd !== null)
-    valEndDate = new Date(budget.value?.dateEnd ?? '') 
-
-
-const startDate = shallowRef(new CalendarDate(valStartDate.getFullYear(), valStartDate.getMonth() + 1, valStartDate.getDate()))
-const endDate = shallowRef(new CalendarDate(valEndDate.getFullYear(), valEndDate.getMonth() + 1, valEndDate.getDate()))
+const startDate = shallowRef(new CalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate()))
+const endDate = shallowRef(new CalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate()))
 
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
@@ -53,6 +46,27 @@ const df = new DateFormatter('en-Us', {
 type Schema = z.output<typeof schema>
 
 const emit = defineEmits(['close'])
+
+watchEffect(() => {
+    let defPeriod = ''
+    if (listPeriods.value?.length > 0)
+        defPeriod = listPeriods.value[0].id 
+
+    if (budget?.value) {
+        form.title = budget.value.title
+        form.period = budget.value.period? budget.value.period : defPeriod
+        form.target = budget.value.target
+        form.periodTime = budget.value.periodTime
+        form.hasEndDate = budget.value.dateEnd !== null 
+        const valStartDate = new Date(budget.value.dateStart ?? '')
+        startDate.value = new CalendarDate(valStartDate.getFullYear(), valStartDate.getMonth() + 1, valStartDate.getDate())
+
+        if  (budget.value.dateEnd) {
+            const valEndDate = new Date(budget.value.dateEnd ?? '')
+            endDate.value = new CalendarDate(valEndDate.getFullYear(), valEndDate.getMonth() + 1, valEndDate.getDate())
+        }
+    } 
+})
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
     if (!props.isEdit) {

@@ -3,13 +3,13 @@ import { computed, ref } from "vue"
 import { fetchDeleteBudget, fetchListBudgets, useFetchListBudget } from "../../composables/budgets"
 import { EditBudgetModal } from "#components"
 
-const budgets = await useFetchListBudget()
+const {data: budgets, error, refresh} = useFetchListBudget()
 
 const overlay = useOverlay()
 const modalEditBudget = overlay.create(EditBudgetModal, {
     props: {
         onSaved: async () => {
-            budgets.value = await fetchListBudgets()            
+            refresh()
         }
     }
 })
@@ -80,7 +80,7 @@ const onEditModalBudget = (budgetId: string | null=null) => {
 
 const onDeleteBudget = async (budgetId: string) => {
     await fetchDeleteBudget(budgetId)
-    budgets.value = await fetchListBudgets()
+    await refresh()
 }
 </script>
 

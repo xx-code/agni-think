@@ -15,54 +15,58 @@ export type PeriodType = {
     label: string
 }
 
-export const useFetchListPeriod = async (): Promise<Ref<PeriodType[]>> => {
-    const {data, error} = await useAsyncData('period-types', () => fetchListPeriodTypes())
+export const useFetchListPeriod = (): UseApiFetchReturn<PeriodType[]> => {
+    const {data, error, refresh} = useAsyncData('period-types', () => fetchListPeriodTypes())
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return ref([])
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+
+        return {data: data as Ref<[]>, error: resError, refresh}
     }
 
-    const items = ref(data.value!)
-
-    return items
+    return {data: data as Ref<PeriodType[]>, error: error as Ref<null>, refresh}
 }
 
-export const useFetchListBudget = async (): Promise<Ref<BudgetType[]>> => {
-    const { data, error}  = await useAsyncData('budgets', () => fetchListBudgets())  
+export const useFetchListBudget = (): UseApiFetchReturn<BudgetType[]> => {
+    const { data, error, refresh }  = useAsyncData('budgets', () => fetchListBudgets())  
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return ref([])
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+
+        return {data: data as Ref<[]>, error: resError, refresh}
     }
 
-    const items = ref(data.value!)
-
-    return items
+    return {data: data as Ref<BudgetType[]>, error: error as Ref<null>, refresh}
 }
 
-export const useFetchBudget = async (budget_id: string): Promise<Ref<BudgetType|null>> => {
-    const { data, error}  = await useAsyncData(`budget-${budget_id}` , () => fetchBudget(budget_id))  
+export const useFetchBudget = (budget_id: string): UseApiFetchReturn<BudgetType|null> => {
+    const { data, error, refresh }  = useAsyncData(`budget-${budget_id}` , () => fetchBudget(budget_id))  
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return data
+        const resError = error as Ref<ErrorApi> 
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+
+        return {data: data, error: resError, refresh}
     }
 
-    return data
+    return {data: data, error: error as Ref<null>, refresh}
 }
 
 export async function fetchListPeriodTypes(): Promise<PeriodType[]> {
-    const response = await $fetch(`${API_LINK}/internal/period-type`)
-    const data = (response as {id: string, value: string}[])
+    try {
+        const response = await $fetch(`${API_LINK}/internal/period-type`)
+        const data = (response as {id: string, value: string}[])
 
-    return data.map(value => ({id: value.id, label: value.value}))
+        return data.map(value => ({id: value.id, label: value.value}))
+    } catch(err) {
+        console.log(err)
+        return []
+    }
 }
 
 type BudgetApiType = {
