@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import * as z from 'zod'
-import { reactive } from "vue";
+import { reactive, watchEffect } from "vue";
 import { useFetchResumeAccount } from "../../composables/account";
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { fetchCreateGoal, fetchUpdateGoal, useFetchGoal } from '../../composables/goals';
@@ -22,17 +22,25 @@ let goal = null
 if (props.goalId) {
     const {data, error, refresh }= useFetchGoal(props.goalId)
 
-    if (error.value == null)
-        alert(`${props.goalId} not found`)
-
     goal = data
 }
     
 
 const form = reactive({
-    title: goal ? goal.value?.title ?? '' : '',
-    description: goal ? goal.value?.desciprtion ?? '' : '',
-    targetAmount: goal ? goal.value?.targetAmount ?? 0 : 0
+    title: '',
+    description: '',
+    targetAmount: 0
+})
+
+watchEffect(() => {
+    form.title = ''
+    form.description = ''
+    form.targetAmount = 0
+    if (goal?.value) {
+        form.title = goal.value.title
+        form.description = goal.value.desciprtion
+        form.targetAmount = goal.value.targetAmount
+    }
 })
 
 const emit = defineEmits(['close'])
