@@ -68,7 +68,7 @@ export const useFetchListTransactions = (filter?:FilterTransactions): UseApiFetc
         const resError = error as Ref<ErrorApi>
         toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
         data.value = {transactions: [], maxPage: 0}
-
+        
         return {data: data as Ref<TransactionPagination>, error: resError, refresh}
     }
 
