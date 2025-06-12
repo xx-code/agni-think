@@ -28,122 +28,152 @@ function sumTotalBalance(accounts: ResumeAccountType[]): [number, number] {
     return [total, pastTotal]
 }
 
-export const useFetchResumeAccount = async (): Promise<Ref<ResumeAccountType[]>> => {
-    const computeDiffPercent = (pastBalance: number, balance: number) => {
-        if (pastBalance == 0)
-            return 0
-        return Number((Math.abs(((balance/pastBalance) * 100) - 100)).toFixed(2))
-    } 
-    const data = await fetchListAccounts();
-    const resumeAccounts: ResumeAccountType[] = []
+function computeDiffPercent(pastBalance: number, balance: number) {
+    if (pastBalance == 0)
+        return 0
+    return Number((Math.abs(((balance/pastBalance) * 100) - 100)).toFixed(2))
+}
+
+export const useFetchResumeAccount = (): UseApiFetchReturn<ResumeAccountType[]> => {
+    const { data, error, refresh } = useAsyncData('resume-accounts', async () => {
+    
+        const data = await fetchListAccounts();
+        const resumeAccounts: ResumeAccountType[] = []
 
 
-    // generate code
-    const now = new Date();
-    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        // generate code
+        const now = new Date();
+        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-    const startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1)
-    .toISOString()
-    .split('T')[0];
+        const startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1)
+        .toISOString()
+        .split('T')[0];
 
-    const endDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0)
-    .toISOString()
-    .split('T')[0];
-    // 
+        const endDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0)
+        .toISOString()
+        .split('T')[0];
+        // 
 
-    for(const account of data) {
-        let pastBalance = await fetchBalance({accountIds: [account.id], dateStart: startDate, dateEnd: endDate})
-        resumeAccounts.push({
-            ...account, 
+        for(const account of data) {
+            let pastBalance = await fetchBalance({accountIds: [account.id], dateStart: startDate, dateEnd: endDate})
+            resumeAccounts.push({
+                ...account, 
+                pastBalanceDetail: {
+                    balance: pastBalance, 
+                    diffPercent: computeDiffPercent(pastBalance, account.balance), 
+                    doIncrease: true
+                }}
+            )
+        } 
+
+        const totals = sumTotalBalance(resumeAccounts)
+        const totalAccount: ResumeAccountType= {
+            id: ALL_ACCOUNT_ID,
+            title: 'Total Balance',
+            balance: totals[0],
             pastBalanceDetail: {
-                balance: pastBalance, 
-                diffPercent: computeDiffPercent(pastBalance, account.balance), 
-                doIncrease: true
-            }}
-        )
-    } 
+                balance: totals[1],
+                diffPercent: computeDiffPercent(totals[1], totals[0]), 
+                doIncrease: totals[1] < totals[0]
+            },
+            type: ''
+        }
 
-    const totals = sumTotalBalance(resumeAccounts)
-    const totalAccount: ResumeAccountType= {
-        id: ALL_ACCOUNT_ID,
-        title: 'Total Balance',
-        balance: totals[0],
-        pastBalanceDetail: {
-            balance: totals[1],
-            diffPercent: computeDiffPercent(totals[1], totals[0]), 
-            doIncrease: totals[1] < totals[0]
-        },
-        type: ''
+        resumeAccounts.unshift(totalAccount)
+
+        return resumeAccounts
+    })
+
+    if (error.value) {
+        const toast = useToast()
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur type de compte', description: resError.value.data.error.message, color: 'error'})
+
+        return {data: data as Ref<[]>, error: resError, refresh}
     }
-
-    resumeAccounts.unshift(totalAccount)
-
-    return ref(resumeAccounts)
+     
+    return {data: data as Ref<ResumeAccountType[]>, error: error as Ref<null>, refresh } 
 }
 
 export type AccountTypeType = {
     id: string,
     label: string
 }
-
-export const useFetchListAccountTypes = async (): Promise<Ref<AccountTypeType[]>> => { 
-    const { data, error } = await useAsyncData(() => fetchListAccountTypes())
+export const useFetchListAccountTypes = (): UseApiFetchReturn<AccountTypeType[]|null> => { 
+    const { data, error, refresh } = useAsyncData(() => fetchListAccountTypes())
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur type de compte', description: resError.data.error.message, color: 'error'})
-        return ref([])
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur type de compte', description: resError.value.data.error.message, color: 'error'})
+        data.value = []
+        return {data: data  as Ref<[]>, error: resError, refresh}
     }
-
-    const accounts = ref(data.value!)
     
-    return accounts
+    return {data: data as Ref<AccountTypeType[]>, error: error as Ref<null>, refresh}
 }
 
-export const useFetchListAccount = (): UseApiFetchReturn<AccountType[]> => {
+export const useFetchListAccount = (): UseApiFetchReturn<AccountType[]|null> => {
     const { data, error, refresh } = useAsyncData('accounts', () => fetchListAccounts())
     if (error.value) {
         const toast = useToast()
         const resError = error as Ref<ErrorApi>
         toast.add({title: 'Oops! Erreur type de compte', description: resError.value.data.error.message, color: 'error'})
-        return {data: data as Ref<[]>, error: resError, refresh}
+        data.value = []
+        return {data, error: resError, refresh}
     }
 
-    return { data: data as Ref<AccountType[]>, error: error as Ref<ErrorApi>, refresh }
+    return { data, error: error as Ref<ErrorApi>, refresh }
 }
 
-export const useFetchAccount = async (accountId: string): Promise<Ref<AccountType|null>> => {
-    const {data, error} = await useAsyncData('account', () => fetchAccount(accountId))
+export const useFetchAccount = (accountId: string): UseApiFetchReturn<AccountType|null> => {
+    const {data, error, refresh} = useAsyncData('account', () => fetchAccount(accountId))
+
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur type de compte', description: resError.data.error.message, color: 'error'})
-        return ref(null)
+        const resError = error as Ref<ErrorApi> 
+        toast.add({title: 'Oops! Erreur type de compte', description: resError.value.data.error.message, color: 'error'})
+
+        return {data, error: resError, refresh}
     }
 
-    return data
+    return {data, error: error as Ref<null>, refresh}
 }
 
 export async function fetchListAccountTypes(): Promise<AccountTypeType[]> {
-    const response = await $fetch(`${API_LINK}/internal/account-type`)
-    const data = (response as {id: string, value: string}[])
+    try {
+        const response = await $fetch(`${API_LINK}/internal/account-type`)
+        const data = (response as {id: string, value: string}[])
 
-    return data.map(value => ({id: value.id, label: value.value}))
+        return data.map(value => ({id: value.id, label: value.value}))
+    } catch(err) {
+        console.log(err)
+        return []
+    }
 }
 
 export async function fetchListAccounts(): Promise<AccountType[]> {
-    const response = await $fetch(`${API_LINK}/accounts`)
-    const data = (response as {data: {accountId: string, title: string, balance: number, type: string}[]}).data
+    try {
+        const response = await $fetch(`${API_LINK}/accounts`)
+        const data = (response as {data: {accountId: string, title: string, balance: number, type: string}[]}).data
 
-    return data.map(value => ({id: value.accountId, title: value.title, balance: value.balance, type: value.type}))
+        return data.map(value => ({id: value.accountId, title: value.title, balance: value.balance, type: value.type}))
+    } catch(err) {
+        console.log(err)
+        return []
+    }
 }
 
-export async function fetchAccount(accountId: string): Promise<AccountType>{
-    const response = await $fetch(`${API_LINK}/accounts/${accountId}`)
-    const data = (response as {accountId: string, title: string, balance: number, type: string})
+export async function fetchAccount(accountId: string): Promise<AccountType|null>{
+    try {
+        const response = await $fetch(`${API_LINK}/accounts/${accountId}`)
+        const data = (response as {data: {accountId: string, title: string, balance: number, type: string}}).data
 
-    return {id: data.accountId, title: data.title, balance: data.balance, type: data.type}
+        return {id: data.accountId, title: data.title, balance: data.balance, type: data.type}
+    } catch(err) {
+        console.log(err)
+        return null
+    }
 }
 
 export type CreateAccountRequest = {

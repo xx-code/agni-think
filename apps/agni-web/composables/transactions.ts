@@ -44,49 +44,49 @@ export type TransactionTypeType = {
     label: string
 }
 
-export const useFetchListTransactionType = async (): Promise<Ref<TransactionTypeType[]>> => {
-    const {data, error} = await useAsyncData('transaction-types', () => fetchListTransactionType())
+export const useFetchListTransactionType = (): UseApiFetchReturn<TransactionTypeType[]> => {
+    const {data, error, refresh} = useAsyncData('transaction-types', () => fetchListTransactionType())
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return ref([])
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+        data.value = []
+        return {data: data as Ref<TransactionTypeType[]>, error: resError, refresh}
     }
 
-    const items = ref(data.value!)
-
-    return items
+    return {data: data as Ref<TransactionTypeType[]>, error: error as Ref<ErrorApi|null>, refresh}
 }
 
 
-export const useFetchListTransactions = async (filter?:FilterTransactions): Promise<Ref<TransactionPagination>> => {
-    const { data, error } = await useAsyncData('transactions', () => fetchListTransaction(filter)) 
+export const useFetchListTransactions = (filter?:FilterTransactions): UseApiFetchReturn<TransactionPagination> => {
+    const { data, error, refresh} = useAsyncData('transactions', () => fetchListTransaction(filter)) 
 
     if (error.value) {
         console.log(error)
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return ref({transactions: [], maxPage: 0})
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+        data.value = {transactions: [], maxPage: 0}
+
+        return {data: data as Ref<TransactionPagination>, error: resError, refresh}
     }
 
-    const items = ref(data.value!)
-
-    return items
+    return {data: data as Ref<TransactionPagination>, error: error as Ref<ErrorApi|null>, refresh}
 } 
 
-export const useFetchTransaction = async (transactionId: string): Promise<Ref<TransactionType|null>> => {
-    const { data, error } = await useAsyncData(`transactions-${transactionId}`, () => fetchTransaction(transactionId)) 
+export const useFetchTransaction = (transactionId: string): UseApiFetchReturn<TransactionType|null> => {
+    const { data, error, refresh } = useAsyncData(`transactions-${transactionId}`, () => fetchTransaction(transactionId)) 
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return data
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+        
+        return {data, error: resError, refresh}
     }
 
-    return data
+    return {data, error: error as Ref<null>, refresh}
 }
 
 export async function fetchListTransactionType(): Promise<TransactionTypeType[]> {
