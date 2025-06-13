@@ -1,3 +1,5 @@
+import type { AsyncDataExecuteOptions } from "#app/composables/asyncData"
+
 export const API_LINK = process.env.API_LINK || "http://localhost:5002/v1"
 export type ErrorApi = {
     data: {
@@ -11,5 +13,5 @@ export type ErrorApi = {
 export interface UseApiFetchReturn<T> {
     data: Ref<T>,
     error: Ref<ErrorApi|null>,
-    refresh: () => Promise<void> 
+    refresh: (opts?: AsyncDataExecuteOptions) => Promise<void> 
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType, fetchDeleteAccount} from "../../composables/account";
-import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, TransferModal } from "#components";
+import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, EditTransferModal } from "#components";
 import { fetchListTransaction, fetchTransaction, useFetchListTransactions } from "../../composables/transactions";
 
 const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useFetchResumeAccount(); 
@@ -18,7 +18,7 @@ const modalAccount = overlay.create(EditAccountModal, {
     }},
 })
 
-const modalTransfer = overlay.create(TransferModal, {
+const modalTransfer = overlay.create(EditTransferModal, {
     props: {
         onSaved: async () => {
             refreshAccounts()
@@ -85,9 +85,16 @@ const onUpateAccount = async (payload: string) => {
     let filterAcc: string[] = []
     if (payload !== ALL_ACCOUNT_ID)
         filterAcc = [payload]
-    
-    transactions.value = await fetchListTransaction({page: 1, limit: 4, accountFilter: filterAcc})
+   
+    if (transactions.value)
+        transactions.value = await fetchListTransaction({page: 1, limit: 4, accountFilter: filterAcc})
 }
+
+const listTransaction = computed(() => {
+    if (transactions.value)
+        return transactions.value.transactions
+    return []
+}) // TODO Review where there are loop setup loading a
 
 </script>
 
@@ -159,7 +166,7 @@ const onUpateAccount = async (payload: string) => {
                 </div>
             </CustomCardTitle>
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
-                <div v-for="trans in transactions.transactions" :key="trans.id">
+                <div v-for="trans in listTransaction" :key="trans.id">
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 
@@ -182,7 +189,7 @@ const onUpateAccount = async (payload: string) => {
 
             </CustomCardTitle>
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
-                <div v-for="trans in transactions.transactions" :key="trans.id">
+                <div v-for="trans in listTransaction" :key="trans.id">
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 

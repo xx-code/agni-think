@@ -44,7 +44,7 @@ export type TransactionTypeType = {
     label: string
 }
 
-export const useFetchListTransactionType = (): UseApiFetchReturn<TransactionTypeType[]> => {
+export const useFetchListTransactionType = (): UseApiFetchReturn<TransactionTypeType[]|null> => {
     const {data, error, refresh} = useAsyncData('transaction-types', () => fetchListTransactionType())
 
     if (error.value) {
@@ -59,8 +59,8 @@ export const useFetchListTransactionType = (): UseApiFetchReturn<TransactionType
 }
 
 
-export const useFetchListTransactions = (filter?:FilterTransactions): UseApiFetchReturn<TransactionPagination> => {
-    const { data, error, refresh} = useAsyncData('transactions', () => fetchListTransaction(filter)) 
+export const useFetchListTransactions = (filter?:FilterTransactions): UseApiFetchReturn<TransactionPagination|null> => {
+    const { data, error, refresh} = useAsyncData(`transactions-${JSON.stringify(filter)}`, () => fetchListTransaction(filter)) 
 
     if (error.value) {
         console.log(error)
@@ -69,14 +69,15 @@ export const useFetchListTransactions = (filter?:FilterTransactions): UseApiFetc
         toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
         data.value = {transactions: [], maxPage: 0}
         
-        return {data: data as Ref<TransactionPagination>, error: resError, refresh}
+        return {data, error: resError, refresh}
     }
 
-    return {data: data as Ref<TransactionPagination>, error: error as Ref<ErrorApi|null>, refresh}
+    return {data, error: error as Ref<ErrorApi|null>, refresh}
 } 
 
 export const useFetchTransaction = (transactionId: string): UseApiFetchReturn<TransactionType|null> => {
     const { data, error, refresh } = useAsyncData(`transactions-${transactionId}`, () => fetchTransaction(transactionId)) 
+    
 
     if (error.value) {
         const toast = useToast()
@@ -87,6 +88,20 @@ export const useFetchTransaction = (transactionId: string): UseApiFetchReturn<Tr
     }
 
     return {data, error: error as Ref<null>, refresh}
+}
+
+export const useFetchBalance = (filter: FilterBalanceTransactions): UseApiFetchReturn<number|null> => {
+    const { data, error, refresh } = useAsyncData(`balance`, () => fetchBalance(filter)) 
+
+    if (error.value) {
+        const toast = useToast()
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+        data.value = 0
+        return {data, error: resError, refresh}
+    }
+
+    return {data: data as Ref<number>, error: error as Ref<null>, refresh}
 }
 
 export async function fetchListTransactionType(): Promise<TransactionTypeType[]> {

@@ -88,7 +88,7 @@ export const useFetchResumeAccount = (): UseApiFetchReturn<ResumeAccountType[]> 
         const toast = useToast()
         const resError = error as Ref<ErrorApi>
         toast.add({title: 'Oops! Erreur type de compte', description: resError.value.data.error.message, color: 'error'})
-
+        data.value = []
         return {data: data as Ref<[]>, error: resError, refresh}
     }
      

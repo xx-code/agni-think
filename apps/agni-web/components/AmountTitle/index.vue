@@ -3,7 +3,7 @@ const props = defineProps({
     amount: Number,
 })
 
-const amountRounded = props.amount.toFixed(2)
+const amountRounded = props.amount?.toFixed(2) ?? "0"
 const integerValue = amountRounded.slice(0, amountRounded.indexOf(".")) 
 const decimalValue = amountRounded.replace(integerValue + ".", "")
 
