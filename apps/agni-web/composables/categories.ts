@@ -15,7 +15,7 @@ export const  useFetchListCategories = (): UseApiFetchReturn<CategoryType[]> => 
         const toast = useToast()
         const resData = error as Ref<ErrorApi>
         toast.add({ title: 'Oops! Erreur', description: resData.value.data.error.message, color: 'error'})
-
+        data.value = []
         return {data: data as Ref<[]>, error: error as Ref<ErrorApi>, refresh}
     } 
 

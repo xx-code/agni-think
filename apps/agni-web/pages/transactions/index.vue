@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch } from "vue"; import { ALL_ACCOUNT_ID, useFetchResumeAccount } from "../../composables/account"; import type { DropdownMenuItem } from "@nuxt/ui"; import { useFetchListCategories, type CategoryType } from "../../composables/categories";
+import { computed, onMounted, ref, shallowRef, watch, watchEffect, type Ref } from "vue"; import { ALL_ACCOUNT_ID, useFetchResumeAccount } from "../../composables/account"; import type { DropdownMenuItem } from "@nuxt/ui"; import { useFetchListCategories, type CategoryType } from "../../composables/categories";
 import { useFetchListTags, type TagType } from "../../composables/tags";
 import { useFetchListBudget, type BudgetType } from "../../composables/budgets";
-import { fetchBalance, fetchDeleteTransaction, fetchListTransaction, useFetchListTransactions } from "../../composables/transactions";
+import { fetchBalance, fetchDeleteTransaction, fetchListTransaction, useFetchBalance, useFetchListTransactions } from "../../composables/transactions";
 import { EditTransactionModal } from "#components";
 
 const selectedBudgetIds = ref<string[]>([])
@@ -12,57 +12,55 @@ const filterSelected = ref({
     'category': false, 'tag': false, 'date': false,
     'price': false, 'budget': false
 })
-const balance = ref(0)
 const page = ref(1)
 const maxPage = ref(1)
 const nbItems = ref(8)
+const selectedAccounts: Ref<{id: string, label: string, checked: boolean}[]> = ref([]) 
 
-const accounts = await useFetchResumeAccount()
-const budgets = await useFetchListBudget()
-const categories = await useFetchListCategories()
-const tags = await useFetchListTags()
+const paramsTransactions = computed(() => ({
+  page: page.value,
+  limit: nbItems.value,
+  accountFilter: selectedAccounts.value.filter(acc => acc.checked).map(acc => acc.id),
+  categoryFilter: selectedCategoryIds.value,
+  tagFilter: selectedTagIds.value,
+  budgetFilter: selectedBudgetIds.value
+}))
+
+const paramsBalance = computed(() => ({
+  accountIds: selectedAccounts.value.filter(acc => acc.checked).map(acc => acc.id),
+  categoryIds: selectedCategoryIds.value,
+  tagIds: selectedTagIds.value,
+  budgetIds: selectedBudgetIds.value
+}))
+
+const {data: accounts} = useFetchResumeAccount()
+const {data: budgets} = useFetchListBudget()
+const {data: categories} = useFetchListCategories()
+const {data: tags }= useFetchListTags()
 
 
-const transactions = await useFetchListTransactions({page:page.value, limit: nbItems.value})
-maxPage.value = transactions.value.maxPage
 
-const onTransacitonInfos = async () => {
-    transactions.value = await fetchListTransaction({
-        page:page.value, 
-        limit: nbItems.value,
-        accountFilter: selectedAccounts.value.filter(acc => acc.checked).map(accId => accId.id),
-        categoryFilter: selectedCategoryIds.value,
-        tagFilter: selectedTagIds.value,
-        budgetFilter: selectedBudgetIds.value
-    })
-    maxPage.value = transactions.value.maxPage
-    balance.value = await fetchBalance({
-        accountIds: selectedAccounts.value.filter(acc => acc.checked).map(val => val.id), 
-        categoryIds: selectedCategoryIds.value,
-        tagIds: selectedTagIds.value,
-        budgetIds: selectedBudgetIds.value, 
-    })
-}
+const {data:transactions, refresh:refreshTransactions} = useFetchListTransactions(paramsTransactions.value)
+
+const {data:balance, refresh:refreshBalance} = useFetchBalance(paramsBalance.value)
 
 const overlay = useOverlay()
 const modalTransaction = overlay.create(EditTransactionModal, {
     props: {
         onSaved: async () => {
-            await onTransacitonInfos()
+            transactions.value = await fetchListTransaction(paramsTransactions.value)
+            balance.value = await fetchBalance(paramsBalance.value)
         }
     }
 })
 
-const selectedAccounts = ref(accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID)
-.map(acc => ({id: acc.id, label: acc.title, checked: true})))
+
 
 const onUpdateChecked = (id: string, checked: boolean) => {
     const idx = selectedAccounts.value.findIndex(acc => acc.id === id)
     if (idx !== -1)
         selectedAccounts.value[idx].checked = checked
 }
-
-await onTransacitonInfos()
 
 const accountsDropdown = computed(() =>{
    let base = [
@@ -79,18 +77,20 @@ const accountsDropdown = computed(() =>{
         },
     ]
 
-    const otherAccount =  accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID)
-    .map(acc => ({
-        label: acc.title, 
-        checked: selectedAccounts.value.find(selAcc => selAcc.id == acc.id)?.checked, 
-        type: 'checkbox' as const, 
-        onselect(e:Event) {
-            e.preventDefault()
-        },
-        onUpdateChecked(checked: boolean) {
-            onUpdateChecked(acc.id, checked)
-        }
-    }))
+    let otherAccount = [] 
+    if (accounts.value) 
+        otherAccount = accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID)
+        .map(acc => ({
+            label: acc.title, 
+            checked: selectedAccounts.value.find(selAcc => selAcc.id == acc.id)?.checked, 
+            type: 'checkbox' as const, 
+            onselect(e:Event) {
+                e.preventDefault()
+            },
+            onUpdateChecked(checked: boolean) {
+                onUpdateChecked(acc.id, checked)
+            }
+        }))
 
     return (base.concat(otherAccount) satisfies DropdownMenuItem[]) 
 }) 
@@ -170,13 +170,42 @@ const onEditTransaction = (id: string|null=null) => {
 
 const onDelete = async (id: string) => {
     await fetchDeleteTransaction(id)
-    await onTransacitonInfos()
+    transactions.value = await fetchListTransaction(paramsTransactions.value)
+    balance.value = await fetchBalance(paramsBalance.value)
 }
 
-watch([selectedAccounts, selectedTagIds, selectedCategoryIds, selectedBudgetIds, page], async () => {
-    await onTransacitonInfos()
-}, {deep: true})
+// onMounted(() => {
+//     if(accounts.value || selectedAccounts.value.every(acc => acc.checked == false))
+//             selectedAccounts.value = accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID)
+//                     .map(acc => ({id: acc.id, label: acc.title, checked: true}))
+// })
+let hasInitializedAccounts = false
+watch([paramsTransactions, paramsBalance, selectedAccounts],
+    async () => { 
+        if (transactions.value)
+            transactions.value = await fetchListTransaction(paramsTransactions.value)
+        
+        if (balance.value)
+            balance.value = await fetchBalance(paramsBalance.value)
 
+        if (transactions.value)
+            maxPage.value = transactions.value.maxPage
+
+       if (!hasInitializedAccounts && accounts.value) {
+            hasInitializedAccounts = true
+            selectedAccounts.value = accounts.value
+                .filter(acc => acc.id !== ALL_ACCOUNT_ID)
+                .map(acc => ({ id: acc.id, label: acc.title, checked: true }))
+            } 
+
+        
+}, { immediate: true, deep: true})
+
+const listTransaction = computed(() => {
+    if (transactions.value)
+        return transactions.value.transactions
+    return []
+})
 
 </script>
 
@@ -234,7 +263,7 @@ watch([selectedAccounts, selectedTagIds, selectedCategoryIds, selectedBudgetIds,
 
         <div style="margin-top: 1rem;">
             <div class="transaction-box flex flex-col gap-2 rounded-md">
-                <div v-for="trans of transactions.transactions" :key="trans.id">
+                <div v-for="trans of listTransaction" :key="trans.id">
                     <RowTransaction 
                         :id="trans.id" 
                         :balance="trans.amount"

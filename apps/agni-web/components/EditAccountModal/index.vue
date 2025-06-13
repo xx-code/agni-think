@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
-import { reactive } from 'vue';
-import { useFetchListAccountTypes, fetchUpdateAccount, fetchCreateAccount } from '../../composables/account';
+import { reactive, ref, watchEffect, type Ref } from 'vue';
+import { useFetchListAccountTypes, fetchUpdateAccount, fetchCreateAccount, type AccountType, useFetchAccount } from '../../composables/account';
 
 const props = defineProps({
     isEdit: Boolean,
     accountId: String,
-    accountName: String,
-    accountType: String,
     onSaved: Function
 })
 
-const types = await useFetchListAccountTypes()
+const {data: types} = useFetchListAccountTypes()
+let account: Ref<AccountType|null> = ref(null)
+if (props.isEdit && props.accountId) {
+    const res = useFetchAccount(props.accountId)
+    account = res.data
+}
 
 const schema = z.object({
     accountName: z.string().nonempty('Le nom du compte est vide'),
@@ -22,8 +25,8 @@ const schema = z.object({
 type Schema = z.output<typeof schema>
 
 const form = reactive({
-    accountName: props.accountName ?? '',
-    accountType: props.accountType ?? (types.value[0].id ?? '')
+    accountName: '',
+    accountType: ''
 })
 
 const  emit = defineEmits(['close', 'saved'])
@@ -39,8 +42,20 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     form.accountType = ""
 
     if (props.onSaved) props.onSaved()
+
     emit('close')
 }
+
+watchEffect(() => {
+    form.accountName = ''
+    if (types.value && types.value?.length > 0) 
+        form.accountType = types.value[0].id
+
+    if(account.value) {
+        form.accountName = account.value.title
+        form.accountType = account.value.type
+    }
+})
 
 </script>
 
@@ -55,7 +70,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             </UFormField>
 
             <UFormField label="Type de compte" name="accountType">
-                <USelect v-model="form.accountType" value-key="id" :items="types" class="w-full">
+                <USelect v-model="form.accountType" value-key="id" :items="types ? types : []" class="w-full">
 
                 </USelect>
             </UFormField>

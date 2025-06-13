@@ -2,13 +2,13 @@
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 
 import * as z from 'zod';
-import { reactive, ref, shallowRef } from "vue";
-import { fetchListAccounts, useFetchResumeAccount } from "../../composables/account";
+import { reactive, ref, shallowRef, watchEffect, type Ref } from "vue";
+import { fetchListAccounts, useFetchListAccount, useFetchResumeAccount } from "../../composables/account";
 import { useFetchListBudget, type BudgetType } from '../../composables/budgets';
 import { useFetchListCategories } from '../../composables/categories';
 import { useFetchListTags, type TagType } from '../../composables/tags';
 import type { FormSubmitEvent } from '@nuxt/ui';
-import { fetchCreateTransaction, fetchUpdateTransaction, useFetchListTransactionType, useFetchTransaction } from '../../composables/transactions';
+import { fetchCreateTransaction, fetchUpdateTransaction, useFetchListTransactionType, useFetchTransaction, type TransactionType } from '../../composables/transactions';
 const props = defineProps({
     isEdit: Boolean,
     transactionId: String,
@@ -26,35 +26,32 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>
 
-const accounts = await fetchListAccounts()
+const {data: accounts} = useFetchListAccount()
 
-const categories = await useFetchListCategories()
-const tags = await useFetchListTags()
-const budgets = await useFetchListBudget()
-const mainCategories = await useFetchListTransactionType()
+const {data: categories} = useFetchListCategories()
+const {data: tags } = useFetchListTags()
+const {data: budgets} = useFetchListBudget()
+const {data: mainCategories} = useFetchListTransactionType()
 
-let transaction = null
-if (props.transactionId)
-    transaction = await useFetchTransaction(props.transactionId)
+let transaction: Ref<TransactionType|null> = ref(null)
+if (props.transactionId){
+    const {data} = useFetchTransaction(props.transactionId)
+    transaction = data
+}
 
-
-let accountId = props.accountId ?? '' 
-if (transaction)
-    accountId = transaction.value?.accountId ?? ''
 
 const form = reactive({
-    accountId: accountId,
-    transactionType: transaction ? transaction.value?.type ?? '' : '',
-    categoryId: transaction ? transaction.value?.category.id ?? '' : '',
-    description: transaction ? transaction.value?.description ?? '': '',
-    tagIds: transaction ? transaction.value?.tags.map(tag => tag.id) ?? [] : [],
-    budgetIds: transaction ? transaction.value?.budgets.map(budg => budg.id) ?? [] : [],
-    amount: transaction ? transaction.value?.amount ?? 0 : 0
+    accountId: props.accountId ?? '' ,
+    transactionType: '',
+    categoryId: '',
+    description: '',
+    tagIds: [] as string[],
+    budgetIds: [] as string[],
+    amount: 0
 })
 
 let valDate = new Date()
-if (transaction)
-    valDate = new Date(transaction.value?.date ?? '')
+
 
 const date = shallowRef(new CalendarDate(valDate.getFullYear(), valDate.getMonth() + 1, valDate.getDate()))
 const df = new DateFormatter('en-Us', {
@@ -94,6 +91,23 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     emit('close')
 }
 
+watchEffect(() => {
+    form.accountId = props.accountId ?? ''
+
+    if (transaction.value) {
+        form.accountId = transaction.value.accountId
+        form.transactionType = transaction.value.type
+        form.categoryId = transaction.value.category.id
+        form.description = transaction.value.description
+        form.amount = transaction.value.amount
+        form.tagIds = transaction.value.tags.map(val => val.id) 
+        form.budgetIds = transaction.value.budgets.map(val => val.id)
+
+        valDate = new Date(transaction.value.date)
+        date.value = new CalendarDate(valDate.getFullYear(), valDate.getMonth() + 1, valDate.getDate())
+    }
+})
+
 
 </script>
 
@@ -106,7 +120,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             </UFormField>
 
             <UFormField label="Compte" name="accountId" >
-                <USelect v-model="form.accountId" value-key="id" label-key="title" :items="accounts.filter(acc => acc.id !== ALL_ACCOUNT_ID)" class="w-full" />
+                <USelect v-model="form.accountId" value-key="id" label-key="title" :items="accounts ? accounts.map(acc => ({id: acc.id, title: acc.title})) : []" class="w-full" />
             </UFormField>
 
             <UFormField label="Prix" name="amount">

@@ -22,7 +22,7 @@ export const useFetchListPeriod = (): UseApiFetchReturn<PeriodType[]> => {
         const toast = useToast()
         const resError = error as Ref<ErrorApi>
         toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
-
+        data.value = []
         return {data: data as Ref<[]>, error: resError, refresh}
     }
 
@@ -36,7 +36,7 @@ export const useFetchListBudget = (): UseApiFetchReturn<BudgetType[]> => {
         const toast = useToast()
         const resError = error as Ref<ErrorApi>
         toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
-
+        data.value = []
         return {data: data as Ref<[]>, error: resError, refresh}
     }
 

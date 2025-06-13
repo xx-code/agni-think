@@ -1,31 +1,28 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType, fetchDeleteAccount} from "../../composables/account";
-import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, TransferModal } from "#components";
+import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, EditTransferModal } from "#components";
 import { fetchListTransaction, fetchTransaction, useFetchListTransactions } from "../../composables/transactions";
 
-const accounts = await useFetchResumeAccount(); // Compute Value for remove select accountId
-const selectedAccount = ref(accounts.value.find(acc => acc.id === ALL_ACCOUNT_ID));
-const selectedAccountId = ref(ALL_ACCOUNT_ID)
-const editAccount = ref({accountId: '', accountName: "", accountType: ""})
+const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useFetchResumeAccount(); 
 
-const transactions = await useFetchListTransactions({page: 1, limit: 4}) // add compute for change in selected Account
+const selectedAccountId = ref(ALL_ACCOUNT_ID)
+
+const {data: transactions, error: errorTransactions, refresh: refreshTransactions} = useFetchListTransactions({page: 1, limit: 4}) // add compute for change in selected Account
 
 const overlay = useOverlay()
 const modalAccount = overlay.create(EditAccountModal, {
     props:{
-        ...editAccount.value,
-         onSaved: async () => {
-            accounts.value = (await useFetchResumeAccount()).value
-        }},
-    
+         onSaved: () => {
+            refreshAccounts()
+    }},
 })
 
-const modalTransfer = overlay.create(TransferModal, {
+const modalTransfer = overlay.create(EditTransferModal, {
     props: {
         onSaved: async () => {
-            accounts.value = (await useFetchResumeAccount()).value
-            await onUpateAccount(selectedAccount.value?.id ?? ALL_ACCOUNT_ID)
+            refreshAccounts()
+            await onUpateAccount(selectedAccountId.value)
         } 
     }
 })
@@ -33,8 +30,8 @@ const modalTransfer = overlay.create(TransferModal, {
 const modalTransaction = overlay.create(EditTransactionModal, {
     props: {
         onSaved: async () => {
-            accounts.value = (await useFetchResumeAccount()).value
-            await onUpateAccount(selectedAccount.value?.id ?? ALL_ACCOUNT_ID)
+            refreshAccounts()
+            await onUpateAccount(selectedAccountId.value)
         }
     }
 })
@@ -42,23 +39,24 @@ const modalTransaction = overlay.create(EditTransactionModal, {
 const modalFreezeTransaction = overlay.create(EditFreezeTransaction, {
     props: {
         onSaved: async () => {
-            accounts.value = (await useFetchResumeAccount()).value
-            await onUpateAccount(selectedAccount.value?.id ?? ALL_ACCOUNT_ID)
+            refreshAccounts()
+            await onUpateAccount(selectedAccountId.value)
         }
     } 
 })
 
 const onSelectAccount = (id: string) => {
-    selectedAccount.value = accounts.value.find(acc => acc.id === id) 
     selectedAccountId.value = id
     onUpateAccount(id)
 }
 const getAccount = (id: string) => {
-    return accounts.value.find(acc => acc.id === id)
+    if (accounts.value)
+        return accounts.value.find(acc => acc.id === id)
+    return null
 }
-const onEditAccount = (account: ResumeAccountType|null) => {
-    editAccount.value = {accountId: account?.id ?? '', accountName: account?.title || '', accountType: account?.type || ''}
-    modalAccount.patch({...editAccount.value, isEdit: account !== null})
+
+const onEditAccount = (accountId: string|null=null) => {
+    modalAccount.patch({ isEdit: accountId !== null, accountId: accountId ? accountId : '' })
     modalAccount.open()
 }
 
@@ -80,16 +78,23 @@ const onEditFreezeTransaction = (accountId: string = '') => {
 
 const onDeleteAccount = async (accountId: string) => {
     await fetchDeleteAccount(accountId)
-    accounts.value = (await useFetchResumeAccount()).value
+    await refreshAccounts()
 }
 
 const onUpateAccount = async (payload: string) => {
     let filterAcc: string[] = []
     if (payload !== ALL_ACCOUNT_ID)
         filterAcc = [payload]
-    
-    transactions.value = await fetchListTransaction({page: 1, limit: 4, accountFilter: filterAcc})
+   
+    if (transactions.value)
+        transactions.value = await fetchListTransaction({page: 1, limit: 4, accountFilter: filterAcc})
 }
+
+const listTransaction = computed(() => {
+    if (transactions.value)
+        return transactions.value.transactions
+    return []
+}) // TODO Review where there are loop setup loading a
 
 </script>
 
@@ -98,7 +103,7 @@ const onUpateAccount = async (payload: string) => {
         <div>
             <div class="card rounded-md">
                 <CustomCardTitle :title="getAccount(selectedAccountId)?.title">
-                   <USelect v-model="selectedAccountId" @update:modelValue="onUpateAccount" value-key="id"  label-key="title" :items="accounts"/> 
+                   <USelect v-model="selectedAccountId" @update:modelValue="onUpateAccount" value-key="id"  label-key="title" :items="accounts ? accounts.map(acc => ({ id: acc.id, title: acc.title, type: 'item' })) : []"/> 
                 </CustomCardTitle>
                 <div class="card-money" style="margin-top: 1rem;">
                     <h2>
@@ -135,7 +140,7 @@ const onUpateAccount = async (payload: string) => {
                     <CardResumeAccount 
                         @customClick="onSelectAccount(account.id)"
                         style="width: 200px;"
-                        v-if="account.id !== getAccount(selectedAccountId)?.id"
+                        v-if="account.id !== selectedAccountId"
                         :id="account.id"
                         :title="account.title"
                         :balance="account.balance"
@@ -143,7 +148,7 @@ const onUpateAccount = async (payload: string) => {
                         :is-positif="account.pastBalanceDetail.doIncrease"
                         :allow-edit="account.id === ALL_ACCOUNT_ID ? false : true"
                         :allow-delete="account.id === ALL_ACCOUNT_ID ? false :true" 
-                        @edit="onEditAccount(account)"
+                        @edit="onEditAccount(account.id)"
                         @delete="onDeleteAccount(account.id)"
 
                     /> 
@@ -161,7 +166,7 @@ const onUpateAccount = async (payload: string) => {
                 </div>
             </CustomCardTitle>
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
-                <div v-for="trans in transactions.transactions" :key="trans.id">
+                <div v-for="trans in listTransaction" :key="trans.id">
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 
@@ -184,7 +189,7 @@ const onUpateAccount = async (payload: string) => {
 
             </CustomCardTitle>
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
-                <div v-for="trans in transactions.transactions" :key="trans.id">
+                <div v-for="trans in listTransaction" :key="trans.id">
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 
