@@ -15,3 +15,7 @@ export interface UseApiFetchReturn<T> {
     error: Ref<ErrorApi|null>,
     refresh: (opts?: AsyncDataExecuteOptions) => Promise<void> 
 }
+
+export function formatCurrency(value: number) {
+    return new Intl.NumberFormat('en-US', {style: 'currency',currency: 'CAD'}).format(value)
+}

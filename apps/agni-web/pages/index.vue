@@ -108,6 +108,18 @@ const listTransaction = computed(() => {
     return []
 })
 
+const listGoal = computed(() => {
+    if (goals.value)
+        return goals.value
+    return []
+})
+
+const listAccount = computed(() => {
+    if (accounts.value)
+        return accounts.value
+    return []
+})
+
 watchEffect(() => {
     if (accounts.value)
         accountsChecked.value = accounts.value?.map(acc => ({id: acc.id, checked: true}))
@@ -138,7 +150,7 @@ watchEffect(() => {
             </div>
         </div>
         <div class="card-account-list grid sm:grid-cols-2 md:grid-cols-3 gap-2">
-            <div  v-for="account in accounts.filter(e => accountsChecked.find(f => f.id == e.id && f.checked))" 
+            <div  v-for="account in listAccount.filter(e => accountsChecked.find(f => f.id == e.id && f.checked))" 
                 :key="account.id">
                 <CardResumeAccount 
                     :id="account.id"
@@ -170,7 +182,7 @@ watchEffect(() => {
             <div class="card-grid rounded-md md:col-span-2 flex flex-col gap-2">
                 <CustomCardTitle title="Transactions">
                     <div class="flex gap-1">
-                        <USelect class="rounded-full" v-model="transactionAccountSelected" :items="accounts.map(acc => (acc.title))" />
+                        <USelect class="rounded-full" v-model="transactionAccountSelected" :items=" accounts ? accounts.map(acc => (acc.title)) : []" />
                         <UButton class="rounded-full" size="sm" label="Voir plus" variant="outline" color="neutral" />
                     </div>
                 </CustomCardTitle>
@@ -191,7 +203,7 @@ watchEffect(() => {
                     <UButton icon="i-lucide-external-link" variant="outline" color="neutral" />
                 </CustomCardTitle>
                 <div class="flex flex-col gap-1">
-                    <div v-for="goal in goals" :key="goal.id">
+                    <div v-for="goal in listGoal" :key="goal.id">
                         <BarBudgetInfo :id="goal.id" :title="goal.title" 
                         :target-amount="goal.targetAmount" :amount="goal.amount" />
                     </div>

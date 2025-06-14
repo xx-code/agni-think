@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as z from 'zod';
 import { reactive } from 'vue';
-import { fetchListAccounts, useFetchResumeAccount } from '../../composables/account';
+import { fetchListAccounts, useFetchListAccount, useFetchResumeAccount } from '../../composables/account';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { UFormField } from '#components';
 import { fetchDescreaseSaveGoal, fetchIncreaseSaveGoal } from '../../composables/goals';
@@ -23,7 +23,7 @@ const form = reactive({
     amount: 0
 })
 
-const accounts = await fetchListAccounts()
+const {data: accounts} = useFetchListAccount()
 
 type Schema = z.output<typeof schema>
 
@@ -50,7 +50,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     <UTabs v-model="form.isIncrease" :content="false" :items="[{label:'Ajouter'}, {label:'Retirer'}]" class="w-full"/> 
                 </UFormField>
                 <UFormField label="Compte" name="accountId">
-                    <USelect v-model="form.accountId" value-key="id" label-key="title" :items="accounts ? accounts : []" class="w-full" />
+                    <USelect v-model="form.accountId" value-key="id" label-key="title" :items="accounts ? accounts.map(acc => ({id: acc.id, title: acc.title})) : []" class="w-full" />
                 </UFormField>
                 <UFormField label="Somme" name="amount">
                     <UInput v-model="form.amount" type="number" />

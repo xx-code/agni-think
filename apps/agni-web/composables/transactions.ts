@@ -60,7 +60,7 @@ export const useFetchListTransactionType = (): UseApiFetchReturn<TransactionType
 
 
 export const useFetchListTransactions = (filter?:FilterTransactions): UseApiFetchReturn<TransactionPagination|null> => {
-    const { data, error, refresh} = useAsyncData(`transactions-${JSON.stringify(filter)}`, () => fetchListTransaction(filter)) 
+    const { data, error, refresh} = useAsyncData(`transactions`, () => fetchListTransaction(filter)) 
 
     if (error.value) {
         console.log(error)
@@ -161,7 +161,7 @@ export async function fetchListTransaction(filter?: FilterTransactions): Promise
                 budgets: data.budgets.map(budg => ({id: budg, title: ''}))
             })
         ),
-        total: data.total 
+        total: Number(data.total) 
     }
 }
 

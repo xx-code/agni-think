@@ -169,8 +169,8 @@ const listTransaction = computed(() => {
                 <div v-for="trans in listTransaction" :key="trans.id">
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
-                        :description="trans.description" :icon="trans.category.icon" 
-                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date"/>    
+                        :description="trans.description" :icon="trans.category.icon" :color="trans.category.color"
+                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date" :recordType="trans.recordType"/>    
                 </div>
             </div>
         </div>
@@ -184,16 +184,15 @@ const listTransaction = computed(() => {
             </div>
         </div>
 
-        <div class="card rounded-md col-span-2">
+        <div class="card rounded-md col-span-2 ">
             <CustomCardTitle title="Freeze transaction et future transaction">
-
             </CustomCardTitle>
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
                 <div v-for="trans in listTransaction" :key="trans.id">
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 
-                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date"/>    
+                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date" :color="trans.category.color"/>    
                         
                 </div>
             </div>
@@ -207,6 +206,7 @@ const listTransaction = computed(() => {
 .card {
     border: solid 1px #E6E6E6;
     padding: 0.5rem;
+    background: rgb(250, 251, 255);
 
     .card-money {
         font-weight: bold;

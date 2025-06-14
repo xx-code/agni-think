@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { computed, h, onMounted, ref, resolveComponent, shallowRef, watch, watchEffect, type Ref } from "vue"; import { ALL_ACCOUNT_ID, useFetchResumeAccount } from "../../composables/account"; import type { DropdownMenuItem, TableColumn } from "@nuxt/ui"; import { useFetchListCategories, type CategoryType } from "../../composables/categories";
+import { computed, h, onMounted, ref, resolveComponent, shallowRef, watch, watchEffect, type Ref } from "vue"; 
+import { ALL_ACCOUNT_ID, useFetchResumeAccount } from "../../composables/account"; 
+import type { DropdownMenuItem, TableColumn, TableRow } from "@nuxt/ui"; 
 import { useFetchListTags, type TagType } from "../../composables/tags";
 import { useFetchListBudget, type BudgetType } from "../../composables/budgets";
 import { fetchBalance, fetchDeleteTransaction, fetchListTransaction, type TransactionType, useFetchBalance, useFetchListTransactions } from "../../composables/transactions";
 import { EditTransactionModal } from "#components";
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
+import { useFetchListCategories } from "../../composables/categories";
+import { formatCurrency } from "../../composables/utils";
 
 const selectedBudgetIds = ref<string[]>([])
 const selectedCategoryIds = ref<string[]>([])
@@ -89,7 +93,7 @@ const onUpdateChecked = (id: string, checked: boolean) => {
 }
 
 const accountsDropdown = computed(() =>{
-   let base = [
+   let base: DropdownMenuItem[] = [
         {
             label: 'Tous les comptes', 
             type: 'checkbox' as const,
@@ -103,14 +107,14 @@ const accountsDropdown = computed(() =>{
         },
     ]
 
-    let otherAccount = [] 
+    let otherAccount: DropdownMenuItem[] = [] 
     if (accounts.value) 
         otherAccount = accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID)
         .map(acc => ({
             label: acc.title, 
             checked: selectedAccounts.value.find(selAcc => selAcc.id == acc.id)?.checked, 
             type: 'checkbox' as const, 
-            onselect(e:Event) {
+            onSelect(e:Event) {
                 e.preventDefault()
             },
             onUpdateChecked(checked: boolean) {
@@ -240,6 +244,7 @@ const listTransaction = computed(() => {
 
 const UIcon = resolveComponent('UIcon')
 const UButton = resolveComponent('UButton')
+const UDropdownMenu = resolveComponent('UDropdownMenu')
 const tableColumn: TableColumn<TransactionType>[] = [
     {
         id: 'expand',
@@ -289,7 +294,7 @@ const tableColumn: TableColumn<TransactionType>[] = [
         accessorKey: 'date',
         header: 'Date',
         cell: ({ row }) => {
-            return new Date(row.getValue('date')).toLocaleString('en-US', {
+            return new Date(row.getValue('date')).toLocaleString('fr-FR', {
                 day: 'numeric',
                 month: 'short',
                 hour: '2-digit',
@@ -311,17 +316,71 @@ const tableColumn: TableColumn<TransactionType>[] = [
         header: () => h('div', { class: 'text-right' }, 'Amount'),
         cell: ({ row }) => {
             const amount = Number.parseFloat(row.getValue('amount'))
+            const recordType = row.original.recordType
+            
 
             const formatted = new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'CAD'
             }).format(amount)
 
-            return h('div', {class: 'text-right font-medium'}, formatted)
+            return h('div', {class: 'text-right font-medium', style: {color: recordType === 'Debit' ? "" : "#1abc9c"}}, formatted)
+            
+        }
+    },
+    {
+        id: 'action',
+        cell: ({ row }) => {
+            return h(
+                'div',
+                {  class: 'text-right'},
+                h(
+                    UDropdownMenu,
+                    {
+                        content: {
+                            align: 'end'
+                        },
+                        items: getRowItems(row),
+                        'arial-label': 'Actions dropdown'
+                    },
+                    () => 
+                        h(
+                            UButton, {
+                                icon: 'i-lucide-ellipsis-vertical',
+                                color: 'neutral',
+                                variant: 'ghost',
+                                class: 'ml-auto',
+                                'aria-label': 'Actions dropdown'
+                            }
+                        )
+                )
+            )
         }
     }
 ]
 const expanded = ref({ 1: true })
+
+function getRowItems(rows: TableRow<TransactionType>) {
+    return [
+        {
+            label: 'Modifier',
+            onSelect: () => {
+                const id = rows.original.id
+                onEditTransaction(id)
+            }
+        },
+        {
+            label: 'Supprimer',
+            onselect: () => {
+                const id = rows.original.id
+                if (confirm("Voulez vous supprimer la transaction"))
+                    onDelete(id)
+            }
+        }
+    ] 
+}
+
+
 </script>
 
 <template>
@@ -331,7 +390,7 @@ const expanded = ref({ 1: true })
                 <UDropdownMenu :items="accountsDropdown">
                     <UButton color="neutral" variant="outline" icon="i-lucide-menu" label="Comptes" size="xl"/>
                 </UDropdownMenu>
-                <UButton variant="outline" color="neutral" :label="new Intl.NumberFormat('en-US', {style: 'currency',currency: 'CAD'}).format(balance)" size="xl"/>
+                <UButton variant="outline" color="neutral" :label="formatCurrency(balance ? balance : 0)" size="xl"/>
                 <UDropdownMenu class="xs:mt-2" :items="filtersDropdown">
                     <UButton color="neutral" variant="outline" icon="i-lucide-sliders-horizontal" size="xl" label="Filtres"/>
                 </UDropdownMenu>
