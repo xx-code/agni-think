@@ -169,8 +169,8 @@ const listTransaction = computed(() => {
                 <div v-for="trans in listTransaction" :key="trans.id">
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
-                        :description="trans.description" :icon="trans.category.icon" 
-                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date"/>    
+                        :description="trans.description" :icon="trans.category.icon" :color="trans.category.color"
+                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date" :recordType="trans.recordType"/>    
                 </div>
             </div>
         </div>
@@ -193,7 +193,7 @@ const listTransaction = computed(() => {
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 
-                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date"/>    
+                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date" :color="trans.category.color"/>    
                         
                 </div>
             </div>

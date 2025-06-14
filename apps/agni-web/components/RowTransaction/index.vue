@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { fas } from '@fortawesome/free-solid-svg-icons'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import {  useRoute } from 'nuxt/app'
-import { computed, watch } from 'vue'
 import { UPopover } from '#components'
 
 
@@ -16,40 +15,40 @@ const props = defineProps({
     recordType: String,
     description: String,
     icon: String,
+    color: String,
     tags: Array,
     date: String,
     doShowEdit: Boolean
 })
 
+const formatedDate = new Date(props.date).toLocaleString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour12: false
+}) 
+
 </script>
 
 <template>
     <UPopover mode="hover" :content="{ align: 'end', side: 'top', sideOffset: 8}">
-        <div class="row-transaction rounded-md">
+        <div class="row-transaction rounded-md border border-gray-400">
             <div class="flex justify-between items-center">
                 <div class="col-span-2">
                     <div class="flex items-center gap-1">
-                        <div class="icon rounded-md">
-                            <UIcon :name="icon" />
+                        <div class="icon" :style="{backgroundColor: `${color}22`}">
+                            <UIcon :name="icon" :style="{color: color}" />
                         </div>
                         <div >
                             <h3 class="font-semibold">{{ title }}</h3>
-                            <div class="flex items-center">
-                                <p class="text-xs antialiased" style="color:#ADADAD">{{ description }}</p>
-                                <div class="tags gap-1 ml-1">
-                                    <div v-for="tag in tags" :key="tag">
-                                        <UBadge class="rounded-full" size="xs" >
-                                            {{ tag }}
-                                        </UBadge>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="text-xs">{{ date }}</p>
+                            <p class="text-xs text-gray-500">{{ formatedDate }}</p>
                         </div> 
                     </div>
                 </div>
                 <div class="justify-self-end">
-                    <h3 class="font-semibold">${{ recordType === 'Debit' ? '-' : ''}}{{ balance }}</h3>
+                    <h3 class="font-semibold" :style="{color: recordType == 'Debit' ? '#1f2d38' : '#1abc9c'}">
+                        {{ new Intl.NumberFormat('en-US', {style: 'currency',currency: 'CAD'}).format(balance) }}
+                    </h3>
                 </div>
                 
                 
@@ -71,12 +70,10 @@ const props = defineProps({
 <style scoped lang="scss">
 .row-transaction {
     padding: 0.5rem;
-    background-color: rgba(103, 85, 215, 0.1);
 }
 .icon {
-    background: #fff;
-    color: #1E3050;
     width: 35px;
+    border-radius: 100%;
     height: 35px;
     display: flex;
     justify-content: center;
