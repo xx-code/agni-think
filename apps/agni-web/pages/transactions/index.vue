@@ -240,6 +240,7 @@ const listTransaction = computed(() => {
 
 const UIcon = resolveComponent('UIcon')
 const UButton = resolveComponent('UButton')
+const UDropdownMenu = resolveComponent('UDropdownMenu')
 const tableColumn: TableColumn<TransactionType>[] = [
     {
         id: 'expand',
@@ -289,7 +290,7 @@ const tableColumn: TableColumn<TransactionType>[] = [
         accessorKey: 'date',
         header: 'Date',
         cell: ({ row }) => {
-            return new Date(row.getValue('date')).toLocaleString('en-US', {
+            return new Date(row.getValue('date')).toLocaleString('fr-FR', {
                 day: 'numeric',
                 month: 'short',
                 hour: '2-digit',
@@ -311,17 +312,70 @@ const tableColumn: TableColumn<TransactionType>[] = [
         header: () => h('div', { class: 'text-right' }, 'Amount'),
         cell: ({ row }) => {
             const amount = Number.parseFloat(row.getValue('amount'))
+            const recordType = row.original.recordType
+            
+            console.log(recordType)
 
             const formatted = new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'CAD'
             }).format(amount)
 
-            return h('div', {class: 'text-right font-medium'}, formatted)
+            return h('div', {class: 'text-right font-medium', style: {color: recordType === 'Debit' ? "" : "#1abc9c"}}, formatted)
+            
+        }
+    },
+    {
+        id: 'action',
+        cell: ({ row }) => {
+            return h(
+                'div',
+                {  class: 'text-right'},
+                h(
+                    UDropdownMenu,
+                    {
+                        content: {
+                            align: 'end'
+                        },
+                        items: getRowItems(row),
+                        'arial-label': 'Actions dropdown'
+                    },
+                    () => 
+                        h(
+                            UButton, {
+                                icon: 'i-lucide-ellipsis-vertical',
+                                color: 'neutral',
+                                variant: 'ghost',
+                                class: 'ml-auto',
+                                'aria-label': 'Actions dropdown'
+                            }
+                        )
+                )
+            )
         }
     }
 ]
 const expanded = ref({ 1: true })
+
+function getRowItems(rows: Row<TransactionType>) {
+    return [
+        {
+            label: 'Modifier',
+            onSelect: () => {
+                const id = rows.original.id
+                onEditTransaction(id)
+            }
+        },
+        {
+            label: 'Supprimer',
+            onselect: () => {
+                const id = rows.original.id
+                if (confirm("Voulez vous supprimer la transaction"))
+                    onDelete(id)
+            }
+        }
+    ] 
+}
 </script>
 
 <template>

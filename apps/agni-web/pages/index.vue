@@ -176,7 +176,7 @@ watchEffect(() => {
             <div class="card-grid rounded-md md:col-span-2 flex flex-col gap-2">
                 <CustomCardTitle title="Transactions">
                     <div class="flex gap-1">
-                        <USelect class="rounded-full" v-model="transactionAccountSelected" :items="accounts.map(acc => (acc.title))" />
+                        <USelect class="rounded-full" v-model="transactionAccountSelected" :items=" accounts ? accounts.map(acc => (acc.title)) : []" />
                         <UButton class="rounded-full" size="sm" label="Voir plus" variant="outline" color="neutral" />
                     </div>
                 </CustomCardTitle>
