@@ -114,6 +114,12 @@ const listGoal = computed(() => {
     return []
 })
 
+const listAccount = computed(() => {
+    if (accounts.value)
+        return accounts.value
+    return []
+})
+
 watchEffect(() => {
     if (accounts.value)
         accountsChecked.value = accounts.value?.map(acc => ({id: acc.id, checked: true}))
@@ -144,7 +150,7 @@ watchEffect(() => {
             </div>
         </div>
         <div class="card-account-list grid sm:grid-cols-2 md:grid-cols-3 gap-2">
-            <div  v-for="account in accounts.filter(e => accountsChecked.find(f => f.id == e.id && f.checked))" 
+            <div  v-for="account in listAccount.filter(e => accountsChecked.find(f => f.id == e.id && f.checked))" 
                 :key="account.id">
                 <CardResumeAccount 
                     :id="account.id"

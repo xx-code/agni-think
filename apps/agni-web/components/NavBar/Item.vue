@@ -1,12 +1,7 @@
 <script setup lang="ts">
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { fas } from '@fortawesome/free-solid-svg-icons'
-import { library } from '@fortawesome/fontawesome-svg-core'
 import {  useRoute } from 'nuxt/app'
 import { computed } from 'vue'
 
-
-library.add(fas)
 
 const props = defineProps({
     link: String,
@@ -18,15 +13,15 @@ const props = defineProps({
 const route = useRoute()
 const isActive = computed(() => route.path === props.link)
 
-
+const title = computed(() => props.isResponsive ? '' : props.title)
 
 </script>
 
 <template>
     <NuxtLink :href="link" style="text-decoration:none;" >
         <div class="link" :class="{'link-active': isActive}">
-            <font-awesome-icon class="icon" style="" :icon="icon" />
-            <p v-if="!isResponsive">{{ title }}</p>
+            <UIcon class="icon" style="" :name="icon ? icon : ''" size="xl" />
+            <p>{{ title }}</p>
         </div> 
     </NuxtLink>
 </template>
@@ -46,15 +41,14 @@ const isActive = computed(() => route.path === props.link)
 
         @media (max-width: 975px) {
             justify-content: center;
-            padding: 1rem;
+            padding-left: 0px;
         }
 
     }
     .icon {
         margin-right:5px; 
-        font-size: 1rem;
         @media (max-width: 975px) {
-            margin-right: 0; 
+            
         }
     }
     .link-active {

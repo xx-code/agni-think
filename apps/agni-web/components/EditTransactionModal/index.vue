@@ -116,7 +116,7 @@ watchEffect(() => {
     <template #body>
         <UForm :schema="schema" :state="form" class="space-y-4" @submit="onSubmit">
             <UFormField label="Type de transaction" name="transactionType">
-                <USelect v-model="form.transactionType" value-key="id" :items="mainCategories" class="w-full"/>
+                <USelect v-model="form.transactionType" value-key="id" :items="mainCategories ? mainCategories : []" class="w-full"/>
             </UFormField>
 
             <UFormField label="Compte" name="accountId" >

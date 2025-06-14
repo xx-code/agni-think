@@ -193,15 +193,19 @@ export async function fetchDeleteBudget(budgetId: string): Promise<void> {
     }
 }
 
-export const formatBudgetDataForChart = (budgets: BudgetType[]) => {
-const labels = budgets.map(budget => budget.title + " - " + ((budget.amount/budget.target)* 100).toFixed(1) + "%")
+export const formatBudgetDataForChart = (budgets: BudgetType[]|null) => {
+
+    let labels: string[] = [] 
     const data: number[]= []
     const reactiveColor: string[] = []
-    budgets.forEach(budget => {
-        data.push(budget.target)
-        const alpha = budget.amount/budget.target
-        reactiveColor.push(`rgba(102,85,215, ${alpha})`)
-    })
+    if (budgets){
+        labels = budgets.map(budget => budget.title + " - " + ((budget.amount/budget.target)* 100).toFixed(1) + "%")
+        budgets.forEach(budget => {
+            data.push(budget.target)
+            const alpha = budget.amount/budget.target
+            reactiveColor.push(`rgba(102,85,215, ${alpha})`)
+        })
+    }
 
     return {
         labels: labels,
