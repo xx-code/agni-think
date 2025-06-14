@@ -36,7 +36,7 @@ export type TransactionType = {
 
 export type TransactionPagination = {
     transactions: TransactionType[],
-    maxPage: number
+    total: number
 }
 
 export type TransactionTypeType = {
@@ -67,7 +67,7 @@ export const useFetchListTransactions = (filter?:FilterTransactions): UseApiFetc
         const toast = useToast()
         const resError = error as Ref<ErrorApi>
         toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
-        data.value = {transactions: [], maxPage: 0}
+        data.value = {transactions: [], total: 0}
         
         return {data, error: resError, refresh}
     }
@@ -144,7 +144,7 @@ export async function fetchListTransaction(filter?: FilterTransactions): Promise
     const response = await $fetch(`${API_LINK}/transactions`, {
         query: filter
     })
-    const data = (response as {data: {transactions: TransactionApiType[], maxPages: number} }).data
+    const data = (response as {data: {transactions: TransactionApiType[], total: number} }).data
 
     return {
         transactions: data.transactions.map(
@@ -161,7 +161,7 @@ export async function fetchListTransaction(filter?: FilterTransactions): Promise
                 budgets: data.budgets.map(budg => ({id: budg, title: ''}))
             })
         ),
-        maxPage: data.maxPages 
+        total: data.total 
     }
 }
 

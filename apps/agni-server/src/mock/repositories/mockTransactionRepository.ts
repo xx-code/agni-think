@@ -46,7 +46,7 @@ export class MockTransactionRepository implements TransactionRepository {
         return {
             transactions: paginatedData,
             currentPage: page,
-            maxPage: Number((filteredTransactions.length / page).toFixed(0))
+            total: Number((filteredTransactions.length / page).toFixed(0))
         };
     }
 

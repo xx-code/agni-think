@@ -34,7 +34,7 @@ const modelValue = shallowRef({
     </UButton>
 
     <template #content>
-      <UCalendar v-model="modelValue" class="p-2" :number-of-months="2" range />
+      <UCalendar v-model="modelValue"  class="p-2" :number-of-months="2" range />
     </template>
   </UPopover>
 </template>
