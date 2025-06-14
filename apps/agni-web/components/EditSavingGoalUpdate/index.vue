@@ -50,7 +50,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     <UTabs v-model="form.isIncrease" :content="false" :items="[{label:'Ajouter'}, {label:'Retirer'}]" class="w-full"/> 
                 </UFormField>
                 <UFormField label="Compte" name="accountId">
-                    <USelect v-model="form.accountId" value-key="id" label-key="title" :items="accounts" class="w-full" />
+                    <USelect v-model="form.accountId" value-key="id" label-key="title" :items="accounts ? accounts : []" class="w-full" />
                 </UFormField>
                 <UFormField label="Somme" name="amount">
                     <UInput v-model="form.amount" type="number" />

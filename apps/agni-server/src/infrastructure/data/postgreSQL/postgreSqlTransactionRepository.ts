@@ -136,12 +136,11 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
 
         let total = await this.connector('transactions').count<{count: number}>('* as count').first()
         const totalCount = total?.count ?? 0
-        const maxPage = Math.ceil(totalCount/size)
 
         return {
             transactions: transactions,
             currentPage: page,
-            maxPage
+            total: totalCount
         };
     }
 
