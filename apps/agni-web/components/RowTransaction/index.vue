@@ -70,6 +70,7 @@ const formatedDate = new Date(props.date).toLocaleString('fr-FR', {
 <style scoped lang="scss">
 .row-transaction {
     padding: 0.5rem;
+    background-color: white;
 }
 .icon {
     width: 35px;

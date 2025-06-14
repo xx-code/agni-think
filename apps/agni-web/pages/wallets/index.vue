@@ -184,9 +184,8 @@ const listTransaction = computed(() => {
             </div>
         </div>
 
-        <div class="card rounded-md col-span-2">
+        <div class="card rounded-md col-span-2 ">
             <CustomCardTitle title="Freeze transaction et future transaction">
-
             </CustomCardTitle>
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
                 <div v-for="trans in listTransaction" :key="trans.id">
@@ -207,6 +206,7 @@ const listTransaction = computed(() => {
 .card {
     border: solid 1px #E6E6E6;
     padding: 0.5rem;
+    background: rgb(250, 251, 255);
 
     .card-money {
         font-weight: bold;

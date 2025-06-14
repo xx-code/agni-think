@@ -108,6 +108,12 @@ const listTransaction = computed(() => {
     return []
 })
 
+const listGoal = computed(() => {
+    if (goals.value)
+        return goals.value
+    return []
+})
+
 watchEffect(() => {
     if (accounts.value)
         accountsChecked.value = accounts.value?.map(acc => ({id: acc.id, checked: true}))
@@ -191,7 +197,7 @@ watchEffect(() => {
                     <UButton icon="i-lucide-external-link" variant="outline" color="neutral" />
                 </CustomCardTitle>
                 <div class="flex flex-col gap-1">
-                    <div v-for="goal in goals" :key="goal.id">
+                    <div v-for="goal in listGoal" :key="goal.id">
                         <BarBudgetInfo :id="goal.id" :title="goal.title" 
                         :target-amount="goal.targetAmount" :amount="goal.amount" />
                     </div>
