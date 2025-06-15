@@ -24,14 +24,16 @@ export const  useFetchListCategories = (): UseApiFetchReturn<CategoryType[]> => 
 
 
 export async function fetchListCategories(): Promise<CategoryType[]> {
-    const response = await $fetch(`${API_LINK}/categories`)
+    const api = API_LINK() 
+    const response = await $fetch(`${api}/categories`)
     const data = (response as {data: {categoryId: string, title: string, icon: string, color: string|null}[]}).data
     
     return data.map(val => ({id: val.categoryId, title: val.title, icon: val.icon, color: val.color ?? 'black'}))
 }
 
 export async function fetchCategory(accountId: string): Promise<CategoryType> {
-    const response = await $fetch(`${API_LINK}/categories/${accountId}`)
+    const api = API_LINK() 
+    const response = await $fetch(`${api}/categories/${accountId}`)
     const data = (response as {data: {categoryId: string, title: string, icon: string, color: string|null}}).data
 
     return {id: data.categoryId, title: data.title, icon: data.icon, color: data.color ?? '#D9D9D9'}
@@ -45,7 +47,8 @@ export type CreateCategoryRequest = {
 export async function fetchCreateCategory(request: CreateCategoryRequest) {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/categories`, {
+        const api = API_LINK() 
+        const response = await $fetch(`${api}/categories`, {
             method: 'POST',
             body: {
                 title: request.title,
@@ -77,7 +80,8 @@ export type UpdateCategoryRequest = {
 export async function fetchUpdateCategory(request: UpdateCategoryRequest) {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/categories/${request.categoryId}`, {
+        const api = API_LINK() 
+        const response = await $fetch(`${api}/categories/${request.categoryId}`, {
             method: 'PUT',
             body: {
                 title: request.title,

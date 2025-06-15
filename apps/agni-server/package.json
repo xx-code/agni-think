@@ -28,7 +28,8 @@
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
     "tsconfig-paths": "^4.2.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "vue-tsc": "^2.2.10"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",

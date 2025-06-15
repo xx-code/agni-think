@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
-import { shallowRef } from 'vue'
 
 const props = defineProps({
     

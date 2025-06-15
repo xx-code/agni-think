@@ -11,20 +11,27 @@ services:
       dockerfile: ./apps/agni-web/dockerfile
     restart: always
     ports:
-      - 3000:3000 # setup in varaible
+      - "${WEB_PORT}:${WEB_PORT}"
+    depends_on:
+      - api
+    networks:
+      - agni
   api:
     container_name: api
     env_file: ./apps/agni-server/.env
     environment:
-      - API_LINK=http://api:80/v1
       - NODE_ENV=production
     build:
       context: .
       dockerfile: ./apps/agni-server/dockerfile
     restart: always
     ports:
-      - 5001:5001 # setup in variable
-
+      - "${API_PORT}:${API_PORT}" # setup in variable
+    networks:
+      - agni
+networks:
+  agni:
+    driver: bridge
   # nginx:
   #   image: nginx:1.26.0-alpine
   #   restart: always

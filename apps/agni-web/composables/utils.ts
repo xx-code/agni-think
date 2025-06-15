@@ -1,6 +1,9 @@
 import type { AsyncDataExecuteOptions } from "#app/composables/asyncData"
 
-export const API_LINK = process.env.API_LINK || "http://localhost:5002/v1"
+export const API_LINK = () => {
+    const config = useRuntimeConfig()
+    return config.public.api
+} 
 export type ErrorApi = {
     data: {
         error: {

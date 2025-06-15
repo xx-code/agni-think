@@ -25,7 +25,7 @@ function sumTotalBalance(accounts: ResumeAccountType[]): [number, number] {
             pastTotal += acc.pastBalanceDetail.balance
     }) 
 
-    return [total, pastTotal]
+    return [Number(total.toFixed(2)), Number(pastTotal.toFixed(2))]
 }
 
 function computeDiffPercent(pastBalance: number, balance: number) {
@@ -142,7 +142,8 @@ export const useFetchAccount = (accountId: string): UseApiFetchReturn<AccountTyp
 
 export async function fetchListAccountTypes(): Promise<AccountTypeType[]> {
     try {
-        const response = await $fetch(`${API_LINK}/internal/account-type`)
+        const api = API_LINK()
+        const response = await $fetch(`${api}/internal/account-type`)
         const data = (response as {id: string, value: string}[])
 
         return data.map(value => ({id: value.id, label: value.value}))
@@ -154,7 +155,8 @@ export async function fetchListAccountTypes(): Promise<AccountTypeType[]> {
 
 export async function fetchListAccounts(): Promise<AccountType[]> {
     try {
-        const response = await $fetch(`${API_LINK}/accounts`)
+        const api = API_LINK()
+        const response = await $fetch(`${api}/accounts`)
         const data = (response as {data: {accountId: string, title: string, balance: number, type: string}[]}).data
 
         return data.map(value => ({id: value.accountId, title: value.title, balance: value.balance, type: value.type}))
@@ -166,7 +168,8 @@ export async function fetchListAccounts(): Promise<AccountType[]> {
 
 export async function fetchAccount(accountId: string): Promise<AccountType|null>{
     try {
-        const response = await $fetch(`${API_LINK}/accounts/${accountId}`)
+        const api = API_LINK()
+        const response = await $fetch(`${api}/accounts/${accountId}`)
         const data = (response as {data: {accountId: string, title: string, balance: number, type: string}}).data
 
         return {id: data.accountId, title: data.title, balance: data.balance, type: data.type}
@@ -183,7 +186,8 @@ export type CreateAccountRequest = {
 export async function fetchCreateAccount(request: CreateAccountRequest): Promise<void>{
     const toast = useToast();
     try {
-        const response = await $fetch(`${API_LINK}/accounts`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/accounts`, {
             method: 'post',
             body: {
                 title: request.accountName,
@@ -212,7 +216,8 @@ export type UpdateAccountRequest = {
 export async function fetchUpdateAccount(request: UpdateAccountRequest): Promise<void> {
     const toast = useToast();
     try {
-        const response = await $fetch(`${API_LINK}/accounts/${request.accountId}`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/accounts/${request.accountId}`, {
             method: 'PUT',
             body: {
                 title: request.accountName,
@@ -236,7 +241,8 @@ export async function fetchUpdateAccount(request: UpdateAccountRequest): Promise
 }
 
 export async function fetchDeleteAccount(accountId: string): Promise<boolean> {
-    const response = await $fetch(`${API_LINK}/accounts/${accountId}`, {
+    const api = API_LINK()
+    const response = await $fetch(`${api}/accounts/${accountId}`, {
         method: 'DELETE'
     })
 

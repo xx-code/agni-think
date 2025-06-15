@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
-import { reactive, ref, watchEffect, type Ref } from 'vue';
 import { useFetchListAccountTypes, fetchUpdateAccount, fetchCreateAccount, type AccountType, useFetchAccount } from '../../composables/account';
 
 const props = defineProps({

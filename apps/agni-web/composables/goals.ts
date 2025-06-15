@@ -43,7 +43,8 @@ export const useFetchGoal = (goalId: string): UseApiFetchReturn<GoalType | null>
 }
 
 export async function fetchListGoal(): Promise<GoalType[]> {
-    const response = await $fetch(`${API_LINK}/save-goals`)
+    const api = API_LINK() 
+    const response = await $fetch(`${api}/save-goals`)
 
     const data = (await response as {data: GoalApiType[]}).data
 
@@ -51,7 +52,8 @@ export async function fetchListGoal(): Promise<GoalType[]> {
 }
 
 export async function fetchGoal(goalId: string): Promise<GoalType> {
-    const response = await $fetch(`${API_LINK}/save-goals/${goalId}`)
+    const api = API_LINK() 
+    const response = await $fetch(`${api}/save-goals/${goalId}`)
 
     const data = (await response as {data: GoalApiType}).data
     
@@ -66,7 +68,8 @@ export type CreateGoalRequest = {
 export async function fetchCreateGoal(request: CreateGoalRequest): Promise<void> {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/save-goals`, {
+        const api = API_LINK() 
+        const response = await $fetch(`${api}/save-goals`, {
             method: 'POST',
             body: {
                 title: request.title,
@@ -82,6 +85,7 @@ export async function fetchCreateGoal(request: CreateGoalRequest): Promise<void>
     
         toast.add({ title: 'Success', description: `Le but d'epargne ${request.title} cree`, color: 'success' })
     } catch(err) {
+        console.log(err)
         const resData = err as ErrorApi
         toast.add({ title: 'Oops! Erreur', description: resData.data.error.message, color: 'error'})
     }
@@ -96,7 +100,8 @@ export type UpdateGoalRequest = {
 export async function fetchUpdateGoal(request: UpdateGoalRequest): Promise<void> {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/save-goals/${request.saveGoalId}`, {
+        const api = API_LINK() 
+        const response = await $fetch(`${api}/save-goals/${request.saveGoalId}`, {
             method: 'PUT',
             body: {
                 title: request.title,
@@ -120,7 +125,8 @@ export async function fetchUpdateGoal(request: UpdateGoalRequest): Promise<void>
 export async function fetchDeleteSaveGoal(saveGoalId: string, accountDepositId: string): Promise<void> {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/save-goals/${saveGoalId}`, {
+        const api = API_LINK() 
+        const response = await $fetch(`${api}/save-goals/${saveGoalId}`, {
             method: 'DELETE',
             body: {
                 accountDepositId: accountDepositId       
@@ -148,7 +154,8 @@ export type IncreaseGoalRequest = {
 export async function fetchIncreaseSaveGoal(request: IncreaseGoalRequest): Promise<void> {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/save-goals/${request.saveGoalId}/increase-balance`, {
+        const api = API_LINK() 
+        const response = await $fetch(`${api}/save-goals/${request.saveGoalId}/increase-balance`, {
             method: 'PATCH',
             body: {
                 accountFromId: request.accountFromId,
@@ -177,7 +184,8 @@ export type DescreaseGoalRequest = {
 export async function fetchDescreaseSaveGoal(request: DescreaseGoalRequest): Promise<void> {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/save-goals/${request.saveGoalId}/decrease-balance`, {
+        const api = API_LINK() 
+        const response = await $fetch(`${api}/save-goals/${request.saveGoalId}/decrease-balance`, {
             method: 'PATCH',
             body: {
                 accountFromId: request.accountToId,
