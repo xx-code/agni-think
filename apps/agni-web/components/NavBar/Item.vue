@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {  useRoute } from 'nuxt/app'
-import { computed } from 'vue'
 
 
 const props = defineProps({

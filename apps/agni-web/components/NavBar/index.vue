@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {useWindowSize} from '@vueuse/core'
-import { computed, ref, watch, watchEffect } from 'vue'
 
 const {width, height} = useWindowSize()
 const isResponsive = ref(false)

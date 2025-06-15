@@ -20,14 +20,16 @@ export const useFetchListTags = (): UseApiFetchReturn<TagType[]> => {
 }
 
 export const fetchListTags = async (): Promise<TagType[]> => {
-    const response = await $fetch(`${API_LINK}/tags`)
+    const api = API_LINK()
+    const response = await $fetch(`${api}/tags`)
     const data = (response as {data: {id: string, value: string, color: string|null}[]}).data
 
     return data.map(val => ({id: val.id, value: val.value, color: val.color ?? '#D9D9D9'})) 
 }
 
 export const fetchTag = async (tagId: string): Promise<TagType> => {
-    const response = await $fetch(`${API_LINK}/tags/${tagId}`)
+    const api = API_LINK()
+    const response = await $fetch(`${api}/tags/${tagId}`)
     const data = (response as {data: {id: string, value: string, color: string|null}}).data
 
     return {id: data.id, value: data.value, color: data.color ?? '#D9D9D9'}
@@ -41,7 +43,8 @@ export type CreateTagRequest = {
 export const fetchCreateTag = async (request: CreateTagRequest) => {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/tags`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/tags`, {
             method: 'POST',
             body: {
                 value: request.value,
@@ -68,7 +71,8 @@ export type UpdateTagRequest = {
 export const fetchUpdateTag = async (request: UpdateTagRequest) => {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/tags/${request.tagId}`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/tags/${request.tagId}`, {
             method: 'PUT',
             body: {
                 value: request.value,
@@ -90,5 +94,9 @@ export const fetchUpdateTag = async (request: UpdateTagRequest) => {
 }
 
 export const fetchDeleteTag = async (tagId: string) => {
+    try {
+        const api = API_LINK()
+    } catch {
 
+    }
 }

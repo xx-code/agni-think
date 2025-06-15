@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 
 FROM base AS builder
 RUN apk update
@@ -11,6 +11,7 @@ RUN yarn global add turbo
 
 COPY . .
 RUN turbo prune agni-web --docker
+RUN ls -la /app/out && ls -la /app/out/json/apps
 
 # Add lockfile and package.json's of isolated subworkspace
 FROM base AS installer
@@ -21,12 +22,12 @@ WORKDIR /app
 
 
 # First install the dependencies (as they change less often)
-COPY --from=builder /app/out/json/ .
+COPY --from=builder /app/out/json/apps/agni-web/ .
 RUN yarn install
 
 # Build the project
-COPY --from=builder /app/out/full/ . 
-RUN yarn turbo build 
+COPY --from=builder /app/out/full/apps/agni-web/ . 
+RUN yarn build
 
 # Uncomment and use build args to enable remote caching
 # ARG TURBO_TEAM
@@ -36,7 +37,16 @@ RUN yarn turbo build
 # ENV TURBO_TOKEN=$TURBO_TOKEN
 
 FROM base AS runner
+RUN apk update
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY --from=installer /app .
+COPY ./apps/agni-web/.env .env
 
-CMD ["node", "/app/apps/agni-web/.output/server/index.mjs"]
+ENV PORT=80
+ENV HOST=0.0.0.0
+
+EXPOSE 80
+
+CMD ["node", "/app/.output/server/index.mjs"]  
+# /agni-web/

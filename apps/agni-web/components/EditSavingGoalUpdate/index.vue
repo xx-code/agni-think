@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import * as z from 'zod';
-import { reactive } from 'vue';
 import { fetchListAccounts, useFetchListAccount, useFetchResumeAccount } from '../../composables/account';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { UFormField } from '#components';

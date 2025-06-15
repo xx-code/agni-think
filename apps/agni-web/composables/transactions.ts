@@ -105,7 +105,8 @@ export const useFetchBalance = (filter: FilterBalanceTransactions): UseApiFetchR
 }
 
 export async function fetchListTransactionType(): Promise<TransactionTypeType[]> {
-    const response = await $fetch(`${API_LINK}/internal/transaction-type`)
+    const api = API_LINK()
+    const response = await $fetch(`${api}/internal/transaction-type`)
     const data = (response as {id: string, value: string}[])
 
     return data.map(value => ({id: value.id, label: value.value}))
@@ -141,7 +142,8 @@ export type FilterTransactions = {
 }
 
 export async function fetchListTransaction(filter?: FilterTransactions): Promise<TransactionPagination> {
-    const response = await $fetch(`${API_LINK}/transactions`, {
+    const api = API_LINK()
+    const response = await $fetch(`${api}/transactions`, {
         query: filter
     })
     const data = (response as {data: {transactions: TransactionApiType[], total: number} }).data
@@ -166,7 +168,8 @@ export async function fetchListTransaction(filter?: FilterTransactions): Promise
 }
 
 export async function fetchTransaction(transactionId: string): Promise<TransactionType> {
-    const response = await $fetch(`${API_LINK}/transactions/${transactionId}`)
+    const api = API_LINK()
+    const response = await $fetch(`${api}/transactions/${transactionId}`)
     const data = (response as {data: TransactionApiType }).data
 
     return {
@@ -184,7 +187,8 @@ export async function fetchTransaction(transactionId: string): Promise<Transacti
 }
 
 export async function fetchBalance(filter?: FilterBalanceTransactions): Promise<number> {
-    const response = await $fetch(`${API_LINK}/transactions-balance`, {
+    const api = API_LINK()
+    const response = await $fetch(`${api}/transactions-balance`, {
         query: filter
     })
     const data = (response as {data: {balance: number}}).data
@@ -206,7 +210,8 @@ export type CreateTransactionRequest = {
 export async function fetchCreateTransaction(request: CreateTransactionRequest): Promise<void> {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/transactions`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/transactions`, {
             method: 'POST',
             body: {
                 accountId: request.accountId,
@@ -249,7 +254,8 @@ export type UpdateTransactionRequest = {
 export async function fetchUpdateTransaction(request: UpdateTransactionRequest): Promise<void> {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/transactions/${request.transactionId}`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/transactions/${request.transactionId}`, {
             method: 'PUT',
             body: {
                 accountId: request.accountId,
@@ -279,7 +285,8 @@ export async function fetchUpdateTransaction(request: UpdateTransactionRequest):
 export async function fetchDeleteTransaction(transactionId: string): Promise<void> {
     const toast = useToast();
     try {
-        const response = await $fetch(`${API_LINK}/transactions/${transactionId}`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/transactions/${transactionId}`, {
             method: 'DELETE'
         })
 
@@ -306,7 +313,8 @@ export type TransfertRequest = {
 export async function fetchTransfertBetweenAccount(request: TransfertRequest) {
     const toast = useToast();
     try {
-        const response = await $fetch(`${API_LINK}/transfert-transaction`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/transfert-transaction`, {
             method: 'POST',
             body: {
                 accountFromId: request.accountFromId,
@@ -338,7 +346,8 @@ export type FreezeTransactionRequest = {
 export async function fetchFreezeTransaction(request: FreezeTransactionRequest) {
     const toast = useToast();
     try {
-        const response = await $fetch(`${API_LINK}/freeze-transaction`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/freeze-transaction`, {
             method: 'POST',
             body: {
                 accountId: request.accountId,

@@ -1,14 +1,4 @@
 <script setup lang="ts">
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { fas } from '@fortawesome/free-solid-svg-icons'
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { computed, ref, watchEffect, type Ref } from 'vue'
-import { ALL_ACCOUNT_ID, useFetchResumeAccount } from '../composables/account';
-import { useFetchListTransactions } from '../composables/transactions';
-import { useFetchListGoals } from '../composables/goals';
-import { useFetchListBudget, formatBudgetDataForChart} from '../composables/budgets';
-
-library.add(fas)
 
 const labelsDate = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
 const optionsChart = computed(() => ({responsive: true})) 
