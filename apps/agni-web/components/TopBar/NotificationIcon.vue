@@ -1,10 +1,5 @@
 <script setup>
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { fas } from '@fortawesome/free-solid-svg-icons'
-import { library } from '@fortawesome/fontawesome-svg-core'
 
-
-library.add(fas)
 
 </script>
 
@@ -12,7 +7,7 @@ library.add(fas)
 <template>
     <div class="container-notification-icon">
         <UChip color="error">
-            <font-awesome-icon class="icon" icon="fa-solid fa-bell" />
+            <UIcon name="i-lucide-bell" size="xl"/>
         </UChip>
     </div>
 </template>

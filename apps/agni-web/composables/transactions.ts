@@ -36,7 +36,7 @@ export type TransactionType = {
 
 export type TransactionPagination = {
     transactions: TransactionType[],
-    maxPage: number
+    total: number
 }
 
 export type TransactionTypeType = {
@@ -44,53 +44,69 @@ export type TransactionTypeType = {
     label: string
 }
 
-export const useFetchListTransactionType = async (): Promise<Ref<TransactionTypeType[]>> => {
-    const {data, error} = await useAsyncData('transaction-types', () => fetchListTransactionType())
+export const useFetchListTransactionType = (): UseApiFetchReturn<TransactionTypeType[]|null> => {
+    const {data, error, refresh} = useAsyncData('transaction-types', () => fetchListTransactionType())
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return ref([])
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+        data.value = []
+        return {data: data as Ref<TransactionTypeType[]>, error: resError, refresh}
     }
 
-    const items = ref(data.value!)
-
-    return items
+    return {data: data as Ref<TransactionTypeType[]>, error: error as Ref<ErrorApi|null>, refresh}
 }
 
 
-export const useFetchListTransactions = async (filter?:FilterTransactions): Promise<Ref<TransactionPagination>> => {
-    const { data, error } = await useAsyncData('transactions', () => fetchListTransaction(filter)) 
+export const useFetchListTransactions = (filter?:FilterTransactions): UseApiFetchReturn<TransactionPagination|null> => {
+    const { data, error, refresh} = useAsyncData(`transactions`, () => fetchListTransaction(filter)) 
 
     if (error.value) {
         console.log(error)
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return ref({transactions: [], maxPage: 0})
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+        data.value = {transactions: [], total: 0}
+        
+        return {data, error: resError, refresh}
     }
 
-    const items = ref(data.value!)
-
-    return items
+    return {data, error: error as Ref<ErrorApi|null>, refresh}
 } 
 
-export const useFetchTransaction = async (transactionId: string): Promise<Ref<TransactionType|null>> => {
-    const { data, error } = await useAsyncData(`transactions-${transactionId}`, () => fetchTransaction(transactionId)) 
+export const useFetchTransaction = (transactionId: string): UseApiFetchReturn<TransactionType|null> => {
+    const { data, error, refresh } = useAsyncData(`transactions-${transactionId}`, () => fetchTransaction(transactionId)) 
+    
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return data
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+        
+        return {data, error: resError, refresh}
     }
 
-    return data
+    return {data, error: error as Ref<null>, refresh}
+}
+
+export const useFetchBalance = (filter: FilterBalanceTransactions): UseApiFetchReturn<number|null> => {
+    const { data, error, refresh } = useAsyncData(`balance`, () => fetchBalance(filter)) 
+
+    if (error.value) {
+        const toast = useToast()
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+        data.value = 0
+        return {data, error: resError, refresh}
+    }
+
+    return {data: data as Ref<number>, error: error as Ref<null>, refresh}
 }
 
 export async function fetchListTransactionType(): Promise<TransactionTypeType[]> {
-    const response = await $fetch(`${API_LINK}/internal/transaction-type`)
+    const api = API_LINK()
+    const response = await $fetch(`${api}/internal/transaction-type`)
     const data = (response as {id: string, value: string}[])
 
     return data.map(value => ({id: value.id, label: value.value}))
@@ -126,10 +142,11 @@ export type FilterTransactions = {
 }
 
 export async function fetchListTransaction(filter?: FilterTransactions): Promise<TransactionPagination> {
-    const response = await $fetch(`${API_LINK}/transactions`, {
+    const api = API_LINK()
+    const response = await $fetch(`${api}/transactions`, {
         query: filter
     })
-    const data = (response as {data: {transactions: TransactionApiType[], maxPages: number} }).data
+    const data = (response as {data: {transactions: TransactionApiType[], total: number} }).data
 
     return {
         transactions: data.transactions.map(
@@ -146,12 +163,13 @@ export async function fetchListTransaction(filter?: FilterTransactions): Promise
                 budgets: data.budgets.map(budg => ({id: budg, title: ''}))
             })
         ),
-        maxPage: data.maxPages 
+        total: Number(data.total) 
     }
 }
 
 export async function fetchTransaction(transactionId: string): Promise<TransactionType> {
-    const response = await $fetch(`${API_LINK}/transactions/${transactionId}`)
+    const api = API_LINK()
+    const response = await $fetch(`${api}/transactions/${transactionId}`)
     const data = (response as {data: TransactionApiType }).data
 
     return {
@@ -169,7 +187,8 @@ export async function fetchTransaction(transactionId: string): Promise<Transacti
 }
 
 export async function fetchBalance(filter?: FilterBalanceTransactions): Promise<number> {
-    const response = await $fetch(`${API_LINK}/transactions-balance`, {
+    const api = API_LINK()
+    const response = await $fetch(`${api}/transactions-balance`, {
         query: filter
     })
     const data = (response as {data: {balance: number}}).data
@@ -191,7 +210,8 @@ export type CreateTransactionRequest = {
 export async function fetchCreateTransaction(request: CreateTransactionRequest): Promise<void> {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/transactions`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/transactions`, {
             method: 'POST',
             body: {
                 accountId: request.accountId,
@@ -234,7 +254,8 @@ export type UpdateTransactionRequest = {
 export async function fetchUpdateTransaction(request: UpdateTransactionRequest): Promise<void> {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/transactions/${request.transactionId}`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/transactions/${request.transactionId}`, {
             method: 'PUT',
             body: {
                 accountId: request.accountId,
@@ -264,7 +285,8 @@ export async function fetchUpdateTransaction(request: UpdateTransactionRequest):
 export async function fetchDeleteTransaction(transactionId: string): Promise<void> {
     const toast = useToast();
     try {
-        const response = await $fetch(`${API_LINK}/transactions/${transactionId}`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/transactions/${transactionId}`, {
             method: 'DELETE'
         })
 
@@ -291,7 +313,8 @@ export type TransfertRequest = {
 export async function fetchTransfertBetweenAccount(request: TransfertRequest) {
     const toast = useToast();
     try {
-        const response = await $fetch(`${API_LINK}/transfert-transaction`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/transfert-transaction`, {
             method: 'POST',
             body: {
                 accountFromId: request.accountFromId,
@@ -323,7 +346,8 @@ export type FreezeTransactionRequest = {
 export async function fetchFreezeTransaction(request: FreezeTransactionRequest) {
     const toast = useToast();
     try {
-        const response = await $fetch(`${API_LINK}/freeze-transaction`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/freeze-transaction`, {
             method: 'POST',
             body: {
                 accountId: request.accountId,

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
-import { shallowRef } from 'vue'
 
 const props = defineProps({
     
@@ -34,7 +33,7 @@ const modelValue = shallowRef({
     </UButton>
 
     <template #content>
-      <UCalendar v-model="modelValue" class="p-2" :number-of-months="2" range />
+      <UCalendar v-model="modelValue"  class="p-2" :number-of-months="2" range />
     </template>
   </UPopover>
 </template>

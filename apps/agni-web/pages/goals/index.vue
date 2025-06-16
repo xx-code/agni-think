@@ -4,23 +4,24 @@ import { EditSavingGoal, EditSavingGoalUpdate, UBadge, UButton, UInput, UPopover
 import { fetchDeleteAccount, fetchListAccounts } from "../../composables/account";
 import { ref } from "vue";
 
+const {data: goals, error: errorGoals, refresh: refreshGoals} =  useFetchListGoals()
+
 const overlay = useOverlay()
 const modalCreateSavingGoal = overlay.create(EditSavingGoal, {
     props: {
         onSaved: async () => {
-            savingGoals.value = await fetchListGoal();
+            refreshGoals()
         }
     }
 })
 const modalUpdateAmountSavingGoal = overlay.create(EditSavingGoalUpdate, {
     props: {
         onSaved: async () => {
-            savingGoals.value = await fetchListGoal()
+            refreshGoals()
         }
     }
 })
 
-const savingGoals = await useFetchListGoals()
 
 const onEditSavingGoal = (goalId: string |null = null) => {
     if (goalId)
@@ -36,7 +37,7 @@ const onEditUpdateAmountSavingGoal = (goalId: string, isIncrease: boolean) => {
     modalUpdateAmountSavingGoal.open()
 }
 
-let accounts = await fetchListAccounts()
+const {data: accounts, error: errorAccount, refresh: refreshAccounts } = useFetchListGoals()
 
 const deleteAccountDepositId = ref('')
 const deletePopOverOpen = ref(false)
@@ -44,7 +45,7 @@ const deletePopOverOpen = ref(false)
 const onDeleteGoal = async (goalId: string) => {
     if (deleteAccountDepositId.value !== '') {
         await fetchDeleteSaveGoal(goalId, deleteAccountDepositId.value)
-        savingGoals.value = await fetchListGoal()
+        await refreshGoals()
         deletePopOverOpen.value = false
     }
 }
@@ -58,7 +59,7 @@ const onDeleteGoal = async (goalId: string) => {
        </div> 
        <div style="margin-top: 1rem;">
             <div class="grid xs:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                <div v-for="goal of savingGoals" :key="goal.id">
+                <div v-for="goal of goals" :key="goal.id">
                     <div class="card-grid" >
                         <CustomCardTitle :title="goal.title">
                             <div class="flex gap-1">

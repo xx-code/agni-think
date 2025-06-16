@@ -1,14 +1,4 @@
 <script setup lang="ts">
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { fas } from '@fortawesome/free-solid-svg-icons'
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { computed, ref } from 'vue'
-import { useFetchResumeAccount } from '../composables/account';
-import { useFetchListTransactions } from '../composables/transactions';
-import { useFetchListGoals } from '../composables/goals';
-import { useFetchListBudget, formatBudgetDataForChart} from '../composables/budgets';
-
-library.add(fas)
 
 const labelsDate = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
 const optionsChart = computed(() => ({responsive: true})) 
@@ -27,30 +17,35 @@ const dataChart = computed(() => ({
     }],
 }))
 
-const budgets = await useFetchListBudget()
+const {data: budgets} = useFetchListBudget()
 
-const budgetChart = computed(() => (formatBudgetDataForChart(budgets.value)))
+const budgetChart = computed(() => {
+    return formatBudgetDataForChart(budgets.value) // TODO: review
+})
 
-const accounts = await useFetchResumeAccount()
-const transactionAccountSelected = ref(accounts.value[0].title)
-const accountsChecked = ref(accounts.value.map(acc => ({id: acc.id, checked: true})))
-const items = computed(() => accounts.value.map(acc => (
-    {
-        label: acc.title,
-        type: 'checkbox' as const,
-        checked: accountsChecked.value.find(tran => tran.id === acc.id)?.checked,
-        onUpdateChecked(checked: boolean) {
-            const index = accountsChecked.value.findIndex(e => e.id == acc.id)
-            if (index !== -1)
-                accountsChecked.value[index].checked = checked 
-        },
-        onSelect(e: Event) {
-            e.preventDefault()
-        }
-    }
-)))
-const transactions = await useFetchListTransactions({page: 1, limit: 4})
-const goals = await useFetchListGoals()
+const {data: accounts} = useFetchResumeAccount()
+const transactionAccountSelected = ref(ALL_ACCOUNT_ID)
+const accountsChecked: Ref<{id: string, checked: boolean}[]> = ref([]) // TODO: Review
+const items = computed(() => {
+    if (accounts.value)
+        return accounts.value.map(acc => (
+        {
+            label: acc.title,
+            type: 'checkbox' as const,
+            checked: accountsChecked.value.find(tran => tran.id === acc.id)?.checked,
+            onUpdateChecked(checked: boolean) {
+                const index = accountsChecked.value.findIndex(e => e.id == acc.id)
+                if (index !== -1)
+                    accountsChecked.value[index].checked = checked 
+            },
+            onSelect(e: Event) {
+                e.preventDefault()
+            }
+        }    )) 
+    return []
+})
+const {data: transactions} = useFetchListTransactions({page: 1, limit: 4})
+const {data: goals} =  useFetchListGoals()
 const dateDisplayed = ref("Mois")
 const listTypeDateDisplay =computed(() => (
 [
@@ -96,6 +91,30 @@ const listTypeDateDisplay =computed(() => (
     }
 ]
 )) 
+
+const listTransaction = computed(() => {
+    if (transactions.value)
+        return transactions.value.transactions
+    return []
+})
+
+const listGoal = computed(() => {
+    if (goals.value)
+        return goals.value
+    return []
+})
+
+const listAccount = computed(() => {
+    if (accounts.value)
+        return accounts.value
+    return []
+})
+
+watchEffect(() => {
+    if (accounts.value)
+        accountsChecked.value = accounts.value?.map(acc => ({id: acc.id, checked: true}))
+})
+
 </script>
 
 <template>
@@ -121,7 +140,7 @@ const listTypeDateDisplay =computed(() => (
             </div>
         </div>
         <div class="card-account-list grid sm:grid-cols-2 md:grid-cols-3 gap-2">
-            <div  v-for="account in accounts.filter(e => accountsChecked.find(f => f.id == e.id && f.checked))" 
+            <div  v-for="account in listAccount.filter(e => accountsChecked.find(f => f.id == e.id && f.checked))" 
                 :key="account.id">
                 <CardResumeAccount 
                     :id="account.id"
@@ -153,13 +172,13 @@ const listTypeDateDisplay =computed(() => (
             <div class="card-grid rounded-md md:col-span-2 flex flex-col gap-2">
                 <CustomCardTitle title="Transactions">
                     <div class="flex gap-1">
-                        <USelect class="rounded-full" v-model="transactionAccountSelected" :items="accounts.map(acc => (acc.title))" />
+                        <USelect class="rounded-full" v-model="transactionAccountSelected" :items=" accounts ? accounts.map(acc => (acc.title)) : []" />
                         <UButton class="rounded-full" size="sm" label="Voir plus" variant="outline" color="neutral" />
                     </div>
                 </CustomCardTitle>
                 <div>
                     <div class="flex flex-col gap-1" >
-                        <div v-for="trans in transactions.transactions" :key="trans.id">
+                        <div v-for="trans in listTransaction" :key="trans.id">
                             <RowTransaction 
                                 :id="trans.id" :balance="trans.amount" :title="trans.description" 
                                 :description="trans.description" :icon="trans.category.icon" 
@@ -174,7 +193,7 @@ const listTypeDateDisplay =computed(() => (
                     <UButton icon="i-lucide-external-link" variant="outline" color="neutral" />
                 </CustomCardTitle>
                 <div class="flex flex-col gap-1">
-                    <div v-for="goal in goals" :key="goal.id">
+                    <div v-for="goal in listGoal" :key="goal.id">
                         <BarBudgetInfo :id="goal.id" :title="goal.title" 
                         :target-amount="goal.targetAmount" :amount="goal.amount" />
                     </div>

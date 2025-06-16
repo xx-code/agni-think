@@ -56,7 +56,7 @@ export type TransactionResponse = {
 export type TransactionPaginationResponse = {
     transactions: TransactionResponse[];
     currentPage: number;
-    maxPages: number;
+    total: number;
 }
 
 export interface IGetPaginationTransaction {
@@ -212,7 +212,7 @@ export class GetPaginationTransaction implements IGetPaginationTransaction {
                 })
             }
 
-            this.presenter.success({ transactions: transactions, currentPage: page, maxPages: response.maxPage });
+            this.presenter.success({ transactions: transactions, currentPage: page, total: response.total });
         } catch (err) {
             this.presenter.fail(err as Error);
         }

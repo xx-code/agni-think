@@ -15,54 +15,59 @@ export type PeriodType = {
     label: string
 }
 
-export const useFetchListPeriod = async (): Promise<Ref<PeriodType[]>> => {
-    const {data, error} = await useAsyncData('period-types', () => fetchListPeriodTypes())
+export const useFetchListPeriod = (): UseApiFetchReturn<PeriodType[]> => {
+    const {data, error, refresh} = useAsyncData('period-types', () => fetchListPeriodTypes())
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return ref([])
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+        data.value = []
+        return {data: data as Ref<[]>, error: resError, refresh}
     }
 
-    const items = ref(data.value!)
-
-    return items
+    return {data: data as Ref<PeriodType[]>, error: error as Ref<null>, refresh}
 }
 
-export const useFetchListBudget = async (): Promise<Ref<BudgetType[]>> => {
-    const { data, error}  = await useAsyncData('budgets', () => fetchListBudgets())  
+export const useFetchListBudget = (): UseApiFetchReturn<BudgetType[]> => {
+    const { data, error, refresh }  = useAsyncData('budgets', () => fetchListBudgets())  
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return ref([])
+        const resError = error as Ref<ErrorApi>
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+        data.value = []
+        return {data: data as Ref<[]>, error: resError, refresh}
     }
 
-    const items = ref(data.value!)
-
-    return items
+    return {data: data as Ref<BudgetType[]>, error: error as Ref<null>, refresh}
 }
 
-export const useFetchBudget = async (budget_id: string): Promise<Ref<BudgetType|null>> => {
-    const { data, error}  = await useAsyncData(`budget-${budget_id}` , () => fetchBudget(budget_id))  
+export const useFetchBudget = (budget_id: string): UseApiFetchReturn<BudgetType|null> => {
+    const { data, error, refresh }  = useAsyncData(`budget-${budget_id}` , () => fetchBudget(budget_id))  
 
     if (error.value) {
         const toast = useToast()
-        const resError = error.value.data as ErrorApi
-        toast.add({title: 'Oops! Erreur', description: resError.data.error.message, color: 'error'})
-        return data
+        const resError = error as Ref<ErrorApi> 
+        toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
+
+        return {data: data, error: resError, refresh}
     }
 
-    return data
+    return {data: data, error: error as Ref<null>, refresh}
 }
 
 export async function fetchListPeriodTypes(): Promise<PeriodType[]> {
-    const response = await $fetch(`${API_LINK}/internal/period-type`)
-    const data = (response as {id: string, value: string}[])
+    try {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/internal/period-type`)
+        const data = (response as {id: string, value: string}[])
 
-    return data.map(value => ({id: value.id, label: value.value}))
+        return data.map(value => ({id: value.id, label: value.value}))
+    } catch(err) {
+        console.log(err)
+        return []
+    }
 }
 
 type BudgetApiType = {
@@ -78,7 +83,8 @@ type BudgetApiType = {
 }
 
 export async function fetchListBudgets(): Promise<BudgetType[]> {
-    const response = await $fetch(`${API_LINK}/budgets`)
+    const api = API_LINK()
+    const response = await $fetch(`${api}/budgets`)
     const data = (response as {data: BudgetApiType[]}).data
 
     return data.map(val => ({id: val.id, title: val.title, target: val.target, 
@@ -87,7 +93,8 @@ export async function fetchListBudgets(): Promise<BudgetType[]> {
 }
 
 export async function fetchBudget(budgetId: string): Promise<BudgetType> {
-    const response = await $fetch(`${API_LINK}/budgets/${budgetId}`)
+    const api = API_LINK()
+    const response = await $fetch(`${api}/budgets/${budgetId}`)
 
     const data = (response as {data: BudgetApiType}).data
 
@@ -108,7 +115,8 @@ export type CreateBudgetRequest = {
 export async function fetchCreateBudget(request: CreateBudgetRequest): Promise<void> {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/budgets`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/budgets`, {
             method: 'POST',
             body: {
                 title: request.title,
@@ -144,7 +152,8 @@ export type UpdateBudgetRequest = {
 export async function fetchUpdateBudget(request: UpdateBudgetRequest): Promise<void> {
     const toast = useToast()
     try {
-        const response = await $fetch(`${API_LINK}/budgets/${request.budgetId}`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/budgets/${request.budgetId}`, {
             method: 'PUT',
             body: {
                 title: request.title,
@@ -171,7 +180,8 @@ export async function fetchUpdateBudget(request: UpdateBudgetRequest): Promise<v
 export async function fetchDeleteBudget(budgetId: string): Promise<void> {
     const toast = useToast();
     try {
-        const response = await $fetch(`${API_LINK}/budgets/${budgetId}`, {
+        const api = API_LINK()
+        const response = await $fetch(`${api}/budgets/${budgetId}`, {
             method: 'DELETE'
         })
 
@@ -189,15 +199,19 @@ export async function fetchDeleteBudget(budgetId: string): Promise<void> {
     }
 }
 
-export const formatBudgetDataForChart = (budgets: BudgetType[]) => {
-const labels = budgets.map(budget => budget.title + " - " + ((budget.amount/budget.target)* 100).toFixed(1) + "%")
+export const formatBudgetDataForChart = (budgets: BudgetType[]|null) => {
+
+    let labels: string[] = [] 
     const data: number[]= []
     const reactiveColor: string[] = []
-    budgets.forEach(budget => {
-        data.push(budget.target)
-        const alpha = budget.amount/budget.target
-        reactiveColor.push(`rgba(102,85,215, ${alpha})`)
-    })
+    if (budgets){
+        labels = budgets.map(budget => budget.title + " - " + ((budget.amount/budget.target)* 100).toFixed(1) + "%")
+        budgets.forEach(budget => {
+            data.push(budget.target)
+            const alpha = budget.amount/budget.target
+            reactiveColor.push(`rgba(102,85,215, ${alpha})`)
+        })
+    }
 
     return {
         labels: labels,

@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import {useWindowSize} from '@vueuse/core'
-import { computed } from 'vue'
 
 const {width, height} = useWindowSize()
-const isResponsive = computed(() => width.value <= 975)
+const isResponsive = ref(false)
+watchEffect(() => {
+    if (width.value <= 975)
+        isResponsive.value = true
+    else
+        isResponsive.value = false
+})
 </script>
 
 <template>
@@ -13,13 +18,13 @@ const isResponsive = computed(() => width.value <= 975)
                 <NavBarLogoTitle :title="isResponsive ? 'A.' : 'Agni.'" />
             </div>
             <div>
-                <NavBarItem title="Dashboard" link="/" icon="fa-solid fa-house" :isResponsive="isResponsive" />
-                <NavBarItem title="Transactions" link="/transactions" icon="fa-solid fa-money-bill-transfer" :isResponsive="isResponsive"/>
-                <NavBarItem title="Wallets" link="/wallets" icon="fa-solid fa-wallet" :isResponsive="isResponsive" />
-                <NavBarItem title="Budgets" link="/budgets" icon="fa-solid fa-coins" :isResponsive="isResponsive" />
-                <NavBarItem title="Goals" link="/goals" icon="fa-solid fa-bullseye" :isResponsive="isResponsive" />
-                <NavBarItem title="Analystics" link="/analystics" icon="fa-solid fa-chart-line" :isResponsive="isResponsive"/>
-                <NavBarItem title="Settings" link="/settings" icon="fa-solid fa-gear" :isResponsive="isResponsive" />
+                <NavBarItem title="Dashboard" link="/" icon="i-lucide-circle-gauge" :isResponsive="isResponsive" />
+                <NavBarItem title="Transactions" link="/transactions" icon="i-lucide-banknote" :isResponsive="isResponsive"/>
+                <NavBarItem title="Wallets" link="/wallets" icon="i-lucide-wallet-minimal" :isResponsive="isResponsive" />
+                <NavBarItem title="Budgets" link="/budgets" icon="i-lucide-wallet-cards" :isResponsive="isResponsive" />
+                <NavBarItem title="Goals" link="/goals" icon="i-lucide-piggy-bank" :isResponsive="isResponsive" />
+                <NavBarItem title="Analystics" link="/analystics" icon="i-lucide-chart-network" :isResponsive="isResponsive"/>
+                <NavBarItem title="Settings" link="/settings" icon="i-lucide-settings" :isResponsive="isResponsive" />
             </div>
         </div>
     </div>

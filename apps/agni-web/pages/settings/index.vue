@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { EditCategoryModal, EditTagModal } from "#components"
+import { ref, watchEffect } from "vue";
 import { fetchListCategories, useFetchListCategories } from "../../composables/categories"
 import { fetchListTags, useFetchListTags } from "../../composables/tags"
+import { EditCategoryModal, EditTagModal } from "#components";
 
-
-const categories = await useFetchListCategories()
-const tags = await useFetchListTags()
+const {data: categories, error: errorCategories, refresh: refreshCategories} = useFetchListCategories()
+const {data: tags, error: errorTags, refresh: refresTags }= useFetchListTags()
 
 const overlay = useOverlay()
 const modalCategory = overlay.create(EditCategoryModal, {
     props: {
         onSaved: async () => {
-            categories.value = await fetchListCategories()
+            refreshCategories()
         }
     }
 })
 const modalTag = overlay.create(EditTagModal, {
     props: {
         onSaved: async () => {
-            tags.value = await fetchListTags()
+            refresTags()
         }
     }
 })

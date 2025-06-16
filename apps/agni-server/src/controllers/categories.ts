@@ -130,6 +130,7 @@ export class ApiGetAllCategoriesController implements IGetAllCategoryUseCaseResp
         this.modelView.data = categories
     }
     fail(err: Error): void {
+        this.modelView.statusCode = 400
         this.modelView.success = false 
         this.modelView.error = {
             field: "", message: err.message

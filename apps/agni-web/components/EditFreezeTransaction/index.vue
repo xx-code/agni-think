@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import * as z from 'zod'
 import { reactive, shallowRef } from "vue";
-import { useFetchResumeAccount } from "../../composables/account";
+import { useFetchListAccount, useFetchResumeAccount } from "../../composables/account";
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { fetchFreezeTransaction } from '../../composables/transactions';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
@@ -18,7 +18,7 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>
 
-const accounts = await useFetchResumeAccount()
+const {data: accounts} = useFetchListAccount()
 
 const form = reactive({
     accountId: props.accountId ?? '',
@@ -45,7 +45,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         <template #body>
             <UForm :schema="schema" :state="form" @submit="onSubmit" class=" space-y-4">
                 <UFormField label="Compte" name="accountId">
-                    <USelect v-model="form.accountId" value-key="id" label-key="title" :items="accounts.filter(acc => acc.id !== ALL_ACCOUNT_ID)" class="w-full"/>
+                    <USelect v-model="form.accountId" value-key="id" label-key="title" :items="accounts? accounts.map(acc => ({id: acc.id, title: acc.title})) : []" class="w-full"/>
                 </UFormField>
 
                 <UFormField label="Prix" name="amount">
