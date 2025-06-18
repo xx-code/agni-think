@@ -3,7 +3,6 @@ import { ValueError } from '../errors/valueError';
 import { Period } from './constants';
 
 // Todo: Refactor helpers 
-
 export function formatted(value: string): string {
     let formattedValue = value.toUpperCase();
     formattedValue = formattedValue.trimStart();
