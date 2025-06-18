@@ -20,7 +20,7 @@ export const useFetchListTags = (): UseApiFetchReturn<TagType[]> => {
 }
 
 export const fetchListTags = async (): Promise<TagType[]> => {
-    const api = API_LINK()
+    const api = useApiLink()
     const response = await $fetch(`${api}/tags`)
     const data = (response as {data: {id: string, value: string, color: string|null}[]}).data
 
@@ -28,7 +28,7 @@ export const fetchListTags = async (): Promise<TagType[]> => {
 }
 
 export const fetchTag = async (tagId: string): Promise<TagType> => {
-    const api = API_LINK()
+    const api = useApiLink()
     const response = await $fetch(`${api}/tags/${tagId}`)
     const data = (response as {data: {id: string, value: string, color: string|null}}).data
 
@@ -43,7 +43,7 @@ export type CreateTagRequest = {
 export const fetchCreateTag = async (request: CreateTagRequest) => {
     const toast = useToast()
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/tags`, {
             method: 'POST',
             body: {
@@ -71,7 +71,7 @@ export type UpdateTagRequest = {
 export const fetchUpdateTag = async (request: UpdateTagRequest) => {
     const toast = useToast()
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/tags/${request.tagId}`, {
             method: 'PUT',
             body: {
@@ -95,7 +95,7 @@ export const fetchUpdateTag = async (request: UpdateTagRequest) => {
 
 export const fetchDeleteTag = async (tagId: string) => {
     try {
-        const api = API_LINK()
+        const api = useApiLink()
     } catch {
 
     }

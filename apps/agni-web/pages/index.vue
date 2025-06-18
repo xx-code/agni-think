@@ -1,5 +1,6 @@
 <script setup lang="ts">
 
+
 const labelsDate = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
 const optionsChart = computed(() => ({responsive: true})) 
 const dataChart = computed(() => ({
@@ -119,12 +120,11 @@ watchEffect(() => {
 
 <template>
     <div>
-
         <div class="option-diplay-container">
             <div class="flex gap-2">
                 <UDropdownMenu :items="listTypeDateDisplay">
                     <UButton size="xl" variant="outline" color="neutral">
-                        <font-awesome-icon class="icon" icon="fa-solid fa-calendar-days" />
+                        <UIcon name="i-lucide-calendar"  />
                     </UButton>
                 </UDropdownMenu>
                 <UButton  size="xl" variant="outline" color="neutral">
@@ -172,7 +172,7 @@ watchEffect(() => {
             <div class="card-grid rounded-md md:col-span-2 flex flex-col gap-2">
                 <CustomCardTitle title="Transactions">
                     <div class="flex gap-1">
-                        <USelect class="rounded-full" v-model="transactionAccountSelected" :items=" accounts ? accounts.map(acc => (acc.title)) : []" />
+                        <USelect class="rounded-full" v-model="transactionAccountSelected" :items="listAccount.map(acc => (acc.title))" />
                         <UButton class="rounded-full" size="sm" label="Voir plus" variant="outline" color="neutral" />
                     </div>
                 </CustomCardTitle>

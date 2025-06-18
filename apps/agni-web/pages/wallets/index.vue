@@ -90,6 +90,12 @@ const onUpateAccount = async (payload: string) => {
         transactions.value = await fetchListTransaction({page: 1, limit: 4, accountFilter: filterAcc})
 }
 
+const listAccount = computed(() => {
+    if (accounts.value)
+        return accounts.value
+    return []
+})
+
 const listTransaction = computed(() => {
     if (transactions.value)
         return transactions.value.transactions
@@ -103,7 +109,7 @@ const listTransaction = computed(() => {
         <div>
             <div class="card rounded-md">
                 <CustomCardTitle :title="getAccount(selectedAccountId)?.title">
-                   <USelect v-model="selectedAccountId" @update:modelValue="onUpateAccount" value-key="id"  label-key="title" :items="accounts ? accounts.map(acc => ({ id: acc.id, title: acc.title, type: 'item' })) : []"/> 
+                   <USelect v-model="selectedAccountId" @update:modelValue="onUpateAccount" value-key="id"  label-key="title" :items="listAccount.map(acc => ({ id: acc.id, title: acc.title, type: 'item' }))"/> 
                 </CustomCardTitle>
                 <div class="card-money" style="margin-top: 1rem;">
                     <h2>
@@ -136,7 +142,7 @@ const listTransaction = computed(() => {
                 <UButton icon="i-lucide-plus" size="xl" variant="solid" @click="onEditAccount(null)">Ajouter Carte</UButton>
             </div>
             <div class="flex overflow-x-auto gap-2"  >
-                <div v-for="account in accounts" :key="account.id">
+                <div v-for="account in listAccount" :key="account.id">
                     <CardResumeAccount 
                         @customClick="onSelectAccount(account.id)"
                         style="width: 200px;"

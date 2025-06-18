@@ -59,7 +59,7 @@ export const useFetchBudget = (budget_id: string): UseApiFetchReturn<BudgetType|
 
 export async function fetchListPeriodTypes(): Promise<PeriodType[]> {
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/internal/period-type`)
         const data = (response as {id: string, value: string}[])
 
@@ -83,7 +83,7 @@ type BudgetApiType = {
 }
 
 export async function fetchListBudgets(): Promise<BudgetType[]> {
-    const api = API_LINK()
+    const api = useApiLink()
     const response = await $fetch(`${api}/budgets`)
     const data = (response as {data: BudgetApiType[]}).data
 
@@ -93,7 +93,7 @@ export async function fetchListBudgets(): Promise<BudgetType[]> {
 }
 
 export async function fetchBudget(budgetId: string): Promise<BudgetType> {
-    const api = API_LINK()
+    const api = useApiLink()
     const response = await $fetch(`${api}/budgets/${budgetId}`)
 
     const data = (response as {data: BudgetApiType}).data
@@ -115,7 +115,7 @@ export type CreateBudgetRequest = {
 export async function fetchCreateBudget(request: CreateBudgetRequest): Promise<void> {
     const toast = useToast()
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/budgets`, {
             method: 'POST',
             body: {
@@ -152,7 +152,7 @@ export type UpdateBudgetRequest = {
 export async function fetchUpdateBudget(request: UpdateBudgetRequest): Promise<void> {
     const toast = useToast()
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/budgets/${request.budgetId}`, {
             method: 'PUT',
             body: {
@@ -180,7 +180,7 @@ export async function fetchUpdateBudget(request: UpdateBudgetRequest): Promise<v
 export async function fetchDeleteBudget(budgetId: string): Promise<void> {
     const toast = useToast();
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/budgets/${budgetId}`, {
             method: 'DELETE'
         })

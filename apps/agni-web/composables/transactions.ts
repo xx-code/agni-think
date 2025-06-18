@@ -105,7 +105,7 @@ export const useFetchBalance = (filter: FilterBalanceTransactions): UseApiFetchR
 }
 
 export async function fetchListTransactionType(): Promise<TransactionTypeType[]> {
-    const api = API_LINK()
+    const api = useApiLink()
     const response = await $fetch(`${api}/internal/transaction-type`)
     const data = (response as {id: string, value: string}[])
 
@@ -142,7 +142,7 @@ export type FilterTransactions = {
 }
 
 export async function fetchListTransaction(filter?: FilterTransactions): Promise<TransactionPagination> {
-    const api = API_LINK()
+    const api = useApiLink()
     const response = await $fetch(`${api}/transactions`, {
         query: filter
     })
@@ -168,7 +168,7 @@ export async function fetchListTransaction(filter?: FilterTransactions): Promise
 }
 
 export async function fetchTransaction(transactionId: string): Promise<TransactionType> {
-    const api = API_LINK()
+    const api = useApiLink()
     const response = await $fetch(`${api}/transactions/${transactionId}`)
     const data = (response as {data: TransactionApiType }).data
 
@@ -187,7 +187,7 @@ export async function fetchTransaction(transactionId: string): Promise<Transacti
 }
 
 export async function fetchBalance(filter?: FilterBalanceTransactions): Promise<number> {
-    const api = API_LINK()
+    const api = useApiLink()
     const response = await $fetch(`${api}/transactions-balance`, {
         query: filter
     })
@@ -210,7 +210,7 @@ export type CreateTransactionRequest = {
 export async function fetchCreateTransaction(request: CreateTransactionRequest): Promise<void> {
     const toast = useToast()
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/transactions`, {
             method: 'POST',
             body: {
@@ -254,7 +254,7 @@ export type UpdateTransactionRequest = {
 export async function fetchUpdateTransaction(request: UpdateTransactionRequest): Promise<void> {
     const toast = useToast()
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/transactions/${request.transactionId}`, {
             method: 'PUT',
             body: {
@@ -285,7 +285,7 @@ export async function fetchUpdateTransaction(request: UpdateTransactionRequest):
 export async function fetchDeleteTransaction(transactionId: string): Promise<void> {
     const toast = useToast();
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/transactions/${transactionId}`, {
             method: 'DELETE'
         })
@@ -313,7 +313,7 @@ export type TransfertRequest = {
 export async function fetchTransfertBetweenAccount(request: TransfertRequest) {
     const toast = useToast();
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/transfert-transaction`, {
             method: 'POST',
             body: {
@@ -346,7 +346,7 @@ export type FreezeTransactionRequest = {
 export async function fetchFreezeTransaction(request: FreezeTransactionRequest) {
     const toast = useToast();
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/freeze-transaction`, {
             method: 'POST',
             body: {

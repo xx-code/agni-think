@@ -1,6 +1,6 @@
 import type { AsyncDataExecuteOptions } from "#app/composables/asyncData"
 
-export const API_LINK = () => {
+export const useApiLink = () => {
     const config = useRuntimeConfig()
     return config.public.api
 } 
