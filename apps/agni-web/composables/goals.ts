@@ -43,21 +43,38 @@ export const useFetchGoal = (goalId: string): UseApiFetchReturn<GoalType | null>
 }
 
 export async function fetchListGoal(): Promise<GoalType[]> {
-    const api = useApiLink() 
-    const response = await $fetch(`${api}/save-goals`)
+    try {
+        const api = useApiLink()
+        if (!api) return []
 
-    const data = (await response as {data: GoalApiType[]}).data
+        const response = await $fetch(`${api}/save-goals`)
+        const data = (response as { data: GoalApiType[] }).data
 
-    return data.map(val => ({id: val.id, title: val.title, desciprtion: val.description, targetAmount: val.target, amount: val.balance}))
+        return data.map(val => ({
+            id: val.id,
+            title: val.title,
+            desciprtion: val.description,
+            targetAmount: val.target,
+            amount: val.balance
+        }))
+    } catch (err: any) {
+        console.error("Erreur fetchListGoal:", err)
+        return []
+    } 
 }
 
-export async function fetchGoal(goalId: string): Promise<GoalType> {
-    const api = useApiLink() 
-    const response = await $fetch(`${api}/save-goals/${goalId}`)
+export async function fetchGoal(goalId: string): Promise<GoalType|null> {
+    try {
+        const api = useApiLink() 
+        const response = await $fetch(`${api}/save-goals/${goalId}`)
 
-    const data = (await response as {data: GoalApiType}).data
+        const data = (await response as {data: GoalApiType}).data
+        
+        return {id: data.id, title: data.title, targetAmount: data.target, desciprtion: data.description, amount: data.balance}
+    } catch(err: any) {
+        return null
+    }
     
-    return {id: data.id, title: data.title, targetAmount: data.target, desciprtion: data.description, amount: data.balance}
 }
 
 export type CreateGoalRequest = {
