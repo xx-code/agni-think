@@ -59,7 +59,7 @@ export const useFetchBudget = (budget_id: string): UseApiFetchReturn<BudgetType|
 
 export async function fetchListPeriodTypes(): Promise<PeriodType[]> {
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/internal/period-type`)
         const data = (response as {id: string, value: string}[])
 
@@ -83,24 +83,34 @@ type BudgetApiType = {
 }
 
 export async function fetchListBudgets(): Promise<BudgetType[]> {
-    const api = API_LINK()
-    const response = await $fetch(`${api}/budgets`)
-    const data = (response as {data: BudgetApiType[]}).data
+    try {
+        const api = useApiLink()
+        const response = await $fetch(`${api}/budgets`)
+        const data = (response as {data: BudgetApiType[]}).data
 
-    return data.map(val => ({id: val.id, title: val.title, target: val.target, 
-        amount: val.currentBalance, dateEnd: val.endDate ?? null, dateStart: val.startDate, 
-        period: val.period ?? null, periodTime: val.periodTime}))
+        return data.map(val => ({id: val.id, title: val.title, target: val.target, 
+            amount: val.currentBalance, dateEnd: val.endDate ?? null, dateStart: val.startDate, 
+            period: val.period ?? null, periodTime: val.periodTime}))
+    } catch(err: any) {
+        return []
+    }
+    
 }
 
-export async function fetchBudget(budgetId: string): Promise<BudgetType> {
-    const api = API_LINK()
-    const response = await $fetch(`${api}/budgets/${budgetId}`)
+export async function fetchBudget(budgetId: string): Promise<BudgetType|null> {
+    try {
+        const api = useApiLink()
+        const response = await $fetch(`${api}/budgets/${budgetId}`)
 
-    const data = (response as {data: BudgetApiType}).data
+        const data = (response as {data: BudgetApiType}).data
 
-    return {id: data.id, title: data.title, target: data.target, 
-        amount: data.currentBalance, dateEnd: data.endDate ?? null, dateStart: data.startDate, 
-        period: data.period ?? null, periodTime: data.periodTime}
+        return {id: data.id, title: data.title, target: data.target, 
+            amount: data.currentBalance, dateEnd: data.endDate ?? null, dateStart: data.startDate, 
+            period: data.period ?? null, periodTime: data.periodTime}
+
+    } catch(err: any) {
+        return null
+    }
 }
 
 export type CreateBudgetRequest = {
@@ -115,7 +125,7 @@ export type CreateBudgetRequest = {
 export async function fetchCreateBudget(request: CreateBudgetRequest): Promise<void> {
     const toast = useToast()
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/budgets`, {
             method: 'POST',
             body: {
@@ -152,7 +162,7 @@ export type UpdateBudgetRequest = {
 export async function fetchUpdateBudget(request: UpdateBudgetRequest): Promise<void> {
     const toast = useToast()
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/budgets/${request.budgetId}`, {
             method: 'PUT',
             body: {
@@ -180,7 +190,7 @@ export async function fetchUpdateBudget(request: UpdateBudgetRequest): Promise<v
 export async function fetchDeleteBudget(budgetId: string): Promise<void> {
     const toast = useToast();
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/budgets/${budgetId}`, {
             method: 'DELETE'
         })
@@ -200,7 +210,6 @@ export async function fetchDeleteBudget(budgetId: string): Promise<void> {
 }
 
 export const formatBudgetDataForChart = (budgets: BudgetType[]|null) => {
-
     let labels: string[] = [] 
     const data: number[]= []
     const reactiveColor: string[] = []

@@ -31,7 +31,6 @@ services:
       - agni
 networks:
   agni:
-    driver: bridge
   # nginx:
   #   image: nginx:1.26.0-alpine
   #   restart: always

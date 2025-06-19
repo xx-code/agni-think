@@ -8,7 +8,7 @@ import { fetchBalance, fetchDeleteTransaction, fetchListTransaction, type Transa
 import { EditTransactionModal } from "#components";
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import { useFetchListCategories } from "../../composables/categories";
-import { formatCurrency } from "../../composables/utils";
+import { formatCurrency } from "../../composables/util";
 
 const selectedBudgetIds = ref<string[]>([])
 const selectedCategoryIds = ref<string[]>([])
@@ -186,7 +186,8 @@ const filtersDropdown = computed(() => [
                 'category': false, 'tag': false, 'date': false,
                 'price': false, 'budget': false
             }
-            selectedAccounts.value = accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID).map(acc => ({id: acc.id, label: acc.title, checked: true}))
+            if (accounts.value)
+                selectedAccounts.value = accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID).map(acc => ({id: acc.id, label: acc.title, checked: true}))
             selectedCategoryIds.value = []
             selectedTagIds.value = []
             selectedBudgetIds.value = []
@@ -371,7 +372,7 @@ function getRowItems(rows: TableRow<TransactionType>) {
         },
         {
             label: 'Supprimer',
-            onselect: () => {
+            onSelect: () => {
                 const id = rows.original.id
                 if (confirm("Voulez vous supprimer la transaction"))
                     onDelete(id)

@@ -1,8 +1,9 @@
 import type { AsyncDataExecuteOptions } from "#app/composables/asyncData"
 
-export const API_LINK = () => {
+export const useApiLink = () => {
     const config = useRuntimeConfig()
-    return config.public.api
+    console.log('Calling API at', process.server ? config.api : config.public.apiBase)
+    return process.server ? config.api : config.public.apiBase 
 } 
 export type ErrorApi = {
     data: {

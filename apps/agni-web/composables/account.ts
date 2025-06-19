@@ -34,57 +34,11 @@ function computeDiffPercent(pastBalance: number, balance: number) {
     return Number((Math.abs(((balance/pastBalance) * 100) - 100)).toFixed(2))
 }
 
-export const useFetchResumeAccount = (): UseApiFetchReturn<ResumeAccountType[]> => {
-    const { data, error, refresh } = useAsyncData('resume-accounts', async () => {
-    
-        const data = await fetchListAccounts();
-        const resumeAccounts: ResumeAccountType[] = []
-
-
-        // generate code
-        const now = new Date();
-        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-
-        const startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1)
-        .toISOString()
-        .split('T')[0];
-
-        const endDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0)
-        .toISOString()
-        .split('T')[0];
-        // 
-
-        for(const account of data) {
-            let pastBalance = await fetchBalance({accountIds: [account.id], dateStart: startDate, dateEnd: endDate})
-            resumeAccounts.push({
-                ...account, 
-                pastBalanceDetail: {
-                    balance: pastBalance, 
-                    diffPercent: computeDiffPercent(pastBalance, account.balance), 
-                    doIncrease: true
-                }}
-            )
-        } 
-
-        const totals = sumTotalBalance(resumeAccounts)
-        const totalAccount: ResumeAccountType= {
-            id: ALL_ACCOUNT_ID,
-            title: 'Total Balance',
-            balance: totals[0],
-            pastBalanceDetail: {
-                balance: totals[1],
-                diffPercent: computeDiffPercent(totals[1], totals[0]), 
-                doIncrease: totals[1] < totals[0]
-            },
-            type: ''
-        }
-
-        resumeAccounts.unshift(totalAccount)
-
-        return resumeAccounts
-    })
+export const useFetchResumeAccount = (): UseApiFetchReturn<ResumeAccountType[]|null> => {
+    const { data, error, refresh } = useAsyncData('resume-accounts', () => fetchListAccountsAndResume())
 
     if (error.value) {
+        console.log(error.value)
         const toast = useToast()
         const resError = error as Ref<ErrorApi>
         toast.add({title: 'Oops! Erreur type de compte', description: resError.value.data.error.message, color: 'error'})
@@ -142,7 +96,7 @@ export const useFetchAccount = (accountId: string): UseApiFetchReturn<AccountTyp
 
 export async function fetchListAccountTypes(): Promise<AccountTypeType[]> {
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/internal/account-type`)
         const data = (response as {id: string, value: string}[])
 
@@ -155,7 +109,7 @@ export async function fetchListAccountTypes(): Promise<AccountTypeType[]> {
 
 export async function fetchListAccounts(): Promise<AccountType[]> {
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/accounts`)
         const data = (response as {data: {accountId: string, title: string, balance: number, type: string}[]}).data
 
@@ -166,9 +120,63 @@ export async function fetchListAccounts(): Promise<AccountType[]> {
     }
 }
 
+export async function fetchListAccountsAndResume(): Promise<ResumeAccountType[]> {
+    try {
+        const api = useApiLink()
+
+        const response = await $fetch(`${api}/accounts`)
+        const data = (response as {data: {accountId: string, title: string, balance: number, type: string}[]}).data
+
+        const now = new Date();
+        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+        const startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1)
+        .toISOString()
+        .split('T')[0];
+
+        const endDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0)
+        .toISOString()
+        .split('T')[0];
+        // 
+        const resumeAccounts: ResumeAccountType[] = []
+        for(const account of data) {
+            resumeAccounts.push({
+                id: account.accountId, 
+                balance:account.balance,
+                title: account.title,
+                type: account.type,
+                pastBalanceDetail: {
+                    balance: 0, 
+                    diffPercent: computeDiffPercent(0, account.balance), 
+                    doIncrease: true
+                }}
+            )
+        } 
+
+        const totals = sumTotalBalance(resumeAccounts)
+        const totalAccount: ResumeAccountType= {
+            id: ALL_ACCOUNT_ID,
+            title: 'Total Balance',
+            balance: totals[0],
+            pastBalanceDetail: {
+                balance: totals[1],
+                diffPercent: computeDiffPercent(totals[1], totals[0]), 
+                doIncrease: totals[1] < totals[0]
+            },
+            type: ''
+        }
+
+        resumeAccounts.unshift(totalAccount)
+        return resumeAccounts
+    } catch(err) {
+        console.log(err)
+        return []
+    }
+}
+
 export async function fetchAccount(accountId: string): Promise<AccountType|null>{
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/accounts/${accountId}`)
         const data = (response as {data: {accountId: string, title: string, balance: number, type: string}}).data
 
@@ -186,7 +194,7 @@ export type CreateAccountRequest = {
 export async function fetchCreateAccount(request: CreateAccountRequest): Promise<void>{
     const toast = useToast();
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/accounts`, {
             method: 'post',
             body: {
@@ -216,7 +224,7 @@ export type UpdateAccountRequest = {
 export async function fetchUpdateAccount(request: UpdateAccountRequest): Promise<void> {
     const toast = useToast();
     try {
-        const api = API_LINK()
+        const api = useApiLink()
         const response = await $fetch(`${api}/accounts/${request.accountId}`, {
             method: 'PUT',
             body: {
@@ -241,7 +249,7 @@ export async function fetchUpdateAccount(request: UpdateAccountRequest): Promise
 }
 
 export async function fetchDeleteAccount(accountId: string): Promise<boolean> {
-    const api = API_LINK()
+    const api = useApiLink()
     const response = await $fetch(`${api}/accounts/${accountId}`, {
         method: 'DELETE'
     })
