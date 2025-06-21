@@ -1,33 +1,29 @@
 import { ValueError } from "@core/errors/valueError";
 import { TransactionMainCategory } from '@core/domains/constants';
+import Entity, { TrackableProperty } from "./entity";
+import { ValueObjectCollection } from "../valueObjects/collection";
+import { TransactionTag } from "../valueObjects/transactions";
 
 // Refactoring
 
-export class Transaction {
-    private id: string;
-    private accountRef: string
-    private tagRefs: string[]
-    private budgetRefs: string[]
-    private categoryRef: string
-    private recordRef: string
-    private isFreeze: boolean
-    private date: string
-    private type: TransactionMainCategory
+export class Transaction extends Entity {
+    private accountRef: TrackableProperty<string>
+    private tagRefs: ValueObjectCollection<TransactionTag>
+    private budgetRefs: ValueObjectCollection<TransactionTag>
+    private categoryRef: TrackableProperty<string>
+    private recordRef: TrackableProperty<string>
+    private date: TrackableProperty<string>
+    private type: TrackableProperty<TransactionMainCategory>
 
-    private change: boolean = false
+    private isFreeze: TrackableProperty<boolean>
 
-    __add_event_tag: string[] = []
-    __delete_event_tag: string[] = []
-
-    __add_event_budget: string[] = []
-    __delete_event_budget: string[] = []
 
     constructor(id: string, accountRef: string, recordRef: string, categoryRef: string,  date: string, 
         type: TransactionMainCategory, tagRefs: string[]=[], budgetRefs: string[]=[]) {
-        this.id = id 
-        this.accountRef = accountRef
-        this.recordRef = recordRef
-        this.tagRefs = tagRefs
+        super(id)
+        this.accountRef = new TrackableProperty<string>(accountRef, this.markHasChange)
+        this.recordRef = new TrackableProperty<string>(recordRef, this.markHasChange)
+        this.tagRefs = new
         this.budgetRefs = budgetRefs
         this.categoryRef = categoryRef
         this.isFreeze = false
