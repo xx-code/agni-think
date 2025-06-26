@@ -1,9 +1,14 @@
 import ValueObject from "./valueObject";
 
-export class TransacationBudget extends ValueObject {
+export class TransactionBudget extends ValueObject {
     public budgetId: string = ''
+    
+    constructor(budgetId: string = '') {
+        super();
+        this.budgetId = budgetId;
+    }
 
-    isEqual(object: TransacationBudget): boolean {
+    isEqual(object: TransactionBudget): boolean {
         if (this.budgetId != object.budgetId)
             return false
 
@@ -13,6 +18,11 @@ export class TransacationBudget extends ValueObject {
 
 export class TransactionTag extends ValueObject {
     public tagId: string = ''
+
+    constructor(tagId: string = '') {
+        super();
+        this.tagId = tagId;
+    }
 
     isEqual(object: TransactionTag): boolean {
         if (this.tagId !== object.tagId)

@@ -32,7 +32,7 @@ export class Account extends Entity {
     }
 
     setBalance(balance: number) {
-        this.setBalance(balance)
+        this.balance.set(balance)
     }
 
     getBalance(): number {

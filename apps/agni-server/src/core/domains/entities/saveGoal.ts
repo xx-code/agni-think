@@ -2,7 +2,7 @@ import { ValueError } from "@core/errors/valueError"
 import { Money } from "./money"
 import Entity, { TrackableProperty } from "./entity"
 import { ValueObjectCollection } from "@core/domains/valueObjects/collection"
-import SaveGoalItem from "../valueObjects/SaveGoalItem"
+import SaveGoalItem from "../valueObjects/saveGoalItem"
 import { isStringDifferent } from "../helpers"
 
 export class SaveGoal extends Entity {

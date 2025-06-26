@@ -1,21 +1,20 @@
-import { ValueError } from "@core/errors/valueError";
 import { TransactionMainCategory } from '@core/domains/constants';
 import Entity, { TrackableProperty } from "./entity";
 import { ValueObjectCollection } from "../valueObjects/collection";
-import { TransactionTag } from "../valueObjects/transactions";
+import { TransactionBudget, TransactionTag } from "../valueObjects/transactions";
 
 // Refactoring
 
 export class Transaction extends Entity {
     private accountRef: TrackableProperty<string>
     private tagRefs: ValueObjectCollection<TransactionTag>
-    private budgetRefs: ValueObjectCollection<TransactionTag>
+    private budgetRefs: ValueObjectCollection<TransactionBudget>
     private categoryRef: TrackableProperty<string>
     private recordRef: TrackableProperty<string>
     private date: TrackableProperty<string>
     private type: TrackableProperty<TransactionMainCategory>
 
-    private isFreeze: TrackableProperty<boolean>
+    private isFreeze: boolean
 
 
     constructor(id: string, accountRef: string, recordRef: string, categoryRef: string,  date: string, 
@@ -23,106 +22,56 @@ export class Transaction extends Entity {
         super(id)
         this.accountRef = new TrackableProperty<string>(accountRef, this.markHasChange)
         this.recordRef = new TrackableProperty<string>(recordRef, this.markHasChange)
-        this.tagRefs = new
-        this.budgetRefs = budgetRefs
-        this.categoryRef = categoryRef
-        this.isFreeze = false
-        this.date = date
-        this.type = type
-    }
-
-    setId(id: string) {
-        this.id = id
-    }
-
-    getId(): string {
-        return this.id
+        this.tagRefs = new ValueObjectCollection(tagRefs.map(tag => new TransactionTag(tag)), this.markHasChange)
+        this.budgetRefs = new ValueObjectCollection(budgetRefs.map(budget => new TransactionBudget(budget)), this.markHasChange)
+        this.categoryRef = new TrackableProperty<string>(categoryRef, this.markHasChange)
+        this.isFreeze = false;
+        this.date = new TrackableProperty<string>(date, this.markHasChange)
+        this.type = new TrackableProperty<TransactionMainCategory>(type, this.markHasChange)
     }
 
     setTags(tagRefs: string[]) {
-        // Check version
-        let tag_to_add = tagRefs.filter(tag => this.tagRefs.findIndex(el => el === tag) === -1)
-        let tag_to_delete = this.tagRefs.filter(tag => tagRefs.findIndex(compTag => compTag === tag) === -1)
-
-        if (tag_to_add.length > 0 || tag_to_delete.length > 0) {
-            this.__add_event_tag = tag_to_add
-            this.__delete_event_tag = tag_to_delete
-
-            this.change = true
-            this.tagRefs = tagRefs
-        }
+        this.tagRefs.set(tagRefs.map(tag => new TransactionTag(tag)))  
     }
     
     setBudgets(budgetRefs: string[]) {
-        // Check version
-        let budget_to_add = budgetRefs.filter(budget => this.budgetRefs.findIndex(el => el === budget) === -1)
-        let budget_to_delete = this.budgetRefs.filter(budget => budgetRefs.findIndex(compbudget => compbudget === budget) === -1)
-
-        if (budget_to_add.length > 0 || budget_to_delete.length > 0) {
-            this.__add_event_budget = budget_to_add
-            this.__delete_event_budget = budget_to_delete
-
-            this.change = true
-            this.budgetRefs = budgetRefs
-        }
+        this.budgetRefs.set(budgetRefs.map(budget => new TransactionBudget(budget))) 
     }
     
     addTag(tag: string) {
-        if (this.tagRefs.includes(tag))
-            throw new ValueError('Tag already exist, in transaction. Not duplicate allow.')
-        this.__add_event_tag.push(tag)
-        this.change = true
-        this.tagRefs.push(tag)
+        this.tagRefs.add(new TransactionTag(tag)) 
     }
 
     addBudget(budget: string) {
-        if (this.budgetRefs.includes(budget))
-            throw new ValueError('Budget already exist, in transaction. Not duplicate allow.')
-        this.__add_event_budget.push(budget)
-        this.change = true
-        this.budgetRefs.push(budget)
+        this.budgetRefs.add(new TransactionBudget(budget))
     }
 
     deleteTag(tag: string) {
-        let index_tag = this.tagRefs.indexOf(tag)
-        if (index_tag < 0)
-            throw new ValueError('Tag do not exist, in Transaction.')
-        this.__delete_event_tag.push(tag)
-        this.change = true
-        this.tagRefs.splice(index_tag, 1)
+        this.tagRefs.delete( new TransactionTag(tag))
     }
 
     deleteBudget(budget: string) {
-        let index_budget = this.budgetRefs.indexOf(budget)
-        if (index_budget < 0)
-            throw new ValueError('budget do not exist, in Transaction.')
-        this.__delete_event_budget.push(budget)
-        this.change = true
-        this.budgetRefs.splice(index_budget, 1)
+        this.budgetRefs.delete(new TransactionBudget(budget))
     }
 
     getBudgetRefs(): string[] {
-        return this.budgetRefs
+        return this.budgetRefs.get().map(budget => budget.budgetId)
     }
 
     getTags(): string[] {
-        return this.tagRefs
+        return this.tagRefs.get().map(tag => tag.tagId)
     }
 
     setAccountRef(accountRef: string) {
-        if (this.accountRef !== accountRef)
-            this.change = true
-        this.accountRef = accountRef
+        this.accountRef.set(accountRef)
     }
 
     getAccountRef(): string {
-        return this.accountRef
+        return this.accountRef.get()
     }
 
     setCategoryRef(categoryRef: string) {
-        if (this.categoryRef !== categoryRef)
-            this.change = true 
-        this.categoryRef = categoryRef
+        this.categoryRef.set(categoryRef)
     }
 
     setIsFreeze() {
@@ -134,40 +83,31 @@ export class Transaction extends Entity {
     }
 
     getCategoryRef(): string {
-        return this.categoryRef
+        return this.categoryRef.get()
     }
 
     setRecordRef(recordRef: string) {
-        if (this.recordRef !== recordRef)
-            this.change = true 
-        this.recordRef = recordRef
+        this.setRecordRef(recordRef)
     }
 
     getRecordRef(): string {
-        return this.recordRef
+        return this.recordRef.get()
     }
 
     setDate(date: string) {
-        if (this.date !== date) 
-            this.change = true
-        this.date = date
+        this.date.set(date)
     }
 
     getDate(): string {
-        return this.date
+        return this.date.get()
     }
 
     setTransactionType(type: TransactionMainCategory) {
-        if (this.type !== type)
-            this.change = true
-        this.type = type;
+        this.type.set(type)
     }
 
     getTransactionType(): TransactionMainCategory {
-        return this.type
+        return this.type.get()
     }
 
-    hasChange(): boolean {
-        return this.change
-    }
 }
