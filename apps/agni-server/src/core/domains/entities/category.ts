@@ -1,79 +1,57 @@
 import { ValueError } from "@core/errors/valueError"
-import { formatted, isValidColor, isEmpty, reverseFormatted } from "../helpers"
+import { formatted, isValidColor, isEmpty, reverseFormatted, isStringDifferent } from "../helpers"
+import Entity, { TrackableProperty } from "./entity"
 
-export class Category {
-    private id: string = ''
-    private title: string = ''
-    private iconId = ''
-    private color: string = ''
-    private isSystem: boolean = false
-
-    private change: boolean = false
+export class Category extends Entity {
+    private title: TrackableProperty<string>
+    private iconId: TrackableProperty<string>
+    private color: TrackableProperty<string>
+    private isSystem: TrackableProperty<boolean>
 
     constructor(id: string, title: string, iconId: string, color:string='', isSystem=false) {
-        this.id = id
-        this.setTitle(title)
-        this.iconId = iconId
+        super(id)
+        this.title = new TrackableProperty<string>(title, this.markHasChange)
+        this.iconId = new TrackableProperty<string>(iconId, this.markHasChange)
         this.setColor(color)
-        this.isSystem = isSystem
-    }
 
-    setId(id: string) {
-        this.id = id 
-    }
+        this.isSystem = new TrackableProperty<boolean>(isSystem, this.markHasChange)
 
-    getId(): string {
-        return this.id
+        if (!isEmpty(color) && !isValidColor(color))
+            throw new ValueError(`Color: ${color} value not valid`)
+        this.color = new TrackableProperty<string>(color, this.markHasChange)
     }
 
     setTitle(title: string) {
-        if (this.title !== title)
-            this.change = true
-
-        this.title = formatted(title)
+        this.title.set(title, isStringDifferent)
     }
 
     getTitle(): string {
-        return reverseFormatted(this.title)
+        return this.title.get()
     }
 
     setColor(color:string) {
         if (!isEmpty(color) && !isValidColor(color))
             throw new ValueError(`Color: ${color} value not valid`)
-
-        if (this.color !== color) 
-            this.change = true
-
-        this.color = color
+        this.color.set(color)
     }
 
     setIconId(iconId: string) {
-        if (this.iconId !== iconId)
-            this.change = true
-
-        this.iconId = iconId
+        this.iconId.set(iconId)
     }
 
     getColor(): string {
-        return this.color
+        return this.color.get()
     }
 
     getIconId(): string {
-        return this.iconId
+        return this.iconId.get()
     }
 
     getIsSystem(): boolean {
-        return this.isSystem
+        return this.isSystem.get()
     }
 
     setIsSytem(isSystem: boolean) {
-        if (this.isSystem !== isSystem)
-            this.change = true
-
-        return this.isSystem
-    }
-
-    hasChange(): boolean {
-        return this.change
+        this.isSystem.set(isSystem)
     }
 }

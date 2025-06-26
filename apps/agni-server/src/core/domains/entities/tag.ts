@@ -1,66 +1,46 @@
 import { ValueError } from "@core/errors/valueError"
-import { formatted, isValidColor, isEmpty, reverseFormatted } from "../helpers"
+import { formatted, isValidColor, isEmpty, reverseFormatted, isStringDifferent } from "../helpers"
+import Entity, { TrackableProperty } from "./entity"
 
-export class Tag {
-    private id: string = ''
-    private value: string = ''
-    private color: string = ''
-    private isSystem: boolean = false
-
-    private change: boolean = false 
+export class Tag extends Entity {
+    private value: TrackableProperty<string>
+    private color: TrackableProperty<string>
+    private isSystem: TrackableProperty<boolean>
 
     constructor(id: string, value: string, color: string ='', isSystem: boolean=false) {
-        this.id = id
-        this.value = value
-        this.color = color
-        this.isSystem = isSystem
-    }
+        super(id)
+        this.value = new TrackableProperty<string>(value, this.markHasChange)
 
-    setId(id: string) {
-        this.id = id 
-    }
+        if (!isEmpty(color) && !isValidColor(color))
+            throw new ValueError(`Color: ${color} value not valid`)
+        this.color = new TrackableProperty<string>(color, this.markHasChange)
 
-    getId(): string {
-        return this.id 
+        this.isSystem = new TrackableProperty<boolean>(isSystem, this.markHasChange)
     }
 
     setColor(color: string) {
         if (!isEmpty(color) && !isValidColor(color))
             throw new ValueError(`Color: ${color} value not valid`)
-        
-        if (this.color !== color) 
-            this.change = true
-        
-        this.color = color
+        this.color.set(color)
     }
 
     getColor(): string {
-        return this.color
+        return this.color.get()
     }
 
     setValue(value: string) {
-        if (this.value !== value)
-            this.change = true
-
-        this.value = formatted(value)
+        this.value.set(value, isStringDifferent)
     }
 
     getValue(): string {
-        return reverseFormatted(this.value)
+        return this.value.get()
     }
 
     getIsSystem(): boolean {
-        return this.isSystem
+        return this.isSystem.get()
     }
 
     setIsSytem(isSystem: boolean) {
-        if (this.isSystem !== isSystem)
-            this.change = true
-
-        return this.isSystem
-    }
-
-    hasChange(): boolean {
-        return this.change
+        this.setIsSytem(isSystem)
     }
 }

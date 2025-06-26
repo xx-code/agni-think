@@ -12,6 +12,10 @@ export function formatted(value: string): string {
     return formattedValue;
 }
 
+export function isStringDifferent(a: string, b: string) {
+    return a.toLocaleLowerCase().trim() !== b.toLocaleLowerCase().trim()
+}
+
 export function reverseFormatted(formattedValue: string): string {
     let value = formattedValue.replace('_', ' ');
     value = value.toLowerCase();

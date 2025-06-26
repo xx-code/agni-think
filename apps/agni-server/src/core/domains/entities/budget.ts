@@ -1,141 +1,100 @@
 import { ValueError } from "../../../core/errors/valueError";
 import { Period } from "../constants";
-import { isEmpty } from "../helpers";
+import { isStringDifferent } from "../helpers";
+import Entity, { TrackableProperty } from "./entity";
 
-export class Budget {
-    protected id: string
-    protected isArchived: boolean
-    protected title: string 
-    protected target: number
-    protected dateStart: string 
-    protected dateUpdate: string 
-    protected period: Period | null
-    protected periodTime: number
-    protected dateEnd: string | null
-
-    private change: boolean = false
-
-        // computeCurrentSpend(records: Record[]): Money {
-    //     let price_records = records.map(record => record.amount);
-    //     let current_spend = price_records.reduce((accumulator, current_value) => accumulator + current_value.getAmount(), 0);
-        
-    //     let to_money = new Money(current_spend)
-
-    //     return to_money;
-    // }
+export class Budget extends Entity { 
+    private title: TrackableProperty<string> 
+    private target: TrackableProperty<number>
+    private dateStart: TrackableProperty<string> 
+    private dateUpdate: TrackableProperty<string> 
+    private period: TrackableProperty<Period | null>
+    private periodTime: TrackableProperty<number>
+    private dateEnd: TrackableProperty<string | null>
+    private isArchived: TrackableProperty<boolean>
 
     constructor(id: string, isArchive: boolean, target: number, title: string, dateStart: string, period: Period | null, 
         periodTime: number, dateEnd: string|null, dateUpdate: string) {
-        this.id = id
-        this.isArchived = isArchive
-        this.target = target
-        this.title = title
-        this.dateStart = dateStart
-        this.period = period
-        this.periodTime = periodTime
-        this.dateUpdate = dateUpdate
-        this.dateEnd = dateEnd
-    }
-
-    setId(id: string) {
-        this.id = id
-    }
-
-    getId() {
-        return this.id
+        super(id)
+        this.target = new TrackableProperty<number>(target, this.markHasChange) 
+        this.title = new TrackableProperty<string>(title, this.markHasChange)
+        this.dateStart = new TrackableProperty<string>(dateStart, this.markHasChange)
+        this.period = new TrackableProperty<Period|null>(period, this.markHasChange)
+        this.periodTime = new TrackableProperty<number>(periodTime, this.markHasChange)
+        this.dateUpdate = new TrackableProperty<string>(dateUpdate, this.markHasChange)
+        this.dateEnd = new TrackableProperty<string|null>(dateEnd, this.markHasChange)
+        this.isArchived = new TrackableProperty<boolean>(isArchive, this.markHasChange)
     }
 
     setIsArchive(isArchive: boolean) {
-        if (this.isArchived !== isArchive)
-            this.change = true
-        this.isArchived = isArchive
+        this.isArchived.set(isArchive)
     }
 
     getIsArchive(): boolean {
-        return this.isArchived
+        return this.isArchived.get()
     }
 
     setTitle(title: string) {
-        if (this.title !== title)
-            this.change = true
-
-        this.title = title
+        this.title.set(title, isStringDifferent)
     }
 
     getTitle(): string {
-        return this.title
+        return this.title.get()
     }
 
     setTarget(target: number) {
         if (target <= 0) 
             throw new ValueError("Target must be greater than 0")
-        
-        if (this.target !== target)
-            this.change = true 
-        this.target = target
+        this.target.set(target)
     }
 
     getTarget(): number {
-        return this.target
+        return this.target.get()
     }
 
 
     setDateStart(dateStart: string) {
-        if (this.dateStart !== dateStart)
-            this.change = true 
-        this.dateStart = dateStart
+        this.dateStart.set(dateStart)
     }
 
     getDateStart(): string {
-        return this.dateStart
+        return this.dateStart.get()
     }
 
     setDateEnd(dateEnd: string | null) {
-        if (this.dateEnd !== dateEnd)
-            this.change = true 
-        this.dateEnd = dateEnd
+        this.dateEnd.set(dateEnd)
     }
 
     getDateEnd(): string | null{
-        return this.dateEnd
+        return this.dateEnd.get()
     }
 
 
     setDateUpdate(dateUpdate: string) {
-        if (this.dateUpdate !== dateUpdate)
-            this.change = true 
-        this.dateUpdate = dateUpdate
+        this.dateUpdate.set(dateUpdate)
     }
 
     getDateUpdate(): string {
-        return this.dateUpdate
+        return this.dateUpdate.get()
     }
     
     setPeriod(period: Period|null) {
-        if (this.period !== period)
-            this.change = true 
-        this.period = period
+        this.period.set(period)
     }
 
     getPeriod(): Period | null {
-        return this.period
+        return this.period.get()
     }
 
     setPeriodTime(periodTime: number) {
         if (periodTime <= 0)
             throw new ValueError("Period time must be greater than 0")
 
-        if (this.periodTime !== periodTime)
-            this.change = true
-
-        this.periodTime = periodTime
+        this.periodTime.set(periodTime)
     }
 
     getPeriodTime(): number {
-        return this.periodTime
+        return this.periodTime.get()
     }
 
-    hasChange(): boolean {
-        return this.change
-    }
 }
