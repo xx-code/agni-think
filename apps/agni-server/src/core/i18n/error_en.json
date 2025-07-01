@@ -8,5 +8,6 @@
     "TAG_NOT_FOUND": "",
     "TAG_IN_USE": "",
     "TAG_ALREADAY_EXIST": "",
-    "CANT_DELETE_SYS_TAG": ""
+    "CANT_DELETE_SYS_TAG": "",
+    "SAVE_GAOL_NOT_FOUND": ""
 }

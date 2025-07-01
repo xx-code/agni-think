@@ -12,6 +12,8 @@ import { TransactionRepository } from "../../repositories/transactionRepository"
 import { ValueError } from "@core/errors/valueError";
 import { CategoryRepository } from "@core/repositories/categoryRepository";
 import { Category } from "@core/domains/entities/category";
+import { IUsecase } from "../interfaces";
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 
 
 export type RequestIncreaseSaveGoal = {
@@ -20,16 +22,7 @@ export type RequestIncreaseSaveGoal = {
     increaseAmount: number;
 }
 
-export interface IIncreaseSaveGoalUseCase {
-    execute(request: RequestIncreaseSaveGoal): void
-}
-
-export interface IIncreaseSaveGoalPresenter {
-    success(is_save: boolean): void;
-    fail(err: Error): void;
-}
-
-export class IncreaseSaveGoalUseCase implements IIncreaseSaveGoalUseCase {
+export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal, void> {
 
     private savingRepository: SavingRepository
     private accountRepository: AccountRepository
@@ -38,10 +31,8 @@ export class IncreaseSaveGoalUseCase implements IIncreaseSaveGoalUseCase {
     private recordRepository: RecordRepository;
     private dateService: DateService;
     private unitOfWork: UnitOfWorkRepository
-    private presenter: IIncreaseSaveGoalPresenter;
 
-    constructor(presenter: IIncreaseSaveGoalPresenter, categoryRepository: CategoryRepository, accountRepository: AccountRepository, savingRepository: SavingRepository, transactionRepository: TransactionRepository,  dateService: DateService, recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository) {
-        this.presenter = presenter
+    constructor(categoryRepository: CategoryRepository, accountRepository: AccountRepository, savingRepository: SavingRepository, transactionRepository: TransactionRepository,  dateService: DateService, recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository) {
         this.accountRepository = accountRepository
         this.categoryRepository = categoryRepository
         this.savingRepository = savingRepository
@@ -56,8 +47,12 @@ export class IncreaseSaveGoalUseCase implements IIncreaseSaveGoalUseCase {
             await this.unitOfWork.start()
 
             let savingGoal = await this.savingRepository.get(request.savingGoalRef)
+            if (savingGoal === null)
+                throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
             let account = await this.accountRepository.get(request.accountRef)
+            if (account === null)
+                throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
             let increaseAmount = new Money(request.increaseAmount)
 
@@ -95,11 +90,9 @@ export class IncreaseSaveGoalUseCase implements IIncreaseSaveGoalUseCase {
             await this.accountRepository.update(account)
 
             await this.unitOfWork.commit()
-            
-            this.presenter.success(true);
         } catch (err: any) {
             await this.unitOfWork.rollback()
-            this.presenter.fail(err)
+            throw err
         }
     }
 }
