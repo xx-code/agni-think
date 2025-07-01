@@ -8,10 +8,11 @@ import { AccountRepository } from "../../repositories/accountRepository";
 import { RecordRepository } from "../../repositories/recordRepository";
 import { SavingRepository } from "../../repositories/savingRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
-import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { ValueError } from "@core/errors/valueError";
 import { CategoryRepository } from "@core/repositories/categoryRepository";
 import { Category } from "@core/domains/entities/category";
+import { IUsecase } from "../interfaces";
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 
 
 export type RequestDecreaseSaveGoal = {
@@ -20,16 +21,7 @@ export type RequestDecreaseSaveGoal = {
     decreaseAmount: number;
 }
 
-export interface IDecreaseSaveGoalUseCase {
-    execute(request: RequestDecreaseSaveGoal): void
-}
-
-export interface IdecreaseSaveGoalPresenter {
-    success(is_save: boolean): void;
-    fail(err: Error): void;
-}
-
-export class DecreaseSaveGoalUseCase implements IDecreaseSaveGoalUseCase {
+export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal, void> {
 
     private savingRepository: SavingRepository
     private accountRepository: AccountRepository
@@ -38,10 +30,8 @@ export class DecreaseSaveGoalUseCase implements IDecreaseSaveGoalUseCase {
     private recordRepository: RecordRepository;
     private dateService: DateService;
     private unitOfWork: UnitOfWorkRepository
-    private presenter: IdecreaseSaveGoalPresenter;
 
-    constructor(presenter: IdecreaseSaveGoalPresenter, categoryRepository: CategoryRepository,  accountRepository: AccountRepository, savingRepository: SavingRepository, transactionRepository: TransactionRepository,  dateService: DateService, recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository) {
-        this.presenter = presenter
+    constructor(categoryRepository: CategoryRepository,  accountRepository: AccountRepository, savingRepository: SavingRepository, transactionRepository: TransactionRepository,  dateService: DateService, recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository) {
         this.categoryRepository = categoryRepository
         this.accountRepository = accountRepository
         this.savingRepository = savingRepository
@@ -56,8 +46,12 @@ export class DecreaseSaveGoalUseCase implements IDecreaseSaveGoalUseCase {
             await this.unitOfWork.start()
 
             let savingGoal = await this.savingRepository.get(request.savingGoalRef)
+            if (savingGoal === null)
+                throw new ResourceNotFoundError("SAVING_GOAL_NOT_FOUND")
 
             let account = await this.accountRepository.get(request.accountRef)
+            if (account === null)
+                throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND");
 
             let decreaseBalance = new Money(request.decreaseAmount)
 
@@ -91,11 +85,11 @@ export class DecreaseSaveGoalUseCase implements IDecreaseSaveGoalUseCase {
             await this.accountRepository.update(account)
 
             await this.unitOfWork.commit()
-            
-            this.presenter.success(true);
-        } catch (err: any) {
+        } 
+        catch(err: any)
+        {
             await this.unitOfWork.rollback()
-            this.presenter.fail(err)
+            throw err
         }
     }
 }

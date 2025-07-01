@@ -1,10 +1,8 @@
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { CategoryRepository } from "../../repositories/categoryRepository";
+import { IUsecase } from "../interfaces";
 
-export interface IGetCategoryUseCase {
-    execute(id: string): void;
-}
-
-export type CategoryResponse = {
+export type GetCategoryDto = {
     categoryId: string
     title: string
     icon: string
@@ -12,33 +10,24 @@ export type CategoryResponse = {
     isSystem: boolean
 }
 
-export interface IGetCategoryUseCaseResponse {
-    success(category: CategoryResponse): void;
-    fail(err: Error): void;
-}
-
-export class GetCategoryUseCase implements IGetCategoryUseCase {
+export class GetCategoryUseCase implements IUsecase<string, GetCategoryDto> {
     private repository: CategoryRepository;
-    private presenter: IGetCategoryUseCaseResponse;
 
-    constructor(repo: CategoryRepository, presenter: IGetCategoryUseCaseResponse) {
+    constructor(repo: CategoryRepository) {
         this.repository = repo;
-        this.presenter = presenter;
     }
 
-    async execute(id: string): Promise<void> {
-        try {
-            let category = await this.repository.get(id);
- 
-            this.presenter.success({
-                categoryId: category.getId(),
-                icon: category.getIconId(),
-                title: category.getTitle(),
-                color: category.getColor(),
-                isSystem: category.getIsSystem()
-            });
-        } catch(err) {
-            this.presenter.fail(err as Error);
+    async execute(id: string): Promise<GetCategoryDto> {
+        let category = await this.repository.get(id);
+        if (category == null)
+            throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
+
+        return {
+            categoryId: category.getId(),
+            icon: category.getIconId(),
+            title: category.getTitle(),
+            color: category.getColor(),
+            isSystem: category.getIsSystem()
         }
     }
 }

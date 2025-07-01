@@ -1,47 +1,34 @@
+import { ListDto } from "@core/dto/base";
 import { TagRepository } from "../../repositories/tagRepository";
+import { IUsecase } from "../interfaces";
 
-export type TagsOutput = {
+export type GetAllTagDto = {
     id: string
     value: string
     color: string|null
     isSystem: boolean
 }
- 
-export interface IGetAllTagUseCase {
-    execute(): void;
-}
 
-export interface IGetAllTagUseCaseResponse {
-    success(tags: TagsOutput[]): void;
-    fail(err: Error): void;
-}
-
-export class GetAllTagUseCase implements IGetAllTagUseCase {
+export class GetAllTagUseCase implements IUsecase<void, ListDto<GetAllTagDto>> {
     private repository: TagRepository;
-    private presenter: IGetAllTagUseCaseResponse;
 
-    constructor(repo: TagRepository, presenter: IGetAllTagUseCaseResponse) {
+    constructor(repo: TagRepository) {
         this.repository = repo;
-        this.presenter = presenter;
     }
 
-    async execute(): Promise<void> {
-        try {
-            let results = await this.repository.getAll();
+    async execute(): Promise<ListDto<GetAllTagDto>> {
+        let results = await this.repository.getAll();
 
-            let tags: TagsOutput[] = []
-            for(let result of results) {
-                tags.push({
-                    id: result.getId(),
-                    value: result.getValue(),
-                    color: result.getColor(),
-                    isSystem: result.getIsSystem()
-                })
-            }  
+        let tags: GetAllTagDto[] = []
+        for(let result of results) {
+            tags.push({
+                id: result.getId(),
+                value: result.getValue(),
+                color: result.getColor(),
+                isSystem: result.getIsSystem()
+            })
+        }  
 
-            this.presenter.success(tags);
-        } catch(err) {
-            this.presenter.fail(err as Error);
-        }
+        return { items: tags, totals: tags.length }
     }
 }

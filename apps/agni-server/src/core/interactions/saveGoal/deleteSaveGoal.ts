@@ -7,47 +7,40 @@ import { TransactionRepository } from "../../repositories/transactionRepository"
 import { DateService, GetUID } from "@core/adapters/libs";
 import { RecordRepository } from "@core/repositories/recordRepository";
 import { Record, TransactionType } from "@core/domains/entities/record";
+import { IUsecase } from "../interfaces";
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 
 export type RequestDeleteSaveGoal = {
     saveGoalRef: string
     accountTranfertRef: string
 }
 
-export interface IDeleteSaveGoalUseCase {
-    execute(request: RequestDeleteSaveGoal): void
-}
-
-export interface IDeleteSaveGoalPresenter {
-    success(isDelete: boolean): void;
-    fail(err: Error): void;
-}
 
 export interface IDeleteSaveGaolAdapter {
-    transactionRepository: TransactionRepository
-    accountRepository: AccountRepository
-    savingRepository: SavingRepository
-    dateService: DateService
-    recordRepository: RecordRepository
-    unitOfWorkRepository: UnitOfWorkRepository
+    
 }
 
-export class DeleteSaveGoalUseCase implements IDeleteSaveGoalUseCase {
+export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, void> {
     private transactionRepo: TransactionRepository
     private accountRepo: AccountRepository
     private savingRepo: SavingRepository
     private recordRepo: RecordRepository
     private unitOfWork: UnitOfWorkRepository
     private dateService: DateService
-    private presenter: IDeleteSaveGoalPresenter
 
-    constructor(adapter: IDeleteSaveGaolAdapter, presenter: IDeleteSaveGoalPresenter) {
-        this.presenter = presenter
-        this.transactionRepo = adapter.transactionRepository
-        this.dateService = adapter.dateService
-        this.recordRepo = adapter.recordRepository
-        this.accountRepo = adapter.accountRepository
-        this.unitOfWork = adapter.unitOfWorkRepository
-        this.savingRepo = adapter.savingRepository
+    constructor(transactionRepository: TransactionRepository,
+        accountRepository: AccountRepository,
+        savingRepository: SavingRepository,
+        dateService: DateService,
+        recordRepository: RecordRepository,
+        unitOfWorkRepository: UnitOfWorkRepository
+    ) {
+        this.transactionRepo = transactionRepository
+        this.dateService = dateService
+        this.recordRepo = recordRepository
+        this.accountRepo = accountRepository
+        this.unitOfWork = unitOfWorkRepository
+        this.savingRepo = savingRepository
     }
 
     async execute(request: RequestDeleteSaveGoal): Promise<void> {
@@ -55,8 +48,12 @@ export class DeleteSaveGoalUseCase implements IDeleteSaveGoalUseCase {
             await this.unitOfWork.start()
 
             let savingGoal = await this.savingRepo.get(request.saveGoalRef)
+            if (savingGoal == null)
+                throw new ResourceNotFoundError("SAVING_GOAL_NOT_FOUND")
 
             let accountTranfert = await this.accountRepo.get(request.accountTranfertRef)
+            if (accountTranfert == null)
+                throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
             let date = this.dateService.getTodayWithTime()
 
@@ -76,10 +73,9 @@ export class DeleteSaveGoalUseCase implements IDeleteSaveGoalUseCase {
 
             await this.unitOfWork.commit()
 
-            this.presenter.success(true)
         } catch(err: any) {
             await this.unitOfWork.rollback()
-            this.presenter.fail(err)
+            throw err
         }
     }
 }
