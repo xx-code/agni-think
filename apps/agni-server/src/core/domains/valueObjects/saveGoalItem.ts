@@ -23,4 +23,12 @@ export default class SaveGoalItem extends ValueObject {
 
         return true
     }
+
+    toJson(): string {
+        throw new Error("Method not implemented.");
+    }
+
+    fromJson(string: string): SaveGoalItem {
+        throw new Error("Method not implemented.");
+    }
 } 

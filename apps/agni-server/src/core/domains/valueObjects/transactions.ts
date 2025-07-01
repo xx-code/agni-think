@@ -1,6 +1,6 @@
 import ValueObject from "./valueObject";
 
-export class TransactionBudget extends ValueObject {
+export class TransactionBudget extends ValueObject { 
     public budgetId: string = ''
     
     constructor(budgetId: string = '') {
@@ -13,6 +13,13 @@ export class TransactionBudget extends ValueObject {
             return false
 
         return true
+    }
+
+    toJson(): string {
+        return JSON.stringify({budgetId: this.budgetId})
+    }
+    fromJson(string: string): TransactionBudget {
+        throw new Error("Method not implemented.");
     }
 }
 
@@ -29,5 +36,12 @@ export class TransactionTag extends ValueObject {
             return false
 
         return true
+    }
+
+    toJson(): string {
+        return JSON.stringify({tagId: this.tagId})
+    }
+    fromJson(string: string): TransactionTag {
+        throw new Error("Method not implemented.");
     }
 }
