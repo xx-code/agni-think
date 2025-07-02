@@ -6,7 +6,7 @@ import { Category } from "@core/domains/entities/category";
 import { Record, TransactionType } from '@core/domains/entities/record';
 import { Tag } from "@core/domains/entities/tag";
 import { GetUID } from "@core/adapters/libs";
-import { AccountType, mapperTransactionType, TransactionMainCategory } from "@core/domains/constants";
+import { AccountType, mapperTransactionType, TransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { Transaction } from "@core/domains/entities/transaction";
 import { SystemSeeder } from "./seeder";
@@ -127,15 +127,15 @@ export class DbMigration {
                     
                     await this.di.getRepository('record').save(record)
 
-                    let typeTrans = TransactionMainCategory.VARIABLECOST
+                    let typeTrans = TransactionType.VARIABLECOST
                     if (['LOYER', 'SANTÉ_ET_SOINS', 'TÉLÉPHONE', 'MAISON_ET_ENTRETIEN'].includes(category.getTitle()))
-                        typeTrans = TransactionMainCategory.FIXEDCOST
+                        typeTrans = TransactionType.FIXEDCOST
 
                     if(['TRANSFERT', 'SAVING'].includes(category.getTitle())) 
-                        typeTrans = TransactionMainCategory.OTHER
+                        typeTrans = TransactionType.OTHER
 
                     if (record.getType() === TransactionType.CREDIT)
-                        typeTrans = TransactionMainCategory.INCOME
+                        typeTrans = TransactionType.INCOME
 
                     let newTransaction = new Transaction(GetUID(), account.getId(), record.getId(), 
                     category.getId(), record.getDate(), typeTrans, tags.map(t => t.getId()))

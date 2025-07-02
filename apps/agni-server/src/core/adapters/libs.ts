@@ -8,11 +8,11 @@ export const GetUID = () => {
 }
 
 export interface DateService {
-    formatDate(date: string): string
-    formatDateWithtime(date: string): string
-    getTodayWithTime(): string 
-    getToday(): string
-    getDateAddition(date: string, period: Period, periodTime: number): string
+    formatDate(date: string): Date
+    formatDateWithtime(date: string): Date
+    getTodayWithTime(): Date 
+    getToday(): Date
+    getDateAddition(date: Date, period: Period, periodTime: number): Date
     compareDate(date1: string, date2: string): 0|1|-1
 }
 

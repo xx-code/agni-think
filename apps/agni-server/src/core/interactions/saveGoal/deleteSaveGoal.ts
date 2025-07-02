@@ -1,4 +1,4 @@
-import { SAVING_CATEGORY_ID, TransactionMainCategory } from "@core/domains/constants";
+import { SAVING_CATEGORY_ID, TransactionType } from "@core/domains/constants";
 import { Transaction } from "@core/domains/entities/transaction";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { AccountRepository } from "../../repositories/accountRepository";
@@ -59,7 +59,7 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
 
             let newRecord = new Record(GetUID(), savingGoal.getBalance(), date, TransactionType.CREDIT, "Deposit from " + savingGoal.getDescription())
             let newTransaction = new Transaction(GetUID(), accountTranfert.getId(), newRecord.getId(), SAVING_CATEGORY_ID, 
-            date, TransactionMainCategory.OTHER, [])
+            date, TransactionType.OTHER, [])
 
             accountTranfert.addOnBalance(savingGoal.getBalance())
 

@@ -1,7 +1,7 @@
 import { TransactionPaginationResponse } from "../domains/metaData/transaction";
 import { Money } from "../domains/entities/money";
 import { Transaction } from "../domains/entities/transaction";
-import { TransactionMainCategory } from "@core/domains/constants";
+import { TransactionType } from "@core/domains/constants";
 
 export type TransactionFilter = {
     accounts: Array<string>;
@@ -10,7 +10,7 @@ export type TransactionFilter = {
     tags: Array<string>;
     startDate: string
     endDate: string
-    types: TransactionMainCategory[],
+    types: TransactionType[],
     minPrice: Money | null
     maxPrice: Money | null
 }

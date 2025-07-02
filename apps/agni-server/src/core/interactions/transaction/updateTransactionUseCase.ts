@@ -4,7 +4,7 @@ import { TagRepository } from "../../repositories/tagRepository";
 import { CategoryRepository } from "../../repositories/categoryRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
 import { DateService } from "@core/adapters/libs";
-import { FREEZE_CATEGORY_ID, mapperMainTransactionCategory, mapperTransactionType, SAVING_CATEGORY_ID, TransactionMainCategory } from "@core/domains/constants";
+import { FREEZE_CATEGORY_ID, mapperMainTransactionCategory, mapperTransactionType, SAVING_CATEGORY_ID, TransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
@@ -114,7 +114,7 @@ export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
             
             record.setDescription(request.description)
 
-            record.setType(type === TransactionMainCategory.INCOME ? TransactionType.CREDIT : TransactionType.DEBIT)
+            record.setType(type === TransactionType.INCOME ? TransactionType.CREDIT : TransactionType.DEBIT)
             let date = this.dateService.formatDateWithtime(request.date)
             record.setDate(date)
 

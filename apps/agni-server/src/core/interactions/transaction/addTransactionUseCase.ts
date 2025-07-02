@@ -4,7 +4,7 @@ import { CategoryRepository } from "../../repositories/categoryRepository"
 import { TagRepository } from "../../repositories/tagRepository"
 import { RecordRepository } from "../../repositories/recordRepository"
 import { DateService, GetUID } from "@core/adapters/libs"
-import { mapperMainTransactionCategory, mapperTransactionType, TransactionMainCategory } from "@core/domains/constants"
+import { mapperMainTransactionCategory, mapperTransactionType, TransactionType } from "@core/domains/constants"
 import { Money } from "@core/domains/entities/money"
 import { Record, TransactionType } from "@core/domains/entities/record"
 import { Transaction } from "@core/domains/entities/transaction"
@@ -95,7 +95,7 @@ export class AddTransactionUseCase implements IAddTransactionUseCase {
                 GetUID(), 
                 amount, 
                 date, 
-                type === TransactionMainCategory.INCOME ? TransactionType.CREDIT : TransactionType.DEBIT, 
+                type === TransactionType.INCOME ? TransactionType.CREDIT : TransactionType.DEBIT, 
                 request.description)
             await this.recordRepository.save(newRecord)
 

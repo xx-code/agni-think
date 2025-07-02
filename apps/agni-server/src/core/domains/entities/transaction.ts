@@ -1,4 +1,4 @@
-import { TransactionMainCategory } from '@core/domains/constants';
+import { TransactionType, TransactionStatus } from '@core/domains/constants';
 import Entity, { TrackableProperty } from "./entity";
 import { ValueObjectCollection } from "../valueObjects/collection";
 import { TransactionBudget, TransactionTag } from "../valueObjects/transactions";
@@ -12,13 +12,14 @@ export class Transaction extends Entity {
     private categoryRef: TrackableProperty<string>
     private recordRef: TrackableProperty<string>
     private date: TrackableProperty<string>
-    private type: TrackableProperty<TransactionMainCategory>
+    private type: TrackableProperty<TransactionType>
+    private status: TrackableProperty<TransactionStatus>
 
     private isFreeze: boolean
 
 
     constructor(id: string, accountRef: string, recordRef: string, categoryRef: string,  date: string, 
-        type: TransactionMainCategory, tagRefs: string[]=[], budgetRefs: string[]=[]) {
+        type: TransactionType, status: TransactionStatus, tagRefs: string[]=[], budgetRefs: string[]=[]) {
         super(id)
         this.accountRef = new TrackableProperty<string>(accountRef, this.markHasChange)
         this.recordRef = new TrackableProperty<string>(recordRef, this.markHasChange)
@@ -27,7 +28,8 @@ export class Transaction extends Entity {
         this.categoryRef = new TrackableProperty<string>(categoryRef, this.markHasChange)
         this.isFreeze = false;
         this.date = new TrackableProperty<string>(date, this.markHasChange)
-        this.type = new TrackableProperty<TransactionMainCategory>(type, this.markHasChange)
+        this.type = new TrackableProperty<TransactionType>(type, this.markHasChange)
+        this.status = new TrackableProperty<TransactionStatus>(status, this.markHasChange)
     }
 
     setTags(tagRefs: string[]) {
@@ -87,7 +89,7 @@ export class Transaction extends Entity {
     }
 
     setRecordRef(recordRef: string) {
-        this.setRecordRef(recordRef)
+        this.recordRef.set(recordRef)
     }
 
     getRecordRef(): string {
@@ -102,12 +104,19 @@ export class Transaction extends Entity {
         return this.date.get()
     }
 
-    setTransactionType(type: TransactionMainCategory) {
+    setTransactionType(type: TransactionType) {
         this.type.set(type)
     }
 
-    getTransactionType(): TransactionMainCategory {
+    getTransactionType(): TransactionType {
         return this.type.get()
     }
 
+    setStatus(newStatus: TransactionStatus) {
+        this.setStatus(newStatus)
+    }
+
+    getStatus(): TransactionStatus {
+        return this.status.get()
+    }
 }

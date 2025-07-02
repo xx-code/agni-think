@@ -5,7 +5,7 @@ import { RecordRepository } from "../../repositories/recordRepository";
 import { TagRepository } from "../../repositories/tagRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
 import { DateService, GetUID } from "@core/adapters/libs";
-import { FREEZE_CATEGORY_ID, TransactionMainCategory } from "@core/domains/constants";
+import { FREEZE_CATEGORY_ID, TransactionType } from "@core/domains/constants";
 import { Category } from "@core/domains/entities/category";
 import { Money } from "@core/domains/entities/money";
 import { Record, TransactionType } from "@core/domains/entities/record";
@@ -76,7 +76,7 @@ export class AddFreezeBalanceUseCase implements IAddFreezeBalanceUseCase {
 
             await this.accountRepository.update(fetchedAccount)
 
-            let newTransaction = new Transaction(GetUID(), request.accountRef, newRecord.getId(), FREEZE_CATEGORY_ID, endDate, TransactionMainCategory.OTHER)
+            let newTransaction = new Transaction(GetUID(), request.accountRef, newRecord.getId(), FREEZE_CATEGORY_ID, endDate, TransactionType.OTHER)
             newTransaction.setIsFreeze()
             
             await this.transactionRepository.save(newTransaction)

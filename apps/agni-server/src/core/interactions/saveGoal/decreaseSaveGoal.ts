@@ -1,5 +1,5 @@
 import { DateService, GetUID } from "@core/adapters/libs";
-import { SAVING_CATEGORY_ID, TransactionMainCategory } from "@core/domains/constants";
+import { SAVING_CATEGORY_ID, TransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { Record, TransactionType } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
@@ -77,7 +77,7 @@ export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal
 
             let idTransTo = GetUID()
             let newTransactionTo = new Transaction(idTransTo, request.accountRef, idRecordSaving, 
-                SAVING_CATEGORY_ID, date, TransactionMainCategory.OTHER)
+                SAVING_CATEGORY_ID, date, TransactionType.OTHER)
             await this.transactionRepository.save(newTransactionTo)
 
             await this.savingRepository.update(savingGoal)

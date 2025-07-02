@@ -1,15 +1,17 @@
 import { ValueError } from "@core/errors/valueError"
-import { TransactionType } from "./entities/record"
 
-// TODO: #refactoring
+export enum RecordType {
+    CREDIT = 'credit',
+    DEBIT = 'Debit'
+}
 
 export enum Period {
     YEAR = 'Year',
     MONTH = 'Month',
     WEEK = 'Week',
-    DAY = 'Day',
-    UNDETERMINED ='Undetermined'
+    DAY = 'Day'
 }
+
 
 export enum AccountType {
     CHECKING = "Checking",
@@ -18,7 +20,7 @@ export enum AccountType {
     BROKING = "Broking"
 }
 
-export enum TransactionMainCategory {
+export enum TransactionType {
     INCOME = "Income",
     FIXEDCOST = "FixedCost",
     VARIABLECOST = "VariableCost",
@@ -94,12 +96,12 @@ export function mapperTypeAccount(value: string): AccountType {
     }
 }
 
-export function mapperTransactionType(value: string): TransactionType {
+export function mapperTransactionType(value: string): RecordType {
     switch (value.toLowerCase()) {
-        case TransactionType.CREDIT.toLowerCase():
-            return TransactionType.CREDIT
-        case TransactionType.DEBIT.toLowerCase():
-            return TransactionType.DEBIT
+        case RecordType.CREDIT.toLowerCase():
+            return RecordType.CREDIT
+        case RecordType.DEBIT.toLowerCase():
+            return RecordType.DEBIT
         default:
             throw new ValueError("RECORD_TYPE_NOT_VALID")
     }
@@ -107,14 +109,14 @@ export function mapperTransactionType(value: string): TransactionType {
 
 export function mapperMainTransactionCategory(value: string) {
     switch (value.toLowerCase()) {
-        case TransactionMainCategory.FIXEDCOST.toLowerCase():
-            return TransactionMainCategory.FIXEDCOST
-        case TransactionMainCategory.INCOME.toLowerCase():
-            return TransactionMainCategory.INCOME
-        case TransactionMainCategory.VARIABLECOST.toLowerCase():
-            return TransactionMainCategory.VARIABLECOST
-        case TransactionMainCategory.OTHER.toLowerCase():
-            return TransactionMainCategory.OTHER
+        case TransactionType.FIXEDCOST.toLowerCase():
+            return TransactionType.FIXEDCOST
+        case TransactionType.INCOME.toLowerCase():
+            return TransactionType.INCOME
+        case TransactionType.VARIABLECOST.toLowerCase():
+            return TransactionType.VARIABLECOST
+        case TransactionType.OTHER.toLowerCase():
+            return TransactionType.OTHER
         default:
             throw new ValueError("TRANSACTION_TYPE_NOT_VALID")
     }
