@@ -2,14 +2,16 @@ import { RecordRepository } from "../../repositories/recordRepository";
 import { AccountRepository } from "../../repositories/accountRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
 import { DateService, GetUID } from "@core/adapters/libs";
-import { FREEZE_CATEGORY_ID, TransactionType, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
+import { FREEZE_CATEGORY_ID, RecordType, TransactionStatus, TransactionType, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
-import { Record, TransactionType } from "@core/domains/entities/record";
+import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
 import { ValueError } from "@core/errors/valueError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
-import { CategoryRepository } from "@core/repositories/categoryRepository";
 import { Category } from "@core/domains/entities/category";
+import { IUsecase } from "../interfaces";
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export type RequestTransfertTransactionUseCase = {
@@ -19,42 +21,23 @@ export type RequestTransfertTransactionUseCase = {
     amount: number;
 }
 
-interface ITransfertTransactionUseCase {
-    execute(request: RequestTransfertTransactionUseCase): void
-}
-
-export interface ITransfertTransactionUseCaseResponse {
-    success(isTransfert: boolean): void
-    fail(err: Error): void
-}
-
-export interface ITransfertTransactionAdapter {
-    transactionRepository: TransactionRepository
-    recordRepository: RecordRepository
-    accountRepository: AccountRepository
-    categoryRepository: CategoryRepository
-    dateService: DateService
-    unitOfWork: UnitOfWorkRepository
-}
-
-export class TransfertTransactionUseCase implements ITransfertTransactionUseCase {
+export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTransactionUseCase, void> {
     private transactionRepository: TransactionRepository
-    private recordRepository: RecordRepository
     private accountRepository: AccountRepository
-    private categoryRepository: CategoryRepository
-    private dateService: DateService
+    private recordRepository: RecordRepository
     private unitOfWork: UnitOfWorkRepository
 
-    private presenter: ITransfertTransactionUseCaseResponse;
 
-    constructor(adapter: ITransfertTransactionAdapter, presenter: ITransfertTransactionUseCaseResponse) {
-        this.transactionRepository = adapter.transactionRepository
-        this.recordRepository = adapter.recordRepository
-        this.categoryRepository = adapter.categoryRepository
-        this.dateService = adapter.dateService
-        this.accountRepository = adapter.accountRepository
-        this.unitOfWork = adapter.unitOfWork
-        this.presenter = presenter;
+    constructor(
+        transactionRepository: TransactionRepository,
+        accountRepository: AccountRepository,
+        recordRepository: RecordRepository,
+        unitOfWork: UnitOfWorkRepository
+    ) {
+        this.transactionRepository = transactionRepository
+        this.accountRepository = accountRepository
+        this.recordRepository = recordRepository
+        this.unitOfWork = unitOfWork
     }
 
     async execute(request: RequestTransfertTransactionUseCase): Promise<void> {
@@ -62,18 +45,17 @@ export class TransfertTransactionUseCase implements ITransfertTransactionUseCase
             await this.unitOfWork.start()
 
             let accountFrom = await this.accountRepository.get(request.accountRefFrom);
+            if (accountFrom === null)
+                throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
  
             let accountTo = await this.accountRepository.get(request.accountRefTo);
+            if (accountTo === null)
+                throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
             let amount = new Money(request.amount)
 
-            if (!(await this.categoryRepository.isCategoryExistById(FREEZE_CATEGORY_ID))) {
-                let new_category = new Category(FREEZE_CATEGORY_ID, 'Freeze', 'freeze')
-                await this.categoryRepository.save(new_category)
-            }
-
             if (accountFrom.getBalance() < amount.getAmount())
-                throw new ValueError('Price must be less than balance from 0')
+                throw new ValueError('AMOUNT_TRANSFERT_MUST_BE_LEAST_THAN_ACCOUNT_BALANCE')
 
             accountFrom.substractBalance(amount)
             accountTo.addOnBalance(amount)
@@ -81,31 +63,28 @@ export class TransfertTransactionUseCase implements ITransfertTransactionUseCase
             await this.accountRepository.update(accountFrom)
             await this.accountRepository.update(accountTo)
 
-            let date = this.dateService.formatDateWithtime(request.date)
+            let date = MomentDateService.formatDateWithtime(request.date).toString()
             
-            let fromRecord: Record = new Record(GetUID(), amount, date, TransactionType.DEBIT)
+            let fromRecord: Record = new Record(GetUID(), amount, date, RecordType.DEBIT)
             fromRecord.setDescription(`Transfert du compte ${accountFrom.getTitle()}`) 
 
-            let toRecord: Record = new Record(GetUID(), amount, date, TransactionType.CREDIT)
+            let toRecord: Record = new Record(GetUID(), amount, date, RecordType.CREDIT)
             toRecord.setDescription(`Transfert au compte ${accountTo.getTitle()}`)
 
             await this.recordRepository.save(fromRecord);
 
             await this.recordRepository.save(toRecord);
 
-            let transFrom = new Transaction(GetUID(), accountFrom.getId(), fromRecord.getId(), TRANSFERT_CATEGORY_ID, date, TransactionType.OTHER)
+            let transFrom = new Transaction(GetUID(), accountFrom.getId(), fromRecord.getId(), TRANSFERT_CATEGORY_ID, date, TransactionType.OTHER, TransactionStatus.COMPLETE)
             await this.transactionRepository.save(transFrom)
 
-            let transTo = new Transaction(GetUID(), accountTo.getId(), toRecord.getId(), TRANSFERT_CATEGORY_ID, date, TransactionType.OTHER)
+            let transTo = new Transaction(GetUID(), accountTo.getId(), toRecord.getId(), TRANSFERT_CATEGORY_ID, date, TransactionType.OTHER, TransactionStatus.COMPLETE)
             await this.transactionRepository.save(transTo);
 
             await this.unitOfWork.commit()
-
-            this.presenter.success(true);
         } catch (err) {
             await this.unitOfWork.rollback()
-
-            this.presenter.fail(err as Error);
+            throw err
         }
     }
 }

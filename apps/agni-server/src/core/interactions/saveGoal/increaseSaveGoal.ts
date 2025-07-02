@@ -1,7 +1,7 @@
 import { DateService, GetUID } from "@core/adapters/libs";
-import { SAVING_CATEGORY_ID, TransactionType } from "@core/domains/constants";
+import { RecordType, SAVING_CATEGORY_ID, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
-import { Record, TransactionType } from "@core/domains/entities/record";
+import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
 import ValidationError from "@core/errors/validationError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
@@ -75,13 +75,13 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
             let date = this.dateService.getTodayWithTime()
 
             let idRecordFrom = GetUID()
-            let newRecordFrom = new Record(idRecordFrom, increaseAmount, date, TransactionType.DEBIT)
+            let newRecordFrom = new Record(idRecordFrom, increaseAmount, date.toString(), RecordType.DEBIT)
             newRecordFrom.setDescription('Saving ' + savingGoal.getTitle()) 
             await this.recordRepository.save(newRecordFrom)
        
             let idTransFrom = GetUID()
-            let newTransactionFrom = new Transaction(idTransFrom, request.accountRef, idRecordFrom, SAVING_CATEGORY_ID, date,
-                TransactionType.OTHER
+            let newTransactionFrom = new Transaction(idTransFrom, request.accountRef, idRecordFrom, SAVING_CATEGORY_ID, date.toString(),
+                TransactionType.OTHER, TransactionStatus.COMPLETE,
             )
             await this.transactionRepository.save(newTransactionFrom);
             

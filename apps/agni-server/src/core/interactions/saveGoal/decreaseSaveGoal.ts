@@ -1,7 +1,7 @@
-import { DateService, GetUID } from "@core/adapters/libs";
-import { SAVING_CATEGORY_ID, TransactionType } from "@core/domains/constants";
+import { GetUID } from "@core/adapters/libs";
+import { RecordType, SAVING_CATEGORY_ID, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
-import { Record, TransactionType } from "@core/domains/entities/record";
+import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { AccountRepository } from "../../repositories/accountRepository";
@@ -13,6 +13,7 @@ import { CategoryRepository } from "@core/repositories/categoryRepository";
 import { Category } from "@core/domains/entities/category";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export type RequestDecreaseSaveGoal = {
@@ -28,15 +29,13 @@ export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal
     private transactionRepository: TransactionRepository;
     private categoryRepository: CategoryRepository;
     private recordRepository: RecordRepository;
-    private dateService: DateService;
     private unitOfWork: UnitOfWorkRepository
 
-    constructor(categoryRepository: CategoryRepository,  accountRepository: AccountRepository, savingRepository: SavingRepository, transactionRepository: TransactionRepository,  dateService: DateService, recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository) {
+    constructor(categoryRepository: CategoryRepository,  accountRepository: AccountRepository, savingRepository: SavingRepository, transactionRepository: TransactionRepository, recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository) {
         this.categoryRepository = categoryRepository
         this.accountRepository = accountRepository
         this.savingRepository = savingRepository
         this.transactionRepository = transactionRepository
-        this.dateService = dateService
         this.recordRepository = recordRepository
         this.unitOfWork = unitOfWork
     }
@@ -68,16 +67,16 @@ export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal
             account.addOnBalance(decreaseBalance)
 
             // transfert between account check transfert usecase
-            let date = this.dateService.getTodayWithTime()
+            let date = MomentDateService.getTodayWithTime().toString()
 
             let idRecordSaving = GetUID()
-            let newRecordSaving = new Record(idRecordSaving, decreaseBalance, date, TransactionType.CREDIT)
+            let newRecordSaving = new Record(idRecordSaving, decreaseBalance, date.toString(), RecordType.CREDIT)
             newRecordSaving.setDescription('Saving ' + savingGoal.getTitle())
             await this.recordRepository.save(newRecordSaving)
 
             let idTransTo = GetUID()
             let newTransactionTo = new Transaction(idTransTo, request.accountRef, idRecordSaving, 
-                SAVING_CATEGORY_ID, date, TransactionType.OTHER)
+                SAVING_CATEGORY_ID, date, TransactionType.OTHER, TransactionStatus.COMPLETE,)
             await this.transactionRepository.save(newTransactionTo)
 
             await this.savingRepository.update(savingGoal)

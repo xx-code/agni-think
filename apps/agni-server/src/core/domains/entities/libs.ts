@@ -92,7 +92,7 @@ export class MomentDateService {
         return new Date(dateFormat) 
     }
 
-    compareDate(date1: string, date2: string): 0 | 1 | -1 {
+    static compareDate(date1: string, date2: string): 0 | 1 | -1 {
         MomentDateService.assertValidDate(date1)
         MomentDateService.assertValidDate(date2)
 
