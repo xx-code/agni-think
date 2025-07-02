@@ -1,5 +1,4 @@
 import { ValueError } from "../../../core/errors/valueError";
-import { Period } from "../constants";
 import { isStringDifferent } from "../helpers";
 import { Scheduler } from "../valueObjects/scheduleInfo";
 import Entity, { TrackableProperty } from "./entity";

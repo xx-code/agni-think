@@ -15,7 +15,7 @@ export class ScheduleTransaction extends Entity {
     private scheduler: TrackableProperty<Scheduler>
     private amount: TrackableProperty<Money>
     private isPause: TrackableProperty<boolean>
-
+    
     constructor(id: string, name: string, accountRef: string, categoryRef: string, amount: Money, 
         type: TransactionType, scheduler: Scheduler, isPause: boolean=false, tagRefs: string[]=[]) {
         super(id)
