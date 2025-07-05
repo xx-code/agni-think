@@ -1,4 +1,4 @@
-import { SAVING_CATEGORY_ID, TransactionMainCategory } from "@core/domains/constants";
+import { RecordType, SAVING_CATEGORY_ID, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { Transaction } from "@core/domains/entities/transaction";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { AccountRepository } from "../../repositories/accountRepository";
@@ -6,9 +6,9 @@ import { SavingRepository } from "../../repositories/savingRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
 import { DateService, GetUID } from "@core/adapters/libs";
 import { RecordRepository } from "@core/repositories/recordRepository";
-import { Record, TransactionType } from "@core/domains/entities/record";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { Record } from "@core/domains/entities/record";
 
 export type RequestDeleteSaveGoal = {
     saveGoalRef: string
@@ -57,9 +57,9 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
 
             let date = this.dateService.getTodayWithTime()
 
-            let newRecord = new Record(GetUID(), savingGoal.getBalance(), date, TransactionType.CREDIT, "Deposit from " + savingGoal.getDescription())
+            let newRecord = new Record(GetUID(), savingGoal.getBalance(), date.toString(), RecordType.CREDIT, "Deposit from " + savingGoal.getDescription())
             let newTransaction = new Transaction(GetUID(), accountTranfert.getId(), newRecord.getId(), SAVING_CATEGORY_ID, 
-            date, TransactionMainCategory.OTHER, [])
+            date.toString(), TransactionType.OTHER, TransactionStatus.COMPLETE, [])
 
             accountTranfert.addOnBalance(savingGoal.getBalance())
 

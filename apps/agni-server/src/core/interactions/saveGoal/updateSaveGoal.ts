@@ -1,4 +1,3 @@
-import { GetUID } from "@core/adapters/libs"
 import { Money } from "@core/domains/entities/money"
 import { ValueError } from "@core/errors/valueError"
 import { SavingRepository } from "@core/repositories/savingRepository"

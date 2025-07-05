@@ -1,28 +1,11 @@
-import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { CategoryRepository } from "@core/repositories/categoryRepository";
 import { RecordRepository } from "@core/repositories/recordRepository";
 import { TagRepository } from "@core/repositories/tagRepository";
 import { TransactionRepository } from "@core/repositories/transactionRepository";
+import { IUsecase } from "../interfaces";
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 
-
-export interface IGetTransactionUseCase {
-    execute(id: string): void;   
-}
-
-export type TransactionCategoryResponse = {
-    id: string
-    title: string,
-    icon: string,
-    color: string|null
-}
-
-export type TransactionTagResponse = {
-    id: string
-    value: string
-    color: string|null
-}
-
-export type TransactionResponse = {
+export type GetTransactionDto = {
     transactionId: string
     accountId: string
     amount: number
@@ -30,80 +13,43 @@ export type TransactionResponse = {
     description: string
     recordType: string
     type: string
-    category: TransactionCategoryResponse
-    tags: TransactionTagResponse[]
+    categoryRef: string
+    tagRefs: string[]
     budgets: string[]
 }
 
-export interface IGetTransactionUseCaseResponse {
-    success(transaction: TransactionResponse): void;
-    fail(err: Error): void;
-}
-
-export interface IGetTransactionAdapter {
-    transactionRepository: TransactionRepository
-    categoryRepository: CategoryRepository
-    tagRepository: TagRepository
-    recordRepository: RecordRepository
-}
-
-export class GetTransactionUseCase implements IGetTransactionUseCase {
+export class GetTransactionUseCase implements IUsecase<string, GetTransactionDto> {
     private transactionRepository: TransactionRepository;
-    private categoryRepository: CategoryRepository;
-    private tagRepository: TagRepository;
     private recordRepository: RecordRepository; 
-    private presenter: IGetTransactionUseCaseResponse;
 
-    constructor(adapter: IGetTransactionAdapter, presenter: IGetTransactionUseCaseResponse) {
-        this.transactionRepository = adapter.transactionRepository
-        this.categoryRepository = adapter.categoryRepository
-        this.tagRepository = adapter.tagRepository
-        this.recordRepository = adapter.recordRepository
-        this.presenter = presenter;
+    constructor(
+        transactionRepository: TransactionRepository,
+        recordRepository: RecordRepository 
+    ) {
+        this.transactionRepository = transactionRepository
+        this.recordRepository = recordRepository
     }
 
-    async execute(id: string): Promise<void> {
-        try {
-            let transaction = await this.transactionRepository.get(id);
+    async execute(id: string): Promise<GetTransactionDto> {
+        let transaction = await this.transactionRepository.get(id);
+        let record = await this.recordRepository.get(transaction.getRecordRef())
+        if (record === null)
+            throw new ResourceNotFoundError("RECORD_NOT_FOUND")
 
-            let record = await this.recordRepository.get(transaction.getRecordRef())
-
-            let category = await this.categoryRepository.get(transaction.getCategoryRef())
-            
-            let tags: TransactionTagResponse[] = []
-            for(let tagRef of transaction.getTags()) {
-                let tag = await this.tagRepository.get(tagRef)
-                if (tag === null)
-                    continue
-
-                tags.push({
-                    id: tag.getId(),
-                    value: tag.getValue(),
-                    color: tag.getColor()
-                })
-            }
-
-            let response: TransactionResponse = {
-                accountId: transaction.getAccountRef(),
-                transactionId: transaction.getId(),
-                amount: record.getMoney().getAmount(),
-                date: transaction.getDate(),
-                description: record.getDescription(),
-                recordType: record.getType(),
-                category: {
-                    id: category.getId(),
-                    title: category.getTitle(),
-                    icon: category.getIconId(),
-                    color: category.getColor()
-                },
-                type: transaction.getTransactionType(),
-                tags: tags,
-                budgets: transaction.getBudgetRefs()
-            }
-
-            this.presenter.success(response);
-        } catch (err) {
-            this.presenter.fail(err as Error);
+        let response: GetTransactionDto = {
+            accountId: transaction.getAccountRef(),
+            transactionId: transaction.getId(),
+            amount: record.getMoney().getAmount(),
+            date: transaction.getDate(),
+            description: record.getDescription(),
+            recordType: record.getType(),
+            categoryRef: transaction.getCategoryRef(),
+            type: transaction.getTransactionType(),
+            tagRefs: transaction.getTags(),
+            budgets: transaction.getBudgetRefs()
         }
+
+        return response
+        
     }
 }

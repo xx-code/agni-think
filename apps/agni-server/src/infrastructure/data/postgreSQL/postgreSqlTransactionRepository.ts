@@ -1,7 +1,6 @@
 import { SortBy, TransactionFilter, TransactionRepository } from "@core/repositories/transactionRepository";
 import { KnexConnector } from "./postgreSqlConnector";
 import { Transaction } from "@core/domains/entities/transaction";
-import { TransactionPaginationResponse } from "@core/domains/metaData/transaction";
 import { Knex } from "knex";
 import { isEmpty } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
@@ -138,8 +137,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
         const totalCount = total?.count ?? 0
 
         return {
-            transactions: transactions,
-            currentPage: page,
+            items: transactions,
             total: totalCount
         };
     }

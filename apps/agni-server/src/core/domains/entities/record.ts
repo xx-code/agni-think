@@ -1,26 +1,20 @@
+import { RecordType } from "../constants"
 import { isStringDifferent } from "../helpers"
 import Entity, { TrackableProperty } from "./entity"
 import { Money } from "./money"
-
-export enum TransactionType {
-    DEBIT = 'Debit',
-    CREDIT = 'Credit'
-}
-
-export type typeTransactionType = keyof typeof TransactionType 
 
 
 export class Record extends Entity {
     private money: TrackableProperty<Money>   
     private date: TrackableProperty<string>
     private description: TrackableProperty<string>
-    private transactionType: TrackableProperty<TransactionType> 
+    private type: TrackableProperty<RecordType> 
 
-    constructor(id: string, money: Money, date: string, type: TransactionType, description: string = '') {
+    constructor(id: string, money: Money, date: string, type: RecordType, description: string = '') {
         super(id)
         this.money = new TrackableProperty(money, this.markHasChange)
         this.date = new TrackableProperty(date, this.markHasChange)
-        this.transactionType = new TrackableProperty(type, this.markHasChange)
+        this.type = new TrackableProperty(type, this.markHasChange)
         this.date = new TrackableProperty(date, this.markHasChange) 
         this.description = new TrackableProperty(description, this.markHasChange)
     }
@@ -41,12 +35,12 @@ export class Record extends Entity {
         return this.date.get()
     }
 
-    setType(type: TransactionType) {
-        this.transactionType.set(type)
+    setType(type: RecordType) {
+        this.type.set(type)
     }
 
-    getType(): TransactionType {
-        return this.transactionType.get()
+    getType(): RecordType {
+        return this.type.get()
     }
 
     setDescription(description: string) {
