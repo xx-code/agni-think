@@ -1,36 +1,17 @@
-import { Router } from "express";
 import container from '../di_contenair'
-import { ApiCreateAccountControler, ApiDeleteAccountController, ApiGetAccountAccountController, ApiGetAllAccountController, ApiUpdateAccountController } from "src/controllers/accounts";
+import AccountRoute from "src/controllers/accounts";
 
-const router = Router()
+const usecases = container.accountUseCase;
 
-router.post('/v1/accounts', async (req, res) => {
-    let api = new ApiCreateAccountControler(container.getRepository('account'))
-    await api.execute(req, res)
-})
+if (usecases === undefined)
+    throw new Error("Accounts Usecases not declare"); 
 
-router.get('/v1/accounts', async (req, res) => {
-    let api = new ApiGetAllAccountController(container.getRepository('account'))
-    await api.execute(req, res)
-})
+const router = new AccountRoute(
+    usecases.createAccount,
+    usecases.updateAccount,
+    usecases.getAccount,
+    usecases.getAllAccount,
+    usecases.deleteAccount,
+)
 
-router.get('/v1/accounts/:id', async (req, res) => {
-    let api = new ApiGetAccountAccountController(container.getRepository('account'))
-    await api.execute(req, res)
-})
-
-router.put('/v1/accounts/:id', async (req, res) => {
-    let api = new ApiUpdateAccountController(container.getRepository('account'))
-    await api.execute(req, res)
-})
-
-// router.patch('/v1/accounts:id', async (req, res) => {
-
-// })
-
-router.delete('/v1/accounts/:id', async (req, res) => {
-    let api = new ApiDeleteAccountController(container.getRepository('account'))
-    await api.execute(req, res)
-})
-
-export default router 
+export default router.getRoute()

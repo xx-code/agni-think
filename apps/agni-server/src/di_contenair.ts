@@ -3,7 +3,6 @@ import { MockCategoryRepository } from './mock/repositories/mockCategoryReposito
 import { MockTagRepository } from './mock/repositories/mockTagRepository';
 import { MockTransactionRepository } from './mock/repositories/mockTransactionRepository';
 import { MockRecordRepository } from './mock/repositories/mockRecordRepository';
-import { MockDateService } from './mock/services/date';
 import { MockUnitOfWork } from './mock/repositories/mockUnitOfWorkRepository';
 import { MockBudgetRepository } from './mock/repositories/mockBudgetRepository';
 import { MockSavingRepository } from './mock/repositories/mockSavingRepository';
@@ -16,18 +15,30 @@ import { PostgreSqlTransactionRepository } from '@infra/data/postgreSQL/postgreS
 import { PostgreSqlUnitOfWork } from '@infra/data/postgreSQL/postgreSqlUnitOfWork';
 import { PostgresSqlBudgetRepository } from '@infra/data/postgreSQL/postgreSqlBudgetRepository';
 import { PostgreSqlSavingRepository } from '@infra/data/postgreSQL/postgreSqlSavingRepository';
-import { MomentDateService } from '@infra/services/date';
+import { IUsecase } from '@core/interactions/interfaces';
+import { CreationAccountUseCase, RequestCreationAccountUseCase } from '@core/interactions/account/creationAccountUseCase';
+import { CreatedDto, ListDto } from '@core/dto/base';
+import { RequestUpdateAccountUseCase, UpdateAccountUseCase } from '@core/interactions/account/updateAccountUseCase';
+import { GetAccountDto, GetAccountUseCase } from '@core/interactions/account/getAccountUseCase';
+import { GetAllAccountDto, GetAllAccountUseCase } from '@core/interactions/account/getAllAccountUseCase';
+import { DeleteAccountUseCase } from '@core/interactions/account/deleteAccountUseCase';
 
 
 export class DiContenair {
     private services: Map<any, any>;  
     private repositories: Map<any, any>;
-    private useCases: Map<any, any>;
+
+    public accountUseCase?: {
+        createAccount: IUsecase<RequestCreationAccountUseCase, CreatedDto>,
+        updateAccount: IUsecase<RequestUpdateAccountUseCase, void>,
+        getAccount: IUsecase<string, GetAccountDto>,
+        getAllAccount: IUsecase<void, ListDto<GetAllAccountDto>>,
+        deleteAccount: IUsecase<string, void>,
+    };
 
     constructor() {
         this.services = new Map()
         this.repositories = new Map()
-        this.useCases = new Map()
     }
 
     registerService(name: string, service: any) {
@@ -38,9 +49,6 @@ export class DiContenair {
         this.repositories.set(name, service)
     }
 
-    registerUseCase(name: string, useCase: any) {
-        this.useCases.set(name, useCase)
-    }
 
     async configMock() {
         this.registerRepository('account', new MockAccountRepository())
@@ -52,7 +60,6 @@ export class DiContenair {
         this.registerRepository('saving', new MockSavingRepository())
         this.registerRepository('unit_of_work', new MockUnitOfWork())
 
-        this.registerService('date_service', new MockDateService())
     }
 
    async config(connector: Knex) {
@@ -87,8 +94,8 @@ export class DiContenair {
         await transactionRepository.initialisation()
         this.registerRepository('transaction', transactionRepository)
 
-        let dateService = new MomentDateService()
-        this.registerService('date_service', dateService)
+        // usecases
+        this.registerAccountUsecases();
     }
 
     getService(name: string): any {
@@ -99,9 +106,16 @@ export class DiContenair {
         return this.repositories.get(name)
     }
 
-    getUseCase(name: string): any {
-        return this.useCases.get(name)
+    private registerAccountUsecases() {
+        this.accountUseCase = {
+            createAccount: new CreationAccountUseCase(this.getRepository('account')),
+            updateAccount: new UpdateAccountUseCase(this.getRepository('account')),
+            getAccount: new GetAccountUseCase(this.getRepository('account')),
+            getAllAccount: new GetAllAccountUseCase(this.getRepository('account')),
+            deleteAccount: new DeleteAccountUseCase(this.getRepository('account'))
+        }
     }
+    
 }
 
 export default new DiContenair()
