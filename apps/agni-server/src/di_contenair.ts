@@ -22,11 +22,17 @@ import { RequestUpdateAccountUseCase, UpdateAccountUseCase } from '@core/interac
 import { GetAccountDto, GetAccountUseCase } from '@core/interactions/account/getAccountUseCase';
 import { GetAllAccountDto, GetAllAccountUseCase } from '@core/interactions/account/getAllAccountUseCase';
 import { DeleteAccountUseCase } from '@core/interactions/account/deleteAccountUseCase';
+import { CreationCategoryUseCase, RequestCreationCategoryUseCase } from '@core/interactions/category/creationCategoryUseCase';
+import { RequestUpdateCategoryUseCase, UpdateCategoryUseCase } from '@core/interactions/category/updateCategoryUseCase';
+import { GetCategoryDto, GetCategoryUseCase } from '@core/interactions/category/getCategoryUseCase';
+import { GetAllCategoryDto, GetAllCategoryUseCase } from '@core/interactions/category/getAllCategoryUseCase';
+import { DeleteCategoryUseCase } from '@core/interactions/category/deleteCategoryUseCase';
 
 
 export class DiContenair {
     private services: Map<any, any>;  
     private repositories: Map<any, any>;
+    private checkers: Map<any, any>;
 
     public accountUseCase?: {
         createAccount: IUsecase<RequestCreationAccountUseCase, CreatedDto>,
@@ -36,9 +42,18 @@ export class DiContenair {
         deleteAccount: IUsecase<string, void>,
     };
 
+    public categoryUseCase?: {
+        createCategory: IUsecase<RequestCreationCategoryUseCase, CreatedDto>,
+        updateCategory: IUsecase<RequestUpdateCategoryUseCase, void>,
+        getCategory: IUsecase<string, GetCategoryDto>,
+        getAllCategory: IUsecase<void, ListDto<GetAllCategoryDto>>,
+        deleteCategory: IUsecase<string, void>,
+    };
+
     constructor() {
         this.services = new Map()
         this.repositories = new Map()
+        this.checkers = new Map()
     }
 
     registerService(name: string, service: any) {
@@ -96,6 +111,7 @@ export class DiContenair {
 
         // usecases
         this.registerAccountUsecases();
+        this.registerCategoryUsecases()
     }
 
     getService(name: string): any {
@@ -106,6 +122,10 @@ export class DiContenair {
         return this.repositories.get(name)
     }
 
+    getChecker(name: string): any {
+        return this.checkers.get(name)
+    }
+
     private registerAccountUsecases() {
         this.accountUseCase = {
             createAccount: new CreationAccountUseCase(this.getRepository('account')),
@@ -113,6 +133,16 @@ export class DiContenair {
             getAccount: new GetAccountUseCase(this.getRepository('account')),
             getAllAccount: new GetAllAccountUseCase(this.getRepository('account')),
             deleteAccount: new DeleteAccountUseCase(this.getRepository('account'))
+        } 
+    }
+
+    private registerCategoryUsecases() {
+        this.categoryUseCase = {
+            createCategory: new CreationCategoryUseCase(this.getRepository('category')),
+            updateCategory: new UpdateCategoryUseCase(this.getRepository('category')),
+            getCategory: new GetCategoryUseCase(this.getRepository('category')),
+            getAllCategory: new GetAllCategoryUseCase(this.getRepository('category')),
+            deleteCategory: new DeleteCategoryUseCase(this.getRepository('category'), this.getChecker('category')) 
         }
     }
     

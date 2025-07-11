@@ -5,8 +5,9 @@ import { RequestUpdateAccountUseCase } from "@core/interactions/account/updateAc
 import { IUsecase } from "@core/interactions/interfaces";
 import { CreatedDto, ListDto } from "@core/dto/base";
 import { RequestCreationAccountUseCase } from "@core/interactions/account/creationAccountUseCase";
+import { ApiController } from "./base";
 
-export default class AccountController {
+export default class AccountController implements ApiController {
     private route = Router();
 
     private createAccount: IUsecase<RequestCreationAccountUseCase, CreatedDto>
