@@ -1,251 +1,83 @@
-import { Request, Response } from "express";
-import { CreationCategoryUseCase, ICreationCategoryUseCase, ICreationCategoryUseCaseResponse, RequestCreationCategoryUseCase } from "@core/interactions/category/creationCategoryUseCase";
-import { DeleteCategoryUseCase, IDeleteCategoryUseCase, IDeleteCategoryUseCaseResponse } from "@core/interactions/category/deleteCategoryUseCase";
-import { CategoriesResponse, GetAllCategoryUseCase, IGetAllCategoryUseCase, IGetAllCategoryUseCaseResponse } from "@core/interactions/category/getAllCategoryUseCase";
-import { CategoryResponse, GetCategoryUseCase, IGetCategoryUseCase, IGetCategoryUseCaseResponse } from "@core/interactions/category/getCategoryUseCase";
-import { IUpdateCategoryUseCase, IUpdateCategoryUseCaseResponse, RequestUpdateCategoryUseCase, UpdateCategoryUseCase } from "@core/interactions/category/updateCategoryUseCase";
-import { ApiError, ApiResponse, initApiResponse } from "./type";
-import { isEmpty } from "@core/domains/helpers";
-import { CategoryRepository } from "@core/repositories/categoryRepository";
+import { Request, Response, Router } from "express";
+import { RequestCreationCategoryUseCase } from "@core/interactions/category/creationCategoryUseCase";
+import { GetAllCategoryDto } from "@core/interactions/category/getAllCategoryUseCase";
+import { GetCategoryDto } from "@core/interactions/category/getCategoryUseCase";
+import { RequestUpdateCategoryUseCase } from "@core/interactions/category/updateCategoryUseCase";
+import { IUsecase } from "@core/interactions/interfaces";
+import { CreatedDto, ListDto } from "@core/dto/base";
+import { ApiController } from "./base";
 
-class CreateCategoryModel {
-    model: RequestCreationCategoryUseCase
+export class CategoryController implements ApiController {
+    private route = Router() 
 
-    constructor(reqBody: any) {
-        this.model = { 
-            title: reqBody.title,
-            color: reqBody.color,
-            icon: reqBody.icon        
-        }
+    private createCategory: IUsecase<RequestCreationCategoryUseCase, CreatedDto>
+    private updateCategory: IUsecase<RequestUpdateCategoryUseCase, void>
+    private getCategory: IUsecase<string, GetCategoryDto>
+    private getAllCategories: IUsecase<void, ListDto<GetAllCategoryDto>>
+    private deleteCategory: IUsecase<string, void>
+    
+    constructor(
+        createCategory: IUsecase<RequestCreationCategoryUseCase, CreatedDto>,
+        updateCategory: IUsecase<RequestUpdateCategoryUseCase, void>,
+        getCategory: IUsecase<string, GetCategoryDto>,
+        getAllCategories: IUsecase<void, ListDto<GetAllCategoryDto>>,
+        deleteCategory: IUsecase<string, void>
+    ) {
+        this.createCategory = createCategory
+        this.updateCategory = updateCategory
+        this.getCategory = getCategory
+        this.getAllCategories = getAllCategories
+        this.deleteCategory = deleteCategory
+
+        this.setupRoutes()
     }
 
-    validationInput(): ApiError[] {
-        let errors: ApiError[] = []
-
-        if (isEmpty(this.model.title))
-            errors.push({field: "title", message: "Title field is empty"})
-
-        if (isEmpty(this.model.icon))
-            errors.push({field: "icon", message: "you have to set icon value"})
-
-        return errors
+    setupRoutes() {
+        this.route.post('/category', this.handleCreateCategory)
+        this.route.put('/category/:id', this.handleUpdateCategory)
+        this.route.get('/category/:id', this.handleGetCategory)
+        this.route.get('/category', this.handleGetAllCategory)
+        this.route.delete('/category/:id', this.handleDeleteCategory)
     }
 
-    getModelRequest(): RequestCreationCategoryUseCase {
-        return this.model
-    }
-}
-
-
-export class ApiCreateCategoryController implements ICreationCategoryUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: ICreationCategoryUseCase
-
-    constructor(categoryRepo: CategoryRepository) {
-        this.usecase = new CreationCategoryUseCase(categoryRepo, this)
+    getRoute() {
+        return this.route
     }
 
-    success(newCategoryId: string): void {
-        this.modelView.success = true
-        this.modelView.statusCode = 200
-        this.modelView.data = {
-            newCategoryId: newCategoryId
-        }
-    }
-    fail(err: Error): void {
-        this.modelView.success = false
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
+    private async handleCreateCategory(req: Request, res: Response) {
+        var created = await this.createCategory.execute({
+            title: req.body.title,
+            icon: req.body.icon,
+            color: req.body.color,
+            isSystem: false
+        })
+
+        res.status(200).json(created)
     }
 
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new CreateCategoryModel(req.body)
-        let errors = model.validationInput()
+    private async handleUpdateCategory(req: Request, res: Response) {
+        await this.updateCategory.execute({
+            id: req.params.id,
+            title: req.body.title,
+            color: req.body.color,
+            icon: req.body.icon 
+        })
 
-        if (errors.length > 0) {
-            if (req.query.validate_all)
-                this.modelView.errors = errors
-            else 
-                this.modelView.error = errors[0]
-
-            this.modelView.statusCode = 400
-            res.status(this.modelView.statusCode).send(this.modelView)
-
-            return
-        }
-
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-
-        return 
-    }
-}
-
-export class ApiGetCategoryController implements IGetCategoryUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IGetCategoryUseCase
-    constructor(categoryRepo: CategoryRepository) {
-        this.usecase = new GetCategoryUseCase(categoryRepo, this)
+        res.status(201)
     }
 
-    success(category: CategoryResponse): void {
-        this.modelView.statusCode = 200
-        this.modelView.success = true 
-        this.modelView.data = category
+    private async handleGetCategory(req: Request, res: Response) {
+        var category = await this.getCategory.execute(req.params.id)
+        res.status(200).json(category)
     }
 
-    fail(err: Error): void {
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
+    private async handleGetAllCategory(req: Request, res: Response) {
+        var allCategories = await this.getAllCategories.execute()
+        res.status(200).json(allCategories)
     }
 
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        
-        await this.usecase.execute(req.params.id)
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-
-        return
-    }
-}
-
-export class ApiGetAllCategoriesController implements IGetAllCategoryUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IGetAllCategoryUseCase
-
-    constructor(categoryRepo: CategoryRepository) {
-        this.usecase = new GetAllCategoryUseCase(categoryRepo, this)
-    }
-
-    success(categories: CategoriesResponse[]): void {
-        this.modelView.statusCode = 200
-        this.modelView.success = true 
-        this.modelView.data = categories
-    }
-    fail(err: Error): void {
-        this.modelView.statusCode = 400
-        this.modelView.success = false 
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        
-        await this.usecase.execute()
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-
-        return 
-    }
-}
-
-class UpdateCategoryModel {
-    model: RequestUpdateCategoryUseCase
-
-    constructor(id: string, reqBody: any) {
-        this.model = { 
-            id: id,
-            title: reqBody.title,
-            color: reqBody.color,
-            icon: reqBody.icon        
-        }
-    }
-
-    validationInput(): ApiError[] {
-        let errors: ApiError[] = []
-
-        if (isEmpty(this.model.title))
-            errors.push({field: "title", message: "Title field is empty"})
-
-        if (isEmpty(this.model.icon))
-            errors.push({field: "target", message: "you have to set icon value"})
-
-        return errors
-    }
-
-    getModelRequest(): RequestUpdateCategoryUseCase {
-        return this.model
-    }
-}
-
-export class ApiUpdateCategoryController implements IUpdateCategoryUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IUpdateCategoryUseCase
-
-    constructor(categoryRepo: CategoryRepository) {
-        this.usecase = new UpdateCategoryUseCase(categoryRepo, this)
-    }
-    success(isUpdated: boolean): void {
-        this.modelView.success = isUpdated
-        this.modelView.statusCode = 201
-    }
-    fail(err: Error): void {
-        this.modelView.success = false 
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new UpdateCategoryModel(req.params.id, req.body)
-        let errors = model.validationInput()
-
-        if (errors.length > 0) {
-            if (req.query.validate_all)
-                this.modelView.errors = errors
-            else 
-                this.modelView.error = errors[0]
-
-            this.modelView.statusCode = 400
-            res.status(this.modelView.statusCode).send(this.modelView)
-            return
-        }
-
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-
-        return 
-    }
-}
-
-export class ApiDeleteCategoryController implements IDeleteCategoryUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IDeleteCategoryUseCase
-
-    constructor(categoryRepo: CategoryRepository) {
-        this.usecase = new DeleteCategoryUseCase(categoryRepo, this)
-    }
-
-    success(isDeleted: boolean): void {
-        this.modelView.success = isDeleted
-        this.modelView.statusCode = 200
-    }
-    fail(err: Error): void {
-        this.modelView.statusCode = 400
-        this.modelView.success = false 
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-
-        await this.usecase.execute(req.params.id)
-        
-        res.status(this.modelView.statusCode).send(this.modelView)
-
-        return 
+    private async handleDeleteCategory(req: Request, res: Response) {
+        await this.deleteCategory.execute(req.params.id)
+        res.status(201)
     }
 }

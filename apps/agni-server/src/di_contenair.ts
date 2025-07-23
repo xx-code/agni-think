@@ -3,7 +3,6 @@ import { MockCategoryRepository } from './mock/repositories/mockCategoryReposito
 import { MockTagRepository } from './mock/repositories/mockTagRepository';
 import { MockTransactionRepository } from './mock/repositories/mockTransactionRepository';
 import { MockRecordRepository } from './mock/repositories/mockRecordRepository';
-import { MockDateService } from './mock/services/date';
 import { MockUnitOfWork } from './mock/repositories/mockUnitOfWorkRepository';
 import { MockBudgetRepository } from './mock/repositories/mockBudgetRepository';
 import { MockSavingRepository } from './mock/repositories/mockSavingRepository';
@@ -16,18 +15,58 @@ import { PostgreSqlTransactionRepository } from '@infra/data/postgreSQL/postgreS
 import { PostgreSqlUnitOfWork } from '@infra/data/postgreSQL/postgreSqlUnitOfWork';
 import { PostgresSqlBudgetRepository } from '@infra/data/postgreSQL/postgreSqlBudgetRepository';
 import { PostgreSqlSavingRepository } from '@infra/data/postgreSQL/postgreSqlSavingRepository';
-import { MomentDateService } from '@infra/services/date';
+import { IUsecase } from '@core/interactions/interfaces';
+import { CreationAccountUseCase, RequestCreationAccountUseCase } from '@core/interactions/account/creationAccountUseCase';
+import { CreatedDto, ListDto } from '@core/dto/base';
+import { RequestUpdateAccountUseCase, UpdateAccountUseCase } from '@core/interactions/account/updateAccountUseCase';
+import { GetAccountDto, GetAccountUseCase } from '@core/interactions/account/getAccountUseCase';
+import { GetAllAccountDto, GetAllAccountUseCase } from '@core/interactions/account/getAllAccountUseCase';
+import { DeleteAccountUseCase } from '@core/interactions/account/deleteAccountUseCase';
+import { CreationCategoryUseCase, RequestCreationCategoryUseCase } from '@core/interactions/category/creationCategoryUseCase';
+import { RequestUpdateCategoryUseCase, UpdateCategoryUseCase } from '@core/interactions/category/updateCategoryUseCase';
+import { GetCategoryDto, GetCategoryUseCase } from '@core/interactions/category/getCategoryUseCase';
+import { GetAllCategoryDto, GetAllCategoryUseCase } from '@core/interactions/category/getAllCategoryUseCase';
+import { DeleteCategoryUseCase } from '@core/interactions/category/deleteCategoryUseCase';
+import { CreationTagUseCase, RequestCreationTagUseCase } from '@core/interactions/tag/creationTagUseCase';
+import { RequestUpdateTagUseCase, UpdateTagUseCase } from '@core/interactions/tag/updateTagUseCase';
+import { GetTagDto, GetTagUseCase } from '@core/interactions/tag/getTagUseCase';
+import { GetAllTagDto, GetAllTagUseCase } from '@core/interactions/tag/getAllTagsUseCase';
+import { DeleteTagUseCase } from '@core/interactions/tag/deleteTagUseCase';
 
 
 export class DiContenair {
     private services: Map<any, any>;  
     private repositories: Map<any, any>;
-    private useCases: Map<any, any>;
+    private checkers: Map<any, any>;
+
+    public accountUseCase?: {
+        createAccount: IUsecase<RequestCreationAccountUseCase, CreatedDto>,
+        updateAccount: IUsecase<RequestUpdateAccountUseCase, void>,
+        getAccount: IUsecase<string, GetAccountDto>,
+        getAllAccount: IUsecase<void, ListDto<GetAllAccountDto>>,
+        deleteAccount: IUsecase<string, void>,
+    };
+
+    public categoryUseCase?: {
+        createCategory: IUsecase<RequestCreationCategoryUseCase, CreatedDto>,
+        updateCategory: IUsecase<RequestUpdateCategoryUseCase, void>,
+        getCategory: IUsecase<string, GetCategoryDto>,
+        getAllCategory: IUsecase<void, ListDto<GetAllCategoryDto>>,
+        deleteCategory: IUsecase<string, void>,
+    };
+
+    public tagUseCase?: {
+        createTag: IUsecase<RequestCreationTagUseCase, CreatedDto>,
+        updateTag: IUsecase<RequestUpdateTagUseCase, void>,
+        getTag: IUsecase<string, GetTagDto>,
+        getAllTag: IUsecase<void, ListDto<GetAllTagDto>>,
+        deleteTag: IUsecase<string, void>
+    }
 
     constructor() {
         this.services = new Map()
         this.repositories = new Map()
-        this.useCases = new Map()
+        this.checkers = new Map()
     }
 
     registerService(name: string, service: any) {
@@ -38,9 +77,6 @@ export class DiContenair {
         this.repositories.set(name, service)
     }
 
-    registerUseCase(name: string, useCase: any) {
-        this.useCases.set(name, useCase)
-    }
 
     async configMock() {
         this.registerRepository('account', new MockAccountRepository())
@@ -51,8 +87,6 @@ export class DiContenair {
         this.registerRepository('budget', new MockBudgetRepository())
         this.registerRepository('saving', new MockSavingRepository())
         this.registerRepository('unit_of_work', new MockUnitOfWork())
-
-        this.registerService('date_service', new MockDateService())
     }
 
    async config(connector: Knex) {
@@ -87,8 +121,9 @@ export class DiContenair {
         await transactionRepository.initialisation()
         this.registerRepository('transaction', transactionRepository)
 
-        let dateService = new MomentDateService()
-        this.registerService('date_service', dateService)
+        // usecases
+        this.registerAccountUsecases();
+        this.registerCategoryUsecases()
     }
 
     getService(name: string): any {
@@ -99,9 +134,40 @@ export class DiContenair {
         return this.repositories.get(name)
     }
 
-    getUseCase(name: string): any {
-        return this.useCases.get(name)
+    getChecker(name: string): any {
+        return this.checkers.get(name)
     }
+
+    private registerAccountUsecases() {
+        this.accountUseCase = {
+            createAccount: new CreationAccountUseCase(this.getRepository('account')),
+            updateAccount: new UpdateAccountUseCase(this.getRepository('account')),
+            getAccount: new GetAccountUseCase(this.getRepository('account')),
+            getAllAccount: new GetAllAccountUseCase(this.getRepository('account')),
+            deleteAccount: new DeleteAccountUseCase(this.getRepository('account'))
+        } 
+    }
+
+    private registerCategoryUsecases() {
+        this.categoryUseCase = {
+            createCategory: new CreationCategoryUseCase(this.getRepository('category')),
+            updateCategory: new UpdateCategoryUseCase(this.getRepository('category')),
+            getCategory: new GetCategoryUseCase(this.getRepository('category')),
+            getAllCategory: new GetAllCategoryUseCase(this.getRepository('category')),
+            deleteCategory: new DeleteCategoryUseCase(this.getRepository('category'), this.getChecker('category')) 
+        }
+    }
+
+    private registerTagUsecases() {
+        this.tagUseCase = {
+            createTag: new CreationTagUseCase(this.getRepository('tag')),
+            updateTag: new UpdateTagUseCase(this.getRepository('tag')),
+            getTag: new GetTagUseCase(this.getRepository('tag')),
+            deleteTag: new DeleteTagUseCase(this.getRepository('tag'), this.getChecker('tag')),
+            getAllTag: new GetAllTagUseCase(this.getRepository('tag'))
+        }
+    }
+    
 }
 
 export default new DiContenair()
