@@ -1,4 +1,3 @@
-import { Router } from "express";
 import container from '../di_contenair';
 import { CategoryController } from "src/controllers/categories";
 

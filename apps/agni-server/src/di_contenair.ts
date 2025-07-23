@@ -27,6 +27,11 @@ import { RequestUpdateCategoryUseCase, UpdateCategoryUseCase } from '@core/inter
 import { GetCategoryDto, GetCategoryUseCase } from '@core/interactions/category/getCategoryUseCase';
 import { GetAllCategoryDto, GetAllCategoryUseCase } from '@core/interactions/category/getAllCategoryUseCase';
 import { DeleteCategoryUseCase } from '@core/interactions/category/deleteCategoryUseCase';
+import { CreationTagUseCase, RequestCreationTagUseCase } from '@core/interactions/tag/creationTagUseCase';
+import { RequestUpdateTagUseCase, UpdateTagUseCase } from '@core/interactions/tag/updateTagUseCase';
+import { GetTagDto, GetTagUseCase } from '@core/interactions/tag/getTagUseCase';
+import { GetAllTagDto, GetAllTagUseCase } from '@core/interactions/tag/getAllTagsUseCase';
+import { DeleteTagUseCase } from '@core/interactions/tag/deleteTagUseCase';
 
 
 export class DiContenair {
@@ -49,6 +54,14 @@ export class DiContenair {
         getAllCategory: IUsecase<void, ListDto<GetAllCategoryDto>>,
         deleteCategory: IUsecase<string, void>,
     };
+
+    public tagUseCase?: {
+        createTag: IUsecase<RequestCreationTagUseCase, CreatedDto>,
+        updateTag: IUsecase<RequestUpdateTagUseCase, void>,
+        getTag: IUsecase<string, GetTagDto>,
+        getAllTag: IUsecase<void, ListDto<GetAllTagDto>>,
+        deleteTag: IUsecase<string, void>
+    }
 
     constructor() {
         this.services = new Map()
@@ -74,7 +87,6 @@ export class DiContenair {
         this.registerRepository('budget', new MockBudgetRepository())
         this.registerRepository('saving', new MockSavingRepository())
         this.registerRepository('unit_of_work', new MockUnitOfWork())
-
     }
 
    async config(connector: Knex) {
@@ -143,6 +155,16 @@ export class DiContenair {
             getCategory: new GetCategoryUseCase(this.getRepository('category')),
             getAllCategory: new GetAllCategoryUseCase(this.getRepository('category')),
             deleteCategory: new DeleteCategoryUseCase(this.getRepository('category'), this.getChecker('category')) 
+        }
+    }
+
+    private registerTagUsecases() {
+        this.tagUseCase = {
+            createTag: new CreationTagUseCase(this.getRepository('tag')),
+            updateTag: new UpdateTagUseCase(this.getRepository('tag')),
+            getTag: new GetTagUseCase(this.getRepository('tag')),
+            deleteTag: new DeleteTagUseCase(this.getRepository('tag'), this.getChecker('tag')),
+            getAllTag: new GetAllTagUseCase(this.getRepository('tag'))
         }
     }
     
