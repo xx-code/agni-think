@@ -13,17 +13,17 @@ import { TransactionDependencies } from "../facades";
 export type RequestGetPagination = {
     page: number
     limit: number
-    sortBy: string
-    sortSense: string
-    accountFilter: Array<string>
-    budgetFilter: Array<string>
-    categoryFilter: Array<string>
-    tagFilter: Array<string>
-    dateStart: string
-    dateEnd: string
-    types: string[]
-    minPrice: number
-    maxPrice: number
+    sortBy?: string
+    sortSense?: string
+    accountFilter?: Array<string>
+    budgetFilter?: Array<string>
+    categoryFilter?: Array<string>
+    tagFilter?: Array<string>
+    dateStart?: string
+    dateEnd?: string
+    types?: string[]
+    minPrice?: number
+    maxPrice?: number
 }
 
 export type GetAllTransactionCategoryDto = {
@@ -78,19 +78,20 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
             limit = request.limit
         }
         
-        if (request.accountFilter.length > 0)
+
+        if (request.accountFilter !== undefined && request.accountFilter?.length > 0)
             if (!(await this.transactionDependencies.accountRepository?.isExistByIds(request.accountFilter)))
                 throw new ResourceNotFoundError("an account to filter not valid")
         
-        if (request.categoryFilter.length > 0)
+        if (request.categoryFilter !== undefined && request.categoryFilter.length > 0)
             if (!(await this.transactionDependencies.categoryRepository?.isCategoryExistByIds(request.categoryFilter)))
                 throw new ResourceNotFoundError("an category to filter not valid")
 
-        if (request.tagFilter.length > 0)
+        if (request.tagFilter !== undefined && request.tagFilter.length > 0)
             if (!(await this.transactionDependencies.tagRepository?.isTagExistByIds(request.tagFilter)))
                 throw new ResourceNotFoundError("an tag to filter not valid")
         
-        if (request.budgetFilter.length > 0)
+        if (request.budgetFilter !== undefined && request.budgetFilter.length > 0)
             if (!(await this.transactionDependencies.budgetRepository?.isBudgetExistByIds(request.budgetFilter)))
                 throw new ResourceNotFoundError("an budget to filter not valid")
 
@@ -99,28 +100,28 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
                 throw new ValidationError('Date start must be less than date end')
 
         let types = []
-        if (!isEmpty(request.types))
+        if (request.types)
         {
             for(const type of request.types) {
                 types.push(mapperMainTransactionCategory(type))
             }
         }
 
-        let minPrice = null;
+        let minPrice;
         if (!isEmpty(request.minPrice))
             minPrice  = new Money(request.minPrice)
 
-        let maxPrice = null;
+        let maxPrice;
         if (!isEmpty(request.maxPrice))
             maxPrice = new Money(request.maxPrice)
 
         let filters: TransactionFilter = {
-            accounts: request.accountFilter, 
-            tags: request.tagFilter,
-            categories: request.categoryFilter,
+            accounts: request.accountFilter || [], 
+            tags: request.tagFilter || [],
+            categories: request.categoryFilter || [],
             startDate: request.dateStart,
             endDate: request.dateEnd,
-            budgets: request.budgetFilter,
+            budgets: request.budgetFilter || [],
             types: types,
             minPrice: minPrice,
             maxPrice: maxPrice
@@ -141,8 +142,8 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
         let response = await this.transactionRepository.getPaginations(page, limit, sortBy, filters);
 
         let transactions: GetAllTransactionDto[] = []
-        for (let i = 0; i < response.transactions.length ; i++) {
-            const transaction = response.transactions[i]
+        for (let i = 0; i < response.items.length ; i++) {
+            const transaction = response.items[i]
             const record = await this.recordRepository.get(transaction.getRecordRef())
             if (record !== null)
                 transactions.push({
@@ -151,7 +152,7 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
                     amount: record.getMoney().getAmount(),
                     categoryRef: transaction.getCategoryRef(),
                     date: transaction.getDate(),
-                    tagRefs: transaction.getTagRefs(),
+                    tagRefs: transaction.getTags(),
                     description: record.getDescription(),
                     recordType: record.getType(),
                     type: transaction.getTransactionType(),

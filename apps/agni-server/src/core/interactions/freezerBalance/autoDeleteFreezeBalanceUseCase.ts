@@ -37,8 +37,6 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
                 startDate: '',
                 endDate: '',
                 types: [],
-                minPrice: null,
-                maxPrice: null
             };
 
             let sortBy: SortBy|null = null;
@@ -47,14 +45,14 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
 
             this.unitOfWork.start()
 
-            for (let i = 0; i < response.transactions.length ; i++) {
-                let account = await this.accountRepository.get(response.transactions[i].getAccountRef())
+            for (let i = 0; i < response.items.length ; i++) {
+                let account = await this.accountRepository.get(response.items[i].getAccountRef())
                 if (account === null) {
                     console.log((new ResourceNotFoundError("ACCOUNT_NOT_FOUND")))
                     continue
                 }
 
-                let record = await this.recordRepository.get(response.transactions[i].getRecordRef())
+                let record = await this.recordRepository.get(response.items[i].getRecordRef())
                 if (record === null) {
                     console.log((new ResourceNotFoundError("RECORD_NOT_FOUND")))
                     continue
@@ -65,7 +63,7 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
                 if (MomentDateService.compareDate(MomentDateService.getToday().toString(), record.getDate()) >= 0) {
                     await this.accountRepository.update(account)
                     await this.recordRepository.delete(record.getId())
-                    await this.transactionRepository.delete(response.transactions[i].getId())
+                    await this.transactionRepository.delete(response.items[i].getId())
                 }
             }
             
