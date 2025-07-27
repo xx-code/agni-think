@@ -32,6 +32,34 @@ import { RequestUpdateTagUseCase, UpdateTagUseCase } from '@core/interactions/ta
 import { GetTagDto, GetTagUseCase } from '@core/interactions/tag/getTagUseCase';
 import { GetAllTagDto, GetAllTagUseCase } from '@core/interactions/tag/getAllTagsUseCase';
 import { DeleteTagUseCase } from '@core/interactions/tag/deleteTagUseCase';
+import { AddTransactionUseCase, RequestAddTransactionUseCase } from '@core/interactions/transaction/addTransactionUseCase';
+import { RequestUpdateTransactionUseCase, UpdateTransactionUseCase } from '@core/interactions/transaction/updateTransactionUseCase';
+import { GetTransactionDto, GetTransactionUseCase } from '@core/interactions/transaction/getTransactionUseCase';
+import { GetAllTransactionDto, GetPaginationTransaction, RequestGetPagination } from '@core/interactions/transaction/getPaginationTransactionUseCase';
+import { RequestTransfertTransactionUseCase, TransfertTransactionUseCase } from '@core/interactions/transaction/transfertTransactionUseCase';
+import { AddFreezeBalanceUseCase, RequestNewFreezeBalance } from '@core/interactions/freezerBalance/addFreezeBalanceUseCase';
+import { TransactionDependencies } from '@core/interactions/facades';
+import { DeleteTransactionUseCase } from '@core/interactions/transaction/deleteTransactionUseCase';
+import { AutoDeleteFreezeBalanceUseCase } from '@core/interactions/freezerBalance/autoDeleteFreezeBalanceUseCase';
+import { GetBalanceByUseCase, RequestGetBalanceBy } from '@core/interactions/transaction/getBalanceByUseCase';
+import { CreationBudgetUseCase, RequestCreationBudgetUseCase } from '@core/interactions/budgets/creationBudgetUseCase';
+import { RequestUpdateBudget, UpdateBudgetUseCase } from '@core/interactions/budgets/updateBudgetUseCase';
+import { GetBudgetDto, GetBudgetUseCase } from '@core/interactions/budgets/getBudgetUseCase';
+import { GetAllBudgetDto, GetAllBudgetUseCase } from '@core/interactions/budgets/getAllBudgetUseCase';
+import { CreateScheduleTransactionUseCase, RequestCreateScheduleTransaction } from '@core/interactions/scheduleTransaction/createScheduleTransaction';
+import { GetScheduleTransactionDto, GetScheduleTransactionUsecase } from '@core/interactions/scheduleTransaction/getScheduleTransaction';
+import { GetAllScheduleTransactionDto, GetAllScheluleTransacationUseCase } from '@core/interactions/scheduleTransaction/getAllScheduleTransaction';
+import { RequestUpdateScheduleTransaction, UpdateScheduleTransactionUseCase } from '@core/interactions/scheduleTransaction/updateScheduleTransaction';
+import { DeleteBudgetUseCase } from '@core/interactions/budgets/deleteBudgetUseCase';
+import { ApplyScheduleTransactionUsecase } from '@core/interactions/scheduleTransaction/applyScheduleTransaction';
+import { DeleteScheduleTransactionUseCase } from '@core/interactions/scheduleTransaction/deleteScheduleTransaction';
+import { AddSaveGoalUseCase, RequestAddSaveGoalUseCase } from '@core/interactions/saveGoal/addSaveGoal';
+import { DeleteSaveGoalUseCase, RequestDeleteSaveGoal } from '@core/interactions/saveGoal/deleteSaveGoal';
+import { IncreaseSaveGoalUseCase, RequestIncreaseSaveGoal } from '@core/interactions/saveGoal/increaseSaveGoal';
+import { RequestUpdateSaveGoalUseCase, UpdateSaveGoalUseCase } from '@core/interactions/saveGoal/updateSaveGoal';
+import { GetSaveGoalDto, GetSaveGoalUseCase } from '@core/interactions/saveGoal/getSaveGoal';
+import { GetAllSaveGoalDto, GetAllSaveGoalUseCase } from '@core/interactions/saveGoal/getAllSaveGoal';
+import { DecreaseSaveGoalUseCase, RequestDecreaseSaveGoal } from '@core/interactions/saveGoal/decreaseSaveGoal';
 
 
 export class DiContenair {
@@ -61,6 +89,45 @@ export class DiContenair {
         getTag: IUsecase<string, GetTagDto>,
         getAllTag: IUsecase<void, ListDto<GetAllTagDto>>,
         deleteTag: IUsecase<string, void>
+    }
+
+    public transactionUseCase?: {
+        createTransaction: IUsecase<RequestAddTransactionUseCase, CreatedDto>,
+        updateTransaction: IUsecase<RequestUpdateTransactionUseCase, void>,
+        getTransaction: IUsecase<string, GetTransactionDto>,
+        getPaginition: IUsecase<RequestGetPagination, ListDto<GetAllTransactionDto>>,
+        getBalanceBy: IUsecase<RequestGetBalanceBy, number>,
+        deleteTransaction: IUsecase<string, void>,
+        transfertTransaction: IUsecase<RequestTransfertTransactionUseCase, void>,
+        freezeTransaction: IUsecase<RequestNewFreezeBalance, CreatedDto>
+        autoFreezeTransaction: IUsecase<void, void>
+    }
+
+    public budgetUseCase?: {
+        createBudget: IUsecase<RequestCreationBudgetUseCase, CreatedDto>,
+        updateBudget: IUsecase<RequestUpdateBudget, void>,
+        getBudget: IUsecase<string, GetBudgetDto>,
+        getAllBudgets: IUsecase<void, ListDto<GetAllBudgetDto>>,
+        deleteBudget: IUsecase<string, void>,
+    }
+
+    public scheduleTransactionUseCase?: {
+        applyScheduleTransaction: IUsecase<void, void>,
+        createScheduleTransaction: IUsecase<RequestCreateScheduleTransaction, CreatedDto>,
+        deleteScheduleTransaction: IUsecase<string, void>,
+        getScheduleTransaction: IUsecase<string, GetScheduleTransactionDto>,
+        getAllScheduleTransaction: IUsecase<void, ListDto<GetAllScheduleTransactionDto>>,
+        updateScheduleTransaction: IUsecase<RequestUpdateScheduleTransaction, void>
+    }
+
+    public saveGoalUseCase?: {
+        addSaveGoal: IUsecase<RequestAddSaveGoalUseCase, CreatedDto>,
+        decreaseSaveGoal: IUsecase<RequestDecreaseSaveGoal, void>,
+        increaseSaveGoal: IUsecase<RequestIncreaseSaveGoal, void>,
+        deleteSaveGoal: IUsecase<RequestDeleteSaveGoal, void>,
+        updateSaveGoal: IUsecase<RequestUpdateSaveGoalUseCase, void>,
+        getSaveGoal: IUsecase<string, GetSaveGoalDto>,
+        getAllSaveGoal: IUsecase<void, ListDto<GetAllSaveGoalDto>>
     }
 
     constructor() {
@@ -123,7 +190,12 @@ export class DiContenair {
 
         // usecases
         this.registerAccountUsecases();
-        this.registerCategoryUsecases()
+        this.registerCategoryUsecases();
+        this.registerTagUsecases();
+        this.registerTransactionUsecases();
+        this.registerBudgetUsecases();
+        this.registerScheduleTransactionUsecases();
+        this.registerSaveGoalUsecases();
     }
 
     getService(name: string): any {
@@ -168,6 +240,71 @@ export class DiContenair {
         }
     }
     
+    private registerTransactionUsecases() {
+        const transDept: TransactionDependencies = {
+            accountRepository: this.getRepository('account'),
+            budgetRepository: this.getRepository('budget'),
+            categoryRepository: this.getRepository('category'),
+            recordRepository: this.getRepository('record'),
+            tagRepository: this.getRepository('tag')
+        }
+        const addUseCase = new AddTransactionUseCase(this.getRepository('unit_of_work'), this.getRepository('transaction'), transDept);
+        const deleteUseCase = new DeleteTransactionUseCase(this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work'), this.getRepository('account'));
+        this.transactionUseCase = {
+            createTransaction: addUseCase,
+            updateTransaction: new UpdateTransactionUseCase(this.getRepository('transaction'), transDept, addUseCase, deleteUseCase, this.getRepository('unit_of_work')),
+            transfertTransaction: new TransfertTransactionUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record'), this.getRepository('unit_of_work')),
+            autoFreezeTransaction: new AutoDeleteFreezeBalanceUseCase(this.getRepository('account'), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
+            deleteTransaction: deleteUseCase,
+            getBalanceBy: new GetBalanceByUseCase(this.getRepository('transaction'), this.getRepository('record')),
+            freezeTransaction: new AddFreezeBalanceUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record'), this.getRepository('unit_of_work')),
+            getPaginition: new GetPaginationTransaction(this.getRepository('transaction'), transDept, this.getRepository('record')),
+            getTransaction: new GetTransactionUseCase(this.getRepository('transaction'), this.getRepository('record'))
+        }
+    }
+
+    private registerBudgetUsecases() {
+        this.budgetUseCase = {
+            createBudget: new CreationBudgetUseCase(this.getRepository('budget')),
+            deleteBudget: new DeleteBudgetUseCase(this.getRepository('budget')),
+            getBudget: new GetBudgetUseCase(this.getRepository('budget'), this.getRepository('transaction'), this.getRepository('record')),
+            getAllBudgets: new GetAllBudgetUseCase(this.getRepository('budget'), this.getRepository('transaction'), this.getRepository('record')),
+            updateBudget: new UpdateBudgetUseCase(this.getRepository('budget'))
+        }
+    }
+
+    private registerScheduleTransactionUsecases() {
+        const transDept: TransactionDependencies = {
+            accountRepository: this.getRepository('account'),
+            budgetRepository: this.getRepository('budget'),
+            categoryRepository: this.getRepository('category'),
+            recordRepository: this.getRepository('record'),
+            tagRepository: this.getRepository('tag')
+        }
+        this.scheduleTransactionUseCase = {
+            applyScheduleTransaction: new ApplyScheduleTransactionUsecase(this.getRepository(''), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
+            createScheduleTransaction: new CreateScheduleTransactionUseCase(this.getRepository('transaction'), this.getRepository('')),
+            updateScheduleTransaction: new UpdateScheduleTransactionUseCase(this.getRepository(''), transDept),
+            deleteScheduleTransaction: new DeleteScheduleTransactionUseCase(this.getRepository('')),
+            getAllScheduleTransaction: new GetAllScheluleTransacationUseCase(this.getRepository('')),
+            getScheduleTransaction: new GetScheduleTransactionUsecase(this.getRepository(''))
+        }
+    }
+
+    private registerSaveGoalUsecases() {
+        this.saveGoalUseCase = {
+            addSaveGoal: new AddSaveGoalUseCase(this.getRepository('saveGoal')),
+            increaseSaveGoal: new IncreaseSaveGoalUseCase(this.getRepository('cagetory'), this.getRepository('account'), 
+            this.getRepository('saving'), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
+            decreaseSaveGoal: new DecreaseSaveGoalUseCase(this.getRepository('category'), this.getRepository('account'), this.getRepository('saving'),
+            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
+            deleteSaveGoal: new DeleteSaveGoalUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('saving'), 
+            this.getRepository('record'), this.getRepository('unit_of_work')),
+            getAllSaveGoal: new GetAllSaveGoalUseCase(this.getRepository('saving')),
+            getSaveGoal: new GetSaveGoalUseCase(this.getRepository('saving')),
+            updateSaveGoal: new UpdateSaveGoalUseCase(this.getRepository('saving'))
+        }
+    }
 }
 
 export default new DiContenair()

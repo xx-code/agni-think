@@ -1,4 +1,3 @@
-import { DateService } from "@core/adapters/libs";
 import { mapperMainTransactionCategory, mapperTransactionType, RecordType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { isEmpty, DateParser } from "@core/domains/helpers";
@@ -9,29 +8,26 @@ import { IUsecase } from "../interfaces";
 import { MomentDateService } from "@core/domains/entities/libs";
 
 export type RequestGetBalanceBy = {
-    accountsIds: string[],
-    tagsIds: string[],
-    budgetIds: string[],
-    categoriesIds: string[],
-    dateStart: string,
-    dateEnd: string,
-    types: string[],
-    minPrice: number,
-    maxPrice: number
+    accountsIds?: string[],
+    tagsIds?: string[],
+    budgetIds?: string[],
+    categoriesIds?: string[],
+    dateStart?: string,
+    dateEnd?: string,
+    types?: string[],
+    minPrice?: number,
+    maxPrice?: number
 }
 
 export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number> {
     private transactionRepository: TransactionRepository;
     private recordRepository: RecordRepository
-    private dateService: DateService
 
     constructor(
-        dateService: DateService, 
         transaction_repo: TransactionRepository, 
         recordRepository: RecordRepository) {
         this.transactionRepository = transaction_repo;
         this.recordRepository = recordRepository
-        this.dateService = dateService
     }
 
     async execute(request: RequestGetBalanceBy): Promise<number> {
@@ -43,34 +39,34 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number
         }
 
         let types = []
-        if (!isEmpty(request.types))
+        if (request.types)
         {
             for(const type of request.types) {
                 types.push(mapperMainTransactionCategory(type))
             }
         }
 
-        let minPrice = null;
+        let minPrice;
         if (!isEmpty(request.minPrice))
             minPrice  = new Money(request.minPrice)
 
-        let maxPrice = null;
+        let maxPrice;
         if (!isEmpty(request.maxPrice))
             maxPrice = new Money(request.maxPrice)
 
-        let dateStart = ''
+        let dateStart;
         if (request.dateStart)
             dateStart = MomentDateService.formatDate(request.dateStart).toString()
 
-        let dateEnd = ''
+        let dateEnd;
         if (request.dateEnd)
-            dateEnd = this.dateService.formatDate(request.dateStart).toString()
+            dateEnd = MomentDateService.formatDate(request.dateEnd).toString()
 
         let filter: TransactionFilter = {
-            accounts: request.accountsIds,
-            categories: request.categoriesIds,
-            budgets: request.budgetIds,
-            tags: request.tagsIds,
+            accounts: request.accountsIds || [],
+            categories: request.categoriesIds || [],
+            budgets: request.budgetIds || [],
+            tags: request.tagsIds || [],
             startDate: dateStart,
             endDate: dateEnd,
             types: types,

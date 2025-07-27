@@ -14,6 +14,7 @@ import { CategoryRepository } from "@core/repositories/categoryRepository";
 import { Category } from "@core/domains/entities/category";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export type RequestIncreaseSaveGoal = {
@@ -29,15 +30,13 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
     private categoryRepository: CategoryRepository
     private transactionRepository: TransactionRepository;
     private recordRepository: RecordRepository;
-    private dateService: DateService;
     private unitOfWork: UnitOfWorkRepository
 
-    constructor(categoryRepository: CategoryRepository, accountRepository: AccountRepository, savingRepository: SavingRepository, transactionRepository: TransactionRepository,  dateService: DateService, recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository) {
+    constructor(categoryRepository: CategoryRepository, accountRepository: AccountRepository, savingRepository: SavingRepository, transactionRepository: TransactionRepository,  recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository) {
         this.accountRepository = accountRepository
         this.categoryRepository = categoryRepository
         this.savingRepository = savingRepository
         this.transactionRepository = transactionRepository
-        this.dateService = dateService
         this.recordRepository = recordRepository
         this.unitOfWork = unitOfWork
     }
@@ -72,7 +71,7 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
             savingGoal.increaseBalance(increaseAmount)
 
             // transfert between account check transfert usecase
-            let date = this.dateService.getTodayWithTime()
+            let date = MomentDateService.getTodayWithTime()
 
             let idRecordFrom = GetUID()
             let newRecordFrom = new Record(idRecordFrom, increaseAmount, date.toString(), RecordType.DEBIT)
