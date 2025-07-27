@@ -9,6 +9,7 @@ import { RecordRepository } from "@core/repositories/recordRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { Record } from "@core/domains/entities/record";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 export type RequestDeleteSaveGoal = {
     saveGoalRef: string
@@ -26,17 +27,14 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
     private savingRepo: SavingRepository
     private recordRepo: RecordRepository
     private unitOfWork: UnitOfWorkRepository
-    private dateService: DateService
 
     constructor(transactionRepository: TransactionRepository,
         accountRepository: AccountRepository,
         savingRepository: SavingRepository,
-        dateService: DateService,
         recordRepository: RecordRepository,
         unitOfWorkRepository: UnitOfWorkRepository
     ) {
         this.transactionRepo = transactionRepository
-        this.dateService = dateService
         this.recordRepo = recordRepository
         this.accountRepo = accountRepository
         this.unitOfWork = unitOfWorkRepository
@@ -55,7 +53,7 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
             if (accountTranfert == null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
-            let date = this.dateService.getTodayWithTime()
+            let date = MomentDateService.getTodayWithTime()
 
             let newRecord = new Record(GetUID(), savingGoal.getBalance(), date.toString(), RecordType.CREDIT, "Deposit from " + savingGoal.getDescription())
             let newTransaction = new Transaction(GetUID(), accountTranfert.getId(), newRecord.getId(), SAVING_CATEGORY_ID, 

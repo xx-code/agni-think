@@ -4,7 +4,7 @@ import container from "src/di_contenair";
 const usecases = container.tagUseCase;
 
 if (usecases === undefined)
-    throw new Error("Accounts Usecases not declare");
+    throw new Error("Tags Usecases not declare");
 
 const tagRouters = new TagController(
     usecases.createTag,

@@ -4,7 +4,7 @@ import { CategoryController } from "src/controllers/categories";
 const usecases = container.categoryUseCase;
 
 if (usecases === undefined)
-    throw new Error("Accounts Usecases not declare"); 
+    throw new Error("Categories Usecases not declare"); 
 
 const categoryRouter = new CategoryController(
     usecases.createCategory,
@@ -12,6 +12,6 @@ const categoryRouter = new CategoryController(
     usecases.getCategory,
     usecases.getAllCategory,
     usecases.deleteCategory,
-)
+);
 
 export default categoryRouter.getRoute()

@@ -4,7 +4,7 @@ import container from '../di_contenair';
 const usecases = container.transactionUseCase;
 
 if (usecases === undefined)
-    throw new Error("Transaction Usecases not declare");
+    throw new Error("Transactions Usecases not declare");
 
 const transactionRouter = new TransactionController(
     usecases.createTransaction,
