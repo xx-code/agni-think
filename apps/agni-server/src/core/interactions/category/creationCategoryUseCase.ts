@@ -1,7 +1,6 @@
 import { GetUID } from "@core/adapters/libs";
 import { Category } from "@core/domains/entities/category";
 import { isEmpty } from "@core/domains/helpers";
-import ValidationError from "@core/errors/validationError";
 import { CategoryRepository } from "../../repositories/categoryRepository";
 import { IUsecase } from "../interfaces";
 import { CreatedDto } from "@core/dto/base";

@@ -20,10 +20,10 @@ export type RequestUpdateScheduleTransactionScheduler = {
 export type RequestUpdateScheduleTransaction = {
     id: string
     name: string
-    accountRef: string
+    accountId: string
     amount: number
-    categoryRef: string
-    tagRefs: string[]
+    categoryId: string
+    tagIds: string[]
     type: string
     isPause: boolean
     schedule: RequestUpdateScheduleTransactionScheduler
@@ -49,14 +49,14 @@ export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateS
         if (await this.scheduleTransactionRepo.existByName(request.name) && !isStringDifferent(request.name, scheduleTransaction.getName()))
             throw new ResourceAlreadyExist("SCHEDULE_TRANSACTION_ALREADY_EXIST") 
 
-        if (!await this.transactionDependencies.accountRepository?.isExistById(request.accountRef))
+        if (!await this.transactionDependencies.accountRepository?.isExistById(request.accountId))
             throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
-        if (!await this.transactionDependencies.categoryRepository?.isCategoryExistById(request.categoryRef))
+        if (!await this.transactionDependencies.categoryRepository?.isCategoryExistById(request.categoryId))
             throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
 
-        if (request.tagRefs.length > 0)
-            if (!await this.transactionDependencies.tagRepository?.isTagExistByIds(request.tagRefs))
+        if (request.tagIds.length > 0)
+            if (!await this.transactionDependencies.tagRepository?.isTagExistByIds(request.tagIds))
                 throw new ResourceNotFoundError("TAGS_NOT_FOUND")
         
         if (request.amount <= 0)
@@ -69,9 +69,9 @@ export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateS
             request.schedule.dateEnd ? MomentDateService.formatDate(request.schedule.dateEnd) : undefined
         )
 
-        scheduleTransaction.setAccountRef(request.accountRef)
-        scheduleTransaction.setCategoryRef(request.categoryRef)
-        scheduleTransaction.setTags(request.tagRefs)
+        scheduleTransaction.setAccountRef(request.accountId)
+        scheduleTransaction.setCategoryRef(request.categoryId)
+        scheduleTransaction.setTags(request.tagIds)
         scheduleTransaction.setTransactionType(mapperMainTransactionCategory(request.type))
         scheduleTransaction.setName(request.name)
         scheduleTransaction.setAmount(new Money(request.amount))

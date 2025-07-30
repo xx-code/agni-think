@@ -5,9 +5,9 @@ import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 export type GetScheduleTransactionDto = {
     id: string
     name: string
-    accountRef: string
-    categoryRef: string
-    tagRefs: string[]
+    accountId: string
+    categoryId: string
+    tagIds: string[]
     type: string
     isPause: boolean
     dateStart: string
@@ -33,9 +33,9 @@ export class GetScheduleTransactionUsecase implements IUsecase<string, GetSchedu
         return {
             id: scheduleTransaction.getId(),
             name: scheduleTransaction.getName(),
-            accountRef: scheduleTransaction.getAccountRef(),
-            categoryRef: scheduleTransaction.getCategoryRef(),
-            tagRefs: scheduleTransaction.getTags(),
+            accountId: scheduleTransaction.getAccountRef(),
+            categoryId: scheduleTransaction.getCategoryRef(),
+            tagIds: scheduleTransaction.getTags(),
             type: scheduleTransaction.getTransactionType(),
             isPause: scheduleTransaction.getIsPause(),
             dateStart: scheduleTransaction.getSchedule().getStartedDate().toString(),

@@ -1,30 +1,25 @@
 import { TransactionRepository } from "../../repositories/transactionRepository"
-import { AccountRepository } from "../../repositories/accountRepository"
-import { CategoryRepository } from "../../repositories/categoryRepository"
-import { TagRepository } from "../../repositories/tagRepository"
-import { RecordRepository } from "../../repositories/recordRepository"
-import { DateService, GetUID } from "@core/adapters/libs"
-import { mapperMainTransactionCategory, mapperTransactionType, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants"
+import { GetUID } from "@core/adapters/libs"
+import { mapperMainTransactionCategory, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants"
 import { Money } from "@core/domains/entities/money"
 import { Record } from "@core/domains/entities/record"
 import { Transaction } from "@core/domains/entities/transaction"
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError"
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository"
 import { ValueError } from "@core/errors/valueError"
-import { BudgetRepository } from "@core/repositories/budgetRepository"
 import { TransactionDependencies } from "../facades"
 import { MomentDateService } from "@core/domains/entities/libs"
 import { CreatedDto } from "@core/dto/base"
 import { IUsecase } from "../interfaces"
 
 export type RequestAddTransactionUseCase = {
-    accountRef: string
+    accountId: string
     amount: number
-    categoryRef: string
+    categoryId: string
     description: string
     date: string
-    tagRefs: string[]
-    budgetRefs: string[]
+    tagIds: string[]
+    budgetIds: string[]
     type: string
 }
 
@@ -48,17 +43,17 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
         try {
             await this.unitOfWork.start()
 
-            let account = await this.transcationDependencies.accountRepository?.get(request.accountRef) 
+            let account = await this.transcationDependencies.accountRepository?.get(request.accountId) 
             if (account === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
-            if (!(await this.transcationDependencies.categoryRepository?.isCategoryExistById(request.categoryRef)))
+            if (!(await this.transcationDependencies.categoryRepository?.isCategoryExistById(request.categoryId)))
                 throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
 
-            if (request.tagRefs.length > 0 && !(await this.transcationDependencies.tagRepository?.isTagExistByIds(request.tagRefs)))
+            if (request.tagIds.length > 0 && !(await this.transcationDependencies.tagRepository?.isTagExistByIds(request.tagIds)))
                 throw new ResourceNotFoundError("TAGS_NOT_FOUND")
 
-            if (request.budgetRefs.length > 0 && !(await this.transcationDependencies.budgetRepository?.isBudgetExistByIds(request.budgetRefs)))
+            if (request.budgetIds.length > 0 && !(await this.transcationDependencies.budgetRepository?.isBudgetExistByIds(request.budgetIds)))
                 throw new ResourceNotFoundError("BUDGETS_NOT_FOUND")
            
             if (request.amount <= 0)
@@ -84,11 +79,11 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
             
             let newTransaction = new Transaction(
                 GetUID(), 
-                request.accountRef, 
+                request.accountId, 
                 newRecord.getId(), 
-                request.categoryRef, 
+                request.categoryId, 
                 date.toString(), type, TransactionStatus.COMPLETE, 
-                request.tagRefs, request.budgetRefs)    
+                request.tagIds, request.budgetIds)    
 
             await this.transactionRepository.save(newTransaction);
             

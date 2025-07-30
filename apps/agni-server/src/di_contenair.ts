@@ -60,6 +60,8 @@ import { RequestUpdateSaveGoalUseCase, UpdateSaveGoalUseCase } from '@core/inter
 import { GetSaveGoalDto, GetSaveGoalUseCase } from '@core/interactions/saveGoal/getSaveGoal';
 import { GetAllSaveGoalDto, GetAllSaveGoalUseCase } from '@core/interactions/saveGoal/getAllSaveGoal';
 import { DecreaseSaveGoalUseCase, RequestDecreaseSaveGoal } from '@core/interactions/saveGoal/decreaseSaveGoal';
+import { CompteTransactionUsecase, RequestCompleteTransactionUsecase } from '@core/interactions/transaction/CompleteTransactionUseCase';
+import { PostgreSqlScheduleTransactionRepository } from '@infra/data/postgreSQL/postgreSqlScheduleTransactionRepository';
 
 
 export class DiContenair {
@@ -94,6 +96,7 @@ export class DiContenair {
     public transactionUseCase?: {
         createTransaction: IUsecase<RequestAddTransactionUseCase, CreatedDto>,
         updateTransaction: IUsecase<RequestUpdateTransactionUseCase, void>,
+        completeTransaction: IUsecase<RequestCompleteTransactionUsecase, void>,
         getTransaction: IUsecase<string, GetTransactionDto>,
         getPaginition: IUsecase<RequestGetPagination, ListDto<GetAllTransactionDto>>,
         getBalanceBy: IUsecase<RequestGetBalanceBy, number>,
@@ -131,9 +134,9 @@ export class DiContenair {
     }
 
     constructor() {
-        this.services = new Map()
-        this.repositories = new Map()
-        this.checkers = new Map()
+        this.services = new Map();
+        this.repositories = new Map();
+        this.checkers = new Map();
     }
 
     registerService(name: string, service: any) {
@@ -187,6 +190,10 @@ export class DiContenair {
         let transactionRepository = new PostgreSqlTransactionRepository(connector)
         await transactionRepository.initialisation()
         this.registerRepository('transaction', transactionRepository)
+
+        let scheduleTransactionRepository = new PostgreSqlScheduleTransactionRepository(connector);
+        await scheduleTransactionRepository.initialisation()
+        this.registerRepository('schedule_transaction', scheduleTransactionRepository)
 
         // usecases
         this.registerAccountUsecases();
@@ -252,6 +259,7 @@ export class DiContenair {
         const deleteUseCase = new DeleteTransactionUseCase(this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work'), this.getRepository('account'));
         this.transactionUseCase = {
             createTransaction: addUseCase,
+            completeTransaction: new CompteTransactionUsecase(this.getRepository('transaction'), this.getRepository('accountRepo'), this.getRepository('recordRepo'), this.getRepository('unit_of_work')),
             updateTransaction: new UpdateTransactionUseCase(this.getRepository('transaction'), transDept, addUseCase, deleteUseCase, this.getRepository('unit_of_work')),
             transfertTransaction: new TransfertTransactionUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record'), this.getRepository('unit_of_work')),
             autoFreezeTransaction: new AutoDeleteFreezeBalanceUseCase(this.getRepository('account'), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
@@ -282,12 +290,12 @@ export class DiContenair {
             tagRepository: this.getRepository('tag')
         }
         this.scheduleTransactionUseCase = {
-            applyScheduleTransaction: new ApplyScheduleTransactionUsecase(this.getRepository(''), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
-            createScheduleTransaction: new CreateScheduleTransactionUseCase(this.getRepository('transaction'), this.getRepository('')),
-            updateScheduleTransaction: new UpdateScheduleTransactionUseCase(this.getRepository(''), transDept),
-            deleteScheduleTransaction: new DeleteScheduleTransactionUseCase(this.getRepository('')),
-            getAllScheduleTransaction: new GetAllScheluleTransacationUseCase(this.getRepository('')),
-            getScheduleTransaction: new GetScheduleTransactionUsecase(this.getRepository(''))
+            applyScheduleTransaction: new ApplyScheduleTransactionUsecase(this.getRepository('schedule_transaction'), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
+            createScheduleTransaction: new CreateScheduleTransactionUseCase(this.getRepository('transaction'), this.getRepository('schedule_transaction')),
+            updateScheduleTransaction: new UpdateScheduleTransactionUseCase(this.getRepository('schedule_transaction'), transDept),
+            deleteScheduleTransaction: new DeleteScheduleTransactionUseCase(this.getRepository('schedule_transaction')),
+            getAllScheduleTransaction: new GetAllScheluleTransacationUseCase(this.getRepository('schedule_transaction')),
+            getScheduleTransaction: new GetScheduleTransactionUsecase(this.getRepository('schedule_transaction'))
         }
     }
 

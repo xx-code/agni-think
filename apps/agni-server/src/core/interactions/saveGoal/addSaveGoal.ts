@@ -1,5 +1,4 @@
 import { GetUID } from "@core/adapters/libs";
-import { Account } from "@core/domains/entities/account";
 import { Money } from "@core/domains/entities/money";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
 import { SavingRepository } from "../../repositories/savingRepository";

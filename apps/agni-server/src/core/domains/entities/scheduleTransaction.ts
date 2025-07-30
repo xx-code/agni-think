@@ -46,6 +46,10 @@ export class ScheduleTransaction extends Entity {
         return this.tagRefs.get().map(tag => tag.tagId)
     }
 
+    getCollectionTags(): ValueObjectCollection<TransactionTag> {
+        return this.tagRefs;
+    }
+
     setAccountRef(accountRef: string) {
         this.accountRef.set(accountRef)
     }

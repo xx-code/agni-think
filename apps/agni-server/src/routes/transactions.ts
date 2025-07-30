@@ -10,6 +10,7 @@ const transactionRouter = new TransactionController(
     usecases.createTransaction,
     usecases.updateTransaction,
     usecases.deleteTransaction,
+    usecases.completeTransaction,
     usecases.getBalanceBy,
     usecases.getTransaction,
     usecases.getPaginition,

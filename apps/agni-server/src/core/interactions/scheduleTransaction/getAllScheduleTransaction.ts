@@ -5,9 +5,9 @@ import { ScheduleTransactionRepository } from "@core/repositories/scheduleTransa
 export type GetAllScheduleTransactionDto = {
     id: string
     name: string
-    accountRef: string
-    categoryRef: string
-    tagRefs: string[]
+    accountId: string
+    categoryId: string
+    tagIds: string[]
     type: string
     isPause: boolean
     dateStart: string
@@ -33,9 +33,9 @@ export class GetAllScheluleTransacationUseCase implements IUsecase<void, ListDto
             response.push({
                 id: trans.getId(),
                 name: trans.getName(),
-                accountRef: trans.getAccountRef(),
-                categoryRef: trans.getCategoryRef(),
-                tagRefs: trans.getTags(),
+                accountId: trans.getAccountRef(),
+                categoryId: trans.getCategoryRef(),
+                tagIds: trans.getTags(),
                 type: trans.getTransactionType(),
                 isPause: trans.getIsPause(),
                 dateStart: trans.getSchedule().getStartedDate().toString(),

@@ -4,7 +4,7 @@ import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { AccountRepository } from "../../repositories/accountRepository";
 import { SavingRepository } from "../../repositories/savingRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
-import { DateService, GetUID } from "@core/adapters/libs";
+import { GetUID } from "@core/adapters/libs";
 import { RecordRepository } from "@core/repositories/recordRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
@@ -12,8 +12,8 @@ import { Record } from "@core/domains/entities/record";
 import { MomentDateService } from "@core/domains/entities/libs";
 
 export type RequestDeleteSaveGoal = {
-    saveGoalRef: string
-    accountTranfertRef: string
+    id: string
+    accountTranfertId: string
 }
 
 
@@ -45,11 +45,11 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
         try {
             await this.unitOfWork.start()
 
-            let savingGoal = await this.savingRepo.get(request.saveGoalRef)
+            let savingGoal = await this.savingRepo.get(request.id)
             if (savingGoal == null)
                 throw new ResourceNotFoundError("SAVING_GOAL_NOT_FOUND")
 
-            let accountTranfert = await this.accountRepo.get(request.accountTranfertRef)
+            let accountTranfert = await this.accountRepo.get(request.accountTranfertId)
             if (accountTranfert == null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 

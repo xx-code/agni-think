@@ -110,7 +110,7 @@ export class Scheduler extends ValueObject {
             startedDate:this.startedDate, updatedDate: this.updatedDate, endingDate: this.endingDate})
     }
 
-    fromJson(string: string): Scheduler {
+   static fromJson(string: string): Scheduler {
         const object: {
             period: string, 
             periodTime?: number,

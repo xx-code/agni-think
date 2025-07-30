@@ -14,7 +14,7 @@ export type RequestUpdateItemSaveGoalUseCase = {
 }
 
 export type RequestUpdateSaveGoalUseCase = {
-    savingGoalRef: string
+    id: string
     target: number
     title: string
     description: string
@@ -29,7 +29,7 @@ export class UpdateSaveGoalUseCase implements IUsecase<RequestUpdateSaveGoalUseC
     }
 
     async execute(request: RequestUpdateSaveGoalUseCase): Promise<void> {
-        let saveGoal = await this.savingRepo.get(request.savingGoalRef)
+        let saveGoal = await this.savingRepo.get(request.id)
         if (saveGoal === null)
             throw new ResourceNotFoundError("SAVE_GAOL_NOT_FOUND")
 

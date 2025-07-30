@@ -64,6 +64,13 @@ export class Transaction extends Entity {
         return this.tagRefs.get().map(tag => tag.tagId)
     }
 
+    getCollectionTags(): ValueObjectCollection<TransactionTag> {
+        return this.tagRefs
+    }
+    getCollectionBudgets(): ValueObjectCollection<TransactionBudget> {
+        return this.budgetRefs
+    }
+
     setAccountRef(accountRef: string) {
         this.accountRef.set(accountRef)
     }

@@ -6,14 +6,14 @@ import { RecordType } from "@core/domains/constants";
 
 export type GetBudgetDto = {
     id: string,
-   title: string,
-   target: number,
-   period: string
-   periodTime?: number
-   currentBalance: number
-   startDate: string
-   updateDate: string
-   endDate?: string
+    title: string,
+    target: number,
+    period: string
+    periodTime?: number
+    currentBalance: number
+    startDate: string
+    updateDate: string
+    endDate?: string
 }
 
 export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
@@ -42,9 +42,7 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
             budgets: [budget.getId()],
             types: [],
             startDate: budget.getSchedule().getStartedDate().toString(),
-            endDate: budget.getSchedule().getStartedDate().toString() ?? '',
-            minPrice: null, 
-            maxPrice: null
+            endDate: budget.getSchedule().getStartedDate().toString() ?? ''
         });
 
         let currentBalance = 0

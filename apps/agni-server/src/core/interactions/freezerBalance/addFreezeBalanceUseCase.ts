@@ -1,11 +1,9 @@
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { AccountRepository } from "../../repositories/accountRepository";
-import { CategoryRepository } from "../../repositories/categoryRepository";
 import { RecordRepository } from "../../repositories/recordRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
 import { GetUID } from "@core/adapters/libs";
 import { FREEZE_CATEGORY_ID, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
-import { Category } from "@core/domains/entities/category";
 import { Money } from "@core/domains/entities/money";
 import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
@@ -16,7 +14,7 @@ import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export type RequestNewFreezeBalance = {
-    accountRef: string;
+    accountId: string;
     endDate: string;
     amount: number;
 }
@@ -39,7 +37,7 @@ export class AddFreezeBalanceUseCase implements IUsecase<RequestNewFreezeBalance
         try {
             this.unitOfWork.start()
 
-            let fetchedAccount = await this.accountRepository.get(request.accountRef)
+            let fetchedAccount = await this.accountRepository.get(request.accountId);
             if (!fetchedAccount) {
                 throw new ResourceNotFoundError('ACCOUNT_NOT_FOUND');
             }
@@ -56,7 +54,7 @@ export class AddFreezeBalanceUseCase implements IUsecase<RequestNewFreezeBalance
 
             await this.accountRepository.update(fetchedAccount)
 
-            let newTransaction = new Transaction(GetUID(), request.accountRef, newRecord.getId(), FREEZE_CATEGORY_ID, 
+            let newTransaction = new Transaction(GetUID(), request.accountId, newRecord.getId(), FREEZE_CATEGORY_ID, 
             endDate.toString(), TransactionType.OTHER, TransactionStatus.COMPLETE)
             newTransaction.setIsFreeze()
             

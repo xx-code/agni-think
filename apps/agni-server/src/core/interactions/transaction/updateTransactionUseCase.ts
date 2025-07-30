@@ -13,10 +13,10 @@ import { MomentDateService } from "@core/domains/entities/libs";
 
 export type RequestUpdateTransactionUseCase = {
     id: string;
-    accountRef: string
-    tagRefs: string[]
-    budgetRefs: string[]
-    categoryRef: string
+    accountId: string
+    tagIds: string[]
+    budgetIds: string[]
+    categoryId: string
     type: string
     description: string
     date: string
@@ -55,9 +55,9 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
             if ([SAVING_CATEGORY_ID, FREEZE_CATEGORY_ID].includes(transaction.getCategoryRef()))
                 throw new ValueError("CANT_UPDATE_TRANSACTION")
 
-            if (!await this.transationDependencies.accountRepository?.isExistById(request.accountRef))
+            if (!await this.transationDependencies.accountRepository?.isExistById(request.accountId))
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
-            transaction.setAccountRef(request.accountRef)
+            transaction.setAccountRef(request.accountId)
 
             let record = await this.transationDependencies.recordRepository?.get(transaction.getRecordRef())
             if (!record)
@@ -76,35 +76,35 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
             let date = MomentDateService.formatDateWithtime(request.date).toString()
             record.setDate(date)
 
-            if (!(await this.transationDependencies.accountRepository?.isExistById(request.accountRef)))
+            if (!(await this.transationDependencies.accountRepository?.isExistById(request.accountId)))
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
-            if (!(await this.transationDependencies.categoryRepository?.isCategoryExistById(request.categoryRef)))
+            if (!(await this.transationDependencies.categoryRepository?.isCategoryExistById(request.categoryId)))
                 throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
 
-            transaction.setCategoryRef(request.categoryRef)
+            transaction.setCategoryRef(request.categoryId)
             transaction.setTransactionType(type)
 
-            if (!(await this.transationDependencies.tagRepository?.isTagExistByIds(request.tagRefs)))
+            if (!(await this.transationDependencies.tagRepository?.isTagExistByIds(request.tagIds)))
                 throw new ResourceNotFoundError("TAG_NOT_FOUND")
 
-            if (!(await this.transationDependencies.budgetRepository?.isBudgetExistByIds(request.budgetRefs)))
+            if (!(await this.transationDependencies.budgetRepository?.isBudgetExistByIds(request.budgetIds)))
                 throw new ResourceNotFoundError("BUDGET_NOT_FOUND")
 
-            transaction.setTags(request.tagRefs)
-            transaction.setBudgets(request.budgetRefs)
+            transaction.setTags(request.tagIds)
+            transaction.setBudgets(request.budgetIds)
 
             if (record.hasChange() || transaction.hasChange())  {
                 await this.deleteTransactionUsecase.execute(request.id)
                 
                 await this.addTransactionUsecase.execute({
-                    accountRef: transaction.getAccountRef(),
+                    accountId: transaction.getAccountRef(),
                     amount: record.getMoney().getAmount(),
-                    categoryRef: transaction.getCategoryRef(),
-                    tagRefs: transaction.getTags(),
+                    categoryId: transaction.getCategoryRef(),
+                    tagIds: transaction.getTags(),
                     date: record.getDate(),
                     description: record.getDescription(),
                     type: transaction.getTransactionType(),
-                    budgetRefs: transaction.getBudgetRefs()
+                    budgetIds: transaction.getBudgetRefs()
                 })
             }
 

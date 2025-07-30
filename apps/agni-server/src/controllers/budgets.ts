@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { RequestCreateBudgetSchedule, RequestCreationBudgetUseCase } from "@core/interactions/budgets/creationBudgetUseCase";
+import { RequestCreationBudgetUseCase } from "@core/interactions/budgets/creationBudgetUseCase";
 import { GetAllBudgetDto } from "@core/interactions/budgets/getAllBudgetUseCase";
 import { GetBudgetDto } from "@core/interactions/budgets/getBudgetUseCase";
 import { RequestUpdateBudget } from "@core/interactions/budgets/updateBudgetUseCase";
@@ -7,6 +7,7 @@ import { ApiController } from "./base";
 import { IUsecase } from "@core/interactions/interfaces";
 import { CreatedDto, ListDto } from "@core/dto/base";
 import { Router } from "express";
+import { body, matchedData, validationResult } from 'express-validator';
 
 export default class BudgetController implements ApiController {
     private router = Router();
@@ -32,11 +33,32 @@ export default class BudgetController implements ApiController {
     }
 
     setupRoutes(){
-        this.router.get('/v1/budgets', this.handleGetAllBudget);
-        this.router.put('/v1/budgets/:id', this.handleUpdateBudget);
-        this.router.post('/v1/budgets', this.handleCreateBudget);
-        this.router.get('/v1/budgets/:id', this.handleGetBudget);
-        this.router.delete('/v1/budgets/:id', this.handleDeleteBudget)
+        this.router.get('/v1/budgets', 
+            this.handleGetAllBudget);
+
+        this.router.put('/v1/budgets/:id', 
+            body('title').isEmpty(),
+            body('target').isEmpty().isNumeric(),
+            body('schedule.period').isEmpty(),
+            body('schedule.periodTime').isEmpty().isNumeric(),
+            body('schedule.dateStart').isEmpty().isDate(),
+            body('schedule.dateEnd').isEmpty().isDate(),
+            this.handleUpdateBudget);
+
+        this.router.post('/v1/budgets', 
+            body('title').notEmpty(),
+            body('target').notEmpty().isNumeric(),
+            body('schedule.period').notEmpty(),
+            body('schedule.periodTime').isEmpty().isNumeric(),
+            body('schedule.dateStart').notEmpty().isDate(),
+            body('schedule.dateEnd').isEmpty().isDate(),
+            this.handleCreateBudget);
+
+        this.router.get('/v1/budgets/:id', 
+            this.handleGetBudget);
+
+        this.router.delete('/v1/budgets/:id', 
+            this.handleDeleteBudget);
     };
 
     getRoute() {
@@ -44,24 +66,28 @@ export default class BudgetController implements ApiController {
     };
 
     async handleCreateBudget(req: Request, res: Response) {
-        var created = await this.createBudget.execute({
-            title: req.body.title,
-            target: req.body.target,
-            schedule: req.body.schedule as RequestCreateBudgetSchedule
-        });
-        
-        res.status(200).send(created);
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestCreationBudgetUseCase = matchedData(req);
+            var created = await this.createBudget.execute(data);
+            
+            res.status(200).send(created);
+        }
+
+        res.send({ errors: result.array() });
     }
 
     async handleUpdateBudget(req: Request, res: Response) {
-        await this.updateBudget.execute({
-            id: req.params.id,
-            target: req.body.target,
-            title: req.body.title,
-            schedule: req.body.schedule as RequestCreateBudgetSchedule
-        });
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestUpdateBudget = matchedData(req);
+            data.id = req.params.id;
+            await this.updateBudget.execute(data);
 
-        res.status(201);
+            res.status(201);
+        }
+        
+        res.send({ errors: result.array() });
     }
 
     async handleGetBudget(req: Request, res: Response) {

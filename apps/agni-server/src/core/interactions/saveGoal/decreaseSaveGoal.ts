@@ -17,8 +17,8 @@ import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export type RequestDecreaseSaveGoal = {
-    savingGoalRef: string;
-    accountRef: string;
+    id: string;
+    accountId: string;
     decreaseAmount: number;
 }
 
@@ -44,11 +44,11 @@ export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal
         try {
             await this.unitOfWork.start()
 
-            let savingGoal = await this.savingRepository.get(request.savingGoalRef)
+            let savingGoal = await this.savingRepository.get(request.id)
             if (savingGoal === null)
                 throw new ResourceNotFoundError("SAVING_GOAL_NOT_FOUND")
 
-            let account = await this.accountRepository.get(request.accountRef)
+            let account = await this.accountRepository.get(request.accountId)
             if (account === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND");
 
@@ -75,7 +75,7 @@ export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal
             await this.recordRepository.save(newRecordSaving)
 
             let idTransTo = GetUID()
-            let newTransactionTo = new Transaction(idTransTo, request.accountRef, idRecordSaving, 
+            let newTransactionTo = new Transaction(idTransTo, request.accountId, idRecordSaving, 
                 SAVING_CATEGORY_ID, date, TransactionType.OTHER, TransactionStatus.COMPLETE,)
             await this.transactionRepository.save(newTransactionTo)
 

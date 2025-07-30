@@ -49,8 +49,6 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
                 types: [],
                 startDate: budget.getSchedule().getStartedDate().toString(),
                 endDate: budget.getSchedule().getEndingDate()?.toString() ?? '',
-                minPrice: null, 
-                maxPrice: null
             });
             
             let currentBalance = 0

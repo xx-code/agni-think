@@ -1,22 +1,21 @@
 import { RecordRepository } from "../../repositories/recordRepository";
 import { AccountRepository } from "../../repositories/accountRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
-import { DateService, GetUID } from "@core/adapters/libs";
-import { FREEZE_CATEGORY_ID, RecordType, TransactionStatus, TransactionType, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
+import { GetUID } from "@core/adapters/libs";
+import { RecordType, TransactionStatus, TransactionType, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
 import { ValueError } from "@core/errors/valueError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
-import { Category } from "@core/domains/entities/category";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export type RequestTransfertTransactionUseCase = {
-    accountRefFrom: string;
-    accountRefTo: string;
+    accountIdFrom: string;
+    accountIdTo: string;
     date: string;
     amount: number;
 }
@@ -44,11 +43,11 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
         try {
             await this.unitOfWork.start()
 
-            let accountFrom = await this.accountRepository.get(request.accountRefFrom);
+            let accountFrom = await this.accountRepository.get(request.accountIdFrom);
             if (accountFrom === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
  
-            let accountTo = await this.accountRepository.get(request.accountRefTo);
+            let accountTo = await this.accountRepository.get(request.accountIdTo);
             if (accountTo === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
