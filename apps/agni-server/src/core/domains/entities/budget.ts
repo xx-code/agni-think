@@ -11,10 +11,10 @@ export class Budget extends Entity {
 
     constructor(id: string, isArchive: boolean, target: number, title: string, scheduler: Scheduler) {
         super(id)
-        this.target = new TrackableProperty<number>(target, this.markHasChange) 
-        this.title = new TrackableProperty<string>(title, this.markHasChange)
-        this.scheduler = new TrackableProperty<Scheduler>(scheduler, this.markHasChange)
-        this.isArchived = new TrackableProperty<boolean>(isArchive, this.markHasChange)
+        this.target = new TrackableProperty<number>(target, this.markHasChange.bind(this)) 
+        this.title = new TrackableProperty<string>(title, this.markHasChange.bind(this))
+        this.scheduler = new TrackableProperty<Scheduler>(scheduler, this.markHasChange.bind(this))
+        this.isArchived = new TrackableProperty<boolean>(isArchive, this.markHasChange.bind(this))
     }
 
     setIsArchive(isArchive: boolean) {

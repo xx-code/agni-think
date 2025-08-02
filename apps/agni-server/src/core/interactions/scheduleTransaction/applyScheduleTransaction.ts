@@ -1,14 +1,12 @@
 import { ScheduleTransactionRepository } from "@core/repositories/scheduleTransactionRepository";
 import { IUsecase } from "../interfaces";
 import { TransactionRepository } from "@core/repositories/transactionRepository";
-import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { Transaction } from "@core/domains/entities/transaction";
 import { GetUID } from "@core/adapters/libs";
 import { RecordRepository } from "@core/repositories/recordRepository";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { Record } from "@core/domains/entities/record";
-import { mapperMainTransactionCategory, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
-import { Money } from "@core/domains/entities/money";
+import { RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
 
 export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
     private scheduleTransactionRepo: ScheduleTransactionRepository 
@@ -35,11 +33,12 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
 
             for(let i = 0; i < scheduleTransactions.length; i++) {
                 let scheduleTrans = scheduleTransactions[i]
-                if (scheduleTrans.getSchedule().isDue()) {
+
+                if (scheduleTrans.getSchedule().isDue() && !scheduleTrans.getIsPause()) {
                     const record = new Record(
                         GetUID(),
                         scheduleTrans.getAmount(),
-                        scheduleTrans.getSchedule().getUpdatedDate().toString(),
+                        scheduleTrans.getSchedule().getUpdatedDate().toLocaleString(),
                         scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
                         scheduleTrans.getName()
                     )
@@ -50,7 +49,7 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                         scheduleTrans.getAccountRef(),
                         record.getId(),
                         scheduleTrans.getCategoryRef(),
-                        scheduleTrans.getSchedule().getUpdatedDate().toString(),
+                        scheduleTrans.getSchedule().getUpdatedDate().toLocaleString(),
                         scheduleTrans.getTransactionType(),
                         TransactionStatus.PENDING,
                         scheduleTrans.getTags() 

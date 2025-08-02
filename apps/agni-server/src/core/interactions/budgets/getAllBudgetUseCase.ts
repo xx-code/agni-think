@@ -47,19 +47,17 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
                 tags: [],
                 budgets: [budget.getId()],
                 types: [],
-                startDate: budget.getSchedule().getStartedDate().toString(),
-                endDate: budget.getSchedule().getEndingDate()?.toString() ?? '',
-                minPrice: null, 
-                maxPrice: null
+                startDate: budget.getSchedule().getStartedDate().toLocaleDateString(),
+                endDate: budget.getSchedule().getEndingDate()?.toLocaleDateString(),
             });
-            
+
             let currentBalance = 0
             let records = await this.recordRepository.getManyById(transactions.map(transaction => transaction.getRecordRef()))
             for (let record of records) {
                 if (record.getType() === RecordType.DEBIT)
                     currentBalance += record.getMoney().getAmount()
             }
-            
+
             let budgetDisplay: GetAllBudgetDto = {
                 id: budget.getId(),
                 title: budget.getTitle(),
@@ -67,14 +65,13 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
                 period: budget.getSchedule().getPeriod(),
                 periodTime: budget.getSchedule().getPeriodTime(),
                 target: budget.getTarget(),
-                startDate: budget.getSchedule().getStartedDate().toString(),
-                updateDate: budget.getSchedule().getUpdatedDate().toString(),
-                endDate: budget.getSchedule().getEndingDate()?.toString()
+                startDate: budget.getSchedule().getStartedDate().toLocaleString(),
+                updateDate: budget.getSchedule().getUpdatedDate().toLocaleString(),
+                endDate: budget.getSchedule().getEndingDate()?.toLocaleString()
             };
 
             budgetsDisplay.push(budgetDisplay);
         }
-
         return { items: budgetsDisplay, totals: budgets.length }
    }
 }

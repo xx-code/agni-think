@@ -10,9 +10,9 @@ export class Account extends Entity {
 
     constructor(id: string, title: string, type: AccountType, balance: number = 0) {
         super(id)
-        this.title = new TrackableProperty<string>(title, this.markHasChange)
-        this.type = new TrackableProperty<AccountType>(type, this.markHasChange)
-        this.balance = new TrackableProperty<number>(balance, this.markHasChange)
+        this.title = new TrackableProperty<string>(title, this.markHasChange.bind(this))
+        this.type = new TrackableProperty<AccountType>(type, this.markHasChange.bind(this))
+        this.balance = new TrackableProperty<number>(balance, this.markHasChange.bind(this))
     }
 
     setTitle(title: string) {

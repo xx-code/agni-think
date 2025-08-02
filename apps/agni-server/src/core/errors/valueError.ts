@@ -3,6 +3,6 @@ export class ValueError extends Error {
     constructor(message: string) {
         super(message);
         this.name = 'ValueError';
-        this.cause = 'Error in domain verify mapping or interaction creation';
+        this.cause = message;
     }
 }

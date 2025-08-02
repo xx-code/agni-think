@@ -1,20 +1,136 @@
-import { Router } from "express";
-import container from '../di_contenair';
-import SaveGoalController from "src/controllers/saveGoals";
+import { RequestAddSaveGoalUseCase } from '@core/interactions/saveGoal/addSaveGoal';
+import { RequestDecreaseSaveGoal } from '@core/interactions/saveGoal/decreaseSaveGoal';
+import { RequestDeleteSaveGoal } from '@core/interactions/saveGoal/deleteSaveGoal';
+import { RequestIncreaseSaveGoal } from '@core/interactions/saveGoal/increaseSaveGoal';
+import { RequestUpdateSaveGoalUseCase } from '@core/interactions/saveGoal/updateSaveGoal';
+import { Router, Request, Response } from 'express';
+import { body, matchedData, query, validationResult } from 'express-validator';
+import container from 'src/di_contenair';
 
-const usecases = container.saveGoalUseCase;
+const router = Router();
 
-if (usecases === undefined)
-    throw new Error("SaveGoal Usecases not declare"); 
+router.post('/v1/save-goals', 
+    body('title').notEmpty().isString(),           
+    body('description').notEmpty().isString(),           
+    body('target').notEmpty().isNumeric(),           
+    body('items').isArray(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestAddSaveGoalUseCase = matchedData(req);
+                var created = await container.saveGoalUseCase?.addSaveGoal.execute(data);
 
-const saveGoalRouter = new SaveGoalController(
-    usecases.addSaveGoal,
-    usecases.increaseSaveGoal,
-    usecases.decreaseSaveGoal,
-    usecases.getSaveGoal,
-    usecases.getAllSaveGoal,
-    usecases.updateSaveGoal,
-    usecases.deleteSaveGoal
-);
+                res.status(200).send(created);
+                return;
+            }
+            
+            res.send({ errors: result.array() });
+        } catch(err) {
+            res.send({ errors: [err] });
+        }
+    });
 
-export default saveGoalRouter.getRoute();
+router.put('/v1/save-goals/:id', 
+    body('title').optional().isString(),           
+    body('description').optional().isString(),           
+    body('target').optional().isNumeric(),           
+    body('items').optional().isArray(),
+    async (req: Request, res: Response) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestUpdateSaveGoalUseCase = matchedData(req); 
+                data.id = req.params.id;
+                await container.saveGoalUseCase?.updateSaveGoal.execute(data);
+
+                res.sendStatus(200);
+                return;
+            }
+            
+            res.send({ errors: result.array() });
+        } catch(err) {
+            res.send({ errors: [err] });
+        } 
+    });
+
+router.get('/v1/save-goals/:id', async (req, res) => {
+    try {
+        var saveGoal = await container.saveGoalUseCase?.getSaveGoal.execute(req.params.id);
+        res.status(200).send(saveGoal);
+    } catch(err) {
+        res.send({ errors: [err] })
+    }
+});
+
+router.get('/v1/save-goals', async (req, res) => {
+    try {
+        var saveGoals = await container.saveGoalUseCase?.getAllSaveGoal.execute();
+        res.status(200).send(saveGoals);
+    } catch(err) {
+        res.send({ errors: [err] })
+    }
+});
+
+router.delete('/v1/save-goals/:id', query('accountTransfertId').isString().notEmpty(), async (req: Request, res: Response) => {
+    try {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestDeleteSaveGoal = matchedData(req);
+            data.id = req.params.id;
+            await container.saveGoalUseCase?.deleteSaveGoal.execute(data);
+            
+            res.sendStatus(200);
+            return;
+        }
+        
+        res.send({ errors: result.array() });
+    } catch(err) {
+        res.send({ errors: [err] })
+    } 
+});
+
+router.patch('/v1/save-goals/:id/increase-balance', 
+    body('accountId').notEmpty(),
+    body('amount').notEmpty(),
+    body('saveGoalId').notEmpty(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestIncreaseSaveGoal = matchedData(req);
+                await container.saveGoalUseCase?.increaseSaveGoal.execute(data);
+
+                res.sendStatus(200);
+                return;
+            }
+            
+            res.send({ errors: result.array() });
+        } catch(err) {
+            res.send({ errors: [err] })
+        }
+    });
+
+router.patch('/v1/save-goals/:id/decrease-balance',
+    body('accountId').notEmpty().isString(),
+    body('amount').notEmpty().isNumeric(),
+    body('saveGoalId').notEmpty().isString(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestDecreaseSaveGoal = matchedData(req);
+                await container.saveGoalUseCase?.decreaseSaveGoal.execute(data);
+
+                res.sendStatus(200);
+                return;
+            }
+            
+            res.send({ errors: result.array() });
+        } catch(err) {
+            res.send({ errors: [err]});
+        }
+    });
+
+
+export default router;

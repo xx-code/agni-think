@@ -6,8 +6,8 @@ import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 
 export type RequestUpdateTagUseCase = {
     id: string
-    value: string
-    color: string
+    value?: string
+    color?: string
 } 
 
 export class UpdateTagUseCase implements IUsecase<RequestUpdateTagUseCase, void> {
@@ -22,11 +22,16 @@ export class UpdateTagUseCase implements IUsecase<RequestUpdateTagUseCase, void>
         if (fetchedTag === null)
             throw new ResourceNotFoundError("TAG_NOT_FOUND")
 
-        if ((await this.repository.isTagExistByName(request.value)) && fetchedTag.getValue() !== request.value)
-            throw new ResourceAlreadyExist("TAG_ALREADY_EXIST")
+        if (request.value) {
+            if ((await this.repository.isTagExistByName(request.value)) && fetchedTag.getValue() !== request.value)
+                throw new ResourceAlreadyExist("TAG_ALREADY_EXIST")
 
-        fetchedTag.setValue(request.value)
-        fetchedTag.setColor(request.color)
+            fetchedTag.setValue(request.value)
+        }
+
+        if (request.color) {
+            fetchedTag.setColor(request.color)
+        }
 
         if (fetchedTag.hasChange())
             await this.repository.update(fetchedTag)

@@ -4,6 +4,7 @@ import { Knex } from "knex";
 import { Budget } from "@core/domains/entities/budget";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { isEmpty } from "@core/domains/helpers";
+import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
 
 export class PostgresSqlBudgetRepository extends KnexConnector implements BudgetRepository {
     constructor(connector: Knex) {
@@ -18,14 +19,9 @@ export class PostgresSqlBudgetRepository extends KnexConnector implements Budget
                 table.uuid('budget_id').primary()
                 table.string('title')
                 table.float('target')
-                table.date('date_start')
-                table.date('date_update')
-                table.date('date_end').nullable()
-                table.string('period').nullable()
-                table.integer('period_time').nullable()
+                table.json('scheduler')
                 table.boolean('is_archived')
-                table.boolean('is_system')
-            })
+            });
         }
     }
     
@@ -45,11 +41,7 @@ export class PostgresSqlBudgetRepository extends KnexConnector implements Budget
             budget_id: request.getId(),
             title: request.getTitle(),
             target: request.getTarget(),
-            date_start: request.getDateStart(),
-            date_update: request.getDateUpdate(),
-            date_end: request.getDateEnd(),
-            period: request.getPeriod(),
-            period_time: request.getPeriodTime(),
+            scheduler: request.getSchedule().toJson(),  
             is_archived: request.getIsArchive(),
         });
     }
@@ -62,11 +54,7 @@ export class PostgresSqlBudgetRepository extends KnexConnector implements Budget
             result['is_archived'],
             result['target'],
             result['title'],
-            result['date_start'],
-            result['period'],
-            result['period_time'],
-            result['date_end'],
-            result['date_update'], 
+            Scheduler.fromJson(result['scheduler']) 
         )
         
         return budget
@@ -83,11 +71,7 @@ export class PostgresSqlBudgetRepository extends KnexConnector implements Budget
                 result['is_archived'],
                 result['target'],
                 result['title'],
-                result['date_start'],
-                result['period'],
-                result['period_time'],
-                result['date_end'],
-                result['date_update'],
+                Scheduler.fromJson(result['scheduler']) 
             )
 
             budgets.push(budget)
@@ -108,11 +92,7 @@ export class PostgresSqlBudgetRepository extends KnexConnector implements Budget
         await this.connector('budgets').where('budget_id', request.getId()).update({
             title: request.getTitle(),
             target: request.getTarget(),
-            date_start: request.getDateStart(),
-            date_update: request.getDateUpdate(),
-            date_end: request.getDateEnd(),
-            period: request.getPeriod(),
-            period_time: request.getPeriodTime(),
+            scheduler: request.getSchedule().toJson(), 
             is_archived: request.getIsArchive(),
         });
     }

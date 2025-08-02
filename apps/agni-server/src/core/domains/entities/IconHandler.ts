@@ -7,8 +7,8 @@ class IconHandler extends Entity {
 
     constructor(id: string, name: string, heberger: string) {
         super(id)
-        this.name = new TrackableProperty<string>(name, this.markHasChange) 
-        this.heberger = new TrackableProperty<string>(heberger, this.markHasChange)
+        this.name = new TrackableProperty<string>(name, this.markHasChange.bind(this)) 
+        this.heberger = new TrackableProperty<string>(heberger, this.markHasChange.bind(this))
     }
 
     setName(name: string) {

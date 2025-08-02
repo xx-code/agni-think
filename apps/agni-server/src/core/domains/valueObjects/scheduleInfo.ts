@@ -41,8 +41,13 @@ export class Scheduler extends ValueObject {
 
         if (periodTime === undefined && endingDate !== undefined)
             this.updatedDate = endingDate
-        else if(periodTime !== undefined)
-            this.updatedDate = MomentDateService.getDateAddition(startedDate, period, periodTime!) 
+        else if(periodTime !== undefined) {
+            var updatedDate = MomentDateService.getDateAddition(startedDate, period, periodTime!)
+            if (MomentDateService.compareDate(updatedDate.toString(), endingDate!.toString()) == 1)
+                this.updatedDate = endingDate
+            else 
+                this.updatedDate =  updatedDate;
+        }
 
         this.period = period
         this.periodTime = periodTime
@@ -77,13 +82,13 @@ export class Scheduler extends ValueObject {
     ) {
         if (periodTime === undefined && endingDate === undefined)
             throw new ValueError("SCHEDULER_WITH_PERIOD_UNDETERMINED_HAVE_NOT_END_DATE")
-
-        if (periodTime !== undefined && endingDate === undefined)
-            throw new ValueError("SCHEDULER_WITH_PERIOD_DETERMINED_MUST_HAVE_AN_ENDING_DATE")
     }
 
     isDue(): boolean {
-        return false
+        if (!this.updatedDate)
+            return false;
+
+        return MomentDateService.compareDateWithDate(new Date(), this.updatedDate) >= 0
     }
 
     isEqual(object: Scheduler): boolean {
@@ -107,17 +112,24 @@ export class Scheduler extends ValueObject {
 
     toJson(): string {
         return JSON.stringify({period: this.period, periodTime: this.periodTime, 
-            startedDate:this.startedDate, updatedDate: this.updatedDate, endingDate: this.endingDate})
+            startedDate:this.startedDate, endingDate: this.endingDate})
     }
 
-    fromJson(string: string): Scheduler {
-        const object: {
-            period: string, 
-            periodTime?: number,
-            startedDate: Date,
-            endingDate?: Date
-        } = JSON.parse(string);
+   static fromJson(value: any): Scheduler {
+        try {
+            const object: {
+                period: string, 
+                periodTime?: number,
+                startedDate: string,
+                endingDate?: string
+            } = value;
 
-        return new Scheduler(mapperPeriod(object.period), object.startedDate, object.periodTime, object.endingDate)
+            var endDate  = object.endingDate ? new Date(object.endingDate) : undefined
+
+            return new Scheduler(mapperPeriod(object.period), new Date(object.startedDate) , object.periodTime, endDate)
+        } catch(err) {
+            throw err
+        }
+        
     }
 }

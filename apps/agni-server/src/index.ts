@@ -1,4 +1,4 @@
-import express, { application, Express, Request, Response } from "express";
+import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
 import bodyParser  = require("body-parser");
 import cors from "cors"
@@ -7,11 +7,13 @@ import container from "./di_contenair";
 import { SystemSeeder } from './seeder';
 import AccountRoute from './routes/accounts';
 import CategoryRoute from './routes/categories';
+import ScheduleTransactionRoute from './routes/scheduleTransaction';
 import TagRoute from './routes/tags';
 import TransactionRoute from './routes/transactions';
 import SaveGoalRoute from './routes/savingGoals';
 import BudgetRoute from './routes/budgets';
 import InternalRoute from './routes/internal';
+import { ApplyScheduleTransactionCronScheduler, CronScheduler } from "@infra/adapters/cronScheduler";
 dotenv.config();
 
 const db: Knex = knex( {
@@ -46,16 +48,28 @@ app.use(TagRoute)
 app.use(TransactionRoute)
 app.use(SaveGoalRoute)
 app.use(BudgetRoute)
+app.use(ScheduleTransactionRoute)
 app.use(InternalRoute)
 
 app.listen(port, async () => {
   try {
-    await container.config(db)
+    await container.config(db);
+    console.log('[server]: Config container');
+
+    if (process.env.RUN_MIGRATION) {
+      await db.migrate.latest({ directory: './migrations', disableTransactions: false })
+      console.log('[server]: Migration done');
+    }
 
     const seeder = new SystemSeeder(container.getRepository('category'), container.getRepository('tag'))
     seeder.seed()
+    console.log('[server]: Seed');
     console.log(`[server]: Server is running at http://localhost:${port}`);
     console.log(`[server]: Server db connected`);
+
+    const applyScheduleTransaction = new ApplyScheduleTransactionCronScheduler();
+    applyScheduleTransaction.execute({ seconde: 20 });
+
   } catch(err) {
     console.log(err)
     console.log({

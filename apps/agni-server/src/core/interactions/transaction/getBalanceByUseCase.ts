@@ -1,4 +1,4 @@
-import { mapperMainTransactionCategory, mapperTransactionType, RecordType } from "@core/domains/constants";
+import { mapperMainTransactionCategory, mapperTransactionType, RecordType, TransactionStatus } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { isEmpty, DateParser } from "@core/domains/helpers";
 import ValidationError from "@core/errors/validationError";
@@ -8,7 +8,7 @@ import { IUsecase } from "../interfaces";
 import { MomentDateService } from "@core/domains/entities/libs";
 
 export type RequestGetBalanceBy = {
-    accountsIds?: string[],
+    accountIds?: string[],
     tagsIds?: string[],
     budgetIds?: string[],
     categoriesIds?: string[],
@@ -47,23 +47,24 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number
         }
 
         let minPrice;
-        if (!isEmpty(request.minPrice))
+        if (request.minPrice)
             minPrice  = new Money(request.minPrice)
 
         let maxPrice;
-        if (!isEmpty(request.maxPrice))
+        if (request.maxPrice)
             maxPrice = new Money(request.maxPrice)
 
         let dateStart;
         if (request.dateStart)
-            dateStart = MomentDateService.formatDate(request.dateStart).toString()
+            dateStart = MomentDateService.formatDate(request.dateStart).toLocaleString()
 
         let dateEnd;
         if (request.dateEnd)
-            dateEnd = MomentDateService.formatDate(request.dateEnd).toString()
+            dateEnd = MomentDateService.formatDate(request.dateEnd).toLocaleString()
+
 
         let filter: TransactionFilter = {
-            accounts: request.accountsIds || [],
+            accounts: request.accountIds || [],
             categories: request.categoriesIds || [],
             budgets: request.budgetIds || [],
             tags: request.tagsIds || [],
@@ -76,7 +77,9 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number
 
         let transactions = await this.transactionRepository.getTransactions(filter);
 
-        let records = await this.recordRepository.getManyById(transactions.map(transaction => transaction.getRecordRef()))
+        let records = await this.recordRepository
+            .getManyById(transactions.filter(i => i.getStatus() == TransactionStatus.COMPLETE)
+            .map(transaction => transaction.getRecordRef()))
         let balance = 0
         for (let record of records) {
             if (record.getType() === RecordType.CREDIT)

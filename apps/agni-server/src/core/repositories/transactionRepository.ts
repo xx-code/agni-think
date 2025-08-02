@@ -25,7 +25,7 @@ export interface TransactionRepository {
     save(request: Transaction): Promise<void>;
     get(id: string): Promise<Transaction>;
     isTransactionExistById(id: string): Promise<boolean>
-    getPaginations(page:number, size: number, sortBy: SortBy|null, filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>>;
+    getPaginations(offset:number, size: number, sortBy: SortBy|null, filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>>;
     getTransactions(filterBy: TransactionFilter): Promise<Transaction[]>
     delete(id: string): Promise<void>;
     update(request: Transaction): Promise<void>;

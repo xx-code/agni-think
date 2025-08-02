@@ -10,15 +10,13 @@ export class Category extends Entity {
 
     constructor(id: string, title: string, iconId: string, color:string='', isSystem=false) {
         super(id)
-        this.title = new TrackableProperty<string>(title, this.markHasChange)
-        this.iconId = new TrackableProperty<string>(iconId, this.markHasChange)
-        this.setColor(color)
-
-        this.isSystem = new TrackableProperty<boolean>(isSystem, this.markHasChange)
+        this.title = new TrackableProperty<string>(title, this.markHasChange.bind(this))
+        this.iconId = new TrackableProperty<string>(iconId, this.markHasChange.bind(this))
+        this.isSystem = new TrackableProperty<boolean>(isSystem, this.markHasChange.bind(this))
 
         if (!isEmpty(color) && !isValidColor(color))
             throw new ValueError(`Color: ${color} value not valid`)
-        this.color = new TrackableProperty<string>(color, this.markHasChange)
+        this.color = new TrackableProperty<string>(color, this.markHasChange.bind(this))
     }
 
     setTitle(title: string) {

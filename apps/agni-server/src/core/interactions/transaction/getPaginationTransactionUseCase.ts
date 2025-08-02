@@ -11,14 +11,14 @@ import { TransactionDependencies } from "../facades";
 
 
 export type RequestGetPagination = {
-    page: number
+    offset: number
     limit: number
     sortBy?: string
     sortSense?: string
-    accountFilter?: Array<string>
-    budgetFilter?: Array<string>
-    categoryFilter?: Array<string>
-    tagFilter?: Array<string>
+    accountFilterIds?: Array<string>
+    budgetFilterIds?: Array<string>
+    categoryFilterIds?: Array<string>
+    tagFilterIds?: Array<string>
     dateStart?: string
     dateEnd?: string
     types?: string[]
@@ -47,7 +47,8 @@ export type GetAllTransactionDto = {
     description: string
     recordType: string
     type: string
-    categoryRef: string
+    status: string
+    categoryId: string
     tagRefs: string[]
     budgets: string[]
 }
@@ -64,14 +65,14 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
     }
 
     async execute(request: RequestGetPagination): Promise<ListDto<GetAllTransactionDto>> {
-        let page = 1
-        if (request.page) {
-            if (request.page <= 0)
+        let offset = 0
+        if (request.offset) {
+            if (request.offset < 0)
                 throw new ValidationError("Page must be greater than 0")
-            page = request.page
+            offset = request.offset
         }
 
-        let limit = 30 // refactoring to be set by controller
+        let limit = 25 // refactoring to be set by controller
         if (request.limit) {
             if (request.limit <= 0)
                 throw new ValidationError('Size must be greather than 0')
@@ -79,20 +80,20 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
         }
         
 
-        if (request.accountFilter !== undefined && request.accountFilter?.length > 0)
-            if (!(await this.transactionDependencies.accountRepository?.isExistByIds(request.accountFilter)))
+        if (request.accountFilterIds !== undefined && request.accountFilterIds?.length > 0)
+            if (!(await this.transactionDependencies.accountRepository?.isExistByIds(request.accountFilterIds)))
                 throw new ResourceNotFoundError("an account to filter not valid")
         
-        if (request.categoryFilter !== undefined && request.categoryFilter.length > 0)
-            if (!(await this.transactionDependencies.categoryRepository?.isCategoryExistByIds(request.categoryFilter)))
+        if (request.categoryFilterIds !== undefined && request.categoryFilterIds.length > 0)
+            if (!(await this.transactionDependencies.categoryRepository?.isCategoryExistByIds(request.categoryFilterIds)))
                 throw new ResourceNotFoundError("an category to filter not valid")
 
-        if (request.tagFilter !== undefined && request.tagFilter.length > 0)
-            if (!(await this.transactionDependencies.tagRepository?.isTagExistByIds(request.tagFilter)))
+        if (request.tagFilterIds !== undefined && request.tagFilterIds.length > 0)
+            if (!(await this.transactionDependencies.tagRepository?.isTagExistByIds(request.tagFilterIds)))
                 throw new ResourceNotFoundError("an tag to filter not valid")
         
-        if (request.budgetFilter !== undefined && request.budgetFilter.length > 0)
-            if (!(await this.transactionDependencies.budgetRepository?.isBudgetExistByIds(request.budgetFilter)))
+        if (request.budgetFilterIds !== undefined && request.budgetFilterIds.length > 0)
+            if (!(await this.transactionDependencies.budgetRepository?.isBudgetExistByIds(request.budgetFilterIds)))
                 throw new ResourceNotFoundError("an budget to filter not valid")
 
         if (!isEmpty(request.dateStart) && !isEmpty(request.dateEnd))
@@ -116,12 +117,12 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
             maxPrice = new Money(request.maxPrice)
 
         let filters: TransactionFilter = {
-            accounts: request.accountFilter || [], 
-            tags: request.tagFilter || [],
-            categories: request.categoryFilter || [],
+            accounts: request.accountFilterIds || [], 
+            tags: request.tagFilterIds || [],
+            categories: request.categoryFilterIds || [],
             startDate: request.dateStart,
             endDate: request.dateEnd,
-            budgets: request.budgetFilter || [],
+            budgets: request.budgetFilterIds || [],
             types: types,
             minPrice: minPrice,
             maxPrice: maxPrice
@@ -139,7 +140,7 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
             if (!['asc', 'desc'].includes(request.sortSense))
                 throw new ValidationError('SORT_SENSE_MUST_BE_ASC_DESC') 
 
-        let response = await this.transactionRepository.getPaginations(page, limit, sortBy, filters);
+        let response = await this.transactionRepository.getPaginations(offset, limit, sortBy, filters);
 
         let transactions: GetAllTransactionDto[] = []
         for (let i = 0; i < response.items.length ; i++) {
@@ -150,10 +151,11 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
                     accountId: transaction.getAccountRef(),
                     transactionId: transaction.getId(),
                     amount: record.getMoney().getAmount(),
-                    categoryRef: transaction.getCategoryRef(),
+                    categoryId: transaction.getCategoryRef(),
                     date: transaction.getDate(),
                     tagRefs: transaction.getTags(),
                     description: record.getDescription(),
+                    status: transaction.getStatus(),
                     recordType: record.getType(),
                     type: transaction.getTransactionType(),
                     budgets: transaction.getBudgetRefs()

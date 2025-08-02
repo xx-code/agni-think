@@ -6,14 +6,14 @@ import { RecordType } from "@core/domains/constants";
 
 export type GetBudgetDto = {
     id: string,
-   title: string,
-   target: number,
-   period: string
-   periodTime?: number
-   currentBalance: number
-   startDate: string
-   updateDate: string
-   endDate?: string
+    title: string,
+    target: number,
+    period: string
+    periodTime?: number
+    currentBalance: number
+    startDate: string
+    updateDate: string
+    endDate?: string
 }
 
 export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
@@ -41,10 +41,8 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
             tags: [],
             budgets: [budget.getId()],
             types: [],
-            startDate: budget.getSchedule().getStartedDate().toString(),
-            endDate: budget.getSchedule().getStartedDate().toString() ?? '',
-            minPrice: null, 
-            maxPrice: null
+            startDate: budget.getSchedule().getStartedDate().toLocaleDateString(),
+            endDate: budget.getSchedule().getStartedDate().toLocaleDateString() 
         });
 
         let currentBalance = 0
@@ -61,9 +59,9 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
             period: budget.getSchedule().getPeriod(),
             periodTime: budget.getSchedule().getPeriodTime(),
             target: budget.getTarget(),
-            startDate: budget.getSchedule().getStartedDate().toString(),
-            updateDate: budget.getSchedule().getUpdatedDate().toString(),
-            endDate: budget.getSchedule().getEndingDate()?.toString()
+            startDate: budget.getSchedule().getStartedDate().toLocaleString(),
+            updateDate: budget.getSchedule().getUpdatedDate().toLocaleString(),
+            endDate: budget.getSchedule().getEndingDate()?.toLocaleString()
         };
 
         return budgetDisplay

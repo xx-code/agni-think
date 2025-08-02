@@ -19,14 +19,14 @@ export type RequestUpdateScheduleTransactionScheduler = {
 
 export type RequestUpdateScheduleTransaction = {
     id: string
-    name: string
-    accountRef: string
-    amount: number
-    categoryRef: string
-    tagRefs: string[]
-    type: string
-    isPause: boolean
-    schedule: RequestUpdateScheduleTransactionScheduler
+    name?: string
+    accountId?: string
+    amount?: number
+    categoryId?: string
+    tagIds?: string[]
+    type?: string
+    isPause?: boolean
+    schedule?: RequestUpdateScheduleTransactionScheduler
 }
 
 export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateScheduleTransaction, void> {
@@ -44,39 +44,62 @@ export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateS
     async execute(request: RequestUpdateScheduleTransaction): Promise<void> {
         const scheduleTransaction = await this.scheduleTransactionRepo.get(request.id)
         if (scheduleTransaction === null)
-            throw new ResourceNotFoundError("SCHEDULE_TRANSACTION_NOT_FOUND")
+            throw new ResourceNotFoundError("SCHEDULE_TRANSACTION_NOT_FOUND")   
 
-        if (await this.scheduleTransactionRepo.existByName(request.name) && !isStringDifferent(request.name, scheduleTransaction.getName()))
-            throw new ResourceAlreadyExist("SCHEDULE_TRANSACTION_ALREADY_EXIST") 
+        if (request.name) {
+            if (await this.scheduleTransactionRepo.existByName(request.name) && !isStringDifferent(request.name, scheduleTransaction.getName()))
+                throw new ResourceAlreadyExist("SCHEDULE_TRANSACTION_ALREADY_EXIST")
 
-        if (!await this.transactionDependencies.accountRepository?.isExistById(request.accountRef))
-            throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
+            scheduleTransaction.setName(request.name)
+        }
 
-        if (!await this.transactionDependencies.categoryRepository?.isCategoryExistById(request.categoryRef))
-            throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
+        if (request.accountId) {
+            if (!await this.transactionDependencies.accountRepository?.isExistById(request.accountId))
+                throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
+            
+            scheduleTransaction.setAccountRef(request.accountId)
+        }
 
-        if (request.tagRefs.length > 0)
-            if (!await this.transactionDependencies.tagRepository?.isTagExistByIds(request.tagRefs))
-                throw new ResourceNotFoundError("TAGS_NOT_FOUND")
-        
-        if (request.amount <= 0)
-            throw new ValidationError("AMOUNT_SCHEDULE_TRANSACTION_MUST_GREATER_THAN_0")
+        if (request.categoryId) {
+            if (!await this.transactionDependencies.categoryRepository?.isCategoryExistById(request.categoryId))
+                throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
 
-        const scheduler = new Scheduler(
-            mapperPeriod(request.schedule.period),
-            MomentDateService.formatDate(request.schedule.dateStart) ,
-            request.schedule.periodTime,
-            request.schedule.dateEnd ? MomentDateService.formatDate(request.schedule.dateEnd) : undefined
-        )
+            scheduleTransaction.setCategoryRef(request.categoryId)
+        }
 
-        scheduleTransaction.setAccountRef(request.accountRef)
-        scheduleTransaction.setCategoryRef(request.categoryRef)
-        scheduleTransaction.setTags(request.tagRefs)
-        scheduleTransaction.setTransactionType(mapperMainTransactionCategory(request.type))
-        scheduleTransaction.setName(request.name)
-        scheduleTransaction.setAmount(new Money(request.amount))
-        scheduleTransaction.setIsPause(request.isPause)
-        scheduleTransaction.reSchedule(scheduler)
+        if (request.tagIds) {
+            if (request.tagIds.length > 0)
+                if (!await this.transactionDependencies.tagRepository?.isTagExistByIds(request.tagIds))
+                    throw new ResourceNotFoundError("TAGS_NOT_FOUND")
+
+            scheduleTransaction.setTags(request.tagIds)
+        }
+
+        if (request.type) {
+            scheduleTransaction.setTransactionType(mapperMainTransactionCategory(request.type))
+        }
+
+        if (request.amount) {
+            if (request.amount <= 0)
+                throw new ValidationError("AMOUNT_SCHEDULE_TRANSACTION_MUST_GREATER_THAN_0")
+
+            scheduleTransaction.setAmount(new Money(request.amount))
+        }
+
+        if (request.schedule) {
+            const scheduler = new Scheduler(
+                mapperPeriod(request.schedule.period),
+                MomentDateService.formatDate(request.schedule.dateStart) ,
+                request.schedule.periodTime,
+                request.schedule.dateEnd ? MomentDateService.formatDate(request.schedule.dateEnd) : undefined
+            )
+
+            scheduleTransaction.reSchedule(scheduler)
+        }
+
+        if (request.isPause) {
+            scheduleTransaction.setIsPause(request.isPause)
+        } 
 
         await this.scheduleTransactionRepo.update(scheduleTransaction)
     }

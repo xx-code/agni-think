@@ -1,4 +1,4 @@
-import { RecordType, SAVING_CATEGORY_ID } from "@core/domains/constants";
+import { RecordType, SAVING_CATEGORY_ID, TransactionStatus } from "@core/domains/constants";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { ValueError } from "@core/errors/valueError";
 import { AccountRepository } from "@core/repositories/accountRepository";
@@ -43,10 +43,12 @@ export class DeleteTransactionUseCase implements IUsecase<string, void> {
             let account = await this.accountRepo.get(transaction.getAccountRef())
             if (account === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
-            
-            record.getType() === RecordType.CREDIT ? account.substractBalance(record.getMoney()) : account.addOnBalance(record.getMoney())
 
-            await this.accountRepo.update(account)
+            if (transaction.getStatus() === TransactionStatus.COMPLETE) {
+                record.getType() === RecordType.CREDIT ? account.substractBalance(record.getMoney()) : account.addOnBalance(record.getMoney())
+                await this.accountRepo.update(account);
+            }
+            
             
             await this.recordRepo.delete(record.getId())
 

@@ -1,7 +1,5 @@
 import { BudgetRepository } from "../../repositories/budgetRepository";
 import { mapperPeriod } from "@core/domains/constants";
-import { isEmpty } from "@core/domains/helpers";
-import { ValueError } from "@core/errors/valueError";
 import { IUsecase } from "../interfaces";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
 import { MomentDateService } from "@core/domains/entities/libs";
@@ -15,9 +13,9 @@ export type RequestCreateBudgetSchedule = {
 
 export type RequestUpdateBudget = {
     id: string
-    title: string;
-    target: number;
-    schedule: RequestCreateBudgetSchedule 
+    title?: string;
+    target?: number;
+    schedule?: RequestCreateBudgetSchedule 
 } 
 
 export class UpdateBudgetUseCase implements IUsecase<RequestUpdateBudget, void> {
@@ -30,16 +28,21 @@ export class UpdateBudgetUseCase implements IUsecase<RequestUpdateBudget, void> 
    async execute(request: RequestUpdateBudget): Promise<void> {
     let budget = await this.budgetRepository.get(request.id)
     
-    budget.setTitle(request.title)
-    budget.setTarget(request.target)
+    if (request.title)
+        budget.setTitle(request.title)
+    
+    if (request.target)
+        budget.setTarget(request.target)
 
-    const scheduler = new Scheduler(
-        mapperPeriod(request.schedule.period),
-        MomentDateService.formatDate(request.schedule.dateStart) ,
-        request.schedule.periodTime,
-        request.schedule.dateEnd ? MomentDateService.formatDate(request.schedule.dateEnd) : undefined
-    )
-    budget.reSchedule(scheduler)
+    if (request.schedule) {
+        const scheduler = new Scheduler(
+            mapperPeriod(request.schedule.period),
+            MomentDateService.formatDate(request.schedule.dateStart) ,
+            request.schedule.periodTime,
+            request.schedule.dateEnd ? MomentDateService.formatDate(request.schedule.dateEnd) : undefined
+        )
+        budget.reSchedule(scheduler)
+    }
             
     if (budget.hasChange())
         await this.budgetRepository.update(budget);

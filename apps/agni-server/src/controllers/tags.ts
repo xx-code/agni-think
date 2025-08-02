@@ -1,15 +1,12 @@
 import { Request, Response, Router } from "express";
-import { CreationTagUseCase, RequestCreationTagUseCase } from "@core/interactions/tag/creationTagUseCase";
-import { DeleteTagUseCase } from "@core/interactions/tag/deleteTagUseCase";
-import { GetAllTagDto, GetAllTagUseCase } from "@core/interactions/tag/getAllTagsUseCase";
-import { GetTagDto, GetTagUseCase } from "@core/interactions/tag/getTagUseCase";
-import { ApiError, ApiResponse, initApiResponse } from "./type";
-import { isEmpty } from "@core/domains/helpers";
-import { RequestUpdateTagUseCase, UpdateTagUseCase } from "@core/interactions/tag/updateTagUseCase";
-import { TagRepository } from "@core/repositories/tagRepository";
+import { RequestCreationTagUseCase } from "@core/interactions/tag/creationTagUseCase";
+import { GetAllTagDto } from "@core/interactions/tag/getAllTagsUseCase";
+import { GetTagDto } from "@core/interactions/tag/getTagUseCase";
+import { RequestUpdateTagUseCase } from "@core/interactions/tag/updateTagUseCase";
 import { ApiController } from "./base";
 import { IUsecase } from "@core/interactions/interfaces";
 import { CreatedDto, ListDto } from "@core/dto/base";
+import { body, matchedData, validationResult } from "express-validator";
 
 export default class TagController implements ApiController {
     private CONTROLLER_NAME: string = 'tags';
@@ -38,11 +35,24 @@ export default class TagController implements ApiController {
     }
 
     setupRoutes() {
-        this.route.post(`/${this.CONTROLLER_NAME}`, this.handleCreateTagUsecase);
-        this.route.put(`/${this.CONTROLLER_NAME}/:id`, this.handleUpdateTagUsecase);
-        this.route.get(`/${this.CONTROLLER_NAME}/:id`, this.handleGetTagUsecase);
-        this.route.get(`/${this.CONTROLLER_NAME}`, this.handleGetAllTagsUsecase);
-        this.route.delete(`/${this.CONTROLLER_NAME}/:id`, this.handleDeleteTagUsecase);
+        this.route.post(`/v1/${this.CONTROLLER_NAME}`, 
+            body('value').notEmpty(),
+            body('color').isEmpty().isHexColor(),
+            this.handleCreateTagUsecase);
+
+        this.route.put(`/v1/${this.CONTROLLER_NAME}/:id`, 
+            body('value').isEmpty(),
+            body('color').isEmpty().isHexColor(),
+            this.handleUpdateTagUsecase);
+
+        this.route.get(`/v1/${this.CONTROLLER_NAME}/:id`, 
+            this.handleGetTagUsecase);
+
+        this.route.get(`/v1/${this.CONTROLLER_NAME}`, 
+            this.handleGetAllTagsUsecase);
+
+        this.route.delete(`/v1/${this.CONTROLLER_NAME}/:id`, 
+            this.handleDeleteTagUsecase);
     };
 
     getRoute(){
@@ -50,23 +60,32 @@ export default class TagController implements ApiController {
     };
 
     async handleCreateTagUsecase(req: Request, res: Response) {
-        var created = await this.createTag.execute({
-            color: req.body.color,
-            value: req.body.value,
-            isSystem: false
-        });
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data = matchedData(req);
+            var created = await this.createTag.execute({
+                color: data.color,
+                value: data.value,
+                isSystem: false
+            });
 
-        res.status(200).send(created);
+            res.status(200).send(created);
+        }
+
+        res.send({ errors: result.array() });
     }
 
     async handleUpdateTagUsecase(req: Request, res: Response) {
-        await this.updateTag.execute({
-            id: req.params.id,
-            color: req.body.color,
-            value: req.body.value
-        });
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestUpdateTagUseCase = matchedData(req);
+            data.id = req.params.id;
+            await this.updateTag.execute(data);
 
-        res.status(201);
+            res.status(201);
+        }
+        
+        res.send({ errors: result.array() });
     }
 
     async handleDeleteTagUsecase(req: Request, res: Response) {

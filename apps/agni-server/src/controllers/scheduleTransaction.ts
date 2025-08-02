@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
 import { ApiController } from "./base";
 import { IUsecase } from "@core/interactions/interfaces";
-import { RequestCreateScheduleTransaction, RequestCreateScheduleTransactionScheduler } from "@core/interactions/scheduleTransaction/createScheduleTransaction";
+import { RequestCreateScheduleTransaction } from "@core/interactions/scheduleTransaction/createScheduleTransaction";
 import { CreatedDto, ListDto } from "@core/dto/base";
 import { GetScheduleTransactionDto } from "@core/interactions/scheduleTransaction/getScheduleTransaction";
 import { GetAllScheduleTransactionDto } from "@core/interactions/scheduleTransaction/getAllScheduleTransaction";
-import { RequestUpdateScheduleTransaction, RequestUpdateScheduleTransactionScheduler } from "@core/interactions/scheduleTransaction/updateScheduleTransaction";
+import { RequestUpdateScheduleTransaction } from "@core/interactions/scheduleTransaction/updateScheduleTransaction";
+import { body, matchedData, validationResult } from "express-validator";
 
 export default class ScheduleTransationController implements ApiController {
     private router = Router();
@@ -34,12 +35,46 @@ export default class ScheduleTransationController implements ApiController {
     }
 
     setupRoutes() {
-        this.router.post('/v1/schedule-transactions/apply-schedule', this.handleApplyScheduleTransaction);
-        this.router.post('/v1/schedule-transactions', this.handleCreateScheduleTransaction);
-        this.router.get('/v1/schedule-transactions/:id', this.handleGetScheduleTransaction);
-        this.router.get('/v1/schedule-transactions', this.handleGetAllScheduleTransaction);
-        this.router.delete('/v1/schedule-transactions/:id', this.handleDeleteScheduleTransaction);
-        this.router.put('/v1/schedule-transactions/:id', this.handleUpdateScheduleTransaction);
+        this.router.post('/v1/schedule-transactions/apply-schedule', 
+            this.handleApplyScheduleTransaction);
+
+        this.router.post('/v1/schedule-transactions', 
+            body('accountId').notEmpty(),
+            body('amount').notEmpty().isNumeric(),
+            body('categoryId').notEmpty(),
+            body('description').notEmpty(),
+            body('name').notEmpty(),
+            body('schedule.period').notEmpty(),
+            body('schedule.periodTime').isEmpty().isNumeric(),
+            body('schedule.dateStart').notEmpty().isDate(),
+            body('schedule.dateEnd').isEmpty().isDate(),
+            body('tagIds').isArray(),
+            body('type').notEmpty(),
+            this.handleCreateScheduleTransaction);
+
+        this.router.get('/v1/schedule-transactions/:id', 
+            this.handleGetScheduleTransaction);
+
+        this.router.get('/v1/schedule-transactions', 
+            this.handleGetAllScheduleTransaction);
+
+        this.router.delete('/v1/schedule-transactions/:id', 
+            this.handleDeleteScheduleTransaction);
+
+        this.router.put('/v1/schedule-transactions/:id', 
+            body('accountId').isEmpty(),
+            body('amount').isEmpty().isNumeric(),
+            body('categoryId').isEmpty(),
+            body('description').isEmpty(),
+            body('isPause').isEmpty().isBoolean(),
+            body('name').isEmpty(),
+            body('schedule.period').isEmpty(),
+            body('schedule.periodTime').isEmpty().isNumeric(),
+            body('schedule.dateStart').isEmpty().isDate(),
+            body('schedule.dateEnd').isEmpty().isDate(),
+            body('tagIds').isArray(),
+            body('type').isEmpty(),
+            this.handleUpdateScheduleTransaction);
     };
     
     getRoute(){
@@ -52,34 +87,27 @@ export default class ScheduleTransationController implements ApiController {
     }
 
     async handleCreateScheduleTransaction(req: Request, res: Response) {
-        var created = await this.createScheduleTransaction.execute({
-            accountRef: req.body.accountId,
-            amount: req.body.amount,
-            categoryRef: req.body.categoryId,
-            description: req.body.description,
-            name: req.body.name,
-            schedule: req.body.schedule as RequestCreateScheduleTransactionScheduler,
-            tagRefs: req.body.tags,
-            type: req.body.type 
-        });
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestCreateScheduleTransaction = matchedData(req);
+            var created = await this.createScheduleTransaction.execute(data);
 
-        res.status(200).send(created);
+            res.status(200).send(created);
+        }
+        res.send({ errors: result.array() }); 
     }
 
     async handleUpdateScheduleTransaction(req: Request, res: Response) {
-        await this.updateScheduleTransaction.execute({
-            id: req.params.id,
-            accountRef: req.body.accountId,
-            amount: req.body.amount,
-            categoryRef: req.body.categoryId,
-            isPause: req.body.isPause,
-            tagRefs: (Array.isArray(req.query.tagFilter) ? req.query.tagFilter : [req.query.tagFilter]).filter((v): v is string => typeof v === 'string'),
-            type: req.body.type,
-            name: req.body.name,
-            schedule: req.body.schedule as RequestUpdateScheduleTransactionScheduler,
-        });
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestUpdateScheduleTransaction = matchedData(req);
+            data.id = req.params.id;
+            await this.updateScheduleTransaction.execute(data);
 
-        res.status(201);
+            res.status(201);
+        } 
+
+        res.send({ errors: result.array() }); 
     }
 
     async handleDeleteScheduleTransaction(req: Request, res: Response) {

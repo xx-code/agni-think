@@ -1,6 +1,4 @@
-import { CategoryRepository } from "@core/repositories/categoryRepository";
 import { RecordRepository } from "@core/repositories/recordRepository";
-import { TagRepository } from "@core/repositories/tagRepository";
 import { TransactionRepository } from "@core/repositories/transactionRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
@@ -13,7 +11,7 @@ export type GetTransactionDto = {
     description: string
     recordType: string
     type: string
-    categoryRef: string
+    categoryId: string
     tagRefs: string[]
     budgets: string[]
 }
@@ -43,7 +41,7 @@ export class GetTransactionUseCase implements IUsecase<string, GetTransactionDto
             date: transaction.getDate(),
             description: record.getDescription(),
             recordType: record.getType(),
-            categoryRef: transaction.getCategoryRef(),
+            categoryId: transaction.getCategoryRef(),
             type: transaction.getTransactionType(),
             tagRefs: transaction.getTags(),
             budgets: transaction.getBudgetRefs()

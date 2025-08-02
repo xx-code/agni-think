@@ -9,13 +9,13 @@ export class Tag extends Entity {
 
     constructor(id: string, value: string, color: string ='', isSystem: boolean=false) {
         super(id)
-        this.value = new TrackableProperty<string>(value, this.markHasChange)
+        this.value = new TrackableProperty<string>(value, this.markHasChange.bind(this))
 
         if (!isEmpty(color) && !isValidColor(color))
             throw new ValueError(`Color: ${color} value not valid`)
-        this.color = new TrackableProperty<string>(color, this.markHasChange)
+        this.color = new TrackableProperty<string>(color, this.markHasChange.bind(this))
 
-        this.isSystem = new TrackableProperty<boolean>(isSystem, this.markHasChange)
+        this.isSystem = new TrackableProperty<boolean>(isSystem, this.markHasChange.bind(this))
     }
 
     setColor(color: string) {

@@ -5,10 +5,11 @@ import { ScheduleTransactionRepository } from "@core/repositories/scheduleTransa
 export type GetAllScheduleTransactionDto = {
     id: string
     name: string
-    accountRef: string
-    categoryRef: string
-    tagRefs: string[]
+    accountId: string
+    categoryId: string
+    tagIds: string[]
     type: string
+    amount: number,
     isPause: boolean
     dateStart: string
     period: string
@@ -33,14 +34,15 @@ export class GetAllScheluleTransacationUseCase implements IUsecase<void, ListDto
             response.push({
                 id: trans.getId(),
                 name: trans.getName(),
-                accountRef: trans.getAccountRef(),
-                categoryRef: trans.getCategoryRef(),
-                tagRefs: trans.getTags(),
+                accountId: trans.getAccountRef(),
+                categoryId: trans.getCategoryRef(),
+                amount: trans.getAmount().getAmount(),
+                tagIds: trans.getTags(),
                 type: trans.getTransactionType(),
                 isPause: trans.getIsPause(),
-                dateStart: trans.getSchedule().getStartedDate().toString(),
-                dateUpdate: trans.getSchedule().getUpdatedDate().toString(),
-                dateEnd: trans.getSchedule().getEndingDate()?.toString(),
+                dateStart: trans.getSchedule().getStartedDate().toLocaleString(),
+                dateUpdate: trans.getSchedule().getUpdatedDate().toLocaleString(),
+                dateEnd: trans.getSchedule().getEndingDate()?.toLocaleString(),
                 period: trans.getSchedule().getPeriod(),
                 periodTime: trans.getSchedule().getPeriodTime()
             })

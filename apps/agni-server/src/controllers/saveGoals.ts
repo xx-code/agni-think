@@ -1,14 +1,15 @@
 import { Request, Response, Router } from "express";
-import { RequestAddItemSaveGoalUseCase, RequestAddSaveGoalUseCase } from "@core/interactions/saveGoal/addSaveGoal";
+import { RequestAddSaveGoalUseCase } from "@core/interactions/saveGoal/addSaveGoal";
 import { RequestDecreaseSaveGoal } from "@core/interactions/saveGoal/decreaseSaveGoal";
 import { RequestDeleteSaveGoal } from "@core/interactions/saveGoal/deleteSaveGoal";
 import { GetAllSaveGoalDto } from "@core/interactions/saveGoal/getAllSaveGoal";
 import { GetSaveGoalDto } from "@core/interactions/saveGoal/getSaveGoal";
 import { RequestIncreaseSaveGoal } from "@core/interactions/saveGoal/increaseSaveGoal";
-import { RequestUpdateItemSaveGoalUseCase, RequestUpdateSaveGoalUseCase } from "@core/interactions/saveGoal/updateSaveGoal";
+import { RequestUpdateSaveGoalUseCase } from "@core/interactions/saveGoal/updateSaveGoal";
 import { ApiController } from "./base";
 import { IUsecase } from "@core/interactions/interfaces";
 import { CreatedDto, ListDto } from "@core/dto/base";
+import { body, matchedData, query, validationResult } from "express-validator";
 
 export default class SaveGoalController implements ApiController {
     private route = Router();
@@ -40,13 +41,41 @@ export default class SaveGoalController implements ApiController {
     }
 
     setupRoutes() {
-        this.route.post('/v1/save-goals', this.handleAddSaveGoalUseCase);
-        this.route.put('/v1/save-goals/:id', this.handleUpdateSaveGoal);
-        this.route.get('/v1/save-goals:id', this.handleGetSaveGoal);
-        this.route.get('/v1/save-goals', this.handleGetAllSaveGoal);
-        this.route.delete('/v1/save-goals/:id', this.handleDeleteSaveGoal);
-        this.route.patch('/v1/save-goals/:id/increase-balance', this.handleIncreaseSaveGoal);
-        this.route.patch('/v1/save-goals/:id/decrease-balance', this.handleDecreaseSaveGoal);
+        this.route.post('/v1/save-goals', 
+            body('title').notEmpty(),           
+            body('description').notEmpty(),           
+            body('target').notEmpty().isNumeric(),           
+            body('items').isArray(),
+            this.handleAddSaveGoalUseCase);
+
+        this.route.put('/v1/save-goals/:id', 
+            body('title').isEmpty(),           
+            body('description').isEmpty(),           
+            body('target').isEmpty().isNumeric(),           
+            body('items').isArray(),
+            this.handleUpdateSaveGoal);
+
+        this.route.get('/v1/save-goals:id', 
+            this.handleGetSaveGoal);
+
+        this.route.get('/v1/save-goals', 
+            this.handleGetAllSaveGoal);
+
+        this.route.delete('/v1/save-goals/:id', 
+            query('accountTransfertId').notEmpty(),
+            this.handleDeleteSaveGoal);
+
+        this.route.patch('/v1/save-goals/:id/increase-balance', 
+            body('accountId').notEmpty(),
+            body('amount').notEmpty(),
+            body('saveGoalId').notEmpty(),
+            this.handleIncreaseSaveGoal);
+
+        this.route.patch('/v1/save-goals/:id/decrease-balance',
+            body('accountId').notEmpty(),
+            body('amount').notEmpty(),
+            body('saveGoalId').notEmpty(),
+            this.handleDecreaseSaveGoal);
     };
 
     getRoute() {
@@ -54,34 +83,39 @@ export default class SaveGoalController implements ApiController {
     };
 
     async handleAddSaveGoalUseCase(req: Request, res: Response) {
-        var created = await this.addSaveGoal.execute({
-            title: req.body.title,
-            description: req.body.description,
-            items: req.body.items as RequestAddItemSaveGoalUseCase[],
-            target: req.body.target
-        });
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestAddSaveGoalUseCase = matchedData(req);
+            var created = await this.addSaveGoal.execute(data);
 
-        res.status(200).send(created)
+            res.status(200).send(created);
+        }
+        
+        res.send({ errors: result.array() });
     }
 
     async handleIncreaseSaveGoal(req: Request, res: Response) {
-        await this.increaseSaveGoal.execute({
-            accountRef: req.body.accountId,
-            increaseAmount: req.body.amount,
-            savingGoalRef: req.body.saveGoalId
-        });
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestIncreaseSaveGoal = matchedData(req);
+            await this.increaseSaveGoal.execute(data);
 
-        res.status(201);
+            res.status(201);
+        }
+        
+        res.send({ errors: result.array() });
     }
 
     async handleDecreaseSaveGoal(req: Request, res: Response) {
-        await this.decreaseSaveGoal.execute({
-            accountRef: req.body.accountId,
-            decreaseAmount: req.body.amount,
-            savingGoalRef: req.body.saveGoalId
-        });
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestDecreaseSaveGoal = matchedData(req);
+            await this.decreaseSaveGoal.execute(data);
 
-        res.status(201);
+            res.status(201);
+        }
+        
+        res.send({ errors: result.array() });
     }
 
     async handleGetSaveGoal(req: Request, res: Response) {
@@ -97,24 +131,29 @@ export default class SaveGoalController implements ApiController {
     }
 
     async handleUpdateSaveGoal(req: Request, res: Response) {
-        await this.updateSaveGoal.execute({
-            savingGoalRef: req.params.id,
-            description: req.body.description,
-            target: req.body.target,
-            title: req.body.title,
-            items: req.body.items as RequestUpdateItemSaveGoalUseCase[],
-        });
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestUpdateSaveGoalUseCase = matchedData(req); 
+            data.id = req.params.id;
+            await this.updateSaveGoal.execute(data);
 
-        res.status(201);
+            res.status(201);
+        }
+        
+        res.send({ errors: result.array() });
     }
 
     async handleDeleteSaveGoal(req: Request, res: Response) {
-        await this.deleteSaveGoal.execute({
-            saveGoalRef: req.params.id,
-            accountTranfertRef: req.query?.accountTransfertId?.toString() || ''
-        });
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestDeleteSaveGoal = matchedData(req);
+            data.id = req.params.id;
+            await this.deleteSaveGoal.execute(data);
+            
+            res.status(201);
+        }
         
-        res.status(201);
+        res.send({ errors: result.array() });
     }
 }
 

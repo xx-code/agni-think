@@ -1,17 +1,82 @@
+import { Router, Request, Response } from 'express';
 import container from '../di_contenair'
-import AccountRoute from "src/controllers/accounts";
+import { body, matchedData, validationResult } from 'express-validator';
+import { RequestCreationAccountUseCase } from '@core/interactions/account/creationAccountUseCase';
+import { RequestUpdateAccountUseCase } from '@core/interactions/account/updateAccountUseCase';
 
-const usecases = container.accountUseCase;
+const router = Router();
 
-if (usecases === undefined)
-    throw new Error("Accounts Usecases not declare"); 
+router.post('/v1/accounts', 
+    body('title').isString().notEmpty(), 
+    body('type').isString().notEmpty(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestCreationAccountUseCase = matchedData(req);
+                var ucRes = await container.accountUseCase?.createAccount.execute(data);
 
-const router = new AccountRoute(
-    usecases.createAccount,
-    usecases.updateAccount,
-    usecases.getAccount,
-    usecases.getAllAccount,
-    usecases.deleteAccount,
-)
+                res.status(200).json(ucRes);
 
-export default router.getRoute()
+                return;
+            }
+
+            res.send({ errors: result.array() });
+        } catch(err) {
+            res.send({ errors: [err] });
+        }
+    });
+
+router.put('/v1/accounts/:id', 
+    body('title').optional().isString(),
+    body('type').optional().isString(),
+    async (req: Request, res: Response) => {
+        try {
+            const result = validationResult(req);
+            
+            if (!result.isEmpty()) {
+                res.send({ errors: result.array() });
+                return;
+            }
+
+            const data: RequestUpdateAccountUseCase = matchedData(req);
+            data.id = req.params.id;
+            await container.accountUseCase?.updateAccount.execute(data);
+
+            res.sendStatus(200);
+        } catch(err) {
+            res.send({ errors: [err] });
+        }
+        
+    });
+
+router.get('/v1/accounts/:id', async (req, res) => {
+    try {
+        var ucRes = await container.accountUseCase?.getAccount.execute(req.params.id)
+        res.status(200).json(ucRes)
+    } catch(err) {
+        res.send({ errors: [err] });
+    }
+    
+});
+
+router.get('/v1/accounts', async (req, res) => {
+    try {
+        var ucRes = await container.accountUseCase?.getAllAccount.execute()
+        res.status(200).json(ucRes)
+    } catch(err) {
+        res.send({ errors: [err] });
+    }
+});
+
+router.delete('/v1/accounts/:id', async (req, res) => {
+    try {
+        await container.accountUseCase?.deleteAccount.execute(req.params.id)
+        res.sendStatus(200);
+    } catch(err) {
+        res.send({ errors: [err] });
+    }
+});
+
+
+export default router;
