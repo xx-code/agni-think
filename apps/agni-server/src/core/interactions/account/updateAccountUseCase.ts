@@ -6,8 +6,8 @@ import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 
 export type RequestUpdateAccountUseCase = {
     id: string
-    title: string
-    type: string
+    title?: string
+    type?: string
 }
 
 export class UpdateAccountUseCase implements IUsecase<RequestUpdateAccountUseCase, void> {
@@ -20,15 +20,24 @@ export class UpdateAccountUseCase implements IUsecase<RequestUpdateAccountUseCas
     async execute(request: RequestUpdateAccountUseCase): Promise<void> {
         let fetchedAccount = await this.repository.get(request.id)
         if (fetchedAccount == null)
-            throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
+            throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND") 
 
-        if ((await this.repository.isExistByName(request.title)) && fetchedAccount.getTitle() !== request.title)
-            throw new ResourceAlreadyExist("ACCOUNT_ALREADY_EXIST")
-        
-        fetchedAccount.setTitle(request.title)
-        fetchedAccount.setType(mapperTypeAccount(request.type))
+        if (request.title) {
+            if ((await this.repository.isExistByName(request.title)) && fetchedAccount.getTitle() !== request.title)
+                throw new ResourceAlreadyExist("ACCOUNT_ALREADY_EXIST")
 
-        if (fetchedAccount.hasChange())
+            fetchedAccount.setTitle(request.title)
+        }
+
+        if (request.type)
+            fetchedAccount.setType(mapperTypeAccount(request.type))
+
+        console.log(fetchedAccount)
+
+        if (fetchedAccount.hasChange()) {
             await this.repository.update(fetchedAccount)
+        }
+
+        return;
     }
 }

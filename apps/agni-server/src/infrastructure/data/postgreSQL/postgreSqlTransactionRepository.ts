@@ -24,7 +24,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
                 table.string('type')
                 table.date('date')
                 table.boolean('is_freeze')
-            })
+            });
         }
         
         isExist = await this.connector.schema.hasTable('transaction_tags') 
@@ -103,47 +103,56 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
         return !isEmpty(result)
     }
 
-    async getPaginations(page: number, size: number, sortBy: SortBy | null, filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>> {
-        let query = this.connector('transactions').select('*');
+    async getPaginations(offset: number, size: number, sortBy: SortBy | null, filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>> { 
+        try {
+            let query = this.connector('transactions').select('*');
 
-        if (sortBy) query.orderBy(sortBy.sortBy, sortBy.asc ? 'asc' : 'desc')
+            if (sortBy) query.orderBy(sortBy.sortBy, sortBy.asc ? 'asc' : 'desc')
 
-        if (filterBy.accounts.length > 0) query.whereIn('account_id', filterBy.accounts);
-        if (filterBy.categories.length > 0) query.whereIn('category_id', filterBy.categories);
-        if (filterBy.types.length > 0) query.whereIn('type', filterBy.types);
-        if (filterBy.tags.length) {
-            query.whereIn('transaction_id', function() {
-                this.select('transaction_id').from('transaction_tags').whereIn('tag_id', filterBy.tags);
-            });
-        }
-        if (filterBy.budgets.length) {
-            query.whereIn('transaction_id', function() {
-                this.select('transaction_id').from('transaction_budgets').whereIn('budget_id', filterBy.budgets);
-            });
-        }
-        if (!isEmpty(filterBy.startDate)) query.where('date', '>=', filterBy.startDate);
-        if (!isEmpty(filterBy.endDate)) query.where('date', '<=', filterBy.endDate);
+            if (filterBy.accounts.length > 0) query.whereIn('account_id', filterBy.accounts);
+            if (filterBy.categories.length > 0) query.whereIn('category_id', filterBy.categories);
+            if (filterBy.types.length > 0) query.whereIn('type', filterBy.types);
+            if (filterBy.tags.length) {
+                query.whereIn('transaction_id', function() {
+                    this.select('transaction_id').from('transaction_tags').whereIn('tag_id', filterBy.tags);
+                });
+            }
+            if (filterBy.budgets.length) {
+                query.whereIn('transaction_id', function() {
+                    this.select('transaction_id').from('transaction_budgets').whereIn('budget_id', filterBy.budgets);
+                });
+            }
 
-        query.limit(size).offset((page - 1) * size);
+            if (filterBy.startDate) 
+                query.where('date', '>=', filterBy.startDate);
+            if (filterBy.endDate) 
+                query.where('date', '<=', filterBy.endDate);
 
-        let results = await query;
+        
+            query.limit(size).offset(offset * size);
 
-        let transactions: Transaction[] = []
+            let results = await query;
 
-        for (const result of results) {
-            let tags = (await (this.connector('transaction_tags').where('transaction_id', result['transaction_id']).select('tag_id'))).map(result => result['tag_id'])
-            let budgets = (await (this.connector('transaction_budgets').where('transaction_id', result['transaction_id']).select('budget_id'))).map(result => result['budget_id'])
-            transactions.push(new Transaction(result['transaction_id'], result['account_id'], result['record_id'], 
-                result['category_id'], result['date'], result['type'], mapperTransactionStatus(result['status']), tags, budgets))
-        }
+            let transactions: Transaction[] = []
 
-        let total = await this.connector('transactions').count<{count: number}>('* as count').first()
-        const totalCount = total?.count ?? 0
+            for (const result of results) {
+                let tags = (await (this.connector('transaction_tags').where('transaction_id', result['transaction_id']).select('tag_id'))).map(result => result['tag_id'])
+                let budgets = (await (this.connector('transaction_budgets').where('transaction_id', result['transaction_id']).select('budget_id'))).map(result => result['budget_id'])
+                transactions.push(new Transaction(result['transaction_id'], result['account_id'], result['record_id'], 
+                    result['category_id'], result['date'], result['type'], mapperTransactionStatus(result['status']), tags, budgets))
+            }
 
-        return {
-            items: transactions,
-            total: totalCount
-        };
+            let total = await this.connector('transactions').count<{count: number}>('* as count').first()
+            const totalCount = total?.count ?? 0
+
+            return {
+                items: transactions,
+                total: totalCount
+            };
+        } catch(err) {
+            console.log
+            throw err
+        } 
     }
 
     async getTransactions(filterBy: TransactionFilter): Promise<Transaction[]> {
@@ -165,8 +174,11 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
                 this.select('transaction_id').from('transaction_budgets').whereIn('budget_id', filterBy.budgets);
             });
         }
-        if (!isEmpty(filterBy.startDate)) query.where('date', '>=', filterBy.startDate);
-        if (!isEmpty(filterBy.endDate)) query.where('date', '<=', filterBy.endDate);
+        if (filterBy.startDate) 
+            query.where('date', '>=', filterBy.startDate);
+
+        if (filterBy.endDate)  
+            query.where('date', '<=', filterBy.endDate);
 
 
         let results = await query;
@@ -198,13 +210,13 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
             is_freeze: request.getIsFreeze()
         });
 
-        await this.connector('transaction_tags').whereIn('tag_id', request.getCollectionTags().__deleted_object.map(i => i.tagId))
+        await this.connector('transaction_tags').whereIn('tag_id', request.getCollectionTags().__deleted_object.map(i => i.tagId)).delete();
         if (request.getCollectionTags().__added_object.length > 0)
-            await this.connector('transaction_tags').insert(request.getCollectionTags().__added_object.map(tag_id => ({transaction_id: request.getId(), tag_id: tag_id})))
+            await this.connector('transaction_tags').insert(request.getCollectionTags().__added_object.map(el => ({transaction_id: request.getId(), tag_id: el.tagId})))
 
-        await this.connector('transaction_budgets').whereIn('budget_id', request.getCollectionBudgets().__deleted_object.map(i => i.budgetId))
+        await this.connector('transaction_budgets').whereIn('budget_id', request.getCollectionBudgets().__deleted_object.map(i => i.budgetId)).delete();
         if (request.getCollectionBudgets().__added_object.length > 0)
-            await this.connector('transaction_budgets').insert(request.getCollectionBudgets().__added_object.map(budget_id => ({transaction_id: request.getId(), budget_id: budget_id})))
+            await this.connector('transaction_budgets').insert(request.getCollectionBudgets().__added_object.map(el => ({transaction_id: request.getId(), budget_id: el.budgetId})))
     }
 
 }

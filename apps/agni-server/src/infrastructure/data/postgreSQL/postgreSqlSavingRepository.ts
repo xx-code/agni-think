@@ -35,25 +35,29 @@ export class PostgreSqlSavingRepository extends KnexConnector implements SavingR
     }
 
     async create(saveGoal: SaveGoal): Promise<void> {
-        await this.connector('save_goals').insert({
-            save_goal_id: saveGoal.getId(),
-            title: saveGoal.getTitle(),
-            target: saveGoal.getTarget().getAmount(),
-            balance: saveGoal.getBalance().getAmount(),
-            description: saveGoal.getDescription()
-        });
-        
-        if (saveGoal.getItems().length > 0) {
-            // await this.connector('save_goal_items').insert(saveGoal.getItems().map(item => ({
-            //     save_goal_item_id: item.id,
-            //     save_goal_id: saveGoal.getId(),
-            //     title: item.title,
-            //     link: item.link,
-            //     price: item.price,
-            //     html_to_track: item.htmlToTrack
-            // })))
-        }
+        try {
+            await this.connector('save_goals').insert({
+                save_goal_id: saveGoal.getId(),
+                title: saveGoal.getTitle(),
+                target: saveGoal.getTarget().getAmount(),
+                balance: saveGoal.getBalance().getAmount(),
+                description: saveGoal.getDescription()
+            });
             
+            if (saveGoal.getItems().length > 0) {
+                // await this.connector('save_goal_items').insert(saveGoal.getItems().map(item => ({
+                //     save_goal_item_id: item.id,
+                //     save_goal_id: saveGoal.getId(),
+                //     title: item.title,
+                //     link: item.link,
+                //     price: item.price,
+                //     html_to_track: item.htmlToTrack
+                // })))
+            }
+        } catch(err) {
+            console.log(err)
+            throw err
+        }
     }
 
     async get(saveGoalId: string): Promise<SaveGoal> {

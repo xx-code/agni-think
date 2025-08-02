@@ -63,6 +63,108 @@ import { DecreaseSaveGoalUseCase, RequestDecreaseSaveGoal } from '@core/interact
 import { CompteTransactionUsecase, RequestCompleteTransactionUsecase } from '@core/interactions/transaction/CompleteTransactionUseCase';
 import { PostgreSqlScheduleTransactionRepository } from '@infra/data/postgreSQL/postgreSqlScheduleTransactionRepository';
 
+async function createTables(knex: Knex) {
+    if (!(await knex.schema.hasTable('accounts')))
+        await knex.schema.createTable("accounts", (table) => {
+            table.uuid('account_id').primary()
+            table.string('title')
+            table.string('type')
+            table.float('balance')
+        });
+
+    if (!(await knex.schema.hasTable('budgets')))
+        await knex.schema.createTable('budgets', (table) => {
+            table.uuid('budget_id').primary()
+            table.string('title')
+            table.float('target')
+            table.json('scheduler')
+            table.boolean('is_archived')
+        });   
+
+    if (!(await knex.schema.hasTable('categories')))
+        await knex.schema.createTable("categories", (table) => {
+            table.uuid('category_id').primary()
+            table.string('title')
+            table.string('color').notNullable()
+            table.string('icon_id')
+            table.boolean('is_system')
+        });
+
+    if (!(await knex.schema.hasTable('records')))
+        await knex.schema.createTable('records', (table) => {
+            table.uuid('record_id').primary()
+            table.float('money_amount')
+            table.date('date')
+            table.string('type')
+            table.string('description')
+        });
+
+    if (!(await knex.schema.hasTable('save_goals')))
+        await knex.schema.createTable('save_goals', (table) => {
+            table.uuid('save_goal_id').primary()
+            table.string('title')
+            table.float('target')
+            table.float('balance')
+            table.string('description')
+            
+        });
+
+    if (!(await knex.schema.hasTable('save_goal_items')))
+        await knex.schema.createTable('save_goal_items', (table) => {
+            table.uuid('save_goal_id').index().references('save_goal_id').inTable('save_goals').onDelete('CASCADE')
+            table.json('save_goal')
+        });
+
+    if (!(await knex.schema.hasTable('schedule_transactions')))
+        await knex.schema.createTable('schedule_transactions', (table) => {
+            table.uuid('schedule_transaction_id').primary()
+            table.uuid('account_id')
+            table.uuid('category_id')
+            table.float('amount')
+            table.string('name')
+            table.string('type')
+            table.boolean('is_pause')
+            table.json('scheduler')
+        });
+
+    if (!(await knex.schema.hasTable('schedule_transaction_tags')))
+        await knex.schema.createTable('schedule_transaction_tags', (table) => {
+            table.uuid('schedule_transaction_id').index().references('schedule_transaction_id').inTable('schedule_transactions').onDelete('CASCADE')
+            table.uuid('tag_id').index().references('tag_id').inTable('tags').onDelete('CASCADE')
+        });
+
+    if (!(await knex.schema.hasTable('tags')))
+        await knex.schema.createTable('tags', (table) => {
+            table.uuid('tag_id').primary();
+            table.string('value').unique().notNullable();
+            table.string('color').nullable();
+            table.boolean('is_system');
+        });
+
+    if (!(await knex.schema.hasTable('transactions')))
+        await knex.schema.createTable('transactions', (table) => {
+            table.uuid('transaction_id').primary()
+            table.uuid('account_id')
+            table.uuid('record_id')
+            table.uuid('category_id')
+            table.string('status')
+            table.string('type')
+            table.date('date')
+            table.boolean('is_freeze')
+        });
+
+    if (!(await knex.schema.hasTable('transaction_tags')))
+        await knex.schema.createTable('transaction_tags', (table) => {
+            table.uuid('transaction_id').index().references('transaction_id').inTable('transactions').onDelete('CASCADE')
+            table.uuid('tag_id').index().references('tag_id').inTable('tags').onDelete('CASCADE')
+        });
+
+    if (!(await knex.schema.hasTable('transaction_budgets')))
+        await knex.schema.createTable('transaction_budgets', (table) => {
+            table.uuid('transaction_id').index().references('transaction_id').inTable('transactions').onDelete('CASCADE')
+            table.uuid('budget_id').index().references('budget_id').inTable('budgets').onDelete('CASCADE')
+        });
+}
 
 export class DiContenair {
     private services: Map<any, any>;  
@@ -160,39 +262,32 @@ export class DiContenair {
     }
 
    async config(connector: Knex) {
+        await createTables(connector);
         let accountRepository = new PostgreSqlAccountRepository(connector)
-        await accountRepository.initialisation()
         this.registerRepository('account', accountRepository)
 
         let categoryRepository = new PostgreSqlCategoryRepository(connector)
-        await categoryRepository.initialisation()
         this.registerRepository('category', categoryRepository)
 
         let tagRepository = new PostgreSqlTagRepository(connector)
-        await tagRepository.initialisation()
         this.registerRepository('tag', tagRepository)
 
         let recordRepository = new PostgreSqlRecordRepository(connector)
-        await recordRepository.initialisation()
         this.registerRepository('record', recordRepository)
 
         let unitOfWork = new PostgreSqlUnitOfWork(connector)
         this.registerRepository('unit_of_work', unitOfWork)
 
         let budgetRepository = new PostgresSqlBudgetRepository(connector)
-        await budgetRepository.initialisation()
         this.registerRepository('budget', budgetRepository)
 
         let savingRepository = new PostgreSqlSavingRepository(connector)
-        await savingRepository.initialisation()
         this.registerRepository('saving', savingRepository)
 
         let transactionRepository = new PostgreSqlTransactionRepository(connector)
-        await transactionRepository.initialisation()
         this.registerRepository('transaction', transactionRepository)
 
         let scheduleTransactionRepository = new PostgreSqlScheduleTransactionRepository(connector);
-        await scheduleTransactionRepository.initialisation()
         this.registerRepository('schedule_transaction', scheduleTransactionRepository)
 
         // usecases
@@ -291,7 +386,7 @@ export class DiContenair {
         }
         this.scheduleTransactionUseCase = {
             applyScheduleTransaction: new ApplyScheduleTransactionUsecase(this.getRepository('schedule_transaction'), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
-            createScheduleTransaction: new CreateScheduleTransactionUseCase(this.getRepository('transaction'), this.getRepository('schedule_transaction')),
+            createScheduleTransaction: new CreateScheduleTransactionUseCase(transDept, this.getRepository('schedule_transaction')),
             updateScheduleTransaction: new UpdateScheduleTransactionUseCase(this.getRepository('schedule_transaction'), transDept),
             deleteScheduleTransaction: new DeleteScheduleTransactionUseCase(this.getRepository('schedule_transaction')),
             getAllScheduleTransaction: new GetAllScheluleTransacationUseCase(this.getRepository('schedule_transaction')),
@@ -301,7 +396,7 @@ export class DiContenair {
 
     private registerSaveGoalUsecases() {
         this.saveGoalUseCase = {
-            addSaveGoal: new AddSaveGoalUseCase(this.getRepository('saveGoal')),
+            addSaveGoal: new AddSaveGoalUseCase(this.getRepository('saving')),
             increaseSaveGoal: new IncreaseSaveGoalUseCase(this.getRepository('cagetory'), this.getRepository('account'), 
             this.getRepository('saving'), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
             decreaseSaveGoal: new DecreaseSaveGoalUseCase(this.getRepository('category'), this.getRepository('account'), this.getRepository('saving'),

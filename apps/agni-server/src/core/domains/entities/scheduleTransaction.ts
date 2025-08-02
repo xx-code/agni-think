@@ -19,14 +19,14 @@ export class ScheduleTransaction extends Entity {
     constructor(id: string, name: string, accountRef: string, categoryRef: string, amount: Money, 
         type: TransactionType, scheduler: Scheduler, isPause: boolean=false, tagRefs: string[]=[]) {
         super(id)
-        this.name = new TrackableProperty<string>(name, this.markHasChange)
-        this.amount = new TrackableProperty<Money>(amount, this.markHasChange)
-        this.accountRef = new TrackableProperty<string>(accountRef, this.markHasChange)
-        this.tagRefs = new ValueObjectCollection(tagRefs.map(tag => new TransactionTag(tag)), this.markHasChange)
-        this.categoryRef = new TrackableProperty<string>(categoryRef, this.markHasChange)
-        this.type = new TrackableProperty<TransactionType>(type, this.markHasChange)
-        this.scheduler = new TrackableProperty<Scheduler>(scheduler, this.markHasChange)
-        this.isPause = new TrackableProperty<boolean>(isPause, this.markHasChange)
+        this.name = new TrackableProperty<string>(name, this.markHasChange.bind(this))
+        this.amount = new TrackableProperty<Money>(amount, this.markHasChange.bind(this))
+        this.accountRef = new TrackableProperty<string>(accountRef, this.markHasChange.bind(this))
+        this.tagRefs = new ValueObjectCollection(tagRefs.map(tag => new TransactionTag(tag)), this.markHasChange.bind(this))
+        this.categoryRef = new TrackableProperty<string>(categoryRef, this.markHasChange.bind(this))
+        this.type = new TrackableProperty<TransactionType>(type, this.markHasChange.bind(this))
+        this.scheduler = new TrackableProperty<Scheduler>(scheduler, this.markHasChange.bind(this))
+        this.isPause = new TrackableProperty<boolean>(isPause, this.markHasChange.bind(this))
     }
 
     setTags(tagRefs: string[]) {

@@ -34,21 +34,21 @@ export default class AccountController implements ApiController {
     }
 
     public setupRoutes() {
-        this.route.post('/accounts', 
+        this.route.post('/v1/accounts', 
             body('title').notEmpty(), 
             body('type').notEmpty(),
             this.handleCreateAccount);
 
-        this.route.put('/accounts/:id', 
+        this.route.put('/v1/accounts/:id', 
             body('title').isEmpty(), 
             body('type').isEmpty(),
             this.handleUpdateAccount);
 
-        this.route.get('/accounts/:id', this.handleGetAccount)
+        this.route.get('/v1/accounts/:id', this.handleGetAccount)
 
-        this.route.get('/accounts', this.handleGetAllAccount)
+        this.route.get('/v1/accounts', this.handleGetAllAccount)
 
-        this.route.delete('/accounts/:id', this.handleDeleteAccount)
+        this.route.delete('/v1/accounts/:id', this.handleDeleteAccount)
     }
 
     private async handleCreateAccount(req: Request, res: Response) {

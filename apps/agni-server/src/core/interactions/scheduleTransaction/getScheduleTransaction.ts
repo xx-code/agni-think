@@ -9,6 +9,7 @@ export type GetScheduleTransactionDto = {
     categoryId: string
     tagIds: string[]
     type: string
+    amount: number
     isPause: boolean
     dateStart: string
     period: string
@@ -36,11 +37,12 @@ export class GetScheduleTransactionUsecase implements IUsecase<string, GetSchedu
             accountId: scheduleTransaction.getAccountRef(),
             categoryId: scheduleTransaction.getCategoryRef(),
             tagIds: scheduleTransaction.getTags(),
+            amount: scheduleTransaction.getAmount().getAmount(),
             type: scheduleTransaction.getTransactionType(),
             isPause: scheduleTransaction.getIsPause(),
-            dateStart: scheduleTransaction.getSchedule().getStartedDate().toString(),
-            dateUpdate: scheduleTransaction.getSchedule().getUpdatedDate().toString(),
-            dateEnd: scheduleTransaction.getSchedule().getEndingDate()?.toString(),
+            dateStart: scheduleTransaction.getSchedule().getStartedDate().toLocaleString(),
+            dateUpdate: scheduleTransaction.getSchedule().getUpdatedDate().toLocaleString(),
+            dateEnd: scheduleTransaction.getSchedule().getEndingDate()?.toLocaleString(),
             period: scheduleTransaction.getSchedule().getPeriod(),
             periodTime: scheduleTransaction.getSchedule().getPeriodTime()
         }

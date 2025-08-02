@@ -4,7 +4,7 @@ export default class ValidationError extends Error {
     constructor(message: string, code:number|undefined = undefined) {
         super(message)
         this.name = "ValidationError";
-        this.cause = "InputData";
+        this.cause = message;
         this.code = code;
     }
 }

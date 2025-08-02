@@ -12,11 +12,11 @@ export class Record extends Entity {
 
     constructor(id: string, money: Money, date: string, type: RecordType, description: string = '') {
         super(id)
-        this.money = new TrackableProperty(money, this.markHasChange)
-        this.date = new TrackableProperty(date, this.markHasChange)
-        this.type = new TrackableProperty(type, this.markHasChange)
-        this.date = new TrackableProperty(date, this.markHasChange) 
-        this.description = new TrackableProperty(description, this.markHasChange)
+        this.money = new TrackableProperty(money, this.markHasChange.bind(this))
+        this.date = new TrackableProperty(date, this.markHasChange.bind(this))
+        this.type = new TrackableProperty(type, this.markHasChange.bind(this))
+        this.date = new TrackableProperty(date, this.markHasChange.bind(this)) 
+        this.description = new TrackableProperty(description, this.markHasChange.bind(this))
     }
 
     setMoney(money: Money) {

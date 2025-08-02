@@ -15,11 +15,11 @@ export class SaveGoal extends Entity {
 
     constructor(id: string, title: string, target: Money, balance: Money, items: SaveGoalItem[] = [], description: string='') {
         super(id)
-        this.title = new TrackableProperty<string>(title, this.markHasChange)
-        this.target = new TrackableProperty<Money>(target, this.markHasChange)
-        this.balance = new TrackableProperty<Money>(balance, this.markHasChange)
-        this.description = new TrackableProperty<string>(description, this.markHasChange)
-        this.itemsToTracks = new ValueObjectCollection<SaveGoalItem>(items, this.markHasChange)
+        this.title = new TrackableProperty<string>(title, this.markHasChange.bind(this))
+        this.target = new TrackableProperty<Money>(target, this.markHasChange.bind(this))
+        this.balance = new TrackableProperty<Money>(balance, this.markHasChange.bind(this))
+        this.description = new TrackableProperty<string>(description, this.markHasChange.bind(this))
+        this.itemsToTracks = new ValueObjectCollection<SaveGoalItem>(items, this.markHasChange.bind(this))
     }
     
     setBalance(balance: Money) {

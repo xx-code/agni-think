@@ -39,7 +39,7 @@ export class CreationBudgetUseCase implements IUsecase<RequestCreationBudgetUseC
             MomentDateService.formatDate(request.schedule.dateStart) ,
             request.schedule.periodTime,
             request.schedule.dateEnd ? MomentDateService.formatDate(request.schedule.dateEnd) : undefined
-        )
+        );
 
         const newBudget = new Budget(GetUID(), false, request.target, request.title, scheduler); 
     

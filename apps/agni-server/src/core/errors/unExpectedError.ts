@@ -3,6 +3,6 @@ export default class UnExpectedError  extends Error {
     constructor(message: string) {
         super(message);
         this.name = 'UnExpectedError';
-        this.cause = 'Operation not allow';
+        this.cause = message;
     }
 }

@@ -41,8 +41,8 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
             tags: [],
             budgets: [budget.getId()],
             types: [],
-            startDate: budget.getSchedule().getStartedDate().toString(),
-            endDate: budget.getSchedule().getStartedDate().toString() ?? ''
+            startDate: budget.getSchedule().getStartedDate().toLocaleDateString(),
+            endDate: budget.getSchedule().getStartedDate().toLocaleDateString() 
         });
 
         let currentBalance = 0
@@ -59,9 +59,9 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
             period: budget.getSchedule().getPeriod(),
             periodTime: budget.getSchedule().getPeriodTime(),
             target: budget.getTarget(),
-            startDate: budget.getSchedule().getStartedDate().toString(),
-            updateDate: budget.getSchedule().getUpdatedDate().toString(),
-            endDate: budget.getSchedule().getEndingDate()?.toString()
+            startDate: budget.getSchedule().getStartedDate().toLocaleString(),
+            updateDate: budget.getSchedule().getUpdatedDate().toLocaleString(),
+            endDate: budget.getSchedule().getEndingDate()?.toLocaleString()
         };
 
         return budgetDisplay

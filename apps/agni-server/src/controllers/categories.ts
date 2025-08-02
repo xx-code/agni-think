@@ -7,6 +7,7 @@ import { IUsecase } from "@core/interactions/interfaces";
 import { CreatedDto, ListDto } from "@core/dto/base";
 import { ApiController } from "./base";
 import { body, matchedData, validationResult } from 'express-validator';
+import container from "src/di_contenair";
 
 export class CategoryController implements ApiController {
     private route = Router() 
@@ -26,33 +27,33 @@ export class CategoryController implements ApiController {
     ) {
         this.createCategory = createCategory
         this.updateCategory = updateCategory
-        this.getCategory = getCategory
-        this.getAllCategories = getAllCategories
+        this.getCategory = container.getRepository('get_category')
+        this.getAllCategories = container.getRepository('get_all_category')
         this.deleteCategory = deleteCategory
 
         this.setupRoutes()
     }
 
     setupRoutes() {
-        this.route.post('/category', 
+        this.route.post('/v1/categories', 
             body('title').notEmpty(),
             body('icon').notEmpty(),
             body('color').isEmpty().isHexColor(), 
             this.handleCreateCategory);
             
-        this.route.put('/category/:id', 
+        this.route.put('/v1/categories/:id', 
             body('title').isEmpty(),
             body('icon').isEmpty(),
             body('color').isEmpty().isHexColor(),
             this.handleUpdateCategory)
 
-        this.route.get('/category/:id', 
+        this.route.get('/v1/categories/:id', 
             this.handleGetCategory);
             
-        this.route.get('/category', 
+        this.route.get('/v1/categories', 
             this.handleGetAllCategory);
 
-        this.route.delete('/category/:id', 
+        this.route.delete('/v1/categories/:id', 
             this.handleDeleteCategory);
     }
 
@@ -92,6 +93,7 @@ export class CategoryController implements ApiController {
     }
 
     private async handleGetAllCategory(req: Request, res: Response) {
+        console.log(container.getRepository('get_all_category'));
         var allCategories = await this.getAllCategories.execute()
         res.status(200).json(allCategories)
     }

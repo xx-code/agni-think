@@ -21,15 +21,15 @@ export class Transaction extends Entity {
     constructor(id: string, accountRef: string, recordRef: string, categoryRef: string,  date: string, 
         type: TransactionType, status: TransactionStatus, tagRefs: string[]=[], budgetRefs: string[]=[]) {
         super(id)
-        this.accountRef = new TrackableProperty<string>(accountRef, this.markHasChange)
-        this.recordRef = new TrackableProperty<string>(recordRef, this.markHasChange)
-        this.tagRefs = new ValueObjectCollection(tagRefs.map(tag => new TransactionTag(tag)), this.markHasChange)
-        this.budgetRefs = new ValueObjectCollection(budgetRefs.map(budget => new TransactionBudget(budget)), this.markHasChange)
-        this.categoryRef = new TrackableProperty<string>(categoryRef, this.markHasChange)
+        this.accountRef = new TrackableProperty<string>(accountRef, this.markHasChange.bind(this))
+        this.recordRef = new TrackableProperty<string>(recordRef, this.markHasChange.bind(this))
+        this.tagRefs = new ValueObjectCollection(tagRefs.map(tag => new TransactionTag(tag)), this.markHasChange.bind(this))
+        this.budgetRefs = new ValueObjectCollection(budgetRefs.map(budget => new TransactionBudget(budget)), this.markHasChange.bind(this))
+        this.categoryRef = new TrackableProperty<string>(categoryRef, this.markHasChange.bind(this))
         this.isFreeze = false;
-        this.date = new TrackableProperty<string>(date, this.markHasChange)
-        this.type = new TrackableProperty<TransactionType>(type, this.markHasChange)
-        this.status = new TrackableProperty<TransactionStatus>(status, this.markHasChange)
+        this.date = new TrackableProperty<string>(date, this.markHasChange.bind(this))
+        this.type = new TrackableProperty<TransactionType>(type, this.markHasChange.bind(this))
+        this.status = new TrackableProperty<TransactionStatus>(status, this.markHasChange.bind(this))
     }
 
     setTags(tagRefs: string[]) {

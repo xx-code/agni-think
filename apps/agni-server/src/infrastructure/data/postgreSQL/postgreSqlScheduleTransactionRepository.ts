@@ -50,17 +50,18 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
 
     async create(scheduleTransaction: ScheduleTransaction): Promise<void> {
         await this.connector('schedule_transactions').insert({
-            transaction_scheduler_id: scheduleTransaction.getId(),
+            schedule_transaction_id: scheduleTransaction.getId(),
             account_id: scheduleTransaction.getAccountRef(),
             category_id: scheduleTransaction.getCategoryRef(),
             amount: scheduleTransaction.getAmount().getAmount(),
             name: scheduleTransaction.getName(),
             type: scheduleTransaction.getTransactionType(),
-            isPause: scheduleTransaction.getIsPause(),
+            is_pause: scheduleTransaction.getIsPause(),
             scheduler: scheduleTransaction.getSchedule().toJson()
         });
 
         if (scheduleTransaction.getTags().length > 0) {
+            
             await this.connector('schedule_transaction_tags').insert(
                 scheduleTransaction.getTags().map(tagId => ({
                     transaction_id: scheduleTransaction.getId(),
@@ -93,14 +94,15 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
         );
     }
     async getAll(): Promise<ScheduleTransaction[]> {
-        let query = this.connector('transactions').select('*');
+        let query = this.connector('schedule_transactions').select('*');
 
         let results = await query;
 
+
         let transactions: ScheduleTransaction[] = []
         
-        for(let result of results) {
-            let tags = (await (this.connector('schedule_transaction_tags').where('schedule_transaction_id', result['transaction_id']).select('tag_id'))).map(result => result['tag_id'])
+        for(const result of results) {
+            let tags = (await (this.connector('schedule_transaction_tags').where('schedule_transaction_id', result['schedule_transaction_id']).select('tag_id'))).map(result => result['tag_id'])
             let transaction = new ScheduleTransaction(
                 result['schedule_transaction_id'],
                 result['name'],
@@ -115,6 +117,7 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
             transactions.push(transaction);
         }
 
+
         return transactions;
     }
 
@@ -126,17 +129,18 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
             amount: scheduleTransaction.getAmount().getAmount(),
             name: scheduleTransaction.getName(),
             type: scheduleTransaction.getTransactionType(),
-            isPause: scheduleTransaction.getIsPause(),
+            is_pause: scheduleTransaction.getIsPause(),
             scheduler: scheduleTransaction.getSchedule().toJson()
         });
 
-        await this.connector('schedule_transaction_tags').whereIn('tag_id', scheduleTransaction.getCollectionTags().__deleted_object.map(i => i.tagId));
+
+        await this.connector('schedule_transaction_tags').whereIn('tag_id', scheduleTransaction.getCollectionTags().__deleted_object.map(i => i.tagId)).delete();
         if (scheduleTransaction.getCollectionTags().__added_object.length > 0)
-            await this.connector('schedule_transaction_tags').insert(scheduleTransaction.getCollectionTags().__added_object.map(tag_id => ({transaction_id: scheduleTransaction.getId(), tag_id: tag_id})))
+            await this.connector('schedule_transaction_tags').insert(scheduleTransaction.getCollectionTags().__added_object.map(el => ({schedule_transaction_id: scheduleTransaction.getId(), tag_id: el.tagId})))
     }
 
     async delete(scheduleTransactionId: string): Promise<void> {
-        await this.connector('schedule_transactions').where('transaction_id', scheduleTransactionId).delete();
+        await this.connector('schedule_transactions').where('schedule_transaction_id', scheduleTransactionId).delete();
     }
 
 }

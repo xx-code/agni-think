@@ -3,6 +3,6 @@ export class RepositoryError extends Error {
     constructor(message: string) {
         super(message);
         this.name = 'There a error in the repository';
-        this.cause = 'the database has return an error';
+        this.cause = message;
     }
 }

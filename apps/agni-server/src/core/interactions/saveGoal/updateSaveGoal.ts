@@ -15,10 +15,10 @@ export type RequestUpdateItemSaveGoalUseCase = {
 
 export type RequestUpdateSaveGoalUseCase = {
     id: string
-    target: number
-    title: string
-    description: string
-    items: RequestUpdateItemSaveGoalUseCase[]
+    target?: number
+    title?: string
+    description?: string
+    items?: RequestUpdateItemSaveGoalUseCase[]
 }
 
 export class UpdateSaveGoalUseCase implements IUsecase<RequestUpdateSaveGoalUseCase, void> {
@@ -33,24 +33,33 @@ export class UpdateSaveGoalUseCase implements IUsecase<RequestUpdateSaveGoalUseC
         if (saveGoal === null)
             throw new ResourceNotFoundError("SAVE_GAOL_NOT_FOUND")
 
-        saveGoal.setTitle(request.title)
-        saveGoal.setDescription(request.description)
-        let target = new Money(request.target)
+        if (request.title)
+            saveGoal.setTitle(request.title)
+        
+        if (request.description)
+            saveGoal.setDescription(request.description)
 
-        if (target.getAmount() < saveGoal.getBalance().getAmount())
-            throw new ValueError("You can't have a save goal target less than balance")
+        if (request.target) {
+            let target = new Money(request.target)
 
-        saveGoal.setTarget(target)
+            if (target.getAmount() < saveGoal.getBalance().getAmount())
+                throw new ValueError("You can't have a save goal target less than balance")
 
-        let items: SaveGoalItem[] = []
-        for(let itemRequest of request.items) {
-            const item = new SaveGoalItem()
-            item.title = itemRequest.title
-            item.link = itemRequest.link
-            item.price = new Money(itemRequest.price) 
-            item.htmlToTrack = itemRequest.htmlToTrack
+            saveGoal.setTarget(target)
+        } 
+
+        if (request.items) {
+            let items: SaveGoalItem[] = [];
+            for(let itemRequest of request.items) {
+                const item = new SaveGoalItem()
+                item.title = itemRequest.title
+                item.link = itemRequest.link
+                item.price = new Money(itemRequest.price) 
+                item.htmlToTrack = itemRequest.htmlToTrack
+            };
+            saveGoal.setItems(items);
         }
-        saveGoal.setItems(items)
+        
         
         if (saveGoal.hasChange())
             await this.savingRepo.update(saveGoal)

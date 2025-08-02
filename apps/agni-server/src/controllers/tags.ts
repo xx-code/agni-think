@@ -35,23 +35,23 @@ export default class TagController implements ApiController {
     }
 
     setupRoutes() {
-        this.route.post(`/${this.CONTROLLER_NAME}`, 
+        this.route.post(`/v1/${this.CONTROLLER_NAME}`, 
             body('value').notEmpty(),
             body('color').isEmpty().isHexColor(),
             this.handleCreateTagUsecase);
 
-        this.route.put(`/${this.CONTROLLER_NAME}/:id`, 
+        this.route.put(`/v1/${this.CONTROLLER_NAME}/:id`, 
             body('value').isEmpty(),
             body('color').isEmpty().isHexColor(),
             this.handleUpdateTagUsecase);
 
-        this.route.get(`/${this.CONTROLLER_NAME}/:id`, 
+        this.route.get(`/v1/${this.CONTROLLER_NAME}/:id`, 
             this.handleGetTagUsecase);
 
-        this.route.get(`/${this.CONTROLLER_NAME}`, 
+        this.route.get(`/v1/${this.CONTROLLER_NAME}`, 
             this.handleGetAllTagsUsecase);
 
-        this.route.delete(`/${this.CONTROLLER_NAME}/:id`, 
+        this.route.delete(`/v1/${this.CONTROLLER_NAME}/:id`, 
             this.handleDeleteTagUsecase);
     };
 

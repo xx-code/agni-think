@@ -47,20 +47,21 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number
         }
 
         let minPrice;
-        if (!isEmpty(request.minPrice))
+        if (request.minPrice)
             minPrice  = new Money(request.minPrice)
 
         let maxPrice;
-        if (!isEmpty(request.maxPrice))
+        if (request.maxPrice)
             maxPrice = new Money(request.maxPrice)
 
         let dateStart;
         if (request.dateStart)
-            dateStart = MomentDateService.formatDate(request.dateStart).toString()
+            dateStart = MomentDateService.formatDate(request.dateStart).toLocaleString()
 
         let dateEnd;
         if (request.dateEnd)
-            dateEnd = MomentDateService.formatDate(request.dateEnd).toString()
+            dateEnd = MomentDateService.formatDate(request.dateEnd).toLocaleString()
+
 
         let filter: TransactionFilter = {
             accounts: request.accountIds || [],

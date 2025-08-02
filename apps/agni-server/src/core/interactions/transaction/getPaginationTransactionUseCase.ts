@@ -47,6 +47,7 @@ export type GetAllTransactionDto = {
     description: string
     recordType: string
     type: string
+    status: string
     categoryId: string
     tagRefs: string[]
     budgets: string[]
@@ -154,6 +155,7 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
                     date: transaction.getDate(),
                     tagRefs: transaction.getTags(),
                     description: record.getDescription(),
+                    status: transaction.getStatus(),
                     recordType: record.getType(),
                     type: transaction.getTransactionType(),
                     budgets: transaction.getBudgetRefs()

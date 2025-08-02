@@ -21,8 +21,9 @@ export class DeleteCategoryUseCase implements IUsecase<string, void> {
         if (category.getIsSystem())
             throw new UnExpectedError("CANT_DELETE_SYS_CATEGORY") 
 
-        if (await this.checker.isInUse(id))
+        if (await this.checker.isInUse(id)) {
             throw new ResourceInService("CATEGORY_IN_USE")
+        }
 
         await this.repository.delete(id);
     }

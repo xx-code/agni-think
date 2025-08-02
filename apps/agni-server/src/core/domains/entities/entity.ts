@@ -3,7 +3,7 @@ import { stringify } from 'querystring';
 
 export default abstract class Entity implements IObjectEquality {
     private id: string;
-    private change: boolean = false;
+    private change: boolean;
 
     private createdAt: Date;
     private updatedAt: Date;
@@ -12,6 +12,7 @@ export default abstract class Entity implements IObjectEquality {
         this.id = id;
         this.createdAt = new Date(Date.now());
         this.updatedAt = new Date(Date.now());
+        this.change = false;
     }
 
     isEqual(object: Entity): boolean {

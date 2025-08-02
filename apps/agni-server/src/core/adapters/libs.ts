@@ -24,3 +24,16 @@ export type ScrappingPriceRequest = {
 export interface ScrappingPriceService {
     getPrice(request: ScrappingPriceRequest): Promise<Money>
 }
+
+export type TaskTimer = {
+    seconde?: number
+    minute?: number
+    hour?: number
+    dayOfMonth?: number
+    month?: number
+    dayOfweek?: number
+}
+
+export interface TaskScheduler {
+    runTask(timer: TaskTimer, task: () => Promise<void>, taskName?: string): void
+}
