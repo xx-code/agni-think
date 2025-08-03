@@ -26,7 +26,6 @@ export type CreateAccountRequest = {
 }
 
 export type UpdateAccountRequest = {
-    id: string
     title?: string
     type?: string
 }

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import useAccountsWitPastBalance from '~/composables/accounts/useAccountsWithPastBalance'
+
 
 const labelsDate = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
 const optionsChart = computed(() => ({responsive: true})) 
@@ -21,14 +23,20 @@ const {data: budgets} = useFetchListBudget()
 
 const budgetChart = computed(() => {
     return formatBudgetDataForChart(budgets.value) // TODO: review
-})
+});
+// generate code
+const now = new Date();
+const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+const startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1)
+const endDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0)
 
-const {data: accounts} = useFetchResumeAccount()
+const {data:accounts, error:accountError, refresh:accountRefresh} = useAccountsWitPastBalance(startDate, endDate);
+
 const transactionAccountSelected = ref(ALL_ACCOUNT_ID)
 const accountsChecked: Ref<{id: string, checked: boolean}[]> = ref([]) // TODO: Review
 const items = computed(() => {
     if (accounts.value)
-        return accounts.value.map(acc => (
+        return accounts.value.items.map(acc => (
         {
             label: acc.title,
             type: 'checkbox' as const,
@@ -104,15 +112,15 @@ const listGoal = computed(() => {
     return []
 })
 
-const listAccount = computed(() => {
+/*const listAccount = computed(() => {
     if (accounts.value)
         return accounts.value
     return []
-})
+})*/
 
 watchEffect(() => {
     if (accounts.value)
-        accountsChecked.value = accounts.value?.map(acc => ({id: acc.id, checked: true}))
+        accountsChecked.value = accounts.value?.items.map(acc => ({id: acc.id, checked: true}))
 })
 
 </script>
@@ -140,7 +148,7 @@ watchEffect(() => {
             </div>
         </div>
         <div class="card-account-list grid sm:grid-cols-2 md:grid-cols-3 gap-2">
-            <div  v-for="account in listAccount.filter(e => accountsChecked.find(f => f.id == e.id && f.checked))" 
+            <div  v-for="account in accounts.items.filter(e => accountsChecked.find(f => f.id == e.id && f.checked))" 
                 :key="account.id">
                 <CardResumeAccount 
                     :id="account.id"
