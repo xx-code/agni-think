@@ -1,4 +1,3 @@
-import type { UseApiFetchReturn } from "./utils"
 
 export type CategoryType = {
     id: string,
@@ -16,10 +15,10 @@ export const  useFetchListCategories = (): UseApiFetchReturn<CategoryType[]> => 
         const resData = error as Ref<ErrorApi>
         toast.add({ title: 'Oops! Erreur', description: resData.value.data.error.message, color: 'error'})
         data.value = []
-        return {data: data as Ref<[]>, error: error as Ref<ErrorApi>, refresh}
+        return {data: ref([]) as Ref<[]>, error: error as Ref<ErrorApi>, refresh}
     } 
 
-    return {data: data as Ref<CategoryType[]> , error: error as Ref<null>, refresh} 
+    return {data: ref([]) as Ref<CategoryType[]> , error: error as Ref<null>, refresh} 
 }
 
 

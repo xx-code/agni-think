@@ -55,7 +55,7 @@ export const useFetchListTransactionType = (): UseApiFetchReturn<TransactionType
         return {data: data as Ref<TransactionTypeType[]>, error: resError, refresh}
     }
 
-    return {data: data as Ref<TransactionTypeType[]>, error: error as Ref<ErrorApi|null>, refresh}
+    return {data: ref([]) as Ref<TransactionTypeType[]>, error: error as Ref<ErrorApi|null>, refresh}
 }
 
 
@@ -72,7 +72,7 @@ export const useFetchListTransactions = (filter?:FilterTransactions): UseApiFetc
         return {data, error: resError, refresh}
     }
 
-    return {data, error: error as Ref<ErrorApi|null>, refresh}
+    return {data: ref([]), error: error as Ref<ErrorApi|null>, refresh}
 } 
 
 export const useFetchTransaction = (transactionId: string): UseApiFetchReturn<TransactionType|null> => {
@@ -87,7 +87,7 @@ export const useFetchTransaction = (transactionId: string): UseApiFetchReturn<Tr
         return {data, error: resError, refresh}
     }
 
-    return {data, error: error as Ref<null>, refresh}
+    return {data: ref([]), error: error as Ref<null>, refresh}
 }
 
 export const useFetchBalance = (filter: FilterBalanceTransactions): UseApiFetchReturn<number|null> => {
@@ -101,7 +101,7 @@ export const useFetchBalance = (filter: FilterBalanceTransactions): UseApiFetchR
         return {data, error: resError, refresh}
     }
 
-    return {data: data as Ref<number>, error: error as Ref<null>, refresh}
+    return {data: ref(0) as Ref<number>, error: error as Ref<null>, refresh}
 }
 
 export async function fetchListTransactionType(): Promise<TransactionTypeType[]> {
@@ -122,7 +122,7 @@ export type FilterBalanceTransactions = {
     dateEnd?: string,
     types?: string,
     minPrice?: number,
-    maxPrice?: number 
+    maxPrice?: number
 }
 
 export type FilterTransactions = {

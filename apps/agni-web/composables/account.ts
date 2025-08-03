@@ -15,7 +15,6 @@ export type ResumeAccountType = AccountType & {
     }
 }
 
-
 function sumTotalBalance(accounts: ResumeAccountType[]): [number, number] {
     let total = 0 
     let pastTotal = 0
@@ -39,7 +38,6 @@ export const useFetchResumeAccount = (): UseApiFetchReturn<ResumeAccountType[]> 
     
         const data = await fetchListAccounts();
         const resumeAccounts: ResumeAccountType[] = []
-
 
         // generate code
         const now = new Date();

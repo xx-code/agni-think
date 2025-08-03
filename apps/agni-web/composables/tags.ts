@@ -13,7 +13,7 @@ export const useFetchListTags = (): UseApiFetchReturn<TagType[]> => {
         const resData = error as Ref<ErrorApi>
         toast.add({ title: 'Oops! Erreur', description: resData.value.data.error.message, color: 'error'})
         data.value = [] 
-        return {data: data as Ref<[]>, error: resData, refresh: refresh } 
+        return {data: ref([]) as Ref<[]>, error: resData, refresh: refresh } 
     } 
     
     return {data: data as Ref<TagType[]>, error: error as Ref<null>, refresh: refresh }

@@ -22,11 +22,11 @@ export const useFetchListGoals = (): UseApiFetchReturn<GoalType[]> => {
         const resError = error as Ref<ErrorApi>
         toast.add({title: 'Oops! Erreur', description: resError.value.data.error.message, color: 'error'})
 
-        return {data: data as Ref<[]>, error: resError, refresh}
+        return {data: ref([]) as Ref<[]>, error: resError, refresh}
     }
 
 
-    return {data: data as Ref<GoalType[]>, error: error as Ref<null>, refresh} 
+    return {data: ref([]) as Ref<GoalType[]>, error: error as Ref<null>, refresh} 
 }
 
 export const useFetchGoal = (goalId: string): UseApiFetchReturn<GoalType | null> => {
