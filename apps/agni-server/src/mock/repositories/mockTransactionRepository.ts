@@ -1,6 +1,6 @@
 import { Money } from "@core/domains/entities/money";
 import { Transaction } from "@core/domains/entities/transaction";
-import { TransactionPaginationResponse } from "@core/domains/metaData/transaction";
+import { RepositoryListResult } from "@core/repositories/dto";
 import { SortBy, TransactionFilter, TransactionRepository } from "@core/repositories/transactionRepository";
 
 export class MockTransactionRepository implements TransactionRepository {
@@ -22,7 +22,7 @@ export class MockTransactionRepository implements TransactionRepository {
         return this.transactions.has(id);
     }
 
-    async getPaginations(page: number, size: number, sortBy: SortBy | null, filterBy: TransactionFilter): Promise<TransactionPaginationResponse> {
+    async getPaginations(page: number, size: number, sortBy: SortBy | null, filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>> {
         let filteredTransactions = Array.from(this.transactions.values());
 
         // Appliquer les filtres (exemple simple : filtrage par comptes)
@@ -44,8 +44,7 @@ export class MockTransactionRepository implements TransactionRepository {
         const paginatedData = filteredTransactions.slice(start, end);
 
         return {
-            transactions: paginatedData,
-            currentPage: page,
+            items: paginatedData,
             total: Number((filteredTransactions.length / page).toFixed(0))
         };
     }

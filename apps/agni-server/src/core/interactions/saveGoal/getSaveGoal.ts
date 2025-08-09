@@ -1,58 +1,51 @@
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError"
 import { SavingRepository } from "../../repositories/savingRepository"
-import { TransactionRepository } from "../../repositories/transactionRepository"
+import { IUsecase } from "../interfaces"
 
-export type SaveGoalItemResponse = {
-    id: string
+export type GetSaveGoalItemDto = {
     title: string
     link: string
     price: number
     htmlToTrack: string
 }
 
-export type SaveGoalResponse = {
+export type GetSaveGoalDto = {
     id: string,
     title: string,
     description: string,
     target: number,
     balance: number
-    items: SaveGoalItemResponse[] 
+    desirValue: number
+    importance: number
+    wishDueDate?: string
+    items: GetSaveGoalItemDto[] 
 }
 
-
-export interface IGetSaveGoalUseCase {
-    execute(id: string): void
-}
-
-export interface IGetSaveGoalPresenter {
-    success(response: SaveGoalResponse): void;
-    fail(err: Error): void;
-}
-
-export class GetSaveGoalUseCase implements IGetSaveGoalUseCase {
+export class GetSaveGoalUseCase implements IUsecase<string, GetSaveGoalDto> {
     private savingRepository: SavingRepository
-    private presenter: IGetSaveGoalPresenter
 
-    constructor(presenter: IGetSaveGoalPresenter, savingRepository: SavingRepository) {
-        this.presenter = presenter
+    constructor(savingRepository: SavingRepository) {
         this.savingRepository = savingRepository
     }
 
-    async execute(id: string): Promise<void> {
-        try {
-            let saveGoal = await this.savingRepository.get(id)
+    async execute(id: string): Promise<GetSaveGoalDto> {
+        let saveGoal = await this.savingRepository.get(id)
 
-            let response: SaveGoalResponse = {
-                id: saveGoal.getId(),
-                title: saveGoal.getTitle(),
-                description: saveGoal.getDescription(),
-                balance: saveGoal.getBalance().getAmount(),
-                target: saveGoal.getTarget().getAmount(),
-                items: saveGoal.getItems().map(item => ({id: item.id, title: item.title, link: item.link, price: item.price.getAmount(), htmlToTrack: item.htmlToTrack}))
-            }
+        if (saveGoal === null)
+            throw new ResourceNotFoundError("SAVE_GAOL_NOT_FOUND")
 
-            this.presenter.success(response)
-        } catch(err: any) {
-            this.presenter.fail(err)
+        let response: GetSaveGoalDto = {
+            id: saveGoal.getId(),
+            title: saveGoal.getTitle(),
+            description: saveGoal.getDescription(),
+            balance: saveGoal.getBalance().getAmount(),
+            target: saveGoal.getTarget().getAmount(),
+            desirValue: saveGoal.getDesirValue(),
+            importance: saveGoal.getImportance(),
+            wishDueDate: saveGoal.getWishDueDate(),
+            items: saveGoal.getItems().map(item => ({title: item.title, link: item.link, price: item.price.getAmount(), htmlToTrack: item.htmlToTrack}))
         }
+
+        return response
     }
 }

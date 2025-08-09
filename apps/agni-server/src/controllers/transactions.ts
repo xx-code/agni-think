@@ -1,614 +1,225 @@
-import { Request, Response } from "express";
-import { AddFreezeBalanceUseCase, IAddFreezeBalancePresenter, IAddFreezeBalanceUseCase, RequestNewFreezeBalance } from "@core/interactions/freezerBalance/addFreezeBalanceUseCase";
-import { AutoDeleteFreezeBalanceUseCase, IAutoDeleteFreezeBalancePresenter, IAutoDeleteFreezeBalanceUseCase } from "@core/interactions/freezerBalance/autoDeleteFreezeBalanceUseCase";
-import { AddTransactionUseCase, IAddTransactionAdapter, IAddTransactionUseCase, IAddTransactionUseCaseResponse, RequestAddTransactionUseCase } from "@core/interactions/transaction/addTransactionUseCase";
-import { DeleteTransactionUseCase, IDeleteTransactionUseCase, IDeleteTransactoinUseCaseResponse } from "@core/interactions/transaction/deleteTransactionUseCase";
-import { GetBalanceByUseCase, IGetBalanceByUseCase, IGetBalanceByUseCaseResponse, RequestGetBalanceBy } from "@core/interactions/transaction/getBalanceByUseCase";
-import { GetPaginationTransaction, IGetPaginationTransaction, IGetPaginationTransactionAdapter, IGetPaginationTransactionResponse, RequestGetPagination, TransactionPaginationResponse } from "@core/interactions/transaction/getPaginationTransactionUseCase";
-import { GetTransactionUseCase, IGetTransactionAdapter, IGetTransactionUseCase, IGetTransactionUseCaseResponse, TransactionResponse } from "@core/interactions/transaction/getTransactionUseCase";
-import { ITransfertTransactionAdapter, ITransfertTransactionUseCaseResponse, RequestTransfertTransactionUseCase, TransfertTransactionUseCase } from "@core/interactions/transaction/transfertTransactionUseCase";
-import { IUpdateTransactionAdapter, IUpdateTransactionUseCase, IUpdateTransactionUseCaseResponse, RequestUpdateTransactionUseCase, UpdateTransactionUseCase } from "@core/interactions/transaction/updateTransactionUseCase";
-import { ApiError, ApiResponse, initApiResponse } from "./type";
-import { isEmpty } from "@core/domains/helpers";
-import { TransactionRepository } from "@core/repositories/transactionRepository";
-import { RecordRepository } from "@core/repositories/recordRepository";
-import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
-import { CategoryRepository } from "@core/repositories/categoryRepository";
-import { AccountRepository } from "@core/repositories/accountRepository";
-import { DateService } from "@core/adapters/libs";
+import { Request, Response, Router } from "express";
+import { RequestNewFreezeBalance } from "@core/interactions/freezerBalance/addFreezeBalanceUseCase";
+import { RequestAddTransactionUseCase } from "@core/interactions/transaction/addTransactionUseCase";
+import { RequestGetBalanceBy } from "@core/interactions/transaction/getBalanceByUseCase";
+import { GetAllTransactionDto, RequestGetPagination } from "@core/interactions/transaction/getPaginationTransactionUseCase";
+import { GetTransactionDto } from "@core/interactions/transaction/getTransactionUseCase";
+import { RequestTransfertTransactionUseCase } from "@core/interactions/transaction/transfertTransactionUseCase";
+import { RequestUpdateTransactionUseCase } from "@core/interactions/transaction/updateTransactionUseCase";
+import { ApiController } from "./base";
+import { IUsecase } from "@core/interactions/interfaces";
+import { CreatedDto, ListDto } from "@core/dto/base";
+import { body, matchedData, query, validationResult } from "express-validator";
+import { RequestCompleteTransactionUsecase } from "@core/interactions/transaction/CompleteTransactionUseCase";
 
-class CreateTransactionModel { 
-    private model: RequestAddTransactionUseCase
+export default class TransactionController implements ApiController {
+    private route = Router();
 
-    constructor(reqBody: any) {
-        this.model = {
-            accountRef: reqBody.accountId,
-            categoryRef: reqBody.categoryId,
-            amount: reqBody.amount ? reqBody.amount : 0,
-            description: reqBody.description,
-            tagRefs: reqBody.tagIds,
-            budgetRefs: reqBody.budgetIds,
-            type: reqBody.type,
-            date: reqBody.date
-        }
+    private createTransaction: IUsecase<RequestAddTransactionUseCase, CreatedDto>;
+    private completeTransaction: IUsecase<RequestCompleteTransactionUsecase, void>;
+    private updateTransaction: IUsecase<RequestUpdateTransactionUseCase, void>;
+    private deleteTransaction: IUsecase<string, void>;
+    private getBalanceBy: IUsecase<RequestGetBalanceBy, number>;
+    private getTransaction: IUsecase<string, GetTransactionDto>;
+    private getTransactionByPagination: IUsecase<RequestGetPagination, ListDto<GetAllTransactionDto>>;
+    private transfertTransaction: IUsecase<RequestTransfertTransactionUseCase, void>;
+    private freezeTransaction: IUsecase<RequestNewFreezeBalance, CreatedDto>;
+    private autoDeleteFreezeTransaction: IUsecase<void, void>;
+
+    constructor(
+        createTransaction: IUsecase<RequestAddTransactionUseCase, CreatedDto>,
+        updateTransaction: IUsecase<RequestUpdateTransactionUseCase, void>,
+        deleteTransaction: IUsecase<string, void>,
+        completeTransaction: IUsecase<RequestCompleteTransactionUsecase, void>,
+        getBalanceBy: IUsecase<RequestGetBalanceBy, number>,
+        getTransaction: IUsecase<string, GetTransactionDto>,
+        getTransactionByPagination: IUsecase<RequestGetPagination, ListDto<GetAllTransactionDto>>,
+        transfertTransaction: IUsecase<RequestTransfertTransactionUseCase, void>,
+        freezeTransaction: IUsecase<RequestNewFreezeBalance, CreatedDto>,
+        autoDeleteFreezeTransaction: IUsecase<void, void>
+    ) {
+        this.createTransaction = createTransaction;
+        this.updateTransaction = updateTransaction;
+        this.deleteTransaction = deleteTransaction;
+        this.completeTransaction = completeTransaction;
+        this.getBalanceBy = getBalanceBy;
+        this.getTransaction = getTransaction;
+        this.getTransactionByPagination = getTransactionByPagination;
+        this.transfertTransaction = transfertTransaction;
+        this.freezeTransaction = freezeTransaction;
+        this.autoDeleteFreezeTransaction = autoDeleteFreezeTransaction;
     }
 
-    validateInput(): ApiError[] {
-        let errors: ApiError[] = []
+    setupRoutes(){
+        this.route.post("/v1/transactions", 
+            body('accountId').notEmpty(),
+            body('amount').notEmpty().isNumeric(),
+            body('budgetIds').isArray(),
+            body('categoryIds').isArray(),
+            body('date').notEmpty().isDate(),
+            body('description').notEmpty(),
+            body('tagIds').isArray(),
+            body('type').notEmpty(),
+            this.handleCreateTransaction);
 
-        if (isEmpty(this.model.accountRef))
-            errors.push({field: "accountId", message: "account field is empty"})
-
-        if (isEmpty(this.model.categoryRef))
-            errors.push({field: "categoryId", message: "category field is empty"})
-
-        if (this.model.amount <= 0)
-            errors.push({field: "amount", message: "amout must be greater than 0"})
-
-        if (isEmpty(this.model.type)) 
-            errors.push({field: "type", message: "you have to choose type of transaction "})
-
-        if (isEmpty(this.model.date))
-            errors.push({field: "date", message: "date field is"})
-
-        return errors
-    }
-
-    getModelRequest(): RequestAddTransactionUseCase {
-        return this.model
-    }
-}
-
-export class ApiCreateTransactionController implements IAddTransactionUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IAddTransactionUseCase
-
-    constructor(transactionAdapter: IAddTransactionAdapter) {
-        this.usecase = new AddTransactionUseCase(transactionAdapter, this)
-    }
-    success(transactionId: string): void {
-        this.modelView.success = true
-        this.modelView.statusCode = 200
-        this.modelView.data = {
-            transactionId: transactionId
-        }
-    }
-    fail(err: Error): void {
-        this.modelView.success = false
-        this.modelView.statusCode = 400 
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new CreateTransactionModel(req.body)
-        let errors = model.validateInput()
-
-        if (errors.length > 0) {
-            if (req.query.validate_all)
-                this.modelView.errors = errors
-            else 
-                this.modelView.error = errors[0]
-
-            this.modelView.statusCode = 400
-
-            res.status(this.modelView.statusCode).send(this.modelView)
-            return
-        }
-
-        await this.usecase.execute(model.getModelRequest())
+        this.route.put("/v1/transactions/:id", 
+            body('accountId').isEmpty(),
+            body('amount').isEmpty().isNumeric(),
+            body('budgetIds').isArray(),
+            body('categoryIds').isArray(),
+            body('date').isEmpty().isDate(),
+            body('description').isEmpty(),
+            body('tagIds').isArray(),
+            body('type').isEmpty(),
+            this.handleUpdateTransaction);
         
-        res.status(this.modelView.statusCode).send(this.modelView)
+        this.route.put("/v1/transactions/:id/complete", this.handleCompleteTransaction);
 
-        return 
+        this.route.delete("/v1/transactions", 
+            this.handleDeleteTransaction);
+
+        this.route.get("/v1/transactions-balance",
+            query('accountFilterIds').isArray(),
+            query('categoryFilterIds').isArray(),
+            query('budgetFilterIds').isArray(),
+            query('tagFilterIds').isArray(),
+            query('dateStart').isEmpty().isDate(),
+            query('dateEnd').isEmpty().isDate(),
+            query('types').isArray(),
+            query('minPrice').isEmpty().isNumeric(),
+            query('maxPrice').isEmpty().isNumeric(),
+            this.handleGetBalanceBy);
+
+        this.route.get("/v1/transactions/:id", 
+            this.handleGetTransaction); 
+
+        this.route.get("/v1/transactions", 
+            query('offset').isNumeric().default(0),
+            query('limit').isNumeric().default(25),
+            query('sortBy').isEmpty(),
+            query('sortSense').isEmpty(),
+            query('accountFilterIds').isArray(),
+            query('categoryFilterIds').isArray(),
+            query('budgetFilterIds').isArray(),
+            query('tagFilterIds').isArray(),
+            query('dateStart').isEmpty().isDate(),
+            query('dateEnd').isEmpty().isDate(),
+            query('types').isArray(),
+            query('minPrice').isEmpty().isNumeric(),
+            query('maxPrice').isEmpty().isNumeric(),
+            this.handleGetAllTransaction);
+
+        this.route.post("/v1/transfert-transaction", 
+            body('accountIdFrom').notEmpty(),
+            body('accountIdTo').notEmpty(),
+            body('amount').notEmpty().isNumeric(),
+            this.handleTransfertTransaction);
+
+        this.route.post("/v1/freeze-transaction", 
+            body('accountId').notEmpty(),
+            body('amount').notEmpty().isNumeric(),
+            body('endDate').notEmpty().isDate(),
+            this.handleFreezeTransaction);
+
+        this.route.post("/v1/freeze-transaction/auto-delete-verification", 
+            this.handleAutoFreezeTransaction);
     }
-}
 
-export class ApiGetTransactionController implements IGetTransactionUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IGetTransactionUseCase
-
-    constructor(transactionAdapter: IGetTransactionAdapter) {
-        this.usecase = new GetTransactionUseCase(transactionAdapter, this)
+    getRoute(){
+        return this.route;
     }
 
-    success(transaction: TransactionResponse): void {
-        this.modelView.success = true
-        this.modelView.statusCode = 200
-        this.modelView.data = transaction
-    }
+    async handleCreateTransaction(req: Request, res: Response) {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestAddTransactionUseCase = matchedData(req);
+            const created = await this.createTransaction.execute(data);
 
-    fail(err: Error): void {
-        this.modelView.success = false
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-
-        await this.usecase.execute(req.params.id)
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-
-        return 
-    }
-}
-
-class PaginationTransactionModel { 
-    private model: RequestGetPagination
-
-    constructor(reqQuery: any) {
-
-        let accounts = []
-        if (reqQuery.accountFilter)
-            accounts = Array.isArray(reqQuery.accountFilter) ? reqQuery.accountFilter : [reqQuery.accountFilter]
+            res.status(200).send(created);
+        } 
         
-        let budgets = []
-        if (reqQuery.budgetFilter)
-            budgets = Array.isArray(reqQuery.budgetFilter) ? reqQuery.budgetFilter : [reqQuery.budgetFilter]
+        res.send({ errors: result.array() });
+    }
 
-        let categories = []
-        if (reqQuery.categoryFilter)
-            categories = Array.isArray(reqQuery.categoryFilter) ? reqQuery.categoryFilter: [reqQuery.categoryFilter]
+    async handleUpdateTransaction(req: Request, res: Response) {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestUpdateTransactionUseCase = matchedData(req);
+            data.id = req.params.id;
+            await this.updateTransaction.execute(data);
 
-        let tags = []
-        if (reqQuery.tagFilter)
-            tags = Array.isArray(reqQuery.tagFilter) ? reqQuery.tagFilter: [reqQuery.tagFilter]
-
-        let types = []
-        if (reqQuery.types)
-            types = Array.isArray(reqQuery.types) ? reqQuery.types: [reqQuery.types]
-       
-        this.model = {
-            page: reqQuery.page ? reqQuery.page : 0,
-            limit: reqQuery.limit ? reqQuery.limit : 0,
-            sortBy: reqQuery.sortBy ? reqQuery.sortBy : '',
-            sortSense: reqQuery.sortSense ? reqQuery.sortSense : '',
-            accountFilter: accounts,
-            categoryFilter: categories,
-            budgetFilter: budgets ,
-            tagFilter: tags,
-            dateStart: reqQuery.dateStart ? reqQuery.dateStart : '',
-            dateEnd: reqQuery.dateEnd ? reqQuery.dateEnd : '',
-            types: types,
-            minPrice: reqQuery.minPrice ? reqQuery.minPrice : undefined,
-            maxPrice: reqQuery.maxPrice ? reqQuery.maxPrice : undefined
+            res.status(201);
         }
-    }
-
-    validateInput(): ApiError[] {
-        let errors: ApiError[] = []
-
-        return errors
-    }
-
-    getModelRequest(): RequestGetPagination {
-        return this.model
-    }
-}
-
-export class ApiPaginationTransactionController implements IGetPaginationTransactionResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IGetPaginationTransaction
-
-    constructor(transactionAdapter: IGetPaginationTransactionAdapter) {
-        this.usecase = new GetPaginationTransaction(transactionAdapter, this)
-    }
-
-    success(response: TransactionPaginationResponse): void {
-        this.modelView.success = true
-        this.modelView.statusCode = 200
-        this.modelView.data = response
-    }
-
-    fail(err: Error): void {
-        this.modelView.success = false
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new PaginationTransactionModel(req.query)
-
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-
-        return 
-    }
-}
-
-class TransfertTransactionModel { 
-    private model: RequestTransfertTransactionUseCase
-
-    constructor(reqBody: any) {
-        this.model = {
-            accountRefTo: reqBody.accountToId,
-            accountRefFrom: reqBody.accountFromId,
-            amount: reqBody.amount,
-            date: reqBody.date
-        }
-    }
-
-    validateInput(): ApiError[] {
-        let errors: ApiError[] = []
-
-        if (isEmpty(this.model.accountRefTo))
-            errors.push({field: "accountRefTo", message: "account To field is empty"})
-
-        if (isEmpty(this.model.accountRefFrom))
-            errors.push({field: "accountRefFrom", message: "account from field is empty"})
-
-        if (this.model.amount <= 0) 
-            errors.push({field: "amount", message: "Transaction is amount must be greater than 0"})
-
-        if (isEmpty(this.model.date))
-            errors.push({field: "date", message: "Transaction is date is empty"})
-
-        return errors
-    }
-
-    getModelRequest(): RequestTransfertTransactionUseCase {
-        return this.model
-    }
-}
-
-
-export class ApiTransfertTransactionController implements ITransfertTransactionUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: TransfertTransactionUseCase
-
-    constructor(transactionAdapter: ITransfertTransactionAdapter) {
-        this.usecase = new TransfertTransactionUseCase(transactionAdapter, this)
-    }
-
-    fail(err: Error): void {
-        this.modelView.success = false
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    success(isTransfert: boolean): void {
-        this.modelView.success = isTransfert
-        this.modelView.statusCode = 200
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new TransfertTransactionModel(req.body)
-        let errors = model.validateInput()
-        if (errors.length > 0) {
-            if (req.query.validate_all)
-                this.modelView.errors = errors
-            else 
-                this.modelView.error = errors[0]
-            this.modelView.statusCode = 400
-            res.status(this.modelView.statusCode).send(this.modelView)
-        }
-
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return
-    }
-}
-
-class GetBalanceModel { 
-    private model: RequestGetBalanceBy
-
-    constructor(reqQuery: any) {
-        let accounts = []
-        if (reqQuery.accountIds)
-            accounts = Array.isArray(reqQuery.accountIds) ? reqQuery.accountIds : [reqQuery.accountIds]
         
-        let budgets = []
-        if (reqQuery.budgetIds)
-            budgets = Array.isArray(reqQuery.budgetIds) ? reqQuery.budgetIds : [reqQuery.budgetIds]
+        res.send({ errors: result.array() });
+    }
 
-        let categories = []
-        if (reqQuery.categoryIds)
-            categories = Array.isArray(reqQuery.categoryIds) ? reqQuery.categoryIds: [reqQuery.categoryIds]
+    async handleDeleteTransaction(req: Request, res: Response) {
+        await this.deleteTransaction.execute(req.params.id);
+    }
 
-        let tags = []
-        if (reqQuery.tagIds)
-            tags = Array.isArray(reqQuery.tagIds) ? reqQuery.tagIds: [reqQuery.tagIds]
+    async handleGetTransaction(req: Request, res: Response) {
+        const transaction = await this.getTransaction.execute(req.params.id);
 
-        let types = []
-        if (reqQuery.types)
-            types = Array.isArray(reqQuery.types) ? reqQuery.types: [reqQuery.type]
+        res.status(200).send(transaction);
+    }
 
-        this.model = {
-            accountsIds: accounts,
-            tagsIds: tags,
-            categoriesIds: categories,
-            budgetIds: budgets,
-            dateStart: reqQuery.dateStart ? reqQuery.dateStart : '',
-            dateEnd: reqQuery.dateEnd ? reqQuery.dateEnd : '',
-            types: types,
-            minPrice: reqQuery.minPrice ? reqQuery.minPrice : '',
-            maxPrice: reqQuery.maxPrice ? reqQuery.maxPrice : '' 
+    async handleGetAllTransaction(req: Request, res: Response) {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestGetPagination = matchedData(req);
+            const transactions = await this.getTransactionByPagination.execute(data); 
+
+            res.status(200).send(transactions);
         }
+
+        res.send({ errors: result.array() });
     }
 
-    validateInput(): ApiError[] {
-        let errors: ApiError[] = []
+    async handleGetBalanceBy(req: Request, res: Response) {
+        const result = validationResult(req); 
+        if (result.isEmpty()) {
+            const data: RequestGetBalanceBy = matchedData(req);
+            const balance = await this.getBalanceBy.execute(data);
 
-        return errors
-    }
-
-    getModelRequest(): RequestGetBalanceBy {
-        return this.model
-    }
-}
-
-export class ApiGetBalanceController implements IGetBalanceByUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IGetBalanceByUseCase
-
-    constructor(transRepo: TransactionRepository, recordRepository: RecordRepository, dateService: DateService) {
-        this.usecase = new GetBalanceByUseCase(dateService, transRepo, recordRepository, this)
-    }
-    success(balance: number): void {
-        this.modelView.success = true
-        this.modelView.statusCode = 200
-        this.modelView.data = {
-            balance: balance
+            res.status(200).send(balance);
         }
-    }
-
-    fail(err: Error): void {
-        this.modelView.statusCode = 400
-        this.modelView.success = false
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new GetBalanceModel(req.query)
         
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return 
+        res.send({ errors: result.array() });
     }
-}
 
-class UpdateTransactionModel { 
-    private model: RequestUpdateTransactionUseCase
+    async handleTransfertTransaction(req: Request, res: Response) {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestTransfertTransactionUseCase = matchedData(req);
+            await this.transfertTransaction.execute(data);
 
-    constructor(id: string, reqBody: any) {
-        this.model = {
-            id: id,
-            accountRef: reqBody.accountId ? reqBody.accountId : '',
-            categoryRef: reqBody.categoryId ? reqBody.categoryId : '',
-            amount: reqBody.amount ? reqBody.amount : '',
-            description: reqBody.description ? reqBody.description : '',
-            tagRefs: reqBody.tagIds ? reqBody.tagIds : [],
-            type: reqBody.type ? reqBody.type : '',
-            budgetRefs: reqBody.budgetIds ? reqBody.budgetIds : [] ,
-            date: reqBody.date ? reqBody.date : ''
+            res.status(201);
         }
-    }
-
-    validateInput(): ApiError[] {
-        let errors: ApiError[] = []
-
-        if (isEmpty(this.model.accountRef))
-            errors.push({field: "accountId", message: "account field is empty"})
-
-        if (isEmpty(this.model.categoryRef))
-            errors.push({field: "categoryId", message: "category field is empty"})
-
-        if (this.model.amount <= 0)
-            errors.push({field: "amount", message: "amout must be greater than 0"})
-
-        if (isEmpty(this.model.type)) 
-            errors.push({field: "type", message: "you have to choose type of transaction 'credit' or 'debit' "})
-
-        if (isEmpty(this.model.date))
-            errors.push({field: "date", message: "date field is"})
-
-        return errors
-    }
-
-    getModelRequest(): RequestUpdateTransactionUseCase {
-        return this.model
-    }
-}
-
-export class ApiUpdateTransactionController implements IUpdateTransactionUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IUpdateTransactionUseCase
-
-    constructor(transactionAdapter: IUpdateTransactionAdapter) {
-        this.usecase = new UpdateTransactionUseCase(transactionAdapter, this)
-    }
-    
-    success(newTransactionId: string): void {
-        this.modelView.statusCode = 200
-        this.modelView.success = true
-        this.modelView.data = {
-            newTransactionId: newTransactionId
-        }
-    }
-
-    fail(err: Error): void {
-        this.modelView.success = false
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new UpdateTransactionModel(req.params.id, req.body)
-
-        let errors = model.validateInput()
-
-        if (errors.length > 0) {
-            if (req.query.validate_all)
-                this.modelView.errors = errors
-            else 
-                this.modelView.error = errors[0]
-
-            this.modelView.statusCode = 400
-            res.status(this.modelView.statusCode).send(this.modelView)
-            return
-        }
-
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-
-        return
-    }
-}
-
-export class ApiDeleteTransactionController implements IDeleteTransactoinUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IDeleteTransactionUseCase
-    constructor(transactionRepo: TransactionRepository, recordRepo: RecordRepository, unitOfWork: UnitOfWorkRepository, accountRepo: AccountRepository) {
-        this.usecase = new DeleteTransactionUseCase(transactionRepo, recordRepo, unitOfWork, accountRepo, this)
-    }
-    success(isDeleted: boolean): void {
-        this.modelView.statusCode = 201
-        this.modelView.success = isDeleted
-    }
-    fail(err: Error): void {
-        this.modelView.statusCode = 400
-        this.modelView.success = false
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
         
-        await this.usecase.execute(req.params.id)
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return
+        res.send({ errors: result.array() });
     }
-}
 
-class FreezeTransactionModel { 
-    private model: RequestNewFreezeBalance
+    async handleFreezeTransaction(req: Request, res: Response) {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestNewFreezeBalance = matchedData(req);
+            await this.freezeTransaction.execute(data);
 
-    constructor(reqBody: any) {
-        this.model = {
-            accountRef: reqBody.accountId,
-            amount: reqBody.amount,
-            endDate: reqBody.endDate
+            res.status(201);
         }
+        
+        res.send({ errors: result.array() });
     }
 
-    validateInput(): ApiError[] {
-        let errors: ApiError[] = []
+    async handleCompleteTransaction(req: Request, res: Response) {
+        await this.completeTransaction.execute({transactionId: req.params.id});
+        res.status(201);
+    } 
 
-        if (isEmpty(this.model.accountRef))
-            errors.push({field: "accountId", message: "account field is empty"})
+    async handleAutoFreezeTransaction(req: Request, res: Response) {
+        await this.autoDeleteFreezeTransaction.execute();
 
-        if (isEmpty(this.model.amount)) 
-            errors.push({field: "type", message: "you have to choose type of transaction 'credit' or 'debit' "})
-
-        if (isEmpty(this.model.endDate))
-            errors.push({field: "date", message: "date field is"})
-
-        return errors
-    }
-
-    getModelRequest(): RequestNewFreezeBalance {
-        return this.model
-    }
-}
-
-export class ApiCreateFreezeTransactionController implements IAddFreezeBalancePresenter {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IAddFreezeBalanceUseCase 
-
-    constructor(dateService: DateService, transactionRepo: TransactionRepository, accountRepo: AccountRepository, 
-        categoryRepo: CategoryRepository, recordRepo: RecordRepository, unitOfWork: UnitOfWorkRepository) {
-        this.usecase = new AddFreezeBalanceUseCase(dateService, transactionRepo, this, accountRepo, categoryRepo, recordRepo, unitOfWork)
-    }
-    success(success: boolean): void {
-        this.modelView.success = success
-        this.modelView.statusCode = 200
-    }
-    fail(err: Error): void {
-        this.modelView.statusCode = 400
-        this.modelView.success = false
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new FreezeTransactionModel(req.body)
-
-        let errors = model.validateInput()
-
-        if (errors.length > 0) {
-            if (req.query.validate_all)
-                this.modelView.errors = errors
-            else 
-                this.modelView.error = errors[0]
-
-            this.modelView.statusCode = 400
-            res.status(this.modelView.statusCode).send(this.modelView)
-            return
-        }
-
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-
-        return
-    }
-}
-
-export class ApiAutoDeleteFreezeTransactionController implements IAutoDeleteFreezeBalancePresenter {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IAutoDeleteFreezeBalanceUseCase
-
-    constructor(accountRepository: AccountRepository, transactionRepository: TransactionRepository, recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository, 
-        dateService: DateService) {
-        this.usecase = new AutoDeleteFreezeBalanceUseCase(accountRepository, transactionRepository, recordRepository, unitOfWork, dateService, this)
-    }
-
-    success(message: string): void {
-        this.modelView.success = true
-        this.modelView.statusCode = 201
-    }
-
-    fail(err: Error): void {
-        this.modelView.success = false
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-    
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-
-        await this.usecase.execute()
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return 
+        res.status(201);
     }
 }

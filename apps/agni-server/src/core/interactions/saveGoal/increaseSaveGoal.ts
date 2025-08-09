@@ -1,7 +1,7 @@
-import { DateService, GetUID } from "@core/adapters/libs";
-import { SAVING_CATEGORY_ID, TransactionMainCategory } from "@core/domains/constants";
+import { GetUID } from "@core/adapters/libs";
+import { RecordType, SAVING_CATEGORY_ID, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
-import { Record, TransactionType } from "@core/domains/entities/record";
+import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
 import ValidationError from "@core/errors/validationError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
@@ -12,41 +12,31 @@ import { TransactionRepository } from "../../repositories/transactionRepository"
 import { ValueError } from "@core/errors/valueError";
 import { CategoryRepository } from "@core/repositories/categoryRepository";
 import { Category } from "@core/domains/entities/category";
+import { IUsecase } from "../interfaces";
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export type RequestIncreaseSaveGoal = {
-    savingGoalRef: string;
-    accountRef: string;
+    id: string;
+    accountId: string;
     increaseAmount: number;
 }
 
-export interface IIncreaseSaveGoalUseCase {
-    execute(request: RequestIncreaseSaveGoal): void
-}
-
-export interface IIncreaseSaveGoalPresenter {
-    success(is_save: boolean): void;
-    fail(err: Error): void;
-}
-
-export class IncreaseSaveGoalUseCase implements IIncreaseSaveGoalUseCase {
+export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal, void> {
 
     private savingRepository: SavingRepository
     private accountRepository: AccountRepository
     private categoryRepository: CategoryRepository
     private transactionRepository: TransactionRepository;
     private recordRepository: RecordRepository;
-    private dateService: DateService;
     private unitOfWork: UnitOfWorkRepository
-    private presenter: IIncreaseSaveGoalPresenter;
 
-    constructor(presenter: IIncreaseSaveGoalPresenter, categoryRepository: CategoryRepository, accountRepository: AccountRepository, savingRepository: SavingRepository, transactionRepository: TransactionRepository,  dateService: DateService, recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository) {
-        this.presenter = presenter
+    constructor(categoryRepository: CategoryRepository, accountRepository: AccountRepository, savingRepository: SavingRepository, transactionRepository: TransactionRepository,  recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository) {
         this.accountRepository = accountRepository
         this.categoryRepository = categoryRepository
         this.savingRepository = savingRepository
         this.transactionRepository = transactionRepository
-        this.dateService = dateService
         this.recordRepository = recordRepository
         this.unitOfWork = unitOfWork
     }
@@ -55,9 +45,13 @@ export class IncreaseSaveGoalUseCase implements IIncreaseSaveGoalUseCase {
         try {
             await this.unitOfWork.start()
 
-            let savingGoal = await this.savingRepository.get(request.savingGoalRef)
+            let savingGoal = await this.savingRepository.get(request.id)
+            if (savingGoal === null)
+                throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
-            let account = await this.accountRepository.get(request.accountRef)
+            let account = await this.accountRepository.get(request.accountId)
+            if (account === null)
+                throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
             let increaseAmount = new Money(request.increaseAmount)
 
@@ -77,16 +71,16 @@ export class IncreaseSaveGoalUseCase implements IIncreaseSaveGoalUseCase {
             savingGoal.increaseBalance(increaseAmount)
 
             // transfert between account check transfert usecase
-            let date = this.dateService.getTodayWithTime()
+            let date = MomentDateService.getTodayWithTime()
 
             let idRecordFrom = GetUID()
-            let newRecordFrom = new Record(idRecordFrom, increaseAmount, date, TransactionType.DEBIT)
+            let newRecordFrom = new Record(idRecordFrom, increaseAmount, date.toString(), RecordType.DEBIT)
             newRecordFrom.setDescription('Saving ' + savingGoal.getTitle()) 
             await this.recordRepository.save(newRecordFrom)
        
             let idTransFrom = GetUID()
-            let newTransactionFrom = new Transaction(idTransFrom, request.accountRef, idRecordFrom, SAVING_CATEGORY_ID, date,
-                TransactionMainCategory.OTHER
+            let newTransactionFrom = new Transaction(idTransFrom, request.accountId, idRecordFrom, SAVING_CATEGORY_ID, date.toString(),
+                TransactionType.OTHER, TransactionStatus.COMPLETE,
             )
             await this.transactionRepository.save(newTransactionFrom);
             
@@ -95,11 +89,9 @@ export class IncreaseSaveGoalUseCase implements IIncreaseSaveGoalUseCase {
             await this.accountRepository.update(account)
 
             await this.unitOfWork.commit()
-            
-            this.presenter.success(true);
         } catch (err: any) {
             await this.unitOfWork.rollback()
-            this.presenter.fail(err)
+            throw err
         }
     }
 }

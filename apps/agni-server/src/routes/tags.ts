@@ -1,27 +1,81 @@
-import { Router } from "express";
-import { ApiCreateTagController, ApiDeleteTagController, ApiGetAllTagController, ApiGetTagController, ApiUpdateTagController } from "src/controllers/tags";
-import container from '../di_contenair';
+import { RequestUpdateTagUseCase } from "@core/interactions/tag/updateTagUseCase";
+import { Router, Request, Response } from "express";
+import { body, matchedData, validationResult } from "express-validator";
+import TagController from "src/controllers/tags";
+import container from "src/di_contenair";
 
-const router  = Router()
+const router = Router();
 
-router.post('/v1/tags', async (req, res) => {   
-    await (new ApiCreateTagController(container.getRepository('tag'))).execute(req, res)
-})
+router.post(`/v1/tags`, 
+    body('value').notEmpty().isString(),
+    body('color').optional().isHexColor(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data = matchedData(req);
+                var created = await container.tagUseCase?.createTag.execute({
+                    color: data.color,
+                    value: data.value,
+                    isSystem: false
+                });
 
-router.get('/v1/tags/:id', async (req, res) => {   
-    await (new ApiGetTagController(container.getRepository('tag'))).execute(req, res)
-})
+                res.status(200).send(created);
+                return;
+            }
 
-router.get('/v1/tags', async (req, res) => {   
-    await (new ApiGetAllTagController(container.getRepository('tag'))).execute(req, res)
-})
+            res.send({ errors: result.array() });
+        } catch(err) {
+            res.status(400).send({ errors: [err] });
+        }
+    });
 
-router.put('/v1/tags/:id', async (req, res) => {   
-    await (new ApiUpdateTagController(container.getRepository('tag'))).execute(req, res)
-})
+router.put(`/v1/tags/:id`, 
+    body('value').optional().isString(),
+    body('color').optional().isString(),
+    async (req: Request, res: Response) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestUpdateTagUseCase = matchedData(req);
+                data.id = req.params.id;
+                await container.tagUseCase?.updateTag.execute(data);
 
-router.delete('/v1/tags/:id', async (req, res) => {   
-    await (new ApiDeleteTagController(container.getRepository('tag'))).execute(req, res)
-})
+                res.sendStatus(200);
+                return;
+            }
+            
+            res.send({ errors: result.array() });
+        } catch(err) {
+            res.status(400).send({ errors: [err] });
+        } 
+    });
 
-export default router
+router.get(`/v1/tags/:id`, async (req, res) => {
+    try {
+        var tag = await container.tagUseCase?.getTag.execute(req.params.id);
+        res.status(200).send(tag);
+    } catch(err) {
+        res.status(400).send({ errors: [err] });
+    }
+});
+
+router.get(`/v1/tags`, async (req, res) => {
+    try {
+        var tags = await container.tagUseCase?.getAllTag.execute();
+        res.status(200).send(tags);
+    } catch(err) {
+        res.status(400).send({ errors: [err] });
+    }
+});
+
+router.delete(`/v1/tags/:id`, async (req, res) => {
+    try {
+        await container.tagUseCase?.deleteTag.execute(req.params.id);
+        res.sendStatus(200);
+    } catch(err) {
+        res.status(400).send({ errors: [err] });
+    }
+});
+
+export default router;

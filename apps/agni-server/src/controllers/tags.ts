@@ -1,250 +1,108 @@
-import { Request, Response } from "express";
-import { CreationTagUseCase, ICreationTagUseCase, ICreationTagUseCaseResponse, RequestCreationTagUseCase } from "@core/interactions/tag/creationTagUseCase";
-import { DeleteTagUseCase, IDeleteTagUseCase, IDeleteTagUseCaseResponse } from "@core/interactions/tag/deleteTagUseCase";
-import { GetAllTagUseCase, IGetAllTagUseCase, IGetAllTagUseCaseResponse, TagsOutput } from "@core/interactions/tag/getAllTagsUseCase";
-import { GetTagUseCase, IGetTagUseCase, IGetTagUseCaseResponse, TagOutput } from "@core/interactions/tag/getTagUseCase";
-import { ApiError, ApiResponse, initApiResponse } from "./type";
-import { isEmpty } from "@core/domains/helpers";
-import { IUpdateTagUseCase, IUpdateTagUseCaseResponse, RequestUpdateTagUseCase, UpdateTagUseCase } from "@core/interactions/tag/updateTagUseCase";
-import { TagRepository } from "@core/repositories/tagRepository";
+import { Request, Response, Router } from "express";
+import { RequestCreationTagUseCase } from "@core/interactions/tag/creationTagUseCase";
+import { GetAllTagDto } from "@core/interactions/tag/getAllTagsUseCase";
+import { GetTagDto } from "@core/interactions/tag/getTagUseCase";
+import { RequestUpdateTagUseCase } from "@core/interactions/tag/updateTagUseCase";
+import { ApiController } from "./base";
+import { IUsecase } from "@core/interactions/interfaces";
+import { CreatedDto, ListDto } from "@core/dto/base";
+import { body, matchedData, validationResult } from "express-validator";
 
-class CreateTagModel {
-    model: RequestCreationTagUseCase
+export default class TagController implements ApiController {
+    private CONTROLLER_NAME: string = 'tags';
+    private route = Router();
 
-    constructor(reqBody: any) {
-        this.model = { 
-            value: reqBody.value,
-            color: reqBody.color      
+    private createTag: IUsecase<RequestCreationTagUseCase, CreatedDto>;
+    private updateTag: IUsecase<RequestUpdateTagUseCase, void>;
+    private deleteTag: IUsecase<string, void>;
+    private getAllTags: IUsecase<void, ListDto<GetAllTagDto>>;
+    private getTag: IUsecase<string, GetTagDto>;
+
+    constructor(
+        createTag: IUsecase<RequestCreationTagUseCase, CreatedDto>,
+        updateTag: IUsecase<RequestUpdateTagUseCase, void>,
+        deleteTag: IUsecase<string, void>,
+        getAllTags: IUsecase<void, ListDto<GetAllTagDto>>,
+        getTag: IUsecase<string, GetTagDto>
+    ) {
+        this.createTag = createTag;
+        this.updateTag = updateTag;
+        this.deleteTag = deleteTag;
+        this.getAllTags = getAllTags;
+        this.getTag = getTag;
+
+        this.setupRoutes()
+    }
+
+    setupRoutes() {
+        this.route.post(`/v1/${this.CONTROLLER_NAME}`, 
+            body('value').notEmpty(),
+            body('color').isEmpty().isHexColor(),
+            this.handleCreateTagUsecase);
+
+        this.route.put(`/v1/${this.CONTROLLER_NAME}/:id`, 
+            body('value').isEmpty(),
+            body('color').isEmpty().isHexColor(),
+            this.handleUpdateTagUsecase);
+
+        this.route.get(`/v1/${this.CONTROLLER_NAME}/:id`, 
+            this.handleGetTagUsecase);
+
+        this.route.get(`/v1/${this.CONTROLLER_NAME}`, 
+            this.handleGetAllTagsUsecase);
+
+        this.route.delete(`/v1/${this.CONTROLLER_NAME}/:id`, 
+            this.handleDeleteTagUsecase);
+    };
+
+    getRoute(){
+        return this.route;
+    };
+
+    async handleCreateTagUsecase(req: Request, res: Response) {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data = matchedData(req);
+            var created = await this.createTag.execute({
+                color: data.color,
+                value: data.value,
+                isSystem: false
+            });
+
+            res.status(200).send(created);
         }
+
+        res.send({ errors: result.array() });
     }
 
-    validationInput(): ApiError[] {
-        let errors: ApiError[] = []
+    async handleUpdateTagUsecase(req: Request, res: Response) {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestUpdateTagUseCase = matchedData(req);
+            data.id = req.params.id;
+            await this.updateTag.execute(data);
 
-        if (isEmpty(this.model.value))
-            errors.push({field: "value", message: "Title field is empty"})
-
-        if (isEmpty(this.model.color))
-            errors.push({field: "color", message: "you have to set icon value"})
-
-        return errors
-    }
-
-    getModelRequest(): RequestCreationTagUseCase {
-        return this.model
-    }
-}
-
-
-export class ApiCreateTagController implements ICreationTagUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: ICreationTagUseCase
-
-    constructor(tagRepo: TagRepository) { 
-        this.usecase = new CreationTagUseCase(tagRepo, this)
-    }
-
-    success(newTagId: string): void {
-        this.modelView.success = true
-        this.modelView.statusCode = 200 
-        this.modelView.data = {
-            newTagId: newTagId
+            res.status(201);
         }
-    }
-
-    fail(err: Error): void {
-        this.modelView.statusCode = 400
-        this.modelView.success = false
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new CreateTagModel(req.body)
-        let errors = model.validationInput()
-        if (errors.length > 0) {
-            if (req.query.validate_all)
-                this.modelView.errors = errors
-            else 
-                this.modelView.error = errors[0]
-
-            this.modelView.statusCode = 400
-            res.status(this.modelView.statusCode).send(this.modelView)
-            return 
-        }       
         
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-
-        return
-    }
-}
-
-export class ApiGetTagController implements IGetTagUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IGetTagUseCase
-
-    constructor(tagRepo: TagRepository) {
-        this.usecase = new GetTagUseCase(tagRepo, this)
-    }
-    success(tag: TagOutput): void {
-        this.modelView.success = true
-        this.modelView.statusCode = 200
-        this.modelView.data = tag
-    }
-    fail(err: Error): void {
-        this.modelView.success = false 
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
+        res.send({ errors: result.array() });
     }
 
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        
-        await this.usecase.execute(req.params.id)
+    async handleDeleteTagUsecase(req: Request, res: Response) {
+        await this.deleteTag.execute(req.params.id);
 
-        this.modelView.success = true 
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return 
-    }
-}
-
-export class ApiGetAllTagController implements IGetAllTagUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IGetAllTagUseCase
-
-    constructor(tagRepo: TagRepository) {
-        this.usecase = new GetAllTagUseCase(tagRepo, this)
+        res.status(201);
     }
 
-    success(tags: TagsOutput[]): void {
-        this.modelView.success = true
-        this.modelView.statusCode = 200
-        this.modelView.data = tags
+    async handleGetTagUsecase(req: Request, res: Response) {
+        var tag = await this.getTag.execute(req.params.id);
+
+        res.status(200).send(tag);
     }
+    
+    async handleGetAllTagsUsecase(req: Request, res: Response) {
+        var tags = await this.getAllTags.execute();
 
-    fail(err: Error): void {
-        this.modelView.success = false
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        
-        await this.usecase.execute()
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return 
-    }
-}
-
-class UpdateTagModel {
-    model: RequestUpdateTagUseCase
-
-    constructor(id:string, reqBody: any) {
-        this.model = { 
-            id: id,
-            value: reqBody.value,
-            color: reqBody.color      
-        }
-    }
-
-    validationInput(): ApiError[] {
-        let errors: ApiError[] = []
-
-        if (isEmpty(this.model.value))
-            errors.push({field: "value", message: "Title field is empty"})
-
-        if (isEmpty(this.model.color))
-            errors.push({field: "color", message: "you have to set icon value"})
-
-        return errors
-    }
-
-    getModelRequest(): RequestUpdateTagUseCase {
-        return this.model
-    }
-}
-
-export class ApiUpdateTagController implements IUpdateTagUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IUpdateTagUseCase
-
-    constructor(tagRepo: TagRepository) {
-        this.usecase = new UpdateTagUseCase(tagRepo, this)
-    }
-
-    success(isDel: boolean): void {
-        this.modelView.success = isDel
-        this.modelView.statusCode = 201
-    }
-
-    fail(err: Error): void {
-        this.modelView.success = false
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new UpdateTagModel(req.params.id, req.body)
-        let errors = model.validationInput()
-
-        if (errors.length > 0) {
-            if (req.query.validate_all)
-                this.modelView.errors = errors
-            else 
-                this.modelView.error = errors[0]
-
-            this.modelView.statusCode = 400
-            res.status(this.modelView.statusCode).send(this.modelView)
-            return
-        }
-
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return 
-    }
-}
-
-export class ApiDeleteTagController implements IDeleteTagUseCaseResponse {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IDeleteTagUseCase
-
-    constructor(tagRepo: TagRepository) {
-        this.usecase = new DeleteTagUseCase(tagRepo, this)
-    }
-
-    success(success: boolean): void {
-        this.modelView.success = success
-        this.modelView.statusCode = 200
-    }
-
-    fail(err: Error): void {
-        this.modelView.success = false
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-
-        await this.usecase.execute(req.params.id)
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return
+        res.status(200).send(tags);
     }
 }

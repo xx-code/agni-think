@@ -1,252 +1,178 @@
 <script setup lang="ts">
-import { computed, h, onMounted, ref, resolveComponent, shallowRef, watch, watchEffect, type Ref } from "vue"; 
-import { ALL_ACCOUNT_ID, useFetchResumeAccount } from "../../composables/account"; 
-import type { DropdownMenuItem, TableColumn, TableRow } from "@nuxt/ui"; 
-import { useFetchListTags, type TagType } from "../../composables/tags";
-import { useFetchListBudget, type BudgetType } from "../../composables/budgets";
-import { fetchBalance, fetchDeleteTransaction, fetchListTransaction, type TransactionType, useFetchBalance, useFetchListTransactions } from "../../composables/transactions";
-import { EditTransactionModal } from "#components";
-import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
-import { useFetchListCategories } from "../../composables/categories";
-import { formatCurrency } from "../../composables/util";
+import { computed, h,  ref, resolveComponent, shallowRef, watch,  type Ref } from "vue"; 
+import type { TableColumn, TableRow } from "@nuxt/ui"; 
+import useAccounts from "~/composables/accounts/useAccounts";
+import useBudgets from "~/composables/budgets/useBudgets";
+import useCategories from "~/composables/categories/useCategories";
+import useTags from "~/composables/tags/useTags";
+import useTransactionPagination from "~/composables/transactions/useTransactionPagination";
+import useBalance from "~/composables/transactions/useBalance";
+import useDeleteTransaction from "~/composables/transactions/useDeleteTransaction";
+import type { EditTransactionType, TransactionTableType, TransactionType } from "~/types/ui/transaction";
+import type { FilterBalanceTransactionQuery, FilterTransactionQuery} from "~/types/api/transaction";
+import { ModalEditTransaction } from "#components";
+import { fetchTransaction } from "~/composables/transactions/useTransaction";
+import useUpdateTransaction from "~/composables/transactions/useUpdateTransaction";
+import useCreateTransaction from "~/composables/transactions/useCreateTransaction";
+import type { FormFilterTransaction } from "~/types/ui/component";
+import useCompleteTransaction from "~/composables/transactions/useCompleteTransaction";
 
-const selectedBudgetIds = ref<string[]>([])
-const selectedCategoryIds = ref<string[]>([])
-const selectedTagIds = ref<string[]>([])
-const filterSelected = ref({
-    'category': false, 'tag': false, 'date': false,
-    'price': false, 'budget': false
+
+const toast = useToast();
+
+// const paramsTransactions = ref<FilterTransactionQuery>({
+//     offset: 
+// });
+
+const page = ref(1);
+const paramsTransactions = reactive<FilterTransactionQuery>({
+  offset: 0,
+  limit: 8,
+  accountFilterIds: [],
+  categoryFilterIds: [],
+  tagFilterIds: [],
+  budgetFilterIds: [],
+  minPrice: undefined,
+  maxPrice: undefined,
+  dateStart: undefined,
+  dateEnd: undefined,
+  isFreeze: false
+});
+
+
+const paramsBalance = reactive<FilterBalanceTransactionQuery>({
+  accountFilterIds: [],
+  categoryFilterIds: [],
+  tagFilterIds: [],
+  budgetFilterIds: [],
+  maxPrice: undefined,
+  minPrice: undefined,
+  dateStart: undefined,
+  dateEnd: undefined,
+});
+
+const {data: accounts } = useAccounts();
+const {data: budgets, error: errorBudget, refresh: refreshBudget } = useBudgets();
+const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories()
+const {data: tags, error: errorTag, refresh: refreshTag } = useTags()
+
+
+
+const {data:transactions, error: errorTransaction,  refresh:refreshTransactions } = useTransactionPagination(paramsTransactions);
+const {data:balance, error: errorBalance, refresh:refreshBalance} = useBalance(paramsBalance);
+
+const displaytransactionsTable = computed(() => {
+    const getCategory = (id: string) => categories.value?.items.find(i => id === i.id)
+    const getTag = (id: string) => tags.value?.items.find(i => id === i.id)
+    const getBudget = (id: string) => budgets.value?.items.find(i => id === i.id)
+
+    return transactions.value?.items.map(i => ({
+        id: i.id,
+        accountId: i.accountId,
+        amount: i.amount,
+        date: i.date,
+        description: i.description,
+        recordType: i.recordType,
+        type: i.type,
+        status: i.status,
+        category: {
+            id: i.categoryId,
+            icon: getCategory(i.categoryId)?.icon || '',
+            color: getCategory(i.categoryId)?.color || '',
+            title: getCategory(i.categoryId)?.title || '',
+        },
+        tags: i.tagIds.map(i => ({
+            id: i,
+            value: getTag(i)?.value || '',
+            color: getTag(i)?.color || ''
+        })),
+        budgets: i.budgetIds.map(i => ({
+            id: i,
+            title: getBudget(i)?.title || ''
+        }))
+    } satisfies TransactionTableType))    
 })
-
-const df = new DateFormatter('en-US', {
-  dateStyle: 'medium'
-})
-
-const date = shallowRef({
-  start: new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
-  end: new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate())
-})
-
-const useDate = ref(false)
-
-const minAmount = ref(0)
-const maxAmount = ref(0)
-
-const page = ref(1)
-const nbItems = ref(8)
-const selectedAccounts: Ref<{id: string, label: string, checked: boolean}[]> = ref([]) 
-
-const paramsTransactions = computed(() => ({
-  page: page.value,
-  limit: nbItems.value,
-  accountFilter: selectedAccounts.value.filter(acc => acc.checked).map(acc => acc.id),
-  categoryFilter: selectedCategoryIds.value,
-  tagFilter: selectedTagIds.value,
-  budgetFilter: selectedBudgetIds.value,
-  minAmount: minAmount.value,
-  maxAmount: maxAmount.value,
-  dateStart: useDate.value ? date.value.start.toString() : '',
-  dateEnd: useDate.value ? date.value.end.toString() : '',
-}))
-
-const paramsBalance = computed(() => ({
-  accountIds: selectedAccounts.value.filter(acc => acc.checked).map(acc => acc.id),
-  categoryIds: selectedCategoryIds.value,
-  tagIds: selectedTagIds.value,
-  budgetIds: selectedBudgetIds.value,
-  maxAmount: filterSelected.value.price ? maxAmount.value : undefined,
-  minAmount: filterSelected.value.price ? minAmount.value : undefined,
-  dateStart: useDate.value ? date.value.start.toString() : '',
-  dateEnd: useDate.value ? date.value.end.toString() : '',
-}))
-
-const {data: accounts} = useFetchResumeAccount()
-const {data: budgets} = useFetchListBudget()
-const {data: categories} = useFetchListCategories()
-const {data: tags }= useFetchListTags()
-
-
-
-const {data:transactions, refresh:refreshTransactions} = useFetchListTransactions(paramsTransactions.value)
-
-const {data:balance, refresh:refreshBalance} = useFetchBalance(paramsBalance.value)
 
 const overlay = useOverlay()
-const modalTransaction = overlay.create(EditTransactionModal, {
-    props: {
-        onSaved: async () => {
-            transactions.value = await fetchListTransaction(paramsTransactions.value)
-            balance.value = await fetchBalance(paramsBalance.value)
+const modalTransaction = overlay.create(ModalEditTransaction);
+
+async function onSubmitTransaction(value: EditTransactionType, oldValue?: TransactionType) {
+    try {
+        if (oldValue)
+            await useUpdateTransaction(oldValue.id, {
+                accountId: value.accountId,
+                amount: value.amount,
+                budgetIds: value.budgetIds,
+                categoryId: value.categoryId,
+                date: value.date.toString(),
+                description: value.description,
+                tagIds: value.tagIds,
+                type: value.type
+            });
+        else  {
+            await useCreateTransaction({
+                accountId: value.accountId,
+                amount: value.amount,
+                budgetIds: value.budgetIds,
+                categoryId: value.categoryId,
+                date: value.date.toString(),
+                description: value.description,
+                tagIds: value.tagIds,
+                type: value.type
+            });
         }
+        refreshTransactions()
+    } catch(err) {
+        toast.add({
+            title: 'Error submit transaction',
+            description: 'Error while submit transaction ' + err,
+            color: 'error'
+        })
     }
-})
-
-
-
-const onUpdateChecked = (id: string, checked: boolean) => {
-    const idx = selectedAccounts.value.findIndex(acc => acc.id === id)
-    if (idx !== -1)
-        selectedAccounts.value[idx].checked = checked
-    if (selectedAccounts.value.every(val => val.checked === false))
-        for(let i = 0; i < selectedAccounts.value.length; i++)
-            selectedAccounts.value[i].checked = true
 }
 
-const accountsDropdown = computed(() =>{
-   let base: DropdownMenuItem[] = [
-        {
-            label: 'Tous les comptes', 
-            type: 'checkbox' as const,
-            onSelect(e: Event) {
-                e.preventDefault()
-                selectedAccounts.value.forEach(acc => acc.checked = true)
-            }
-        },
-        {
-            type: 'separator' as const,
-        },
-    ]
+async function openTransaction(transactionId?: string) {
+    let transaction:TransactionType|undefined;
+    if (transactionId)
+        transaction = await fetchTransaction(transactionId);
 
-    let otherAccount: DropdownMenuItem[] = [] 
-    if (accounts.value) 
-        otherAccount = accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID)
-        .map(acc => ({
-            label: acc.title, 
-            checked: selectedAccounts.value.find(selAcc => selAcc.id == acc.id)?.checked, 
-            type: 'checkbox' as const, 
-            onSelect(e:Event) {
-                e.preventDefault()
-            },
-            onUpdateChecked(checked: boolean) {
-                onUpdateChecked(acc.id, checked)
-            }
-        }))
-
-    return (base.concat(otherAccount) satisfies DropdownMenuItem[]) 
-}) 
-
-
-
-
-const filtersDropdown = computed(() => [
-    {
-        label: 'Categories',
-        type: 'checkbox' as const,
-        checked: filterSelected.value['category'],
-        onUpdateChecked(checked: boolean) {
-            filterSelected.value['category'] = checked
-            selectedCategoryIds.value = []
-        }
-    },
-    {
-        label: 'Tags',
-        type: 'checkbox' as const,
-        checked: filterSelected.value['tag'],
-        onUpdateChecked(checked: boolean) {
-            filterSelected.value['tag'] = checked
-            selectedTagIds.value = []
-        }
-    },
-    {
-        label: 'Date',
-        type: 'checkbox' as const,
-        checked: filterSelected.value['date'],
-        onUpdateChecked(checked: boolean) {
-            useDate.value = checked
-            filterSelected.value['date'] = checked
-        }
-    }, 
-    {
-        label: 'Prix',
-        type: 'checkbox' as const,
-        checked: filterSelected.value['price'],
-        onUpdateChecked(checked: boolean) {
-            filterSelected.value['price'] = checked
-            maxAmount.value = 0
-            minAmount.value = 0
-        }
-    },
-    {
-        label: 'Budgets',
-        type: 'checkbox' as const,
-        checked: filterSelected.value['budget'],
-        onUpdateChecked(checked: boolean) {
-            filterSelected.value['budget'] = checked
-            selectedBudgetIds.value = []
-        }
-    },
-    {
-        type: 'separator'
-    },
-    {
-        label: 'supprimer tous',
-        type: 'checkbox' as const,
-        onUpdateChecked(checked: boolean) {
-            filterSelected.value ={
-                'category': false, 'tag': false, 'date': false,
-                'price': false, 'budget': false
-            }
-            if (accounts.value)
-                selectedAccounts.value = accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID).map(acc => ({id: acc.id, label: acc.title, checked: true}))
-            selectedCategoryIds.value = []
-            selectedTagIds.value = []
-            selectedBudgetIds.value = []
-        }
-    }
-]satisfies DropdownMenuItem[])
-
-const onEditTransaction = (id: string|null=null) => {
-    if(id){
-        modalTransaction.patch({isEdit: true, transactionId: id})
-    } else {
-        modalTransaction.patch({isEdit: false, transactionId: ''})
-    }
-   
-    modalTransaction.open()
-}
+    modalTransaction.open({
+        transaction: transaction,
+        onSubmit: onSubmitTransaction 
+    }); 
+};
 
 const onDelete = async (id: string) => {
-    await fetchDeleteTransaction(id)
-    transactions.value = await fetchListTransaction(paramsTransactions.value)
-    balance.value = await fetchBalance(paramsBalance.value)
+    await useDeleteTransaction(id)
+    refreshTransactions()
+    refreshBalance() 
 }
 
-// onMounted(() => {
-//     if(accounts.value || selectedAccounts.value.every(acc => acc.checked == false))
-//             selectedAccounts.value = accounts.value.filter(acc => acc.id !== ALL_ACCOUNT_ID)
-//                     .map(acc => ({id: acc.id, label: acc.title, checked: true}))
-// })
-let hasInitializedAccounts = false
-watch([paramsTransactions, paramsBalance, selectedAccounts, maxAmount, minAmount, date, nbItems, page],
-    async () => { 
-        if (transactions.value) {
-            const fetchedData = await fetchListTransaction(paramsTransactions.value)
-            transactions.value = fetchedData;
-        }
-        
-        if (balance.value)
-            balance.value = await fetchBalance(paramsBalance.value)
+function onFilter(value: FormFilterTransaction) {
+    paramsTransactions.categoryFilterIds = value.categoryIds
+    paramsTransactions.tagFilterIds = value.tagIds
+    paramsTransactions.accountFilterIds = value.accountIds
+    paramsTransactions.budgetFilterIds = value.budgetIds
+    paramsTransactions.dateEnd = value.dateEnd
+    paramsTransactions.dateStart = value.dateStart
+    paramsTransactions.minPrice = value.minPrice
+    paramsTransactions.maxPrice = value.minPrice
 
-       if (!hasInitializedAccounts && accounts.value) {
-            hasInitializedAccounts = true
-            selectedAccounts.value = accounts.value
-                .filter(acc => acc.id !== ALL_ACCOUNT_ID)
-                .map(acc => ({ id: acc.id, label: acc.title, checked: true }))
-        } 
+    paramsBalance.categoryFilterIds = value.categoryIds,
+    paramsBalance.tagFilterIds = value.tagIds,
+    paramsBalance.accountFilterIds = value.accountIds,
+    paramsBalance.budgetFilterIds = value.budgetIds,
+    paramsBalance.dateEnd = value.dateEnd,
+    paramsBalance.dateStart = value.dateStart,
+    paramsBalance.maxPrice = value.maxPrice,
+    paramsBalance.minPrice = value.minPrice
+}
 
-        
-}, { immediate: true, deep: true})
-
-const listTransaction = computed(() => {
-    if (transactions.value)
-        return transactions.value.transactions
-    return []
-})
-
-const UIcon = resolveComponent('UIcon')
-const UButton = resolveComponent('UButton')
-const UDropdownMenu = resolveComponent('UDropdownMenu')
-const tableColumn: TableColumn<TransactionType>[] = [
+const UIcon = resolveComponent('UIcon');
+const UButton = resolveComponent('UButton');
+const UDropdownMenu = resolveComponent('UDropdownMenu');
+const UBadge = resolveComponent('UBadge');
+const tableColumn: TableColumn<TransactionTableType>[] = [
     {
         id: 'expand',
         cell: ({ row }) => {
@@ -271,7 +197,7 @@ const tableColumn: TableColumn<TransactionType>[] = [
         }
     },
     {
-        accessorKey: 'category.icon',
+        id: 'icon',
         header: '',
         cell: ({ row }) => {
             const icon = row.original.category.icon
@@ -306,11 +232,15 @@ const tableColumn: TableColumn<TransactionType>[] = [
     },
     {
         accessorKey: 'category.title',
-        header: 'Categorie'
+        header: 'Categorie',
     },
     {
         accessorKey: 'description',
         header: 'Desription',
+    },
+    {
+        accessorKey: 'status',
+        header: 'Status'   
     },
     {
         accessorKey: 'amount',
@@ -359,15 +289,13 @@ const tableColumn: TableColumn<TransactionType>[] = [
         }
     }
 ]
-const expanded = ref({ 1: true })
-
-function getRowItems(rows: TableRow<TransactionType>) {
-    return [
+function getRowItems(rows: TableRow<TransactionTableType>) {
+    const options = [
         {
             label: 'Modifier',
             onSelect: () => {
                 const id = rows.original.id
-                onEditTransaction(id)
+                openTransaction(id)
             }
         },
         {
@@ -379,66 +307,56 @@ function getRowItems(rows: TableRow<TransactionType>) {
             }
         }
     ] 
+
+    if (rows.original.status === 'Pending'){
+        options.push({
+            label: 'Valider',
+            onSelect: async () => {
+                if (confirm("Voulez confirmer la transaction")) {
+                    await useCompleteTransaction(rows.original.id) 
+                    refreshTransactions()
+                    refreshBalance()
+                }
+            } 
+        })
+
+        // change position
+        const lastOption = options[1];
+        options[1] = options[2];
+        options[2] = lastOption; 
+    }
+    
+    return options;
 }
-
-
 </script>
 
 <template>
     <div>
         <div class="flex justify-between flex-wrap" style="margin-top: 1rem;">
             <div class="flex items-center gap-3">
-                <UDropdownMenu :items="accountsDropdown">
-                    <UButton color="neutral" variant="outline" icon="i-lucide-menu" label="Comptes" size="xl"/>
-                </UDropdownMenu>
-                <UButton variant="outline" color="neutral" :label="formatCurrency(balance ? balance : 0)" size="xl"/>
-                <UDropdownMenu class="xs:mt-2" :items="filtersDropdown">
-                    <UButton color="neutral" variant="outline" icon="i-lucide-sliders-horizontal" size="xl" label="Filtres"/>
-                </UDropdownMenu>
+                <UButton variant="outline" color="neutral" :label="formatCurrency(balance ? balance.balance : 0)" size="xl"/>
+                <FilterTransactionDrawer @submit="onFilter" /> 
             </div>
 
-            <UButton icon="i-lucide-plus" label="Ajouter transaction" size="xl" @click="onEditTransaction()" />
+            <UButton icon="i-lucide-plus" label="Ajouter transaction" size="xl" @click="openTransaction()" />
         </div>
 
         <div class="mt-2">
-            <div v-if="selectedAccounts.filter(acc => acc.checked).length === selectedAccounts.length">
+            <div v-if="paramsTransactions.accountFilterIds?.length === 0">
                 <UButton color="neutral" variant="outline" label="Tous les comptes"/>
             </div>
-            <div class="flex flex-wrap gap-1" v-if="selectedAccounts.filter(acc => acc.checked).length !== selectedAccounts.length">
-                <div v-for="account of selectedAccounts.filter(acc => acc.checked)" :key="account.id">
-                    <UButton color="neutral" variant="outline" :label="account.label"/>
+            <div class="flex flex-wrap gap-1" 
+                v-if="paramsTransactions.accountFilterIds && paramsTransactions.accountFilterIds.length > 0">
+                <div v-for="account of  accounts?.items.filter(i => paramsTransactions.accountFilterIds?.includes(i.id))" 
+                    :key="account.id">
+                    <UButton color="neutral" variant="outline" :label="account.title"/>
                 </div>
             </div>
-        </div>
-
-        <div class="flex flex-wrap gap-2 mt-2 items-center">
-            <div v-if="filterSelected.category">
-                <UInputMenu placeholder="Categories" multiple v-model="selectedCategoryIds" mutliple value-key="id" label-key="title" :items="categories"/>
-            </div>
-
-            <div v-if="filterSelected.tag">
-                <UInputMenu placeholder="Tags" multiple v-model="selectedTagIds" mutliple  value-key="id" label-key="value" :items="tags"/>
-            </div> 
-            
-            <div v-if="filterSelected.budget">
-                <UInputMenu placeholder="Budgets" multiple v-model="selectedBudgetIds" mutliple value-key="id" label-key="title" :items="budgets"/>
-            </div> 
-            
-            <div>
-                <MultiCalendarSelection v-if="filterSelected.date" />
-            </div>
-
-            <div v-if="filterSelected.price" >
-                <div class="flex gap-1">
-                    <UInput placeholder="Min" v-model="minAmount" type="number" :min="0"/>
-                    <UInput placeholder="Max" v-model="maxAmount" type="number" :min="minAmount" />
-                </div>
-            </div>
-        </div>
+        </div> 
 
         <div style="margin-top: 1rem;">
             <UTable 
-                :data="transactions ? transactions.transactions : []" 
+                :data="displaytransactionsTable" 
                 :columns="tableColumn" 
                 class="flex-1">
                 <template #expanded="{ row }">
@@ -450,8 +368,19 @@ function getRowItems(rows: TableRow<TransactionType>) {
                 </template>
             </UTable>
             <div class="flex flex-row gap-2 items-baseline-last justify-between">
-                <UPagination class="mt-3" v-model:page="page" :items-per-page="nbItems"  :total="transactions ? transactions.total : 1" active-variant="subtle"/>
-                <UInputNumber v-model="nbItems" :min="1" orientation="vertical" style="width: 80px;"/>
+                <UPagination 
+                    class="mt-3" 
+                    v-model:page="page" 
+                    v-on:update:page="() => paramsTransactions.offset = page - 1"
+                    :items-per-page="paramsTransactions.limit"  
+                    :total="Number(transactions?.totals)" 
+                    active-variant="subtle" />
+                <UInputNumber 
+                    v-model="paramsTransactions.limit" 
+                    :min="1" 
+                    orientation="vertical" 
+                    style="width: 80px;"
+                />
             </div>
         </div>
     </div>

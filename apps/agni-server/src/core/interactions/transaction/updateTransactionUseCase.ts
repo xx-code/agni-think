@@ -1,173 +1,132 @@
-import { RecordRepository } from "../../repositories/recordRepository";
-import { AccountRepository } from "../../repositories/accountRepository";
-import { TagRepository } from "../../repositories/tagRepository";
-import { CategoryRepository } from "../../repositories/categoryRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
-import { DateService } from "@core/adapters/libs";
-import { FREEZE_CATEGORY_ID, mapperMainTransactionCategory, mapperTransactionType, SAVING_CATEGORY_ID, TransactionMainCategory } from "@core/domains/constants";
+import { FREEZE_CATEGORY_ID, mapperMainTransactionCategory, RecordType, SAVING_CATEGORY_ID, TransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
-import { AddTransactionUseCase, IAddTransactionUseCaseResponse } from "./addTransactionUseCase";
-import { DeleteTransactionUseCase, IDeleteTransactoinUseCaseResponse } from "./deleteTransactionUseCase";
+import { RequestAddTransactionUseCase } from "./addTransactionUseCase";
 import { ValueError } from "@core/errors/valueError";
-import { BudgetRepository } from "@core/repositories/budgetRepository";
-import { TransactionType } from "@core/domains/entities/record";
+import { IUsecase } from "../interfaces";
+import { TransactionDependencies } from "../facades";
+import { CreatedDto } from "@core/dto/base";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export type RequestUpdateTransactionUseCase = {
     id: string;
-    accountRef: string
-    tagRefs: string[]
-    budgetRefs: string[]
-    categoryRef: string
-    type: string
-    description: string
-    date: string
-    amount: number
-}
-
-export interface IUpdateTransactionUseCase {
-    execute(request: RequestUpdateTransactionUseCase): void
-}
-
-export interface IUpdateTransactionUseCaseResponse {
-    success(newTransationId: string): void
-    fail(err: Error): void
-}
-
-export interface IUpdateTransactionAdapter {
-    budgetRepository: BudgetRepository
-    transactionRepository: TransactionRepository
-    categoryRepository: CategoryRepository
-    tagRepository: TagRepository
-    recordRepository: RecordRepository
-    accountRepository: AccountRepository
-    dateService: DateService
-    unitOfWork: UnitOfWorkRepository
+    accountId?: string
+    tagIds?: string[]
+    budgetIds?: string[]
+    categoryId?: string
+    type?: string
+    description?: string
+    date?: string
+    amount?: number
 }
 
 
-export class UpdateTransactionUseCase implements IUpdateTransactionUseCase {
-    private transactionRepository: TransactionRepository;
-    private recordRepository: RecordRepository;
-    private categoryRepository: CategoryRepository;
-    private tagRepository: TagRepository;
-    private accountRepository: AccountRepository;
-    private budgetRepository: BudgetRepository;
-    private unitOfWork: UnitOfWorkRepository;
+export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransactionUseCase, void> {
+    private transactionRepository: TransactionRepository
+    private transationDependencies: TransactionDependencies 
+    private unitOfWork: UnitOfWorkRepository
 
-    private dateService: DateService
+    private addTransactionUsecase: IUsecase<RequestAddTransactionUseCase, CreatedDto>
+    private deleteTransactionUsecase: IUsecase<string, void>
 
-    private presenter: IUpdateTransactionUseCaseResponse;
-
-    private resultatAddTransaction: string = ""
-    private addTransactionPresenter: IAddTransactionUseCaseResponse = {
-        success: (newTransaction: string) => {
-            this.resultatAddTransaction = newTransaction
-        },
-        fail: (err: Error) => {
-            this.presenter.fail(err)
-            this.unitOfWork.rollback()
-        }
-    }
-    private deleteTransactionPresenter: IDeleteTransactoinUseCaseResponse = {
-        success: (success: boolean) => {
-          
-        },
-        fail: (err: Error) => {
-            this.presenter.fail(err)
-            this.unitOfWork.rollback()
-        }
-    }
-
-    constructor(adapter: IUpdateTransactionAdapter, presenter: IUpdateTransactionUseCaseResponse,) {
-        this.transactionRepository = adapter.transactionRepository;
-        this.recordRepository = adapter.recordRepository;
-        this.categoryRepository = adapter.categoryRepository;
-        this.tagRepository = adapter.tagRepository;
-        this.accountRepository = adapter.accountRepository;
-        this.budgetRepository = adapter.budgetRepository;
-        this.presenter = presenter;
-        this.unitOfWork = adapter.unitOfWork
-        this.dateService = adapter.dateService
+    constructor(
+        transactionRepository: TransactionRepository,
+        transationDependencies: TransactionDependencies,
+        addTransactionUsecase: IUsecase<RequestAddTransactionUseCase, CreatedDto>,
+        deleteTransactionUsecase: IUsecase<string, void>,
+        unitOfWork: UnitOfWorkRepository
+    ) {
+        this.transactionRepository = transactionRepository
+        this.transationDependencies = transationDependencies
+        this.addTransactionUsecase = addTransactionUsecase
+        this.deleteTransactionUsecase = deleteTransactionUsecase
+        this.unitOfWork = unitOfWork
     }
 
     async execute(request: RequestUpdateTransactionUseCase): Promise<void> {
         try {
-            // TODO: comment workflow
+            await this.unitOfWork.start()
+
             let transaction = await this.transactionRepository.get(request.id);
 
             if ([SAVING_CATEGORY_ID, FREEZE_CATEGORY_ID].includes(transaction.getCategoryRef()))
-                throw new ValueError("You cannot update this type of transaction")
+                throw new ValueError("CANT_UPDATE_TRANSACTION")
 
-            let record = await this.recordRepository.get(transaction.getRecordRef())
+            if (request.accountId) {
+                if (!await this.transationDependencies.accountRepository?.isExistById(request.accountId))
+                    throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
+                transaction.setAccountRef(request.accountId)
+            }
 
-            if (request.amount <= 0)
-                throw new ValueError("You can 't add transaction less or equal to 0")
+            let record = await this.transationDependencies.recordRepository?.get(transaction.getRecordRef())
+            if (!record)
+                throw new ResourceNotFoundError("RECORD_NOT_FOUND")
 
-            let type = mapperMainTransactionCategory(request.type)
+            if (request.amount) {
+                if (request.amount <= 0)
+                    throw new ValueError("AMOUNT_MUST_BE_GREATER_THAN_0")
 
-            let amount = new Money(request.amount)
+                let amount = new Money(request.amount)
+                record.setMoney(amount)
+            }
 
-            record.setMoney(amount)
+            if (request.type) {
+                let type = mapperMainTransactionCategory(request.type)
+                record.setType(type === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT)
+            }
+
+            if (request.description) {
+                record.setDescription(request.description)
+            }
+
+            if (request.date) {
+                let date = MomentDateService.formatDateWithtime(request.date).toISOString()
+                record.setDate(date)
+            }
+
+            if (request.categoryId) {
+                if (!(await this.transationDependencies.categoryRepository?.isCategoryExistById(request.categoryId)))
+                    throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
+
+                transaction.setCategoryRef(request.categoryId)
+            }
             
-            record.setDescription(request.description)
+            if (request.tagIds) {
+                if (!(await this.transationDependencies.tagRepository?.isTagExistByIds(request.tagIds)))
+                    throw new ResourceNotFoundError("TAG_NOT_FOUND")
 
-            record.setType(type === TransactionMainCategory.INCOME ? TransactionType.CREDIT : TransactionType.DEBIT)
-            let date = this.dateService.formatDateWithtime(request.date)
-            record.setDate(date)
-
-            if (!(await this.accountRepository.isExistById(request.accountRef)))
-                throw new ResourceNotFoundError("Account not found")
-            if (!(await this.categoryRepository.isCategoryExistById(request.categoryRef)))
-                throw new ResourceNotFoundError("Category not found")
-
-            transaction.setCategoryRef(request.categoryRef)
-
-            transaction.setTransactionType(type)
-
-            if (!(await this.tagRepository.isTagExistByIds(request.tagRefs)))
-                throw new ResourceNotFoundError("a tag not found")
-
-            if (!(await this.budgetRepository.isBudgetExistByIds(request.budgetRefs)))
-                throw new ResourceNotFoundError("a budgets not found")
-
-            transaction.setTags(request.tagRefs)
+                transaction.setTags(request.tagIds)
+            }
             
-            transaction.setBudgets(request.budgetRefs)
+            if (request.budgetIds) {
+                if (!(await this.transationDependencies.budgetRepository?.isBudgetExistByIds(request.budgetIds)))
+                    throw new ResourceNotFoundError("BUDGET_NOT_FOUND")
 
-            let newTransationId = request.id
+                transaction.setBudgets(request.budgetIds)
+            }
+
             if (record.hasChange() || transaction.hasChange())  {
-                await (new DeleteTransactionUseCase(this.transactionRepository, this.recordRepository, this.unitOfWork, 
-                    this.accountRepository, this.deleteTransactionPresenter)).execute(request.id)
+                await this.deleteTransactionUsecase.execute(request.id)
                 
-                await (new AddTransactionUseCase({
-                    accountRepository: this.accountRepository,
-                    categoryRepository: this.categoryRepository,
-                    dateService: this.dateService,
-                    recordRepository: this.recordRepository,
-                    tagRepository: this.tagRepository,
-                    transactionRepository: this.transactionRepository,
-                    budgetRepository: this.budgetRepository,
-                    unitOfWork: this.unitOfWork,
-                }, this.addTransactionPresenter)).execute({
-                    accountRef: transaction.getAccountRef(),
+                await this.addTransactionUsecase.execute({
+                    accountId: transaction.getAccountRef(),
                     amount: record.getMoney().getAmount(),
-                    categoryRef: transaction.getCategoryRef(),
-                    tagRefs: transaction.getTags(),
+                    categoryId: transaction.getCategoryRef(),
+                    tagIds: transaction.getTags(),
                     date: record.getDate(),
                     description: record.getDescription(),
                     type: transaction.getTransactionType(),
-                    budgetRefs: transaction.getBudgetRefs()
+                    budgetIds: transaction.getBudgetRefs()
                 })
-
-                newTransationId = this.resultatAddTransaction
             }
 
-            this.presenter.success(newTransationId)
+            this.unitOfWork.commit()
         } catch (err) {
-            this.presenter.fail(err as Error)
+            this.unitOfWork.rollback()
+            throw err
         }
     }
 }

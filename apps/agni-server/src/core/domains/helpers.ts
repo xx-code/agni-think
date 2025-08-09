@@ -3,7 +3,6 @@ import { ValueError } from '../errors/valueError';
 import { Period } from './constants';
 
 // Todo: Refactor helpers 
-
 export function formatted(value: string): string {
     let formattedValue = value.toUpperCase();
     formattedValue = formattedValue.trimStart();
@@ -11,6 +10,10 @@ export function formatted(value: string): string {
     formattedValue = formattedValue.replace(' ', '_');
 
     return formattedValue;
+}
+
+export function isStringDifferent(a: string, b: string) {
+    return a.toLocaleLowerCase().trim() !== b.toLocaleLowerCase().trim()
 }
 
 export function reverseFormatted(formattedValue: string): string {
@@ -259,7 +262,6 @@ export class DateParser {
         }
 
         if (format === 'datetime') {
-            console.log(`${DateParser.formatTime(this.hours)}:${DateParser.formatTime(this.minutes)}:${DateParser.formatTime(this.seconds)}`)
             return `${this.year}-${month}-${day} ${DateParser.formatTime(this.hours)}:${DateParser.formatTime(this.minutes)}:${DateParser.formatTime(this.seconds)}`
         }
  

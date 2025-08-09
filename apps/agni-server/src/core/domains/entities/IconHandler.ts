@@ -1,53 +1,29 @@
-class IconHandler {
-    private id: string = ''
-    private name: string = ''
-    private value: string = ''
-    private heberger: string = ''
+import { isStringDifferent } from "../helpers"
+import Entity, { TrackableProperty } from "./entity"
 
-    private change: boolean = false 
+class IconHandler extends Entity {
+    private name: TrackableProperty<string>
+    private heberger: TrackableProperty<string>
+
     constructor(id: string, name: string, heberger: string) {
-        this.id = id
-        this.name = name 
-        this.heberger = heberger
-    }
-
-    setId(id: string) {
-        this.id = id
-    }
-
-    getId(): string {
-        return this.id 
-    }
-
-    setValue(value: string) {
-        this.value = value
-    }
-
-    getValue(): string {
-        return this.value
+        super(id)
+        this.name = new TrackableProperty<string>(name, this.markHasChange.bind(this)) 
+        this.heberger = new TrackableProperty<string>(heberger, this.markHasChange.bind(this))
     }
 
     setName(name: string) {
-        if (this.name !== name)
-            this.change = true
-        this.name = name
+        this.name.set(name, isStringDifferent)
     }
 
     getName(): string {
-        return this.name
+        return this.name.get()
     }
 
     setHeberger(heberger: string) {
-        if (this.heberger !== heberger)
-            this.change = true
-        this.heberger = heberger
+        this.heberger.set(heberger, isStringDifferent)
     }
 
     getHeberger(): string {
-        return this.heberger
-    }
-
-    hasChange(): boolean {
-        return this.change
+        return this.heberger.get()
     }
 }

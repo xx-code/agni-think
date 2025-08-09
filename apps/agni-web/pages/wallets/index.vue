@@ -1,49 +1,114 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useFetchResumeAccount, ALL_ACCOUNT_ID, type ResumeAccountType, fetchDeleteAccount} from "../../composables/account";
-import { EditAccountModal, EditFreezeTransaction, EditTransactionModal, EditTransferModal } from "#components";
-import { fetchListTransaction, fetchTransaction, useFetchListTransactions } from "../../composables/transactions";
+import useAccountsWitPastBalance, { ALL_ACCOUNT_ID } from "~/composables/accounts/useAccountsWithPastBalance";
+import useDeleteAccount from "~/composables/accounts/useDeleteAccount";
+import type { AccountType, EditAccountType } from "~/types/ui/account";
+import useCreateAccount from "~/composables/accounts/useCreateAccount";
+import useUpdateAccount from "~/composables/accounts/useUpdateAccount";
+import useTransactionPagination from "~/composables/transactions/useTransactionPagination";
+import { ModalEditAccount, ModalEditFreezeTransaction, ModalEditTransaction, ModalEditTransfer } from "#components";
+import { fetchAccount } from "~/composables/accounts/useAccount";
+import type { EditFreezeTransactionType, EditTransactionType, EditTransfertType, TransactionTableType, TransactionType } from "~/types/ui/transaction";
+import useUpdateTransaction from "~/composables/transactions/useUpdateTransaction";
+import useCreateTransaction from "~/composables/transactions/useCreateTransaction";
+import { fetchTransaction } from "~/composables/transactions/useTransaction";
+import useFreezeTransaction from "~/composables/transactions/useFreezeTransaction";
+import useTransfertTransaction from "~/composables/transactions/useTransfertTransaction";
+import type { FilterTransactionQuery } from "~/types/api/transaction";
+import useCategories from "~/composables/categories/useCategories";
+import useTags from "~/composables/tags/useTags";
 
-const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useFetchResumeAccount(); 
+// generate code
+const now = new Date();
+const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+const startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1);
+const endDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0);
 
-const selectedAccountId = ref(ALL_ACCOUNT_ID)
+const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useAccountsWitPastBalance(startDate, endDate); 
+const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories();
+const {data: tags, error: errorTags, refresh: refreshTag} = useTags();
+const {data: budgets, error: errorBudgets, refresh: refreshBudget } = useTags();
 
-const {data: transactions, error: errorTransactions, refresh: refreshTransactions} = useFetchListTransactions({page: 1, limit: 4}) // add compute for change in selected Account
+const selectedAccountId = ref(ALL_ACCOUNT_ID);
 
-const overlay = useOverlay()
-const modalAccount = overlay.create(EditAccountModal, {
-    props:{
-         onSaved: () => {
-            refreshAccounts()
-    }},
+const getCategory = (id: string) => categories.value?.items.find(i => i.id === id);
+const getTag = (id: string) => tags.value?.items.find(i => i.id === id);
+const getBudget = (id: string) => budgets.value?.items.find(i => i.id === id);
+
+const pageTransaction = ref(1)
+const pageFreezeTransaction = ref(1)
+const paramsTransaction = reactive<FilterTransactionQuery>({offset: 0, limit: 4, isFreeze: false});
+const {data: transactions, error: errorTransactions, refresh: refreshTransactions} = useTransactionPagination(paramsTransaction) // add compute for change in selected Account
+const displayTransactions = computed(() => {
+
+    return transactions.value?.items.map<TransactionTableType>(i => ({
+        id:i.id,
+        accountId: i.accountId,
+        amount: i.amount,
+        budgets: i.budgetIds.map(i => ({
+            id: i,
+            title: getBudget(i)?.value || ''
+        })),
+        category: {
+            id: i.categoryId,
+            title: getCategory(i.categoryId)?.title || '',
+            color: getCategory(i.categoryId)?.color || '',
+            icon: getCategory(i.categoryId)?.icon || ''
+        },
+        date: i.date.toString(),
+        description: i.description,
+        recordType: i.recordType,
+        status: i.status,
+        tags: i.tagIds.map(i => ({ 
+            id: i,
+            value: getTag(i)?.value || '',
+            color: getTag(i)?.color || ''
+        })),
+        type: i.type
+    }))
+});
+
+const paramsFreezeTransaction = reactive<FilterTransactionQuery>({offset: 0, limit: 4, isFreeze: true});
+const { data:freezeTransactions, refresh:refreshFreezeTransactions } = useTransactionPagination(paramsFreezeTransaction);
+const displayFutureTransactions = computed(() => {
+    const allFutureTransactions: TransactionTableType[] = []; 
+
+    freezeTransactions.value?.items.forEach(i => {
+        allFutureTransactions.push({
+            id:i.id,
+            accountId: i.accountId,
+            amount: i.amount,
+            budgets: i.budgetIds.map(i => ({
+                id: i,
+                title: getBudget(i)?.value || ''
+            })),
+            category: {
+                id: i.categoryId,
+                title: getCategory(i.categoryId)?.title || '',
+                color: getCategory(i.categoryId)?.color || '',
+                icon: getCategory(i.categoryId)?.icon || ''
+            },
+            date: i.date.toString(),
+            description: i.description,
+            recordType: i.recordType,
+            status: i.status,
+            tags: i.tagIds.map(i => ({ 
+                id: i,
+                value: getTag(i)?.value || '',
+                color: getTag(i)?.color || ''
+            })),
+            type: i.type
+        });
+    });
+
+    return allFutureTransactions;
 })
 
-const modalTransfer = overlay.create(EditTransferModal, {
-    props: {
-        onSaved: async () => {
-            refreshAccounts()
-            await onUpateAccount(selectedAccountId.value)
-        } 
-    }
-})
-
-const modalTransaction = overlay.create(EditTransactionModal, {
-    props: {
-        onSaved: async () => {
-            refreshAccounts()
-            await onUpateAccount(selectedAccountId.value)
-        }
-    }
-})
-
-const modalFreezeTransaction = overlay.create(EditFreezeTransaction, {
-    props: {
-        onSaved: async () => {
-            refreshAccounts()
-            await onUpateAccount(selectedAccountId.value)
-        }
-    } 
-})
+const overlay = useOverlay();
+const modalAccount = overlay.create(ModalEditAccount);
+const modalTransfer = overlay.create(ModalEditTransfer);
+const modalTransaction = overlay.create(ModalEditTransaction);
+const modalFreezeTransaction = overlay.create(ModalEditFreezeTransaction);
 
 const onSelectAccount = (id: string) => {
     selectedAccountId.value = id
@@ -51,56 +116,161 @@ const onSelectAccount = (id: string) => {
 }
 const getAccount = (id: string) => {
     if (accounts.value)
-        return accounts.value.find(acc => acc.id === id)
+        return accounts.value.items.find(acc => acc.id === id)
     return null
 }
 
-const onEditAccount = (accountId: string|null=null) => {
-    modalAccount.patch({ isEdit: accountId !== null, accountId: accountId ? accountId : '' })
-    modalAccount.open()
+const toast = useToast();
+const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => {
+    try {
+        if (oldValue)
+            await useUpdateAccount(oldValue.id, value);
+        else 
+            await useCreateAccount(value);
+        
+        refreshAccounts();
+    } catch(err) {
+        toast.add({
+            title: 'Error',
+            description: `Error while ${oldValue ? 'Update' : 'Create'} account`,
+            color: 'error'
+        });
+    }
 }
 
-const onTransferAccount = (accountId: string = '') => { 
-    const filterId = accountId === ALL_ACCOUNT_ID ? '': accountId
-    modalTransfer.patch({accountFromId: filterId})
-    modalTransfer.open()
+const openAccountModal = async (accountId?: string) => {
+    let account:AccountType|undefined;
+    if (accountId) {
+        account = await fetchAccount(accountId);
+    }
+        
+    modalAccount.open({
+        account: account,
+        onSubmit: onSaveAccount 
+    }); 
 }
 
-const onEditTransaction = () => {
-    modalTransaction.patch({ accountId: selectedAccountId.value})
-    modalTransaction.open()
+async function onTransfertAccount(value: EditTransfertType) {
+    try {
+        await useTransfertTransaction({
+            accountIdFrom: value.accountIdFrom,
+            accountIdTo: value.accountIdTo,
+            amount: value.amount,
+            date: value.date.toString()
+        })
+        refreshTransactions()
+        refreshAccounts()
+    } catch(err) {
+        toast.add({
+            title: 'Error tranfert',
+            description: 'Error while transfert account',
+            color: 'error'
+        });
+    }
+} 
+
+async function openModalTransferAccount (accountId?: string){ 
+    const filterId = accountId === ALL_ACCOUNT_ID ? undefined : accountId
+        
+    const instance = modalTransfer.open({
+        accountId: filterId,
+        onSubmit: onTransfertAccount 
+    });
+
+    const shouldRefresh = await instance.result; 
 }
 
-const onEditFreezeTransaction = (accountId: string = '') => {
-    modalFreezeTransaction.patch({accountId: accountId})
-    modalFreezeTransaction.open()
+async function onSubmitTransaction(value: EditTransactionType, oldValue?: TransactionType) {
+    try {
+        if (oldValue)
+            await useUpdateTransaction(oldValue.id, {
+                accountId: value.accountId,
+                amount: value.amount,
+                budgetIds: value.budgetIds,
+                categoryId: value.categoryId,
+                date: value.date.toString(),
+                description: value.description,
+                tagIds: value.tagIds,
+                type: value.type
+            });
+        else 
+            await useCreateTransaction({
+                accountId: value.accountId,
+                amount: value.amount,
+                budgetIds: value.budgetIds,
+                categoryId: value.categoryId,
+                date: value.date.toString(),
+                description: value.description,
+                tagIds: value.tagIds,
+                type: value.type
+            });
+        refreshTransactions()
+        refreshAccounts()
+    } catch(err) {
+        toast.add({
+            title: 'Error submit transaction',
+            description: 'Error while submit transaction ' + err,
+            color: 'error'
+        })
+    }
+}
+
+async function openModalEditTransaction(transactionId?: string) {
+    let transaction:TransactionType|undefined;
+    if (transactionId)
+        transaction = await fetchTransaction(transactionId);
+
+    const instant = modalTransaction.open({
+        transaction: transaction,
+        accountSelectedId: selectedAccountId.value,
+        onSubmit: onSubmitTransaction 
+    });
+
+    const shouldRefresh = await instant.result
+}
+
+async function onFreezeTransaction(value: EditFreezeTransactionType) {
+    try {
+        await useFreezeTransaction({
+            accountId: value.accountId,
+            amount: value.amount,
+            endDate: value.endDate.toString()
+        })
+        refreshFreezeTransactions();
+        refreshAccounts()
+    } catch(err) {
+        toast.add({
+            title: 'Error Freeze',
+            description: 'Error while freeze account',
+            color: 'error'
+        });
+    }
+}
+
+async function openModalEditFreezeTransaction(accountId: string = '') {
+    const instance = modalFreezeTransaction.open({
+        onSubmit: onFreezeTransaction
+    });
+
+    await instance.result; 
+
 }
 
 const onDeleteAccount = async (accountId: string) => {
-    await fetchDeleteAccount(accountId)
-    await refreshAccounts()
+    const doDelete = confirm();
+    if (doDelete) {
+        await useDeleteAccount(accountId);
+        refreshAccounts();
+        refreshTransactions()
+    }
 }
 
 const onUpateAccount = async (payload: string) => {
     let filterAcc: string[] = []
     if (payload !== ALL_ACCOUNT_ID)
-        filterAcc = [payload]
-   
-    if (transactions.value)
-        transactions.value = await fetchListTransaction({page: 1, limit: 4, accountFilter: filterAcc})
+        filterAcc = [payload] 
 }
 
-const listAccount = computed(() => {
-    if (accounts.value)
-        return accounts.value
-    return []
-})
-
-const listTransaction = computed(() => {
-    if (transactions.value)
-        return transactions.value.transactions
-    return []
-}) // TODO Review where there are loop setup loading a
 
 </script>
 
@@ -109,7 +279,15 @@ const listTransaction = computed(() => {
         <div>
             <div class="card rounded-md">
                 <CustomCardTitle :title="getAccount(selectedAccountId)?.title">
-                   <USelect v-model="selectedAccountId" @update:modelValue="onUpateAccount" value-key="id"  label-key="title" :items="listAccount.map(acc => ({ id: acc.id, title: acc.title, type: 'item' }))"/> 
+                   <USelect 
+                    v-model="selectedAccountId" 
+                    @update:modelValue="onUpateAccount" 
+                    value-key="id"  label-key="title" 
+                    :items="accounts?.items.map(acc => ({ 
+                        id: acc.id, 
+                        title: acc.title, 
+                        type: 'item' }))"
+                    /> 
                 </CustomCardTitle>
                 <div class="card-money" style="margin-top: 1rem;">
                     <h2>
@@ -130,19 +308,19 @@ const listTransaction = computed(() => {
                 </div>
 
                 <div class="flex justify-between mt-5">
-                    <UButton icon="i-lucide-banknote" size="xl" @click="onEditTransaction()"/>
-                    <UButton icon="i-lucide-arrow-right-left" size="xl" @click="onTransferAccount(selectedAccountId)" />
-                    <UButton icon="i-lucide-snowflake" size="xl" @click="onEditFreezeTransaction(selectedAccountId)"/>
+                    <UButton icon="i-lucide-banknote" size="xl" @click="openModalEditTransaction()"/>
+                    <UButton icon="i-lucide-arrow-right-left" size="xl" @click="openModalTransferAccount(selectedAccountId)" />
+                    <UButton icon="i-lucide-snowflake" size="xl" @click="openModalEditFreezeTransaction(selectedAccountId)"/>
                 </div>
             </div>
         </div>
 
         <div class="xs:col-1 sm:col-span-1 md:col-span-3 flex flex-col" >
             <div class="self-end" style="margin-bottom: 1rem;">
-                <UButton icon="i-lucide-plus" size="xl" variant="solid" @click="onEditAccount(null)">Ajouter Carte</UButton>
+                <UButton icon="i-lucide-plus" size="xl" variant="solid" @click="openAccountModal()">Ajouter Carte</UButton>
             </div>
             <div class="flex overflow-x-auto gap-2"  >
-                <div v-for="account in listAccount" :key="account.id">
+                <div v-for="account in accounts?.items" :key="account.id">
                     <CardResumeAccount 
                         @customClick="onSelectAccount(account.id)"
                         style="width: 200px;"
@@ -154,7 +332,7 @@ const listTransaction = computed(() => {
                         :is-positif="account.pastBalanceDetail.doIncrease"
                         :allow-edit="account.id === ALL_ACCOUNT_ID ? false : true"
                         :allow-delete="account.id === ALL_ACCOUNT_ID ? false :true" 
-                        @edit="onEditAccount(account.id)"
+                        @edit="openAccountModal(account.id)"
                         @delete="onDeleteAccount(account.id)"
 
                     /> 
@@ -172,12 +350,19 @@ const listTransaction = computed(() => {
                 </div>
             </CustomCardTitle>
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
-                <div v-for="trans in listTransaction" :key="trans.id">
+                <div v-for="trans in displayTransactions" :key="trans.id">
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" :color="trans.category.color"
-                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date" :recordType="trans.recordType"/>    
+                        :tags="trans.tags.map((tag: any)=>tag.value)" :date="trans.date" :recordType="trans.recordType"/>
                 </div>
+                <UPagination 
+                    class="mt-3" 
+                    v-model:page="pageTransaction" 
+                    v-on:update:page="() => paramsTransaction.offset = pageTransaction - 1"
+                    :items-per-page="paramsTransaction.limit"  
+                    :total="Number(transactions?.totals)" 
+                    active-variant="subtle" />
             </div>
         </div>
     
@@ -191,16 +376,22 @@ const listTransaction = computed(() => {
         </div>
 
         <div class="card rounded-md col-span-2 ">
-            <CustomCardTitle title="Freeze transaction et future transaction">
+            <CustomCardTitle title="Freeze transactions">
             </CustomCardTitle>
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
-                <div v-for="trans in listTransaction" :key="trans.id">
+                <div v-for="trans in displayFutureTransactions" :key="trans.id">
                     <RowTransaction 
                         :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
                         :description="trans.description" :icon="trans.category.icon" 
-                        :tags="trans.tags.map(tag=>tag.value)" :date="trans.date" :color="trans.category.color"/>    
-                        
+                        :tags="trans.tags.map((tag: any) =>tag.value)" :date="trans.date" :color="trans.category.color"/>    
                 </div>
+                <UPagination 
+                    class="mt-3" 
+                    v-model:page="pageFreezeTransaction" 
+                    v-on:update:page="() => paramsFreezeTransaction.offset = pageFreezeTransaction - 1"
+                    :items-per-page="paramsFreezeTransaction.limit"  
+                    :total="Number(freezeTransactions?.totals)" 
+                    active-variant="subtle" />
             </div>
         </div>
 

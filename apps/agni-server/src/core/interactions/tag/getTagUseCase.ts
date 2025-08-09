@@ -1,42 +1,31 @@
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { TagRepository } from "../../repositories/tagRepository";
+import { IUsecase } from "../interfaces";
 
-export type TagOutput = {
+export type GetTagDto = {
     id: string
     value: string
     color: string|null
     isSystem: boolean
 }
 
-export interface IGetTagUseCase {
-    execute(id: string): void;
-}
-
-export interface IGetTagUseCaseResponse {
-    success(tag: TagOutput): void;
-    fail(err: Error): void;
-}
-
-export class GetTagUseCase implements IGetTagUseCase {
+export class GetTagUseCase implements IUsecase<string, GetTagDto> {
     private repository: TagRepository;
-    private presenter: IGetTagUseCaseResponse
 
-    constructor(repo: TagRepository, presenter: IGetTagUseCaseResponse) {
+    constructor(repo: TagRepository) {
         this.repository = repo;
-        this.presenter = presenter;
     }
 
-    async execute(id: string): Promise<void> {
-        try {
-            let tag = await this.repository.get(id);
+    async execute(id: string): Promise<GetTagDto> {
+        let tag = await this.repository.get(id);
+        if (tag === null)
+            throw new ResourceNotFoundError("TAG_NOT_FOUND")
 
-            this.presenter.success({
-                id: tag.getId(),
-                value: tag.getValue(),
-                color: tag.getColor(),
-                isSystem: tag.getIsSystem()
-            })
-        } catch(err) {
-            this.presenter.fail(err as Error)
+        return {
+            id: tag.getId(),
+            value: tag.getValue(),
+            color: tag.getColor(),
+            isSystem: tag.getIsSystem()
         }
     }
 }

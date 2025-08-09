@@ -1,37 +1,27 @@
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { AccountRepository } from "../../repositories/accountRepository";
+import { IUsecase } from "../interfaces";
 
-export interface IGetAccountUseCase {    
-    execute(id: string): void;
-}
-
-export type AccountResponse = {
+export type GetAccountDto = {
     accountId: string
     title: string
     balance: number
     type: string
 }
 
-export interface IGetAccountUseCaseResponse {
-    success(account: AccountResponse): void
-    fail(error: Error): void
-}
 
-export class GetAccountUseCase implements IGetAccountUseCase {
+export class GetAccountUseCase implements IUsecase<string, GetAccountDto> {
     private repository: AccountRepository;
-    private presenter: IGetAccountUseCaseResponse;
 
-    constructor(repo: AccountRepository, presenter: IGetAccountUseCaseResponse) {
+    constructor(repo: AccountRepository) {
         this.repository = repo;
-        this.presenter = presenter;
     }
     
-    async execute(id: string): Promise<void> {
-        try {
-            let account = await this.repository.get(id)
+    async execute(id: string): Promise<GetAccountDto> {
+        let account = await this.repository.get(id)
+        if (account == null)
+            throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND");
 
-            this.presenter.success({accountId: account.getId(), title: account.getTitle(), balance: account.getBalance(), type: account.getType()});
-        } catch(err) {
-            this.presenter.fail(err as Error);
-        }
+        return {accountId: account.getId(), title: account.getTitle(), balance: account.getBalance(), type: account.getType()}
     }
 }

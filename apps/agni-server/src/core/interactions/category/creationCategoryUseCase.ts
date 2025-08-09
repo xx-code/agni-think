@@ -1,8 +1,10 @@
 import { GetUID } from "@core/adapters/libs";
 import { Category } from "@core/domains/entities/category";
 import { isEmpty } from "@core/domains/helpers";
-import ValidationError from "@core/errors/validationError";
 import { CategoryRepository } from "../../repositories/categoryRepository";
+import { IUsecase } from "../interfaces";
+import { CreatedDto } from "@core/dto/base";
+import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError";
 
 export type RequestCreationCategoryUseCase = {
     title: string,
@@ -11,40 +13,24 @@ export type RequestCreationCategoryUseCase = {
     isSystem?: boolean
 } 
 
-export interface ICreationCategoryUseCase {
-    execute(request: RequestCreationCategoryUseCase): void;
-}
 
-export interface ICreationCategoryUseCaseResponse {
-    success(newCategoryId: string): void;
-    fail(err: Error): void;
-}
-
-export class CreationCategoryUseCase implements ICreationCategoryUseCase {
+export class CreationCategoryUseCase implements IUsecase<RequestCreationCategoryUseCase, CreatedDto> {
     private repository: CategoryRepository;
-    private presenter: ICreationCategoryUseCaseResponse;
 
-    constructor(repo: CategoryRepository, presenter: ICreationCategoryUseCaseResponse) {
+    constructor(repo: CategoryRepository) {
         this.repository = repo;
-        this.presenter = presenter;
     }
 
-    async execute(request: RequestCreationCategoryUseCase): Promise<void> {
-        try {
-            
-            if (await this.repository.isCategoryExistByName(request.title)) {
-                throw new ValidationError(`This category ${request.title} is not valid`);
-            }
+    async execute(request: RequestCreationCategoryUseCase): Promise<CreatedDto> {
+        if (await this.repository.isCategoryExistByName(request.title))
+            throw new ResourceAlreadyExist("CATEGORY_ALREADY_EXIST")
 
-            let newCategory = new Category(GetUID(), request.title, request.icon, "#7f7f7f", request.isSystem?request.isSystem : false)
-            if (!isEmpty(request.color))
-                newCategory.setColor(request.color!)
+        let newCategory = new Category(GetUID(), request.title, request.icon, "#7f7f7f", request.isSystem?request.isSystem : false)
+        if (!isEmpty(request.color))
+            newCategory.setColor(request.color!)
 
-            await this.repository.save(newCategory)
+        await this.repository.save(newCategory)
 
-            this.presenter.success(newCategory.getId());
-        } catch (err) {
-            this.presenter.fail(err as Error);
-        }
+        return { newId: newCategory.getId() }
     }
 }

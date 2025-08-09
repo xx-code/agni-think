@@ -1,7 +1,6 @@
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { KnexConnector } from "./postgreSqlConnector";
 import { Knex } from "knex";
-import { RepositoryError } from "@core/errors/repositoryError";
 
 export class PostgreSqlUnitOfWork extends KnexConnector implements UnitOfWorkRepository {
     private transaction: Knex.Transaction | null = null;
