@@ -7,6 +7,7 @@ import type { FilterTransactionQuery } from '~/types/api/transaction'
 import { formatBudgetDataForChart } from '~/utils/formatBudgetDataForChart'
 
 
+
 const labelsDate = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
 const optionsChart = computed(() => ({responsive: true})) 
 const dataChart = computed(() => ({
@@ -121,11 +122,11 @@ watchEffect(() => {
 
 <template>
     <div>
-
         <div class="option-diplay-container">
             <div class="flex gap-2">
-                <UDropdownMenu :items="listTypeDateDisplay"> <UButton size="xl" variant="outline" color="neutral">
-                        <UIcon name="i-lucide-calendar"/>
+                <UDropdownMenu :items="listTypeDateDisplay">
+                    <UButton size="xl" variant="outline" color="neutral">
+                        <UIcon name="i-lucide-calendar"  />
                     </UButton>
                 </UDropdownMenu>
                 <UButton  size="xl" variant="outline" color="neutral">
