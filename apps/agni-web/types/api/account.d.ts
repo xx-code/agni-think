@@ -5,14 +5,6 @@ export type GetAccountResponse = {
     type: string   
 };
 
-export type GetAccountWithPastInfoResponse = GetAccountResponse & {
-    pastBalanceDetail: {
-        balance: number,
-        diffPercent: number,
-        doIncrease: boolean
-    }
-}
-
 export type GetAllAccountResponse = {
     accountId: string
     title: string

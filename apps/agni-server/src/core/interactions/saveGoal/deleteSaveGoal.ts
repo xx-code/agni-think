@@ -13,12 +13,7 @@ import { MomentDateService } from "@core/domains/entities/libs";
 
 export type RequestDeleteSaveGoal = {
     id: string
-    accountTranfertId: string
-}
-
-
-export interface IDeleteSaveGaolAdapter {
-    
+    accountDepositId: string
 }
 
 export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, void> {
@@ -49,23 +44,25 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
             if (savingGoal == null)
                 throw new ResourceNotFoundError("SAVING_GOAL_NOT_FOUND")
 
-            let accountTranfert = await this.accountRepo.get(request.accountTranfertId)
+            let accountTranfert = await this.accountRepo.get(request.accountDepositId)
             if (accountTranfert == null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
-            let date = MomentDateService.getTodayWithTime()
+            if (savingGoal.getBalance().getAmount() > 0) {
+                let date = MomentDateService.getTodayWithTime()
 
-            let newRecord = new Record(GetUID(), savingGoal.getBalance(), date.toString(), RecordType.CREDIT, "Deposit from " + savingGoal.getDescription())
-            let newTransaction = new Transaction(GetUID(), accountTranfert.getId(), newRecord.getId(), SAVING_CATEGORY_ID, 
-            date.toString(), TransactionType.OTHER, TransactionStatus.COMPLETE, [])
+                let newRecord = new Record(GetUID(), savingGoal.getBalance(), date.toLocaleString(), RecordType.CREDIT, "Deposit from " + savingGoal.getDescription())
+                let newTransaction = new Transaction(GetUID(), accountTranfert.getId(), newRecord.getId(), SAVING_CATEGORY_ID, 
+                date.toLocaleString(), TransactionType.OTHER, TransactionStatus.COMPLETE, [])
 
-            accountTranfert.addOnBalance(savingGoal.getBalance())
+                accountTranfert.addOnBalance(savingGoal.getBalance())
 
-            await this.accountRepo.update(accountTranfert)
+                await this.accountRepo.update(accountTranfert)
 
-            await this.recordRepo.save(newRecord)
+                await this.recordRepo.save(newRecord)
 
-            await this.transactionRepo.save(newTransaction)
+                await this.transactionRepo.save(newTransaction)
+            } 
             
             await this.savingRepo.delete(savingGoal.getId())
 

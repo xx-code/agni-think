@@ -47,8 +47,8 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
                 tags: [],
                 budgets: [budget.getId()],
                 types: [],
-                startDate: budget.getSchedule().getStartedDate().toLocaleDateString(),
-                endDate: budget.getSchedule().getEndingDate()?.toLocaleDateString(),
+                startDate: budget.getSchedule().getStartedDate().toISOString(),
+                endDate: budget.getSchedule().getEndingDate()?.toISOString(),
             });
 
             let currentBalance = 0
@@ -65,9 +65,9 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
                 period: budget.getSchedule().getPeriod(),
                 periodTime: budget.getSchedule().getPeriodTime(),
                 target: budget.getTarget(),
-                startDate: budget.getSchedule().getStartedDate().toLocaleString(),
-                updateDate: budget.getSchedule().getUpdatedDate().toLocaleString(),
-                endDate: budget.getSchedule().getEndingDate()?.toLocaleString()
+                startDate: budget.getSchedule().getStartedDate().toISOString(),
+                updateDate: budget.getSchedule().getUpdatedDate().toISOString(),
+                endDate: budget.getSchedule().getEndingDate()?.toISOString()
             };
 
             budgetsDisplay.push(budgetDisplay);

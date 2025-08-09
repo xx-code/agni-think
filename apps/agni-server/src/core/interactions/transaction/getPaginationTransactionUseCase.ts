@@ -24,6 +24,7 @@ export type RequestGetPagination = {
     types?: string[]
     minPrice?: number
     maxPrice?: number
+    isFreeze?: boolean
 }
 
 export type GetAllTransactionCategoryDto = {
@@ -125,8 +126,10 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
             budgets: request.budgetFilterIds || [],
             types: types,
             minPrice: minPrice,
-            maxPrice: maxPrice
+            maxPrice: maxPrice,
+            isFreeze: request.isFreeze
         };
+
 
         let sortBy: SortBy|null = {
             sortBy: 'date',

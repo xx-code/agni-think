@@ -8,35 +8,14 @@ import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
 import { mapperMainTransactionCategory, mapperTransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 
-export class PostgreSqlScheduleTransactionRepository extends KnexConnector implements ScheduleTransactionRepository { 
-
+export class PostgreSqlScheduleTransactionRepository extends KnexConnector implements ScheduleTransactionRepository {
     constructor(connector: Knex) {
         super(connector)
     }
     
-    async initialisation(): Promise<void> {
-        let isExist = await this.connector.schema.hasTable('schedule_transactions') 
-        if (!isExist) {
-            await this.connector.schema.createTable('schedule_transactions', (table) => {
-                table.uuid('schedule_transactions').primary()
-                table.uuid('account_id')
-                table.uuid('category_id')
-                table.float('amount')
-                table.string('name')
-                table.string('type')
-                table.boolean('is_pause')
-                table.json('scheduler')
-            });
-        }
-        
-        isExist = await this.connector.schema.hasTable('schedule_transaction_tags') 
-        if (!isExist) {
-            await this.connector.schema.createTable('schedule_transaction_tags', (table) => {
-                table.uuid('schedule_transaction_id').index().references('schedule_transaction_id').inTable('schedule_transactions').onDelete('CASCADE')
-                table.uuid('tag_id').index().references('tag_id').inTable('tags').onDelete('CASCADE')
-            });
-        }
-    }
+    initialisation(): Promise<void> {
+        throw new Error("Method not implemented.");
+    } 
 
     async existById(id: string): Promise<boolean> {
         let result = await this.connector('schedule_transactions').where('schedule_transaction_id', id).first();
@@ -57,6 +36,7 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
             name: scheduleTransaction.getName(),
             type: scheduleTransaction.getTransactionType(),
             is_pause: scheduleTransaction.getIsPause(),
+            is_pay: scheduleTransaction.getIsPay(),
             scheduler: scheduleTransaction.getSchedule().toJson()
         });
 
@@ -89,6 +69,7 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
             new Money(result[0]['amount']),
             mapperMainTransactionCategory(result[0]['type']),
             Scheduler.fromJson(result[0]['scheduler']),
+            result[0]['is_pay'],
             result[0]['is_pause'],
             tags
         );
@@ -111,6 +92,7 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
                 new Money(result['amount']),
                 mapperMainTransactionCategory(result['type']),
                 Scheduler.fromJson(result['scheduler']),
+                result['is_pay'],
                 result['is_pause'],
                 tags
             );
@@ -124,12 +106,13 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
     async update(scheduleTransaction: ScheduleTransaction): Promise<void> {
         await this.connector('schedule_transactions')
         .where('schedule_transaction_id', scheduleTransaction.getId()).update({
-            account_id: scheduleTransaction.getId(),
+            account_id: scheduleTransaction.getAccountRef(),
             category_id: scheduleTransaction.getCategoryRef(),
             amount: scheduleTransaction.getAmount().getAmount(),
             name: scheduleTransaction.getName(),
             type: scheduleTransaction.getTransactionType(),
             is_pause: scheduleTransaction.getIsPause(),
+            is_pay: scheduleTransaction.getIsPay(),
             scheduler: scheduleTransaction.getSchedule().toJson()
         });
 

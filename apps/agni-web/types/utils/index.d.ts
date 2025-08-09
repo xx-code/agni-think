@@ -9,6 +9,6 @@ export type ErrorApi = {
 
 export type UseApiFetchReturn<T> = {
     data: Ref<T|null>,
-    error: Ref<ErrorApi|null>,
+    error: Ref<any|null>,
     refresh: (opts?: AsyncDataExecuteOptions) => Promise<void> 
 }

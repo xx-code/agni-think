@@ -32,7 +32,7 @@ router.post("/v1/transactions",
             
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] });
+            res.status(400).send({ errors: [err] });
         }
     });
 
@@ -59,7 +59,7 @@ router.put("/v1/transactions/:id",
             
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] });
+            res.status(400).send({ errors: [err] });
         }
     });
 
@@ -68,7 +68,8 @@ router.put("/v1/transactions/:id/complete", async (req, res) => {
         await container.transactionUseCase?.completeTransaction.execute({transactionId: req.params.id});
         res.sendStatus(200);
     } catch(err) {
-        res.send({ errors: [err] });
+        console.log(err)
+        res.status(400).send({ errors: [err] });
     }
 });
 
@@ -77,7 +78,7 @@ router.delete("/v1/transactions/:id", async (req, res) => {
         await container.transactionUseCase?.deleteTransaction.execute(req.params.id);
         res.sendStatus(200);
     } catch(err) {
-        res.send({ errors: [err] });
+        res.status(400).send({ errors: [err] });
     }
 });
 
@@ -114,7 +115,7 @@ router.get("/v1/transactions/:id", async (req, res) => {
 
         res.status(200).send(transaction);
     } catch(err) {
-        res.send({ errors: [err] });
+        res.status(400).send({ errors: [err] });
     }
 }); 
 
@@ -132,6 +133,7 @@ router.get("/v1/transactions",
     query('types').optional().isArray(),
     query('minPrice').optional().isNumeric(),
     query('maxPrice').optional().isNumeric(),
+    query('isFreeze').optional().isBoolean(),
     async (req, res) => {
         try {
             const result = validationResult(req);
@@ -145,7 +147,8 @@ router.get("/v1/transactions",
 
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] });
+            console.log(err)
+            res.status(400).send({ errors: [err] });
         }
     });
 
@@ -166,7 +169,7 @@ router.post("/v1/transfert-transaction",
             
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] });
+            res.status(400).send({ errors: [err] });
         }
     });
 
@@ -187,7 +190,7 @@ router.post("/v1/freeze-transaction",
             
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] });
+            res.status(400).send({ errors: [err] });
         }
     });
 
@@ -196,7 +199,7 @@ router.post("/v1/freeze-transaction/auto-delete-verification", async (req, res) 
         await container.transactionUseCase?.autoFreezeTransaction.execute();
         res.sendStatus(200);
     } catch(err) {
-        res.send({ errors: [err] });
+        res.status(400).send({ errors: [err] });
     }
 });
 

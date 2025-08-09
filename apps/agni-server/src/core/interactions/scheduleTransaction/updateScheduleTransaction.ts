@@ -47,7 +47,7 @@ export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateS
             throw new ResourceNotFoundError("SCHEDULE_TRANSACTION_NOT_FOUND")   
 
         if (request.name) {
-            if (await this.scheduleTransactionRepo.existByName(request.name) && !isStringDifferent(request.name, scheduleTransaction.getName()))
+            if (await this.scheduleTransactionRepo.existByName(request.name) && isStringDifferent(request.name, scheduleTransaction.getName()))
                 throw new ResourceAlreadyExist("SCHEDULE_TRANSACTION_ALREADY_EXIST")
 
             scheduleTransaction.setName(request.name)
@@ -97,7 +97,7 @@ export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateS
             scheduleTransaction.reSchedule(scheduler)
         }
 
-        if (request.isPause) {
+        if (request.isPause !== undefined) {
             scheduleTransaction.setIsPause(request.isPause)
         } 
 

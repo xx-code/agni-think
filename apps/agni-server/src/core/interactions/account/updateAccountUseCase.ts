@@ -32,8 +32,6 @@ export class UpdateAccountUseCase implements IUsecase<RequestUpdateAccountUseCas
         if (request.type)
             fetchedAccount.setType(mapperTypeAccount(request.type))
 
-        console.log(fetchedAccount)
-
         if (fetchedAccount.hasChange()) {
             await this.repository.update(fetchedAccount)
         }

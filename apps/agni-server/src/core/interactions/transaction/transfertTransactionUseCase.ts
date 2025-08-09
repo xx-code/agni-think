@@ -62,7 +62,7 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
             await this.accountRepository.update(accountFrom)
             await this.accountRepository.update(accountTo)
 
-            let date = MomentDateService.formatDateWithtime(request.date).toString()
+            let date = MomentDateService.formatDateWithtime(request.date).toISOString()
             
             let fromRecord: Record = new Record(GetUID(), amount, date, RecordType.DEBIT)
             fromRecord.setDescription(`Transfert du compte ${accountFrom.getTitle()}`) 

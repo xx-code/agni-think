@@ -83,7 +83,7 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
             }
 
             if (request.date) {
-                let date = MomentDateService.formatDateWithtime(request.date).toString()
+                let date = MomentDateService.formatDateWithtime(request.date).toISOString()
                 record.setDate(date)
             }
 

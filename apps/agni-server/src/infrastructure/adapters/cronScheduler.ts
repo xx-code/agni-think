@@ -12,7 +12,7 @@ export class CronScheduler implements TaskScheduler {
             console.log(`[server Task]: ${taskName || ''} - started`);
             task();
             console.log(`[server Task]: ${taskName || ''} - end`);
-        }) ;
+        },   { timezone: 'America/Toronto' }) ;
     }
 
     private cronBuildTimer(timer: TaskTimer): string {
@@ -20,7 +20,9 @@ export class CronScheduler implements TaskScheduler {
             !timer.month && timer.dayOfMonth && timer.dayOfweek)
             throw new Error("Timer not set for the task");
 
-        return `${timer.seconde || '*'} ${timer.minute || '*'} ${timer.hour || '*'} ${timer.dayOfMonth || '*'} ${timer.month || '*'} ${timer.dayOfweek || '*'}`
+
+        return `${timer.seconde?.toString() || '*'} ${timer.minute?.toString() || '*'} ${timer.hour?.toString() || '*' }` 
+        +` ${timer.dayOfMonth?.toString() || '*'} ${timer.month?.toString() || '*'} ${timer.dayOfweek?.toString() || '*'}`
     }
 }
 
@@ -33,4 +35,15 @@ export class ApplyScheduleTransactionCronScheduler {
             "Schedule Transaction"
         );
     } 
+}
+
+export class AutoDeletreFreezeTransactionCronScheduler {
+    execute(timer: TaskTimer) {
+        const cronScheduler = new CronScheduler();
+        cronScheduler.runTask(
+            timer,
+            async () => await container.transactionUseCase?.autoFreezeTransaction.execute(),
+            "Freeze transaction"
+        )
+    }
 }

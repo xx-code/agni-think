@@ -74,6 +74,7 @@ export class CreateScheduleTransactionUseCase implements IUsecase<RequestCreateS
             mapperMainTransactionCategory(request.type),
             scheduler,
             false,
+            false,
             request.tagIds
         )
 

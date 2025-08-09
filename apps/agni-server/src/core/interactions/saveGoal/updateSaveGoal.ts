@@ -4,6 +4,8 @@ import { SavingRepository } from "@core/repositories/savingRepository"
 import { IUsecase } from "../interfaces"
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError"
 import SaveGoalItem from "@core/domains/valueObjects/saveGoalItem"
+import { ImportanceGoal, IntensityEmotionalDesir } from "@core/domains/constants"
+import { MomentDateService } from "@core/domains/entities/libs"
 
 export type RequestUpdateItemSaveGoalUseCase = {
     id: string,
@@ -17,6 +19,9 @@ export type RequestUpdateSaveGoalUseCase = {
     id: string
     target?: number
     title?: string
+    desirValue?: IntensityEmotionalDesir,
+    importance?: ImportanceGoal,
+    wishDueDate?: string,
     description?: string
     items?: RequestUpdateItemSaveGoalUseCase[]
 }
@@ -47,6 +52,19 @@ export class UpdateSaveGoalUseCase implements IUsecase<RequestUpdateSaveGoalUseC
 
             saveGoal.setTarget(target)
         } 
+
+        if (request.desirValue !== undefined)
+        {
+            saveGoal.setDesirValue(request.desirValue)
+        }
+
+        if (request.importance !== undefined) {
+            saveGoal.setImportance(request.importance)
+        }
+
+        if (request.wishDueDate) {
+            saveGoal.setWishDueDate(MomentDateService.formatDate(request.wishDueDate).toISOString()) 
+        }
 
         if (request.items) {
             let items: SaveGoalItem[] = [];

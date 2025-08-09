@@ -24,7 +24,7 @@ router.post('/v1/categories',
 
             res.send({errors: result.array()});
         } catch(err) {
-            res.send({errors: [err]});
+            res.status(400).send({errors: [err]});
         }
     });
     
@@ -46,7 +46,7 @@ router.put('/v1/categories/:id',
 
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({errors: [err]});
+            res.status(400).send({errors: [err]});
         }
     });
 
@@ -55,7 +55,7 @@ router.get('/v1/categories/:id', async (req, res) => {
         var category = await container.categoryUseCase?.getCategory.execute(req.params.id)
         res.status(200).json(category)
     } catch(err) {
-        res.send({ errors: [err] });
+        res.status(400).send({ errors: [err] });
     }
 });
     
@@ -64,7 +64,7 @@ router.get('/v1/categories', async (req, res) => {
         var allCategories = await container.categoryUseCase?.getAllCategory.execute()
         res.status(200).json(allCategories)
     } catch(err) {
-        res.send({ errors: [err]})
+        res.status(400).send({ errors: [err]})
     }
 });
 
@@ -73,7 +73,7 @@ router.delete('/v1/categories/:id', async (req, res) => {
         await container.categoryUseCase?.deleteCategory.execute(req.params.id)
         res.sendStatus(200);   
     } catch (err) {
-        res.send({ errors: [err]})
+        res.status(400).send({ errors: [err]})
     }
 });
 

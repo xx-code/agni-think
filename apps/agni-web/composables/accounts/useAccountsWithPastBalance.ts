@@ -1,10 +1,12 @@
 import type { ListResponse } from "~/types/api";
-import type { GetAccountResponse, GetAccountWithPastInfoResponse } from "~/types/api/account";
+import type { GetAccountResponse } from "~/types/api/account";
 import type { FilterBalanceTransactionQuery, GetBalanceResponse } from "~/types/api/transaction";
+import type { AccountWithPastBalanceType } from "~/types/ui/account";
+import type { UseApiFetchReturn } from "~/types/utils";
 
 export const ALL_ACCOUNT_ID = "all"
 
-function sumTotalBalance(accounts: GetAccountWithPastInfoResponse[]): [number, number] {
+function sumTotalBalance(accounts: AccountWithPastBalanceType[]): [number, number] {
     let total = 0;
     let pastTotal = 0;
     accounts.forEach(acc => {
@@ -23,21 +25,24 @@ function computeDiffPercent(pastBalance: number, balance: number) {
 }
 
 export default function useAccountsWitPastBalance(dateStart: Date, dateEnd: Date): 
-UseApiFetchReturn<ListResponse<GetAccountWithPastInfoResponse>> {
+UseApiFetchReturn<ListResponse<AccountWithPastBalanceType>> {
+
     const { data, error, refresh } = useAsyncData('resume-accounts', async () => { 
 
-        const accounts: ListResponse<GetAccountResponse> = await $fetch('/api/accounts');
+        const accounts = await $fetch<ListResponse<GetAccountResponse>>('/api/accounts', {
+            method: "GET"
+        });
 
-        const accountsWithPastBalances: GetAccountWithPastInfoResponse[] = [];
+        const accountsWithPastBalances: AccountWithPastBalanceType[] = [];
 
         for(const account of accounts.items) {
             const requestBalance: FilterBalanceTransactionQuery = {
-                accountIds: [account.accountId],
+                accountFilterIds: [account.accountId],
                 dateStart: dateStart.toLocaleString(),
                 dateEnd: dateEnd.toLocaleString()
             };
 
-            const accountBalance: GetBalanceResponse = await $fetch('/api/transactions/balance', {
+            const accountBalance = await $fetch<GetBalanceResponse>('/api/transactions/balance', {
                 method: 'POST',
                 body: requestBalance 
             });
@@ -45,7 +50,10 @@ UseApiFetchReturn<ListResponse<GetAccountWithPastInfoResponse>> {
             const pastBalance = accountBalance.balance;
             
             accountsWithPastBalances.push({
-                ...account,
+                id: account.accountId,
+                title: account.title,
+                balance: account.balance,
+                type: account.type,
                 pastBalanceDetail: {
                     balance: pastBalance,
                     diffPercent: computeDiffPercent(pastBalance, account.balance),
@@ -55,8 +63,8 @@ UseApiFetchReturn<ListResponse<GetAccountWithPastInfoResponse>> {
         }
 
         const totals = sumTotalBalance(accountsWithPastBalances);
-        const totalAccount: GetAccountWithPastInfoResponse = {
-            accountId: ALL_ACCOUNT_ID,
+        const totalAccount: AccountWithPastBalanceType = {
+            id: ALL_ACCOUNT_ID,
             title: 'Total Balance',
             balance: totals[0],
             pastBalanceDetail: {
@@ -69,7 +77,7 @@ UseApiFetchReturn<ListResponse<GetAccountWithPastInfoResponse>> {
 
         accountsWithPastBalances.unshift(totalAccount)
 
-        return accountsWithPastBalances;
+        return { items: accountsWithPastBalances, totals: accounts.totals};
     });
 
     return { data, error, refresh };

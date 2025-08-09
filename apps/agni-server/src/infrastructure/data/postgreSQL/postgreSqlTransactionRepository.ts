@@ -123,13 +123,19 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
                 });
             }
 
+            if (filterBy.isFreeze)
+                query.where('is_freeze', '=', filterBy.isFreeze);
+
             if (filterBy.startDate) 
                 query.where('date', '>=', filterBy.startDate);
             if (filterBy.endDate) 
                 query.where('date', '<=', filterBy.endDate);
 
-        
-            query.limit(size).offset(offset * size);
+            let total = await query.clone().clearSelect().clearOrder().count<{count: number}>("* as count").first() 
+            const totalCount = total?.count ?? 0
+
+            if (!filterBy.queryAll) 
+                query.limit(size).offset(offset * size);
 
             let results = await query;
 
@@ -142,15 +148,11 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
                     result['category_id'], result['date'], result['type'], mapperTransactionStatus(result['status']), tags, budgets))
             }
 
-            let total = await this.connector('transactions').count<{count: number}>('* as count').first()
-            const totalCount = total?.count ?? 0
-
             return {
                 items: transactions,
                 total: totalCount
             };
         } catch(err) {
-            console.log
             throw err
         } 
     }

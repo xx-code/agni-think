@@ -1,4 +1,4 @@
-import { AccountType, Period, TransactionType } from '@core/domains/constants';
+import { AccountType, ImportanceGoal, IntensityEmotionalDesir, Period, TransactionType } from '@core/domains/constants';
 import { Router } from 'express';
 
 const router = Router();
@@ -76,6 +76,59 @@ router.get('/v1/internal/transaction-type', (req, res) => {
     })
         
     res.status(200).send(typeAccounts)
+});
+
+router.get('/v1/internal/intensity-desir-type', (req, res) => {
+    const types: {id: number, value: string}[] = []
+    Object.keys(IntensityEmotionalDesir).forEach(key => {
+        const valueAcc = IntensityEmotionalDesir[key as keyof typeof IntensityEmotionalDesir]
+        switch(valueAcc) {
+            case IntensityEmotionalDesir.INDIFFERENT:
+                types.push({value: 'Indifferent', id: IntensityEmotionalDesir.INDIFFERENT})
+                break;
+            case IntensityEmotionalDesir.PLEASURE:
+                types.push({value: 'Plaisir', id: IntensityEmotionalDesir.PLEASURE})
+                break;
+            case IntensityEmotionalDesir.DESIR:
+                types.push({value: 'Desire', id: IntensityEmotionalDesir.DESIR})
+                break;
+            case IntensityEmotionalDesir.OBSESSION:
+                types.push({value: 'Obsession', id: IntensityEmotionalDesir.OBSESSION})
+                break
+            case IntensityEmotionalDesir.FOMO:
+                types.push({value: 'Fomo', id: IntensityEmotionalDesir.FOMO})
+                break
+            default:
+                break;
+        }
+    })
+        
+    res.status(200).send(types)
+});
+
+router.get('/v1/internal/importance-type', (req, res) => {
+    const types: {id: number, value: string}[] = []
+    Object.keys(ImportanceGoal).forEach(key => {
+        const valueAcc = ImportanceGoal[key as keyof typeof ImportanceGoal]
+        switch(valueAcc) {
+            case ImportanceGoal.INSIGNIFIANT:
+                types.push({value: 'Insignifiant', id: ImportanceGoal.INSIGNIFIANT})
+                break;
+            case ImportanceGoal.NORMAL:
+                types.push({value: 'Normal', id: ImportanceGoal.NORMAL})
+                break;
+            case ImportanceGoal.IMPORTANT:
+                types.push({value: 'Important', id: ImportanceGoal.IMPORTANT})
+                break;
+            case ImportanceGoal.URGENT:
+                types.push({value: 'Urgent', id: ImportanceGoal.URGENT})
+                break
+            default:
+                break;
+        }
+    })
+        
+    res.status(200).send(types)
 });
 
 export default router;

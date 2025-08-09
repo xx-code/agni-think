@@ -40,9 +40,9 @@ export class GetAllScheluleTransacationUseCase implements IUsecase<void, ListDto
                 tagIds: trans.getTags(),
                 type: trans.getTransactionType(),
                 isPause: trans.getIsPause(),
-                dateStart: trans.getSchedule().getStartedDate().toLocaleString(),
-                dateUpdate: trans.getSchedule().getUpdatedDate().toLocaleString(),
-                dateEnd: trans.getSchedule().getEndingDate()?.toLocaleString(),
+                dateStart: trans.getSchedule().getStartedDate().toISOString(),
+                dateUpdate: trans.getSchedule().getUpdatedDate().toISOString(),
+                dateEnd: trans.getSchedule().getEndingDate()?.toISOString(),
                 period: trans.getSchedule().getPeriod(),
                 periodTime: trans.getSchedule().getPeriodTime()
             })

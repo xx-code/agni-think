@@ -26,7 +26,7 @@ router.post(`/v1/tags`,
 
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] });
+            res.status(400).send({ errors: [err] });
         }
     });
 
@@ -47,7 +47,7 @@ router.put(`/v1/tags/:id`,
             
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] });
+            res.status(400).send({ errors: [err] });
         } 
     });
 
@@ -56,7 +56,7 @@ router.get(`/v1/tags/:id`, async (req, res) => {
         var tag = await container.tagUseCase?.getTag.execute(req.params.id);
         res.status(200).send(tag);
     } catch(err) {
-        res.send({ errors: [err] });
+        res.status(400).send({ errors: [err] });
     }
 });
 
@@ -65,7 +65,7 @@ router.get(`/v1/tags`, async (req, res) => {
         var tags = await container.tagUseCase?.getAllTag.execute();
         res.status(200).send(tags);
     } catch(err) {
-        res.send({ errors: [err] });
+        res.status(400).send({ errors: [err] });
     }
 });
 
@@ -74,7 +74,7 @@ router.delete(`/v1/tags/:id`, async (req, res) => {
         await container.tagUseCase?.deleteTag.execute(req.params.id);
         res.sendStatus(200);
     } catch(err) {
-        res.send({ errors: [err] });
+        res.status(400).send({ errors: [err] });
     }
 });
 

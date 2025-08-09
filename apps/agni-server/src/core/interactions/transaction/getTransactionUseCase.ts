@@ -8,6 +8,7 @@ export type GetTransactionDto = {
     accountId: string
     amount: number
     date: string
+    status: string
     description: string
     recordType: string
     type: string
@@ -42,6 +43,7 @@ export class GetTransactionUseCase implements IUsecase<string, GetTransactionDto
             description: record.getDescription(),
             recordType: record.getType(),
             categoryId: transaction.getCategoryRef(),
+            status: transaction.getStatus(),
             type: transaction.getTransactionType(),
             tagRefs: transaction.getTags(),
             budgets: transaction.getBudgetRefs()

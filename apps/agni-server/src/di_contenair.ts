@@ -105,6 +105,9 @@ async function createTables(knex: Knex) {
             table.string('title')
             table.float('target')
             table.float('balance')
+            table.integer('desir_value')
+            table.integer('importance')
+            table.date('wish_due_date')
             table.string('description')
             
         });
@@ -124,6 +127,7 @@ async function createTables(knex: Knex) {
             table.string('name')
             table.string('type')
             table.boolean('is_pause')
+            table.boolean('is_pay')
             table.json('scheduler')
         });
 
@@ -354,7 +358,7 @@ export class DiContenair {
         const deleteUseCase = new DeleteTransactionUseCase(this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work'), this.getRepository('account'));
         this.transactionUseCase = {
             createTransaction: addUseCase,
-            completeTransaction: new CompteTransactionUsecase(this.getRepository('transaction'), this.getRepository('accountRepo'), this.getRepository('recordRepo'), this.getRepository('unit_of_work')),
+            completeTransaction: new CompteTransactionUsecase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record'), this.getRepository('unit_of_work')),
             updateTransaction: new UpdateTransactionUseCase(this.getRepository('transaction'), transDept, addUseCase, deleteUseCase, this.getRepository('unit_of_work')),
             transfertTransaction: new TransfertTransactionUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record'), this.getRepository('unit_of_work')),
             autoFreezeTransaction: new AutoDeleteFreezeBalanceUseCase(this.getRepository('account'), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),

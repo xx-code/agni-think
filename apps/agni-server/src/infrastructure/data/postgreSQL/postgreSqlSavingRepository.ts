@@ -41,7 +41,10 @@ export class PostgreSqlSavingRepository extends KnexConnector implements SavingR
                 title: saveGoal.getTitle(),
                 target: saveGoal.getTarget().getAmount(),
                 balance: saveGoal.getBalance().getAmount(),
-                description: saveGoal.getDescription()
+                description: saveGoal.getDescription(),
+                desir_value: saveGoal.getDesirValue(),
+                wish_due_date: saveGoal.getWishDueDate(),
+                importance: saveGoal.getImportance()
             });
             
             if (saveGoal.getItems().length > 0) {
@@ -55,7 +58,6 @@ export class PostgreSqlSavingRepository extends KnexConnector implements SavingR
                 // })))
             }
         } catch(err) {
-            console.log(err)
             throw err
         }
     }
@@ -70,6 +72,9 @@ export class PostgreSqlSavingRepository extends KnexConnector implements SavingR
             result.title,
             new Money(result.target),
             new Money(result.balance),
+            result.desir_value,
+            result.importance, 
+            result.wish_due_date,
             await this.getItems(saveGoalId),
             result.description
         );
@@ -82,6 +87,9 @@ export class PostgreSqlSavingRepository extends KnexConnector implements SavingR
             result.title,
             new Money(result.target),
             new Money(result.balance),
+            result.desir_value,
+            result.importance, 
+            result.wish_due_date,
             await this.getItems(result.save_goal_id),
             result.description
         )));
@@ -92,7 +100,10 @@ export class PostgreSqlSavingRepository extends KnexConnector implements SavingR
             title: saveGoal.getTitle(),
             target: saveGoal.getTarget().getAmount(),
             balance: saveGoal.getBalance().getAmount(),
-            description: saveGoal.getDescription()
+            description: saveGoal.getDescription(),
+            desir_value: saveGoal.getDesirValue(),
+            wish_due_date: saveGoal.getWishDueDate(),
+            importance: saveGoal.getImportance()
         });
 
         // await this.connector('save_goal_items').whereIn('save_goal_item_id', saveGoal.__del_event_item).del()

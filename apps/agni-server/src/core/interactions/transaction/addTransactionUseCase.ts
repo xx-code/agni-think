@@ -68,7 +68,7 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
             let newRecord = new Record(
                 GetUID(), 
                 amount, 
-                date.toString(), 
+                date.toLocaleString(), 
                 type === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT, 
                 request.description)
             await this.transcationDependencies.recordRepository?.save(newRecord)
@@ -82,7 +82,7 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
                 request.accountId, 
                 newRecord.getId(), 
                 request.categoryId, 
-                date.toString(), type, TransactionStatus.COMPLETE, 
+                date.toLocaleString(), type, TransactionStatus.COMPLETE, 
                 request.tagIds, request.budgetIds)    
 
             await this.transactionRepository.save(newTransaction);

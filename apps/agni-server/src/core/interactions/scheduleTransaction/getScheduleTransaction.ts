@@ -40,9 +40,9 @@ export class GetScheduleTransactionUsecase implements IUsecase<string, GetSchedu
             amount: scheduleTransaction.getAmount().getAmount(),
             type: scheduleTransaction.getTransactionType(),
             isPause: scheduleTransaction.getIsPause(),
-            dateStart: scheduleTransaction.getSchedule().getStartedDate().toLocaleString(),
-            dateUpdate: scheduleTransaction.getSchedule().getUpdatedDate().toLocaleString(),
-            dateEnd: scheduleTransaction.getSchedule().getEndingDate()?.toLocaleString(),
+            dateStart: scheduleTransaction.getSchedule().getStartedDate().toISOString(),
+            dateUpdate: scheduleTransaction.getSchedule().getUpdatedDate().toISOString(),
+            dateEnd: scheduleTransaction.getSchedule().getEndingDate()?.toISOString(),
             period: scheduleTransaction.getSchedule().getPeriod(),
             periodTime: scheduleTransaction.getSchedule().getPeriodTime()
         }

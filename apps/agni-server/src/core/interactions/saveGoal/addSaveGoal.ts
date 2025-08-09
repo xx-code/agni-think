@@ -5,17 +5,21 @@ import { SavingRepository } from "../../repositories/savingRepository";
 import { IUsecase } from "../interfaces";
 import { CreatedDto } from "@core/dto/base";
 import SaveGoalItem from "@core/domains/valueObjects/saveGoalItem";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 export type RequestAddItemSaveGoalUseCase = {
     title: string
     price: number
-    link: string
+    link: string 
     htmlToTrack: string
 }
 export type RequestAddSaveGoalUseCase = {
     target: number;
     title: string;
     description: string
+    desirValue: number
+    importance: number
+    wishDueDate?: string
     items: RequestAddItemSaveGoalUseCase[]
 }
 
@@ -29,6 +33,7 @@ export class AddSaveGoalUseCase implements IUsecase<RequestAddSaveGoalUseCase, C
 
     async execute(request: RequestAddSaveGoalUseCase): Promise<CreatedDto> {
         let items: SaveGoalItem[] = []
+
         for(let itemRequest of request.items) {
             var item = new SaveGoalItem()
             item.title = itemRequest.title
@@ -40,8 +45,16 @@ export class AddSaveGoalUseCase implements IUsecase<RequestAddSaveGoalUseCase, C
         }
 
         let money = new Money(request.target)
-        let newSaveGoal = new SaveGoal(GetUID(), request.title, money, new Money(0), items, request.description)
-        
+        let newSaveGoal = new SaveGoal(
+            GetUID(), 
+            request.title, 
+            money, 
+            new Money(0), 
+            request.desirValue,
+            request.importance,
+            request.wishDueDate?MomentDateService.formatDate(request.wishDueDate).toISOString():undefined,
+            items, request.description)
+
         await this.savingRepository.create(newSaveGoal)
 
         return { newId: newSaveGoal.getId()}

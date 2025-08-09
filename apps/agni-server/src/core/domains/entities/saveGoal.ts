@@ -1,25 +1,32 @@
-import { ValueError } from "@core/errors/valueError"
 import { Money } from "./money"
 import Entity, { TrackableProperty } from "./entity"
 import { ValueObjectCollection } from "@core/domains/valueObjects/collection"
 import SaveGoalItem from "../valueObjects/saveGoalItem"
 import { isStringDifferent } from "../helpers"
+import { ImportanceGoal, IntensityEmotionalDesir } from "../constants"
 
 export class SaveGoal extends Entity {
     private title: TrackableProperty<string>
     private description: TrackableProperty<string>
     private target: TrackableProperty<Money>
     private balance: TrackableProperty<Money> 
+    private desirValue: TrackableProperty<IntensityEmotionalDesir>
+    private importance: TrackableProperty<ImportanceGoal>
+    private wishDueDate: TrackableProperty<string|undefined>
     private itemsToTracks: ValueObjectCollection<SaveGoalItem>
 
 
-    constructor(id: string, title: string, target: Money, balance: Money, items: SaveGoalItem[] = [], description: string='') {
+    constructor(id: string, title: string, target: Money, balance: Money, 
+        desirValue: IntensityEmotionalDesir, importance: ImportanceGoal, wishDueDate?:string, items: SaveGoalItem[] = [], description: string='') {
         super(id)
         this.title = new TrackableProperty<string>(title, this.markHasChange.bind(this))
         this.target = new TrackableProperty<Money>(target, this.markHasChange.bind(this))
         this.balance = new TrackableProperty<Money>(balance, this.markHasChange.bind(this))
         this.description = new TrackableProperty<string>(description, this.markHasChange.bind(this))
         this.itemsToTracks = new ValueObjectCollection<SaveGoalItem>(items, this.markHasChange.bind(this))
+        this.desirValue = new TrackableProperty<IntensityEmotionalDesir>(desirValue, this.markHasChange.bind(this))
+        this.importance = new TrackableProperty<ImportanceGoal>(importance, this.markHasChange.bind(this))
+        this.wishDueDate = new TrackableProperty<string|undefined>(wishDueDate, this.markHasChange.bind(this))
     }
     
     setBalance(balance: Money) {
@@ -78,6 +85,30 @@ export class SaveGoal extends Entity {
 
     removeItem(item: SaveGoalItem) {
         this.itemsToTracks.delete(item)
+    }
+
+    setDesirValue(desirValue: IntensityEmotionalDesir) {
+        this.desirValue.set(desirValue)
+    }
+
+    getDesirValue(): IntensityEmotionalDesir {
+        return this.desirValue.get()
+    }
+
+    setImportance(importance: ImportanceGoal) {
+        this.importance.set(importance)
+    }
+    
+    getImportance(): ImportanceGoal {
+        return this.importance.get()
+    }
+
+    setWishDueDate(wishDueDate?: string) {
+        this.wishDueDate.set(wishDueDate)
+    }
+
+    getWishDueDate(): string|undefined {
+        return this.wishDueDate.get()
     }
 
 }

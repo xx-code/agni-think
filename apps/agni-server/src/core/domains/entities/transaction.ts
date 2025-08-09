@@ -120,7 +120,7 @@ export class Transaction extends Entity {
     }
 
     setStatus(newStatus: TransactionStatus) {
-        this.setStatus(newStatus)
+        this.status.set(newStatus)
     }
 
     getStatus(): TransactionStatus {

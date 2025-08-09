@@ -27,7 +27,7 @@ router.post('/v1/budgets',
 
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [ err ]});
+            res.status(400).send({ errors: [ err ]});
         }
     });
 
@@ -49,7 +49,7 @@ router.put('/v1/budgets/:id',
             
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [ err ]});
+            res.status(400).send({ errors: [ err ]});
         }
     });
 
@@ -59,7 +59,7 @@ router.get('/v1/budgets/:id', async (req, res) => {
 
         res.status(200).send(budget);
     } catch(err) {
-        res.send({ errors: [ err ]});
+        res.status(400).send({ errors: [ err ]});
     }
 });
 
@@ -68,7 +68,7 @@ router.get('/v1/budgets', async (req, res) => {
         var budgets = await container.budgetUseCase?.getAllBudgets.execute();
         res.status(200).send(budgets);
     } catch(err) {
-        res.send({ errors: [ err ]});
+        res.status(400).send({ errors: [ err ]});
     }
 });
 
@@ -77,7 +77,7 @@ router.delete('/v1/budgets/:id', async (req, res) => {
         await container.budgetUseCase?.deleteBudget.execute(req.params.id);
         res.sendStatus(200);
     } catch(err) {
-        res.send({ errors: [ err ]});
+        res.status(400).send({ errors: [ err ]});
     }
 });
 

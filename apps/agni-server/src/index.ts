@@ -13,7 +13,8 @@ import TransactionRoute from './routes/transactions';
 import SaveGoalRoute from './routes/savingGoals';
 import BudgetRoute from './routes/budgets';
 import InternalRoute from './routes/internal';
-import { ApplyScheduleTransactionCronScheduler, CronScheduler } from "@infra/adapters/cronScheduler";
+import { ApplyScheduleTransactionCronScheduler, AutoDeletreFreezeTransactionCronScheduler, CronScheduler } from "@infra/adapters/cronScheduler";
+import path = require("path");
 dotenv.config();
 
 const db: Knex = knex( {
@@ -68,7 +69,10 @@ app.listen(port, async () => {
     console.log(`[server]: Server db connected`);
 
     const applyScheduleTransaction = new ApplyScheduleTransactionCronScheduler();
-    applyScheduleTransaction.execute({ seconde: 20 });
+    applyScheduleTransaction.execute({ minute:0, hour:0 });
+
+    const autoFreezeTransaction = new AutoDeletreFreezeTransactionCronScheduler();
+    autoFreezeTransaction.execute({ minute: 0, hour: 0 });
 
   } catch(err) {
     console.log(err)
@@ -81,3 +85,4 @@ app.listen(port, async () => {
   }
 });
 
+// const path = require('path');

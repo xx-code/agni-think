@@ -32,6 +32,21 @@ export enum TransactionStatus {
     COMPLETE = "Complete"
 }
 
+export enum IntensityEmotionalDesir {
+    INDIFFERENT = 0,
+    PLEASURE = 1,
+    DESIR = 2,
+    OBSESSION = 3,
+    FOMO = 4
+} 
+
+export enum ImportanceGoal {
+    INSIGNIFIANT = 1,
+    NORMAL = 2,
+    IMPORTANT = 3,
+    URGENT = 4
+}
+
 export const periodsSystem = [
     {
         name: 'Jour',
@@ -79,6 +94,10 @@ export function mapperPeriod(value: string): Period {
         default:
             throw new ValueError("PERIOD_NOT_VALID")
     }
+}
+
+export function mapperIntensityEmotionalDesir(value: number) {
+    
 }
 
 export function mapperTypeAccount(value: string): AccountType {

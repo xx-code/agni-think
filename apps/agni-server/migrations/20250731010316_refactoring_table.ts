@@ -1,35 +1,33 @@
-import { TransactionStatus } from "@core/domains/constants";
-import { table } from "console";
 import type { Knex } from "knex";
 
 
 export async function up(knex: Knex): Promise<void> {
-    if (!(await knex.schema.hasColumn('budgets', 'scheduler'))) {
-        await knex.schema.alterTable('budgets', (table) => {
-            table.json('scheduler');
+  console.log("start up")
+  if (!(await knex.schema.hasColumn('budgets', 'scheduler'))) {
+      await knex.schema.alterTable('budgets', (table) => {
+          table.json('scheduler');
+      })
 
-        })
+      const results = await knex('budgets');
+      for(let result of results) {
+          const scheduler = {
+            period: result['period'], 
+            periodTime: result['period_item'],
+            startedDate: result['date_start'],
+            endingDate: result['date_end']
+          }
+          
+          await knex('budgets').where('budget_id', '=', result['budget_id']).update('scheduler', JSON.stringify(scheduler));
+      } 
 
-        const results = await knex('budgets');
-        for(let result of results) {
-            const scheduler = {
-                period: result['period'], 
-                periodTime: result['period_item'],
-                startedDate: result['date_start'],
-                endingDate: result['date_end']
-            }
-            
-            await knex('budgets').where('budget_id', '=', result['budget_id']).update('scheduler', JSON.stringify(scheduler));
-        } 
-
-        await knex.schema.alterTable('budgets', (table) => {
-            table.dropColumn('date_start')
-            table.dropColumn('date_update')
-            table.dropColumn('date_end')
-            table.dropColumn('period')
-            table.dropColumn('period_time')
-            table.dropColumn('is_system')
-        });
+      await knex.schema.alterTable('budgets', (table) => {
+          table.dropColumn('date_start')
+          table.dropColumn('date_update')
+          table.dropColumn('date_end')
+          table.dropColumn('period')
+          table.dropColumn('period_time')
+          table.dropColumn('is_system')
+      });
     }
     
     if (!(await knex.schema.hasColumn('save_goal_items', 'item'))) {

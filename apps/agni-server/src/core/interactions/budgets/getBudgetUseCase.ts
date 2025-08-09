@@ -59,9 +59,9 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
             period: budget.getSchedule().getPeriod(),
             periodTime: budget.getSchedule().getPeriodTime(),
             target: budget.getTarget(),
-            startDate: budget.getSchedule().getStartedDate().toLocaleString(),
-            updateDate: budget.getSchedule().getUpdatedDate().toLocaleString(),
-            endDate: budget.getSchedule().getEndingDate()?.toLocaleString()
+            startDate: budget.getSchedule().getStartedDate().toISOString(),
+            updateDate: budget.getSchedule().getUpdatedDate().toISOString(),
+            endDate: budget.getSchedule().getEndingDate()?.toISOString()
         };
 
         return budgetDisplay

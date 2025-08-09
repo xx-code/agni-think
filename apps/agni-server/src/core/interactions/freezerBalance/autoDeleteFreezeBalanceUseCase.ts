@@ -37,11 +37,13 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
                 startDate: '',
                 endDate: '',
                 types: [],
+                isFreeze: true,
+                queryAll: true
             };
 
             let sortBy: SortBy|null = null;
       
-            let response = await this.transactionRepository.getPaginations(-1, 1, sortBy, filters);
+            let response = await this.transactionRepository.getPaginations(0, 0, sortBy, filters);
 
             this.unitOfWork.start()
 
@@ -60,7 +62,7 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
 
                 account.addOnBalance(record.getMoney())
 
-                if (MomentDateService.compareDate(MomentDateService.getToday().toString(), record.getDate()) >= 0) {
+                if (MomentDateService.compareDate(MomentDateService.getToday().toISOString(), record.getDate()) >= 0) {
                     await this.accountRepository.update(account)
                     await this.recordRepository.delete(record.getId())
                     await this.transactionRepository.delete(response.items[i].getId())
@@ -68,7 +70,6 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
             }
             
             this.unitOfWork.commit()
-            console.log("success")
         } catch (err) {
             this.unitOfWork.rollback()
             console.log(err)

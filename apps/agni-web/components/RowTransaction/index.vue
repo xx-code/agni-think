@@ -40,7 +40,10 @@ const formatedDate = new Date(props.date).toLocaleString('fr-FR', {
                             <UIcon :name="icon" :style="{color: color}" />
                         </div>
                         <div >
-                            <h3 class="font-semibold">{{ title }}</h3>
+                            <div class="flex space-x-5">
+                                <h3 class="font-semibold">{{ title }}</h3>
+                                <p class="">{{ description }}</p>
+                            </div>
                             <p class="text-xs text-gray-500">{{ formatedDate }}</p>
                         </div> 
                     </div>

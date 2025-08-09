@@ -13,6 +13,8 @@ export type TransactionFilter = {
     types: TransactionType[],
     minPrice?: Money
     maxPrice?: Money
+    isFreeze?: boolean
+    queryAll?: boolean
 }
 
 export type SortBy = {

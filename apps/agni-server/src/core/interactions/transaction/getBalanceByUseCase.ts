@@ -56,11 +56,11 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number
 
         let dateStart;
         if (request.dateStart)
-            dateStart = MomentDateService.formatDate(request.dateStart).toLocaleString()
+            dateStart = MomentDateService.formatDate(request.dateStart).toISOString()
 
         let dateEnd;
         if (request.dateEnd)
-            dateEnd = MomentDateService.formatDate(request.dateEnd).toLocaleString()
+            dateEnd = MomentDateService.formatDate(request.dateEnd).toISOString()
 
 
         let filter: TransactionFilter = {

@@ -14,6 +14,9 @@ router.post('/v1/save-goals',
     body('description').notEmpty().isString(),           
     body('target').notEmpty().isNumeric(),           
     body('items').isArray(),
+    body('desirValue').isNumeric(),
+    body('importance').isNumeric(),
+    body('wishDueDate').optional().isDate(),
     async (req, res) => {
         try {
             const result = validationResult(req);
@@ -27,7 +30,7 @@ router.post('/v1/save-goals',
             
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] });
+            res.status(400).send({ errors: [err] });
         }
     });
 
@@ -36,6 +39,9 @@ router.put('/v1/save-goals/:id',
     body('description').optional().isString(),           
     body('target').optional().isNumeric(),           
     body('items').optional().isArray(),
+    body('desirValue').optional().isNumeric(),
+    body('importance').optional().isNumeric(),
+    body('wishDueDate').optional().isDate(),
     async (req: Request, res: Response) => {
         try {
             const result = validationResult(req);
@@ -50,7 +56,7 @@ router.put('/v1/save-goals/:id',
             
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] });
+            res.status(400).send({ errors: [err] });
         } 
     });
 
@@ -59,7 +65,7 @@ router.get('/v1/save-goals/:id', async (req, res) => {
         var saveGoal = await container.saveGoalUseCase?.getSaveGoal.execute(req.params.id);
         res.status(200).send(saveGoal);
     } catch(err) {
-        res.send({ errors: [err] })
+        res.status(400).send({ errors: [err] })
     }
 });
 
@@ -68,11 +74,11 @@ router.get('/v1/save-goals', async (req, res) => {
         var saveGoals = await container.saveGoalUseCase?.getAllSaveGoal.execute();
         res.status(200).send(saveGoals);
     } catch(err) {
-        res.send({ errors: [err] })
+        res.status(400).send({ errors: [err] })
     }
 });
 
-router.delete('/v1/save-goals/:id', query('accountTransfertId').isString().notEmpty(), async (req: Request, res: Response) => {
+router.delete('/v1/save-goals/:id', body('accountDepositId').isString().notEmpty(), async (req: Request, res: Response) => {
     try {
         const result = validationResult(req);
         if (result.isEmpty()) {
@@ -86,7 +92,7 @@ router.delete('/v1/save-goals/:id', query('accountTransfertId').isString().notEm
         
         res.send({ errors: result.array() });
     } catch(err) {
-        res.send({ errors: [err] })
+        res.status(400).send({ errors: [err] })
     } 
 });
 
@@ -107,7 +113,7 @@ router.patch('/v1/save-goals/:id/increase-balance',
             
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] })
+            res.status(400).send({ errors: [err] })
         }
     });
 
@@ -128,7 +134,7 @@ router.patch('/v1/save-goals/:id/decrease-balance',
             
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err]});
+            res.status(400).send({ errors: [err]});
         }
     });
 

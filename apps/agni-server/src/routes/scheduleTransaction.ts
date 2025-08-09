@@ -11,7 +11,7 @@ router.post('/v1/schedule-transactions/apply-schedule', async (req, res) => {
         await container.scheduleTransactionUseCase?.applyScheduleTransaction.execute();
         res.sendStatus(200);
     } catch(err) {
-        res.send({ errors: [err] }); 
+        res.status(400).send({ errors: [err] }); 
     }
 });
 
@@ -40,7 +40,7 @@ router.post('/v1/schedule-transactions',
             }
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] });
+            res.status(400).send({ errors: [err] });
         }         
     });
 
@@ -49,7 +49,7 @@ router.get('/v1/schedule-transactions', async (req, res) => {
         var schedules = await container.scheduleTransactionUseCase?.getAllScheduleTransaction.execute();
         res.status(200).send(schedules);
     } catch(err) {
-        res.send({ errors: [err] })
+        res.status(400).send({ errors: [err] })
     }
 });
 
@@ -58,7 +58,7 @@ router.get('/v1/schedule-transactions/:id', async (req, res) => {
         var schedule = await container.scheduleTransactionUseCase?.getScheduleTransaction.execute(req.params.id);
         res.status(200).send(schedule);
     } catch(err) {
-        res.send({ errors: [err] })
+        res.status(400).send({ errors: [err] })
     }
 });
 
@@ -67,7 +67,7 @@ router.delete('/v1/schedule-transactions/:id', async (req, res) => {
         await container.scheduleTransactionUseCase?.deleteScheduleTransaction.execute(req.params.id);
         res.sendStatus(200);
     } catch(err) {
-        res.send({ errors: [err] })
+        res.status(400).send({ errors: [err] })
     }
 });
 
@@ -99,7 +99,7 @@ router.put('/v1/schedule-transactions/:id',
 
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] })
+            res.status(400).send({ errors: [err] })
         } 
     });
 

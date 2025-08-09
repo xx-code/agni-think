@@ -13,7 +13,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: { 
     public : {
-      api: process.env.NUXT_PUBLIC_API || ''
+      api: process.env.NUXT_PUBLIC_API || 'http://localhost:5002/v1'
     } 
   }
 })

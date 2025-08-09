@@ -3,10 +3,10 @@ import { Database } from "sqlite3";
 import { open } from 'sqlite'
 import { Account } from "@core/domains/entities/account";
 import { Category } from "@core/domains/entities/category";
-import { Record, TransactionType } from '@core/domains/entities/record';
+import { Record } from '@core/domains/entities/record';
 import { Tag } from "@core/domains/entities/tag";
 import { GetUID } from "@core/adapters/libs";
-import { AccountType, mapperTransactionType, TransactionType } from "@core/domains/constants";
+import { AccountType, mapperTransactionType, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { Transaction } from "@core/domains/entities/transaction";
 import { SystemSeeder } from "./seeder";
@@ -123,7 +123,7 @@ export class DbMigration {
 
                     let account = await this.di.getRepository('account').get(old_acc.getId())
 
-                    record.getType() === TransactionType.CREDIT ? account.addOnBalance(record.getMoney()) : account.substractBalance(record.getMoney())
+                    record.getType() === RecordType.CREDIT ? account.addOnBalance(record.getMoney()) : account.substractBalance(record.getMoney())
                     
                     await this.di.getRepository('record').save(record)
 
@@ -134,11 +134,11 @@ export class DbMigration {
                     if(['TRANSFERT', 'SAVING'].includes(category.getTitle())) 
                         typeTrans = TransactionType.OTHER
 
-                    if (record.getType() === TransactionType.CREDIT)
+                    if (record.getType() === RecordType.CREDIT)
                         typeTrans = TransactionType.INCOME
 
                     let newTransaction = new Transaction(GetUID(), account.getId(), record.getId(), 
-                    category.getId(), record.getDate(), typeTrans, tags.map(t => t.getId()))
+                    category.getId(), record.getDate(), typeTrans, TransactionStatus.COMPLETE, tags.map((t) => t.getId()))
                     if (is_Freeze)
                         newTransaction.setIsFreeze()
 

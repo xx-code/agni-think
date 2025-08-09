@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import useAccountsWitPastBalance from '~/composables/accounts/useAccountsWithPastBalance'
+import useAccountsWitPastBalance, { ALL_ACCOUNT_ID } from '~/composables/accounts/useAccountsWithPastBalance'
+import useBudgets from '~/composables/budgets/useBudgets'
+import useSaveGoals from '~/composables/goals/useSaveGoals'
+import useTransactionPagination from '~/composables/transactions/useTransactionPagination'
+import type { FilterTransactionQuery } from '~/types/api/transaction'
+import { formatBudgetDataForChart } from '~/utils/formatBudgetDataForChart'
 
 
 const labelsDate = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
@@ -19,10 +24,10 @@ const dataChart = computed(() => ({
     }],
 }))
 
-const {data: budgets} = useFetchListBudget()
+const {data: budgets} = useBudgets()
 
 const budgetChart = computed(() => {
-    return formatBudgetDataForChart(budgets.value) // TODO: review
+    return formatBudgetDataForChart(budgets.value?.items) // TODO: review
 });
 // generate code
 const now = new Date();
@@ -52,9 +57,10 @@ const items = computed(() => {
         }    )) 
     return []
 })
-const {data: transactions} = useFetchListTransactions({page: 1, limit: 4})
-const {data: goals} =  useFetchListGoals()
-const dateDisplayed = ref("Mois")
+const paramsTransaction = reactive<FilterTransactionQuery>({offset: 0, limit: 4})
+const {data: transactions} = useTransactionPagination(paramsTransaction);
+const {data: goals} =  useSaveGoals();
+const dateDisplayed = ref("Mois");
 const listTypeDateDisplay =computed(() => (
 [
     {
@@ -100,18 +106,6 @@ const listTypeDateDisplay =computed(() => (
 ]
 )) 
 
-const listTransaction = computed(() => {
-    if (transactions.value)
-        return transactions.value.transactions
-    return []
-})
-
-const listGoal = computed(() => {
-    if (goals.value)
-        return goals.value
-    return []
-})
-
 /*const listAccount = computed(() => {
     if (accounts.value)
         return accounts.value
@@ -130,9 +124,8 @@ watchEffect(() => {
 
         <div class="option-diplay-container">
             <div class="flex gap-2">
-                <UDropdownMenu :items="listTypeDateDisplay">
-                    <UButton size="xl" variant="outline" color="neutral">
-                        <font-awesome-icon class="icon" icon="fa-solid fa-calendar-days" />
+                <UDropdownMenu :items="listTypeDateDisplay"> <UButton size="xl" variant="outline" color="neutral">
+                        <UIcon name="i-lucide-calendar"/>
                     </UButton>
                 </UDropdownMenu>
                 <UButton  size="xl" variant="outline" color="neutral">
@@ -148,7 +141,7 @@ watchEffect(() => {
             </div>
         </div>
         <div class="card-account-list grid sm:grid-cols-2 md:grid-cols-3 gap-2">
-            <div  v-for="account in accounts.items.filter(e => accountsChecked.find(f => f.id == e.id && f.checked))" 
+            <div  v-for="account in accounts?.items.filter(e => accountsChecked.find(f => f.id == e.id && f.checked))" 
                 :key="account.id">
                 <CardResumeAccount 
                     :id="account.id"
@@ -180,17 +173,17 @@ watchEffect(() => {
             <div class="card-grid rounded-md md:col-span-2 flex flex-col gap-2">
                 <CustomCardTitle title="Transactions">
                     <div class="flex gap-1">
-                        <USelect class="rounded-full" v-model="transactionAccountSelected" :items=" accounts ? accounts.map(acc => (acc.title)) : []" />
+                        <USelect class="rounded-full" v-model="transactionAccountSelected" :items="accounts?.items.map(acc => (acc.title))" />
                         <UButton class="rounded-full" size="sm" label="Voir plus" variant="outline" color="neutral" />
                     </div>
                 </CustomCardTitle>
                 <div>
                     <div class="flex flex-col gap-1" >
-                        <div v-for="trans in listTransaction" :key="trans.id">
-                            <RowTransaction 
-                                :id="trans.id" :balance="trans.amount" :title="trans.description" 
+                        <div v-for="trans in transactions?.items" :key="trans.accountId">
+                            <!-- <RowTransaction 
+                                :id="trans.accountId" :balance="trans.amount" :title="trans.description" 
                                 :description="trans.description" :icon="trans.category.icon" 
-                                :tags="trans.tags.map(tag=>tag.value)"/>    
+                                :tags="trans.tagRefs.map((i:any) => i.value)"/>     -->
                         </div>
                     </div>
                 </div> 
@@ -201,9 +194,9 @@ watchEffect(() => {
                     <UButton icon="i-lucide-external-link" variant="outline" color="neutral" />
                 </CustomCardTitle>
                 <div class="flex flex-col gap-1">
-                    <div v-for="goal in listGoal" :key="goal.id">
+                    <div v-for="goal in goals?.items" :key="goal.id">
                         <BarBudgetInfo :id="goal.id" :title="goal.title" 
-                        :target-amount="goal.targetAmount" :amount="goal.amount" />
+                        :target-amount="goal.target" :amount="goal.balance" />
                     </div>
                 </div>
             </div>

@@ -28,7 +28,7 @@ export class MomentDateService {
     }
 
     static formatDate(date: string):Date {
-        this.assertValidDate(date)
+        // this.assertValidDate(date)
 
         let formatted = moment(date)
         if (!formatted.isValid())
@@ -39,7 +39,7 @@ export class MomentDateService {
     }
 
     static formatDateWithtime(date: string): Date {
-        this.assertValidDate(date)
+        // this.assertValidDate(date)
 
         let formatted = moment(date)
         if (!formatted.isValid())
@@ -86,7 +86,6 @@ export class MomentDateService {
 
         if (dateFormat.isBefore(today)) {
             var diff = today.diff(dateFormat, value)
-            console.log(diff)
             dateFormat = dateFormat.add(periodTime * diff, value)
         }
 
@@ -94,8 +93,8 @@ export class MomentDateService {
     }
 
     static compareDate(date1: string, date2: string): 0 | 1 | -1 {
-        MomentDateService.assertValidDate(date1)
-        MomentDateService.assertValidDate(date2)
+        // MomentDateService.assertValidDate(date1)
+        // MomentDateService.assertValidDate(date2)
 
         let formatted1 = moment(date1)
         if (!formatted1.isValid())

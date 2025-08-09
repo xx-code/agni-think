@@ -23,7 +23,7 @@ router.post('/v1/accounts',
 
             res.send({ errors: result.array() });
         } catch(err) {
-            res.send({ errors: [err] });
+            res.status(400).send({ errors: [err] });
         }
     });
 
@@ -45,7 +45,7 @@ router.put('/v1/accounts/:id',
 
             res.sendStatus(200);
         } catch(err) {
-            res.send({ errors: [err] });
+            res.status(400).send({ errors: [err] });
         }
         
     });
@@ -55,7 +55,7 @@ router.get('/v1/accounts/:id', async (req, res) => {
         var ucRes = await container.accountUseCase?.getAccount.execute(req.params.id)
         res.status(200).json(ucRes)
     } catch(err) {
-        res.send({ errors: [err] });
+        res.status(400).send({ errors: [err] });
     }
     
 });
@@ -65,7 +65,7 @@ router.get('/v1/accounts', async (req, res) => {
         var ucRes = await container.accountUseCase?.getAllAccount.execute()
         res.status(200).json(ucRes)
     } catch(err) {
-        res.send({ errors: [err] });
+        res.status(400).send({ errors: [err] });
     }
 });
 
@@ -74,7 +74,7 @@ router.delete('/v1/accounts/:id', async (req, res) => {
         await container.accountUseCase?.deleteAccount.execute(req.params.id)
         res.sendStatus(200);
     } catch(err) {
-        res.send({ errors: [err] });
+        res.status(400).send({ errors: [err] });
     }
 });
 

@@ -35,27 +35,33 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                 let scheduleTrans = scheduleTransactions[i]
 
                 if (scheduleTrans.getSchedule().isDue() && !scheduleTrans.getIsPause()) {
-                    const record = new Record(
-                        GetUID(),
-                        scheduleTrans.getAmount(),
-                        scheduleTrans.getSchedule().getUpdatedDate().toLocaleString(),
-                        scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
-                        scheduleTrans.getName()
-                    )
-                    await this.recordRepo.save(record)
+                    if (scheduleTrans.getIsPay() === false) {
+                        const record = new Record(
+                            GetUID(),
+                            scheduleTrans.getAmount(),
+                            scheduleTrans.getSchedule().getUpdatedDate().toLocaleString(),
+                            scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
+                            scheduleTrans.getName()
+                        )
+                        await this.recordRepo.save(record)
 
-                    const transaction = new Transaction(
-                        GetUID(),
-                        scheduleTrans.getAccountRef(),
-                        record.getId(),
-                        scheduleTrans.getCategoryRef(),
-                        scheduleTrans.getSchedule().getUpdatedDate().toLocaleString(),
-                        scheduleTrans.getTransactionType(),
-                        TransactionStatus.PENDING,
-                        scheduleTrans.getTags() 
-                    )
-
-                    await this.transactionRepo.save(transaction)
+                        const transaction = new Transaction(
+                            GetUID(),
+                            scheduleTrans.getAccountRef(),
+                            record.getId(),
+                            scheduleTrans.getCategoryRef(),
+                            scheduleTrans.getSchedule().getUpdatedDate().toLocaleString(),
+                            scheduleTrans.getTransactionType(),
+                            TransactionStatus.PENDING,
+                            scheduleTrans.getTags() 
+                        )
+                        scheduleTrans.setIsPay(true);
+                        await this.scheduleTransactionRepo.update(scheduleTrans);
+                        await this.transactionRepo.save(transaction)
+                    } 
+                } else {
+                    scheduleTrans.setIsPay(false);
+                    await this.scheduleTransactionRepo.update(scheduleTrans);
                 }
             }
 

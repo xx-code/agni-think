@@ -45,7 +45,7 @@ export class AddFreezeBalanceUseCase implements IUsecase<RequestNewFreezeBalance
             let amount = new Money(request.amount)
             const endDate = MomentDateService.formatDate(request.endDate)
 
-            let newRecord = new Record(GetUID(), amount, endDate.toString(), RecordType.DEBIT)
+            let newRecord = new Record(GetUID(), amount, endDate.toISOString(), RecordType.DEBIT)
             newRecord.setDescription("Freeze")
 
             fetchedAccount.substractBalance(amount)          
@@ -55,7 +55,7 @@ export class AddFreezeBalanceUseCase implements IUsecase<RequestNewFreezeBalance
             await this.accountRepository.update(fetchedAccount)
 
             let newTransaction = new Transaction(GetUID(), request.accountId, newRecord.getId(), FREEZE_CATEGORY_ID, 
-            endDate.toString(), TransactionType.OTHER, TransactionStatus.COMPLETE)
+            endDate.toISOString(), TransactionType.OTHER, TransactionStatus.COMPLETE)
             newTransaction.setIsFreeze()
             
             await this.transactionRepository.save(newTransaction)

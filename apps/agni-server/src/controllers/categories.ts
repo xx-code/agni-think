@@ -93,7 +93,6 @@ export class CategoryController implements ApiController {
     }
 
     private async handleGetAllCategory(req: Request, res: Response) {
-        console.log(container.getRepository('get_all_category'));
         var allCategories = await this.getAllCategories.execute()
         res.status(200).json(allCategories)
     }
