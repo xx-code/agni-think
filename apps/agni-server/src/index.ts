@@ -16,6 +16,7 @@ import InternalRoute from './routes/internal';
 import AnalyticRoute from './routes/analytics';
 import { ApplyScheduleTransactionCronScheduler, AutoDeletreFreezeTransactionCronScheduler, CronScheduler } from "@infra/adapters/cronScheduler";
 import path = require("path");
+import axios from "axios";
 
 const envFile = `.env.${process.env.NODE_ENV || "development"}`;
 
@@ -68,10 +69,19 @@ app.listen(port, async () => {
     }
 
     const seeder = new SystemSeeder(container.getRepository('category'), container.getRepository('tag'))
-    seeder.seed()
+    seeder.seed() 
     console.log('[server]: Seed');
     console.log(`[server]: Server is running at http://localhost:${port}`);
     console.log(`[server]: Server db connected`);
+    console.log(`[service]: Agents at ${process.env.API_AGENT_URL}`) 
+
+    try {
+      const res = await axios.get(process.env.API_AGENT_URL||'http://127.0.0.1:8000')
+      console.log(res.data)
+    } catch(err) {
+      console.log('Agents server indisponible')
+      console.log(err)
+    }
 
     const applyScheduleTransaction = new ApplyScheduleTransactionCronScheduler();
     applyScheduleTransaction.execute({ minute:0, hour:0 });

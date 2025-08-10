@@ -29,6 +29,18 @@ services:
     restart: always
     ports:
       - "${API_PORT}:${API_PORT}" # setup in variable
+    depends_on:
+      - agent
+  agent:
+    container_name: agent
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    build:
+      context: .
+      dockerfile: ./apps/ia-agent/dockerfile
+    restart: always
+    ports:
+      - "${AGENT_PORT}:8000"
   # db:
   #   image: postgres
   #   restart: always

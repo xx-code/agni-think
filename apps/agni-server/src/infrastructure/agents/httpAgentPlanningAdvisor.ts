@@ -1,33 +1,83 @@
 import IAgentPlanningAdvisor, { AgentPlanningAdvisorInput, AgentPlanningAdvisorOutput } from "@core/agents/agentPlanningAdvisor";
 import axios from "axios";
+import { json } from "stream/consumers";
+
+type RequestHttpAgent = {
+    current_amount_in_investissment: number,
+    current_amount_in_saving: number,
+    percent_of_net_income_saving_and_investissment: number,
+    net_income: number,
+    amount_to_allocate: number,
+    goals:{
+        uuid: string,
+        description: string,
+        target: number,
+        score: number,
+        current_balance: number,
+        desir_value: number,
+        importance: number,
+        wish_due_date?: string
+    }[],
+    wish_spends:{
+        amount: number,
+        description: string
+    }[]
+}
+
+type ResponseHttpAgent = {
+    goals: {
+        id: string,
+        score: number,
+        suggest_amount: number,
+        reasoning: string
+    }[],
+    comment: string
+}
 
 export default class HttpAgentPlanningAdvisor implements IAgentPlanningAdvisor {
     async process(input: AgentPlanningAdvisorInput): Promise<AgentPlanningAdvisorOutput> {
-        return {comment: '', goals: []};
+        try {
+            const api = process.env.API_AGENT_URL || 'http://127.0.0.1:8000'
+            const res = await axios.post(api + "/agents/" + "planning-advisor",{
+                    amount_to_allocate: input.amountToAllocate,
+                    current_amount_in_investissment: input.currentAmountInInvestissment,
+                    current_amount_in_saving: input.currentAmountInInvestissment,
+                    goals: input.goals.map(i => ({
+                        uuid: i.id,
+                        current_balance: i.currentBalance,
+                        description: i.description,
+                        desir_value: i.desirValue,
+                        importance: i.importance,
+                        score: i.score,
+                        target: i.target,
+                        wish_due_date: i.wishDueDate
+                    })),
+                    net_income: input.income,
+                    percent_of_net_income_saving_and_investissment: input.percentForSavingAndInvestissment,
+                    wish_spends: input.wishSpends?.map(i => ({
+                        amount: i.amount,
+                        description: i.description
+                    })) || []
+                } satisfies RequestHttpAgent
+            );
+
+            const data: ResponseHttpAgent = res.data
+
+            return {
+                comment: data.comment,
+                goals: data.goals.map(i => ({
+                    id: i.id,
+                    reasoning: i.reasoning,
+                    score: i.score,
+                    suggestAmount: i.suggest_amount
+                }))
+            } 
+
+        } catch(err: any) {
+            const error = err.response
+            if (error)
+                console.log(error.data)
+            return {comment: 'Agent indisponible', goals: []};
+        } 
     }
-
 } 
-
-const instructions = `Tu es un agent IA spécialisé en planification financière personnelle, expert dans l’analyse et l’allocation optimale du budget disponible pour l’épargne et l’investissement. Ton rôle est d’aider à planifier mes objectifs financiers en fonction de mon salaire net mensuel, du reste à allouer après dépenses fixes, et de la priorisation rationnelle de ces objectifs.
-Tu disposes d’une méthode rigoureuse de classement des objectifs d’épargne selon un score combinant trois critères :
-Urgence temporelle (U) :
-Calculée comme le minimum entre 1 et le rapport entre le montant cible de l’objectif et le produit du budget loisir par période par le nombre de périodes restantes pour atteindre la cible.
-Formellement :
-$$U = \min\Big(1,\ \frac{\text{montant cible}}{\text{budget loisir par période} \times
- \text{nombre de périodes restantes}}\Big)$$
-Cette mesure traduit à quel point il est réaliste et urgent de prioriser un objectif en fonction du temps restant.
-Facteur émotionnel (E) :
-Évalue la motivation émotionnelle derrière l’objectif, où un fort FOMO (Fear Of Missing Out) entraîne un score bas (0.1), reflétant une faible priorité rationnelle, tandis qu’une indifférence réfléchie donne un score élevé (0.9). Ce facteur pénalise les décisions impulsives et encourage une réflexion posée.
-Importance intrinsèque (I) :
-Notée de 1 (insignifiante) à 4 (très urgente/essentielle), cette évaluation traduit la valeur objective ou la nécessité de l’objectif indépendamment des émotions ou de l’urgence temporelle.
-Le score final est la somme pondérée de ces critères, avec pour l’instant des poids égaux à 1 :
-Score=U+E+I
-Ta mission :
-Calculer ce score pour chaque objectif d’épargne ou d’investissement proposé.
-Planifier de manière optimale la répartition du reste d’argent disponible (après dépenses fixes) afin d’allouer un budget réaliste et cohérent à chaque objectif selon son score.
-S’assurer que les décisions soient rationnelles, en minimisant l’impact des émotions impulsives et en tenant compte du temps restant pour atteindre chaque objectif.
-Remettre en question toute demande d’allocation qui semblerait illogique, trop émotionnelle ou irréaliste par rapport au budget et au calendrier.
-Proposer un plan d’épargne/investissement avec des montants périodiques et des échéances claires, justifiées par les calculs du score.
-Répondre avec clarté, rigueur et un brin d’humour sceptique pour garder les pieds sur terre.
-Note: Tous les calculs doivent être normalisés entre 0 et 1 quand applicable. Pour l’instant, les poids sont égaux, mais tu peux suggérer des ajustements si cela améliore la pertinence du plan. Les sommes sont en dollar canadien et tu ne peux pas depaser l'argent allouer
-`
