@@ -1,12 +1,6 @@
 <script setup>
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { fas } from '@fortawesome/free-solid-svg-icons'
-import { library } from '@fortawesome/fontawesome-svg-core'
 import {  useRoute } from 'nuxt/app'
 import { UPopover } from '#components'
-
-
-library.add(fas)
 
 const props = defineProps({
     id: String,

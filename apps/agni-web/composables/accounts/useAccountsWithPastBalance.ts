@@ -1,6 +1,5 @@
 import type { ListResponse } from "~/types/api";
-import type { GetAccountResponse } from "~/types/api/account";
-import type { FilterBalanceTransactionQuery, GetBalanceResponse } from "~/types/api/transaction";
+import type { GetAllAccountPastBalanceRequest, GetAllAccountWithPastBalanceResponse } from "~/types/api/account";
 import type { AccountWithPastBalanceType } from "~/types/ui/account";
 import type { UseApiFetchReturn } from "~/types/utils";
 
@@ -24,61 +23,47 @@ function computeDiffPercent(pastBalance: number, balance: number) {
     return Number((Math.abs(((balance/pastBalance) * 100) - 100)).toFixed(2))
 }
 
-export default function useAccountsWitPastBalance(dateStart: Date, dateEnd: Date): 
+export default function useAccountsWitPastBalance(request: GetAllAccountPastBalanceRequest): 
 UseApiFetchReturn<ListResponse<AccountWithPastBalanceType>> {
 
-    const { data, error, refresh } = useAsyncData('resume-accounts', async () => { 
+    const { data, error, refresh } = useFetch('/api/accounts/getAllAccountWithBalance', {
+        method: 'GET',
+        query: request,
+        transform: (data: ListResponse<GetAllAccountWithPastBalanceResponse>) => {
+            const accountsWithPastBalances: AccountWithPastBalanceType[] = [];
 
-        const accounts = await $fetch<ListResponse<GetAccountResponse>>('/api/accounts', {
-            method: "GET"
-        });
+            for(const account of data.items) { 
+                accountsWithPastBalances.push({
+                    id: account.accountId,
+                    title: account.title,
+                    balance: account.balance,
+                    type: account.type,
+                    pastBalanceDetail: {
+                        balance: account.pastBalance,
+                        diffPercent: computeDiffPercent(account.pastBalance, account.balance),
+                        doIncrease: account.pastBalance > account.balance 
+                    }
+                });            
+            }
 
-        const accountsWithPastBalances: AccountWithPastBalanceType[] = [];
-
-        for(const account of accounts.items) {
-            const requestBalance: FilterBalanceTransactionQuery = {
-                accountFilterIds: [account.accountId],
-                dateStart: dateStart.toLocaleString(),
-                dateEnd: dateEnd.toLocaleString()
-            };
-
-            const accountBalance = await $fetch<GetBalanceResponse>('/api/transactions/balance', {
-                method: 'POST',
-                body: requestBalance 
-            });
-
-            const pastBalance = accountBalance.balance;
-            
-            accountsWithPastBalances.push({
-                id: account.accountId,
-                title: account.title,
-                balance: account.balance,
-                type: account.type,
+            const totals = sumTotalBalance(accountsWithPastBalances);
+            const totalAccount: AccountWithPastBalanceType = {
+                id: ALL_ACCOUNT_ID,
+                title: 'Total Balance',
+                balance: totals[0],
                 pastBalanceDetail: {
-                    balance: pastBalance,
-                    diffPercent: computeDiffPercent(pastBalance, account.balance),
-                    doIncrease: pastBalance > account.balance 
-                }
-            });            
+                    balance: totals[1],
+                    diffPercent: computeDiffPercent(totals[1], totals[0]), 
+                    doIncrease: totals[1] < totals[0]
+                },
+                type: ''
+            }
+
+            accountsWithPastBalances.unshift(totalAccount)
+
+            return { items: accountsWithPastBalances, totals: data.totals};
         }
-
-        const totals = sumTotalBalance(accountsWithPastBalances);
-        const totalAccount: AccountWithPastBalanceType = {
-            id: ALL_ACCOUNT_ID,
-            title: 'Total Balance',
-            balance: totals[0],
-            pastBalanceDetail: {
-                balance: totals[1],
-                diffPercent: computeDiffPercent(totals[1], totals[0]), 
-                doIncrease: totals[1] < totals[0]
-            },
-            type: ''
-        }
-
-        accountsWithPastBalances.unshift(totalAccount)
-
-        return { items: accountsWithPastBalances, totals: accounts.totals};
-    });
+    }); 
 
     return { data, error, refresh };
 }

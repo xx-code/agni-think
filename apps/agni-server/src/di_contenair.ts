@@ -62,6 +62,7 @@ import { GetAllSaveGoalDto, GetAllSaveGoalUseCase } from '@core/interactions/sav
 import { DecreaseSaveGoalUseCase, RequestDecreaseSaveGoal } from '@core/interactions/saveGoal/decreaseSaveGoal';
 import { CompteTransactionUsecase, RequestCompleteTransactionUsecase } from '@core/interactions/transaction/CompleteTransactionUseCase';
 import { PostgreSqlScheduleTransactionRepository } from '@infra/data/postgreSQL/postgreSqlScheduleTransactionRepository';
+import { GetAllAccountWithPastBalanceDto, GetAllAccountWithPastBalanceUseCase, RequestGetAllAccountPastBalanceUseCase } from '@core/interactions/account/getAllAccountWithPatBalanceUseCase';
 
 async function createTables(knex: Knex) {
     if (!(await knex.schema.hasTable('accounts')))
@@ -180,6 +181,7 @@ export class DiContenair {
         updateAccount: IUsecase<RequestUpdateAccountUseCase, void>,
         getAccount: IUsecase<string, GetAccountDto>,
         getAllAccount: IUsecase<void, ListDto<GetAllAccountDto>>,
+        getAllAccountWithBalance: IUsecase<RequestGetAllAccountPastBalanceUseCase, ListDto<GetAllAccountWithPastBalanceDto>>
         deleteAccount: IUsecase<string, void>,
     };
 
@@ -322,6 +324,8 @@ export class DiContenair {
             updateAccount: new UpdateAccountUseCase(this.getRepository('account')),
             getAccount: new GetAccountUseCase(this.getRepository('account')),
             getAllAccount: new GetAllAccountUseCase(this.getRepository('account')),
+            getAllAccountWithBalance: new GetAllAccountWithPastBalanceUseCase(this.getRepository('account'), 
+            this.getRepository('transaction'), this.getRepository('record')),
             deleteAccount: new DeleteAccountUseCase(this.getRepository('account'))
         } 
     }

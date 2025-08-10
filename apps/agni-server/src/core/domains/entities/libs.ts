@@ -22,6 +22,28 @@ function isValidDateFormat(dateStr: string) {
 // Brock inner deps
 export class MomentDateService {
 
+    static periodMatcherToMoment(period: Period): string {
+        let value = ""
+        switch(period) {
+            case Period.DAY: 
+                value = "days"
+                break;
+            case Period.MONTH:
+                value = "months"
+                break;
+            case Period.WEEK:
+                value = "weeks"
+                break;
+            case Period.YEAR:
+                value = "years"
+                break;
+            default:
+                value = "days"
+                break;
+        }
+        return value
+    }
+
     static assertValidDate(dateStr: string) {
         if (!isValidDateFormat(dateStr))
             throw new ValueError(`Date ${dateStr} format is not valid`)
@@ -65,22 +87,8 @@ export class MomentDateService {
         if (!formatted.isValid())
             throw new ValueError(`${date} is not valid`)
       
-        let value = ""
-        let today = moment()
-        switch(period) {
-            case Period.DAY: 
-                value = "days"
-                break
-            case Period.MONTH:
-                value = "months"
-                break
-            case Period.WEEK:
-                value = "weeks"
-                break
-            case Period.YEAR:
-                value = "years"
-                break
-        }
+        let today = moment()    
+        const value = this.periodMatcherToMoment(period) 
 
         let dateFormat = formatted.add(periodTime, value)
 
@@ -129,6 +137,17 @@ export class MomentDateService {
             return 1
 
         return 0
+    }
+
+    static getDateByPeriod(period: Period, periodTime: number): {startDate: Date, endDate: Date} {
+        const momentPeriod = this.periodMatcherToMoment(period); 
+        const startDate = moment().startOf(momentPeriod);
+        const endDate = moment().add(periodTime, momentPeriod).startOf(momentPeriod);
+
+        return { 
+            startDate: new Date(startDate.format("YYYY-MM-DD")),
+            endDate: new Date(endDate.format("YYYY-MM-DD"))
+         }
     }
 }
 

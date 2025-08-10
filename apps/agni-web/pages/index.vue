@@ -36,7 +36,7 @@ const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 const startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1)
 const endDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0)
 
-const {data:accounts, error:accountError, refresh:accountRefresh} = useAccountsWitPastBalance(startDate, endDate);
+const {data:accounts, error:accountError, refresh:accountRefresh} = useAccountsWitPastBalance({ period: 'Month', periodTime: 1});
 
 const transactionAccountSelected = ref(ALL_ACCOUNT_ID)
 const accountsChecked: Ref<{id: string, checked: boolean}[]> = ref([]) // TODO: Review
