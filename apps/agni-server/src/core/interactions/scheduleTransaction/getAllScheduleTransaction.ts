@@ -11,6 +11,7 @@ export type GetAllScheduleTransactionDto = {
     type: string
     amount: number,
     isPause: boolean
+    isFreeze: boolean
     dateStart: string
     period: string
     dateUpdate: string
@@ -44,6 +45,7 @@ export class GetAllScheluleTransacationUseCase implements IUsecase<void, ListDto
                 dateUpdate: trans.getSchedule().getUpdatedDate().toISOString(),
                 dateEnd: trans.getSchedule().getEndingDate()?.toISOString(),
                 period: trans.getSchedule().getPeriod(),
+                isFreeze: trans.getIsFreeze(),
                 periodTime: trans.getSchedule().getPeriodTime()
             })
         })

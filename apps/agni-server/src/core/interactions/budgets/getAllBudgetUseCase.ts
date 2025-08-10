@@ -4,6 +4,7 @@ import { RecordRepository } from "@core/repositories/recordRepository";
 import { IUsecase } from "../interfaces";
 import { ListDto } from "@core/dto/base";
 import { RecordType } from "@core/domains/constants";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 export type GetAllBudgetDto = {
     id: string,
@@ -41,14 +42,18 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
         for (let i = 0; i < budgets.length; i++) {
             let budget = budgets[i];
 
+            let startBudgetDate = budget.getSchedule().getStartedDate(); 
+            if (budget.getSchedule().getPeriodTime() !== undefined)
+                startBudgetDate = MomentDateService.getDateSubstraction(
+                    budget.getSchedule().getUpdatedDate(), 
+                    budget.getSchedule().getPeriod(), 
+                    budget.getSchedule().getPeriodTime()!
+            ); 
+
             let transactions = await this.transactionRepository.getTransactions({
-                categories: [],
-                accounts: [],
-                tags: [],
                 budgets: [budget.getId()],
-                types: [],
-                startDate: budget.getSchedule().getStartedDate().toISOString(),
-                endDate: budget.getSchedule().getEndingDate()?.toISOString(),
+                startDate: startBudgetDate.toISOString(),
+                endDate: budget.getSchedule().getUpdatedDate()?.toISOString(),
             });
 
             let currentBalance = 0

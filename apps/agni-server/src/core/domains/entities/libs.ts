@@ -100,6 +100,24 @@ export class MomentDateService {
         return new Date(dateFormat) 
     }
 
+    static getDateSubstraction(date: Date, period: Period, periodTime: number): Date {
+        let formatted = moment(date)
+        if (!formatted.isValid())
+            throw new ValueError(`${date} is not valid`)
+      
+        let today = moment()    
+        const value = this.periodMatcherToMoment(period) 
+
+        let dateFormat = formatted.substract(periodTime, value)
+
+        if (dateFormat.isAfter(today)) {
+            var diff = dateFormat.diff(today, value)
+            dateFormat = dateFormat.substract(periodTime * diff, value)
+        }
+
+        return new Date(dateFormat) 
+    }
+
     static compareDate(date1: string, date2: string): 0 | 1 | -1 {
         // MomentDateService.assertValidDate(date1)
         // MomentDateService.assertValidDate(date2)

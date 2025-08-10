@@ -19,6 +19,7 @@ router.post('/v1/schedule-transactions',
     body('accountId').notEmpty().isString(),
     body('amount').notEmpty().isNumeric(),
     body('categoryId').notEmpty().isString(),
+    body('isFreeze').isBoolean().default(false),
     body('description').notEmpty().isString(),
     body('name').notEmpty().isString(),
     body('schedule').notEmpty().isObject(),
@@ -38,7 +39,7 @@ router.post('/v1/schedule-transactions',
                 res.status(200).send(created);
                 return;
             }
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] });
         }         
@@ -97,7 +98,7 @@ router.put('/v1/schedule-transactions/:id',
                 return;
             } 
 
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] })
         } 

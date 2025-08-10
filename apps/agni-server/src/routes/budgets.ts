@@ -25,7 +25,7 @@ router.post('/v1/budgets',
                 return;
             }
 
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [ err ]});
         }
@@ -47,7 +47,7 @@ router.put('/v1/budgets/:id',
                 return;
             }
             
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [ err ]});
         }

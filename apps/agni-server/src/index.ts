@@ -13,6 +13,7 @@ import TransactionRoute from './routes/transactions';
 import SaveGoalRoute from './routes/savingGoals';
 import BudgetRoute from './routes/budgets';
 import InternalRoute from './routes/internal';
+import AnalyticRoute from './routes/analytics';
 import { ApplyScheduleTransactionCronScheduler, AutoDeletreFreezeTransactionCronScheduler, CronScheduler } from "@infra/adapters/cronScheduler";
 import path = require("path");
 
@@ -54,6 +55,7 @@ app.use(SaveGoalRoute)
 app.use(BudgetRoute)
 app.use(ScheduleTransactionRoute)
 app.use(InternalRoute)
+app.use(AnalyticRoute)
 
 app.listen(port, async () => {
   try {

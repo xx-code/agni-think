@@ -3,6 +3,7 @@ import { TransactionRepository } from "../../repositories/transactionRepository"
 import { RecordRepository } from "@core/repositories/recordRepository";
 import { IUsecase } from "../interfaces";
 import { RecordType } from "@core/domains/constants";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 export type GetBudgetDto = {
     id: string,
@@ -35,14 +36,18 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
     async execute(id: string): Promise<GetBudgetDto> {
         let budget = await this.budgetRepository.get(id);
            
+        let startBudgetDate = budget.getSchedule().getStartedDate(); 
+        if (budget.getSchedule().getPeriodTime() !== undefined)
+            startBudgetDate = MomentDateService.getDateSubstraction(
+                budget.getSchedule().getUpdatedDate(), 
+                budget.getSchedule().getPeriod(), 
+                budget.getSchedule().getPeriodTime()!
+        ); 
+
         let transactions = await this.transactionRepository.getTransactions({
-            categories: [],
-            accounts: [],
-            tags: [],
             budgets: [budget.getId()],
-            types: [],
-            startDate: budget.getSchedule().getStartedDate().toLocaleDateString(),
-            endDate: budget.getSchedule().getStartedDate().toLocaleDateString() 
+            startDate: startBudgetDate.toISOString(),
+            endDate: budget.getSchedule().getUpdatedDate()?.toISOString(),
         });
 
         let currentBalance = 0

@@ -22,7 +22,7 @@ router.post('/v1/categories',
                 return;
             }
 
-            res.send({errors: result.array()});
+            res.status(400).send({errors: result.array()});
         } catch(err) {
             res.status(400).send({errors: [err]});
         }
@@ -44,7 +44,7 @@ router.put('/v1/categories/:id',
                 return;
             } 
 
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({errors: [err]});
         }

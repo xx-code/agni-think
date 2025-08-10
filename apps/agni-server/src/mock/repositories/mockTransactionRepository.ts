@@ -26,17 +26,17 @@ export class MockTransactionRepository implements TransactionRepository {
         let filteredTransactions = Array.from(this.transactions.values());
 
         // Appliquer les filtres (exemple simple : filtrage par comptes)
-        if (filterBy.accounts.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => filterBy.accounts.includes(tr.getAccountRef()));
+        if (filterBy.accounts && filterBy.accounts?.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => filterBy.accounts?.includes(tr.getAccountRef()));
         }
-        if (filterBy.categories.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => filterBy.categories.includes(tr.getCategoryRef()));
+        if (filterBy.categories && filterBy.categories.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => filterBy.categories?.includes(tr.getCategoryRef()));
         }
-        if (filterBy.tags.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => tr.getTags().forEach(tag => filterBy.tags.includes(tag)));
+        if (filterBy.tags && filterBy.tags.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => tr.getTags().forEach(tag => filterBy.tags?.includes(tag)));
         }
-        if (filterBy.categories.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => tr.getBudgetRefs().forEach(budget => filterBy.budgets.includes(budget)));
+        if (filterBy.budgets && filterBy.budgets.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => tr.getBudgetRefs().forEach(budget => filterBy.budgets?.includes(budget)));
         }
         // Pagination
         const start = (page - 1) * size;
@@ -53,17 +53,17 @@ export class MockTransactionRepository implements TransactionRepository {
         let filteredTransactions = Array.from(this.transactions.values());
 
         // Appliquer les filtres (exemple simple : filtrage par comptes)
-        if (filterBy.accounts.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => filterBy.accounts.includes(tr.getAccountRef()));
+        if (filterBy.accounts && filterBy.accounts?.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => filterBy.accounts?.includes(tr.getAccountRef()));
         }
-        if (filterBy.categories.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => filterBy.categories.includes(tr.getCategoryRef()));
+        if (filterBy.categories && filterBy.categories.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => filterBy.categories?.includes(tr.getCategoryRef()));
         }
-        if (filterBy.tags.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => tr.getTags().forEach(tag => filterBy.tags.includes(tag)));
+        if (filterBy.tags && filterBy.tags.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => tr.getTags().forEach(tag => filterBy.tags?.includes(tag)));
         }
-        if (filterBy.categories.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => tr.getBudgetRefs().forEach(budget => filterBy.budgets.includes(budget)));
+        if (filterBy.budgets && filterBy.budgets.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => tr.getBudgetRefs().forEach(budget => filterBy.budgets?.includes(budget)));
         }
 
         return filteredTransactions
