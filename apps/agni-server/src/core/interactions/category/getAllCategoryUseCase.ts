@@ -23,9 +23,6 @@ export class GetAllCategoryUseCase implements IUsecase<void, ListDto<GetAllCateg
 
         let categories: GetAllCategoryDto[] = [];
         for (let result of results) {
-            if ([SAVING_CATEGORY_ID, TRANSFERT_CATEGORY_ID, FREEZE_CATEGORY_ID].includes(result.getId()))
-                continue
-
             categories.push({
                 categoryId: result.getId(),
                 title: result.getTitle(),

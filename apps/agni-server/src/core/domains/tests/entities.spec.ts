@@ -3,6 +3,10 @@ import Entity, { TrackableProperty } from "../entities/entity";
 import ValueObject from "../valueObjects/valueObject";
 
 class MockValueObject extends ValueObject {
+    toJson(): string {
+      throw new Error("Method not implemented.");
+    }
+
     public value: string;
     constructor(value: string) {
         super()

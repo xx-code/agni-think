@@ -4,6 +4,10 @@ import { ValueObjectCollection } from '../valueObjects/collection';
 
 // Simule un ValueObject simple
 class MockValueObject extends ValueObject {
+    toJson(): string {
+      throw new Error('Method not implemented.');
+    }
+
     public value: string;
     constructor(value: string) {
         super()

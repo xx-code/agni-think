@@ -3,9 +3,10 @@ version: "3.8"
 services:
   web:
     container_name: web
-    env_file: ./apps/agni-web/.env
+    env_file: ./apps/agni-web/.env.production
     environment:
       - NODE_ENV=production
+      - NUXT_PUBLIC_API_BASE=http://api:5001/v1
     build:
       context: .
       dockerfile: ./apps/agni-web/dockerfile
@@ -14,23 +15,32 @@ services:
       - "${WEB_PORT}:${WEB_PORT}"
     depends_on:
       - api
-    networks:
-      - agni
+    # networks:
+    #   - agni
   api:
     container_name: api
-    env_file: ./apps/agni-server/.env
+    env_file: ./apps/agni-server/.env.production
     environment:
       - NODE_ENV=production
+    user: node
     build:
       context: .
       dockerfile: ./apps/agni-server/dockerfile
     restart: always
     ports:
       - "${API_PORT}:${API_PORT}" # setup in variable
-    networks:
-      - agni
-networks:
-  agni:
+  # db:
+  #   image: postgres
+  #   restart: always
+  #   shm_size: 128mb
+  #   environment:
+  #     - POSTGRES_USER=${DB_USER}
+  #     - POSTGRES_PASSWORD=${DB_PASSWORD}
+  #     - POSTGRES_DB=${DB_NAME}
+    # networks:
+    #   - agni
+# networks:
+#   agni:
   # nginx:
   #   image: nginx:1.26.0-alpine
   #   restart: always

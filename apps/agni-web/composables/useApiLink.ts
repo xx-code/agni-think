@@ -1,4 +1,4 @@
 export default function useApiLink() {
     const config = useRuntimeConfig();
-    return config.public.api;
+    return config.public.apiBase;
 }

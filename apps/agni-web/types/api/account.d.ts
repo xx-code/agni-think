@@ -12,6 +12,19 @@ export type GetAllAccountResponse = {
     type: string
 }
 
+export type GetAllAccountWithPastBalanceResponse = {
+    accountId: string
+    title: string
+    balance: number
+    pastBalance: number
+    type: string
+}
+
+export type GetAllAccountPastBalanceRequest = {
+    period: string 
+    periodTime: number
+}
+
 export type CreateAccountRequest = {
     title: string 
     type: string

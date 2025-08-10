@@ -2,31 +2,30 @@ import { DateService } from "@core/adapters/libs";
 import { Period } from "@core/domains/constants";
 
 export class MockDateService implements DateService {
+    formatDate(date: string): Date {
+        throw new Error("Method not implemented.");
+    }
+
+    formatDateWithtime(date: string): Date {
+        throw new Error("Method not implemented.");
+    }
+
+    getTodayWithTime(): Date {
+        throw new Error("Method not implemented.");
+    }
+
+    getToday(): Date {
+        throw new Error("Method not implemented.");
+    }
+
+    getDateAddition(date: Date, period: Period, periodTime: number): Date {
+        throw new Error("Method not implemented.");
+    }
 
     isValidDateFormat(dateStr: string): boolean {
         throw new Error("Method not implemented.");
     }
 
-    formatDate(date: string): string {
-        return "2025-03-23"; // Mocked formatted date
-    }
-    
-    formatDateWithtime(date: string): string {
-        return "2025-03-23 14:30:00"; // Mocked formatted date with time
-    }
-    
-    getTodayWithTime(): string {
-        return "2025-03-23 14:30:00"; // Mocked current date with time
-    }
-    
-    getToday(): string {
-        return "2025-03-23"; // Mocked current date
-    }
-    
-    getDateAddition(date: string, period: Period, periodTime: number): string {
-        return "2025-03-30"; // Mocked date after addition
-    }
-    
     compareDate(date1: string, date2: string): 0 | 1 | -1 {
         if (date1 === date2) return 0;
         return date1 > date2 ? 1 : -1;

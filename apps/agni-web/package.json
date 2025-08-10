@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "nuxt dev",
+    "dev": "nuxt dev --dotenv .env.development",
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -12,11 +12,9 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.7.2",
-    "@fortawesome/free-solid-svg-icons": "^6.7.2",
-    "@fortawesome/vue-fontawesome": "^3.0.8",
     "@internationalized/date": "^3.8.2",
     "@nuxt/ui": "^3.1.2",
+    "@nuxtjs/dotenv": "^1.4.2",
     "@vueuse/core": "^13.3.0",
     "chart.js": "^4.4.9",
     "nuxt": "^3.17.1",

@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
 import container from '../di_contenair'
-import { body, matchedData, validationResult } from 'express-validator';
+import { body, matchedData, query, validationResult } from 'express-validator';
 import { RequestCreationAccountUseCase } from '@core/interactions/account/creationAccountUseCase';
 import { RequestUpdateAccountUseCase } from '@core/interactions/account/updateAccountUseCase';
+import { RequestGetAllAccountPastBalanceUseCase } from '@core/interactions/account/getAllAccountWithPatBalanceUseCase';
 
 const router = Router();
 
@@ -21,7 +22,7 @@ router.post('/v1/accounts',
                 return;
             }
 
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] });
         }
@@ -64,6 +65,25 @@ router.get('/v1/accounts', async (req, res) => {
     try {
         var ucRes = await container.accountUseCase?.getAllAccount.execute()
         res.status(200).json(ucRes)
+    } catch(err) {
+        res.status(400).send({ errors: [err] });
+    }
+});
+
+router.get('/v1/accounts-with-past-balance',
+    query('period').isString().notEmpty(),
+    query('periodTime').isNumeric().notEmpty(), async (req, res) => {
+    try {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestGetAllAccountPastBalanceUseCase = matchedData(req);
+            var ucRes = await container.accountUseCase?.getAllAccountWithBalance.execute(data);
+
+            res.status(200).json(ucRes);
+            return;
+        }
+        
+        res.status(400).send({ errors: result.array() });
     } catch(err) {
         res.status(400).send({ errors: [err] });
     }

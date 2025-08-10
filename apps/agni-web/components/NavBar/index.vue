@@ -12,6 +12,7 @@
                 <NavBarItem title="Dashboard" link="/" icon="i-lucide-circle-gauge"  />
                 <NavBarItem title="Transactions" link="/transactions" icon="i-lucide-banknote" />
                 <NavBarItem title="Wallets" link="/wallets" icon="i-lucide-wallet-minimal" />
+                <NavBarItem title="Schedule Transactions" link="/scheduletransactions" icon="i-lucide-banknote" />
                 <NavBarItem title="Budgets" link="/budgets" icon="i-lucide-wallet-cards"  />
                 <NavBarItem title="Goals" link="/goals" icon="i-lucide-piggy-bank"  />
                 <NavBarItem title="Analystics" link="/analystics" icon="i-lucide-chart-network"/>

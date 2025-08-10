@@ -15,7 +15,10 @@ import BudgetRoute from './routes/budgets';
 import InternalRoute from './routes/internal';
 import { ApplyScheduleTransactionCronScheduler, AutoDeletreFreezeTransactionCronScheduler, CronScheduler } from "@infra/adapters/cronScheduler";
 import path = require("path");
-dotenv.config();
+
+const envFile = `.env.${process.env.NODE_ENV || "development"}`;
+
+dotenv.config({ path: path.resolve(process.cwd(), envFile)});
 
 const db: Knex = knex( {
   client: process.env.DB_CLIENT || '',
@@ -75,13 +78,13 @@ app.listen(port, async () => {
     autoFreezeTransaction.execute({ minute: 0, hour: 0 });
 
   } catch(err) {
-    console.log(err)
     console.log({
       host: process.env.DB_HOST || '',
       user: process.env.DB_USER || '',
       password: process.env.DB_PASSWORD || '',
       database: process.env.DB_NAME || ''
     });
+    console.log(err)
   }
 });
 

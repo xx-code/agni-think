@@ -24,7 +24,7 @@ const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 const startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1);
 const endDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0);
 
-const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useAccountsWitPastBalance(startDate, endDate); 
+const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useAccountsWitPastBalance({ period: 'Month', periodTime: 1}); 
 const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories();
 const {data: tags, error: errorTags, refresh: refreshTag} = useTags();
 const {data: budgets, error: errorBudgets, refresh: refreshBudget } = useTags();
