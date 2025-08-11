@@ -1,85 +1,76 @@
-import { SAVING_CATEGORY_ID, TransactionMainCategory } from "@core/domains/constants";
+import { RecordType, SAVING_CATEGORY_ID, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { Transaction } from "@core/domains/entities/transaction";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { AccountRepository } from "../../repositories/accountRepository";
 import { SavingRepository } from "../../repositories/savingRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
-import { DateService, GetUID } from "@core/adapters/libs";
+import { GetUID } from "@core/adapters/libs";
 import { RecordRepository } from "@core/repositories/recordRepository";
-import { Record, TransactionType } from "@core/domains/entities/record";
+import { IUsecase } from "../interfaces";
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { Record } from "@core/domains/entities/record";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 export type RequestDeleteSaveGoal = {
-    saveGoalRef: string
-    accountTranfertRef: string
+    id: string
+    accountDepositId: string
 }
 
-export interface IDeleteSaveGoalUseCase {
-    execute(request: RequestDeleteSaveGoal): void
-}
-
-export interface IDeleteSaveGoalPresenter {
-    success(isDelete: boolean): void;
-    fail(err: Error): void;
-}
-
-export interface IDeleteSaveGaolAdapter {
-    transactionRepository: TransactionRepository
-    accountRepository: AccountRepository
-    savingRepository: SavingRepository
-    dateService: DateService
-    recordRepository: RecordRepository
-    unitOfWorkRepository: UnitOfWorkRepository
-}
-
-export class DeleteSaveGoalUseCase implements IDeleteSaveGoalUseCase {
+export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, void> {
     private transactionRepo: TransactionRepository
     private accountRepo: AccountRepository
     private savingRepo: SavingRepository
     private recordRepo: RecordRepository
     private unitOfWork: UnitOfWorkRepository
-    private dateService: DateService
-    private presenter: IDeleteSaveGoalPresenter
 
-    constructor(adapter: IDeleteSaveGaolAdapter, presenter: IDeleteSaveGoalPresenter) {
-        this.presenter = presenter
-        this.transactionRepo = adapter.transactionRepository
-        this.dateService = adapter.dateService
-        this.recordRepo = adapter.recordRepository
-        this.accountRepo = adapter.accountRepository
-        this.unitOfWork = adapter.unitOfWorkRepository
-        this.savingRepo = adapter.savingRepository
+    constructor(transactionRepository: TransactionRepository,
+        accountRepository: AccountRepository,
+        savingRepository: SavingRepository,
+        recordRepository: RecordRepository,
+        unitOfWorkRepository: UnitOfWorkRepository
+    ) {
+        this.transactionRepo = transactionRepository
+        this.recordRepo = recordRepository
+        this.accountRepo = accountRepository
+        this.unitOfWork = unitOfWorkRepository
+        this.savingRepo = savingRepository
     }
 
     async execute(request: RequestDeleteSaveGoal): Promise<void> {
         try {
             await this.unitOfWork.start()
 
-            let savingGoal = await this.savingRepo.get(request.saveGoalRef)
+            let savingGoal = await this.savingRepo.get(request.id)
+            if (savingGoal == null)
+                throw new ResourceNotFoundError("SAVING_GOAL_NOT_FOUND")
 
-            let accountTranfert = await this.accountRepo.get(request.accountTranfertRef)
+            let accountTranfert = await this.accountRepo.get(request.accountDepositId)
+            if (accountTranfert == null)
+                throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
-            let date = this.dateService.getTodayWithTime()
+            if (savingGoal.getBalance().getAmount() > 0) {
+                let date = MomentDateService.getTodayWithTime()
 
-            let newRecord = new Record(GetUID(), savingGoal.getBalance(), date, TransactionType.CREDIT, "Deposit from " + savingGoal.getDescription())
-            let newTransaction = new Transaction(GetUID(), accountTranfert.getId(), newRecord.getId(), SAVING_CATEGORY_ID, 
-            date, TransactionMainCategory.OTHER, [])
+                let newRecord = new Record(GetUID(), savingGoal.getBalance(), date.toLocaleString(), RecordType.CREDIT, "Deposit from " + savingGoal.getDescription())
+                let newTransaction = new Transaction(GetUID(), accountTranfert.getId(), newRecord.getId(), SAVING_CATEGORY_ID, 
+                date.toLocaleString(), TransactionType.OTHER, TransactionStatus.COMPLETE, [])
 
-            accountTranfert.addOnBalance(savingGoal.getBalance())
+                accountTranfert.addOnBalance(savingGoal.getBalance())
 
-            await this.accountRepo.update(accountTranfert)
+                await this.accountRepo.update(accountTranfert)
 
-            await this.recordRepo.save(newRecord)
+                await this.recordRepo.save(newRecord)
 
-            await this.transactionRepo.save(newTransaction)
+                await this.transactionRepo.save(newTransaction)
+            } 
             
             await this.savingRepo.delete(savingGoal.getId())
 
             await this.unitOfWork.commit()
 
-            this.presenter.success(true)
         } catch(err: any) {
             await this.unitOfWork.rollback()
-            this.presenter.fail(err)
+            throw err
         }
     }
 }

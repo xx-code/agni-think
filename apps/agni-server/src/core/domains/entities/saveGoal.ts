@@ -1,136 +1,114 @@
-import { ValueError } from "@core/errors/valueError"
 import { Money } from "./money"
+import Entity, { TrackableProperty } from "./entity"
+import { ValueObjectCollection } from "@core/domains/valueObjects/collection"
+import SaveGoalItem from "../valueObjects/saveGoalItem"
+import { isStringDifferent } from "../helpers"
+import { ImportanceGoal, IntensityEmotionalDesir } from "../constants"
 
-export class SaveGoal {
-    private id: string
-    private title: string
-    private description: string
-    private target: Money
-    private balance: Money 
-    private items: SaveGoalItem[]
+export class SaveGoal extends Entity {
+    private title: TrackableProperty<string>
+    private description: TrackableProperty<string>
+    private target: TrackableProperty<Money>
+    private balance: TrackableProperty<Money> 
+    private desirValue: TrackableProperty<IntensityEmotionalDesir>
+    private importance: TrackableProperty<ImportanceGoal>
+    private wishDueDate: TrackableProperty<string|undefined>
+    private itemsToTracks: ValueObjectCollection<SaveGoalItem>
 
-    private change: boolean = false 
 
-    __add_event_item: SaveGoalItem[] = []
-    __del_event_item: string[] = []
-
-    constructor(id: string, title: string, target: Money, balance: Money, items: SaveGoalItem[] = [], description: string='') {
-        this.id = id
-        this.title = title 
-        this.target = target
-        this.balance = balance
-        this.description = description
-        this.items = items
+    constructor(id: string, title: string, target: Money, balance: Money, 
+        desirValue: IntensityEmotionalDesir, importance: ImportanceGoal, wishDueDate?:string, items: SaveGoalItem[] = [], description: string='') {
+        super(id)
+        this.title = new TrackableProperty<string>(title, this.markHasChange.bind(this))
+        this.target = new TrackableProperty<Money>(target, this.markHasChange.bind(this))
+        this.balance = new TrackableProperty<Money>(balance, this.markHasChange.bind(this))
+        this.description = new TrackableProperty<string>(description, this.markHasChange.bind(this))
+        this.itemsToTracks = new ValueObjectCollection<SaveGoalItem>(items, this.markHasChange.bind(this))
+        this.desirValue = new TrackableProperty<IntensityEmotionalDesir>(desirValue, this.markHasChange.bind(this))
+        this.importance = new TrackableProperty<ImportanceGoal>(importance, this.markHasChange.bind(this))
+        this.wishDueDate = new TrackableProperty<string|undefined>(wishDueDate, this.markHasChange.bind(this))
     }
     
-    getId(): string {
-        return this.id  
-    }
-
     setBalance(balance: Money) {
-        if (!balance.equals(balance))
-            this.change = true
-        this.balance = balance
+       this.balance.set(balance) 
     }
 
     getBalance(): Money {
-        return this.balance
+        return this.balance.get()
     }
 
     increaseBalance(money: Money) {
-        this.balance = this.balance.add(money)
+        const newBalance = this.getBalance().add(money)
+        this.balance.set(newBalance)
     }
 
     decreaseBalance(money: Money) {
-        this.balance = this.balance.subtract(money)
+        const newBalance = this.getBalance().subtract(money)
+        this.balance.set(newBalance)
     }
 
     setTitle(title: string) {
-        if(this.title !== title)
-            this.change = true
-
-        this.title = title
+        this.title.set(title, isStringDifferent)
     }
 
     getTitle(): string {
-        return this.title
-    }
-
-    // setDepositAccount(depositeAccountId: string) {
-    //     if (this.depositeAccountId !== depositeAccountId)
-    //         this.change = true
-
-    //     this.depositeAccountId = depositeAccountId
-    // }
-
-    // getDepositAccountId(): string {
-    //     return this.depositeAccountId
-    // }
-
-    getDescription(): string {
-        return this.description
-    }
-
-    setTarget(target: Money) {
-        if (this.target.getAmount() !== target.getAmount())
-            this.change = true
-
-        this.target = target 
-    }
-
-    getTarget(): Money {
-        return this.target
+        return this.title.get()
     }
 
     setDescription(description: string) {
-        if (this.description !== description)
-            this.change = true
-        
-        this.description = description
+        this.description.set(description, isStringDifferent)
+    }
+
+    getDescription(): string {
+        return this.description.get()
+    }
+
+    setTarget(target: Money) {
+        this.target.set(target)
+    }
+
+    getTarget(): Money {
+        return this.target.get()
     }
 
     getItems(): SaveGoalItem[] {
-        return this.items
+        return this.itemsToTracks.get()
     }
 
     setItems(items: SaveGoalItem[]) {
-        // Check version
-        let item_to_add = items.filter(item => this.items.findIndex(el => el.id === item.id) === -1)
-        let item_to_delete = this.items.filter(el => items.findIndex(subEl => subEl.id === el.id) === -1)
-
-        if (item_to_add.length > 0 || item_to_delete.length > 0) {
-            this.__add_event_item = item_to_add
-            this.__del_event_item = item_to_delete.map(el => el.id)
-
-            this.change = true
-            this.items = items
-        }
+        return this.itemsToTracks.set(items)
     }
 
     addItem(item: SaveGoalItem) {
-        this.change = true
-        this.__add_event_item.push(item)
-        this.items.push(item)
+        this.itemsToTracks.add(item)
     }
 
-    removeItem(itemId: string) {
-        let index = this.items.findIndex(el => el.id === itemId)
-        if (index === -1) 
-            throw new ValueError("Can't remove item who not exist")
-        this.change = true
-        this.__del_event_item.push(itemId)
-        this.items.splice(index, 1)
+    removeItem(item: SaveGoalItem) {
+        this.itemsToTracks.delete(item)
     }
 
-    hasChange() {
-        return this.change
+    setDesirValue(desirValue: IntensityEmotionalDesir) {
+        this.desirValue.set(desirValue)
     }
-}
- 
-export type SaveGoalItem = {
-    id: string
-    title: string
-    link: string
-    price: Money
-    htmlToTrack: string
+
+    getDesirValue(): IntensityEmotionalDesir {
+        return this.desirValue.get()
+    }
+
+    setImportance(importance: ImportanceGoal) {
+        this.importance.set(importance)
+    }
+    
+    getImportance(): ImportanceGoal {
+        return this.importance.get()
+    }
+
+    setWishDueDate(wishDueDate?: string) {
+        this.wishDueDate.set(wishDueDate)
+    }
+
+    getWishDueDate(): string|undefined {
+        return this.wishDueDate.get()
+    }
+
 }

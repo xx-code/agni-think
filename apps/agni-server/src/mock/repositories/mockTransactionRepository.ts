@@ -1,6 +1,6 @@
 import { Money } from "@core/domains/entities/money";
 import { Transaction } from "@core/domains/entities/transaction";
-import { TransactionPaginationResponse } from "@core/domains/metaData/transaction";
+import { RepositoryListResult } from "@core/repositories/dto";
 import { SortBy, TransactionFilter, TransactionRepository } from "@core/repositories/transactionRepository";
 
 export class MockTransactionRepository implements TransactionRepository {
@@ -22,21 +22,21 @@ export class MockTransactionRepository implements TransactionRepository {
         return this.transactions.has(id);
     }
 
-    async getPaginations(page: number, size: number, sortBy: SortBy | null, filterBy: TransactionFilter): Promise<TransactionPaginationResponse> {
+    async getPaginations(page: number, size: number, sortBy: SortBy | null, filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>> {
         let filteredTransactions = Array.from(this.transactions.values());
 
         // Appliquer les filtres (exemple simple : filtrage par comptes)
-        if (filterBy.accounts.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => filterBy.accounts.includes(tr.getAccountRef()));
+        if (filterBy.accounts && filterBy.accounts?.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => filterBy.accounts?.includes(tr.getAccountRef()));
         }
-        if (filterBy.categories.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => filterBy.categories.includes(tr.getCategoryRef()));
+        if (filterBy.categories && filterBy.categories.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => filterBy.categories?.includes(tr.getCategoryRef()));
         }
-        if (filterBy.tags.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => tr.getTags().forEach(tag => filterBy.tags.includes(tag)));
+        if (filterBy.tags && filterBy.tags.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => tr.getTags().forEach(tag => filterBy.tags?.includes(tag)));
         }
-        if (filterBy.categories.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => tr.getBudgetRefs().forEach(budget => filterBy.budgets.includes(budget)));
+        if (filterBy.budgets && filterBy.budgets.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => tr.getBudgetRefs().forEach(budget => filterBy.budgets?.includes(budget)));
         }
         // Pagination
         const start = (page - 1) * size;
@@ -44,8 +44,7 @@ export class MockTransactionRepository implements TransactionRepository {
         const paginatedData = filteredTransactions.slice(start, end);
 
         return {
-            transactions: paginatedData,
-            currentPage: page,
+            items: paginatedData,
             total: Number((filteredTransactions.length / page).toFixed(0))
         };
     }
@@ -54,17 +53,17 @@ export class MockTransactionRepository implements TransactionRepository {
         let filteredTransactions = Array.from(this.transactions.values());
 
         // Appliquer les filtres (exemple simple : filtrage par comptes)
-        if (filterBy.accounts.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => filterBy.accounts.includes(tr.getAccountRef()));
+        if (filterBy.accounts && filterBy.accounts?.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => filterBy.accounts?.includes(tr.getAccountRef()));
         }
-        if (filterBy.categories.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => filterBy.categories.includes(tr.getCategoryRef()));
+        if (filterBy.categories && filterBy.categories.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => filterBy.categories?.includes(tr.getCategoryRef()));
         }
-        if (filterBy.tags.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => tr.getTags().forEach(tag => filterBy.tags.includes(tag)));
+        if (filterBy.tags && filterBy.tags.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => tr.getTags().forEach(tag => filterBy.tags?.includes(tag)));
         }
-        if (filterBy.categories.length > 0) {
-            filteredTransactions = filteredTransactions.filter(tr => tr.getBudgetRefs().forEach(budget => filterBy.budgets.includes(budget)));
+        if (filterBy.budgets && filterBy.budgets.length > 0) {
+            filteredTransactions = filteredTransactions.filter(tr => tr.getBudgetRefs().forEach(budget => filterBy.budgets?.includes(budget)));
         }
 
         return filteredTransactions

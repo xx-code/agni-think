@@ -1,36 +1,30 @@
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { CategoryRepository } from "../../repositories/categoryRepository";
+import { CategoryRepository, CategoryUseChecker } from "../../repositories/categoryRepository";
+import { IUsecase } from "../interfaces";
+import UnExpectedError from "@core/errors/unExpectedError";
+import ResourceInService from "@core/errors/resourceInService";
 
-export interface IDeleteCategoryUseCase {
-    execute(id: string): void;
-}
-
-export interface IDeleteCategoryUseCaseResponse {
-    success(is_deleted: boolean): void;
-    fail(err: Error): void;
-}
-
-export class DeleteCategoryUseCase implements IDeleteCategoryUseCase {
+export class DeleteCategoryUseCase implements IUsecase<string, void> {
     private repository: CategoryRepository;
-    private presenter: IDeleteCategoryUseCaseResponse;
+    private checker: CategoryUseChecker;
     
-    constructor(repo: CategoryRepository, presenter: IDeleteCategoryUseCaseResponse) {
-        this.repository = repo;
-        this.presenter = presenter;
+    constructor(repo: CategoryRepository, checker: CategoryUseChecker) {
+        this.repository = repo
+        this.checker = checker 
     }
 
     async execute(id: string): Promise<void> {
-        try {
-            let category = await this.repository.get(id);
+        let category = await this.repository.get(id);
+        if (category == null)
+            throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
 
-            if (category.getIsSystem())
-                throw new ResourceNotFoundError("Can't delete system value")
+        if (category.getIsSystem())
+            throw new UnExpectedError("CANT_DELETE_SYS_CATEGORY") 
 
-            await this.repository.delete(id);
-     
-            this.presenter.success(true)
-        } catch(err) {
-            this.presenter.fail(err as Error);
+        if (await this.checker.isInUse(id)) {
+            throw new ResourceInService("CATEGORY_IN_USE")
         }
+
+        await this.repository.delete(id);
     }
 }

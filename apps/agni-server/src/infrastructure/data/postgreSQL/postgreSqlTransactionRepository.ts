@@ -1,11 +1,11 @@
 import { SortBy, TransactionFilter, TransactionRepository } from "@core/repositories/transactionRepository";
 import { KnexConnector } from "./postgreSqlConnector";
 import { Transaction } from "@core/domains/entities/transaction";
-import { TransactionPaginationResponse } from "@core/domains/metaData/transaction";
 import { Knex } from "knex";
 import { isEmpty } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { mapperMainTransactionCategory } from "@core/domains/constants";
+import { mapperMainTransactionCategory, mapperTransactionStatus, mapperTransactionType } from "@core/domains/constants";
+import { RepositoryListResult } from "@core/repositories/dto";
 
 export class PostgreSqlTransactionRepository extends KnexConnector implements TransactionRepository {
     constructor(connector: Knex) {
@@ -20,10 +20,11 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
                 table.uuid('account_id')
                 table.uuid('record_id')
                 table.uuid('category_id')
+                table.string('status')
                 table.string('type')
                 table.date('date')
                 table.boolean('is_freeze')
-            })
+            });
         }
         
         isExist = await this.connector.schema.hasTable('transaction_tags') 
@@ -48,7 +49,8 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
             account_id: request.getAccountRef(),
             record_id: request.getRecordRef(),
             category_id: request.getCategoryRef(),
-            date: request.getDate(),
+            status: request.getStatus(),
+            date: request.getUTCDate(),
             type: request.getTransactionType(),
             is_freeze: request.getIsFreeze()
         });
@@ -90,6 +92,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
             result[0]['category_id'],
             result[0]['date'],
             mapperMainTransactionCategory(result[0]['type']),
+            mapperTransactionStatus(result[0]['status']),
             tags,
             budgets
         );
@@ -100,71 +103,89 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
         return !isEmpty(result)
     }
 
-    async getPaginations(page: number, size: number, sortBy: SortBy | null, filterBy: TransactionFilter): Promise<TransactionPaginationResponse> {
-        let query = this.connector('transactions').select('*');
+    async getPaginations(offset: number, size: number, sortBy: SortBy | null, filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>> { 
+        try {
+            let query = this.connector('transactions').select('*');
 
-        if (sortBy) query.orderBy(sortBy.sortBy, sortBy.asc ? 'asc' : 'desc')
+            if (sortBy) query.orderBy(sortBy.sortBy, sortBy.asc ? 'asc' : 'desc')
 
-        if (filterBy.accounts.length > 0) query.whereIn('account_id', filterBy.accounts);
-        if (filterBy.categories.length > 0) query.whereIn('category_id', filterBy.categories);
-        if (filterBy.types.length > 0) query.whereIn('type', filterBy.types);
-        if (filterBy.tags.length) {
-            query.whereIn('transaction_id', function() {
-                this.select('transaction_id').from('transaction_tags').whereIn('tag_id', filterBy.tags);
-            });
-        }
-        if (filterBy.budgets.length) {
-            query.whereIn('transaction_id', function() {
-                this.select('transaction_id').from('transaction_budgets').whereIn('budget_id', filterBy.budgets);
-            });
-        }
-        if (!isEmpty(filterBy.startDate)) query.where('created_at', '>=', filterBy.startDate);
-        if (!isEmpty(filterBy.endDate)) query.where('created_at', '<=', filterBy.endDate);
+            if (filterBy.accounts && filterBy.accounts?.length > 0) query.whereIn('account_id', filterBy.accounts);
+            if (filterBy.categories && filterBy.categories?.length > 0) query.whereIn('category_id', filterBy.categories);
+            if ( filterBy.types && filterBy.types?.length > 0) query.whereIn('type', filterBy.types);
+            if (filterBy.tags && filterBy.tags?.length > 0)  {
+                query.whereIn('transaction_id', function() {
+                    this.select('transaction_id').from('transaction_tags').whereIn('tag_id', filterBy.tags!);
+                });
+            }
+            if (filterBy.budgets && filterBy.budgets?.length > 0) {
+                query.whereIn('transaction_id', function() {
+                    this.select('transaction_id').from('transaction_budgets').whereIn('budget_id', filterBy.budgets!);
+                });
+            }
 
-        query.limit(size).offset((page - 1) * size);
+            if (filterBy.types && filterBy.types?.length > 0) query.whereIn('type', filterBy.types);
 
-        let results = await query;
+            if (filterBy.isFreeze !== undefined)
+                query.where('is_freeze', '=', filterBy.isFreeze);
 
-        let transactions: Transaction[] = []
+            if (filterBy.startDate) 
+                query.where('date', '>=', filterBy.startDate);
+            if (filterBy.endDate) 
+                query.where('date', '<=', filterBy.endDate);
 
-        for (const result of results) {
-            let tags = (await (this.connector('transaction_tags').where('transaction_id', result['transaction_id']).select('tag_id'))).map(result => result['tag_id'])
-            let budgets = (await (this.connector('transaction_budgets').where('transaction_id', result['transaction_id']).select('budget_id'))).map(result => result['budget_id'])
-            transactions.push(new Transaction(result['transaction_id'], result['account_id'], result['record_id'], 
-                result['category_id'], result['date'], result['type'], tags, budgets))
-        }
+            let total = await query.clone().clearSelect().clearOrder().count<{count: number}>("* as count").first() 
+            const totalCount = total?.count ?? 0
 
-        let total = await this.connector('transactions').count<{count: number}>('* as count').first()
-        const totalCount = total?.count ?? 0
+            if (!filterBy.queryAll) 
+                query.limit(size).offset(offset * size);
 
-        return {
-            transactions: transactions,
-            currentPage: page,
-            total: totalCount
-        };
+            let results = await query;
+
+            let transactions: Transaction[] = []
+
+            for (const result of results) {
+                let tags = (await (this.connector('transaction_tags').where('transaction_id', result['transaction_id']).select('tag_id'))).map(result => result['tag_id'])
+                let budgets = (await (this.connector('transaction_budgets').where('transaction_id', result['transaction_id']).select('budget_id'))).map(result => result['budget_id'])
+                transactions.push(new Transaction(result['transaction_id'], result['account_id'], result['record_id'], 
+                    result['category_id'], result['date'], mapperMainTransactionCategory(result['type']), mapperTransactionStatus(result['status']), tags, budgets))
+            }
+
+            return {
+                items: transactions,
+                total: totalCount
+            };
+        } catch(err) {
+            throw err
+        } 
     }
 
     async getTransactions(filterBy: TransactionFilter): Promise<Transaction[]> {
         let query = this.connector('transactions').select('*');
 
-        if (filterBy.accounts.length > 0) query.whereIn('account_id', filterBy.accounts);
-            
-        if (filterBy.categories.length > 0) query.whereIn('category_id', filterBy.categories);
+        if (filterBy.accounts && filterBy.accounts?.length > 0) query.whereIn('account_id', filterBy.accounts);
+        if (filterBy.categories && filterBy.categories?.length > 0) query.whereIn('category_id', filterBy.categories);
+        if ( filterBy.types && filterBy.types?.length > 0) query.whereIn('type', filterBy.types);
+        if (filterBy.tags && filterBy.tags?.length > 0)  {
+            query.whereIn('transaction_id', function() {
+                this.select('transaction_id').from('transaction_tags').whereIn('tag_id', filterBy.tags!);
+            });
+        }
+        if (filterBy.budgets && filterBy.budgets?.length > 0) {
+            query.whereIn('transaction_id', function() {
+                this.select('transaction_id').from('transaction_budgets').whereIn('budget_id', filterBy.budgets!);
+            });
+        }
 
-        if (filterBy.types.length > 0) query.whereIn('type', filterBy.types);
-        
-        if (filterBy.tags.length > 0) {
-            query.whereIn('transaction_id', function() {
-                this.select('transaction_id').from('transaction_tags').whereIn('tag_id', filterBy.tags);
-            });
-        }
-        if (filterBy.budgets.length) {
-            query.whereIn('transaction_id', function() {
-                this.select('transaction_id').from('transaction_budgets').whereIn('budget_id', filterBy.budgets);
-            });
-        }
-        if (!isEmpty(filterBy.startDate)) query.where('date', '>=', filterBy.startDate);
-        if (!isEmpty(filterBy.endDate)) query.where('date', '<=', filterBy.endDate);
+        if (filterBy.isFreeze !== undefined)
+            query.where('is_freeze', '=', filterBy.isFreeze);
+
+        if (filterBy.types && filterBy.types?.length > 0) query.whereIn('type', filterBy.types);
+    
+        if (filterBy.startDate) 
+            query.where('date', '>=', filterBy.startDate);
+
+        if (filterBy.endDate)  
+            query.where('date', '<=', filterBy.endDate);
 
 
         let results = await query;
@@ -175,7 +196,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
             let tags = (await (this.connector('transaction_tags').where('transaction_id', result['transaction_id']).select('tag_id'))).map(result => result['tag_id'])
             let budgets = (await (this.connector('transaction_budgets').where('transaction_id', result['transaction_id']).select('budget_id'))).map(result => result['budget_id'])
             let transaction = new Transaction(result['transaction_id'], result['account_id'], result['record_id'], 
-                result['category_id'], result['date'], result['type'], tags, budgets)
+                result['category_id'], result['date'], mapperMainTransactionCategory(result['type']), mapperTransactionStatus(result['status']), tags, budgets)
             transactions.push(transaction)
         }
 
@@ -191,17 +212,18 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
             account_id: request.getAccountRef(),
             record_id: request.getRecordRef(),
             category_id: request.getCategoryRef(),
+            status: request.getStatus(),
             type: request.getTransactionType(),
             is_freeze: request.getIsFreeze()
         });
 
-        await this.connector('transaction_tags').whereIn('tag_id', request.__delete_event_tag)
-        if (request.__add_event_tag.length > 0)
-            await this.connector('transaction_tags').insert(request.__add_event_tag.map(tag_id => ({transaction_id: request.getId(), tag_id: tag_id})))
+        await this.connector('transaction_tags').whereIn('tag_id', request.getCollectionTags().__deleted_object.map(i => i.tagId)).delete();
+        if (request.getCollectionTags().__added_object.length > 0)
+            await this.connector('transaction_tags').insert(request.getCollectionTags().__added_object.map(el => ({transaction_id: request.getId(), tag_id: el.tagId})))
 
-        await this.connector('transaction_budgets').whereIn('budget_id', request.__delete_event_budget)
-        if (request.__add_event_budget.length > 0)
-            await this.connector('transaction_budgets').insert(request.__add_event_budget.map(budget_id => ({transaction_id: request.getId(), budget_id: budget_id})))
+        await this.connector('transaction_budgets').whereIn('budget_id', request.getCollectionBudgets().__deleted_object.map(i => i.budgetId)).delete();
+        if (request.getCollectionBudgets().__added_object.length > 0)
+            await this.connector('transaction_budgets').insert(request.getCollectionBudgets().__added_object.map(el => ({transaction_id: request.getId(), budget_id: el.budgetId})))
     }
 
 }

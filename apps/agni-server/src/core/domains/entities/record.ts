@@ -1,84 +1,53 @@
+import { RecordType } from "../constants"
+import { isStringDifferent } from "../helpers"
+import Entity, { TrackableProperty } from "./entity"
 import { Money } from "./money"
 
-export enum TransactionType {
-    DEBIT = 'Debit',
-    CREDIT = 'Credit'
-} // TOOD: refactoring by transaction mouvement
 
-export type typeTransactionType = keyof typeof TransactionType 
+export class Record extends Entity {
+    private money: TrackableProperty<Money>   
+    private date: TrackableProperty<string>
+    private description: TrackableProperty<string>
+    private type: TrackableProperty<RecordType> 
 
-
-export class Record {
-    private id: string = ''
-    private money: Money  
-    private date: string
-    private description: string = ''
-    private transactionType: TransactionType 
-
-    private change: boolean = false
-
-    constructor(id: string, money: Money, date: string, type: TransactionType, description: string = '') {
-        this.id = id
-        this.money = money
-        this.date = date
-        this.transactionType = type
-        this.date = date 
-        this.description = description
-    }
-
-    setId(id: string) {
-        this.id = id
-    }
-
-    getId(): string{
-        return this.id
+    constructor(id: string, money: Money, date: string, type: RecordType, description: string = '') {
+        super(id)
+        this.money = new TrackableProperty(money, this.markHasChange.bind(this))
+        this.date = new TrackableProperty(date, this.markHasChange.bind(this))
+        this.type = new TrackableProperty(type, this.markHasChange.bind(this))
+        this.date = new TrackableProperty(date, this.markHasChange.bind(this)) 
+        this.description = new TrackableProperty(description, this.markHasChange.bind(this))
     }
 
     setMoney(money: Money) {
-        if (this.money.getAmount() !== money.getAmount())
-            this.change = true 
-        
-        this.money = money
+        this.money.set(money)
     }
 
     getMoney(): Money {
-        return this.money
+        return this.money.get()
     }
 
     setDate(date: string) {
-        if (this.date !== date)
-            this.change = true
-
-        this.date = date 
+        this.date.set(date)
     }
 
-    getDate(): string {
-        return this.date
+    getUTCDate(): string {
+        return this.date.get()
     }
 
-    setType(type: TransactionType) {
-        if (this.transactionType !== type)
-            this.change = true 
-
-        this.transactionType = type
+    setType(type: RecordType) {
+        this.type.set(type)
     }
 
-    getType(): TransactionType {
-        return this.transactionType
+    getType(): RecordType {
+        return this.type.get()
     }
 
     setDescription(description: string) {
-        if(this.description !== description)
-            this.change = true
-
-        this.description = description
+        this.description.set(description, isStringDifferent)
     }
 
     getDescription(): string {
-        return this.description
-    }
-
-    hasChange(): boolean {
-        return this.change
+        return this.description.get()
     }
 }

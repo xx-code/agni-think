@@ -1,440 +1,159 @@
-import { Request, Response } from "express";
-import { AddSaveGoalUseCase, IAddSaveGoalPresenter, IAddSaveGoalUseCase, RequestAddSaveGoalUseCase } from "@core/interactions/saveGoal/addSaveGoal";
-import { DecreaseSaveGoalUseCase, IdecreaseSaveGoalPresenter, IDecreaseSaveGoalUseCase, RequestDecreaseSaveGoal } from "@core/interactions/saveGoal/decreaseSaveGoal";
-import { DeleteSaveGoalUseCase, IDeleteSaveGaolAdapter, IDeleteSaveGoalPresenter, IDeleteSaveGoalUseCase, RequestDeleteSaveGoal } from "@core/interactions/saveGoal/deleteSaveGoal";
-import { IGetAllSaveGoalPresenter, IGetAllSaveGoalUseCase, SaveGoalsResponse, GetAllSaveGoalUseCase } from "@core/interactions/saveGoal/getAllSaveGoal";
-import { GetSaveGoalUseCase, IGetSaveGoalPresenter, IGetSaveGoalUseCase, SaveGoalResponse} from "@core/interactions/saveGoal/getSaveGoal";
-import { IIncreaseSaveGoalPresenter, IIncreaseSaveGoalUseCase, IncreaseSaveGoalUseCase, RequestIncreaseSaveGoal } from "@core/interactions/saveGoal/increaseSaveGoal";
-import { IUpdateSaveGoalPresenter, IUpdateSaveGoalUseCase, RequestUpdateSaveGoalUseCase, UpdateSaveGoalUseCase } from "@core/interactions/saveGoal/updateSaveGoal";
-import { ApiError, ApiResponse, initApiResponse } from "./type";
-import { isEmpty } from "@core/domains/helpers";
-import { SavingRepository } from "@core/repositories/savingRepository";
-import { AccountRepository } from "@core/repositories/accountRepository";
-import { TransactionRepository } from "@core/repositories/transactionRepository";
-import { DateService } from "@core/adapters/libs";
-import { RecordRepository } from "@core/repositories/recordRepository";
-import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
-import { CategoryRepository } from "@core/repositories/categoryRepository";
+import { Request, Response, Router } from "express";
+import { RequestAddSaveGoalUseCase } from "@core/interactions/saveGoal/addSaveGoal";
+import { RequestDecreaseSaveGoal } from "@core/interactions/saveGoal/decreaseSaveGoal";
+import { RequestDeleteSaveGoal } from "@core/interactions/saveGoal/deleteSaveGoal";
+import { GetAllSaveGoalDto } from "@core/interactions/saveGoal/getAllSaveGoal";
+import { GetSaveGoalDto } from "@core/interactions/saveGoal/getSaveGoal";
+import { RequestIncreaseSaveGoal } from "@core/interactions/saveGoal/increaseSaveGoal";
+import { RequestUpdateSaveGoalUseCase } from "@core/interactions/saveGoal/updateSaveGoal";
+import { ApiController } from "./base";
+import { IUsecase } from "@core/interactions/interfaces";
+import { CreatedDto, ListDto } from "@core/dto/base";
+import { body, matchedData, query, validationResult } from "express-validator";
 
-class CreateSaveGoalModel {
-    model: RequestAddSaveGoalUseCase
+export default class SaveGoalController implements ApiController {
+    private route = Router();
 
-    constructor(reqBody: any) {
-        this.model = { 
-            title: reqBody.title,
-            description: reqBody.description,
-            items: reqBody.items ? reqBody.items : [],
-            target: reqBody.target ? reqBody.target : 0
-        }
+    private addSaveGoal: IUsecase<RequestAddSaveGoalUseCase, CreatedDto>;
+    private increaseSaveGoal: IUsecase<RequestIncreaseSaveGoal, void>;
+    private decreaseSaveGoal: IUsecase<RequestDecreaseSaveGoal, void>;
+    private getSaveGoal: IUsecase<string, GetSaveGoalDto>;
+    private getAllSaveGoal: IUsecase<void, ListDto<GetAllSaveGoalDto>>;
+    private updateSaveGoal: IUsecase<RequestUpdateSaveGoalUseCase, void>;
+    private deleteSaveGoal: IUsecase<RequestDeleteSaveGoal, void>;
+
+    constructor(
+        addSaveGoal: IUsecase<RequestAddSaveGoalUseCase, CreatedDto>,
+        increaseSaveGoal: IUsecase<RequestIncreaseSaveGoal, void>,
+        decreaseSaveGoal: IUsecase<RequestDecreaseSaveGoal, void>,
+        getSaveGoal: IUsecase<string, GetSaveGoalDto>,
+        getAllSaveGoal: IUsecase<void, ListDto<GetAllSaveGoalDto>>,
+        updateSaveGoal: IUsecase<RequestUpdateSaveGoalUseCase, void>,
+        deleteSaveGoal: IUsecase<RequestDeleteSaveGoal, void>
+    ) {
+        this.addSaveGoal = addSaveGoal;
+        this.increaseSaveGoal = increaseSaveGoal;
+        this.decreaseSaveGoal = decreaseSaveGoal;
+        this.getSaveGoal = getSaveGoal;
+        this.getAllSaveGoal = getAllSaveGoal;
+        this.updateSaveGoal = updateSaveGoal;
+        this.deleteSaveGoal = deleteSaveGoal;
     }
 
-    validationInput(): ApiError[] {
-        let errors: ApiError[] = []
-
-        if (isEmpty(this.model.title))
-            errors.push({field: "title", message: "Title field is empty"})
-
-        if (this.model.target <= 0)
-            errors.push({field: "target", message: "Target of save goal must be greater than 0"})
-
-
-        return errors
-    }
-
-    getModelRequest(): RequestAddSaveGoalUseCase {
-        return this.model
-    }
-}
-
-
-export class ApiCreateSavingGoalController implements IAddSaveGoalPresenter {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IAddSaveGoalUseCase
-
-    constructor(savingGoalRepo: SavingRepository) {
-        this.usecase = new AddSaveGoalUseCase(savingGoalRepo, this)
-    }
-
-    success(newSavingId: string): void {
-        this.modelView.success = true
-        this.modelView.statusCode = 200
-        this.modelView.data = {
-            newSavingId: newSavingId
-        }
-    }
-
-    fail(err: Error): void {
-        this.modelView.success = false 
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new CreateSaveGoalModel(req.body)
-        let errors = model.validationInput()
-
-        if (errors.length > 0) {
-            if (req.query.validate_all)
-                this.modelView.errors = errors
-            else 
-                this.modelView.error = errors[0]
-            this.modelView.statusCode = 400
-            res.status(this.modelView.statusCode).send(this.modelView)
-            return
-        }
-
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-
-        return 
-    }
-}
-
-export class ApiGetSavingGoalController implements IGetSaveGoalPresenter {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IGetSaveGoalUseCase
-    constructor(saveRepo: SavingRepository) {
-        this.usecase = new GetSaveGoalUseCase(this, saveRepo)
-    }
-
-    success(saveGoal: SaveGoalResponse): void {
-        this.modelView.success = true
-        this.modelView.statusCode = 200
-        this.modelView.data = saveGoal
-    }
-
-    fail(err: Error): void {
-        this.modelView.success = true
-        this.modelView.statusCode = 200
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        
-        await this.usecase.execute(req.params.id)
-    
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return 
-    }
-}
-
-export class ApiGetAllSavingGoalController implements IGetAllSaveGoalPresenter {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IGetAllSaveGoalUseCase
-
-    constructor(savingRepo: SavingRepository) {
-        this.usecase = new GetAllSaveGoalUseCase(this, savingRepo)
-    }
-
-    success(response: SaveGoalsResponse[]): void {
-        this.modelView.statusCode = 200
-        this.modelView.success = true 
-        this.modelView.data = response
-    }
-
-    fail(err: Error): void {
-        this.modelView.statusCode = 400
-        this.modelView.success = false 
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        
-        await this.usecase.execute()
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return 
-    }
-}
-
-class UpdateSaveGoalModel {
-    model: RequestUpdateSaveGoalUseCase
-
-    constructor(id: string, reqBody: any) {
-        this.model = { 
-            savingGoalRef: id,
-            title: reqBody.title ? reqBody.title : '',
-            description: reqBody.description ? reqBody.description : '',
-            items: reqBody.items ? reqBody.items : [],
-            target: reqBody.target ? reqBody.target : 0
-        }
-    }
-
-    validationInput(): ApiError[] {
-        let errors: ApiError[] = []
-
-        if (isEmpty(this.model.title))
-            errors.push({field: "title", message: "Title field is empty"})
-
-        if (this.model.target <= 0)
-            errors.push({field: "target", message: "Target of save goal must be greater than 0"})
-
-
-        return errors
-    }
-
-    getModelRequest(): RequestUpdateSaveGoalUseCase {
-        return this.model
-    }
-}
-
-export class ApiUpdateSavingGoalController implements IUpdateSaveGoalPresenter {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IUpdateSaveGoalUseCase
-
-    constructor(savingGoalRepo: SavingRepository) {
-        this.usecase = new UpdateSaveGoalUseCase(this, savingGoalRepo)
-    }
-
-    success(isSave: boolean): void {
-        this.modelView.success = isSave 
-        this.modelView.statusCode = 201
-    }
-
-    fail(err: Error): void {
-        this.modelView.success = false 
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new UpdateSaveGoalModel(req.params.id, req.body)
-        let errors = model.validationInput() 
-
-        if (errors.length > 0) {
-            if (req.query.validate_all)
-                this.modelView.errors = errors
-            else 
-                this.modelView.error = errors[0]
-            this.modelView.statusCode = 400
-
-            res.status(this.modelView.statusCode).send(this.modelView)
-            return
-        }
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return
-    }
-}
-
-class IncreaseSaveGoalModel {
-    model: RequestIncreaseSaveGoal
-
-    constructor(id: string, reqBody: any) {
-        this.model = { 
-            savingGoalRef: id,
-            accountRef: reqBody.accountFromId,
-            increaseAmount: reqBody.amount ? reqBody.amount :  0
-        }
-    }
-
-    validationInput(): ApiError[] {
-        let errors: ApiError[] = []
-
-        if (isEmpty(this.model.accountRef))
-            errors.push({field: "accountFromId", message: "You must choose account from"})
-
-        if (this.model.increaseAmount <= 0)
-            errors.push({field: "target", message: "Target of save goal must be greater than 0"})
-
-
-        return errors
-    }
-
-    getModelRequest(): RequestIncreaseSaveGoal {
-        return this.model
-    }
-}
-
-export class ApiIncreaseSavingGoalController implements IIncreaseSaveGoalPresenter {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IIncreaseSaveGoalUseCase
-
-    constructor(categoryRepo: CategoryRepository, savingRepo: SavingRepository, accountRepo: AccountRepository, transRepo: TransactionRepository, 
-        dateService: DateService, recordRepo: RecordRepository, unitOfWork: UnitOfWorkRepository) {
-
-        this.usecase = new IncreaseSaveGoalUseCase(this, categoryRepo, accountRepo, savingRepo, transRepo, dateService, recordRepo, unitOfWork)
-    }
-
-    success(isSave: boolean): void {
-        this.modelView.success = isSave
-        this.modelView.statusCode = 201
-    }
-
-    fail(err: Error): void {
-        this.modelView.success = false
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new IncreaseSaveGoalModel(req.params.id, req.body)
-        let errors = model.validationInput()
-        if (errors.length > 0) {
-            if (req.query.validate_all)
-                this.modelView.errors = errors
-            else 
-                this.modelView.error = errors[0]
-            this.modelView.statusCode = 400
-            res.status(this.modelView.statusCode).send(this.modelView)
-            return
-        }
-
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return 
-    }
-}
-
-class DecreaseSavingGoalModel {
-    model: RequestDecreaseSaveGoal
-
-    constructor(id: string, reqBody: any) {
-        this.model = { 
-            savingGoalRef: id,
-            accountRef: reqBody.accountToId,
-            decreaseAmount: reqBody.amount ? reqBody.amount :  0
-        }
-    }
-
-    validationInput(): ApiError[] {
-        let errors: ApiError[] = []
-
-        if (isEmpty(this.model.accountRef))
-            errors.push({field: "accountToId", message: "You must choose account from"})
-
-        if (this.model.decreaseAmount <= 0)
-            errors.push({field: "target", message: "Target of save goal must be greater than 0"})
-
-
-        return errors
-    }
-
-    getModelRequest(): RequestDecreaseSaveGoal {
-        return this.model
-    }
-}
-
-export class ApiDecreaseSavingGoalController implements IdecreaseSaveGoalPresenter {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IDecreaseSaveGoalUseCase
-
-    constructor(categoryRepo: CategoryRepository,  savingRepo: SavingRepository, accountRepo: AccountRepository, transRepo: TransactionRepository, 
-        dateService: DateService, recordRepo: RecordRepository, unitOfWork: UnitOfWorkRepository) {
-        this.usecase = new DecreaseSaveGoalUseCase(this,  categoryRepo,  accountRepo, savingRepo, transRepo, dateService, recordRepo, unitOfWork)
-    }
-
-    success(isSave: boolean): void {
-        this.modelView.success = isSave
-        this.modelView.statusCode = 201
-    }
-
-    fail(err: Error): void {
-        this.modelView.success = false 
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new DecreaseSavingGoalModel(req.params.id, req.body)
-        let errors = model.validationInput()
-        if (errors.length > 0) {
-            if (req.query.validate_all)
-                this.modelView.errors = errors
-            else 
-                this.modelView.error = errors[0]
-            this.modelView.statusCode = 400
-            res.status(this.modelView.statusCode).send(this.modelView)
-            return
-        }
-
-        await this.usecase.execute(model.getModelRequest())
-
-        res.status(this.modelView.statusCode).send(this.modelView)
-        return
-    }
-}
-
-class DeleteSavingGoalModel {
-    model: RequestDeleteSaveGoal
-
-    constructor(id:string, reqBody: any) {
-        this.model = { 
-            saveGoalRef: id,
-            accountTranfertRef: reqBody.accountDepositId
-        }
-    }
-
-    validationInput(): ApiError[] {
-        let errors: ApiError[] = []
-
-        if (isEmpty(this.model.accountTranfertRef))
-            errors.push({field: "accountDepositId", message: "Account deposit field is empty"})
-
-        return errors
-    }
-
-    getModelRequest(): RequestDeleteSaveGoal {
-        return this.model
-    }
-}
-
-export class ApiDeleteSavingGoalController implements IDeleteSaveGoalPresenter {
-    modelView: ApiResponse = initApiResponse()
-    usecase: IDeleteSaveGoalUseCase
-
-    constructor(savingAdpter: IDeleteSaveGaolAdapter) {
-        this.usecase = new DeleteSaveGoalUseCase(savingAdpter, this)
-    }
-    success(isDelete: boolean): void {
-        this.modelView.success = isDelete
-        this.modelView.statusCode = 201
-    }
-    fail(err: Error): void {
-        this.modelView.success = false
-        this.modelView.statusCode = 400
-        this.modelView.error = {
-            field: "", message: err.message
-        }
-    }
-    async execute(req: Request, res: Response): Promise<void> {
-        this.modelView = initApiResponse()
-        let model = new DeleteSavingGoalModel(req.params.id, req.body)
-        let errors = model.validationInput()
-
-        if (errors.length > 0) {
-            this.modelView.error = errors[0]
-            this.modelView.statusCode = 400
-            res.status(this.modelView.statusCode).send(this.modelView)
-            return
+    setupRoutes() {
+        this.route.post('/v1/save-goals', 
+            body('title').notEmpty(),           
+            body('description').notEmpty(),           
+            body('target').notEmpty().isNumeric(),           
+            body('items').isArray(),
+            this.handleAddSaveGoalUseCase);
+
+        this.route.put('/v1/save-goals/:id', 
+            body('title').isEmpty(),           
+            body('description').isEmpty(),           
+            body('target').isEmpty().isNumeric(),           
+            body('items').isArray(),
+            this.handleUpdateSaveGoal);
+
+        this.route.get('/v1/save-goals:id', 
+            this.handleGetSaveGoal);
+
+        this.route.get('/v1/save-goals', 
+            this.handleGetAllSaveGoal);
+
+        this.route.delete('/v1/save-goals/:id', 
+            query('accountTransfertId').notEmpty(),
+            this.handleDeleteSaveGoal);
+
+        this.route.patch('/v1/save-goals/:id/increase-balance', 
+            body('accountId').notEmpty(),
+            body('amount').notEmpty(),
+            body('saveGoalId').notEmpty(),
+            this.handleIncreaseSaveGoal);
+
+        this.route.patch('/v1/save-goals/:id/decrease-balance',
+            body('accountId').notEmpty(),
+            body('amount').notEmpty(),
+            body('saveGoalId').notEmpty(),
+            this.handleDecreaseSaveGoal);
+    };
+
+    getRoute() {
+        return this.route;
+    };
+
+    async handleAddSaveGoalUseCase(req: Request, res: Response) {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestAddSaveGoalUseCase = matchedData(req);
+            var created = await this.addSaveGoal.execute(data);
+
+            res.status(200).send(created);
         }
         
-        await this.usecase.execute(model.getModelRequest())
+        res.send({ errors: result.array() });
+    }
 
-        res.status(this.modelView.statusCode).send(this.modelView)
+    async handleIncreaseSaveGoal(req: Request, res: Response) {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestIncreaseSaveGoal = matchedData(req);
+            await this.increaseSaveGoal.execute(data);
 
-        return 
+            res.status(201);
+        }
+        
+        res.send({ errors: result.array() });
+    }
+
+    async handleDecreaseSaveGoal(req: Request, res: Response) {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestDecreaseSaveGoal = matchedData(req);
+            await this.decreaseSaveGoal.execute(data);
+
+            res.status(201);
+        }
+        
+        res.send({ errors: result.array() });
+    }
+
+    async handleGetSaveGoal(req: Request, res: Response) {
+       var saveGoal = await this.getSaveGoal.execute(req.params.id);
+
+       res.status(200).send(saveGoal); 
+    }
+
+    async handleGetAllSaveGoal(req: Request, res: Response) {
+        var saveGoals = await this.getAllSaveGoal.execute();
+
+        res.status(200).send(saveGoals);
+    }
+
+    async handleUpdateSaveGoal(req: Request, res: Response) {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestUpdateSaveGoalUseCase = matchedData(req); 
+            data.id = req.params.id;
+            await this.updateSaveGoal.execute(data);
+
+            res.status(201);
+        }
+        
+        res.send({ errors: result.array() });
+    }
+
+    async handleDeleteSaveGoal(req: Request, res: Response) {
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: RequestDeleteSaveGoal = matchedData(req);
+            data.id = req.params.id;
+            await this.deleteSaveGoal.execute(data);
+            
+            res.status(201);
+        }
+        
+        res.send({ errors: result.array() });
     }
 }
 

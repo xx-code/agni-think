@@ -1,81 +1,51 @@
 import { AccountType } from "../constants"
+import { isStringDifferent } from "../helpers"
+import Entity, { TrackableProperty } from "./entity"
 import { Money } from "./money"
 
-export class Account {
-    private id: string = ''
-    private title: string = ''
-    private isSaving: boolean = false
-    private balance: number = 0
-    private type: AccountType
-
-    private change: boolean = false
+export class Account extends Entity {
+    private title: TrackableProperty<string>
+    private balance: TrackableProperty<number>
+    private type: TrackableProperty<AccountType>
 
     constructor(id: string, title: string, type: AccountType, balance: number = 0) {
-        this.id = id
-        this.title = title
-        this.type = type
-        this.balance = balance
-    }
-
-    setId(id: string) {
-        this.id = id
-    }
-
-    getId() {
-        return this.id
+        super(id)
+        this.title = new TrackableProperty<string>(title, this.markHasChange.bind(this))
+        this.type = new TrackableProperty<AccountType>(type, this.markHasChange.bind(this))
+        this.balance = new TrackableProperty<number>(balance, this.markHasChange.bind(this))
     }
 
     setTitle(title: string) {
-        if (this.title !== title)
-            this.change = true 
-
-        this.title = title
+        this.title.set(title, isStringDifferent)
     }
 
     getTitle(): string {
-        return this.title
-    }
-
-    setIsSaving(isSaving: boolean) {
-        this.isSaving = isSaving
+        return this.title.get()
     }
 
     setType(type: AccountType) {
-        if (type !== this.type) 
-            this.change = true
-        this.type = type
+        this.type.set(type)
     }
 
     getType(): AccountType {
-        return this.type
+        return this.type.get()
     }
 
     setBalance(balance: number) {
-        if (balance !== this.balance) 
-            this.change = true
-
-        this.balance = balance
+        this.balance.set(balance)
     }
 
     getBalance(): number {
-        return this.balance
+        return this.balance.get()
     }
 
     addOnBalance(money: Money) {
-        this.change = true
-        this.balance += money.getAmount()
+        const newBalance = this.getBalance() + money.getAmount()
+        this.setBalance(newBalance)
     }
 
     substractBalance(money: Money) {
-        this.change = true
-        this.balance -= money.getAmount()
-    }
- 
-    getIsSaving(): boolean {
-        return this.isSaving
-    }
-
-    hasChange(): boolean {
-        return this.change
+        const newBalance = this.getBalance() - money.getAmount()
+        this.setBalance(newBalance)
     }
 }

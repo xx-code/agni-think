@@ -1,7 +1,9 @@
 import { SAVING_CATEGORY_ID, TRANSFERT_CATEGORY_ID, FREEZE_CATEGORY_ID } from "@core/domains/constants";
 import { CategoryRepository } from "../../repositories/categoryRepository";
+import { IUsecase } from "../interfaces";
+import { ListDto } from "@core/dto/base";
 
-export type CategoriesResponse = {
+export type GetAllCategoryDto = {
     categoryId: string
     title: string
     icon: string
@@ -9,45 +11,27 @@ export type CategoriesResponse = {
     isSystem: boolean
 }
 
-export interface IGetAllCategoryUseCase {
-    execute(): void
-}
-
-export interface IGetAllCategoryUseCaseResponse {
-    success(categories: CategoriesResponse[]): void;
-    fail(err: Error): void;
-}
-
-export class GetAllCategoryUseCase implements IGetAllCategoryUseCase {
+export class GetAllCategoryUseCase implements IUsecase<void, ListDto<GetAllCategoryDto>> {
     private repository: CategoryRepository;
-    private presenter: IGetAllCategoryUseCaseResponse;
 
-    constructor(repo: CategoryRepository, presenter: IGetAllCategoryUseCaseResponse) {
+    constructor(repo: CategoryRepository) {
         this.repository = repo;
-        this.presenter = presenter;
     }
 
-    async execute(): Promise<void> {
-        try {
-            let results = await this.repository.getAll();
+    async execute(): Promise<ListDto<GetAllCategoryDto>> {
+        let results = await this.repository.getAll();
 
-            let categories: CategoriesResponse[] = [];
-            for (let result of results) {
-                if ([SAVING_CATEGORY_ID, TRANSFERT_CATEGORY_ID, FREEZE_CATEGORY_ID].includes(result.getId()))
-                    continue
-
-                categories.push({
-                    categoryId: result.getId(),
-                    title: result.getTitle(),
-                    color: result.getColor(),
-                    icon: result.getIconId(),
-                    isSystem: result.getIsSystem()
-                });
-            }
-            
-            this.presenter.success(categories);
-        } catch(err) {
-            this.presenter.fail(err as Error);
+        let categories: GetAllCategoryDto[] = [];
+        for (let result of results) {
+            categories.push({
+                categoryId: result.getId(),
+                title: result.getTitle(),
+                color: result.getColor(),
+                icon: result.getIconId(),
+                isSystem: result.getIsSystem()
+            });
         }
+        
+        return { items: categories, totals: categories.length};
     }
 }

@@ -1,64 +1,85 @@
-import { ICreationBudgetAdapter } from "@core/interactions/budgets/creationBudgetUseCase";
-import { IGetAllBudgetAdapter } from "@core/interactions/budgets/getAllBudgetUseCase";
-import { IGetBudgetAdpater } from "@core/interactions/budgets/getBudgetUseCase";
-import { IUpdateBudgetAdapter } from "@core/interactions/budgets/updateBudgetUseCase";
-import { Router } from "express";
-import { ApiAutoBudgetController, ApiCreateBudgetController, ApiDeleteBudgetController, ApiGetAllBudgetController, ApiGetBudgetController, ApiUpdateBudgetController } from "src/controllers/budgets";
+import { Router, Request, Response } from 'express';
 import container from '../di_contenair'
+import { body, matchedData, validationResult } from 'express-validator';
+import { RequestCreationBudgetUseCase } from '@core/interactions/budgets/creationBudgetUseCase';
+import { RequestUpdateBudget } from '@core/interactions/budgets/updateBudgetUseCase';
 
-const router = Router()
+const router = Router();
 
+router.post('/v1/budgets', 
+    body('title').notEmpty().isString(),
+    body('target').notEmpty().isNumeric(),
+    body('schedule').notEmpty().isObject(),
+    body('schedule.period').notEmpty().isString(),
+    body('schedule.periodTime').optional().isNumeric(),
+    body('schedule.dateStart').notEmpty().isDate(),
+    body('schedule.dateEnd').optional().isDate(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestCreationBudgetUseCase = matchedData(req);
+                var created = await container.budgetUseCase?.createBudget.execute(data);
+                
+                res.status(200).send(created);
+                return;
+            }
 
+            res.status(400).send({ errors: result.array() });
+        } catch(err) {
+            res.status(400).send({ errors: [ err ]});
+        }
+    });
 
-router.post('/v1/budgets', async (req, res) => {
-    let createBudgetAdapter: ICreationBudgetAdapter = {
-        budgetRepository: container.getRepository('budget'),
-        categoryRepository: container.getRepository('category'),
-        tagRepository: container.getRepository('tag'),
-        dateService: container.getService('date_service')
-    }
+router.put('/v1/budgets/:id', 
+    body('title').optional().isString(),
+    body('target').optional().isNumeric(),
+    body('schedule').optional().isObject(),
+    async (req: Request, res: Response) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestUpdateBudget = matchedData(req);
+                data.id = req.params.id;
+                await container.budgetUseCase?.updateBudget.execute(data);
 
-    await (new ApiCreateBudgetController(createBudgetAdapter, container.getService('date_service'))).execute(req, res)
-})
-
-router.get('/v1/budgets', async (req, res) => {
-    let getAllBudgetAdapter: IGetAllBudgetAdapter = {
-        budgetRepository: container.getRepository('budget'),
-        categoryRepository: container.getRepository('category'),
-        tagRepository: container.getRepository('tag'),
-        recordRepository: container.getRepository('record'),
-        transactionRepository: container.getRepository('transaction')!
-    }
-    await (new ApiGetAllBudgetController(getAllBudgetAdapter)).execute(req, res)
-})
+                res.sendStatus(200);
+                return;
+            }
+            
+            res.status(400).send({ errors: result.array() });
+        } catch(err) {
+            res.status(400).send({ errors: [ err ]});
+        }
+    });
 
 router.get('/v1/budgets/:id', async (req, res) => {
-    let getBudgetAdapter: IGetBudgetAdpater = {
-        budgetRepository: container.getRepository('budget'),
-        transactionRepository: container.getRepository('transaction'),
-        categoryRepository: container.getRepository('category'),
-        recordRepository: container.getRepository('record'),
-        tagRepository: container.getRepository('tag')
-    } 
-    await (new ApiGetBudgetController(getBudgetAdapter)).execute(req, res)
-})
+    try {
+        var budget = await container.budgetUseCase?.getBudget.execute(req.params.id);        
 
-router.put('/v1/budgets/:id', async (req, res) => {
-    let updateBudgetAdapter: IUpdateBudgetAdapter = {
-        budgetRepository: container.getRepository('budget'),
-        categoryRepository: container.getRepository('category'),
-        tagRepository: container.getRepository('tag'),
-        dateService: container.getService('date_service')
+        res.status(200).send(budget);
+    } catch(err) {
+        res.status(400).send({ errors: [ err ]});
     }
-    await (new ApiUpdateBudgetController(updateBudgetAdapter)).execute(req, res)
-})
+});
+
+router.get('/v1/budgets', async (req, res) => {
+    try {
+        var budgets = await container.budgetUseCase?.getAllBudgets.execute();
+        res.status(200).send(budgets);
+    } catch(err) {
+        console.log(err)
+        res.status(400).send({ errors: [ err ]});
+    }
+});
 
 router.delete('/v1/budgets/:id', async (req, res) => {
-    await (new ApiDeleteBudgetController(container.getRepository('budget'))).execute(req, res)
-})
+    try {
+        await container.budgetUseCase?.deleteBudget.execute(req.params.id);
+        res.sendStatus(200);
+    } catch(err) {
+        res.status(400).send({ errors: [ err ]});
+    }
+});
 
-router.post('/v1/auto-budgets', async (req, res) => {
-    await (new ApiAutoBudgetController(container.getRepository('budget'), container.getService('date_service'))).execute(req, res)
-})
-
-export default router
+export default router;

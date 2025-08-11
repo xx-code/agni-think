@@ -7,6 +7,5 @@ export abstract class KnexConnector{
         this.connector = connector
     }
 
-    
     abstract initialisation(): Promise<void>
 }

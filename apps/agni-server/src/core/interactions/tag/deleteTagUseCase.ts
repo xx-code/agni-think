@@ -1,34 +1,29 @@
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { TagRepository } from "../../repositories/tagRepository";
+import { TagChecker, TagRepository } from "../../repositories/tagRepository";
+import { IUsecase } from "../interfaces";
+import UnExpectedError from "@core/errors/unExpectedError";
 
-export interface IDeleteTagUseCase {
-    execute(id: string): void;
-}
-
-export interface IDeleteTagUseCaseResponse {
-    success(success: boolean): void;
-    fail(err: Error): void;
-}
-
-export class DeleteTagUseCase implements IDeleteTagUseCase {
+export class DeleteTagUseCase implements IUsecase<string, void> {
     private repository: TagRepository;
-    private presenter: IDeleteTagUseCaseResponse;
+    private checker: TagChecker;
     
-    constructor(repo: TagRepository, presenter: IDeleteTagUseCaseResponse) {
+    constructor(repo: TagRepository, checker: TagChecker) {
         this.repository = repo;
-        this.presenter = presenter;
+        this.checker = checker;
     }
 
     async execute(id: string): Promise<void> {
-        try {
-            const tag = await this.repository.get(id)
-            if (tag.getIsSystem())
-                throw new ResourceNotFoundError("Can't delete system tag")
+        const tag = await this.repository.get(id)
 
-            await this.repository.delete(id);
-            this.presenter.success(true);
-        } catch(err) {
-            this.presenter.fail(err as Error);
-        }
+        if (tag == null)
+            throw new ResourceNotFoundError("TAG_NOT_FOUND")
+
+        if (tag.getIsSystem())
+            throw new UnExpectedError("CANT_DELETE_SYS_CATEGORY");
+
+        if (await this.checker.inUse(id))
+            throw new UnExpectedError("TAG_IN_USE")
+
+        await this.repository.delete(id);
     }
 }

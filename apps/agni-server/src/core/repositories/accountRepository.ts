@@ -5,7 +5,7 @@ export interface AccountRepository {
     isExistByName(account_title: string): Promise<boolean>
     isExistById(id: string): Promise<boolean>
     isExistByIds(ids: string[]): Promise<boolean>
-    get(id: string): Promise<Account>
+    get(id: string): Promise<Account|null>
     getAll(): Promise<Account[]>
     delete(id: string): Promise<void>
     update(account: Account): Promise<void>

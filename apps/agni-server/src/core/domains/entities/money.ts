@@ -12,17 +12,14 @@ export class Money {
         this.currency = currency.toUpperCase();
     }
 
-    // Getter pour obtenir la valeur de l'argent
     getAmount(): number {
         return this.amount;
     }
 
-    // Getter pour obtenir la devise
     getCurrency(): string {
         return this.currency;
     }
 
-    // Ajouter de l'argent (même devise)
     add(money: Money): Money {
         if (this.currency !== money.getCurrency()) {
             throw new Error("Currencies must match to add amounts.");
@@ -30,7 +27,6 @@ export class Money {
         return new Money(this.amount + money.getAmount(), this.currency);
     }
 
-    // Soustraire de l'argent (même devise)
     subtract(money: Money): Money {
         if (this.currency !== money.getCurrency()) {
             throw new Error("Currencies must match to subtract amounts.");
@@ -42,7 +38,6 @@ export class Money {
         return new Money(result, this.currency);
     }
 
-    // Convertir la devise
     convertTo(newCurrency: string, conversionRate: number): Money {
         if (conversionRate <= 0) {
             throw new Error("Conversion rate must be greater than 0.");
@@ -51,7 +46,6 @@ export class Money {
         return new Money(convertedAmount, newCurrency.toUpperCase());
     }
 
-    // Affichage formaté
     toString(): string {
         return `${this.amount.toFixed(2)} ${this.currency}`;
     }

@@ -1,8 +1,9 @@
 import { ValueError } from "@core/errors/valueError"
-import { TransactionType } from "./entities/record"
-import { isEmpty } from "./helpers"
 
-// TODO: #refactoring
+export enum RecordType {
+    CREDIT = 'credit',
+    DEBIT = 'Debit'
+}
 
 export enum Period {
     YEAR = 'Year',
@@ -11,18 +12,40 @@ export enum Period {
     DAY = 'Day'
 }
 
+
 export enum AccountType {
     CHECKING = "Checking",
+    CREDIT_CARD = "CreditCard",
     SAVING = "Saving",
     BUSINESS = "Business",
     BROKING = "Broking"
 }
 
-export enum TransactionMainCategory {
+export enum TransactionType {
     INCOME = "Income",
     FIXEDCOST = "FixedCost",
     VARIABLECOST = "VariableCost",
     OTHER = "Other"
+}
+
+export enum TransactionStatus {
+    PENDING = "Pending",
+    COMPLETE = "Complete"
+}
+
+export enum IntensityEmotionalDesir {
+    INDIFFERENT = 0,
+    PLEASURE = 1,
+    DESIR = 2,
+    OBSESSION = 3,
+    FOMO = 4
+} 
+
+export enum ImportanceGoal {
+    INSIGNIFIANT = 1,
+    NORMAL = 2,
+    IMPORTANT = 3,
+    URGENT = 4
 }
 
 export const periodsSystem = [
@@ -70,15 +93,15 @@ export function mapperPeriod(value: string): Period {
         case Period.DAY.toLowerCase():
             return Period.DAY
         default:
-            throw new ValueError(`${value} is not a period`)
+            throw new ValueError("PERIOD_NOT_VALID")
     }
 }
 
-export function mapperTypeAccount(value: string): AccountType {
-    if (isEmpty(value)) {
-        throw new ValueError('Type of account is empty')
-    }
+export function mapperIntensityEmotionalDesir(value: number) {
+    
+}
 
+export function mapperTypeAccount(value: string): AccountType {
     switch(value.toLowerCase()) {
         case AccountType.CHECKING.toLowerCase():
             return AccountType.CHECKING
@@ -88,34 +111,47 @@ export function mapperTypeAccount(value: string): AccountType {
             return AccountType.SAVING
         case AccountType.BUSINESS.toLowerCase():
             return AccountType.BUSINESS
+        case AccountType.CREDIT_CARD.toLowerCase():
+            return AccountType.CREDIT_CARD
         default:
-            throw new ValueError(`${value} is not a type of account`)
+            throw new ValueError("ACCOUNT_TYPE_NOT_VALID")
     }
 }
 
-export function mapperTransactionType(value: string): TransactionType {
+export function mapperTransactionType(value: string): RecordType {
     switch (value.toLowerCase()) {
-        case TransactionType.CREDIT.toLowerCase():
-            return TransactionType.CREDIT
-        case TransactionType.DEBIT.toLowerCase():
-            return TransactionType.DEBIT
+        case RecordType.CREDIT.toLowerCase():
+            return RecordType.CREDIT
+        case RecordType.DEBIT.toLowerCase():
+            return RecordType.DEBIT
         default:
-            throw new ValueError(`${value} is not Credit or Debit`)
+            throw new ValueError("RECORD_TYPE_NOT_VALID")
     }
 }
 
 export function mapperMainTransactionCategory(value: string) {
     switch (value.toLowerCase()) {
-        case TransactionMainCategory.FIXEDCOST.toLocaleLowerCase():
-            return TransactionMainCategory.FIXEDCOST
-        case TransactionMainCategory.INCOME.toLocaleLowerCase():
-            return TransactionMainCategory.INCOME
-        case TransactionMainCategory.VARIABLECOST.toLocaleLowerCase():
-            return TransactionMainCategory.VARIABLECOST
-        case TransactionMainCategory.OTHER.toLocaleLowerCase():
-            return TransactionMainCategory.OTHER
+        case TransactionType.FIXEDCOST.toLowerCase():
+            return TransactionType.FIXEDCOST
+        case TransactionType.INCOME.toLowerCase():
+            return TransactionType.INCOME
+        case TransactionType.VARIABLECOST.toLowerCase():
+            return TransactionType.VARIABLECOST
+        case TransactionType.OTHER.toLowerCase():
+            return TransactionType.OTHER
         default:
-            throw new ValueError(`${value} is not Transaction main category`)
+            throw new ValueError("TRANSACTION_TYPE_NOT_VALID")
+    }
+}
+
+export function mapperTransactionStatus(value: string) {
+    switch(value.toLowerCase()) {
+        case TransactionStatus.COMPLETE.toLowerCase():
+            return TransactionStatus.COMPLETE
+        case TransactionStatus.PENDING.toLowerCase():
+            return TransactionStatus.PENDING
+        default:
+            throw new ValueError("TRANSACTION_STATUS_NOT_VALID")
     }
 }
 

@@ -13,7 +13,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: { 
     public : {
-      api: process.env.NUXT_PUBLIC_API || ''
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || ''
     } 
   }
 })

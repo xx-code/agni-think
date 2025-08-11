@@ -2,7 +2,9 @@ import { GetUID } from "@core/adapters/libs";
 import { Tag } from "@core/domains/entities/tag";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { TagRepository } from "@core/repositories/tagRepository";
-
+import { IUsecase } from "../interfaces";
+import { CreatedDto } from "@core/dto/base";
+import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError";
 
 export type RequestCreationTagUseCase = {
     value: string
@@ -10,36 +12,21 @@ export type RequestCreationTagUseCase = {
     isSystem?: boolean
 } 
 
-export interface ICreationTagUseCase {
-    execute(request: RequestCreationTagUseCase): void;
-}
-
-export interface ICreationTagUseCaseResponse {
-    success(newTagId: string): void;
-    fail(err: Error): void;
-}
-
-export class CreationTagUseCase implements ICreationTagUseCase {
+export class CreationTagUseCase implements IUsecase<RequestCreationTagUseCase, CreatedDto> {
     private tagRepo: TagRepository;
-    private presenter: ICreationTagUseCaseResponse;
 
-    constructor(repo: TagRepository, presenter: ICreationTagUseCaseResponse) {
+    constructor(repo: TagRepository) {
         this.tagRepo = repo;
-        this.presenter = presenter;
     }
 
-    async execute(request: RequestCreationTagUseCase): Promise<void> {
-        try {
-            if (await this.tagRepo.isTagExistByName(request.value))
-                throw new ResourceNotFoundError("Tag already exist")
+    async execute(request: RequestCreationTagUseCase): Promise<CreatedDto> {
+        if (await this.tagRepo.isTagExistByName(request.value))
+            throw new ResourceAlreadyExist("TAG_ALREADY_EXIST")
 
-            let newTag = new Tag(GetUID(), request.value, request.color, request.isSystem)
+        let newTag = new Tag(GetUID(), request.value, request.color, request.isSystem)
 
-            await this.tagRepo.save(newTag);
+        await this.tagRepo.save(newTag);
 
-            this.presenter.success(newTag.getId());
-        } catch (err) {
-            this.presenter.fail(err as Error);
-        }
+        return { newId: newTag.getId() }
     }
 }

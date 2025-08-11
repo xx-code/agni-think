@@ -3,42 +3,29 @@ import { AccountRepository } from '../../repositories/accountRepository';
 import { Account } from '../../../core/domains/entities/account';
 import { ResourceAlreadyExist } from '../../../core/errors/resourceAlreadyExistError';
 import { AccountType, mapperTypeAccount } from '@core/domains/constants';
+import { IUsecase } from '../interfaces';
+import { CreatedDto } from '@core/dto/base';
 
 export type RequestCreationAccountUseCase = {
   title: string 
   type: string
 }
 
-export interface ICreationAccountUseCase {
-  execute(request: RequestCreationAccountUseCase): void;
-}
-
-export interface ICreationAccountUseCaseResponse {
-  success(idNewAccount: string): void;
-  fail(err: Error): void;
-}
-
-export class CreationAccountUseCase implements ICreationAccountUseCase {
+export class CreationAccountUseCase implements IUsecase<RequestCreationAccountUseCase, CreatedDto> {
   private repository: AccountRepository;
-  private presenter: ICreationAccountUseCaseResponse;
 
-  constructor(repo: AccountRepository, presenter: ICreationAccountUseCaseResponse) {
+  constructor(repo: AccountRepository) {
     this.repository = repo;
-    this.presenter = presenter;
   }
 
-  async execute(request: RequestCreationAccountUseCase): Promise<void> {
-    try {
-      if (await this.repository.isExistByName(request.title)) 
-        throw new ResourceAlreadyExist('Account name already exist')
+  async execute(request: RequestCreationAccountUseCase): Promise<CreatedDto> {
+    if (await this.repository.isExistByName(request.title)) 
+      throw new ResourceAlreadyExist('ACCOUNT_ALREADY_EXIST')
 
-      let newAccount = new Account(GetUID(), request.title, mapperTypeAccount(request.type))
+    let newAccount = new Account(GetUID(), request.title, mapperTypeAccount(request.type))
 
-      await this.repository.save(newAccount)
+    await this.repository.save(newAccount) 
 
-      this.presenter.success(newAccount.getId())
-    } catch (err) {
-      this.presenter.fail(err as Error);
-    }
+    return {newId: newAccount.getId()}
   }
 }

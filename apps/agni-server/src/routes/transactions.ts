@@ -1,92 +1,206 @@
-import { Router } from "express";
-import { ApiAutoDeleteFreezeTransactionController, ApiCreateFreezeTransactionController, ApiCreateTransactionController, ApiDeleteTransactionController, ApiGetBalanceController, ApiGetTransactionController, ApiPaginationTransactionController, ApiTransfertTransactionController, ApiUpdateTransactionController } from "src/controllers/transactions";
-import { IAddTransactionAdapter } from '@core/interactions/transaction/addTransactionUseCase';
-import { IGetTransactionAdapter } from "@core/interactions/transaction/getTransactionUseCase";
-import { IGetPaginationTransactionAdapter } from "@core/interactions/transaction/getPaginationTransactionUseCase";
-import { IUpdateTransactionAdapter } from "@core/interactions/transaction/updateTransactionUseCase";
-import { ITransfertTransactionAdapter } from "@core/interactions/transaction/transfertTransactionUseCase";
-import container from '../di_contenair';
+import { RequestNewFreezeBalance } from '@core/interactions/freezerBalance/addFreezeBalanceUseCase';
+import { RequestAddTransactionUseCase } from '@core/interactions/transaction/addTransactionUseCase';
+import { RequestGetBalanceBy } from '@core/interactions/transaction/getBalanceByUseCase';
+import { RequestGetPagination } from '@core/interactions/transaction/getPaginationTransactionUseCase';
+import { RequestTransfertTransactionUseCase } from '@core/interactions/transaction/transfertTransactionUseCase';
+import { RequestUpdateTransactionUseCase } from '@core/interactions/transaction/updateTransactionUseCase';
+import { Router, Request, Response } from 'express';
+import { body, matchedData, query, validationResult } from 'express-validator';
+import container from 'src/di_contenair';
 
-const router = Router()
+const router = Router();
 
-router.post('/v1/transactions', async (req, res) => {
-    const createTransactionAdapter: IAddTransactionAdapter = {
-        accountRepository: container.getRepository('account'),
-        budgetRepository: container.getRepository('budget')!,
-        categoryRepository: container.getRepository('category'),
-        recordRepository: container.getRepository('record')!,
-        tagRepository: container.getRepository('tag'),
-        transactionRepository: container.getRepository('transaction'),
-        unitOfWork: container.getRepository('unit_of_work'),
-        dateService: container.getService('date_service')
+router.post("/v1/transactions", 
+    body('accountId').notEmpty().isString(),
+    body('amount').notEmpty().isNumeric(),
+    body('budgetIds').isArray(),
+    body('categoryId').notEmpty().isString(),
+    body('date').notEmpty().isDate(),
+    body('description').notEmpty().isString(),
+    body('tagIds').isArray(),
+    body('type').notEmpty().isString(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestAddTransactionUseCase = matchedData(req);
+                const created = await container.transactionUseCase?.createTransaction.execute(data);
+
+                res.status(200).send(created);
+                return;
+            } 
+            
+            res.status(400).send({ errors: result.array() });
+        } catch(err) {
+            res.status(400).send({ errors: [err] });
+        }
+    });
+
+router.put("/v1/transactions/:id", 
+    body('accountId').optional().isString(),
+    body('amount').optional().isNumeric(),
+    body('budgetIds').optional().isArray(),
+    body('categoryId').optional().isString(),
+    body('date').optional().isDate(),
+    body('description').optional(),
+    body('tagIds').optional().isArray(),
+    body('type').optional().isString(),
+    async (req: Request, res: Response) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestUpdateTransactionUseCase = matchedData(req);
+                data.id = req.params.id;
+                await container.transactionUseCase?.updateTransaction.execute(data);
+
+                res.sendStatus(200);
+                return;
+            }
+            
+            res.status(400).send({ errors: result.array() });
+        } catch(err) {
+            res.status(400).send({ errors: [err] });
+        }
+    });
+
+router.put("/v1/transactions/:id/complete", async (req, res) => {
+    try {
+        await container.transactionUseCase?.completeTransaction.execute({transactionId: req.params.id});
+        res.sendStatus(200);
+    } catch(err) {
+        console.log(err)
+        res.status(400).send({ errors: [err] });
     }
-    await (new ApiCreateTransactionController(createTransactionAdapter).execute(req, res))
-})
+});
 
-router.get('/v1/transactions-balance/', async (req, res) => {
-    await (new ApiGetBalanceController(container.getRepository('transaction'), container.getRepository('record'), container.getService('date_service'))).execute(req, res)
-})
-
-
-router.get('/v1/transactions/:id', async (req, res) => {
-    const getTransactionAdapter: IGetTransactionAdapter = {
-        transactionRepository: container.getRepository('transaction'),
-        categoryRepository: container.getRepository('category'),
-        tagRepository: container.getRepository('tag'),
-        recordRepository: container.getRepository('record')!
+router.delete("/v1/transactions/:id", async (req, res) => {
+    try {
+        await container.transactionUseCase?.deleteTransaction.execute(req.params.id);
+        res.sendStatus(200);
+    } catch(err) {
+        res.status(400).send({ errors: [err] });
     }
-    await (new ApiGetTransactionController(getTransactionAdapter)).execute(req, res)
-})
+});
 
-router.get('/v1/transactions', async (req, res) => {
-    const getPaginationTransaction: IGetPaginationTransactionAdapter = {
-        transactionRepository: container.getRepository('transaction'),
-        accountRepository: container.getRepository('account'),
-        budgetRepository: container.getRepository('budget')!,
-        categoryRepository: container.getRepository('category'),
-        tagRepository: container.getRepository('tag'),
-        recordRepository: container.getRepository('record')!
+router.get("/v1/transactions-balance",
+    query('accountFilterIds').optional().isArray(),
+    query('categoryFilterIds').optional().isArray(),
+    query('budgetFilterIds').optional().isArray(),
+    query('tagFilterIds').optional().isArray(),
+    query('dateStart').optional().isDate(),
+    query('dateEnd').optional().isDate(),
+    query('types').optional().isArray(),
+    query('minPrice').optional().isNumeric(),
+    query('maxPrice').optional().isNumeric(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req); 
+            if (result.isEmpty()) {
+                const data: RequestGetBalanceBy = matchedData(req);
+                const balance = await container.transactionUseCase?.getBalanceBy.execute(data);
+
+                res.status(200).json({balance: balance});
+                return;
+            }
+            
+            res.status(400).send({ errors: result.array() });
+        } catch(err) {
+            res.status(400).send({ errors: [err] });
+        }
+    });
+
+router.get("/v1/transactions/:id", async (req, res) => {
+    try {
+        const transaction = await container.transactionUseCase?.getTransaction.execute(req.params.id);
+
+        res.status(200).send(transaction);
+    } catch(err) {
+        res.status(400).send({ errors: [err] });
     }
-    await (new ApiPaginationTransactionController(getPaginationTransaction)).execute(req, res)
-})
+}); 
 
+router.get("/v1/transactions", 
+    query('offset').isNumeric().default(0),
+    query('limit').isNumeric().default(25),
+    query('sortBy').optional(),
+    query('sortSense').optional(),
+    query('accountFilterIds').optional().isArray(),
+    query('categoryFilterIds').optional().isArray(),
+    query('budgetFilterIds').optional().isArray(),
+    query('tagFilterIds').optional().isArray(),
+    query('dateStart').optional().isDate(),
+    query('dateEnd').optional().isDate(),
+    query('types').optional().isArray(),
+    query('minPrice').optional().isNumeric(),
+    query('maxPrice').optional().isNumeric(),
+    query('isFreeze').optional().isBoolean(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestGetPagination = matchedData(req);
+                const transactions = await container.transactionUseCase?.getPaginition.execute(data); 
 
-router.put('/v1/transactions/:id', async (req, res) => {
-    const updatePaginationTransaction: IUpdateTransactionAdapter = {
-        transactionRepository: container.getRepository('transaction'),
-        categoryRepository: container.getRepository('category'),
-        budgetRepository: container.getRepository('budget')!,
-        tagRepository: container.getRepository('tag'),
-        recordRepository: container.getRepository('record')!,
-        accountRepository: container.getRepository('account'),
-        dateService: container.getService('date_service'),
-        unitOfWork: container.getRepository('unit_of_work')
+                res.status(200).send(transactions);
+                return;
+            }
+
+            res.status(400).send({ errors: result.array() });
+        } catch(err) {
+            console.log(err)
+            res.status(400).send({ errors: [err] });
+        }
+    });
+
+router.post("/v1/transfert-transaction", 
+    body('accountIdFrom').notEmpty(),
+    body('accountIdTo').notEmpty(),
+    body('amount').notEmpty().isNumeric(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestTransfertTransactionUseCase = matchedData(req);
+                await container.transactionUseCase?.transfertTransaction.execute(data);
+
+                res.sendStatus(200);
+                return;
+            }
+            
+            res.status(400).send({ errors: result.array() });
+        } catch(err) {
+            res.status(400).send({ errors: [err] });
+        }
+    });
+
+router.post("/v1/freeze-transaction", 
+    body('accountId').notEmpty(),
+    body('amount').notEmpty().isNumeric(),
+    body('endDate').notEmpty().isDate(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestNewFreezeBalance = matchedData(req);
+                await container.transactionUseCase?.freezeTransaction.execute(data);
+
+                res.sendStatus(200);
+                return;
+            }
+            
+            res.status(400).send({ errors: result.array() });
+        } catch(err) {
+            res.status(400).send({ errors: [err] });
+        }
+    });
+
+router.post("/v1/freeze-transaction/auto-delete-verification", async (req, res) => {
+    try {
+        await container.transactionUseCase?.autoFreezeTransaction.execute();
+        res.sendStatus(200);
+    } catch(err) {
+        res.status(400).send({ errors: [err] });
     }
-    await (new ApiUpdateTransactionController(updatePaginationTransaction)).execute(req, res)
-})
+});
 
-router.delete('/v1/transactions/:id', async (req, res) => {
-    await (new ApiDeleteTransactionController(container.getRepository('transaction'), container.getRepository('record')!, container.getRepository('unit_of_work'), container.getRepository('account'))).execute(req, res)
-})
-
-router.post('/v1/freeze-transaction', async (req, res) => {
-    await (new ApiCreateFreezeTransactionController(container.getService('date_service'), container.getRepository('transaction'), container.getRepository('account'), container.getRepository('category'), container.getRepository('record')!, container.getRepository('unit_of_work'))).execute(req, res)
-})
-
-router.post('/v1/transfert-transaction', async (req, res) => {
-    const transfertAdapter: ITransfertTransactionAdapter = {
-        transactionRepository: container.getRepository('transaction'),
-        recordRepository: container.getRepository('record')!,
-        accountRepository: container.getRepository('account'),
-        categoryRepository: container.getRepository('category'),
-        dateService: container.getService('date_service'),
-        unitOfWork: container.getRepository('unit_of_work')
-    }
-    await (new ApiTransfertTransactionController(transfertAdapter)).execute(req, res)
-})
-
-router.post('/v1/freeze-transaciton/auto-delete-verification', async (req, res) => {
-    await (new ApiAutoDeleteFreezeTransactionController(container.getRepository('account'), container.getRepository('transaction'), container.getRepository('record')!, container.getRepository('unit_of_work'), container.getService('date_service'))).execute(req, res)
-})
-
-export default router
+export default router;

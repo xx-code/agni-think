@@ -1,48 +1,41 @@
 import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError";
 import { AccountRepository } from "../../repositories/accountRepository";
 import { mapperTypeAccount } from "@core/domains/constants";
-
+import { IUsecase } from "../interfaces";
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 
 export type RequestUpdateAccountUseCase = {
     id: string
-    title: string
-    type: string
+    title?: string
+    type?: string
 }
 
-export interface IUpdateAccountUseCase {
-    execute(request: RequestUpdateAccountUseCase): void
-}
-
-export interface IUpdateAccountUseCaseResponse {
-    success(accountUpdated: boolean): void
-    fail(err: Error): void
-}
-
-export class UpdateAccountUseCase implements IUpdateAccountUseCase {
+export class UpdateAccountUseCase implements IUsecase<RequestUpdateAccountUseCase, void> {
     private repository: AccountRepository;
-    private presenter: IUpdateAccountUseCaseResponse;
     
-    constructor(repo: AccountRepository, presenter: IUpdateAccountUseCaseResponse) {
+    constructor(repo: AccountRepository) {
         this.repository = repo;
-        this.presenter = presenter;
     }
     
     async execute(request: RequestUpdateAccountUseCase): Promise<void> {
-        try {
-            let fetchedAccount = await this.repository.get(request.id)
+        let fetchedAccount = await this.repository.get(request.id)
+        if (fetchedAccount == null)
+            throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND") 
 
+        if (request.title) {
             if ((await this.repository.isExistByName(request.title)) && fetchedAccount.getTitle() !== request.title)
-                throw new ResourceAlreadyExist('Account name already exist')
-            
-            fetchedAccount.setTitle(request.title)
-            fetchedAccount.setType(mapperTypeAccount(request.type))
-            if (fetchedAccount.hasChange())
-                await this.repository.update(fetchedAccount)
+                throw new ResourceAlreadyExist("ACCOUNT_ALREADY_EXIST")
 
-            this.presenter.success(true)
-        } catch(err) {
-            this.presenter.success(false)
-            this.presenter.fail(err as Error)
+            fetchedAccount.setTitle(request.title)
         }
+
+        if (request.type)
+            fetchedAccount.setType(mapperTypeAccount(request.type))
+
+        if (fetchedAccount.hasChange()) {
+            await this.repository.update(fetchedAccount)
+        }
+
+        return;
     }
 }
