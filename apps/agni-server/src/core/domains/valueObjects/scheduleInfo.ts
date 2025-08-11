@@ -21,7 +21,7 @@ export class Scheduler extends ValueObject {
         if (periodTime === undefined && endingDate !== undefined)
             this.updatedDate = endingDate
         else if(periodTime !== undefined)
-            this.updatedDate = MomentDateService.getDateAddition(startedDate, period, periodTime!) 
+            this.updatedDate = MomentDateService.getUTCDateAddition(startedDate, period, periodTime!) 
 
         this.period = period
         this.periodTime = periodTime
@@ -42,7 +42,7 @@ export class Scheduler extends ValueObject {
         if (periodTime === undefined && endingDate !== undefined)
             this.updatedDate = endingDate
         else if(periodTime !== undefined) {
-            var updatedDate = MomentDateService.getDateAddition(startedDate, period, periodTime!)
+            var updatedDate = MomentDateService.getUTCDateAddition(startedDate, period, periodTime!)
             if (MomentDateService.compareDate(updatedDate.toString(), endingDate!.toString()) == 1)
                 this.updatedDate = endingDate
             else 

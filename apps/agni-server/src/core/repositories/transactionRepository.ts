@@ -4,13 +4,13 @@ import { TransactionType } from "@core/domains/constants";
 import { RepositoryListResult } from "./dto";
 
 export type TransactionFilter = {
-    accounts: Array<string>;
-    categories: Array<string>;
-    budgets: Array<string>,
-    tags: Array<string>;
+    accounts?: Array<string>;
+    categories?: Array<string>;
+    budgets?: Array<string>,
+    tags?: Array<string>;
     startDate?: string
     endDate?: string
-    types: TransactionType[],
+    types?: TransactionType[],
     minPrice?: Money
     maxPrice?: Money
     isFreeze?: boolean

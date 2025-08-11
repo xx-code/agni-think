@@ -107,7 +107,7 @@ export class Transaction extends Entity {
         this.date.set(date)
     }
 
-    getDate(): string {
+    getUTCDate(): string {
         return this.date.get()
     }
 

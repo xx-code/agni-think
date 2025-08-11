@@ -27,6 +27,7 @@ const displayScheluletransactionsTable = computed(() => {
         name: i.name,
         type: i.type,
         isPause: i.isPause,
+        isFreeze: i.isFreeze,
         category: {
             id: i.categoryId,
             icon: getCategory(i.categoryId)?.icon || '',
@@ -107,7 +108,8 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
                 month: 'short',
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: false
+                hour12: false,
+                timeZone: 'UTC'
             })
         }
     },
@@ -120,7 +122,8 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
                 month: 'short',
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: false
+                hour12: false,
+                timeZone: 'UTC'
             })
         }
     },
@@ -136,7 +139,8 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
                 month: 'short',
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: false
+                hour12: false,
+                timeZone: 'UTC'
             });
         }
     },
@@ -222,6 +226,7 @@ function getRowItems(rows: TableRow<TableScheduleTransactionType>) {
     return [
         {
             label: 'Modifier',
+            disabled: rows.original.isFreeze,
             onSelect: () => {
                 const id = rows.original.id
                 openTransaction(id)
@@ -264,6 +269,7 @@ async function onSubmitTransaction(value: EditScheduleTransactionType, oldValue?
                 accountId: value.accountId,
                 amount: value.amount,
                 categoryId: value.categoryId,
+                isFreeze: value.isFreeze,
                 schedule:{
                     dateStart:  value.dateStart.toString(),
                     dateEnd: value.dateEnd?.toString(),

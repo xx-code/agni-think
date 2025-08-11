@@ -12,7 +12,7 @@ export interface DateService {
     formatDateWithtime(date: string): Date
     getTodayWithTime(): Date 
     getToday(): Date
-    getDateAddition(date: Date, period: Period, periodTime: number): Date
+    getUTCDateAddition(date: Date, period: Period, periodTime: number): Date
     compareDate(date1: string, date2: string): 0|1|-1
 }
 

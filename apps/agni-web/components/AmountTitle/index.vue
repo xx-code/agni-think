@@ -1,7 +1,5 @@
 <script setup lang="ts">
-const props = defineProps({
-    amount: Number,
-})
+const props = defineProps<{ amount: number }>()
 
 const amountRounded = props.amount?.toFixed(2) ?? "0"
 const integerValue = amountRounded.slice(0, amountRounded.indexOf(".")) 

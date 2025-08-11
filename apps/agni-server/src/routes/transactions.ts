@@ -30,7 +30,7 @@ router.post("/v1/transactions",
                 return;
             } 
             
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] });
         }
@@ -57,7 +57,7 @@ router.put("/v1/transactions/:id",
                 return;
             }
             
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] });
         }
@@ -103,7 +103,7 @@ router.get("/v1/transactions-balance",
                 return;
             }
             
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] });
         }
@@ -145,7 +145,7 @@ router.get("/v1/transactions",
                 return;
             }
 
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             console.log(err)
             res.status(400).send({ errors: [err] });
@@ -167,7 +167,7 @@ router.post("/v1/transfert-transaction",
                 return;
             }
             
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] });
         }
@@ -188,7 +188,7 @@ router.post("/v1/freeze-transaction",
                 return;
             }
             
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] });
         }

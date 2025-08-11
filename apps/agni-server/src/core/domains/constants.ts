@@ -15,6 +15,7 @@ export enum Period {
 
 export enum AccountType {
     CHECKING = "Checking",
+    CREDIT_CARD = "CreditCard",
     SAVING = "Saving",
     BUSINESS = "Business",
     BROKING = "Broking"
@@ -110,6 +111,8 @@ export function mapperTypeAccount(value: string): AccountType {
             return AccountType.SAVING
         case AccountType.BUSINESS.toLowerCase():
             return AccountType.BUSINESS
+        case AccountType.CREDIT_CARD.toLowerCase():
+            return AccountType.CREDIT_CARD
         default:
             throw new ValueError("ACCOUNT_TYPE_NOT_VALID")
     }

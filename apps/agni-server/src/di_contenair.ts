@@ -63,6 +63,13 @@ import { DecreaseSaveGoalUseCase, RequestDecreaseSaveGoal } from '@core/interact
 import { CompteTransactionUsecase, RequestCompleteTransactionUsecase } from '@core/interactions/transaction/CompleteTransactionUseCase';
 import { PostgreSqlScheduleTransactionRepository } from '@infra/data/postgreSQL/postgreSqlScheduleTransactionRepository';
 import { GetAllAccountWithPastBalanceDto, GetAllAccountWithPastBalanceUseCase, RequestGetAllAccountPastBalanceUseCase } from '@core/interactions/account/getAllAccountWithPatBalanceUseCase';
+import { EstimationLeftAmountUseCase, GetEstimationLeftAmoutDto, RequestEstimationLeftAmount } from '@core/interactions/analystic/estimationleftAmount';
+import { IAgent } from '@core/agents/interface';
+import AgentGoalScoring from '@infra/agents/agentGoalScoring';
+import HttpAgentPlanningAdvisor from '@infra/agents/httpAgentPlanningAdvisor';
+import { GetAllSuggestPlanningDto, RequestSuggestPlanningSaveGoal, SuggestPlanningSaveGoalUseCase } from '@core/interactions/analystic/suggestPlanningSaveGoalUseCase';
+import IAgentScoringGoal from '@core/agents/agentGoalScoring';
+import IAgentPlanningAdvisor from '@core/agents/agentPlanningAdvisor';
 
 async function createTables(knex: Knex) {
     if (!(await knex.schema.hasTable('accounts')))
@@ -129,6 +136,7 @@ async function createTables(knex: Knex) {
             table.string('type')
             table.boolean('is_pause')
             table.boolean('is_pay')
+            table.boolean('is_freeze')
             table.json('scheduler')
         });
 
@@ -175,6 +183,7 @@ export class DiContenair {
     private services: Map<any, any>;  
     private repositories: Map<any, any>;
     private checkers: Map<any, any>;
+    private agents: Map<string, IAgent<unknown, unknown>>
 
     public accountUseCase?: {
         createAccount: IUsecase<RequestCreationAccountUseCase, CreatedDto>,
@@ -241,10 +250,20 @@ export class DiContenair {
         getAllSaveGoal: IUsecase<void, ListDto<GetAllSaveGoalDto>>
     }
 
+    public analyticUseCase?: {
+        estimateLeftAmount: IUsecase<RequestEstimationLeftAmount, GetEstimationLeftAmoutDto>
+        planningSaveGoalAdvisor: IUsecase<RequestSuggestPlanningSaveGoal, GetAllSuggestPlanningDto>
+    }
+
     constructor() {
         this.services = new Map();
         this.repositories = new Map();
         this.checkers = new Map();
+        this.agents = new Map();
+    }
+
+    registerAgent<In, Out>(name: string, agent: IAgent<In, Out>) {
+        this.agents.set(name, agent) 
     }
 
     registerService(name: string, service: any) {
@@ -296,6 +315,12 @@ export class DiContenair {
         let scheduleTransactionRepository = new PostgreSqlScheduleTransactionRepository(connector);
         this.registerRepository('schedule_transaction', scheduleTransactionRepository)
 
+        // agents
+        const agentGoalRanking = new AgentGoalScoring();
+        this.registerAgent('goal_ranking', agentGoalRanking);
+        const agentPlanningAdvisor = new HttpAgentPlanningAdvisor();
+        this.registerAgent('planning', agentPlanningAdvisor);
+
         // usecases
         this.registerAccountUsecases();
         this.registerCategoryUsecases();
@@ -304,6 +329,7 @@ export class DiContenair {
         this.registerBudgetUsecases();
         this.registerScheduleTransactionUsecases();
         this.registerSaveGoalUsecases();
+        this.registerAnalyticUseCases();
     }
 
     getService(name: string): any {
@@ -316,6 +342,10 @@ export class DiContenair {
 
     getChecker(name: string): any {
         return this.checkers.get(name)
+    }
+
+    getAgent(name: string): IAgent<unknown, unknown>|undefined {
+        return this.agents.get(name)
     }
 
     private registerAccountUsecases() {
@@ -414,6 +444,16 @@ export class DiContenair {
             getAllSaveGoal: new GetAllSaveGoalUseCase(this.getRepository('saving')),
             getSaveGoal: new GetSaveGoalUseCase(this.getRepository('saving')),
             updateSaveGoal: new UpdateSaveGoalUseCase(this.getRepository('saving'))
+        }
+    }
+
+    private registerAnalyticUseCases() {
+        const estimateUseCase = new EstimationLeftAmountUseCase(this.getRepository('budget'), this.getRepository('transaction'),
+            this.getRepository('account'), this.getRepository('record'), this.getRepository('schedule_transaction'))
+        this.analyticUseCase = {
+            estimateLeftAmount: estimateUseCase,
+            planningSaveGoalAdvisor: new SuggestPlanningSaveGoalUseCase(estimateUseCase, this.getRepository('account'), this.getRepository('saving'), 
+            this.getAgent('goal_ranking')! as IAgentScoringGoal, this.getAgent('planning')! as IAgentPlanningAdvisor)
         }
     }
 }

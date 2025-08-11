@@ -1,0 +1,13 @@
+export type GetEstimationLeftAmountResponse = {
+    estimateAmount: number
+    balanceScheduleIncome: number
+    balanceScheduleSpend: number
+    balanceFreezeSchedule: number
+    balanceFreeze: number
+    balanceBudget: number
+}
+
+export type GetEstimationLeftAmountRequest = {
+    startDate: string
+    endDate: string
+}

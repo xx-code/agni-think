@@ -24,7 +24,7 @@ router.post(`/v1/tags`,
                 return;
             }
 
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] });
         }
@@ -45,7 +45,7 @@ router.put(`/v1/tags/:id`,
                 return;
             }
             
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] });
         } 

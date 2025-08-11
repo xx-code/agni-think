@@ -6,7 +6,7 @@ import { TransactionDependencies } from "../facades";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction";
 import { GetUID } from "@core/adapters/libs";
-import { mapperMainTransactionCategory, mapperPeriod } from "@core/domains/constants";
+import { FREEZE_CATEGORY_ID, mapperMainTransactionCategory, mapperPeriod, TransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import ValidationError from "@core/errors/validationError";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
@@ -23,6 +23,7 @@ export type RequestCreateScheduleTransaction = {
     name: string
     accountId: string
     amount: number
+    isFreeze: boolean
     categoryId: string
     description: string 
     tagIds: string[]
@@ -48,10 +49,10 @@ export class CreateScheduleTransactionUseCase implements IUsecase<RequestCreateS
         if (!await this.transcationDependencies.accountRepository?.isExistById(request.accountId))
             throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
-        if (!await this.transcationDependencies.categoryRepository?.isCategoryExistById(request.categoryId))
+        if (!request.isFreeze && !await this.transcationDependencies.categoryRepository?.isCategoryExistById(request.categoryId))
             throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
 
-        if (request.tagIds.length > 0)
+        if (!request.isFreeze && request.tagIds.length > 0)
             if (!await this.transcationDependencies.tagRepository?.isTagExistByIds(request.tagIds))
                 throw new ResourceNotFoundError("TAGS_NOT_FOUND")
         
@@ -69,12 +70,13 @@ export class CreateScheduleTransactionUseCase implements IUsecase<RequestCreateS
             GetUID(), 
             request.name, 
             request.accountId, 
-            request.categoryId,
+            request.isFreeze ? FREEZE_CATEGORY_ID : request.categoryId,
             new Money(request.amount),
-            mapperMainTransactionCategory(request.type),
+            request.isFreeze ? TransactionType.OTHER : mapperMainTransactionCategory(request.type),
             scheduler,
             false,
             false,
+            request.isFreeze,
             request.tagIds
         )
 

@@ -21,8 +21,8 @@ const selectedTagIds = ref<string[]>([]);
 const selectedAccountIds: Ref<string[]> = ref([]);
 
 const date = shallowRef({
-  start: new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()),
-  end: new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate())
+  start: new CalendarDate(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, new Date().getUTCDate()),
+  end: new CalendarDate(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, new Date().getUTCDate())
 })
 
 const filters = ref<{
@@ -38,9 +38,9 @@ const maxAmount = ref<number|undefined>()
 
 function onDateUpdate(startDate?: CalendarDate, endDate?: CalendarDate) {
     date.value.start = startDate || 
-        new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());    
+        new CalendarDate(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, new Date().getUTCDate());    
     date.value.end = endDate || 
-        new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()); 
+        new CalendarDate(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, new Date().getUTCDate()); 
 }
 
 function submit() {

@@ -50,7 +50,7 @@ const form = reactive<Partial<Schema>>({
 
 
 let valDate = transaction ? new Date(transaction.date)  : new Date();
-const date = shallowRef(new CalendarDate(valDate.getFullYear(), valDate.getMonth() + 1, valDate.getDate()))
+const date = shallowRef(new CalendarDate(valDate.getUTCFullYear(), valDate.getUTCMonth() + 1, valDate.getUTCDate()))
 
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'

@@ -20,6 +20,8 @@ router.get('/v1/internal/account-type', (req, res) => {
             case AccountType.BUSINESS:
                 typeAccounts.push({id: 'Business', value: 'Pro'})
                 break
+            case AccountType.CREDIT_CARD:
+                typeAccounts.push({id: 'CreditCard', value: 'Carte Credit' })
             default:
                 break;
         }

@@ -82,7 +82,7 @@ export class MomentDateService {
         return new Date(today)
     }
 
-    static getDateAddition(date: Date, period: Period, periodTime: number): Date {
+    static getUTCDateAddition(date: Date, period: Period, periodTime: number): Date {
         let formatted = moment(date)
         if (!formatted.isValid())
             throw new ValueError(`${date} is not valid`)
@@ -95,6 +95,24 @@ export class MomentDateService {
         if (dateFormat.isBefore(today)) {
             var diff = today.diff(dateFormat, value)
             dateFormat = dateFormat.add(periodTime * diff, value)
+        }
+
+        return new Date(dateFormat) 
+    }
+
+    static getUTCDateSubstraction(date: Date, period: Period, periodTime: number): Date {
+        let formatted = moment(date)
+        if (!formatted.isValid())
+            throw new ValueError(`${date} is not valid`)
+      
+        let today = moment()    
+        const value = this.periodMatcherToMoment(period) 
+
+        let dateFormat = formatted.subtract(periodTime, value)
+
+        if (dateFormat.isAfter(today)) {
+            var diff = dateFormat.diff(today, value)
+            dateFormat = dateFormat.subtract(periodTime * diff, value)
         }
 
         return new Date(dateFormat) 
@@ -139,7 +157,7 @@ export class MomentDateService {
         return 0
     }
 
-    static getDateByPeriod(period: Period, periodTime: number): {startDate: Date, endDate: Date} {
+    static getUTCDateByPeriod(period: Period, periodTime: number): {startDate: Date, endDate: Date} {
         const momentPeriod = this.periodMatcherToMoment(period); 
         const startDate = moment().startOf(momentPeriod);
         const endDate = moment().add(periodTime, momentPeriod).startOf(momentPeriod);

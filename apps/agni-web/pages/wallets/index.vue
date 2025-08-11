@@ -20,9 +20,9 @@ import useTags from "~/composables/tags/useTags";
 
 // generate code
 const now = new Date();
-const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-const startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1);
-const endDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0);
+const prevMonth = new Date(now.getUTCFullYear(), now.getUTCMonth() - 1, 1);
+const startDate = new Date(prevMonth.getUTCFullYear(), prevMonth.getUTCMonth(), 1);
+const endDate = new Date(prevMonth.getUTCFullYear(), prevMonth.getUTCMonth() + 1, 0);
 
 const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useAccountsWitPastBalance({ period: 'Month', periodTime: 1}); 
 const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories();

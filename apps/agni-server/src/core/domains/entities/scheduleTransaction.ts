@@ -15,10 +15,11 @@ export class ScheduleTransaction extends Entity {
     private scheduler: TrackableProperty<Scheduler>
     private amount: TrackableProperty<Money>
     private isPause: TrackableProperty<boolean>
+    private isFreeze: TrackableProperty<boolean>
     private isPay: TrackableProperty<boolean>
     
     constructor(id: string, name: string, accountRef: string, categoryRef: string, amount: Money, 
-        type: TransactionType, scheduler: Scheduler, isPay:boolean=false, isPause: boolean=false, tagRefs: string[]=[]) {
+        type: TransactionType, scheduler: Scheduler, isPay:boolean=false, isPause: boolean=false, isFreeze: boolean=false, tagRefs: string[]=[]) {
         super(id)
         this.name = new TrackableProperty<string>(name, this.markHasChange.bind(this))
         this.amount = new TrackableProperty<Money>(amount, this.markHasChange.bind(this))
@@ -28,6 +29,7 @@ export class ScheduleTransaction extends Entity {
         this.type = new TrackableProperty<TransactionType>(type, this.markHasChange.bind(this))
         this.scheduler = new TrackableProperty<Scheduler>(scheduler, this.markHasChange.bind(this))
         this.isPause = new TrackableProperty<boolean>(isPause, this.markHasChange.bind(this))
+        this.isFreeze = new TrackableProperty<boolean>(isFreeze, this.markHasChange.bind(this))
         this.isPay = new TrackableProperty<boolean>(isPay, this.markHasChange.bind(this))
     }
 
@@ -98,6 +100,14 @@ export class ScheduleTransaction extends Entity {
 
     getIsPay(): boolean {
         return this.isPay.get()
+    }
+
+    setIsFreeze(isFreeze: boolean) {
+        this.isFreeze.set(isFreeze)
+    }
+
+    getIsFreeze(): boolean {
+        return this.isFreeze.get()
     }
 
     setName(name: string) {

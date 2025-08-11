@@ -60,14 +60,14 @@ export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateS
             scheduleTransaction.setAccountRef(request.accountId)
         }
 
-        if (request.categoryId) {
+        if (!scheduleTransaction.getIsFreeze() && request.categoryId) {
             if (!await this.transactionDependencies.categoryRepository?.isCategoryExistById(request.categoryId))
                 throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
 
             scheduleTransaction.setCategoryRef(request.categoryId)
         }
 
-        if (request.tagIds) {
+        if (!scheduleTransaction.getIsFreeze() && request.tagIds) {
             if (request.tagIds.length > 0)
                 if (!await this.transactionDependencies.tagRepository?.isTagExistByIds(request.tagIds))
                     throw new ResourceNotFoundError("TAGS_NOT_FOUND")
@@ -75,7 +75,7 @@ export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateS
             scheduleTransaction.setTags(request.tagIds)
         }
 
-        if (request.type) {
+        if (!scheduleTransaction.getIsFreeze() && request.type) {
             scheduleTransaction.setTransactionType(mapperMainTransactionCategory(request.type))
         }
 

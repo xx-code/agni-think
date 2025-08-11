@@ -37,6 +37,7 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
             type: scheduleTransaction.getTransactionType(),
             is_pause: scheduleTransaction.getIsPause(),
             is_pay: scheduleTransaction.getIsPay(),
+            is_freeze: scheduleTransaction.getIsFreeze(),
             scheduler: scheduleTransaction.getSchedule().toJson()
         });
 
@@ -44,7 +45,7 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
             
             await this.connector('schedule_transaction_tags').insert(
                 scheduleTransaction.getTags().map(tagId => ({
-                    transaction_id: scheduleTransaction.getId(),
+                    schedule_transaction_id: scheduleTransaction.getId(),
                     tag_id: tagId
                 }))
             );
@@ -71,6 +72,7 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
             Scheduler.fromJson(result[0]['scheduler']),
             result[0]['is_pay'],
             result[0]['is_pause'],
+            result[0]['is_freeze'],
             tags
         );
     }
@@ -94,6 +96,7 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
                 Scheduler.fromJson(result['scheduler']),
                 result['is_pay'],
                 result['is_pause'],
+                result['is_freeze'],
                 tags
             );
             transactions.push(transaction);
@@ -113,6 +116,7 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
             type: scheduleTransaction.getTransactionType(),
             is_pause: scheduleTransaction.getIsPause(),
             is_pay: scheduleTransaction.getIsPay(),
+            is_freeze: scheduleTransaction.getIsFreeze(),
             scheduler: scheduleTransaction.getSchedule().toJson()
         });
 

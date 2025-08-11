@@ -28,7 +28,7 @@ router.post('/v1/save-goals',
                 return;
             }
             
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] });
         }
@@ -54,7 +54,7 @@ router.put('/v1/save-goals/:id',
                 return;
             }
             
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] });
         } 
