@@ -55,6 +55,9 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                             TransactionStatus.PENDING,
                             scheduleTrans.getTags() 
                         )
+                        if (scheduleTrans.getIsFreeze())
+                            transaction.setIsFreeze()
+
                         scheduleTrans.setIsPay(true);
                         await this.scheduleTransactionRepo.update(scheduleTrans);
                         await this.transactionRepo.save(transaction)

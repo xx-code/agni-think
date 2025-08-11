@@ -7,6 +7,7 @@ export type GetScheduleTransactionResponse = {
     type: string
     amount: number
     isPause: boolean
+    isFreeze: boolean
     dateStart: string
     period: string
     dateUpdate: string
@@ -23,6 +24,7 @@ export type GetAllScheduleTransactionsResponse = {
     type: string
     amount: number,
     isPause: boolean
+    isFreeze: boolean
     dateStart: string
     period: string
     dateUpdate: string
@@ -38,6 +40,7 @@ export type CreateScheduleTransactionRequest = {
     description: string 
     tagIds: string[]
     type: string
+    isFreeze: boolean
     schedule: {
         period: string,
         periodTime?: number

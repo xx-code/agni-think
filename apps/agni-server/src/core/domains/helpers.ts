@@ -107,7 +107,7 @@ function isValidDate(dateStr: string): boolean {
     }
 
     // Check if the day is valid for the given month
-    const daysInMonth = new Date(year, month, 0).getDate();
+    const daysInMonth = new Date(year, month, 0).getUTCDate();
     return day <= daysInMonth;
 }
 
@@ -127,20 +127,20 @@ export function determinedEndDateWith(date: Date, period: Period, period_time: n
     let end_date = new Date(date);
     let period_repeat = (period_time * repeat)
     if (period === 'Year') {
-        end_date.setFullYear(end_date.getFullYear() + period_repeat)
+        end_date.setFullYear(end_date.getUTCFullYear() + period_repeat)
     } 
     else if (period === "Month") {
-        end_date.setMonth(end_date.getMonth() + period_repeat)
+        end_date.setMonth(end_date.getUTCMonth() + period_repeat)
     }
     else if (period === "Week") {
-        end_date.setDate(end_date.getDate() + (7 * period_repeat))
+        end_date.setDate(end_date.getUTCDate() + (7 * period_repeat))
     } 
     else if (period === "Day") {
-        end_date.setDate(end_date.getDate() + period_repeat)
+        end_date.setDate(end_date.getUTCDate() + period_repeat)
     } else {
         throw new ValidationError('There a error in field period');
     }
-    return new DateParser(end_date.getFullYear(), end_date.getMonth() + 1, end_date.getDate());
+    return new DateParser(end_date.getUTCFullYear(), end_date.getUTCMonth() + 1, end_date.getUTCDate());
 }
 
 export type CurrentDateBudget = {
@@ -151,8 +151,8 @@ export function determinedStartEndDate(date: Date, period: Period, period_time: 
     let start_date = null;
     let end_date = null;
 
-    let today_year = date.getFullYear();
-    let today_month = date.getMonth();
+    let today_year = date.getUTCFullYear();
+    let today_month = date.getUTCMonth();
     let today_week_day = date.getDay();
 
 
@@ -164,11 +164,11 @@ export function determinedStartEndDate(date: Date, period: Period, period_time: 
     else if (period === Period.MONTH) {
         let month = today_month + (11 * (period_time - 1))
         start_date = new Date(today_year, month, 1);
-        let last_day_of_month = new Date(today_year, today_month + 1, 0).getDate();
+        let last_day_of_month = new Date(today_year, today_month + 1, 0).getUTCDate();
         end_date = new Date(today_year, month, last_day_of_month);
     }
     else if (period === Period.WEEK) {
-        let day = (date.getDate() + (6 * (period_time - 1)))
+        let day = (date.getUTCDate() + (6 * (period_time - 1)))
         
         let monday_date = day - today_week_day + (today_week_day === 0 ? -6 : 0);
         let sunday_date = day - (6-today_week_day);
@@ -181,8 +181,8 @@ export function determinedStartEndDate(date: Date, period: Period, period_time: 
     }
 
     return {
-        start_date: new DateParser(start_date.getFullYear(), start_date.getMonth() + 1, start_date.getDate()),
-        end_date: new DateParser(end_date.getFullYear(), end_date.getMonth() + 1, end_date.getDate())
+        start_date: new DateParser(start_date.getUTCFullYear(), start_date.getUTCMonth() + 1, start_date.getUTCDate()),
+        end_date: new DateParser(end_date.getUTCFullYear(), end_date.getUTCMonth() + 1, end_date.getUTCDate())
     };
 }
 
@@ -281,9 +281,9 @@ export class DateParser {
             return 1
         }
 
-        if (this.getMonth() < date.getMonth()) {
+        if (this.getUTCMonth() < date.getUTCMonth()) {
             return -1
-        } else if (this.getMonth() > date.getMonth()) {
+        } else if (this.getUTCMonth() > date.getUTCMonth()) {
             return 1
         }
 
@@ -318,7 +318,7 @@ export class DateParser {
         return this.year;
     }
 
-    public getMonth(): number {
+    public getUTCMonth(): number {
         return this.month;
     }
 
@@ -370,13 +370,13 @@ export class DateParser {
 
     static now(): DateParser {
         let date = new Date();
-        return new DateParser(date.getFullYear(), date.getMonth()+1, date.getDate());
+        return new DateParser(date.getUTCFullYear(), date.getUTCMonth()+1, date.getUTCDate());
     }
 
     static fromDate(date: Date): DateParser {
-        let year = date.getFullYear();
-        let month = date.getMonth() + 1;
-        let day_date = date.getDate();
+        let year = date.getUTCFullYear();
+        let month = date.getUTCMonth() + 1;
+        let day_date = date.getUTCDate();
 
         return new DateParser(year, month, day_date)
     }

@@ -93,9 +93,10 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
                 else {
                     if (scheduleTrans.getIsFreeze())
                         scheduleFreezeAmount += scheduleTrans.getAmount().getAmount() 
+                    else
+                        scheduleSpendAmount += scheduleTrans.getAmount().getAmount() 
 
                     moneyToAllocate -= scheduleTrans.getAmount().getAmount() 
-                    scheduleSpendAmount += scheduleTrans.getAmount().getAmount() 
                 } 
             }    
         }
@@ -106,9 +107,9 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
                 MomentDateService.compareDate(budget.getSchedule().getUpdatedDate().toISOString(), workingStartDate.toISOString()) >= 0 && 
                 MomentDateService.compareDate(budget.getSchedule().getUpdatedDate().toISOString(), workingEndDate.toISOString()) <= 0 
             ) {
-                let startBudgetDate = budget.getSchedule().getStartedDate(); 
+                let startBudgetUTCDate = budget.getSchedule().getStartedDate(); 
                 if (budget.getSchedule().getPeriodTime() !== undefined)
-                    startBudgetDate = MomentDateService.getDateSubstraction(
+                    startBudgetUTCDate = MomentDateService.getUTCDateSubstraction(
                         budget.getSchedule().getUpdatedDate(), 
                         budget.getSchedule().getPeriod(), 
                         budget.getSchedule().getPeriodTime()!
@@ -116,7 +117,7 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
 
                 let transactions = await this.transactionRepo.getTransactions({
                     budgets: [budget.getId()],
-                    startDate: startBudgetDate.toISOString(),
+                    startDate: startBudgetUTCDate.toISOString(),
                     endDate: budget.getSchedule().getUpdatedDate()?.toISOString(),
                 });
 
@@ -134,11 +135,13 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
 
         let currentBalance = 0
         for(const account of accounts) {
-            if ([AccountType.BROKING, AccountType.SAVING].includes(account.getType()))
+            if ([AccountType.BROKING, AccountType.SAVING].includes(account.getType())) {
                 continue;
+            }
 
             currentBalance += account.getBalance()
         }
+        console.log(currentBalance)
         currentBalance += amountFreezeTransction;
 
         const estimationAmountToAllocate = moneyToAllocate + currentBalance - previsionBudget

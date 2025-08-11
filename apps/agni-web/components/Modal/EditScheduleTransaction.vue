@@ -19,14 +19,108 @@ const emit = defineEmits<{
     (e: 'close', close: boolean): void
 }>();
 const schema = z.object({
-    accountId: z.string().nonempty('Vous devez selectionner un compte'),
-    transactionType: z.string().nonempty('Vous devez selectionner une categories'),
-    categoryId: z.string().nonempty('Vous devez selectionner une categories'),
-    description: z.string().nonempty('Vous devez ajouter une description'),
-    amount: z.number().min(1, 'La somme doit etre plus grand que zero'),
-    period: z.string().nonempty("Vous devez selectionner une period"),
-    periodTime: z.number().min(1, "Vous devez selectionner un nombre de periode"),
-    tagIds: z.string().array()
+    accountId: z.string().optional(),
+    transactionType: z.string().optional(),
+    categoryId: z.string().optional(),
+    description: z.string().optional(),
+    amount: z.number().optional(),
+    period: z.string().optional(),
+    periodTime: z.number().optional(),
+    tagIds: z.array(z.string()).optional(),
+    isFreeze: z.boolean(),
+}).superRefine((obj, ctx) => {
+    if (obj.isFreeze) {
+    // When freeze is true:
+    // accountId, period, periodTime, amount, description REQUIRED
+    if (!obj.accountId || obj.accountId.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous devez selectionner un compte (freeze activé)",
+        path: ["accountId"],
+      });
+    }
+    if (!obj.period || obj.period.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous devez selectionner une période (freeze activé)",
+        path: ["period"],
+      });
+    }
+    if (obj.periodTime === undefined || obj.periodTime < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous devez selectionner un nombre de période >= 1 (freeze activé)",
+        path: ["periodTime"],
+      });
+    }
+    if (obj.amount === undefined || obj.amount < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La somme doit être plus grande que zéro (freeze activé)",
+        path: ["amount"],
+      });
+    }
+    if (!obj.description || obj.description.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous devez ajouter une description (freeze activé)",
+        path: ["description"],
+      });
+    }
+    // transactionType, categoryId, tagIds are OPTIONAL in freeze mode, no check
+  } else {
+    // When freeze is false:
+    if (!obj.accountId || obj.accountId.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous devez selectionner un compte (freeze activé)",
+        path: ["accountId"],
+      });
+    }
+    if (!obj.period || obj.period.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous devez selectionner une période (freeze activé)",
+        path: ["period"],
+      });
+    }
+    if (obj.periodTime === undefined || obj.periodTime < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous devez selectionner un nombre de période >= 1 (freeze activé)",
+        path: ["periodTime"],
+      });
+    }
+    if (obj.amount === undefined || obj.amount < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "La somme doit être plus grande que zéro (freeze activé)",
+        path: ["amount"],
+      });
+    }
+    if (!obj.description || obj.description.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous devez ajouter une description (freeze activé)",
+        path: ["description"],
+      });
+    }
+    if (!obj.transactionType || obj.transactionType.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous devez selectionner une catégorie",
+        path: ["transactionType"],
+      });
+    }
+    if (!obj.categoryId || obj.categoryId.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous devez selectionner une catégorie",
+        path: ["categoryId"],
+      });
+    }
+    // accountId, period, periodTime, amount, description optional or not required in freeze false mode
+  }
 })
 
 type Schema = z.output<typeof schema>;
@@ -47,6 +141,7 @@ const form = reactive({
     amount: scheduleTransaction?.amount || 0,
     period: scheduleTransaction?.period || '',
     periodTime: scheduleTransaction?.periodTime || 0,
+    isFreeze: false,
     hasEndDate: false
 })
 
@@ -56,8 +151,8 @@ let endDated: Date|undefined;
 if (scheduleTransaction?.dateEnd)
     endDated = new Date(scheduleTransaction.dateEnd);
 
-const startDate = shallowRef(new CalendarDate(startDated.getFullYear(), startDated.getMonth() + 1, startDated.getDate()))
-const endDate = shallowRef(endDated ?new CalendarDate(endDated.getFullYear(), endDated.getMonth() + 1, endDated.getDate()) : undefined);
+const startDate = shallowRef(new CalendarDate(startDated.getUTCFullYear(), startDated.getUTCMonth() + 1, startDated.getUTCDate()))
+const endDate = shallowRef(endDated ?new CalendarDate(endDated.getUTCFullYear(), endDated.getUTCMonth() + 1, endDated.getUTCDate()) : undefined);
 
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
@@ -66,15 +161,16 @@ const df = new DateFormatter('en-Us', {
 async function onSubmit(event: FormSubmitEvent<Schema>) {
     const data = event.data;
     emit('submit', {
-        accountId: data.accountId,
-        amount: data.amount,
-        categoryId: data.categoryId,
+        accountId: data.accountId!,
+        amount: data.amount!,
+        categoryId: !data.isFreeze ? data.categoryId! : 'X',
         dateStart: startDate.value,
         dateEnd: endDate.value,
-        name: data.description,
-        tagIds: data.tagIds,
-        type: data.transactionType,
-        period: data.period,
+        name: data.description!,
+        tagIds: data.tagIds!,
+        type: !data.isFreeze ? data.transactionType!  : 'X',
+        period: data.period!,
+        isFreeze: data.isFreeze,
         periodTime: data.periodTime,
     }, scheduleTransaction)
 
@@ -99,8 +195,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     <UModal title="Transaction">
         <template #body>
             <UForm :schema="schema" :state="form" class="space-y-4" @submit="onSubmit">
+                <UFormField label="Est une freeze transaction" name="isFreeze">
+                    <USwitch v-model="form.isFreeze" />
+                </UFormField>
+
                 <UFormField label="Type de transaction" name="transactionType">
                     <USelect 
+                        :disabled="form.isFreeze"
                         v-model="form.transactionType"
                         value-key="value" 
                         :items="transationTypes?.map(i => ({ label: i.value, value: i.id}))" 
@@ -125,6 +226,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
                 <UFormField label="Categorie" name="categoryId">
                     <USelectMenu 
+                        :disabled="form.isFreeze"
                         v-model="form.categoryId" 
                         value-key="value" 
                         :items="categories?.items.map(i => ({value: i.id, label: i.title}))" 
@@ -133,6 +235,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
                 <UFormField label="Tags" name="tagIds">
                     <UInputMenu 
+                        :disabled="form.isFreeze"
                         v-model="form.tagIds" 
                         multiple 
                         value-key="value"

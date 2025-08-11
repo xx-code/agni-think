@@ -7,6 +7,7 @@ export type EditScheduleTransactionType = {
     tagIds: string[]
     type: string
     amount: number
+    isFreeze: boolean
     dateStart: CalendarDate
     period: string
     periodTime?: number
@@ -30,6 +31,7 @@ export type TableScheduleTransactionType = {
     type: string
     amount: number
     isPause: boolean
+    isFreeze: boolean
     dateStart: string
     dateUpdate: string
     dateEnd?: string
@@ -45,6 +47,7 @@ export type ScheduleTransactionType = {
     amount: number
     isPause: boolean
     dateStart: string
+    isFreeze: boolean
     period: string
     dateUpdate: string
     periodTime?: number

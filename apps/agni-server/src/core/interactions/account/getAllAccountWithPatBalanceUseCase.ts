@@ -39,7 +39,7 @@ export class GetAllAccountWithPastBalanceUseCase implements IUsecase<RequestGetA
     async execute(request: RequestGetAllAccountPastBalanceUseCase): Promise<ListDto<GetAllAccountWithPastBalanceDto>> {
         let accounts = await this.repository.getAll();
 
-        const { startDate, endDate } = MomentDateService.getDateByPeriod(mapperPeriod(request.period), request.periodTime)
+        const { startDate, endDate } = MomentDateService.getUTCDateByPeriod(mapperPeriod(request.period), request.periodTime)
         
         let accountsDisplay: GetAllAccountWithPastBalanceDto[] = [];
         for (let account of accounts) {

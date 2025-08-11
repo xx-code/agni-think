@@ -45,7 +45,7 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
             
             await this.connector('schedule_transaction_tags').insert(
                 scheduleTransaction.getTags().map(tagId => ({
-                    transaction_id: scheduleTransaction.getId(),
+                    schedule_transaction_id: scheduleTransaction.getId(),
                     tag_id: tagId
                 }))
             );

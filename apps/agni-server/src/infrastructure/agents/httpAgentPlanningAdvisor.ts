@@ -41,7 +41,7 @@ export default class HttpAgentPlanningAdvisor implements IAgentPlanningAdvisor {
             const res = await axios.post(api + "/agents/" + "planning-advisor",{
                     amount_to_allocate: input.amountToAllocate,
                     current_amount_in_investissment: input.currentAmountInInvestissment,
-                    current_amount_in_saving: input.currentAmountInInvestissment,
+                    current_amount_in_saving: input.currentAmountInSaving,
                     goals: input.goals.map(i => ({
                         uuid: i.id,
                         current_balance: i.currentBalance,

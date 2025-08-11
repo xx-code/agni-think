@@ -19,6 +19,7 @@ export default function useScheduleTransactions(): UseApiFetchReturn<ListRespons
                         isPause: i.isPause,
                         name: i.name,
                         period: i.period,
+                        isFreeze: i.isFreeze,
                         periodTime: i.periodTime,
                         tagIds: i.tagIds,
                         type: i.type,

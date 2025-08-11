@@ -39,7 +39,7 @@ export class GetTransactionUseCase implements IUsecase<string, GetTransactionDto
             accountId: transaction.getAccountRef(),
             transactionId: transaction.getId(),
             amount: record.getMoney().getAmount(),
-            date: transaction.getDate(),
+            date: transaction.getUTCDate(),
             description: record.getDescription(),
             recordType: record.getType(),
             categoryId: transaction.getCategoryRef(),

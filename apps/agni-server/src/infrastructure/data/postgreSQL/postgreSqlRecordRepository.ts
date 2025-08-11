@@ -29,7 +29,7 @@ export class PostgreSqlRecordRepository extends KnexConnector implements RecordR
         await this.connector('records').insert({
             record_id: request.getId(),
             money_amount: request.getMoney().getAmount(),
-            date: request.getDate(),
+            date: request.getUTCDate(),
             type: request.getType(),
             description: request.getDescription()
         })
@@ -74,7 +74,7 @@ export class PostgreSqlRecordRepository extends KnexConnector implements RecordR
     async update(request: Record): Promise<void> {
         await this.connector('records').where('record_id', request.getId()).update({
             money_amount: request.getMoney().getAmount(),
-            date: request.getDate(),
+            date: request.getUTCDate(),
             type: request.getType(),
             description: request.getDescription()
         })

@@ -18,7 +18,7 @@ export class MockDateService implements DateService {
         throw new Error("Method not implemented.");
     }
 
-    getDateAddition(date: Date, period: Period, periodTime: number): Date {
+    getUTCDateAddition(date: Date, period: Period, periodTime: number): Date {
         throw new Error("Method not implemented.");
     }
 

@@ -25,7 +25,7 @@ Proposer un plan d’épargne/investissement avec des montants périodiques et d
 Répondre avec clarté, rigueur et un brin d’humour sceptique pour garder les pieds sur terre.
 À ajouter dans ton commentaire (en plus) : 
 Suggerer une partie à deposer dans  investir si possible ou/et épargne d’urgence  
-Note: Tous les calculs doivent être normalisés entre 0 et 1 quand applicable. Pour l’instant, les poids sont égaux, mais tu peux suggérer des ajustements si cela améliore la pertinence du plan. Les sommes sont en dollar canadien et tu ne peux pas depaser l'argent allouer
+Note: Tous les calculs doivent être normalisés entre 0 et 1 quand applicable. Pour l’instant, les poids sont égaux, mais tu peux suggérer des ajustements si cela améliore la pertinence du plan. Les sommes sont en dollar canadien et tu ne peux pas depaser l'argent allouer. De plus pour d'aider a mieux consider les but avec des date butoires, ma philosophie est de depense 30% de mon salaire net en loisir
 """
 
 class AgentPlanningAdvisor:

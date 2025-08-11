@@ -36,9 +36,9 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
     async execute(id: string): Promise<GetBudgetDto> {
         let budget = await this.budgetRepository.get(id);
            
-        let startBudgetDate = budget.getSchedule().getStartedDate(); 
+        let startBudgetUTCDate = budget.getSchedule().getStartedDate(); 
         if (budget.getSchedule().getPeriodTime() !== undefined)
-            startBudgetDate = MomentDateService.getDateSubstraction(
+            startBudgetUTCDate = MomentDateService.getUTCDateSubstraction(
                 budget.getSchedule().getUpdatedDate(), 
                 budget.getSchedule().getPeriod(), 
                 budget.getSchedule().getPeriodTime()!
@@ -46,7 +46,7 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
 
         let transactions = await this.transactionRepository.getTransactions({
             budgets: [budget.getId()],
-            startDate: startBudgetDate.toISOString(),
+            startDate: startBudgetUTCDate.toISOString(),
             endDate: budget.getSchedule().getUpdatedDate()?.toISOString(),
         });
 

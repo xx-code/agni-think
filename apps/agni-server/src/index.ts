@@ -78,9 +78,14 @@ app.listen(port, async () => {
     try {
       const res = await axios.get(process.env.API_AGENT_URL||'http://127.0.0.1:8000')
       console.log(res.data)
-    } catch(err) {
+    } catch(err: any) {
       console.log('Agents server indisponible')
-      console.log(err)
+      if (err.response)
+        console.log(err.reponse.data)
+      else if(err.request)
+        console.log(err.request)
+      else 
+        console.log(err.message)
     }
 
     const applyScheduleTransaction = new ApplyScheduleTransactionCronScheduler();

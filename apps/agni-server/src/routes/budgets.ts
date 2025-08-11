@@ -68,6 +68,7 @@ router.get('/v1/budgets', async (req, res) => {
         var budgets = await container.budgetUseCase?.getAllBudgets.execute();
         res.status(200).send(budgets);
     } catch(err) {
+        console.log(err)
         res.status(400).send({ errors: [ err ]});
     }
 });

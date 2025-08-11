@@ -1,4 +1,4 @@
-FROM python:latest-alpine
+FROM python:3.13-alpine
 # Installer les dépendances système nécessaires (build, ssl, etc)
 RUN apk add --no-cache gcc musl-dev libffi-dev openssl-dev
 
@@ -6,10 +6,10 @@ RUN apk add --no-cache gcc musl-dev libffi-dev openssl-dev
 WORKDIR /app
 
 # Copier les fichiers requirements
-COPY requirements.txt .
+COPY requirements-linux.txt .
 
 # Installer les dépendances python
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-linux.txt
 
 # Copier tout le code de l'app
 COPY . .

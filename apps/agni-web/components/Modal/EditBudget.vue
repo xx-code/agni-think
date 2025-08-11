@@ -37,8 +37,8 @@ if (budget?.endDate)
     endDated = new Date(budget.endDate);
 
 
-const startDate = shallowRef(new CalendarDate(startDated.getFullYear(), startDated.getMonth() + 1, startDated.getDate()));
-const endDate = shallowRef(endDated ? new CalendarDate(endDated.getFullYear(), endDated.getMonth() + 1, endDated.getDate()) : undefined);
+const startDate = shallowRef(new CalendarDate(startDated.getUTCFullYear(), startDated.getUTCMonth() + 1, startDated.getUTCDate()));
+const endDate = shallowRef(endDated ? new CalendarDate(endDated.getUTCFullYear(), endDated.getUTCMonth() + 1, endDated.getUTCDate()) : undefined);
 
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'

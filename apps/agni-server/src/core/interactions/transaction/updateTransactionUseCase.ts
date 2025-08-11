@@ -116,7 +116,7 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
                     amount: record.getMoney().getAmount(),
                     categoryId: transaction.getCategoryRef(),
                     tagIds: transaction.getTags(),
-                    date: record.getDate(),
+                    date: record.getUTCDate(),
                     description: record.getDescription(),
                     type: transaction.getTransactionType(),
                     budgetIds: transaction.getBudgetRefs()

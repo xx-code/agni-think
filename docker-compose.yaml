@@ -14,7 +14,8 @@ services:
     ports:
       - "${WEB_PORT}:${WEB_PORT}"
     depends_on:
-      - api
+      api:
+        condition: service_started
     # networks:
     #   - agni
   api:
@@ -30,14 +31,14 @@ services:
     ports:
       - "${API_PORT}:${API_PORT}" # setup in variable
     depends_on:
-      - agent
+      agent:
+        condition: service_started
   agent:
     container_name: agent
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     build:
-      context: .
-      dockerfile: ./apps/ia-agent/dockerfile
+      context: ./apps/ia-agent
     restart: always
     ports:
       - "${AGENT_PORT}:8000"

@@ -138,7 +138,7 @@ export class DbMigration {
                         typeTrans = TransactionType.INCOME
 
                     let newTransaction = new Transaction(GetUID(), account.getId(), record.getId(), 
-                    category.getId(), record.getDate(), typeTrans, TransactionStatus.COMPLETE, tags.map((t) => t.getId()))
+                    category.getId(), record.getUTCDate(), typeTrans, TransactionStatus.COMPLETE, tags.map((t) => t.getId()))
                     if (is_Freeze)
                         newTransaction.setIsFreeze()
 

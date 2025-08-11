@@ -54,19 +54,20 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
     async execute(request: RequestSuggestPlanningSaveGoal): Promise<GetAllSuggestPlanningDto> {
         
         const workingStartDate = MomentDateService.getToday();
-        const workingEndDate = MomentDateService.getDateAddition(workingStartDate, Period.WEEK, 2);
+        const workingEndDate = MomentDateService.getUTCDateAddition(workingStartDate, Period.WEEK, 2);
 
         const accounts = await this.accountRepo.getAll();
 
         let currentInvestissment = 0
         let currentSaving = 0
         for(const account of accounts) {
-            if (account.getType() === AccountType.BUSINESS)
+            if (account.getType() == AccountType.BROKING)
                 currentInvestissment += account.getBalance()
 
-            if (account.getType() === AccountType.SAVING)
+            if (account.getType() == AccountType.SAVING)
                 currentSaving += account.getBalance()
         }
+        console.log(currentSaving)
 
         const responseEstimationUc = await this.estimationLeftAmountUseCase.execute({
             startDate: workingStartDate.toISOString(),
