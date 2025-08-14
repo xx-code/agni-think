@@ -224,10 +224,7 @@ const tableColumn: TableColumn<TransactionTableType>[] = [
             return new Date(row.getValue('date')).toLocaleString('fr-FR', {
                 day: 'numeric',
                 month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'UTC'
+                year: '2-digit'
             })
         }
     },

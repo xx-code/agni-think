@@ -103,13 +103,10 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
         accessorKey: 'dateStart',
         header: 'Date Debut',
         cell: ({ row }) => {
-            return new Date(row.getValue('dateStart')).toLocaleString('en-Us', {
+            return new Date(row.getValue('dateStart')).toLocaleString('fr-Fr', {
                 day: 'numeric',
                 month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'UTC'
+                year: '2-digit'
             })
         }
     },
@@ -117,13 +114,10 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
         accessorKey: 'dateUpdate',
         header: 'Date Mise a jour',
         cell: ({ row }) => {
-            return new Date(row.getValue('dateUpdate')).toLocaleString('en-Us', {
+            return new Date(row.getValue('dateUpdate')).toLocaleString('fr-Fr', {
                 day: 'numeric',
                 month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'UTC'
+                year: '2-digit'
             })
         }
     },
@@ -134,7 +128,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
             if (row.getValue('dateEnd') === undefined)
                 return '';
 
-            return new Date(row.getValue('dateEnd')).toLocaleString('en-Us', {
+            return new Date(row.getValue('dateEnd')).toLocaleString('fr-Fr', {
                 day: 'numeric',
                 month: 'short',
                 hour: '2-digit',

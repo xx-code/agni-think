@@ -88,13 +88,14 @@ export class MomentDateService {
             throw new ValueError(`${date} is not valid`)
       
         let today = moment()    
-        const value = this.periodMatcherToMoment(period) 
+        const periodStr = this.periodMatcherToMoment(period) 
 
-        let dateFormat = formatted.add(periodTime, value)
+        let dateFormat = formatted.add(periodTime, periodStr)
 
         if (dateFormat.isBefore(today)) {
-            var diff = today.diff(dateFormat, value)
-            dateFormat = dateFormat.add(periodTime * diff, value)
+            var diff = today.diff(dateFormat, periodStr)
+            if (diff === 0) diff += 1
+            dateFormat = dateFormat.add(periodTime * diff, periodStr)
         }
 
         return new Date(dateFormat) 

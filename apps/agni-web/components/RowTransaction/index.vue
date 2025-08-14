@@ -18,8 +18,7 @@ const props = defineProps({
 const formatedDate = new Date(props.date).toLocaleString('fr-FR', {
     day: 'numeric',
     month: 'long',
-    year: 'numeric',
-    hour12: false
+    year: 'numeric'
 }) 
 
 </script>
