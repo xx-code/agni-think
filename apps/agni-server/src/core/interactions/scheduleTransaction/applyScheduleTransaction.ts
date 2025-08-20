@@ -7,6 +7,7 @@ import { RecordRepository } from "@core/repositories/recordRepository";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { Record } from "@core/domains/entities/record";
 import { RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
     private scheduleTransactionRepo: ScheduleTransactionRepository 
@@ -39,18 +40,25 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                         const record = new Record(
                             GetUID(),
                             scheduleTrans.getAmount(),
-                            scheduleTrans.getSchedule().getUpdatedDate().toLocaleString(),
+                            scheduleTrans.getSchedule().getUpdatedDate().toISOString(),
                             scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
                             scheduleTrans.getName()
                         )
                         await this.recordRepo.save(record)
+
+                        let date = scheduleTrans.getSchedule().getUpdatedDate().toISOString() 
+                        if (scheduleTrans.getIsFreeze())
+                            date = MomentDateService.getUTCDateAddition(
+                                scheduleTrans.getSchedule().getUpdatedDate(), 
+                                scheduleTrans.getSchedule().getPeriod(),
+                                scheduleTrans.getSchedule().getPeriodTime() || 1).toISOString()
 
                         const transaction = new Transaction(
                             GetUID(),
                             scheduleTrans.getAccountRef(),
                             record.getId(),
                             scheduleTrans.getCategoryRef(),
-                            scheduleTrans.getSchedule().getUpdatedDate().toLocaleString(),
+                            date,
                             scheduleTrans.getTransactionType(),
                             TransactionStatus.PENDING,
                             scheduleTrans.getTags() 
