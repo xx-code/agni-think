@@ -34,7 +34,7 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
             for(let i = 0; i < scheduleTransactions.length; i++) {
                 let scheduleTrans = scheduleTransactions[i]
 
-                if (scheduleTrans.getSchedule().isDue() && !scheduleTrans.getIsPause()) {
+                if (scheduleTrans.getSchedule().isDue(true) && !scheduleTrans.getIsPause()) {
                     if (scheduleTrans.getIsPay() === false) {
                         const record = new Record(
                             GetUID(),

@@ -92,7 +92,7 @@ export class MomentDateService {
         return new Date(today)
     }
 
-    static getUTCDateAddition(date: Date, period: Period, periodTime: number): Date {
+    static getUTCDateAddition(date: Date, period: Period, periodTime: number, strictDatebefore: boolean=true): Date {
         let formatted = moment.utc(date)
         if (!formatted.isValid())
             throw new ValueError(`${date} is not valid`)
@@ -104,7 +104,7 @@ export class MomentDateService {
 
         if (dateFormat.isBefore(today)) {
             var diff = today.diff(dateFormat, periodStr)
-            if (diff === 0) diff += 1
+            if (diff === 0 && !strictDatebefore) diff += 1
             dateFormat = dateFormat.add(periodTime * diff, periodStr)
         }
 
