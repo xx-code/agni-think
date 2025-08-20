@@ -3,7 +3,9 @@ import container from "src/di_contenair";
 import cron from 'node-cron';
 
 export class CronScheduler implements TaskScheduler { 
-    runTask(timer: TaskTimer, task?: () => Promise<void>, taskName?: string): void {
+    async runTask(timer: TaskTimer, task?: () => Promise<void>, taskName?: string): Promise<void> {
+        if (task)
+            await task()
         cron.schedule(this.cronBuildTimer(timer), async () => {
             if (!task) {
                 console.log(`Task not defined`)
