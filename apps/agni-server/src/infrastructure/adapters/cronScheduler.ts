@@ -14,7 +14,7 @@ export class CronScheduler implements TaskScheduler {
             console.log(`[server Task]: ${taskName || ''} - started`);
             task();
             console.log(`[server Task]: ${taskName || ''} - end`);
-        },   { timezone: 'America/Toronto' }) ;
+        }) ;
     }
 
     private cronBuildTimer(timer: TaskTimer): string {
