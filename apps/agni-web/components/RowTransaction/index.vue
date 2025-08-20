@@ -1,6 +1,6 @@
 <script setup>
-import {  useRoute } from 'nuxt/app'
 import { UPopover } from '#components'
+import { parseAsLocalDate } from '~/utils/parseAsLocalDate'
 
 const props = defineProps({
     id: String,
@@ -15,7 +15,7 @@ const props = defineProps({
     doShowEdit: Boolean
 })
 
-const formatedDate = new Date(props.date).toLocaleString('fr-FR', {
+const formatedDate = parseAsLocalDate(props.date).toLocaleString('fr-FR', {
     day: 'numeric',
     month: 'long',
     year: 'numeric'

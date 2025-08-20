@@ -61,7 +61,7 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
 
             let amount = new Money(request.amount)
 
-            let date = MomentDateService.formatDateWithtime(request.date)
+            let date = MomentDateService.formatDate(request.date)
 
             const type = mapperMainTransactionCategory(request.type)
 

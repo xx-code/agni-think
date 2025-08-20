@@ -435,7 +435,7 @@ export class DiContenair {
     private registerSaveGoalUsecases() {
         this.saveGoalUseCase = {
             addSaveGoal: new AddSaveGoalUseCase(this.getRepository('saving')),
-            increaseSaveGoal: new IncreaseSaveGoalUseCase(this.getRepository('cagetory'), this.getRepository('account'), 
+            increaseSaveGoal: new IncreaseSaveGoalUseCase(this.getRepository('category'), this.getRepository('account'), 
             this.getRepository('saving'), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
             decreaseSaveGoal: new DecreaseSaveGoalUseCase(this.getRepository('category'), this.getRepository('account'), this.getRepository('saving'),
             this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),

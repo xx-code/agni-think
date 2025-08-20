@@ -62,10 +62,6 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
             if (increaseAmount.add(savingGoal.getBalance()).getAmount() > savingGoal.getTarget().getAmount())  
                 throw new ValueError("You cant't set more than target")
 
-            if (!(await this.categoryRepository.isCategoryExistById(SAVING_CATEGORY_ID))) {
-                let new_category = new Category(SAVING_CATEGORY_ID, 'saving', 'saving')
-                await this.categoryRepository.save(new_category)
-            }
 
             account.substractBalance(increaseAmount)
             savingGoal.increaseBalance(increaseAmount)
@@ -74,12 +70,12 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
             let date = MomentDateService.getTodayWithTime()
 
             let idRecordFrom = GetUID()
-            let newRecordFrom = new Record(idRecordFrom, increaseAmount, date.toString(), RecordType.DEBIT)
+            let newRecordFrom = new Record(idRecordFrom, increaseAmount, date.toISOString(), RecordType.DEBIT)
             newRecordFrom.setDescription('Saving ' + savingGoal.getTitle()) 
             await this.recordRepository.save(newRecordFrom)
        
             let idTransFrom = GetUID()
-            let newTransactionFrom = new Transaction(idTransFrom, request.accountId, idRecordFrom, SAVING_CATEGORY_ID, date.toString(),
+            let newTransactionFrom = new Transaction(idTransFrom, request.accountId, idRecordFrom, SAVING_CATEGORY_ID, date.toISOString(),
                 TransactionType.OTHER, TransactionStatus.COMPLETE,
             )
             await this.transactionRepository.save(newTransactionFrom);

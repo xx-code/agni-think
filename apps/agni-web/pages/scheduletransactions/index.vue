@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ModalEditScheduleTransaction } from '#components';
 import type { TableColumn, TableRow } from '#ui/types';
+import { getLocalTimeZone } from '@internationalized/date';
 import useCategories from '~/composables/categories/useCategories';
 import useCreateScheduleTransaction from '~/composables/scheduleTransactions/useCreateScheduleTransaction';
 import useDeleteScheduleTransaction from '~/composables/scheduleTransactions/useDeleteScheduleTransaction';
@@ -9,6 +10,7 @@ import useScheduleTransactions from '~/composables/scheduleTransactions/useSched
 import useUpdateScheduleTransaction from '~/composables/scheduleTransactions/useUpdateScheduleTransaction';
 import useTags from '~/composables/tags/useTags';
 import type { EditScheduleTransactionType, ScheduleTransactionType, TableScheduleTransactionType } from '~/types/ui/scheduleTransaction';
+import { parseAsLocalDate } from '~/utils/parseAsLocalDate';
 
 const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories();
 const {data: tags, error: errorTag, refresh: refreshTag } = useTags();
@@ -103,7 +105,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
         accessorKey: 'dateStart',
         header: 'Date Debut',
         cell: ({ row }) => {
-            return new Date(row.getValue('dateStart')).toLocaleString('fr-Fr', {
+            return parseAsLocalDate(row.getValue('dateStart')).toLocaleString('fr-Fr', {
                 day: 'numeric',
                 month: 'short',
                 year: '2-digit'
@@ -114,7 +116,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
         accessorKey: 'dateUpdate',
         header: 'Date Mise a jour',
         cell: ({ row }) => {
-            return new Date(row.getValue('dateUpdate')).toLocaleString('fr-Fr', {
+            return parseAsLocalDate(row.getValue('dateUpdate')).toLocaleString('fr-Fr', {
                 day: 'numeric',
                 month: 'short',
                 year: '2-digit'
@@ -128,7 +130,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
             if (row.getValue('dateEnd') === undefined)
                 return '';
 
-            return new Date(row.getValue('dateEnd')).toLocaleString('fr-Fr', {
+            return parseAsLocalDate(row.getValue('dateEnd')).toLocaleString('fr-Fr', {
                 day: 'numeric',
                 month: 'short',
                 hour: '2-digit',

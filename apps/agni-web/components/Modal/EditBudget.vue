@@ -5,6 +5,7 @@ import { reactive, shallowRef, watchEffect } from "vue";
 import type { FormSubmitEvent } from '@nuxt/ui';
 import usePeriodTypes from '~/composables/internals/usePeriodTypes';
 import type { BudgetType, EditBudgetType } from '~/types/ui/budget';
+import { parseAsLocalDate } from '~/utils/parseAsLocalDate';
 
 const { budget } = defineProps<{
     budget?: BudgetType
@@ -31,10 +32,10 @@ const form = reactive({
     hasEndDate: false
 });
 
-let startDated = budget ? new Date(budget.startDate)  : new Date();
+let startDated = budget ? parseAsLocalDate(budget.startDate)  : new Date();
 let endDated: Date|undefined; 
 if (budget?.endDate)
-    endDated = new Date(budget.endDate);
+    endDated = parseAsLocalDate(budget.endDate);
 
 
 const startDate = shallowRef(new CalendarDate(startDated.getFullYear(), startDated.getMonth() + 1, startDated.getDate()));
@@ -83,7 +84,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                 <UFormField label="Date de debut" name="startDate">
                     <UPopover>
                         <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
-                            {{ startDate ? df.format(startDate.toDate(getLocalTimeZone())) : 'Selectionnez une de debut' }}
+                            {{ startDate ? df.format(startDate.toDate(getLocalTimeZone()))  : 'Selectionnez une de debut' }}
                         </UButton>
                         <template #content>
                             <UCalendar v-model="startDate" />

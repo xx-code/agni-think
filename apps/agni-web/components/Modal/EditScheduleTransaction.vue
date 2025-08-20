@@ -10,6 +10,7 @@ import useTransactionTypes from '~/composables/internals/useTransactionTypes';
 import type { FormSubmitEvent } from '#ui/types';
 import type { EditScheduleTransactionType, ScheduleTransactionType } from '~/types/ui/scheduleTransaction';
 import usePeriodTypes from '~/composables/internals/usePeriodTypes';
+import { parseAsLocalDate } from '~/utils/parseAsLocalDate';
 
 const { scheduleTransaction } = defineProps<{
     scheduleTransaction?: ScheduleTransactionType
@@ -146,10 +147,10 @@ const form = reactive({
 })
 
 
-let startDated = scheduleTransaction ? new Date(scheduleTransaction.dateStart)  : new Date();
+let startDated = scheduleTransaction ? parseAsLocalDate(scheduleTransaction.dateStart)  : new Date();
 let endDated: Date|undefined; 
 if (scheduleTransaction?.dateEnd)
-    endDated = new Date(scheduleTransaction.dateEnd);
+    endDated = parseAsLocalDate(scheduleTransaction.dateEnd);
 
 const startDate = shallowRef(new CalendarDate(startDated.getFullYear(), startDated.getMonth() + 1, startDated.getDate()))
 const endDate = shallowRef(endDated ?new CalendarDate(endDated.getFullYear(), endDated.getMonth() + 1, endDated.getDate()) : undefined);
@@ -245,7 +246,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                 <UFormField label="Date de debut" name="startDate">
                     <UPopover>
                         <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
-                            {{ startDate ? df.format(startDate.toDate(getLocalTimeZone())) : 'Selectionnez une de debut' }}
+                            {{ startDate ? df.format(startDate.toDate(getLocalTimeZone()))  : 'Selectionnez une de debut' }}
                         </UButton>
                         <template #content>
                             <UCalendar v-model="startDate" />

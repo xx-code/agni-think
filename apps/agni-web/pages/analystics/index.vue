@@ -38,7 +38,7 @@ async function estimation() {
         <div class="space-x-3 flex items-center">
             <UPopover>
                 <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
-                    {{ startDate ? df.format(startDate.toDate(getLocalTimeZone())) : 'Selectionnez une de debut' }}
+                    {{ startDate ? df.format(startDate.toDate(getLocalTimeZone()))  : 'Selectionnez une de debut' }}
                 </UButton>
                 <template #content>
                     <UCalendar v-model="startDate" />

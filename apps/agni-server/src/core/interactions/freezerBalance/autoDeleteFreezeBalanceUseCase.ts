@@ -1,4 +1,3 @@
-import { FREEZE_CATEGORY_ID } from "@core/domains/constants";
 import { AccountRepository } from "@core/repositories/accountRepository";
 import { RecordRepository } from "@core/repositories/recordRepository";
 import { TransactionRepository, TransactionFilter, SortBy } from "@core/repositories/transactionRepository";
@@ -26,35 +25,25 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
 
     async execute(): Promise<void> {
         try {
-            let categoriesIds = [FREEZE_CATEGORY_ID]
-
+            // let categoriesIds = [FREEZE_CATEGORY_ID]
         
             let filters: TransactionFilter = {
-                accounts: [], 
-                tags: [],
-                budgets: [],
-                categories: categoriesIds,
-                startDate: '',
-                endDate: '',
-                types: [],
                 isFreeze: true,
                 queryAll: true
             };
-
-            let sortBy: SortBy|null = null;
       
-            let response = await this.transactionRepository.getPaginations(0, 0, sortBy, filters);
+            let response = await this.transactionRepository.getTransactions(filters);
 
             this.unitOfWork.start()
 
-            for (let i = 0; i < response.items.length ; i++) {
-                let account = await this.accountRepository.get(response.items[i].getAccountRef())
+            for (let i = 0; i < response.length ; i++) {
+                let account = await this.accountRepository.get(response[i].getAccountRef())
                 if (account === null) {
                     console.log((new ResourceNotFoundError("ACCOUNT_NOT_FOUND")))
                     continue
                 }
 
-                let record = await this.recordRepository.get(response.items[i].getRecordRef())
+                let record = await this.recordRepository.get(response[i].getRecordRef())
                 if (record === null) {
                     console.log((new ResourceNotFoundError("RECORD_NOT_FOUND")))
                     continue
@@ -65,7 +54,7 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
                 if (MomentDateService.compareDate(MomentDateService.getToday().toISOString(), record.getUTCDate()) >= 0) {
                     await this.accountRepository.update(account)
                     await this.recordRepository.delete(record.getId())
-                    await this.transactionRepository.delete(response.items[i].getId())
+                    await this.transactionRepository.delete(response[i].getId())
                 }
             }
             

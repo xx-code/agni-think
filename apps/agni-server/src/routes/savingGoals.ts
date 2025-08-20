@@ -98,20 +98,20 @@ router.delete('/v1/save-goals/:id', body('accountDepositId').isString().notEmpty
 
 router.patch('/v1/save-goals/:id/increase-balance', 
     body('accountId').notEmpty(),
-    body('amount').notEmpty(),
-    body('saveGoalId').notEmpty(),
-    async (req, res) => {
+    body('increaseAmount').notEmpty(),
+    async (req: Request, res: Response) => {
         try {
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestIncreaseSaveGoal = matchedData(req);
+                data.id = req.params.id
                 await container.saveGoalUseCase?.increaseSaveGoal.execute(data);
 
                 res.sendStatus(200);
                 return;
             }
             
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] })
         }
@@ -119,20 +119,20 @@ router.patch('/v1/save-goals/:id/increase-balance',
 
 router.patch('/v1/save-goals/:id/decrease-balance',
     body('accountId').notEmpty().isString(),
-    body('amount').notEmpty().isNumeric(),
-    body('saveGoalId').notEmpty().isString(),
-    async (req, res) => {
+    body('decreaseAmount').notEmpty().isNumeric(),
+    async (req: Request, res: Response) => {
         try {
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestDecreaseSaveGoal = matchedData(req);
+                data.id = req.params.id;
                 await container.saveGoalUseCase?.decreaseSaveGoal.execute(data);
 
                 res.sendStatus(200);
                 return;
             }
             
-            res.send({ errors: result.array() });
+            res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err]});
         }

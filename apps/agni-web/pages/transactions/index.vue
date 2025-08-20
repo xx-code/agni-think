@@ -16,6 +16,7 @@ import useUpdateTransaction from "~/composables/transactions/useUpdateTransactio
 import useCreateTransaction from "~/composables/transactions/useCreateTransaction";
 import type { FormFilterTransaction } from "~/types/ui/component";
 import useCompleteTransaction from "~/composables/transactions/useCompleteTransaction";
+import { parseAsLocalDate } from "~/utils/parseAsLocalDate";
 
 
 const toast = useToast();
@@ -221,7 +222,7 @@ const tableColumn: TableColumn<TransactionTableType>[] = [
         accessorKey: 'date',
         header: 'Date',
         cell: ({ row }) => {
-            return new Date(row.getValue('date')).toLocaleString('fr-FR', {
+            return parseAsLocalDate(row.getValue('date')).toLocaleString('fr-FR', {
                 day: 'numeric',
                 month: 'short',
                 year: '2-digit'
