@@ -17,7 +17,7 @@ export default function useSaveGoals(): UseApiFetchReturn<ListResponse<SaveGoalT
                     items: i.items,
                     desirValue: i.desirValue,
                     importance: i.importance,
-                    wishDueDate: i.wishDueDate
+                    wishDueDate: i.wishDueDate ? new Date(i.wishDueDate) : undefined 
                 })),
                 totals: data.totals
             } satisfies ListResponse<SaveGoalType> 
