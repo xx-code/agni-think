@@ -8,7 +8,6 @@ import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError"
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository"
 import { ValueError } from "@core/errors/valueError"
 import { TransactionDependencies } from "../facades"
-import { MomentDateService } from "@core/domains/entities/libs"
 import { CreatedDto } from "@core/dto/base"
 import { IUsecase } from "../interfaces"
 
@@ -17,7 +16,7 @@ export type RequestAddTransactionUseCase = {
     amount: number
     categoryId: string
     description: string
-    date: string
+    date: Date
     tagIds: string[]
     budgetIds: string[]
     type: string
@@ -61,14 +60,12 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
 
             let amount = new Money(request.amount)
 
-            let date = MomentDateService.formatDate(request.date)
-
             const type = mapperMainTransactionCategory(request.type)
 
             let newRecord = new Record(
                 GetUID(), 
                 amount, 
-                date.toISOString(), 
+                request.date, 
                 type === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT, 
                 request.description)
             await this.transcationDependencies.recordRepository?.save(newRecord)
@@ -82,7 +79,7 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
                 request.accountId, 
                 newRecord.getId(), 
                 request.categoryId, 
-                date.toISOString(), type, TransactionStatus.COMPLETE, 
+                request.date, type, TransactionStatus.COMPLETE, 
                 request.tagIds, request.budgetIds)    
 
             await this.transactionRepository.save(newTransaction);

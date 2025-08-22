@@ -70,8 +70,8 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
         console.log(currentSaving)
 
         const responseEstimationUc = await this.estimationLeftAmountUseCase.execute({
-            startDate: workingStartDate.toISOString(),
-            endDate: workingEndDate.toISOString()
+            startDate: workingStartDate,
+            endDate: workingEndDate
         });
 
         const estimationAmountToAllocate = responseEstimationUc.estimateAmount;
@@ -93,7 +93,7 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
                 desirValue: saveGoal.getDesirValue(),
                 importance: saveGoal.getImportance(),
                 target: saveGoal.getTarget().getAmount(),
-                dueDate: saveGoal.getWishDueDate() ? MomentDateService.formatDate(saveGoal.getWishDueDate()!) : undefined
+                dueDate: saveGoal.getWishDueDate()
             });
         }
         
@@ -114,7 +114,7 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
                     importance: saveGoal.getImportance(),
                     score: ranking.score,
                     target: saveGoal.getTarget().getAmount(),
-                    wishDueDate: saveGoal.getWishDueDate()
+                    wishDueDate: saveGoal.getWishDueDate()?.toISOString()
                 })
             }
         }

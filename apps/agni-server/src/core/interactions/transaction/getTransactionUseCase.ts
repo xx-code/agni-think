@@ -7,7 +7,7 @@ export type GetTransactionDto = {
     transactionId: string
     accountId: string
     amount: number
-    date: string
+    date: Date
     status: string
     description: string
     recordType: string

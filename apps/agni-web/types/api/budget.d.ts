@@ -5,9 +5,9 @@ export type GetBudgetResponse = {
     period: string
     periodTime?: number
     currentBalance: number
-    startDate: string
-    updateDate: string
-    endDate?: string
+    startDate: Date 
+    updateDate: Date
+    endDate?: Date
 } 
 
 export type GetAllBudgetResponse = {
@@ -17,9 +17,9 @@ export type GetAllBudgetResponse = {
     period: string
     periodTime?: number
     currentBalance: number
-    startDate: string
-    updateDate: string
-    endDate?: string
+    startDate: Date
+    updateDate: Date
+    endDate?: Date
 }
 
 export type CreateBudgetRequest = {

@@ -14,7 +14,7 @@ export default function useTransactionPagination(query: FilterTransactionQuery):
                     id: i.transactionId,
                     accountId: i.accountId,
                     amount: i.amount,
-                    date: i.date,
+                    date: new Date(i.date),
                     description: i.description,
                     recordType: i.recordType,
                     type: i.type,

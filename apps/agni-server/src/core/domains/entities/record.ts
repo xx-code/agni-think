@@ -6,16 +6,15 @@ import { Money } from "./money"
 
 export class Record extends Entity {
     private money: TrackableProperty<Money>   
-    private date: TrackableProperty<string>
+    private date: TrackableProperty<Date>
     private description: TrackableProperty<string>
     private type: TrackableProperty<RecordType> 
 
-    constructor(id: string, money: Money, date: string, type: RecordType, description: string = '') {
+    constructor(id: string, money: Money, date: Date, type: RecordType, description: string = '') {
         super(id)
         this.money = new TrackableProperty(money, this.markHasChange.bind(this))
         this.date = new TrackableProperty(date, this.markHasChange.bind(this))
         this.type = new TrackableProperty(type, this.markHasChange.bind(this))
-        this.date = new TrackableProperty(date, this.markHasChange.bind(this)) 
         this.description = new TrackableProperty(description, this.markHasChange.bind(this))
     }
 
@@ -27,11 +26,11 @@ export class Record extends Entity {
         return this.money.get()
     }
 
-    setDate(date: string) {
+    setDate(date: Date) {
         this.date.set(date)
     }
 
-    getUTCDate(): string {
+    getUTCDate(): Date {
         return this.date.get()
     }
 

@@ -1,5 +1,5 @@
 import { ValueError } from "@core/errors/valueError"
-import { formatted, isValidColor, isEmpty, reverseFormatted, isStringDifferent } from "../helpers"
+import { isValidColor, isEmpty, isStringDifferent } from "../helpers"
 import Entity, { TrackableProperty } from "./entity"
 
 export class Category extends Entity {

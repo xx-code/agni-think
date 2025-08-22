@@ -16,7 +16,7 @@ router.post('/v1/save-goals',
     body('items').isArray(),
     body('desirValue').isNumeric(),
     body('importance').isNumeric(),
-    body('wishDueDate').optional().isDate(),
+    body('wishDueDate').optional().isISO8601().toDate(),
     async (req, res) => {
         try {
             const result = validationResult(req);
@@ -41,7 +41,7 @@ router.put('/v1/save-goals/:id',
     body('items').optional().isArray(),
     body('desirValue').optional().isNumeric(),
     body('importance').optional().isNumeric(),
-    body('wishDueDate').optional().isDate(),
+    body('wishDueDate').optional().isISO8601().toDate(),
     async (req: Request, res: Response) => {
         try {
             const result = validationResult(req);

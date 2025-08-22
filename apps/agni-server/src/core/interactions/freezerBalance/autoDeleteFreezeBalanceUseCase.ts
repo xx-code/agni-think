@@ -1,6 +1,6 @@
 import { AccountRepository } from "@core/repositories/accountRepository";
 import { RecordRepository } from "@core/repositories/recordRepository";
-import { TransactionRepository, TransactionFilter, SortBy } from "@core/repositories/transactionRepository";
+import { TransactionRepository, TransactionFilter } from "@core/repositories/transactionRepository";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
@@ -25,8 +25,6 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
 
     async execute(): Promise<void> {
         try {
-            // let categoriesIds = [FREEZE_CATEGORY_ID]
-        
             let filters: TransactionFilter = {
                 isFreeze: true,
                 queryAll: true
@@ -51,7 +49,7 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
 
                 account.addOnBalance(record.getMoney())
 
-                if (MomentDateService.compareDate(MomentDateService.getToday().toISOString(), record.getUTCDate()) >= 0) {
+                if (MomentDateService.compareDate(MomentDateService.getToday(), record.getUTCDate()) >= 0) {
                     await this.accountRepository.update(account)
                     await this.recordRepository.delete(record.getId())
                     await this.transactionRepository.delete(response[i].getId())

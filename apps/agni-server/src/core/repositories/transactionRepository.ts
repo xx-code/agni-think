@@ -8,8 +8,8 @@ export type TransactionFilter = {
     categories?: Array<string>;
     budgets?: Array<string>,
     tags?: Array<string>;
-    startDate?: string
-    endDate?: string
+    startDate?: Date
+    endDate?: Date
     types?: TransactionType[],
     minPrice?: Money
     maxPrice?: Money

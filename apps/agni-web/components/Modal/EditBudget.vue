@@ -5,7 +5,6 @@ import { reactive, shallowRef, watchEffect } from "vue";
 import type { FormSubmitEvent } from '@nuxt/ui';
 import usePeriodTypes from '~/composables/internals/usePeriodTypes';
 import type { BudgetType, EditBudgetType } from '~/types/ui/budget';
-import { parseAsLocalDate } from '~/utils/parseAsLocalDate';
 
 const { budget } = defineProps<{
     budget?: BudgetType
@@ -32,10 +31,10 @@ const form = reactive({
     hasEndDate: false
 });
 
-let startDated = budget ? parseAsLocalDate(budget.startDate)  : new Date();
+let startDated = budget ? budget.startDate  : new Date();
 let endDated: Date|undefined; 
 if (budget?.endDate)
-    endDated = parseAsLocalDate(budget.endDate);
+    endDated = budget.endDate;
 
 
 const startDate = shallowRef(new CalendarDate(startDated.getFullYear(), startDated.getMonth() + 1, startDated.getDate()));

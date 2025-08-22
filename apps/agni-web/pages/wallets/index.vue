@@ -17,12 +17,11 @@ import useTransfertTransaction from "~/composables/transactions/useTransfertTran
 import type { FilterTransactionQuery } from "~/types/api/transaction";
 import useCategories from "~/composables/categories/useCategories";
 import useTags from "~/composables/tags/useTags";
+import { getLocalTimeZone } from "@internationalized/date";
 
 // generate code
 const now = new Date();
 const prevMonth = new Date(now.getUTCFullYear(), now.getUTCMonth() - 1, 1);
-const startDate = new Date(prevMonth.getUTCFullYear(), prevMonth.getUTCMonth(), 1);
-const endDate = new Date(prevMonth.getUTCFullYear(), prevMonth.getUTCMonth() + 1, 0);
 
 const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useAccountsWitPastBalance({ period: 'Month', periodTime: 1}); 
 const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories();
@@ -55,7 +54,7 @@ const displayTransactions = computed(() => {
             color: getCategory(i.categoryId)?.color || '',
             icon: getCategory(i.categoryId)?.icon || ''
         },
-        date: i.date.toString(),
+        date: i.date,
         description: i.description,
         recordType: i.recordType,
         status: i.status,
@@ -88,7 +87,7 @@ const displayFutureTransactions = computed(() => {
                 color: getCategory(i.categoryId)?.color || '',
                 icon: getCategory(i.categoryId)?.icon || ''
             },
-            date: i.date.toString(),
+            date: i.date,
             description: i.description,
             recordType: i.recordType,
             status: i.status,
@@ -199,7 +198,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
                 amount: value.amount,
                 budgetIds: value.budgetIds,
                 categoryId: value.categoryId,
-                date: value.date.toString(),
+                date: value.date.toDate(getLocalTimeZone()).toISOString(),
                 description: value.description,
                 tagIds: value.tagIds,
                 type: value.type
@@ -352,9 +351,17 @@ const onUpateAccount = async (payload: string) => {
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
                 <div v-for="trans in displayTransactions" :key="trans.id">
                     <RowTransaction 
-                        :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
-                        :description="trans.description" :icon="trans.category.icon" :color="trans.category.color"
-                        :tags="trans.tags.map((tag: any)=>tag.value)" :date="trans.date" :recordType="trans.recordType"/>
+                        :id="trans.id" 
+                        :balance="trans.amount" 
+                        :title="trans.category.title" 
+                        :description="trans.description" 
+                        :icon="trans.category.icon" 
+                        :color="trans.category.color"
+                        :tags="trans.tags.map((tag: any)=>tag.value)" 
+                        :date="trans.date" 
+                        :recordType="trans.recordType"
+                        :doShowEdit="true"
+                    />
                 </div>
                 <UPagination 
                     class="mt-3" 
@@ -381,9 +388,17 @@ const onUpateAccount = async (payload: string) => {
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
                 <div v-for="trans in displayFutureTransactions" :key="trans.id">
                     <RowTransaction 
-                        :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
-                        :description="trans.description" :icon="trans.category.icon" 
-                        :tags="trans.tags.map((tag: any) =>tag.value)" :date="trans.date" :color="trans.category.color"/>    
+                        :id="trans.id" 
+                        :balance="trans.amount" 
+                        :title="trans.category.title" 
+                        :description="trans.description" 
+                        :icon="trans.category.icon" 
+                        :tags="trans.tags.map((tag: any) => tag.value)" 
+                        :date="trans.date" 
+                        :color="trans.category.color"
+                        :recordType="trans.recordType"
+                        :doShowEdit="false"
+                    />    
                 </div>
                 <UPagination 
                     class="mt-3" 

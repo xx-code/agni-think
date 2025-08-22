@@ -6,7 +6,6 @@ import type { EditSaveGoalType, SaveGoalType } from '~/types/ui/saveGoal';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
 import useIntensityDesirTypes from '~/composables/internals/useIntensityDerisTypes';
 import useImportanceTypes from '~/composables/internals/useImportanceTypes';
-import { parseAsLocalDate } from '~/utils/parseAsLocalDate';
 
 const { saveGoal } = defineProps<{
     saveGoal?: SaveGoalType
@@ -44,7 +43,7 @@ const df = new DateFormatter('en-Us', {
 
 let wishDated: Date|undefined; 
 if (saveGoal?.wishDueDate)
-    wishDated = parseAsLocalDate(saveGoal.wishDueDate);
+    wishDated = saveGoal.wishDueDate;
 const wishDate = shallowRef(wishDated ? new CalendarDate(wishDated.getFullYear(), wishDated.getMonth() + 1, wishDated.getDate()) : undefined);
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {

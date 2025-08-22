@@ -10,7 +10,6 @@ import useTags from '~/composables/tags/useTags';
 import useBudgets from '~/composables/budgets/useBudgets';
 import useTransactionTypes from '~/composables/internals/useTransactionTypes';
 import type { FormSubmitEvent } from '#ui/types';
-import { parseAsLocalDate } from '~/utils/parseAsLocalDate';
 
 const { transaction, accountSelectedId } = defineProps<{
     transaction?: TransactionType
@@ -50,7 +49,7 @@ const form = reactive<Partial<Schema>>({
 })
 
 
-let valDate = transaction ? parseAsLocalDate( transaction.date)  : new Date();
+let valDate = transaction ? transaction.date  : new Date();
 const date = shallowRef(new CalendarDate(valDate.getFullYear(), valDate.getMonth() + 1, valDate.getDate()))
 
 const df = new DateFormatter('en-Us', {

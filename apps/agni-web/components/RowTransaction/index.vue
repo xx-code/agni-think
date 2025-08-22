@@ -1,21 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import { UPopover } from '#components'
-import { parseAsLocalDate } from '~/utils/parseAsLocalDate'
 
-const props = defineProps({
-    id: String,
-    balance: Number,
-    title: String,
-    recordType: String,
-    description: String,
-    icon: String,
-    color: String,
-    tags: Array,
-    date: String,
-    doShowEdit: Boolean
-})
+const props = defineProps<{
+    id: string,
+    balance: number,
+    title: string,
+    recordType: string,
+    description: string,
+    icon: string,
+    color: string,
+    tags: string[],
+    date: Date,
+    doShowEdit: boolean
+}>();
 
-const formatedDate = parseAsLocalDate(props.date).toLocaleString('fr-FR', {
+const formatedDate = props.date.toLocaleString('fr-FR', {
     day: 'numeric',
     month: 'long',
     year: 'numeric'

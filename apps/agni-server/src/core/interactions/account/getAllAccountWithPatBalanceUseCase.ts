@@ -46,12 +46,8 @@ export class GetAllAccountWithPastBalanceUseCase implements IUsecase<RequestGetA
 
             const filter: TransactionFilter = {
                 accounts: [account.getId()],
-                startDate: startDate.toISOString(),
-                endDate: endDate.toISOString(),
-                categories: [],
-                tags: [],
-                budgets: [],
-                types: []
+                startDate: startDate,
+                endDate: endDate
             }
 
             let transactions = await this.transactionRepository.getTransactions(filter);

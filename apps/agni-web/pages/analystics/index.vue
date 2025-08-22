@@ -19,8 +19,9 @@ const toast = useToast();
 async function estimation() {
     try {
         const res = await fetchEstimationLeftAmount({ 
-            endDate: endDate.value.toString(), 
-            startDate: startDate.value.toString() });
+            endDate: endDate.value.toDate(getLocalTimeZone()).toISOString(), 
+            startDate: startDate.value.toDate(getLocalTimeZone()).toISOString() 
+        });
         amount.value = res.estimateAmount;
     } catch(err) {
         toast.add({

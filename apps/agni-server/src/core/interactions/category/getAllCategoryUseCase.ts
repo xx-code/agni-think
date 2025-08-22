@@ -1,4 +1,3 @@
-import { SAVING_CATEGORY_ID, TRANSFERT_CATEGORY_ID, FREEZE_CATEGORY_ID } from "@core/domains/constants";
 import { CategoryRepository } from "../../repositories/categoryRepository";
 import { IUsecase } from "../interfaces";
 import { ListDto } from "@core/dto/base";

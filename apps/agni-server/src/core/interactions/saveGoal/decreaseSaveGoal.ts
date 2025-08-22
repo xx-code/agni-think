@@ -62,7 +62,7 @@ export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal
             account.addOnBalance(decreaseBalance)
 
             // transfert between account check transfert usecase
-            let date = MomentDateService.getTodayWithTime().toISOString()
+            let date = MomentDateService.getTodayWithTime()
 
             let idRecordSaving = GetUID()
             let newRecordSaving = new Record(idRecordSaving, decreaseBalance, date, RecordType.CREDIT)

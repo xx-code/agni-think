@@ -28,7 +28,7 @@ export type TransactionType = {
     id: string
     accountId: string
     amount: number
-    date: string
+    date: Date
     description: string
     recordType: string
     type: string
@@ -42,7 +42,7 @@ export type TransactionTableType = {
     id: string
     accountId: string
     amount: number
-    date: string
+    date: Date
     description: string
     recordType: string
     type: string

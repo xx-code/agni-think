@@ -43,7 +43,7 @@ export class Scheduler extends ValueObject {
             this.updatedDate = endingDate
         else if(periodTime !== undefined) {
             var updatedDate = MomentDateService.getUTCDateAddition(startedDate, period, periodTime!)
-            if (MomentDateService.compareDate(updatedDate.toString(), endingDate!.toString()) == 1)
+            if (MomentDateService.compareDate(updatedDate, endingDate!) == 1)
                 this.updatedDate = endingDate
             else 
                 this.updatedDate =  updatedDate;

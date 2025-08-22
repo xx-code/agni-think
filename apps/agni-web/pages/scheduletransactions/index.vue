@@ -10,7 +10,6 @@ import useScheduleTransactions from '~/composables/scheduleTransactions/useSched
 import useUpdateScheduleTransaction from '~/composables/scheduleTransactions/useUpdateScheduleTransaction';
 import useTags from '~/composables/tags/useTags';
 import type { EditScheduleTransactionType, ScheduleTransactionType, TableScheduleTransactionType } from '~/types/ui/scheduleTransaction';
-import { parseAsLocalDate } from '~/utils/parseAsLocalDate';
 
 const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories();
 const {data: tags, error: errorTag, refresh: refreshTag } = useTags();
@@ -105,22 +104,14 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
         accessorKey: 'dateStart',
         header: 'Date Debut',
         cell: ({ row }) => {
-            return parseAsLocalDate(row.getValue('dateStart')).toLocaleString('fr-Fr', {
-                day: 'numeric',
-                month: 'short',
-                year: '2-digit'
-            })
+            return formatDate(row.getValue('dateStart'))
         }
     },
     {
         accessorKey: 'dateUpdate',
         header: 'Date Mise a jour',
         cell: ({ row }) => {
-            return parseAsLocalDate(row.getValue('dateUpdate')).toLocaleString('fr-Fr', {
-                day: 'numeric',
-                month: 'short',
-                year: '2-digit'
-            })
+            return formatDate(row.getValue('dateUpdate'))        
         }
     },
     {
@@ -130,14 +121,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
             if (row.getValue('dateEnd') === undefined)
                 return '';
 
-            return parseAsLocalDate(row.getValue('dateEnd')).toLocaleString('fr-Fr', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'UTC'
-            });
+            return formatDate(row.getValue('dateEnd'))
         }
     },
     {
@@ -250,8 +234,8 @@ async function onSubmitTransaction(value: EditScheduleTransactionType, oldValue?
                 amount: value.amount,
                 categoryId: value.categoryId,
                 schedule:{
-                    dateStart:  value.dateStart.toString(),
-                    dateEnd: value.dateEnd?.toString(),
+                    dateStart:  value.dateStart.toDate(getLocalTimeZone()).toISOString(),
+                    dateEnd: value.dateEnd?.toDate(getLocalTimeZone()).toISOString(),
                     period: value.period,
                     periodTime: value.periodTime
                 },
@@ -267,8 +251,8 @@ async function onSubmitTransaction(value: EditScheduleTransactionType, oldValue?
                 categoryId: value.categoryId,
                 isFreeze: value.isFreeze,
                 schedule:{
-                    dateStart:  value.dateStart.toString(),
-                    dateEnd: value.dateEnd?.toString(),
+                    dateStart:  value.dateStart.toDate(getLocalTimeZone()).toISOString(),
+                    dateEnd: value.dateEnd?.toDate(getLocalTimeZone()).toISOString(),
                     period: value.period,
                     periodTime: value.periodTime
                 },

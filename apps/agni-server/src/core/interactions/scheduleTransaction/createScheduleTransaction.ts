@@ -10,13 +10,12 @@ import { FREEZE_CATEGORY_ID, mapperMainTransactionCategory, mapperPeriod, Transa
 import { Money } from "@core/domains/entities/money";
 import ValidationError from "@core/errors/validationError";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
-import { MomentDateService } from "@core/domains/entities/libs";
 
 export type RequestCreateScheduleTransactionScheduler = {
     period: string,
     periodTime?: number
-    dateStart: string
-    dateEnd?: string
+    dateStart: Date
+    dateEnd?: Date
 }
 
 export type RequestCreateScheduleTransaction = {
@@ -61,9 +60,9 @@ export class CreateScheduleTransactionUseCase implements IUsecase<RequestCreateS
 
         const scheduler = new Scheduler(
             mapperPeriod(request.schedule.period),
-            MomentDateService.formatDate(request.schedule.dateStart) ,
+            request.schedule.dateStart ,
             request.schedule.periodTime,
-            request.schedule.dateEnd ? MomentDateService.formatDate(request.schedule.dateEnd) : undefined
+            request.schedule.dateEnd
         )
 
         const scheduleTransaction = new ScheduleTransaction(

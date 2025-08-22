@@ -10,12 +10,11 @@ import { Transaction } from "@core/domains/entities/transaction";
 import { IUsecase } from "../interfaces";
 import { CreatedDto } from "@core/dto/base";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export type RequestNewFreezeBalance = {
     accountId: string;
-    endDate: string;
+    endDate: Date;
     amount: number;
 }
 
@@ -43,9 +42,8 @@ export class AddFreezeBalanceUseCase implements IUsecase<RequestNewFreezeBalance
             }
 
             let amount = new Money(request.amount)
-            const endDate = MomentDateService.formatDate(request.endDate)
 
-            let newRecord = new Record(GetUID(), amount, endDate.toISOString(), RecordType.DEBIT)
+            let newRecord = new Record(GetUID(), amount, request.endDate, RecordType.DEBIT)
             newRecord.setDescription("Freeze")
 
             fetchedAccount.substractBalance(amount)          
@@ -55,7 +53,7 @@ export class AddFreezeBalanceUseCase implements IUsecase<RequestNewFreezeBalance
             await this.accountRepository.update(fetchedAccount)
 
             let newTransaction = new Transaction(GetUID(), request.accountId, newRecord.getId(), FREEZE_CATEGORY_ID, 
-            endDate.toISOString(), TransactionType.OTHER, TransactionStatus.COMPLETE)
+            request.endDate, TransactionType.OTHER, TransactionStatus.COMPLETE)
             newTransaction.setIsFreeze()
             
             await this.transactionRepository.save(newTransaction)

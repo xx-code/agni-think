@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h,  ref, resolveComponent, shallowRef, watch,  type Ref } from "vue"; 
+import { computed, h,  ref, resolveComponent  } from "vue"; 
 import type { TableColumn, TableRow } from "@nuxt/ui"; 
 import useAccounts from "~/composables/accounts/useAccounts";
 import useBudgets from "~/composables/budgets/useBudgets";
@@ -16,7 +16,7 @@ import useUpdateTransaction from "~/composables/transactions/useUpdateTransactio
 import useCreateTransaction from "~/composables/transactions/useCreateTransaction";
 import type { FormFilterTransaction } from "~/types/ui/component";
 import useCompleteTransaction from "~/composables/transactions/useCompleteTransaction";
-import { parseAsLocalDate } from "~/utils/parseAsLocalDate";
+import { getLocalTimeZone } from "@internationalized/date";
 
 
 const toast = useToast();
@@ -105,7 +105,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
                 amount: value.amount,
                 budgetIds: value.budgetIds,
                 categoryId: value.categoryId,
-                date: value.date.toString(),
+                date: value.date.toDate(getLocalTimeZone()).toISOString(),
                 description: value.description,
                 tagIds: value.tagIds,
                 type: value.type
@@ -116,7 +116,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
                 amount: value.amount,
                 budgetIds: value.budgetIds,
                 categoryId: value.categoryId,
-                date: value.date.toString(),
+                date: value.date.toDate(getLocalTimeZone()).toISOString(),
                 description: value.description,
                 tagIds: value.tagIds,
                 type: value.type
@@ -154,18 +154,18 @@ function onFilter(value: FormFilterTransaction) {
     paramsTransactions.tagFilterIds = value.tagIds
     paramsTransactions.accountFilterIds = value.accountIds
     paramsTransactions.budgetFilterIds = value.budgetIds
-    paramsTransactions.dateEnd = value.dateEnd
-    paramsTransactions.dateStart = value.dateStart
+    paramsTransactions.dateEnd = value.dateEnd ? new Date(value.dateEnd) : undefined
+    paramsTransactions.dateStart = value.dateStart ? new Date(value.dateStart) : undefined
     paramsTransactions.minPrice = value.minPrice
     paramsTransactions.maxPrice = value.minPrice
 
-    paramsBalance.categoryFilterIds = value.categoryIds,
-    paramsBalance.tagFilterIds = value.tagIds,
-    paramsBalance.accountFilterIds = value.accountIds,
-    paramsBalance.budgetFilterIds = value.budgetIds,
-    paramsBalance.dateEnd = value.dateEnd,
-    paramsBalance.dateStart = value.dateStart,
-    paramsBalance.maxPrice = value.maxPrice,
+    paramsBalance.categoryFilterIds = value.categoryIds
+    paramsBalance.tagFilterIds = value.tagIds
+    paramsBalance.accountFilterIds = value.accountIds
+    paramsBalance.budgetFilterIds = value.budgetIds
+    paramsBalance.dateEnd = value.dateEnd ? new Date(value.dateEnd) : undefined
+    paramsBalance.dateStart = value.dateStart ? new Date(value.dateStart) : undefined
+    paramsBalance.maxPrice = value.maxPrice
     paramsBalance.minPrice = value.minPrice
 }
 
@@ -222,11 +222,7 @@ const tableColumn: TableColumn<TransactionTableType>[] = [
         accessorKey: 'date',
         header: 'Date',
         cell: ({ row }) => {
-            return parseAsLocalDate(row.getValue('date')).toLocaleString('fr-FR', {
-                day: 'numeric',
-                month: 'short',
-                year: '2-digit'
-            })
+            return formatDate(row.getValue('date')) 
         }
     },
     {

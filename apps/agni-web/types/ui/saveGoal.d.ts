@@ -17,7 +17,7 @@ export type SaveGoalType = {
     balance: number
     desirValue: number
     importance: number
-    wishDueDate?: string
+    wishDueDate?: Date
     items: {
         title: string
         link: string

@@ -40,18 +40,19 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                         const record = new Record(
                             GetUID(),
                             scheduleTrans.getAmount(),
-                            scheduleTrans.getSchedule().getUpdatedDate().toISOString(),
+                            scheduleTrans.getSchedule().getUpdatedDate(true),
                             scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
                             scheduleTrans.getName()
                         )
                         await this.recordRepo.save(record)
 
-                        let date = scheduleTrans.getSchedule().getUpdatedDate().toISOString() 
+                        let date = scheduleTrans.getSchedule().getUpdatedDate(true) 
+
                         if (scheduleTrans.getIsFreeze())
                             date = MomentDateService.getUTCDateAddition(
-                                scheduleTrans.getSchedule().getUpdatedDate(), 
+                                scheduleTrans.getSchedule().getUpdatedDate(true), 
                                 scheduleTrans.getSchedule().getPeriod(),
-                                scheduleTrans.getSchedule().getPeriodTime() || 1).toISOString()
+                                scheduleTrans.getSchedule().getPeriodTime() || 1)
 
                         const transaction = new Transaction(
                             GetUID(),

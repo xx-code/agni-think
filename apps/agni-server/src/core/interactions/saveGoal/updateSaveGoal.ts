@@ -5,7 +5,6 @@ import { IUsecase } from "../interfaces"
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError"
 import SaveGoalItem from "@core/domains/valueObjects/saveGoalItem"
 import { ImportanceGoal, IntensityEmotionalDesir } from "@core/domains/constants"
-import { MomentDateService } from "@core/domains/entities/libs"
 
 export type RequestUpdateItemSaveGoalUseCase = {
     id: string,
@@ -21,7 +20,7 @@ export type RequestUpdateSaveGoalUseCase = {
     title?: string
     desirValue?: IntensityEmotionalDesir,
     importance?: ImportanceGoal,
-    wishDueDate?: string,
+    wishDueDate?: Date,
     description?: string
     items?: RequestUpdateItemSaveGoalUseCase[]
 }
@@ -63,7 +62,7 @@ export class UpdateSaveGoalUseCase implements IUsecase<RequestUpdateSaveGoalUseC
         }
 
         if (request.wishDueDate) {
-            saveGoal.setWishDueDate(MomentDateService.formatDate(request.wishDueDate).toISOString()) 
+            saveGoal.setWishDueDate(request.wishDueDate) 
         }
 
         if (request.items) {

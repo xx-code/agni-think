@@ -1,7 +1,6 @@
 import { BudgetRepository } from "@core/repositories/budgetRepository"
 import { IUsecase } from "../interfaces"
 import { TransactionRepository } from "@core/repositories/transactionRepository"
-import { SavingRepository } from "@core/repositories/savingRepository"
 import { AccountRepository } from "@core/repositories/accountRepository"
 import { ScheduleTransactionRepository } from "@core/repositories/scheduleTransactionRepository"
 import { RecordRepository } from "@core/repositories/recordRepository"
@@ -21,8 +20,8 @@ export type SuggestGoalPlanning = {
 }
 
 export type RequestEstimationLeftAmount = {
-    startDate: string
-    endDate: string
+    startDate: Date
+    endDate: Date
 }
 
 export type GetEstimationLeftAmoutDto = {
@@ -55,15 +54,11 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
     }
 
     async execute(request: RequestEstimationLeftAmount): Promise<GetEstimationLeftAmoutDto> {
-        
-        const workingStartDate = MomentDateService.formatDate(request.startDate);
-        const workingEndDate = MomentDateService.formatDate(request.endDate);
-
         const scheduleTransactions = await this.scheduleTransactionRepo.getAll();
         const freezeTransactions = await this.transactionRepo.getTransactions({ 
             isFreeze: true,
-            startDate: workingStartDate.toISOString(),
-            endDate: workingEndDate.toISOString()
+            startDate: request.startDate,
+            endDate: request.endDate
         });
         const accounts = await this.accountRepo.getAll();
         const budgets = await this.budgetRepo.getAll();
@@ -82,8 +77,8 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
         let scheduleSpendAmount = 0
         for(const scheduleTrans of scheduleTransactions) {
             if (
-                MomentDateService.compareDate(scheduleTrans.getSchedule().getUpdatedDate().toISOString(), workingStartDate.toISOString()) >= 0 && 
-                MomentDateService.compareDate(scheduleTrans.getSchedule().getUpdatedDate().toISOString(), workingEndDate.toISOString()) <= 0 
+                MomentDateService.compareDate(scheduleTrans.getSchedule().getUpdatedDate(), request.startDate) >= 0 && 
+                MomentDateService.compareDate(scheduleTrans.getSchedule().getUpdatedDate(), request.endDate) <= 0 
             ) {
                 if (scheduleTrans.getTransactionType() === TransactionType.INCOME)
                 {
@@ -104,8 +99,8 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
         let previsionBudget = 0
         for(const budget of budgets) {
             if (
-                MomentDateService.compareDate(budget.getSchedule().getUpdatedDate().toISOString(), workingStartDate.toISOString()) >= 0 && 
-                MomentDateService.compareDate(budget.getSchedule().getUpdatedDate().toISOString(), workingEndDate.toISOString()) <= 0 
+                MomentDateService.compareDate(budget.getSchedule().getUpdatedDate(), request.startDate) >= 0 && 
+                MomentDateService.compareDate(budget.getSchedule().getUpdatedDate(), request.endDate) <= 0 
             ) {
                 let startBudgetUTCDate = budget.getSchedule().getStartedDate(); 
                 if (budget.getSchedule().getPeriodTime() !== undefined)
@@ -117,8 +112,8 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
 
                 let transactions = await this.transactionRepo.getTransactions({
                     budgets: [budget.getId()],
-                    startDate: startBudgetUTCDate.toISOString(),
-                    endDate: budget.getSchedule().getUpdatedDate()?.toISOString(),
+                    startDate: startBudgetUTCDate,
+                    endDate: budget.getSchedule().getUpdatedDate(),
                 });
 
                 let currentBalance = 0
@@ -141,7 +136,6 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
 
             currentBalance += account.getBalance()
         }
-        console.log(currentBalance)
         currentBalance += amountFreezeTransction;
 
         const estimationAmountToAllocate = moneyToAllocate + currentBalance - previsionBudget

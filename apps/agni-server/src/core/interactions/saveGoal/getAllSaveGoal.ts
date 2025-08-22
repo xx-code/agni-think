@@ -17,7 +17,7 @@ export type GetAllSaveGoalDto = {
     balance: number,
     desirValue: number
     importance: number
-    wishDueDate?: string
+    wishDueDate?: Date
     items: GetAllSaveGoalItemDto[]
 }
 

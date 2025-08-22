@@ -4,7 +4,7 @@ import {
     ModalEditSaveGoal, 
     UButton, 
     UPopover } from "#components";
-import { DateFormatter } from "@internationalized/date";
+import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
 import { ref } from "vue";
 import useAccounts from "~/composables/accounts/useAccounts";
 import useCreateSaveGoal from "~/composables/goals/useCreateSaveGoal";
@@ -40,7 +40,7 @@ async function onSubmitSaveGoal(value: EditSaveGoalType, oldValue?: SaveGoalType
                 target: value.target,
                 importance: value.importance,
                 desirValue: value.desirValue,
-                wishDueDate: value.wishDueDate?.toString()
+                wishDueDate: value.wishDueDate?.toDate(getLocalTimeZone()).toISOString()
             });
         else 
             useCreateSaveGoal({
@@ -49,7 +49,7 @@ async function onSubmitSaveGoal(value: EditSaveGoalType, oldValue?: SaveGoalType
                 target: value.target,
                 importance: value.importance,
                 desirValue: value.desirValue,
-                wishDueDate: value.wishDueDate?.toString(),
+                wishDueDate: value.wishDueDate?.toDate(getLocalTimeZone()).toISOString(),
                 items: []
             });
         refreshGoals();

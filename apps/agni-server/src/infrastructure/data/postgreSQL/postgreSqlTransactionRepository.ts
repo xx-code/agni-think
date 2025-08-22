@@ -4,9 +4,8 @@ import { Transaction } from "@core/domains/entities/transaction";
 import { Knex } from "knex";
 import { isEmpty } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { mapperMainTransactionCategory, mapperTransactionStatus, mapperTransactionType } from "@core/domains/constants";
+import { mapperMainTransactionCategory, mapperTransactionStatus } from "@core/domains/constants";
 import { RepositoryListResult } from "@core/repositories/dto";
-import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export class PostgreSqlTransactionRepository extends KnexConnector implements TransactionRepository {
@@ -198,7 +197,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
             let tags = (await (this.connector('transaction_tags').where('transaction_id', result['transaction_id']).select('tag_id'))).map(result => result['tag_id'])
             let budgets = (await (this.connector('transaction_budgets').where('transaction_id', result['transaction_id']).select('budget_id'))).map(result => result['budget_id'])
             let transaction = new Transaction(result['transaction_id'], result['account_id'], result['record_id'], 
-                result['category_id'], MomentDateService.formatDate(result['date']).toLocaleDateString(), 
+                result['category_id'], result['date'], 
                 mapperMainTransactionCategory(result['type']), mapperTransactionStatus(result['status']), tags, budgets)
             transactions.push(transaction)
         }

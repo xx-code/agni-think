@@ -15,7 +15,7 @@ export default function useSaveGoal(saveGoalId: string): UseApiFetchReturn<SaveG
                 items: data.items,
                 importance: data.importance,
                 desirValue: data.desirValue,
-                wishDueDate: data.wishDueDate
+                wishDueDate: data.wishDueDate ? new Date(data.wishDueDate) : undefined
             } satisfies SaveGoalType
         }
     });
@@ -36,7 +36,7 @@ export async function fetchSaveGoal(saveGoalId: string): Promise<SaveGoalType> {
         target: res.target,
         importance: res.importance,
         desirValue: res.desirValue,
-        wishDueDate: res.wishDueDate,
+        wishDueDate: res.wishDueDate ? new Date(res.wishDueDate) : undefined,
         items: res.items
     };
 }

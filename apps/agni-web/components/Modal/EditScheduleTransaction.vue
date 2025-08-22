@@ -10,7 +10,6 @@ import useTransactionTypes from '~/composables/internals/useTransactionTypes';
 import type { FormSubmitEvent } from '#ui/types';
 import type { EditScheduleTransactionType, ScheduleTransactionType } from '~/types/ui/scheduleTransaction';
 import usePeriodTypes from '~/composables/internals/usePeriodTypes';
-import { parseAsLocalDate } from '~/utils/parseAsLocalDate';
 
 const { scheduleTransaction } = defineProps<{
     scheduleTransaction?: ScheduleTransactionType
@@ -147,10 +146,10 @@ const form = reactive({
 })
 
 
-let startDated = scheduleTransaction ? parseAsLocalDate(scheduleTransaction.dateStart)  : new Date();
+let startDated = scheduleTransaction ? scheduleTransaction.dateStart   : new Date();
 let endDated: Date|undefined; 
 if (scheduleTransaction?.dateEnd)
-    endDated = parseAsLocalDate(scheduleTransaction.dateEnd);
+    endDated = scheduleTransaction.dateEnd;
 
 const startDate = shallowRef(new CalendarDate(startDated.getFullYear(), startDated.getMonth() + 1, startDated.getDate()))
 const endDate = shallowRef(endDated ?new CalendarDate(endDated.getFullYear(), endDated.getMonth() + 1, endDated.getDate()) : undefined);

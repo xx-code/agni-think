@@ -2,7 +2,6 @@ export class Money {
     private amount: number;
     private currency: string;
 
-
     constructor(amount: number = 0, currency: string = 'CAD') {
         if (amount < 0) {
             throw new Error("Resulting amount cannot be negative.");

@@ -12,12 +12,12 @@ export class SaveGoal extends Entity {
     private balance: TrackableProperty<Money> 
     private desirValue: TrackableProperty<IntensityEmotionalDesir>
     private importance: TrackableProperty<ImportanceGoal>
-    private wishDueDate: TrackableProperty<string|undefined>
+    private wishDueDate: TrackableProperty<Date|undefined>
     private itemsToTracks: ValueObjectCollection<SaveGoalItem>
 
 
     constructor(id: string, title: string, target: Money, balance: Money, 
-        desirValue: IntensityEmotionalDesir, importance: ImportanceGoal, wishDueDate?:string, items: SaveGoalItem[] = [], description: string='') {
+        desirValue: IntensityEmotionalDesir, importance: ImportanceGoal, wishDueDate?:Date, items: SaveGoalItem[] = [], description: string='') {
         super(id)
         this.title = new TrackableProperty<string>(title, this.markHasChange.bind(this))
         this.target = new TrackableProperty<Money>(target, this.markHasChange.bind(this))
@@ -26,7 +26,7 @@ export class SaveGoal extends Entity {
         this.itemsToTracks = new ValueObjectCollection<SaveGoalItem>(items, this.markHasChange.bind(this))
         this.desirValue = new TrackableProperty<IntensityEmotionalDesir>(desirValue, this.markHasChange.bind(this))
         this.importance = new TrackableProperty<ImportanceGoal>(importance, this.markHasChange.bind(this))
-        this.wishDueDate = new TrackableProperty<string|undefined>(wishDueDate, this.markHasChange.bind(this))
+        this.wishDueDate = new TrackableProperty<Date|undefined>(wishDueDate, this.markHasChange.bind(this))
     }
     
     setBalance(balance: Money) {
@@ -103,11 +103,11 @@ export class SaveGoal extends Entity {
         return this.importance.get()
     }
 
-    setWishDueDate(wishDueDate?: string) {
+    setWishDueDate(wishDueDate?: Date) {
         this.wishDueDate.set(wishDueDate)
     }
 
-    getWishDueDate(): string|undefined {
+    getWishDueDate(): Date|undefined {
         return this.wishDueDate.get()
     }
 

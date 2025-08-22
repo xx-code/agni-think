@@ -12,8 +12,8 @@ router.post('/v1/budgets',
     body('schedule').notEmpty().isObject(),
     body('schedule.period').notEmpty().isString(),
     body('schedule.periodTime').optional().isNumeric(),
-    body('schedule.dateStart').notEmpty().isDate(),
-    body('schedule.dateEnd').optional().isDate(),
+    body('schedule.dateStart').notEmpty().isISO8601().toDate(),
+    body('schedule.dateEnd').optional().isISO8601().toDate(),
     async (req, res) => {
         try {
             const result = validationResult(req);
