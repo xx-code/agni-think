@@ -86,14 +86,14 @@ export class PostgreSqlCategoryRepository extends KnexConnector implements Categ
         if (!result)
             throw new ResourceNotFoundError(`Category with ${id} not found`)
 
-        let category = new Category(result['category_id'], result['title'], result['icon_id'], result['color'])
+        let category = new Category(result['category_id'], result['title'], result['icon_id'], result['color'], result['is_system'])
         
         return category
     }
 
     async getByTitle(title: string): Promise<Category> {
         let result = await this.connector('categories').where('title', 'like', `%${title}%`).select('*')
-        let category = new Category(result[0]['category_id'], result[0]['title'], result[0]['icon_id'], result[0]['color'])
+        let category = new Category(result[0]['category_id'], result[0]['title'], result[0]['icon_id'], result[0]['color'], result[0]['is_system'])
         
         return category
     }
@@ -101,7 +101,7 @@ export class PostgreSqlCategoryRepository extends KnexConnector implements Categ
     async getAll(): Promise<Category[]> {
         let results = await this.connector('categories').select('*')
 
-        return results.map(result => (new Category(result['category_id'], result['title'], result['icon_id'], result['color'])))
+        return results.map(result => (new Category(result['category_id'], result['title'], result['icon_id'], result['color'], result['is_system'])))
     }
 
 }

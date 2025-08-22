@@ -5,7 +5,7 @@ import * as z from 'zod';
 import { reactive, shallowRef } from "vue";
 import type { EditTransactionType, TransactionType } from '~/types/ui/transaction';
 import useAccounts from '~/composables/accounts/useAccounts';
-import useCategories from '~/composables/categories/useCategories';
+import useCategories, { useCategoriesNonSys } from '~/composables/categories/useCategories';
 import useTags from '~/composables/tags/useTags';
 import useBudgets from '~/composables/budgets/useBudgets';
 import useTransactionTypes from '~/composables/internals/useTransactionTypes';
@@ -32,7 +32,7 @@ const schema = z.object({
 type Schema = z.output<typeof schema>;
 
 const {data: accounts} = useAccounts()
-const {data: categories} = useCategories()
+const categories = useCategoriesNonSys()
 const {data: tags } = useTags()
 const {data: budgets} = useBudgets()
 const {data: transationTypes } = useTransactionTypes()
@@ -114,7 +114,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     <USelectMenu 
                         v-model="form.categoryId" 
                         value-key="value" 
-                        :items="categories?.items.map(i => ({value: i.id, label: i.title}))" 
+                        :items="categories.map(i => ({value: i.id, label: i.title}))" 
                         class="w-full" />
                 </UFormField>
                 

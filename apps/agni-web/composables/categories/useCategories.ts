@@ -22,3 +22,18 @@ export default function useCategories(): UseApiFetchReturn<ListResponse<Category
 
     return { data, error, refresh };
 }
+
+// Refactoring
+export function useCategoriesNonSys() {
+    const { data, error, refresh } = useCategories();
+
+    return computed(() => {
+        const categories: CategoryType[] = []; 
+        data.value?.items.forEach(cat => {
+            if (!cat.isSystem)
+                categories.push(cat)
+        })
+
+        return categories
+    })
+}
