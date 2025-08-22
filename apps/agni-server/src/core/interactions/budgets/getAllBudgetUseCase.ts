@@ -41,6 +41,8 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
 
         for (let i = 0; i < budgets.length; i++) {
             let budget = budgets[i];
+            if (budget.getIsArchive())
+                continue;
 
             let startBudgetUTCDate = budget.getSchedule().getStartedDate(); 
             if (budget.getSchedule().getPeriodTime() !== undefined)
