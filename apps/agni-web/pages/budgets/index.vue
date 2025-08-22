@@ -9,7 +9,25 @@ import useDeleteBudget from "~/composables/budgets/useDeleteBudget"
 import useUpdateBudget from "~/composables/budgets/useUpdateBudget"
 import type { BudgetType, EditBudgetType } from "~/types/ui/budget"
 
+type BudgteItem = {
+    id: string
+    title: string    
+    percentageSpend: number
+    target: number
+    balance: number
+}
+
 const {data: budgets, error, refresh} = useBudgets()
+const displaybudgets = computed(() => {
+    return budgets.value?.items.map(i => ({
+        id: i.id,
+        title: i.title,
+        percentageSpend: roundNumber(computePercentage(i.target, i.currentBalance)),
+        balance: i.currentBalance,
+        target: i.target
+
+    } satisfies BudgteItem))
+})
 
 const overlay = useOverlay();
 const modalEditBudget = overlay.create(ModalEditBudget);
@@ -115,6 +133,8 @@ async function openModalBudget(budgetId?: string) {
     }); 
 }
 
+const v = ref(50)
+
 const onDeleteBudget = async (budgetId: string) => {
     await useDeleteBudget(budgetId)
     refresh();
@@ -136,7 +156,7 @@ const onDeleteBudget = async (budgetId: string) => {
 
     <div style="margin-top: 1rem;">
         <div class="grid xs:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            <div v-for="budget of budgets?.items" :key="budget.id">
+            <div v-for="budget of displaybudgets" :key="budget.id">
                 <div class="card-grid rounded-md" >
                     <CustomCardTitle :title="budget.title">
                         <div class="flex gap-1">
@@ -148,7 +168,7 @@ const onDeleteBudget = async (budgetId: string) => {
                         <div>
                             <p class="text-sm" style="font-weight: 500;color: #D9D9D9;">Reste</p>
                             <div class="flex items-center">
-                                <AmountTitle :amount="budget.target - budget.currentBalance" /> 
+                                <AmountTitle :amount="budget.target - budget.balance" /> 
                                 <p class="text-2xl" style="font-weight: bold;color: #D9D9D9;">/</p>
                                 <p style="color: #6755D7;">
                                     ${{ budget.target }}
@@ -158,10 +178,10 @@ const onDeleteBudget = async (budgetId: string) => {
                         
                     </div>
                     <div style="margin-top: 1rem;">
-                        <UProgress v-model="budget.currentBalance" :max="budget.target" size="xl"/>
+                        <UProgress status v-model="budget.percentageSpend"  ></UProgress>
                         <div class="flex items-center mt-2">
-                            <AmountTitle :amount="budget.currentBalance" />
-                            <p style="font-weight: 500;color:#1E3050;" class="text-sm ml-2">| {{ ((budget.currentBalance/budget.target) * 100).toFixed(2) }}% Dépense</p>
+                            <p class="text-xl mr-2 font-semibold text-gray-500">Depense: </p>
+                            <AmountTitle :amount="budget.balance" />
                         </div>
                     </div>
                 </div>
