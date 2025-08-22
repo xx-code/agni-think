@@ -10,13 +10,12 @@ import { ValueError } from "@core/errors/valueError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export type RequestTransfertTransactionUseCase = {
     accountIdFrom: string;
     accountIdTo: string;
-    date: string;
+    date: Date;
     amount: number;
 }
 
@@ -62,22 +61,21 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
             await this.accountRepository.update(accountFrom)
             await this.accountRepository.update(accountTo)
 
-            let date = MomentDateService.formatDateWithtime(request.date).toISOString()
             
-            let fromRecord: Record = new Record(GetUID(), amount, date, RecordType.DEBIT)
+            let fromRecord: Record = new Record(GetUID(), amount, request.date, RecordType.DEBIT)
             fromRecord.setDescription(`Transfert du compte ${accountFrom.getTitle()}`) 
 
-            let toRecord: Record = new Record(GetUID(), amount, date, RecordType.CREDIT)
+            let toRecord: Record = new Record(GetUID(), amount, request.date, RecordType.CREDIT)
             toRecord.setDescription(`Transfert au compte ${accountTo.getTitle()}`)
 
             await this.recordRepository.save(fromRecord);
 
             await this.recordRepository.save(toRecord);
 
-            let transFrom = new Transaction(GetUID(), accountFrom.getId(), fromRecord.getId(), TRANSFERT_CATEGORY_ID, date, TransactionType.OTHER, TransactionStatus.COMPLETE)
+            let transFrom = new Transaction(GetUID(), accountFrom.getId(), fromRecord.getId(), TRANSFERT_CATEGORY_ID, request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
             await this.transactionRepository.save(transFrom)
 
-            let transTo = new Transaction(GetUID(), accountTo.getId(), toRecord.getId(), TRANSFERT_CATEGORY_ID, date, TransactionType.OTHER, TransactionStatus.COMPLETE)
+            let transTo = new Transaction(GetUID(), accountTo.getId(), toRecord.getId(), TRANSFERT_CATEGORY_ID, request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
             await this.transactionRepository.save(transTo);
 
             await this.unitOfWork.commit()

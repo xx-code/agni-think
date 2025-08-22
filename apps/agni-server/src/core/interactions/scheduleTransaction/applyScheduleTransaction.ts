@@ -7,6 +7,7 @@ import { RecordRepository } from "@core/repositories/recordRepository";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { Record } from "@core/domains/entities/record";
 import { RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
     private scheduleTransactionRepo: ScheduleTransactionRepository 
@@ -34,23 +35,31 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
             for(let i = 0; i < scheduleTransactions.length; i++) {
                 let scheduleTrans = scheduleTransactions[i]
 
-                if (scheduleTrans.getSchedule().isDue() && !scheduleTrans.getIsPause()) {
+                if (scheduleTrans.getSchedule().isDue(true) && !scheduleTrans.getIsPause()) {
                     if (scheduleTrans.getIsPay() === false) {
                         const record = new Record(
                             GetUID(),
                             scheduleTrans.getAmount(),
-                            scheduleTrans.getSchedule().getUpdatedDate().toLocaleString(),
+                            scheduleTrans.getSchedule().getUpdatedDate(true),
                             scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
                             scheduleTrans.getName()
                         )
                         await this.recordRepo.save(record)
+
+                        let date = scheduleTrans.getSchedule().getUpdatedDate(true) 
+
+                        if (scheduleTrans.getIsFreeze())
+                            date = MomentDateService.getUTCDateAddition(
+                                scheduleTrans.getSchedule().getUpdatedDate(true), 
+                                scheduleTrans.getSchedule().getPeriod(),
+                                scheduleTrans.getSchedule().getPeriodTime() || 1)
 
                         const transaction = new Transaction(
                             GetUID(),
                             scheduleTrans.getAccountRef(),
                             record.getId(),
                             scheduleTrans.getCategoryRef(),
-                            scheduleTrans.getSchedule().getUpdatedDate().toLocaleString(),
+                            date,
                             scheduleTrans.getTransactionType(),
                             TransactionStatus.PENDING,
                             scheduleTrans.getTags() 

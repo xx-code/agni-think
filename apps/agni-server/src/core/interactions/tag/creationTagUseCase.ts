@@ -1,6 +1,5 @@
 import { GetUID } from "@core/adapters/libs";
 import { Tag } from "@core/domains/entities/tag";
-import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { TagRepository } from "@core/repositories/tagRepository";
 import { IUsecase } from "../interfaces";
 import { CreatedDto } from "@core/dto/base";

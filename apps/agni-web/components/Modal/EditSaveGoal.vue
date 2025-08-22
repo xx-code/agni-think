@@ -43,8 +43,8 @@ const df = new DateFormatter('en-Us', {
 
 let wishDated: Date|undefined; 
 if (saveGoal?.wishDueDate)
-    wishDated = new Date(saveGoal.wishDueDate);
-const wishDate = shallowRef(wishDated ? new CalendarDate(wishDated.getUTCFullYear(), wishDated.getUTCMonth() + 1, wishDated.getUTCDate()) : undefined);
+    wishDated = saveGoal.wishDueDate;
+const wishDate = shallowRef(wishDated ? new CalendarDate(wishDated.getFullYear(), wishDated.getMonth() + 1, wishDated.getDate()) : undefined);
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
     const data = event.data;

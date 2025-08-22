@@ -37,7 +37,7 @@ export class PostgresSqlBudgetRepository extends KnexConnector implements Budget
     }
 
     async save(request: Budget): Promise<void> {
-        let result = await this.connector('budgets').insert({
+        await this.connector('budgets').insert({
             budget_id: request.getId(),
             title: request.getTitle(),
             target: request.getTarget(),

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ModalEditScheduleTransaction } from '#components';
 import type { TableColumn, TableRow } from '#ui/types';
+import { getLocalTimeZone } from '@internationalized/date';
 import useCategories from '~/composables/categories/useCategories';
 import useCreateScheduleTransaction from '~/composables/scheduleTransactions/useCreateScheduleTransaction';
 import useDeleteScheduleTransaction from '~/composables/scheduleTransactions/useDeleteScheduleTransaction';
@@ -103,28 +104,14 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
         accessorKey: 'dateStart',
         header: 'Date Debut',
         cell: ({ row }) => {
-            return new Date(row.getValue('dateStart')).toLocaleString('en-Us', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'UTC'
-            })
+            return formatDate(row.getValue('dateStart'))
         }
     },
     {
         accessorKey: 'dateUpdate',
         header: 'Date Mise a jour',
         cell: ({ row }) => {
-            return new Date(row.getValue('dateUpdate')).toLocaleString('en-Us', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'UTC'
-            })
+            return formatDate(row.getValue('dateUpdate'))        
         }
     },
     {
@@ -134,14 +121,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
             if (row.getValue('dateEnd') === undefined)
                 return '';
 
-            return new Date(row.getValue('dateEnd')).toLocaleString('en-Us', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'UTC'
-            });
+            return formatDate(row.getValue('dateEnd'))
         }
     },
     {
@@ -254,8 +234,8 @@ async function onSubmitTransaction(value: EditScheduleTransactionType, oldValue?
                 amount: value.amount,
                 categoryId: value.categoryId,
                 schedule:{
-                    dateStart:  value.dateStart.toString(),
-                    dateEnd: value.dateEnd?.toString(),
+                    dateStart:  value.dateStart.toDate(getLocalTimeZone()).toISOString(),
+                    dateEnd: value.dateEnd?.toDate(getLocalTimeZone()).toISOString(),
                     period: value.period,
                     periodTime: value.periodTime
                 },
@@ -271,8 +251,8 @@ async function onSubmitTransaction(value: EditScheduleTransactionType, oldValue?
                 categoryId: value.categoryId,
                 isFreeze: value.isFreeze,
                 schedule:{
-                    dateStart:  value.dateStart.toString(),
-                    dateEnd: value.dateEnd?.toString(),
+                    dateStart:  value.dateStart.toDate(getLocalTimeZone()).toISOString(),
+                    dateEnd: value.dateEnd?.toDate(getLocalTimeZone()).toISOString(),
                     period: value.period,
                     periodTime: value.periodTime
                 },

@@ -28,7 +28,7 @@ const db: Knex = knex( {
     host: process.env.DB_HOST || '',
     user: process.env.DB_USER || '',
     password: process.env.DB_PASSWORD || '',
-    database : process.env.DB_NAME || ''//"agni-prod"
+    database : process.env.DB_NAME || '',//"agni-prod",
   }
 })
 
@@ -89,10 +89,10 @@ app.listen(port, async () => {
     }
 
     const applyScheduleTransaction = new ApplyScheduleTransactionCronScheduler();
-    applyScheduleTransaction.execute({ minute:0, hour:0 });
+    await applyScheduleTransaction.execute({ minute:0, hour:0 });
 
     const autoFreezeTransaction = new AutoDeletreFreezeTransactionCronScheduler();
-    autoFreezeTransaction.execute({ minute: 0, hour: 0 });
+    await autoFreezeTransaction.execute({ minute: 0, hour: 0 });
 
   } catch(err) {
     console.log({

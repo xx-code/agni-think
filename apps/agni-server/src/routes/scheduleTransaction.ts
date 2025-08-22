@@ -25,8 +25,8 @@ router.post('/v1/schedule-transactions',
     body('schedule').notEmpty().isObject(),
     body('schedule.period').notEmpty().isString(),
     body('schedule.periodTime').optional().isNumeric(),
-    body('schedule.dateStart').notEmpty().isDate(),
-    body('schedule.dateEnd').optional().isDate(),
+    body('schedule.dateStart').notEmpty().isISO8601().toDate(),
+    body('schedule.dateEnd').optional().isISO8601().toDate(),
     body('tagIds').isArray(),
     body('type').notEmpty(),
     async (req, res) => {
@@ -81,10 +81,10 @@ router.put('/v1/schedule-transactions/:id',
     body('isPause').optional().isBoolean(),
     body('name').optional().isString(),
     body('schedule').optional().isObject(),
-    // body('schedule.period').notEmpty().isString(),
-    // body('schedule.periodTime').optional().isNumeric(),
-    // body('schedule.dateStart').optional().isDate(),
-    // body('schedule.dateEnd').notEmpty().isDate(),
+    body('schedule.period').notEmpty().isString(),
+    body('schedule.periodTime').optional().isNumeric(),
+    body('schedule.dateStart').optional().isISO8601().toDate(),
+    body('schedule.dateEnd').optional().isISO8601().toDate(),
     body('tagIds').optional().isArray(),
     body('type').optional().isString(),
     async (req: Request, res: Response) => {
@@ -101,6 +101,7 @@ router.put('/v1/schedule-transactions/:id',
 
             res.status(400).send({ errors: result.array() });
         } catch(err) {
+            console.log(err)
             res.status(400).send({ errors: [err] })
         } 
     });

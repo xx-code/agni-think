@@ -1,6 +1,5 @@
-import { mapperMainTransactionCategory, mapperTransactionType, RecordType, TransactionStatus } from "@core/domains/constants";
+import { mapperMainTransactionCategory, RecordType, TransactionStatus } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
-import { isEmpty, DateParser } from "@core/domains/helpers";
 import ValidationError from "@core/errors/validationError";
 import { RecordRepository } from "@core/repositories/recordRepository";
 import { TransactionRepository, TransactionFilter } from "@core/repositories/transactionRepository";
@@ -12,8 +11,8 @@ export type RequestGetBalanceBy = {
     tagsIds?: string[],
     budgetIds?: string[],
     categoriesIds?: string[],
-    dateStart?: string,
-    dateEnd?: string,
+    dateStart?: Date,
+    dateEnd?: Date,
     types?: string[],
     minPrice?: number,
     maxPrice?: number
@@ -31,9 +30,9 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number
     }
 
     async execute(request: RequestGetBalanceBy): Promise<number> {
-        if (!isEmpty(request.dateStart) && !isEmpty(request.dateEnd)) {
+        if (request.dateStart && request.dateEnd) {
             // compare date
-            if (DateParser.fromString(request.dateEnd!).compare(DateParser.fromString(request.dateStart!)) < 0) {
+            if (MomentDateService.compareDate(request.dateEnd, request.dateStart) < 0) {
                 throw new ValidationError('Date start must be less than date end');
             }
         }
@@ -56,11 +55,11 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number
 
         let dateStart;
         if (request.dateStart)
-            dateStart = MomentDateService.formatDate(request.dateStart).toISOString()
+            dateStart = request.dateStart
 
         let dateEnd;
         if (request.dateEnd)
-            dateEnd = MomentDateService.formatDate(request.dateEnd).toISOString()
+            dateEnd = request.dateEnd
 
 
         let filter: TransactionFilter = {

@@ -28,7 +28,7 @@ const form = reactive({
     amount: 0
 })
 
-const date = shallowRef(new CalendarDate(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, new Date().getUTCDate()))
+const date = shallowRef(new CalendarDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate()))
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
 })

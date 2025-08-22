@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ModalEditBudget } from "#components"
+import { getLocalTimeZone } from "@internationalized/date"
 import { computed, ref } from "vue"
 import { fetchBudget } from "~/composables/budgets/useBudget"
 import useBudgets from "~/composables/budgets/useBudgets"
@@ -78,8 +79,8 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
                 schedule: {
                     period: value.period,
                     periodTime: value.periodTime,
-                    dateStart: value.startDate.toString(),
-                    dateEnd: value.endDate?.toString()
+                    dateStart: value.startDate.toDate(getLocalTimeZone()).toISOString(),
+                    dateEnd: value.endDate?.toDate(getLocalTimeZone()).toISOString()
                 }
             })
         else 
@@ -89,8 +90,8 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
                 schedule: {
                     period: value.period,
                     periodTime: value.periodTime,
-                    dateStart: value.startDate.toString(),
-                    dateEnd: value.endDate?.toString()
+                    dateStart: value.startDate.toDate(getLocalTimeZone()).toISOString(),
+                    dateEnd: value.endDate?.toDate(getLocalTimeZone()).toISOString()
                 }
             })
         refresh()

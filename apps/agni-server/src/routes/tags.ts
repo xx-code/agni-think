@@ -1,7 +1,6 @@
 import { RequestUpdateTagUseCase } from "@core/interactions/tag/updateTagUseCase";
 import { Router, Request, Response } from "express";
 import { body, matchedData, validationResult } from "express-validator";
-import TagController from "src/controllers/tags";
 import container from "src/di_contenair";
 
 const router = Router();

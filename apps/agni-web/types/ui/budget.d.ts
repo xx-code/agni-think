@@ -17,7 +17,7 @@ export type BudgetType = {
     period: string
     periodTime?: number
     currentBalance: number
-    startDate: string
-    updateDate: string
-    endDate?: string
+    startDate: Date
+    updateDate: Date
+    endDate?: Date
 }

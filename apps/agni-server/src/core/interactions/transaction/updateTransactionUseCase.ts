@@ -8,7 +8,6 @@ import { ValueError } from "@core/errors/valueError";
 import { IUsecase } from "../interfaces";
 import { TransactionDependencies } from "../facades";
 import { CreatedDto } from "@core/dto/base";
-import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export type RequestUpdateTransactionUseCase = {
@@ -19,7 +18,7 @@ export type RequestUpdateTransactionUseCase = {
     categoryId?: string
     type?: string
     description?: string
-    date?: string
+    date?: Date
     amount?: number
 }
 
@@ -83,8 +82,7 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
             }
 
             if (request.date) {
-                let date = MomentDateService.formatDateWithtime(request.date).toISOString()
-                record.setDate(date)
+                record.setDate(request.date)
             }
 
             if (request.categoryId) {

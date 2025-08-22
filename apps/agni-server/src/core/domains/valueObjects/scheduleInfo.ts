@@ -43,7 +43,7 @@ export class Scheduler extends ValueObject {
             this.updatedDate = endingDate
         else if(periodTime !== undefined) {
             var updatedDate = MomentDateService.getUTCDateAddition(startedDate, period, periodTime!)
-            if (MomentDateService.compareDate(updatedDate.toString(), endingDate!.toString()) == 1)
+            if (MomentDateService.compareDate(updatedDate, endingDate!) == 1)
                 this.updatedDate = endingDate
             else 
                 this.updatedDate =  updatedDate;
@@ -68,7 +68,12 @@ export class Scheduler extends ValueObject {
         return this.startedDate
     }
     
-    getUpdatedDate(): Date {
+    getUpdatedDate(strictDatebefore: boolean = false): Date {
+        if(this.periodTime !== undefined && !strictDatebefore) {
+            var updatedDate = MomentDateService.getUTCDateAddition(this.startedDate, this.period, this.periodTime!, strictDatebefore)
+            return updatedDate
+        }
+
         return this.updatedDate!
     }
 
@@ -84,11 +89,11 @@ export class Scheduler extends ValueObject {
             throw new ValueError("SCHEDULER_WITH_PERIOD_UNDETERMINED_HAVE_NOT_END_DATE")
     }
 
-    isDue(): boolean {
+    isDue(strictDatebefore: boolean = false): boolean {
         if (!this.updatedDate)
             return false;
 
-        return MomentDateService.compareDateWithDate(new Date(), this.updatedDate) >= 0
+        return MomentDateService.compareDateWithDate(new Date(), this.getUpdatedDate(strictDatebefore)) >= 0
     }
 
     isEqual(object: Scheduler): boolean {

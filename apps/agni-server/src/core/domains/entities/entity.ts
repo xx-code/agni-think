@@ -1,5 +1,4 @@
 import { IObjectEquality } from '@core/domains/interface/equality';
-import { stringify } from 'querystring';
 
 export default abstract class Entity implements IObjectEquality {
     private id: string;

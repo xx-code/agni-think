@@ -7,8 +7,8 @@ import { MomentDateService } from "@core/domains/entities/libs";
 export type RequestCreateBudgetSchedule = {
     period: string;
     periodTime?: number;
-    dateStart: string;
-    dateEnd?: string;
+    dateStart: Date;
+    dateEnd?: Date;
 }
 
 export type RequestUpdateBudget = {
@@ -37,9 +37,9 @@ export class UpdateBudgetUseCase implements IUsecase<RequestUpdateBudget, void> 
     if (request.schedule) {
         const scheduler = new Scheduler(
             mapperPeriod(request.schedule.period),
-            MomentDateService.formatDate(request.schedule.dateStart) ,
+            request.schedule.dateStart ,
             request.schedule.periodTime,
-            request.schedule.dateEnd ? MomentDateService.formatDate(request.schedule.dateEnd) : undefined
+            request.schedule.dateEnd
         )
         budget.reSchedule(scheduler)
     }

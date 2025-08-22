@@ -8,6 +8,7 @@ import { IUsecase } from "../interfaces";
 import { ListDto } from "@core/dto/base";
 import { RecordRepository } from "@core/repositories/recordRepository";
 import { TransactionDependencies } from "../facades";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 
 export type RequestGetPagination = {
@@ -19,8 +20,8 @@ export type RequestGetPagination = {
     budgetFilterIds?: Array<string>
     categoryFilterIds?: Array<string>
     tagFilterIds?: Array<string>
-    dateStart?: string
-    dateEnd?: string
+    dateStart?: Date
+    dateEnd?: Date
     types?: string[]
     minPrice?: number
     maxPrice?: number
@@ -44,7 +45,7 @@ export type GetAllTransactionDto = {
     transactionId: string
     accountId: string
     amount: number
-    date: string
+    date: Date
     description: string
     recordType: string
     type: string
@@ -97,9 +98,10 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
             if (!(await this.transactionDependencies.budgetRepository?.isBudgetExistByIds(request.budgetFilterIds)))
                 throw new ResourceNotFoundError("an budget to filter not valid")
 
-        if (!isEmpty(request.dateStart) && !isEmpty(request.dateEnd))
-            if (DateParser.fromString(request.dateEnd!).compare(DateParser.fromString(request.dateStart!)) < 0)
-                throw new ValidationError('Date start must be less than date end')
+        if (request.dateStart && request.dateEnd)
+            if (MomentDateService.compareDate(request.dateEnd, request.dateStart) < 0) {
+                throw new ValidationError('Date start must be less than date end');
+            }
 
         let types = []
         if (request.types)

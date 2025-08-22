@@ -4,7 +4,6 @@ import { TransactionDependencies } from "../facades"
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError"
 import { mapperMainTransactionCategory, mapperPeriod } from "@core/domains/constants"
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo"
-import { MomentDateService } from "@core/domains/entities/libs"
 import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError"
 import { isStringDifferent } from "@core/domains/helpers"
 import ValidationError from "@core/errors/validationError"
@@ -13,8 +12,8 @@ import { Money } from "@core/domains/entities/money"
 export type RequestUpdateScheduleTransactionScheduler = {
     period: string,
     periodTime?: number
-    dateStart: string
-    dateEnd?: string
+    dateStart: Date
+    dateEnd?: Date
 }
 
 export type RequestUpdateScheduleTransaction = {
@@ -89,9 +88,9 @@ export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateS
         if (request.schedule) {
             const scheduler = new Scheduler(
                 mapperPeriod(request.schedule.period),
-                MomentDateService.formatDate(request.schedule.dateStart) ,
+                request.schedule.dateStart ,
                 request.schedule.periodTime,
-                request.schedule.dateEnd ? MomentDateService.formatDate(request.schedule.dateEnd) : undefined
+                request.schedule.dateEnd
             )
 
             scheduleTransaction.reSchedule(scheduler)

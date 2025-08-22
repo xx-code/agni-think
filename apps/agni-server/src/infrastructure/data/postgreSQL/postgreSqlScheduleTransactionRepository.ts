@@ -5,7 +5,7 @@ import { Knex } from "knex";
 import { isEmpty } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
-import { mapperMainTransactionCategory, mapperTransactionType } from "@core/domains/constants";
+import { mapperMainTransactionCategory } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 
 export class PostgreSqlScheduleTransactionRepository extends KnexConnector implements ScheduleTransactionRepository {

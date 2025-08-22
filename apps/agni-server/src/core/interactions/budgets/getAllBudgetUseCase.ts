@@ -13,9 +13,9 @@ export type GetAllBudgetDto = {
     period: string
     periodTime?: number
     currentBalance: number
-    startDate: string
-    updateDate: string
-    endDate?: string
+    startDate: Date
+    updateDate: Date
+    endDate?: Date
 }
 
 export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetDto>> {
@@ -52,8 +52,8 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
 
             let transactions = await this.transactionRepository.getTransactions({
                 budgets: [budget.getId()],
-                startDate: startBudgetUTCDate.toISOString(),
-                endDate: budget.getSchedule().getUpdatedDate()?.toISOString(),
+                startDate: startBudgetUTCDate,
+                endDate: budget.getSchedule().getUpdatedDate(),
             });
 
             let currentBalance = 0
@@ -70,9 +70,9 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
                 period: budget.getSchedule().getPeriod(),
                 periodTime: budget.getSchedule().getPeriodTime(),
                 target: budget.getTarget(),
-                startDate: budget.getSchedule().getStartedDate().toISOString(),
-                updateDate: budget.getSchedule().getUpdatedDate().toISOString(),
-                endDate: budget.getSchedule().getEndingDate()?.toISOString()
+                startDate: budget.getSchedule().getStartedDate(),
+                updateDate: budget.getSchedule().getUpdatedDate(),
+                endDate: budget.getSchedule().getEndingDate()
             };
 
             budgetsDisplay.push(budgetDisplay);

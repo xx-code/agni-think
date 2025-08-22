@@ -14,8 +14,8 @@ export default function useScheduleTransactions(): UseApiFetchReturn<ListRespons
                         accountId: i.accountId,
                         amount: i.amount,
                         categoryId: i.categoryId,
-                        dateStart: i.dateStart,
-                        dateUpdate: i.dateUpdate,
+                        dateStart: new Date(i.dateStart),
+                        dateUpdate: new Date(i.dateUpdate),
                         isPause: i.isPause,
                         name: i.name,
                         period: i.period,
@@ -23,7 +23,7 @@ export default function useScheduleTransactions(): UseApiFetchReturn<ListRespons
                         periodTime: i.periodTime,
                         tagIds: i.tagIds,
                         type: i.type,
-                        dateEnd: i.dateEnd
+                        dateEnd: i.dateEnd ? new Date(i.dateEnd) : undefined
                     }
                 )),
                 totals:data.totals 

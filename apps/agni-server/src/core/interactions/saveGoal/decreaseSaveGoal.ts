@@ -57,20 +57,15 @@ export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal
             if (savingGoal.getBalance().getAmount() < decreaseBalance.getAmount()) {
                 throw new ValueError('Price must be smaller than save account')
             }
-
-            if (!(await this.categoryRepository.isCategoryExistById(SAVING_CATEGORY_ID))) {
-                let new_category = new Category(SAVING_CATEGORY_ID, 'saving', 'saving')
-                await this.categoryRepository.save(new_category)
-            }
             
             savingGoal.decreaseBalance(decreaseBalance)
             account.addOnBalance(decreaseBalance)
 
             // transfert between account check transfert usecase
-            let date = MomentDateService.getTodayWithTime().toString()
+            let date = MomentDateService.getTodayWithTime()
 
             let idRecordSaving = GetUID()
-            let newRecordSaving = new Record(idRecordSaving, decreaseBalance, date.toString(), RecordType.CREDIT)
+            let newRecordSaving = new Record(idRecordSaving, decreaseBalance, date, RecordType.CREDIT)
             newRecordSaving.setDescription('Saving ' + savingGoal.getTitle())
             await this.recordRepository.save(newRecordSaving)
 

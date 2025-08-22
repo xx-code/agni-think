@@ -6,7 +6,7 @@ export type GetSaveGoalResponse = {
     balance: number
     desirValue: number
     importance: number
-    wishDueDate?: string
+    wishDueDate?: Date
     items: {
         title: string
         link: string
@@ -23,7 +23,7 @@ export type GetAllSaveGoalResponse = {
     balance: number,
     desirValue: number
     importance: number
-    wishDueDate?: string
+    wishDueDate?: Date
     items: {
         title: string
         price: number

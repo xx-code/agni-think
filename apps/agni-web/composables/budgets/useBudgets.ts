@@ -14,8 +14,8 @@ export default function useBudgets(): UseApiFetchReturn<ListResponse<BudgetType>
                     period: i.period,
                     periodTime: i.periodTime,
                     currentBalance: i.currentBalance,
-                    startDate: i.startDate,
-                    updateDate: i.updateDate,
+                    startDate: new Date(i.startDate),
+                    updateDate: new Date(i.updateDate),
                     target: i.target,
                     endDate: i.endDate   
                 })),
