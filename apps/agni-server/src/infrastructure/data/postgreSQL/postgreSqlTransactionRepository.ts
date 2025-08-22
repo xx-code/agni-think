@@ -216,7 +216,8 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
             category_id: request.getCategoryRef(),
             status: request.getStatus(),
             type: request.getTransactionType(),
-            is_freeze: request.getIsFreeze()
+            is_freeze: request.getIsFreeze(),
+            date: request.getUTCDate(),
         });
 
         await this.connector('transaction_tags').whereIn('tag_id', request.getCollectionTags().__deleted_object.map(i => i.tagId)).delete();

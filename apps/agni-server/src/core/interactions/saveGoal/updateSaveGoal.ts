@@ -61,9 +61,7 @@ export class UpdateSaveGoalUseCase implements IUsecase<RequestUpdateSaveGoalUseC
             saveGoal.setImportance(request.importance)
         }
 
-        if (request.wishDueDate) {
-            saveGoal.setWishDueDate(request.wishDueDate) 
-        }
+        saveGoal.setWishDueDate(request.wishDueDate) 
 
         if (request.items) {
             let items: SaveGoalItem[] = [];
@@ -76,7 +74,6 @@ export class UpdateSaveGoalUseCase implements IUsecase<RequestUpdateSaveGoalUseC
             };
             saveGoal.setItems(items);
         }
-        
         
         if (saveGoal.hasChange())
             await this.savingRepo.update(saveGoal)

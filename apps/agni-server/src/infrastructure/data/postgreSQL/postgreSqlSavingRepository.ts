@@ -102,7 +102,7 @@ export class PostgreSqlSavingRepository extends KnexConnector implements SavingR
             balance: saveGoal.getBalance().getAmount(),
             description: saveGoal.getDescription(),
             desir_value: saveGoal.getDesirValue(),
-            wish_due_date: saveGoal.getWishDueDate(),
+            wish_due_date: saveGoal.getWishDueDate() ? saveGoal.getWishDueDate() : null,
             importance: saveGoal.getImportance()
         });
 
