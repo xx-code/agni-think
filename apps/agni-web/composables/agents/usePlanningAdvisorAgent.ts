@@ -5,7 +5,7 @@ import type { UseApiFetchReturn } from "~/types/utils";
 export default function usePlanningAdvisorAgent(request: AgentAdvisorRequest): UseApiFetchReturn<PlanningAgentAdvisorType>{
     const { data, error, refresh, status } = useFetch('/api/agents/planningAdvisor', {
         method: 'POST',
-        query: request,
+        body: request,
         transform: (data: AgentPlanningAdvisorResponse) => {
             return {
                 comment: data.comment,
@@ -25,7 +25,7 @@ export default function usePlanningAdvisorAgent(request: AgentAdvisorRequest): U
 export async function fetchPlanningAdvisorAgent(request: AgentAdvisorRequest): Promise<PlanningAgentAdvisorType>{
     const response = await $fetch<AgentPlanningAdvisorResponse>('/api/agents/planningAdvisor', {
         method: 'POST',
-        query: request 
+        body: request 
     });
 
     return { 
