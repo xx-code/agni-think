@@ -66,7 +66,8 @@ async function makePlanning() {
 <template>
     <UModal 
         title="Planning Advisor modal"
-        description="Hey &#128075;! Auguste on fait un planning pour la semaine de paye en cours">
+        description="Hey &#128075;! Auguste on fait un planning pour la semaine de paye en cours"
+        :dismissible="false">
         <template #body> 
             <div v-if="isAsked === false" class="space-y-2">
                 <UFormField label="Petit commentaire">
