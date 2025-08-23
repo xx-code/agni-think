@@ -22,7 +22,8 @@ class GoalToPlanDto(BaseModel):
     description: str
     target: float
     score: float
-    current_balance: float
+    amount_in_goal: float
+    left_amount: float
     desir_value: int
     importance: int
     wish_due_date: Optional[str] = None 

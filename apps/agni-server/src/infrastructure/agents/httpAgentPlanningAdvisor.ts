@@ -13,7 +13,8 @@ type RequestHttpAgent = {
         description: string,
         target: number,
         score: number,
-        current_balance: number,
+        amount_in_goal: number,
+        left_amount: number
         desir_value: number,
         importance: number,
         wish_due_date?: string
@@ -46,9 +47,10 @@ export default class HttpAgentPlanningAdvisor implements IAgentPlanningAdvisor {
                     goals_i_want_to_target: input.whishGoalTarget.map(i => ({ amount: i.amount, goal_uuid:i.goalId})),
                     goals: input.goals.map(i => ({
                         uuid: i.id,
-                        current_balance: i.currentBalance,
                         description: i.description,
                         desir_value: i.desirValue,
+                        amount_in_goal: i.currentBalance,
+                        left_amount: i.target - i.currentBalance,
                         importance: i.importance,
                         score: i.score,
                         target: i.target,
