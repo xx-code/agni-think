@@ -1,6 +1,4 @@
-import IAgentPlanningAdvisor, { AgentPlanningAdvisorInput, AgentPlanningAdvisorOutput } from "@core/agents/agentPlanningAdvisor";
-import axios from "axios";
-import { json } from "stream/consumers";
+import IAgentPlanningAdvisor, { AgentPlanningAdvisorInput, AgentPlanningAdvisorOutput } from "@core/agents/agentPlanningAdvisor"; import axios from "axios";
 
 type RequestHttpAgent = {
     current_amount_in_investissment: number,
@@ -8,12 +6,15 @@ type RequestHttpAgent = {
     percent_of_net_income_saving_and_investissment: number,
     net_income: number,
     amount_to_allocate: number,
+    comment: string,
+    goals_i_want_to_target: {goal_uuid: string, amount: number}[] 
     goals:{
         uuid: string,
         description: string,
         target: number,
         score: number,
-        current_balance: number,
+        amount_in_goal: number,
+        left_amount: number
         desir_value: number,
         importance: number,
         wish_due_date?: string
@@ -42,11 +43,14 @@ export default class HttpAgentPlanningAdvisor implements IAgentPlanningAdvisor {
                     amount_to_allocate: input.amountToAllocate,
                     current_amount_in_investissment: input.currentAmountInInvestissment,
                     current_amount_in_saving: input.currentAmountInSaving,
+                    comment: input.comment,
+                    goals_i_want_to_target: input.whishGoalTarget.map(i => ({ amount: i.amount, goal_uuid:i.goalId})),
                     goals: input.goals.map(i => ({
                         uuid: i.id,
-                        current_balance: i.currentBalance,
                         description: i.description,
                         desir_value: i.desirValue,
+                        amount_in_goal: i.currentBalance,
+                        left_amount: i.target - i.currentBalance,
                         importance: i.importance,
                         score: i.score,
                         target: i.target,

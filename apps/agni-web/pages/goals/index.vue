@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { 
     ModalEditAmountSaveGoal, 
-    ModalEditSaveGoal, 
+    ModalEditSaveGoal,
+    ModalPlanningAdvisor, 
 } from "#components";
 import type { TableColumn, TableRow } from "#ui/types";
 import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
 import { ref } from "vue";
+import type { TargetGoal } from "~/components/Modal/PlanningAdvisor.vue";
 import useAccounts from "~/composables/accounts/useAccounts";
 import useCreateSaveGoal from "~/composables/goals/useCreateSaveGoal";
 import useDeleteSaveGoal from "~/composables/goals/useDeleteSaveGoal";
@@ -52,6 +54,7 @@ const toast = useToast();
 const overlay = useOverlay();
 const modalCreateSavingGoal = overlay.create(ModalEditSaveGoal);
 const modalUpdateAmountSavingGoal = overlay.create(ModalEditAmountSaveGoal);
+const modalPlanningAdvisor = overlay.create(ModalPlanningAdvisor);
 
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
@@ -148,10 +151,21 @@ const onDeleteGoal = async (goalId: string) => {
 } 
 
 const rowSelection = ref<Record<string, boolean>>({})
+const table = useTemplateRef('table')
 
 function onSelect(row: TableRow<ItemRown>, e?: Event) {
   row.toggleSelected(!row.getIsSelected())
+}
 
+function openPlanningAdvisorModal() {
+    const selectedDataTable: TargetGoal[] = []
+    table.value?.tableApi.getSelectedRowModel().rows.forEach(i => {
+        selectedDataTable.push({ goalId: i.original.id, title: i.original.title })
+    })
+
+    modalPlanningAdvisor.open({
+        targetGoals: selectedDataTable
+    })
 }
 
 const UCheckbox = resolveComponent('UCheckbox')
@@ -179,7 +193,11 @@ const columns: TableColumn<ItemRown>[] =  [
     },
     {
         accessorKey: 'title',
-        header: "Titre"
+        header: "Titre",
+        cell: ({ row }) => 
+            h('p', {
+                class: "w-15 truncate"
+            }, row.original.title)
     },
     {
         accessorKey: 'description',
@@ -290,10 +308,11 @@ const columns: TableColumn<ItemRown>[] =  [
                 color="primary"
                 style="background-color: #6755D7;"
                 label="Conseiller en planification" 
-                @click="() => { }"/>
+                @click="openPlanningAdvisorModal()"/>
        </div> 
        <div style="margin-top: 1rem;">
             <UTable 
+                ref="table"
                 v-model:row-selection="rowSelection"
                 :columns="columns"
                 :data="tableData" 

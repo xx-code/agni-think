@@ -28,6 +28,10 @@ router.get('/v1/analytics/estimation-left-amount',
 });
 
 router.post('/v1/analytics/save-goal-planning', 
+    body('comment').isString().optional(),
+    body('wishGoals').isArray().optional(),
+    body('wishGoals.*.goalId').isString(),
+    body('wishGoals.*.amountSuggest').isNumeric(),
     body('wishSpends').isArray().optional(),
     body('wishSpends.*.amount').isNumeric(),
     body('wishSpends.*.description').isString(),

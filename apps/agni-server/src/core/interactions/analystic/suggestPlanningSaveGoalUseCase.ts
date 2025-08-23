@@ -20,7 +20,9 @@ export type SuggestGoalPlanning = {
 }
 
 export type RequestSuggestPlanningSaveGoal = {
+    comment: string,
     wishSpends?: SuggestPlanningWishSpend[]
+    wishGoals: { goalId: string, amountSuggest: number}[]
 }
 
 export type GetAllSuggestPlanningDto = {
@@ -119,6 +121,8 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
         }
 
         const resultPlannings = await this.planningAdvisor.process({
+            comment: request.comment,
+            whishGoalTarget: request.wishGoals.map(i => ({ goalId: i.goalId, amount: i.amountSuggest})),
             amountToAllocate: estimationAmountToAllocate,
             currentAmountInInvestissment: currentInvestissment,
             currentAmountInSaving: currentSaving,
