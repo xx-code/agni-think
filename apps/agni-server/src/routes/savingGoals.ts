@@ -30,6 +30,7 @@ router.post('/v1/save-goals',
             
             res.status(400).send({ errors: result.array() });
         } catch(err) {
+            console.log(err)
             res.status(400).send({ errors: [err] });
         }
     });

@@ -100,7 +100,8 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
         for(const budget of budgets) {
             if (
                 MomentDateService.compareDate(budget.getSchedule().getUpdatedDate(), request.startDate) >= 0 && 
-                MomentDateService.compareDate(budget.getSchedule().getUpdatedDate(), request.endDate) <= 0 
+                MomentDateService.compareDate(budget.getSchedule().getUpdatedDate(), request.endDate) <= 0 &&
+                budget.getIsArchive() === false
             ) {
                 let startBudgetUTCDate = budget.getSchedule().getStartedDate(); 
                 if (budget.getSchedule().getPeriodTime() !== undefined)

@@ -67,7 +67,6 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
             if (account.getType() == AccountType.SAVING)
                 currentSaving += account.getBalance()
         }
-        console.log(currentSaving)
 
         const responseEstimationUc = await this.estimationLeftAmountUseCase.execute({
             startDate: workingStartDate,

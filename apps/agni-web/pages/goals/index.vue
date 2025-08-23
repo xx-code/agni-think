@@ -2,8 +2,8 @@
 import { 
     ModalEditAmountSaveGoal, 
     ModalEditSaveGoal, 
-    UButton, 
-    UPopover } from "#components";
+} from "#components";
+import type { TableColumn, TableRow } from "#ui/types";
 import { DateFormatter, getLocalTimeZone } from "@internationalized/date";
 import { ref } from "vue";
 import useAccounts from "~/composables/accounts/useAccounts";
@@ -17,15 +17,41 @@ import useImportanceTypes from "~/composables/internals/useImportanceTypes";
 import useIntensityDesirTypes from "~/composables/internals/useImportanceTypes";
 import type { EditSaveGoalType, EditUpdateAmountSaveGoalType, SaveGoalType } from "~/types/ui/saveGoal";
 
-const {data: goals, error: errorGoals, refresh: refreshGoals} =  useSaveGoals()
+type ItemRown = {
+    id: string
+    title: string
+    description: string
+    target: number 
+    balance: number
+    desir: number
+    importance: number
+    wishDate?: Date
+}
+
+const { data: goals, error: errorGoals, refresh: refreshGoals } =  useSaveGoals()
+const { data: accounts, error: errorAccount, refresh: refreshAccounts } = useAccounts()
+const { data:intensityDesirs } = useIntensityDesirTypes();
+const { data:importances } = useImportanceTypes()
+
+const tableData = computed(() => {
+    return goals.value?.items.map(i => {
+        return {
+            id: i.id,
+            title: i.title,
+            balance: i.balance,
+            description: i.description,
+            target: i.target,
+            importance: i.importance,
+            desir: i.desirValue,
+            wishDate: i.wishDueDate
+        } satisfies ItemRown
+    })
+})
 
 const toast = useToast();
 const overlay = useOverlay();
 const modalCreateSavingGoal = overlay.create(ModalEditSaveGoal);
 const modalUpdateAmountSavingGoal = overlay.create(ModalEditAmountSaveGoal);
-
-const { data:intensityDesirs } = useIntensityDesirTypes();
-const { data:importances } = useImportanceTypes()
 
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
@@ -52,7 +78,7 @@ async function onSubmitSaveGoal(value: EditSaveGoalType, oldValue?: SaveGoalType
                 wishDueDate: value.wishDueDate?.toDate(getLocalTimeZone()).toISOString(),
                 items: []
             });
-        refreshGoals();
+        await refreshGoals();
     } catch(err) {
         toast.add({
             title: 'Error submition save goal',
@@ -83,9 +109,7 @@ async function onUpdateAmountSaveGoal(value: EditUpdateAmountSaveGoalType, isInc
                 amount: value.amount,
                 accountId: value.accountId,
                 saveGoalId: oldValue?.id
-            });
-
-        refreshGoals()
+            }); 
     } catch(err) {
         toast.add({
             title: 'Error Update amount save goal',
@@ -106,69 +130,195 @@ const openUpdateAmountSavingGoal = async (isIncrease: boolean, goalId?: string) 
         onSubmit: onUpdateAmountSaveGoal,
         saveGoal: goal
     }); 
-};
 
-const {data: accounts, error: errorAccount, refresh: refreshAccounts } = useAccounts()
+    refreshGoals()
+};
 
 const deleteAccountDepositId = ref('')
 const deletePopOverOpen = ref(false)
+const deletePopOverGoalId = ref<string>()
 
 const onDeleteGoal = async (goalId: string) => {
     if (deleteAccountDepositId.value !== '') {
         await useDeleteSaveGoal(goalId, { accountDepositId: deleteAccountDepositId.value });
         await refreshGoals();
         deletePopOverOpen.value = false
+        deletePopOverGoalId.value = undefined
     }
+} 
+
+const rowSelection = ref<Record<string, boolean>>({})
+
+function onSelect(row: TableRow<ItemRown>, e?: Event) {
+  row.toggleSelected(!row.getIsSelected())
+
 }
+
+const UCheckbox = resolveComponent('UCheckbox')
+const UProgress = resolveComponent('UProgress');
+const UButton = resolveComponent('UButton');
+const columns: TableColumn<ItemRown>[] =  [
+    {
+        id: 'select',
+        header: ({ table }) =>
+            h(UCheckbox, {
+                modelValue: table.getIsSomePageRowsSelected()
+                ? 'indeterminate'
+                : table.getIsAllPageRowsSelected(),
+                'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
+                table.toggleAllPageRowsSelected(!!value),
+                'aria-label': 'Select all'
+            })
+        ,
+        cell: ({ row }) =>
+            h(UCheckbox, {
+                modelValue: row.getIsSelected(),
+                'onUpdate:modelValue': (value: boolean | 'indeterminate') => row.toggleSelected(!!value),
+                'aria-label': 'Select row'
+            })
+    },
+    {
+        accessorKey: 'title',
+        header: "Titre"
+    },
+    {
+        accessorKey: 'description',
+        header: "Description",
+        cell: ({ row }) => 
+            h('p', {
+                class: "w-25 truncate" 
+            }, row.original.description)    
+    },
+    {
+        accessorKey: 'target',
+        cell: ({ row }) => {
+            return (
+                h('div', {class: 'flex items-center'}, [
+                    h('span', {class: 'mr-1 text-xs'}, 
+                        formatCurrency(row.original.balance)
+                    ),
+                    h(UProgress, 
+                        { 
+                            modelValue: roundNumber(computePercentage(row.original.target, row.original.balance)) 
+                        }
+                    ),
+                    h('span', {class: 'ml-1 text-xs'}, 
+                        formatCurrency(row.original.target)
+                    ),
+                ])
+            )
+        }        
+    },
+    {
+        id: 'left',
+        header: "Reste",
+        cell: ({ row }) => h('p', {}, formatCurrency(row.original.target - row.original.balance))
+    },
+    {
+        accessorKey: 'desir',
+        header: "Desire",
+        cell: ({ row })  => {
+            const desires = []
+            const maxDesires = intensityDesirs.value?.length || row.original.desir
+            for (let i = 0; i < maxDesires; i++)
+                desires.push(h(UButton, { 
+                icon: 'i-lucide-sparkles', 
+                size: "xs",
+                class: (i) < row.original.desir ? 'bg-yellow-400' : 'bg-white text-black',
+                } ))
+
+            return (
+                h('div', { class: 'flex items-center space-x-1'},
+                    desires
+                )
+            )
+        }
+    },
+    {
+        accessorKey: 'importance',
+        header: "Importance",
+        cell: ({ row })  => {
+            const desires = []
+            const maxDesires = importances.value?.length || row.original.importance
+            for (let i = 0; i < maxDesires; i++)
+                desires.push(h(UButton, { 
+                icon: 'i-lucide-shield-alert', 
+                size: "xs",
+                class: (i) < row.original.importance ? 'bg-red-400' : 'bg-white text-black',
+                } ))
+
+            return (
+                h('div', { class: 'flex items-center space-x-1'},
+                    desires
+                )
+            )
+        }
+    },
+    {
+        accessorKey: 'wishDate',
+        cell: ({ row }) => {
+            return row.original.wishDate ? formatDate(row.original.wishDate) : ''
+        }
+    },
+    {
+        id: 'action',
+        cell: ({ row }) => {
+            return(
+                h('div', { class: 'space-x-1'}, [
+                    h(UButton, {icon:"i-lucide-plus", variant:"outline", color:"neutral", onClick:() => openUpdateAmountSavingGoal(true, row.original.id) }),
+                    h(UButton, {icon:"i-lucide-minus", variant:"outline", color:"neutral",  onClick:() => openUpdateAmountSavingGoal(false, row.original.id) }),
+                    h(UButton, {icon:"i-lucide-pencil", variant:"outline", color:"neutral", onClick:() => openSavingGoal(row.original.id)} ),
+                    h(UButton, {icon:"i-lucide-trash", variant:"outline", color:"neutral",  onClick:() => { deletePopOverOpen.value = true, deletePopOverGoalId.value = row.original.id} }),
+                ])
+            )
+        }
+    }
+]
+                                
 
 </script>
 
 <template>
     <div>
-       <div class="flex flex-row-reverse" style="margin-top: 1rem;">
-            <UButton icon="i-lucide-plus" label="Ajouter un but" size="xl" @click="openSavingGoal()"/>
+       <div class="flex flex-row-reverse gap-1.5" style="margin-top: 1rem;">
+            <UButton 
+                icon="i-lucide-plus" 
+                label="Ajouter un but" 
+                @click="openSavingGoal()"/>
+            <UButton 
+                icon="i-lucide-bot" 
+                color="primary"
+                style="background-color: #6755D7;"
+                label="Conseiller en planification" 
+                @click="() => { }"/>
        </div> 
        <div style="margin-top: 1rem;">
-            <div class="grid xs:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                <div v-for="goal of goals?.items" :key="goal.id">
-                    <div class="card-grid" >
-                        <CustomCardTitle :title="goal.title">
-                            <div class="flex gap-1">
-                                <UButton icon="i-lucide-plus" variant="outline" color="neutral" size="xl" @click="openUpdateAmountSavingGoal(true, goal.id)"/>
-                                <UButton icon="i-lucide-minus" variant="outline" color="neutral" size="xl" @click="openUpdateAmountSavingGoal(false, goal.id)"/>
-                                <UButton icon="i-lucide-pencil" variant="outline" color="neutral" size="xl" @click="openSavingGoal(goal.id)"/>
-                                <UPopover v-model="deletePopOverOpen">
-                                    <UButton icon="i-lucide-trash" variant="outline" color="neutral" size="xl" @click="deletePopOverOpen = true"/>
-                                    <template #content>
-                                        <div class="flex flex-col gap-2 p-2">
-                                            <USelect 
-                                                v-model="deleteAccountDepositId" 
-                                                value-key="value" label-key="label" 
-                                                :items="accounts?.items.map(i => ({ label: i.title, value: i.id}))" class="w-full" />
-                                            <UButton label="Suppmier" color="error" @click="onDeleteGoal(goal.id)"/>
-                                        </div>
-                                    </template>
-                                </UPopover>
-                            </div>
-                        </CustomCardTitle>
-                        <div class="flex items-center" style="margin-top: 1rem;">
-                            <AmountTitle :amount="goal.balance" /> 
-                            <p class="text-2xl" style="font-weight: bold;color: #D9D9D9;">/</p>
-                            <p style="color: #6755D7;">
-                                ${{ goal.target }}
-                            </p>
-                        </div>
-                        <div>
-                            {{ goal.wishDueDate ? df.format(new Date(goal.wishDueDate)) : ''}}
-                        </div>
-                        <div style="margin-top: 1rem;">
-                            <UProgress v-model="goal.balance" :max="goal.target" size="xl"/>
-                        </div>
-                    </div>
+            <UTable 
+                v-model:row-selection="rowSelection"
+                :columns="columns"
+                :data="tableData" 
+                @select="onSelect">
+            </UTable>
+        </div>
+        <UModal v-model:open="deletePopOverOpen" class="w-50">
+            <template #content>
+                <div class="w-50 flex flex-col gap-3 p-2">
+                    <USelect 
+                        v-model="deleteAccountDepositId" 
+                        value-key="value" label-key="label" 
+                        :items="accounts?.items.map(i => ({ label: i.title, value: i.id}))" class="w-full" />
+                    <UButton 
+                        label="Suppmier" color="error" 
+                        @click="
+                            deletePopOverGoalId ? 
+                                onDeleteGoal(deletePopOverGoalId) 
+                                : 
+                                () => {toast.add({title: 'Error', description: 'Selectionner un but'})} "/>
                 </div>
-            </div>
-       </div>
+            </template>
+        </UModal>
     </div>    
+    
 </template>
 
 <style lang="scss">

@@ -74,7 +74,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     <UInput v-model="form.title" class="w-full" />
                 </UFormField>
                 <UFormField label="Petit description d'epargne" name="description">
-                    <UInput v-model="form.description" class="w-full" />
+                    <UTextarea v-model="form.description" autoresize class="w-full" />
                 </UFormField>
                 <UFormField label="Someme du but d'epargne" name="targetAmount">
                     <UInput v-model="form.targetAmount" class="w-full" type="number" />
