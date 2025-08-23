@@ -7,8 +7,8 @@ import container from 'src/di_contenair';
 const router = Router();
 
 router.get('/v1/analytics/estimation-left-amount', 
-    query('startDate').isDate().notEmpty(),
-    query('endDate').isDate().notEmpty()
+    query('startDate').notEmpty().isISO8601().toDate(),
+    query('endDate').notEmpty().isISO8601().toDate()
     , async (req, res) => {
     try {
         const result = validationResult(req);
@@ -29,12 +29,14 @@ router.get('/v1/analytics/estimation-left-amount',
 
 router.post('/v1/analytics/save-goal-planning', 
     body('comment').isString().optional(),
+    body('estimationPeriodStart').notEmpty().isISO8601().toDate(),
+    body('estimationPeriodEnd').notEmpty().isISO8601().toDate(),
     body('wishGoals').isArray().optional(),
-    body('wishGoals.*.goalId').isString(),
-    body('wishGoals.*.amountSuggest').isNumeric(),
+    body('wishGoals.*.goalId').exists().isString(),
+    body('wishGoals.*.amountSuggest').exists().isNumeric(),
     body('wishSpends').isArray().optional(),
-    body('wishSpends.*.amount').isNumeric(),
-    body('wishSpends.*.description').isString(),
+    body('wishSpends.*.amount').exists().isNumeric(),
+    body('wishSpends.*.description').exists().isString(),
     async (req,  res) => {
         try {
             const result = validationResult(req);

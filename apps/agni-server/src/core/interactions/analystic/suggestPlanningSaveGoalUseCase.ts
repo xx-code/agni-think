@@ -3,7 +3,6 @@ import { SavingRepository } from "@core/repositories/savingRepository"
 import { AccountRepository } from "@core/repositories/accountRepository"
 import IAgentScoringGoal, { InputSaveGoalAgent } from "@core/agents/agentGoalScoring"
 import IAgentPlanningAdvisor, { GoalPlanningAdvisor } from "@core/agents/agentPlanningAdvisor"
-import { MomentDateService } from "@core/domains/entities/libs"
 import { AccountType, Period } from "@core/domains/constants"
 import { GetEstimationLeftAmoutDto, RequestEstimationLeftAmount } from "./estimationleftAmount"
 
@@ -20,9 +19,11 @@ export type SuggestGoalPlanning = {
 }
 
 export type RequestSuggestPlanningSaveGoal = {
+    estimationPeriodStart: Date,
+    estimationPeriodEnd: Date
     comment: string,
     wishSpends?: SuggestPlanningWishSpend[]
-    wishGoals: { goalId: string, amountSuggest: number}[]
+    wishGoals?: { goalId: string, amountSuggest: number}[]
 }
 
 export type GetAllSuggestPlanningDto = {
@@ -55,8 +56,8 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
 
     async execute(request: RequestSuggestPlanningSaveGoal): Promise<GetAllSuggestPlanningDto> {
         
-        const workingStartDate = MomentDateService.getToday();
-        const workingEndDate = MomentDateService.getUTCDateAddition(workingStartDate, Period.WEEK, 2);
+        const workingStartDate = request.estimationPeriodStart;
+        const workingEndDate = request.estimationPeriodEnd;
 
         const accounts = await this.accountRepo.getAll();
 
@@ -122,7 +123,7 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
 
         const resultPlannings = await this.planningAdvisor.process({
             comment: request.comment,
-            whishGoalTarget: request.wishGoals.map(i => ({ goalId: i.goalId, amount: i.amountSuggest})),
+            whishGoalTarget: request.wishGoals?.map(i => ({ goalId: i.goalId, amount: i.amountSuggest})) || [],
             amountToAllocate: estimationAmountToAllocate,
             currentAmountInInvestissment: currentInvestissment,
             currentAmountInSaving: currentSaving,

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
+import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import { fetchPlanningAdvisorAgent } from '~/composables/agents/usePlanningAdvisorAgent'
 import type { PlanningAgentAdvisorType } from '~/types/ui/agent'
 
@@ -26,9 +27,16 @@ const isAsked = ref(false);
 const isLoading = ref(false);
 
 const comment = ref<string>()
-const wishSpends = ref<EditWishSpend[]>([
-    
-])
+const wishSpends = ref<EditWishSpend[]>([ ])
+
+const date = new Date()
+const startDate = shallowRef(new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate()));
+const endDate = shallowRef(new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate()));
+
+const df = new DateFormatter('en-Us', {
+    dateStyle: 'medium'
+})
+
 const targetGoalEdits = ref<(TargetGoal & {amount: number, checked: boolean})[]>
     (targetGoals.map(i => ({ checked: true, goalId: i.goalId, title: i.title, amount: 0})))
 
@@ -47,6 +55,8 @@ async function makePlanning() {
         isAsked.value = true;
         isLoading.value = true;
         const res = await fetchPlanningAdvisorAgent({
+            estimationPeriodStart: startDate.value.toDate(getLocalTimeZone()).toISOString(),
+            estimationPeriodEnd: endDate.value.toDate(getLocalTimeZone()).toISOString(),
             comment: comment.value || '',
             wishGoals: targetGoalEdits.value.filter(i => i.checked).map(i => ({goalId: i.goalId, amountSuggest: i.amount})),
             wishSpends: wishSpends.value.map(i => ({ amount: i.amount, description: i.description})) 
@@ -70,8 +80,30 @@ async function makePlanning() {
         :dismissible="false">
         <template #body> 
             <div v-if="isAsked === false" class="space-y-2">
+                <UFormField label="Date de debut" name="startDate">
+                    <UPopover>
+                        <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
+                            {{ startDate ? df.format(startDate.toDate(getLocalTimeZone()))  : 'Selectionnez une de debut' }}
+                        </UButton>
+                        <template #content>
+                            <UCalendar v-model="startDate" />
+                        </template>
+                    </UPopover>
+                </UFormField>
+                
+                <UFormField label="Date de fin" name="endDate">
+                    <UPopover>
+                        <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
+                            {{ endDate ? df.format(endDate.toDate(getLocalTimeZone())) : 'Selectionnez une de fin' }}
+                        </UButton>
+                        <template #content>
+                            <UCalendar v-model="endDate" />
+                        </template>
+                    </UPopover>
+                </UFormField>
+
                 <UFormField label="Petit commentaire">
-                    <UInput v-model="comment" />
+                    <UTextarea v-model="comment" />
                 </UFormField>
                 <div class="flex flex-row-reverse">
                     <UButton label="Ajouter Depense"  @click="addWishSpend"/>

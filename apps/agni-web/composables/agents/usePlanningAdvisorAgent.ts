@@ -23,6 +23,7 @@ export default function usePlanningAdvisorAgent(request: AgentAdvisorRequest): U
 }
 
 export async function fetchPlanningAdvisorAgent(request: AgentAdvisorRequest): Promise<PlanningAgentAdvisorType>{
+    console.log(request)
     const response = await $fetch<AgentPlanningAdvisorResponse>('/api/agents/planningAdvisor', {
         method: 'POST',
         body: request 

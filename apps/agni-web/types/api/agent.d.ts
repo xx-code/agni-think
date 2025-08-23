@@ -1,5 +1,7 @@
 export type AgentAdvisorRequest = {
     comment: string
+    estimationPeriodStart: string
+    estimationPeriodEnd: string
     wishSpends: { amount: number, description: string } []
     wishGoals: { goalId: string, amountSuggest: number} []
 }

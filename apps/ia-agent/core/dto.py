@@ -29,7 +29,7 @@ class GoalToPlanDto(BaseModel):
     wish_due_date: Optional[str] = None 
 
 class WishGoalToTargetDto(BaseModel):
-    goal_uuid: float
+    goal_uuid: str
     amount: int
 
 class AgentPlanningAdivsorInput(BaseModel):
