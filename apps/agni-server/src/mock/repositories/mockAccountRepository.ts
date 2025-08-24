@@ -2,6 +2,9 @@ import { Account } from "@core/domains/entities/account";
 import { AccountRepository } from "@core/repositories/accountRepository";
 
 export class MockAccountRepository implements AccountRepository {
+    getManyIds(ids: string[]): Promise<Account[]> {
+        throw new Error("Method not implemented.");
+    }
     private accounts: Map<string, Account> = new Map();
 
     async save(account: Account): Promise<void> {
