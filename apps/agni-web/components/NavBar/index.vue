@@ -16,6 +16,7 @@
                 <NavBarItem title="Budgets" link="/budgets" icon="i-lucide-wallet-cards"  />
                 <NavBarItem title="Goals" link="/goals" icon="i-lucide-piggy-bank"  />
                 <NavBarItem title="Analystics" link="/analystics" icon="i-lucide-chart-network"/>
+                <NavBarItem title="Patrimoine" link="/patrimonies" icon="i-lucide-castle" />
                 <NavBarItem title="Settings" link="/settings" icon="i-lucide-settings"/>
             </div>
         </div>

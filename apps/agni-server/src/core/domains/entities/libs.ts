@@ -167,10 +167,10 @@ export class MomentDateService {
         return 0
     }
 
-    static getUTCDateByPeriod(period: Period, periodTime: number): {startDate: Date, endDate: Date} {
+    static getUTCDateByPeriod(beginDate: Date, period: Period, periodTime: number): {startDate: Date, endDate: Date} {
         const momentPeriod = this.periodMatcherToMoment(period); 
-        const startDate = moment.utc().startOf(momentPeriod);
-        const endDate = moment.utc().add(periodTime, momentPeriod).startOf(momentPeriod);
+        const startDate = moment(beginDate).startOf(momentPeriod);
+        const endDate = moment(beginDate).add(periodTime, momentPeriod).startOf(momentPeriod);
 
         return { 
             startDate: new Date(startDate.format("YYYY-MM-DD")),

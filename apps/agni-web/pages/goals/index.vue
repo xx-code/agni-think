@@ -196,16 +196,8 @@ const columns: TableColumn<ItemRown>[] =  [
         header: "Titre",
         cell: ({ row }) => 
             h('p', {
-                class: "w-15 truncate"
+                class: "w-35 truncate"
             }, row.original.title)
-    },
-    {
-        accessorKey: 'description',
-        header: "Description",
-        cell: ({ row }) => 
-            h('p', {
-                class: "w-25 truncate" 
-            }, row.original.description)    
     },
     {
         accessorKey: 'target',

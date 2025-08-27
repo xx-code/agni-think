@@ -14,6 +14,7 @@ import SaveGoalRoute from './routes/savingGoals';
 import BudgetRoute from './routes/budgets';
 import InternalRoute from './routes/internal';
 import AnalyticRoute from './routes/analytics';
+import PatrimonyRoute from './routes/patrimony';
 import { ApplyScheduleTransactionCronScheduler, AutoDeletreFreezeTransactionCronScheduler, CronScheduler } from "@infra/adapters/cronScheduler";
 import path = require("path");
 import axios from "axios";
@@ -57,6 +58,7 @@ app.use(BudgetRoute)
 app.use(ScheduleTransactionRoute)
 app.use(InternalRoute)
 app.use(AnalyticRoute)
+app.use(PatrimonyRoute)
 
 app.listen(port, async () => {
   try {

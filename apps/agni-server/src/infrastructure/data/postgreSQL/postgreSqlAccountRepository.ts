@@ -10,7 +10,7 @@ import { KnexConnector } from "./postgreSqlConnector";
 export class PostgreSqlAccountRepository extends KnexConnector implements AccountRepository {
     constructor(connector: Knex) {
         super(connector)
-    }
+    } 
 
     async initialisation() {
         try {
@@ -61,6 +61,14 @@ export class PostgreSqlAccountRepository extends KnexConnector implements Accoun
         let account = new Account(result['account_id'], result['title'], mapperTypeAccount(result['type']), result['balance'])
 
         return account   
+    }
+
+    async getManyIds(ids: string[]): Promise<Account[]> {
+        let results = await this.connector('accounts').whereIn('account_id', ids).select('*')
+
+        return results.map(result => new Account(
+                    result['account_id'], result['title'], 
+                    mapperTypeAccount(result['type']), result['balance']))
     }
 
     async getAll(): Promise<Account[]> {

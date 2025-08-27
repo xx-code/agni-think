@@ -70,6 +70,18 @@ import HttpAgentPlanningAdvisor from '@infra/agents/httpAgentPlanningAdvisor';
 import { GetAllSuggestPlanningDto, RequestSuggestPlanningSaveGoal, SuggestPlanningSaveGoalUseCase } from '@core/interactions/analystic/suggestPlanningSaveGoalUseCase';
 import IAgentScoringGoal from '@core/agents/agentGoalScoring';
 import IAgentPlanningAdvisor from '@core/agents/agentPlanningAdvisor';
+import { CreatePatrimonyUseCase, RequestCreatePatrimony } from '@core/interactions/patrimony/createPatrimony';
+import { RequestUpdatePatrimony, UpdatePatrimonyUseCase } from '@core/interactions/patrimony/updatePatrimony';
+import { GetPatrimonyDto, GetPatrimonyUseCase, RequestGetPatrimony } from '@core/interactions/patrimony/getPatrimony';
+import { GetAllPatrimonyDto, GetAllPatrimonyUseCase, RequestGetAllPatrimony } from '@core/interactions/patrimony/getAllPatrimony';
+import { AddSnapshotPatrimonyUseCase, RequestAddSnapshotPatrimony } from '@core/interactions/patrimony/addSnapshotToPatrimony';
+import { RequestUpdateSnapshotPatrimony, UpdateSnapshotPatrimonyUseCase } from '@core/interactions/patrimony/updateSnapshotPatrimony';
+import DeletePatrimonyUseCase from '@core/interactions/patrimony/deletePatrimony';
+import { RemoveSnapshotFromPatrimonyUseCase } from '@core/interactions/patrimony/removeSnapshotFromPatrimony';
+import { PostgreSqlPatrimonyRepository } from '@infra/data/postgreSQL/postgreSqlPatrimonyRepository';
+import { PostgreSqlSnapshotPatrimonyRepository } from '@infra/data/postgreSQL/postgreSqlSnapshotPatrimony';
+import { GetAllSnapshotOfPatrimony, GetAllSnapshotPatrimonyDto, RequestAllSnapshotPatrimony } from '@core/interactions/patrimony/getAllSnapshotOfPatrimony';
+import { GetAccountBalanceByPeriodDto, GetPastAccountBalanceByPeriodUseCase, RequestGetAccountBalanceByPeriod } from '@core/interactions/account/getPastAccountBalanceByPeriod';
 
 async function createTables(knex: Knex) {
     if (!(await knex.schema.hasTable('accounts')))
@@ -177,6 +189,31 @@ async function createTables(knex: Knex) {
             table.uuid('transaction_id').index().references('transaction_id').inTable('transactions').onDelete('CASCADE')
             table.uuid('budget_id').index().references('budget_id').inTable('budgets').onDelete('CASCADE')
         });
+
+    if (!(await knex.schema.hasTable('patrimonies')))
+        await knex.schema.createTable('patrimonies', (table) => {
+            table.uuid('patrimony_id').primary()
+            table.string('title')
+            table.float('amount'),
+            table.string('type')
+            table.date('created_at')
+            table.date('updated_at')
+        });
+    
+    if (!(await knex.schema.hasTable('patrimony_accounts')))
+        await knex.schema.createTable('patrimony_accounts', (table) => {
+            table.uuid('patrimony_id').index().references('patrimony_id').inTable('patrimonies').onDelete('CASCADE')
+            table.uuid('account_id').index().references('account_id').inTable('accounts').onDelete('CASCADE')
+        });
+    
+    if (!(await knex.schema.hasTable('patrimony_snapshots')))
+        await knex.schema.createTable('patrimony_snapshots', (table) => {
+            table.uuid('patrimony_snapshot_id').primary()
+            table.uuid('patrimony_id').index().references('patrimony_id').inTable('patrimonies').onDelete('CASCADE')
+            table.float('balance')
+            table.date('date')
+            table.string('status')
+        });
 }
 
 export class DiContenair {
@@ -192,6 +229,7 @@ export class DiContenair {
         getAllAccount: IUsecase<void, ListDto<GetAllAccountDto>>,
         getAllAccountWithBalance: IUsecase<RequestGetAllAccountPastBalanceUseCase, ListDto<GetAllAccountWithPastBalanceDto>>
         deleteAccount: IUsecase<string, void>,
+        getPastAccountBalanceByPeriod: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>
     };
 
     public categoryUseCase?: {
@@ -255,6 +293,18 @@ export class DiContenair {
         planningSaveGoalAdvisor: IUsecase<RequestSuggestPlanningSaveGoal, GetAllSuggestPlanningDto>
     }
 
+    public patrimonyUseCase?: {
+        createPatrimony: IUsecase<RequestCreatePatrimony, CreatedDto>,
+        deletePatrimony: IUsecase<string, void>
+        updatePatrimony: IUsecase<RequestUpdatePatrimony, void>
+        getPatrimony: IUsecase<RequestGetPatrimony, GetPatrimonyDto>
+        getAllPatrimony: IUsecase<RequestGetAllPatrimony, ListDto<GetAllPatrimonyDto>>
+        addSnapshotPatrimony: IUsecase<RequestAddSnapshotPatrimony, CreatedDto>
+        removeSnapshotPatrimony: IUsecase<string, void>
+        updateSnapshotPatrimony: IUsecase<RequestUpdateSnapshotPatrimony, void>
+        getSnapshotPatrimony: IUsecase<RequestAllSnapshotPatrimony, ListDto<GetAllSnapshotPatrimonyDto>>
+    }
+
     constructor() {
         this.services = new Map();
         this.repositories = new Map();
@@ -315,6 +365,12 @@ export class DiContenair {
         let scheduleTransactionRepository = new PostgreSqlScheduleTransactionRepository(connector);
         this.registerRepository('schedule_transaction', scheduleTransactionRepository)
 
+        let patrimonyRepository = new PostgreSqlPatrimonyRepository(connector)
+        this.registerRepository('patrimony', patrimonyRepository)
+
+        let patrimonySnapshotRepository = new PostgreSqlSnapshotPatrimonyRepository(connector)
+        this.registerRepository('patrimony_snapshot', patrimonySnapshotRepository)
+
         // agents
         const agentGoalRanking = new AgentGoalScoring();
         this.registerAgent('goal_ranking', agentGoalRanking);
@@ -330,6 +386,7 @@ export class DiContenair {
         this.registerScheduleTransactionUsecases();
         this.registerSaveGoalUsecases();
         this.registerAnalyticUseCases();
+        this.registerPatrimonyUseCases();
     }
 
     getService(name: string): any {
@@ -349,14 +406,15 @@ export class DiContenair {
     }
 
     private registerAccountUsecases() {
+        const getAccountBalanceByPeriodUc = new GetPastAccountBalanceByPeriodUseCase(this.getRepository('transaction'), this.getRepository('record'))
         this.accountUseCase = {
             createAccount: new CreationAccountUseCase(this.getRepository('account')),
             updateAccount: new UpdateAccountUseCase(this.getRepository('account')),
             getAccount: new GetAccountUseCase(this.getRepository('account')),
             getAllAccount: new GetAllAccountUseCase(this.getRepository('account')),
-            getAllAccountWithBalance: new GetAllAccountWithPastBalanceUseCase(this.getRepository('account'), 
-            this.getRepository('transaction'), this.getRepository('record')),
-            deleteAccount: new DeleteAccountUseCase(this.getRepository('account'))
+            getAllAccountWithBalance: new GetAllAccountWithPastBalanceUseCase(this.getRepository('account'), getAccountBalanceByPeriodUc),
+            deleteAccount: new DeleteAccountUseCase(this.getRepository('account')),
+            getPastAccountBalanceByPeriod: getAccountBalanceByPeriodUc
         } 
     }
 
@@ -457,6 +515,51 @@ export class DiContenair {
             estimateLeftAmount: estimateUseCase,
             planningSaveGoalAdvisor: new SuggestPlanningSaveGoalUseCase(estimateUseCase, this.getRepository('account'), this.getRepository('saving'), 
             this.getAgent('goal_ranking')! as IAgentScoringGoal, this.getAgent('planning')! as IAgentPlanningAdvisor)
+        }
+    }
+
+    private registerPatrimonyUseCases() {
+        this.patrimonyUseCase = {
+            addSnapshotPatrimony: new AddSnapshotPatrimonyUseCase(
+                this.getRepository('patrimony'),
+                this.getRepository('patrimony_snapshot')
+            ),
+            createPatrimony: new CreatePatrimonyUseCase(
+                this.getRepository('patrimony'),
+                this.getRepository('account'),
+                this.getRepository('patrimony_snapshot'),
+                this.getRepository('unit_of_work')
+            ),
+            deletePatrimony: new DeletePatrimonyUseCase(
+                this.getRepository('patrimony'),
+                this.getRepository('unit_of_work')
+            ),
+            getAllPatrimony: new GetAllPatrimonyUseCase(
+                this.getRepository('account'),
+                this.getRepository('patrimony'),
+                this.getRepository('patrimony_snapshot'),
+                this.getRepository('saving'),
+                this.accountUseCase?.getPastAccountBalanceByPeriod!
+            ),
+            getPatrimony: new GetPatrimonyUseCase(
+                this.getRepository('account'),
+                this.getRepository('patrimony'),
+                this.getRepository('patrimony_snapshot'),
+                this.accountUseCase?.getPastAccountBalanceByPeriod!
+            ),
+            removeSnapshotPatrimony: new RemoveSnapshotFromPatrimonyUseCase(
+                this.getRepository('patrimony_snapshot')
+            ),
+            updatePatrimony: new UpdatePatrimonyUseCase(
+                this.getRepository('patrimony'),
+                this.getRepository('account')
+            ),
+            updateSnapshotPatrimony: new UpdateSnapshotPatrimonyUseCase(
+                this.getRepository('patrimony_snapshot')
+            ),
+            getSnapshotPatrimony: new GetAllSnapshotOfPatrimony(
+                this.getRepository('patrimony_snapshot')
+            )
         }
     }
 }

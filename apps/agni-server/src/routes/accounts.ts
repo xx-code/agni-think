@@ -22,6 +22,8 @@ router.post('/v1/accounts',
                 return;
             }
 
+            console.log(result.array())
+
             res.status(400).send({ errors: result.array() });
         } catch(err) {
             res.status(400).send({ errors: [err] });
