@@ -15,6 +15,7 @@ const emit = defineEmits<{
 
 const schema = z.object({
     title: z.string().nonempty('Vous devez ajouter un titre'),
+    amount: z.number(),
     // description: z.string().optional(),
     // category: z.string(),
     type: z.string(),
@@ -26,6 +27,7 @@ type Schema = z.output<typeof schema>;
 
 const form = reactive({
     title: patrimony?.title || '',
+    amount: patrimony?.amount || 0,
     // description: patrimony?.description || '',
     type: patrimony?.type,
     // categoryId: patrimony?.id
@@ -37,6 +39,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     const data = event.data;
     emit('submit', { 
         title: data.title,
+        amount: data.amount,
         description: '',
         categoryId: '',
         accountIds: selectedAccountId.value,
@@ -66,6 +69,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                         :items="[{label: 'Actif', value: 'Asset'}, {label: 'Passif', value: 'Liability'}]" 
                         value-key="value"
                         v-model="form.type" />
+                </UFormField>
+
+                <UFormField label="Valeur du patrimoine" name="amount">
+                    <UInput v-model="form.amount" class="w-full" type="number" />
                 </UFormField>
 
                 <UFormField label="Selectionner les comptes cible">

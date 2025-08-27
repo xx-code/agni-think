@@ -1,7 +1,8 @@
 import { PatrimonySnapshotRepository } from "@core/repositories/patrimonyRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { mapperTransactionStatus } from "@core/domains/constants";
+import { mapperTransactionStatus, Period } from "@core/domains/constants";
+import { MomentDateService } from "@core/domains/entities/libs";
 
 export type RequestUpdateSnapshotPatrimony = {
     snapshotId: string
@@ -34,6 +35,18 @@ export class UpdateSnapshotPatrimonyUseCase implements IUsecase<RequestUpdateSna
 
         if (request.status)
             snapshot.setStatus(mapperTransactionStatus(request.status))
+
+        if (snapshot.getDate() !== request.date) {
+            const {startDate, endDate} = MomentDateService.getUTCDateByPeriod(snapshot.getDate(), Period.MONTH, 1)
+            
+            const pastSnapshot = await this.snapshotRepo.getLastest({ 
+                patrimonyIds: [snapshot.getPatrimonyId()], 
+                startDate: startDate, endDate: endDate
+            })
+
+            // if (pastSnapshot.length > 0)
+            //     throw new ResourceNotFoundError("PATRIMONY_HAVE_ALREADY_SNAPSHOT_FOR_THIS_DATE")
+        }   
 
         if (snapshot.hasChange())
             await this.snapshotRepo.update(snapshot)

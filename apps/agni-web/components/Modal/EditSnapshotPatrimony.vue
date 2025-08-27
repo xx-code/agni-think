@@ -18,18 +18,18 @@ const schema = z.object({
     status: z.string()
 })
 
-let date: Date|undefined; 
+let date: Date = new Date(); 
 if (snapshot?.date)
     date = snapshot.date;
 
-const dated = shallowRef(date ? new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate()) : undefined);
+const dated = shallowRef(new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate()));
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
 });
 
 const form = reactive({
     balance: snapshot?.balance,
-    status: snapshot?.status 
+    status: snapshot?.status || 'Complete'
 })
 
 type Schema = z.output<typeof schema>;
@@ -52,9 +52,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     <UModal title="Ajouter ou diminuer but d'epargne">
         <template #body>
             <UForm :schema="schema" :state="form" @submit="onSubmit" class="space-y-4">
-                <UFormField>
+                <UFormField name="status">
                     <UTabs v-model="form.status" label-key="value" 
-                        default-value="Complete"
                         :content="false" 
                         :items="[{label:'Pending', value: 'Pending'}, {label:'Complete', value: 'Complete'}]" class="w-full"/> 
                 </UFormField>

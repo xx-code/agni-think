@@ -113,7 +113,7 @@ export function mapperPatrimonyType(value: string): PatrimonyType {
         case PatrimonyType.LIABILITY.toLowerCase():
             return PatrimonyType.LIABILITY
         default:
-            throw new ValueError("PATRIMONY_TYPE_NOT_VALID")
+            throw new ValueError("PATRIMONY_TYPE_NOT_VALID (" + value + ")")
     }
 }
 

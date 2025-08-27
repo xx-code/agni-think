@@ -5,13 +5,15 @@ import Entity, { TrackableProperty } from "./entity";
 
 export class Patrimony extends Entity {
     private title: TrackableProperty<string>
+    private amount: TrackableProperty<number>
     private accounts: ValueObjectCollection<PatrimonyAccount>
     private type: TrackableProperty<PatrimonyType> 
 
-    constructor(id: string, title: string, type: PatrimonyType, accounts: PatrimonyAccount[]) {
+    constructor(id: string, title: string, amount: number, type: PatrimonyType, accounts: PatrimonyAccount[]) {
         super(id) 
         this.title = new TrackableProperty(title, this.markHasChange.bind(this))
         this.accounts = new ValueObjectCollection(accounts, this.markHasChange.bind(this))
+        this.amount = new TrackableProperty(amount, this.markHasChange.bind(this))
         this.type = new TrackableProperty(type, this.markHasChange.bind(this))
     }
  
@@ -21,6 +23,14 @@ export class Patrimony extends Entity {
 
     getTitle(): string {
         return this.title.get()
+    }
+
+    setAmount(amount: number) {
+        this.amount.set(amount)
+    }
+
+    getAmount(): number {
+        return this.amount.get()
     }
 
     setType(type: PatrimonyType) {

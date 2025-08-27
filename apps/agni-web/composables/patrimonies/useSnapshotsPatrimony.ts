@@ -3,17 +3,17 @@ import type { GetAllSnapshotPatrimonyRequest, GetAllSnapshotPatrimonyResponse } 
 import type { SnapshotPatrimonyType } from "~/types/ui/patrimony";
 import type { UseApiFetchReturn } from "~/types/utils";
 
-export function useSnapshotsPatrimony(patrimonyId: string, startDate?: Date, endDate?: Date): UseApiFetchReturn<ListResponse<SnapshotPatrimonyType>> {
+export function useSnapshotsPatrimony(patrimonyId: string): UseApiFetchReturn<ListResponse<SnapshotPatrimonyType>> {
     const query: GetAllSnapshotPatrimonyRequest = {
-        startDate: startDate?.toISOString(),
-        endDate: endDate?.toISOString()
+        period: 'Month',
+        periodTime: 1
     }
     const { data, error, refresh } = useFetch(`/api/patrimonies/${patrimonyId}/get-snapshots`, {
         method: 'GET',
         query: query,
         transform: (data: ListResponse<GetAllSnapshotPatrimonyResponse>) => {
             return {
-                items: data.items.map(i => ({ balance: i.balance, date: new Date(i.date), status: i.status})),
+                items: data.items.map(i => ({ id: i.id, patrimonyId: i.patrimonyId, balance: i.balance, date: new Date(i.date), status: i.status})),
                 totals: data.totals
             } satisfies ListResponse<SnapshotPatrimonyType>  
         }
@@ -24,8 +24,8 @@ export function useSnapshotsPatrimony(patrimonyId: string, startDate?: Date, end
 
 export async function fetchSnapshotsPatrimony(patrimonyId: string, startDate?: Date, endDate?: Date): Promise<ListResponse<SnapshotPatrimonyType>> {
     const query: GetAllSnapshotPatrimonyRequest = {
-        startDate: startDate?.toISOString(),
-        endDate: endDate?.toISOString()
+        period: 'Month',
+        periodTime: 1
     }
     const res = await $fetch<ListResponse<GetAllSnapshotPatrimonyResponse>>(`/api/patrimonies/${patrimonyId}/get-snapshots`, {
         method: "GET",
@@ -33,7 +33,7 @@ export async function fetchSnapshotsPatrimony(patrimonyId: string, startDate?: D
     })
 
     return {
-        items: res.items.map(i => ({ balance: i.balance, date: new Date(i.date), status: i.status})),
+        items: res.items.map(i => ({ id: i.id, patrimonyId: i.patrimonyId, balance: i.balance, date: new Date(i.date), status: i.status})),
         totals: res.totals
     } satisfies ListResponse<SnapshotPatrimonyType>
 }

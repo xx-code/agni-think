@@ -6,11 +6,14 @@ import { RequestUpdatePatrimony } from "@core/interactions/patrimony/updatePatri
 import { RequestAddSnapshotPatrimony } from "@core/interactions/patrimony/addSnapshotToPatrimony";
 import { RequestUpdateSnapshotPatrimony } from "@core/interactions/patrimony/updateSnapshotPatrimony";
 import { RequestAllSnapshotPatrimony } from "@core/interactions/patrimony/getAllSnapshotOfPatrimony";
+import { RequestGetPatrimony } from "@core/interactions/patrimony/getPatrimony";
+import { RequestGetAllPatrimony } from "@core/interactions/patrimony/getAllPatrimony";
 
 const router = Router();
 
 router.post('/v1/patrimonies', 
     body('title').notEmpty().isString(),
+    body('amount').notEmpty().isNumeric(),
     body('type').notEmpty().isString(),
     body('accountIds').optional().isArray(),
 async (req, res) => {
@@ -24,8 +27,10 @@ async (req, res) => {
             return;
         }
 
+        console.log(result.array())
         res.status(400).send({errors: result.array()});
     } catch(err) {
+        console.log(err)
         res.status(400).send({errors: [err]});
     }
 });
@@ -33,7 +38,8 @@ async (req, res) => {
 router.put('/v1/patrimonies/:id', 
     body('title').optional().isString(),
     body('type').optional().isString(),
-    body('accountIds').optional().isArray().isString(),
+    body('amount').optional().isNumeric(),
+    body('accountIds').optional().isArray(),
     async (req: Request, res: Response) => {
         try {
             const result = validationResult(req);
@@ -46,17 +52,23 @@ router.put('/v1/patrimonies/:id',
                 return;
             }
 
+            console.log(result.array())
             res.status(400).send({errors: result.array()});
         } catch(err) {
+            console.log(err)
             res.status(400).send({errors: [err]});
         } 
     }
 )
 
 router.get('/v1/patrimonies/:id', 
-    async (req, res) => {
+    query('period').isString(),
+    query('periodTime').isNumeric(),
+    async (req:Request, res: Response) => {
         try {
-            const patrimony = await container.patrimonyUseCase?.getPatrimony.execute(req.params.id)
+            const data: RequestGetPatrimony = matchedData(req);
+            data.patrimonyId = req.params.id
+            const patrimony = await container.patrimonyUseCase?.getPatrimony.execute(data)
 
             res.status(200).json(patrimony)
         } catch(err) {
@@ -78,9 +90,12 @@ router.delete('/v1/patrimonies/:id',
 )
 
 router.get('/v1/patrimonies', 
+    query('period').isString(),
+    query('periodTime').isNumeric(),
     async (req, res) => {
         try {
-            const patrimonies = await container.patrimonyUseCase?.getAllPatrimony.execute()
+            const data: RequestGetAllPatrimony = matchedData(req);
+            const patrimonies = await container.patrimonyUseCase?.getAllPatrimony.execute(data)
 
             res.status(200).json(patrimonies)
         } catch(err) {
@@ -107,14 +122,15 @@ router.post('/v1/patrimonies/:id/add-snapshot',
 
             res.status(400).send({errors: result.array()});
         } catch(err) {
+            console.log(err)
             res.status(400).send({errors: [err]});
         }
     }
 )
 
 router.get('/v1/patrimonies/:id/snapshots', 
-    query('startDate').optional().isISO8601().toDate(),
-    query('endDate').optional().isISO8601().toDate(),
+    query('period').isString(),
+    query('periodTime').isNumeric(),
     async (req: Request, res: Response) => {
         try {
             const result = validationResult(req);
@@ -127,8 +143,11 @@ router.get('/v1/patrimonies/:id/snapshots',
                 return;
             }
 
+            console.log(result.array())
+
             res.status(400).send({errors: result.array()});
         } catch(err) {
+            console.log(err)
             res.status(400).send({errors: [err]});
         }
     }
@@ -147,7 +166,7 @@ router.delete('/v1/patrimony-remove-snapshot/:id',
 
 router.put('/v1/patrimonies/:id/update-snapshot/:id_snapshot', 
     body('balance').optional().isNumeric(),
-    body('date').optional().isDate(),
+    body('date').optional().isISO8601().toDate(),
     body('status').optional().isString(),
     async (req: Request, res: Response) => {
         try {
@@ -162,8 +181,10 @@ router.put('/v1/patrimonies/:id/update-snapshot/:id_snapshot',
                 return;
             }
 
+            console.log(result.array())
             res.status(400).send({errors: result.array()});
         } catch(err) {
+            console.log(err)
             res.status(400).send({errors: [err]});
         }
     }

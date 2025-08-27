@@ -1,10 +1,9 @@
-import { ListDto } from "@core/dto/base";
 import { AccountRepository } from "../../repositories/accountRepository";
 import { IUsecase } from "../interfaces";
 import { GetAccountBalanceByPeriodDto, RequestGetAccountBalanceByPeriod } from "./getPastAccountBalanceByPeriod";
 
 
-export type GetAllAccountWithPastBalanceDto = {
+export type GetManyAccountWithPastBalanceDto = {
     accountId: string
     title: string
     balance: number
@@ -12,13 +11,14 @@ export type GetAllAccountWithPastBalanceDto = {
     type: string
 }
 
-export type RequestGetAllAccountPastBalanceUseCase = {
+export type RequestGetManyAccountPastBalance = {
     period: string 
     periodTime: number
+    accountIds: string[]
 }
 
 
-export class GetAllAccountWithPastBalanceUseCase implements IUsecase<RequestGetAllAccountPastBalanceUseCase, ListDto<GetAllAccountWithPastBalanceDto>>{
+export class GetAllAccountWithPastBalanceUseCase implements IUsecase<RequestGetManyAccountPastBalance, GetManyAccountWithPastBalanceDto[]>{
     private repository: AccountRepository;
     private getAccountBalanceByPeriod: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>
 
@@ -30,14 +30,14 @@ export class GetAllAccountWithPastBalanceUseCase implements IUsecase<RequestGetA
         this.getAccountBalanceByPeriod = getAccountBalance
     }
 
-    async execute(request: RequestGetAllAccountPastBalanceUseCase): Promise<ListDto<GetAllAccountWithPastBalanceDto>> {
-        let accounts = await this.repository.getAll();
+    async execute(request: RequestGetManyAccountPastBalance): Promise<GetManyAccountWithPastBalanceDto[]> {
+        let accounts = await this.repository.getManyIds(request.accountIds);
         const pastbalances = await this.getAccountBalanceByPeriod.execute({ 
             period: request.period, 
             periodTime: request.periodTime, 
             accountIds: accounts.map(i => i.getId()) })
         
-        let accountsDisplay: GetAllAccountWithPastBalanceDto[] = [];
+        let accountsDisplay: GetManyAccountWithPastBalanceDto[] = [];
         for (let accountPastBalance of pastbalances) { 
             let account = accounts.find(i => i.getId() === accountPastBalance.accountId)
             if (account)
@@ -50,6 +50,6 @@ export class GetAllAccountWithPastBalanceUseCase implements IUsecase<RequestGetA
                 });
         }
 
-        return { items: accountsDisplay, totals: accountsDisplay.length}
+        return accountsDisplay
     }
 }

@@ -72,8 +72,8 @@ import IAgentScoringGoal from '@core/agents/agentGoalScoring';
 import IAgentPlanningAdvisor from '@core/agents/agentPlanningAdvisor';
 import { CreatePatrimonyUseCase, RequestCreatePatrimony } from '@core/interactions/patrimony/createPatrimony';
 import { RequestUpdatePatrimony, UpdatePatrimonyUseCase } from '@core/interactions/patrimony/updatePatrimony';
-import { GetPatrimonyDto, GetPatrimonyUseCase } from '@core/interactions/patrimony/getPatrimony';
-import { GetAllPatrimonyDto, GetAllPatrimonyUseCase } from '@core/interactions/patrimony/getAllPatrimony';
+import { GetPatrimonyDto, GetPatrimonyUseCase, RequestGetPatrimony } from '@core/interactions/patrimony/getPatrimony';
+import { GetAllPatrimonyDto, GetAllPatrimonyUseCase, RequestGetAllPatrimony } from '@core/interactions/patrimony/getAllPatrimony';
 import { AddSnapshotPatrimonyUseCase, RequestAddSnapshotPatrimony } from '@core/interactions/patrimony/addSnapshotToPatrimony';
 import { RequestUpdateSnapshotPatrimony, UpdateSnapshotPatrimonyUseCase } from '@core/interactions/patrimony/updateSnapshotPatrimony';
 import DeletePatrimonyUseCase from '@core/interactions/patrimony/deletePatrimony';
@@ -81,6 +81,7 @@ import { RemoveSnapshotFromPatrimonyUseCase } from '@core/interactions/patrimony
 import { PostgreSqlPatrimonyRepository } from '@infra/data/postgreSQL/postgreSqlPatrimonyRepository';
 import { PostgreSqlSnapshotPatrimonyRepository } from '@infra/data/postgreSQL/postgreSqlSnapshotPatrimony';
 import { GetAllSnapshotOfPatrimony, GetAllSnapshotPatrimonyDto, RequestAllSnapshotPatrimony } from '@core/interactions/patrimony/getAllSnapshotOfPatrimony';
+import { GetAccountBalanceByPeriodDto, GetPastAccountBalanceByPeriodUseCase, RequestGetAccountBalanceByPeriod } from '@core/interactions/account/getPastAccountBalanceByPeriod';
 
 async function createTables(knex: Knex) {
     if (!(await knex.schema.hasTable('accounts')))
@@ -193,6 +194,7 @@ async function createTables(knex: Knex) {
         await knex.schema.createTable('patrimonies', (table) => {
             table.uuid('patrimony_id').primary()
             table.string('title')
+            table.float('amount'),
             table.string('type')
             table.date('created_at')
             table.date('updated_at')
@@ -227,6 +229,7 @@ export class DiContenair {
         getAllAccount: IUsecase<void, ListDto<GetAllAccountDto>>,
         getAllAccountWithBalance: IUsecase<RequestGetAllAccountPastBalanceUseCase, ListDto<GetAllAccountWithPastBalanceDto>>
         deleteAccount: IUsecase<string, void>,
+        getPastAccountBalanceByPeriod: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>
     };
 
     public categoryUseCase?: {
@@ -294,8 +297,8 @@ export class DiContenair {
         createPatrimony: IUsecase<RequestCreatePatrimony, CreatedDto>,
         deletePatrimony: IUsecase<string, void>
         updatePatrimony: IUsecase<RequestUpdatePatrimony, void>
-        getPatrimony: IUsecase<string, GetPatrimonyDto>
-        getAllPatrimony: IUsecase<void, ListDto<GetAllPatrimonyDto>>
+        getPatrimony: IUsecase<RequestGetPatrimony, GetPatrimonyDto>
+        getAllPatrimony: IUsecase<RequestGetAllPatrimony, ListDto<GetAllPatrimonyDto>>
         addSnapshotPatrimony: IUsecase<RequestAddSnapshotPatrimony, CreatedDto>
         removeSnapshotPatrimony: IUsecase<string, void>
         updateSnapshotPatrimony: IUsecase<RequestUpdateSnapshotPatrimony, void>
@@ -403,14 +406,15 @@ export class DiContenair {
     }
 
     private registerAccountUsecases() {
+        const getAccountBalanceByPeriodUc = new GetPastAccountBalanceByPeriodUseCase(this.getRepository('transaction'), this.getRepository('record'))
         this.accountUseCase = {
             createAccount: new CreationAccountUseCase(this.getRepository('account')),
             updateAccount: new UpdateAccountUseCase(this.getRepository('account')),
             getAccount: new GetAccountUseCase(this.getRepository('account')),
             getAllAccount: new GetAllAccountUseCase(this.getRepository('account')),
-            getAllAccountWithBalance: new GetAllAccountWithPastBalanceUseCase(this.getRepository('account'), 
-            this.getRepository('transaction'), this.getRepository('record')),
-            deleteAccount: new DeleteAccountUseCase(this.getRepository('account'))
+            getAllAccountWithBalance: new GetAllAccountWithPastBalanceUseCase(this.getRepository('account'), getAccountBalanceByPeriodUc),
+            deleteAccount: new DeleteAccountUseCase(this.getRepository('account')),
+            getPastAccountBalanceByPeriod: getAccountBalanceByPeriodUc
         } 
     }
 
@@ -522,7 +526,9 @@ export class DiContenair {
             ),
             createPatrimony: new CreatePatrimonyUseCase(
                 this.getRepository('patrimony'),
-                this.getRepository('account')
+                this.getRepository('account'),
+                this.getRepository('patrimony_snapshot'),
+                this.getRepository('unit_of_work')
             ),
             deletePatrimony: new DeletePatrimonyUseCase(
                 this.getRepository('patrimony'),
@@ -531,12 +537,15 @@ export class DiContenair {
             getAllPatrimony: new GetAllPatrimonyUseCase(
                 this.getRepository('account'),
                 this.getRepository('patrimony'),
-                this.getRepository('patrimony_snapshot')
+                this.getRepository('patrimony_snapshot'),
+                this.getRepository('saving'),
+                this.accountUseCase?.getPastAccountBalanceByPeriod!
             ),
             getPatrimony: new GetPatrimonyUseCase(
                 this.getRepository('account'),
                 this.getRepository('patrimony'),
-                this.getRepository('patrimony_snapshot')
+                this.getRepository('patrimony_snapshot'),
+                this.accountUseCase?.getPastAccountBalanceByPeriod!
             ),
             removeSnapshotPatrimony: new RemoveSnapshotFromPatrimonyUseCase(
                 this.getRepository('patrimony_snapshot')

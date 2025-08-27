@@ -21,6 +21,7 @@ export class PostgreSqlPatrimonyRepository extends KnexConnector implements Patr
             patrimony_id: patrimony.getId(),
             title: patrimony.getTitle(),
             type: patrimony.getType(),
+            amount: patrimony.getAmount(),
             created_at: patrimony.getCreatedAt(),
             updated_at: patrimony.getUpdatedAt()
         });
@@ -57,6 +58,7 @@ export class PostgreSqlPatrimonyRepository extends KnexConnector implements Patr
         return new Patrimony(
             result['patrimony_id'], 
             result['title'], 
+            result['amount'],
             mapperPatrimonyType(result['type']),
             accounts
         )
@@ -77,6 +79,7 @@ export class PostgreSqlPatrimonyRepository extends KnexConnector implements Patr
             const pat = new Patrimony(
                 result['patrimony_id'], 
                 result['title'], 
+                result['amount'],
                 mapperPatrimonyType(result['type']),
                 accounts
             )
@@ -102,6 +105,7 @@ export class PostgreSqlPatrimonyRepository extends KnexConnector implements Patr
             const pat = new Patrimony(
                 result['patrimony_id'], 
                 result['title'], 
+                result['amount'],
                 mapperPatrimonyType(result['type']),
                 accounts
             )
@@ -120,6 +124,7 @@ export class PostgreSqlPatrimonyRepository extends KnexConnector implements Patr
         await this.connector('patrimonies').where('patrimony_id', patrimony.getId()).update({
             title: patrimony.getTitle(),
             type: patrimony.getType(),
+            amount: patrimony.getAmount(),
             updated_at: patrimony.getUpdatedAt()
         });
 

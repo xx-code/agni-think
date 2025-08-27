@@ -18,6 +18,7 @@ export type PatrimonyTransactionFilter = {
     patrimonyIds?: Array<string> 
     startDate?: Date
     endDate?: Date
+    sort?: 'asc' | 'desc'
 }
 
 export interface PatrimonySnapshotRepository {

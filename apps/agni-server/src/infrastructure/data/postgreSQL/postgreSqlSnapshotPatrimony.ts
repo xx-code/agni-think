@@ -76,6 +76,8 @@ export class PostgreSqlSnapshotPatrimonyRepository extends KnexConnector impleme
         let query = this.connector('patrimony_snapshots').select('*');
         if (filter.patrimonyIds && filter.patrimonyIds.length > 0) query.whereIn('patrimony_id', filter.patrimonyIds);
 
+        query.orderBy('date', filter.sort);
+
         if (filter.startDate) 
             query.where('date', '>=', filter.startDate);
         if (filter.endDate) 
