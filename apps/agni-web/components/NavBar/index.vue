@@ -6,7 +6,7 @@
     <div class="nav-container">
         <div class="nav-content">
             <div class="top-nav">
-                <NavBarLogoTitle title="Agni." />
+                <NavBarLogoTitle title="Agni." title-responsive="A." />
             </div>
             <div>
                 <NavBarItem title="Dashboard" link="/" icon="i-lucide-circle-gauge"  />
