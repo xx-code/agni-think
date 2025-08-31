@@ -58,7 +58,10 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
         const freezeTransactions = await this.transactionRepo.getTransactions({ 
             isFreeze: true,
             startDate: request.startDate,
-            endDate: request.endDate
+            endDate: request.endDate,
+            queryAll: true,
+            offset: 0,
+            limit: 0
         });
         const accounts = await this.accountRepo.getAll();
         const budgets = await this.budgetRepo.getAll();
@@ -115,6 +118,9 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
                     budgets: [budget.getId()],
                     startDate: startBudgetUTCDate,
                     endDate: budget.getSchedule().getUpdatedDate(),
+                    queryAll: true,
+                    offset: 0,
+                    limit: 0
                 });
 
                 let currentBalance = 0

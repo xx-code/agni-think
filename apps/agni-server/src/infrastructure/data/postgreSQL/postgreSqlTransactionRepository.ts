@@ -1,11 +1,11 @@
-import { SortBy, TransactionFilter, TransactionRepository } from "@core/repositories/transactionRepository";
+import { TransactionFilter, TransactionRepository } from "@core/repositories/transactionRepository";
 import { KnexConnector } from "./postgreSqlConnector";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Knex } from "knex";
 import { isEmpty } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { mapperMainTransactionCategory, mapperTransactionStatus } from "@core/domains/constants";
-import { RepositoryListResult } from "@core/repositories/dto";
+import { RepositoryListResult, SortBy } from "@core/repositories/dto";
 
 
 export class PostgreSqlTransactionRepository extends KnexConnector implements TransactionRepository {
@@ -104,11 +104,11 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
         return !isEmpty(result)
     }
 
-    async getPaginations(offset: number, size: number, sortBy: SortBy | null, filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>> { 
+    async getPaginations(filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>> { 
         try {
             let query = this.connector('transactions').select('*');
 
-            if (sortBy) query.orderBy(sortBy.sortBy, sortBy.asc ? 'asc' : 'desc')
+            if (filterBy.sort) query.orderBy(filterBy.sort.sortBy, filterBy.sort.asc ? 'asc' : 'desc')
 
             if (filterBy.accounts && filterBy.accounts?.length > 0) query.whereIn('account_id', filterBy.accounts);
             if (filterBy.categories && filterBy.categories?.length > 0) query.whereIn('category_id', filterBy.categories);
@@ -126,6 +126,9 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
 
             if (filterBy.types && filterBy.types?.length > 0) query.whereIn('type', filterBy.types);
 
+            if (filterBy.status)
+                query.where('status', '=', filterBy.status)
+
             if (filterBy.isFreeze !== undefined)
                 query.where('is_freeze', '=', filterBy.isFreeze);
 
@@ -138,7 +141,7 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
             const totalCount = total?.count ?? 0
 
             if (!filterBy.queryAll) 
-                query.limit(size).offset(offset * size);
+                query.limit(filterBy.limit).offset(filterBy.offset);
 
             let results = await query;
 

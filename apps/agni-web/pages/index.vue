@@ -1,25 +1,85 @@
 <script setup lang="ts">
 import useAccountsWitPastBalance, { ALL_ACCOUNT_ID } from '~/composables/accounts/useAccountsWithPastBalance'
+import useCashflow from '~/composables/analytics/useCashflow'
 import useBudgets from '~/composables/budgets/useBudgets'
+import useCategories from '~/composables/categories/useCategories'
 import useSaveGoals from '~/composables/goals/useSaveGoals'
+import useTags from '~/composables/tags/useTags'
 import useTransactionPagination from '~/composables/transactions/useTransactionPagination'
 import type { FilterTransactionQuery } from '~/types/api/transaction'
+import type { TransactionTableType } from '~/types/ui/transaction'
 import { formatBudgetDataForChart } from '~/utils/formatBudgetDataForChart'
+import { getListTime } from '~/utils/getListTime'
 
+const calendarSelection = reactive<{
+    period: 'Year' | 'Month' | 'Week',
+    periodTime: number,
+    showNumber: number
+}>({
+    period: 'Month',
+    periodTime: 1,
+    showNumber: 6  
+})
 
+const { data: cashflow } = useCashflow(calendarSelection) 
+const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories()
+const {data: tags, error: errorTag, refresh: refreshTag } = useTags()
 
-const labelsDate = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
-const optionsChart = computed(() => ({responsive: true})) 
+const displaytransactionsTable = computed(() => {
+    const getCategory = (id: string) => categories.value?.items.find(i => id === i.id)
+    const getTag = (id: string) => tags.value?.items.find(i => id === i.id)
+    const getBudget = (id: string) => budgets.value?.items.find(i => id === i.id)
+
+    return transactions.value?.items.map(i => ({
+        id: i.id,
+        accountId: i.accountId,
+        amount: i.amount,
+        date: i.date,
+        description: i.description,
+        recordType: i.recordType,
+        type: i.type,
+        status: i.status,
+        category: {
+            id: i.categoryId,
+            icon: getCategory(i.categoryId)?.icon || '',
+            color: getCategory(i.categoryId)?.color || '',
+            title: getCategory(i.categoryId)?.title || '',
+        },
+        tags: i.tagIds.map(i => ({
+            id: i,
+            value: getTag(i)?.value || '',
+            color: getTag(i)?.color || ''
+        })),
+        budgets: i.budgetIds.map(i => ({
+            id: i,
+            title: getBudget(i)?.title || ''
+        }))
+    } satisfies TransactionTableType))    
+})
+
+const labels = computed(() => {
+    const values = getListTime(
+        calendarSelection.period, {
+            count: calendarSelection.showNumber,
+            spacing: calendarSelection.periodTime
+        })
+
+    return values
+})
+
+const optionsChart = computed(() => ({
+    responsive: true,
+})) 
 const dataChart = computed(() => ({
-    labels: labelsDate, 
+    labels: labels.value, 
     datasets: [{
-        label: 'Income',
-        data: [65, 59, 80, 81, 56, 55],
+        label: 'Gains',
+        data: cashflow.value?.incomes || [],
         backgroundColor: '#6655d7',
         borderWidth: 1,
     }, {
-        label: 'Spend',
-        data: [60, 89, 45, 34, 60, 65],
+        label: 'Depense',
+        data: cashflow.value?.spends || [],
         backgroundColor: 'rgba(103, 85, 215, 0.1)',
         borderWidth: 1
     }],
@@ -30,11 +90,6 @@ const {data: budgets} = useBudgets()
 const budgetChart = computed(() => {
     return formatBudgetDataForChart(budgets.value?.items) // TODO: review
 });
-// generate code
-const now = new Date();
-const prevMonth = new Date(now.getUTCFullYear(), now.getUTCMonth() - 1, 1);
-const startDate = new Date(prevMonth.getUTCFullYear(), prevMonth.getUTCMonth(), 1)
-const endDate = new Date(prevMonth.getUTCFullYear(), prevMonth.getUTCMonth() + 1, 0)
 
 const {data:accounts, error:accountError, refresh:accountRefresh} = useAccountsWitPastBalance({ period: 'Month', periodTime: 1});
 
@@ -58,18 +113,25 @@ const items = computed(() => {
         }    )) 
     return []
 })
-const paramsTransaction = reactive<FilterTransactionQuery>({offset: 0, limit: 4})
+const paramsTransaction = reactive<FilterTransactionQuery>({
+    offset: 0, limit: 5, status: 'Pending'})
 const {data: transactions} = useTransactionPagination(paramsTransaction);
-const {data: goals} =  useSaveGoals();
+const {data: goals} =  useSaveGoals({limit: 4, offset: 0, sortSense: 'asc', orderBy: 'balance'});
+const displayGoals = computed(() => {
+    return goals.value?.items 
+})
+
 const dateDisplayed = ref("Mois");
 const listTypeDateDisplay =computed(() => (
 [
     {
-        label: 'Semaine' as const,
+        label: 'Bi-hebdomadaire' as const,
         type: "checkbox" as const,
         onSelect(e: Event) { 
             e.preventDefault()
-            dateDisplayed.value = "Semain"
+            calendarSelection.periodTime = 2
+            dateDisplayed.value = "Bi-hebdomadaire"
+            calendarSelection.period = "Week"
         } 
     },
     {
@@ -77,15 +139,9 @@ const listTypeDateDisplay =computed(() => (
         type: "checkbox" as const,
         onSelect(e: Event) {
             e.preventDefault()
+            calendarSelection.period = "Month"
+            calendarSelection.periodTime = 1
             dateDisplayed.value = "Mois"
-        } 
-    },
-    {
-        label: 'Trimestre' as const,
-        type: "checkbox" as const,
-        onSelect(e: Event) {
-            e.preventDefault()
-            dateDisplayed.value = "Trimestre"
         } 
     },
     {
@@ -93,7 +149,19 @@ const listTypeDateDisplay =computed(() => (
         type: "checkbox" as const,
         onSelect(e: Event) {
             e.preventDefault()
+            calendarSelection.period = "Month"
+            calendarSelection.periodTime = 2
             dateDisplayed.value = "Semestre"
+        } 
+    },
+    {
+        label: 'Trimestre' as const,
+        type: "checkbox" as const,
+        onSelect(e: Event) {
+            e.preventDefault()
+            calendarSelection.period = "Month"
+            calendarSelection.periodTime = 3
+            dateDisplayed.value = "Trimestre"
         } 
     },
     {
@@ -101,6 +169,8 @@ const listTypeDateDisplay =computed(() => (
         type: "checkbox" as const,
         onSelect(e: Event) {
             e.preventDefault()
+            calendarSelection.period = "Year"
+            calendarSelection.periodTime = 1
             dateDisplayed.value = "Annee"
         } 
     }
@@ -172,19 +242,23 @@ watchEffect(() => {
                 </div>
             </div>
             <div class="card-grid rounded-md md:col-span-2 flex flex-col gap-2">
-                <CustomCardTitle title="Transactions">
-                    <div class="flex gap-1">
-                        <USelect class="rounded-full" v-model="transactionAccountSelected" :items="accounts?.items.map(acc => (acc.title))" />
-                        <UButton class="rounded-full" size="sm" label="Voir plus" variant="outline" color="neutral" />
-                    </div>
+                <CustomCardTitle title="Transactions en attende">
                 </CustomCardTitle>
                 <div>
                     <div class="flex flex-col gap-1" >
-                        <div v-for="trans in transactions?.items" :key="trans.accountId">
-                            <!-- <RowTransaction 
-                                :id="trans.accountId" :balance="trans.amount" :title="trans.description" 
-                                :description="trans.description" :icon="trans.category.icon" 
-                                :tags="trans.tagRefs.map((i:any) => i.value)"/>     -->
+                        <div v-for="trans in displaytransactionsTable" :key="trans.accountId">
+                            <RowTransaction 
+                                :id="trans.id" 
+                                :balance="trans.amount" 
+                                :title="trans.category.title" 
+                                :description="trans.description" 
+                                :icon="trans.category.icon" 
+                                :tags="trans.tags.map((tag: any) => tag.value)" 
+                                :date="trans.date" 
+                                :color="trans.category.color"
+                                :recordType="trans.recordType"
+                                :doShowEdit="false" 
+                            />
                         </div>
                     </div>
                 </div> 
@@ -195,7 +269,7 @@ watchEffect(() => {
                     <UButton icon="i-lucide-external-link" variant="outline" color="neutral" />
                 </CustomCardTitle>
                 <div class="flex flex-col gap-1">
-                    <div v-for="goal in goals?.items" :key="goal.id">
+                    <div v-for="goal in displayGoals" :key="goal.id">
                         <BarBudgetInfo :id="goal.id" :title="goal.title" 
                         :target-amount="goal.target" :amount="goal.balance" />
                     </div>

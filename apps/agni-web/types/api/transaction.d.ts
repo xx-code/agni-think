@@ -56,6 +56,7 @@ export type FilterTransactionQuery = {
     types?: string[],
     minPrice?: number,
     maxPrice?: number,
+    status?: string,
     isFreeze?: boolean
 }
 

@@ -11,3 +11,8 @@ export type GetEstimationLeftAmountRequest = {
     startDate: string
     endDate: string
 }
+
+export type GetCashflowAnalyseResponse = {
+    spendFlow: number[]
+    gainsFlow: number[]
+}

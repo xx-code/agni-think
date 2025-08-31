@@ -63,6 +63,9 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number
 
 
         let filter: TransactionFilter = {
+            offset: 0,
+            limit: 0,
+            queryAll: true,
             accounts: request.accountIds || [],
             categories: request.categoriesIds || [],
             budgets: request.budgetIds || [],

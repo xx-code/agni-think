@@ -26,6 +26,8 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
     async execute(): Promise<void> {
         try {
             let filters: TransactionFilter = {
+                offset: 0,
+                limit: 0,
                 isFreeze: true,
                 queryAll: true
             };

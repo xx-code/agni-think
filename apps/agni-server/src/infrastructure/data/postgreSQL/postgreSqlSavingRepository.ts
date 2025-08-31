@@ -5,6 +5,7 @@ import { Knex } from "knex";
 import { Money } from "@core/domains/entities/money";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import SaveGoalItem from "@core/domains/valueObjects/saveGoalItem";
+import { QueryFilterAllRepository } from "@core/repositories/dto";
 
 export class PostgreSqlSavingRepository extends KnexConnector implements SavingRepository {
 
@@ -80,8 +81,17 @@ export class PostgreSqlSavingRepository extends KnexConnector implements SavingR
         );
     }
 
-    async getAll(): Promise<SaveGoal[]> {
-        let results = await this.connector('save_goals').select('*');
+    async getAll(filter: QueryFilterAllRepository): Promise<SaveGoal[]> {
+        const query = this.connector('save_goals').select('*');
+
+        if (!filter.queryAll)
+            query.offset(filter.offset).limit(filter.limit);
+
+        if (filter.sort)
+            query.orderBy(filter.sort.sortBy, filter.sort.asc ? 'asc' : 'desc')
+        
+        const results = await query;
+
         return Promise.all(results.map(async result => new SaveGoal(
             result.save_goal_id,
             result.title,

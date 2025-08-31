@@ -1,6 +1,9 @@
-import { ListDto } from "@core/dto/base"
+import { ListDto, QueryAllFetch } from "@core/dto/base"
 import { SavingRepository } from "../../repositories/savingRepository"
 import { IUsecase } from "../interfaces"
+import { BadRequestError } from "openai"
+import UnExpectedError from "@core/errors/unExpectedError"
+import { SortBy } from "@core/repositories/dto"
 
 export type GetAllSaveGoalItemDto = {
     title: string
@@ -21,15 +24,35 @@ export type GetAllSaveGoalDto = {
     items: GetAllSaveGoalItemDto[]
 }
 
-export class GetAllSaveGoalUseCase implements IUsecase<void, ListDto<GetAllSaveGoalDto>> {
+export type QueryFilterSaveGoal = QueryAllFetch & {
+    orderBy? : string 
+    sortSense? : 'asc' | 'desc'
+}
+
+export class GetAllSaveGoalUseCase implements IUsecase<QueryFilterSaveGoal, ListDto<GetAllSaveGoalDto>> {
     private savingRepository: SavingRepository
 
     constructor(savingRepo: SavingRepository) {
         this.savingRepository = savingRepo
     }
 
-    async execute(): Promise<ListDto<GetAllSaveGoalDto>> {
-        let saveGoals = await this.savingRepository.getAll()
+    async execute(request: QueryFilterSaveGoal): Promise<ListDto<GetAllSaveGoalDto>> {
+
+        if (request.orderBy && !['target', 'balance'].includes(request.orderBy))
+            throw new UnExpectedError("ORDER_BY_MUST_BE_TARGERT_OR_BALANCE")
+
+        if (request.orderBy && !request.sortSense)
+            throw new UnExpectedError("YOU_HAVE_TO_CHOOSE_SENSE")
+
+        let saveGoals = await this.savingRepository.getAll({
+            offset: request.offset,
+            limit: request.limit,
+            queryAll: request.queryAll,
+            sort: request.offset && request.sortSense ? {
+                sortBy: request.orderBy as SortBy['sortBy'],
+                asc: request.sortSense ? true : false
+            } satisfies SortBy : undefined
+        })
 
         let responses: GetAllSaveGoalDto[] = [] 
 

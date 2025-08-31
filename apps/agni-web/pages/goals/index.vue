@@ -17,6 +17,7 @@ import useUpdateAmountSaveGoal from "~/composables/goals/useUpdateAmountSaveGoal
 import useUpdateSaveGaol from "~/composables/goals/useUpdateSaveGoal";
 import useImportanceTypes from "~/composables/internals/useImportanceTypes";
 import useIntensityDesirTypes from "~/composables/internals/useImportanceTypes";
+import type { queryFilterSaveGoalRequest } from "~/types/api/saveGoal";
 import type { EditSaveGoalType, EditUpdateAmountSaveGoalType, SaveGoalType } from "~/types/ui/saveGoal";
 
 type ItemRown = {
@@ -30,7 +31,13 @@ type ItemRown = {
     wishDate?: Date
 }
 
-const { data: goals, error: errorGoals, refresh: refreshGoals } =  useSaveGoals()
+const filter = reactive<queryFilterSaveGoalRequest>({
+    offset: 0,
+    limit: 8,
+    queryAll: true
+});
+
+const { data: goals, error: errorGoals, refresh: refreshGoals } =  useSaveGoals(filter)
 const { data: accounts, error: errorAccount, refresh: refreshAccounts } = useAccounts()
 const { data:intensityDesirs } = useIntensityDesirTypes();
 const { data:importances } = useImportanceTypes()

@@ -1,6 +1,7 @@
 import { RequestAddSaveGoalUseCase } from '@core/interactions/saveGoal/addSaveGoal';
 import { RequestDecreaseSaveGoal } from '@core/interactions/saveGoal/decreaseSaveGoal';
 import { RequestDeleteSaveGoal } from '@core/interactions/saveGoal/deleteSaveGoal';
+import { QueryFilterSaveGoal } from '@core/interactions/saveGoal/getAllSaveGoal';
 import { RequestIncreaseSaveGoal } from '@core/interactions/saveGoal/increaseSaveGoal';
 import { RequestUpdateSaveGoalUseCase } from '@core/interactions/saveGoal/updateSaveGoal';
 import { Router, Request, Response } from 'express';
@@ -70,10 +71,25 @@ router.get('/v1/save-goals/:id', async (req, res) => {
     }
 });
 
-router.get('/v1/save-goals', async (req, res) => {
+router.get(
+    '/v1/save-goals',
+    query('limit').isNumeric(),
+    query('offset').isNumeric(),
+    query('queryAll').optional().isBoolean(),
+    query('orderBy').optional().isString(),
+    query('sortSense').optional().isString(),
+    async (req, res) => {
     try {
-        var saveGoals = await container.saveGoalUseCase?.getAllSaveGoal.execute();
-        res.status(200).send(saveGoals);
+        const result = validationResult(req);
+        if (result.isEmpty()) {
+            const data: QueryFilterSaveGoal = matchedData(req);
+            var saveGoals = await container.saveGoalUseCase?.getAllSaveGoal.execute(data);
+
+            res.status(200).send(saveGoals);
+            return
+        }
+
+        res.status(400).send({ errors: result.array() });
     } catch(err) {
         res.status(400).send({ errors: [err] })
     }

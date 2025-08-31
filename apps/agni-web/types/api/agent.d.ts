@@ -18,4 +18,8 @@ export type AgentPlanningAdvisorResponse = {
     suggestGoalPlanning: AgentSavegoalAdviceResponse[] 
 }
 
-
+export type CashflowRequest = {
+    period: string
+    periodTime: number
+    showNumber: number
+}

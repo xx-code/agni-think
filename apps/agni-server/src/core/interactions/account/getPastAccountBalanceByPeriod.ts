@@ -40,7 +40,10 @@ export class GetPastAccountBalanceByPeriodUseCase implements IUsecase<RequestGet
             const filter: TransactionFilter = {
                 accounts: [accountId],
                 startDate: startDate,
-                endDate: endDate
+                endDate: endDate,
+                offset: 0,
+                limit: 0,
+                queryAll: true,
             }
 
             let transactions = await this.transactionRepository.getTransactions(filter);

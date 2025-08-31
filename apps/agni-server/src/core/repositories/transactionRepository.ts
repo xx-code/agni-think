@@ -1,15 +1,16 @@
 import { Money } from "../domains/entities/money";
 import { Transaction } from "../domains/entities/transaction";
-import { TransactionType } from "@core/domains/constants";
-import { RepositoryListResult } from "./dto";
+import { TransactionStatus, TransactionType } from "@core/domains/constants";
+import { QueryFilterAllRepository, RepositoryListResult, SortBy } from "./dto";
 
-export type TransactionFilter = {
+export type TransactionFilter = QueryFilterAllRepository & {
     accounts?: Array<string>;
     categories?: Array<string>;
     budgets?: Array<string>,
     tags?: Array<string>;
     startDate?: Date
     endDate?: Date
+    status?: TransactionStatus
     types?: TransactionType[],
     minPrice?: Money
     maxPrice?: Money
@@ -17,17 +18,12 @@ export type TransactionFilter = {
     queryAll?: boolean
 }
 
-export type SortBy = {
-    sortBy: string,
-    asc: boolean
-}
-
 
 export interface TransactionRepository {
     save(request: Transaction): Promise<void>;
     get(id: string): Promise<Transaction>;
     isTransactionExistById(id: string): Promise<boolean>
-    getPaginations(offset:number, size: number, sortBy: SortBy|null, filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>>;
+    getPaginations(filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>>;
     getTransactions(filterBy: TransactionFilter): Promise<Transaction[]>
     delete(id: string): Promise<void>;
     update(request: Transaction): Promise<void>;

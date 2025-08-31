@@ -1,3 +1,5 @@
+import type { QueryFilterRequest } from "."
+
 export type GetSaveGoalResponse = {
     id: string,
     title: string,
@@ -77,4 +79,9 @@ export type DecreaseSaveGoalRequest = {
 
 export type DeleteSaveGoalRequest = {
     accountDepositId: string
+}
+
+export type queryFilterSaveGoalRequest = QueryFilterRequest & {
+    orderBy?: 'target' | 'balance'
+    sortSense?: 'asc' | 'desc'
 }
