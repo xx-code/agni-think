@@ -5,8 +5,10 @@ import type { GetAllSaveGoalResponse } from "~/types/api/saveGoal";
 export default defineEventHandler(async event => {
     try {
         const api = useApiLink(); 
+        const query = getQuery(event)
         const response = await $fetch(`${api}/save-goals`, {
-            method: 'GET'
+            method: 'GET',
+            query: query
         });
 
         const data = (response as ListResponse<GetAllSaveGoalResponse>);

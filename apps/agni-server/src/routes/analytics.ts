@@ -1,3 +1,4 @@
+import { RequestCashFlow } from "@core/interactions/analystic/cashflowAnalyse";
 import { RequestEstimationLeftAmount } from "@core/interactions/analystic/estimationleftAmount";
 import { RequestSuggestPlanningSaveGoal } from "@core/interactions/analystic/suggestPlanningSaveGoalUseCase";
 import { Router } from "express";
@@ -46,7 +47,7 @@ router.post('/v1/analytics/save-goal-planning',
                 
                 res.status(200).send(result);
                 return;
-        }
+            }
 
         res.status(400).send({ errors: result.array() });
     } catch(err) {
@@ -54,5 +55,27 @@ router.post('/v1/analytics/save-goal-planning',
         res.status(400).send({ errors: [ err ]});
     }
 });
+
+router.get('/v1/analytics/cashflow', 
+    query('period').isString(),
+    query('periodTime').isNumeric(),
+    query('showNumber').isNumeric(),
+    async (req, res ) => {
+        try {
+            const result = validationResult(req);
+            if (result.isEmpty()) {
+                const data: RequestCashFlow = matchedData(req);
+                const result = await container.analyticUseCase?.cashflowAnalyse.execute(data);
+                res.status(200).send(result);
+                return;
+            }
+
+            res.status(400).send({ errors: result.array() });
+        } catch(err) {
+            console.log(err)
+            res.status(400).send({ errors: [ err ]});
+        }
+    }
+)
 
 export default router;

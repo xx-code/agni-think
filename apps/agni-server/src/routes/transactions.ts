@@ -82,13 +82,13 @@ router.delete("/v1/transactions/:id", async (req, res) => {
 });
 
 router.get("/v1/transactions-balance",
-    query('accountFilterIds').optional().isArray(),
-    query('categoryFilterIds').optional().isArray(),
-    query('budgetFilterIds').optional().isArray(),
-    query('tagFilterIds').optional().isArray(),
+    query('accountFilterIds').optional().toArray(),
+    query('categoryFilterIds').optional().toArray(),
+    query('budgetFilterIds').optional().toArray(),
+    query('tagFilterIds').optional().toArray(),
     query('dateStart').optional().isISO8601().toDate(),
     query('dateEnd').optional().isISO8601().toDate(),
-    query('types').optional().isArray(),
+    query('types').optional().toArray(),
     query('minPrice').optional().isNumeric(),
     query('maxPrice').optional().isNumeric(),
     async (req, res) => {
@@ -101,9 +101,13 @@ router.get("/v1/transactions-balance",
                 res.status(200).json({balance: balance});
                 return;
             }
+
+
+            console.log(result)
             
             res.status(400).send({ errors: result.array() });
         } catch(err) {
+            console.log(err)
             res.status(400).send({ errors: [err] });
         }
     });
@@ -123,10 +127,11 @@ router.get("/v1/transactions",
     query('limit').isNumeric().default(25),
     query('sortBy').optional(),
     query('sortSense').optional(),
-    query('accountFilterIds').optional().isArray(),
-    query('categoryFilterIds').optional().isArray(),
-    query('budgetFilterIds').optional().isArray(),
-    query('tagFilterIds').optional().isArray(),
+    query('status').optional().isString(),
+    query('accountFilterIds').optional().toArray(),
+    query('categoryFilterIds').optional().toArray(),
+    query('budgetFilterIds').optional().toArray(),
+    query('tagFilterIds').optional().toArray(),
     query('dateStart').optional().isISO8601().toDate(),
     query('dateEnd').optional().isISO8601().toDate(),
     query('types').optional().isArray(),

@@ -81,7 +81,7 @@ export class GetAllPatrimonyUseCase implements IUsecase<RequestGetAllPatrimony, 
             })
         } 
 
-        const saveGoals = await this.saveGoalRepo.getAll()
+        const saveGoals = await this.saveGoalRepo.getAll({ queryAll: true, offset: 0, limit: 0})
         let saveAmount = 0 
         saveGoals.filter(i => i.getBalance().getAmount() > 0).forEach(i => {
             saveAmount += i.getBalance().getAmount() 

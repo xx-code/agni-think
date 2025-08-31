@@ -1,7 +1,7 @@
 import { Money } from "@core/domains/entities/money";
 import { Transaction } from "@core/domains/entities/transaction";
-import { RepositoryListResult } from "@core/repositories/dto";
-import { SortBy, TransactionFilter, TransactionRepository } from "@core/repositories/transactionRepository";
+import { RepositoryListResult, SortBy } from "@core/repositories/dto";
+import { TransactionFilter, TransactionRepository } from "@core/repositories/transactionRepository";
 
 export class MockTransactionRepository implements TransactionRepository {
     private transactions: Map<string, Transaction> = new Map();
@@ -22,7 +22,7 @@ export class MockTransactionRepository implements TransactionRepository {
         return this.transactions.has(id);
     }
 
-    async getPaginations(page: number, size: number, sortBy: SortBy | null, filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>> {
+    async getPaginations(filterBy: TransactionFilter): Promise<RepositoryListResult<Transaction>> {
         let filteredTransactions = Array.from(this.transactions.values());
 
         // Appliquer les filtres (exemple simple : filtrage par comptes)
@@ -39,13 +39,13 @@ export class MockTransactionRepository implements TransactionRepository {
             filteredTransactions = filteredTransactions.filter(tr => tr.getBudgetRefs().forEach(budget => filterBy.budgets?.includes(budget)));
         }
         // Pagination
-        const start = (page - 1) * size;
-        const end = start + size;
+        const start = filterBy.offset;
+        const end = filterBy.offset + filterBy.limit;
         const paginatedData = filteredTransactions.slice(start, end);
 
         return {
             items: paginatedData,
-            total: Number((filteredTransactions.length / page).toFixed(0))
+            total: this.transactions.values.length
         };
     }
 

@@ -56,6 +56,9 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
                 budgets: [budget.getId()],
                 startDate: startBudgetUTCDate,
                 endDate: budget.getSchedule().getUpdatedDate(),
+                offset: 0,
+                limit: 0,
+                queryAll: true
             });
 
             let currentBalance = 0

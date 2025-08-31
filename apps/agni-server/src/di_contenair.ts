@@ -17,7 +17,7 @@ import { PostgresSqlBudgetRepository } from '@infra/data/postgreSQL/postgreSqlBu
 import { PostgreSqlSavingRepository } from '@infra/data/postgreSQL/postgreSqlSavingRepository';
 import { IUsecase } from '@core/interactions/interfaces';
 import { CreationAccountUseCase, RequestCreationAccountUseCase } from '@core/interactions/account/creationAccountUseCase';
-import { CreatedDto, ListDto } from '@core/dto/base';
+import { CreatedDto, ListDto, QueryAllFetch } from '@core/dto/base';
 import { RequestUpdateAccountUseCase, UpdateAccountUseCase } from '@core/interactions/account/updateAccountUseCase';
 import { GetAccountDto, GetAccountUseCase } from '@core/interactions/account/getAccountUseCase';
 import { GetAllAccountDto, GetAllAccountUseCase } from '@core/interactions/account/getAllAccountUseCase';
@@ -82,6 +82,7 @@ import { PostgreSqlPatrimonyRepository } from '@infra/data/postgreSQL/postgreSql
 import { PostgreSqlSnapshotPatrimonyRepository } from '@infra/data/postgreSQL/postgreSqlSnapshotPatrimony';
 import { GetAllSnapshotOfPatrimony, GetAllSnapshotPatrimonyDto, RequestAllSnapshotPatrimony } from '@core/interactions/patrimony/getAllSnapshotOfPatrimony';
 import { GetAccountBalanceByPeriodDto, GetPastAccountBalanceByPeriodUseCase, RequestGetAccountBalanceByPeriod } from '@core/interactions/account/getPastAccountBalanceByPeriod';
+import { CashFlowAnalyseUseCase, CashFlowResponse, RequestCashFlow } from '@core/interactions/analystic/cashflowAnalyse';
 
 async function createTables(knex: Knex) {
     if (!(await knex.schema.hasTable('accounts')))
@@ -285,12 +286,13 @@ export class DiContenair {
         deleteSaveGoal: IUsecase<RequestDeleteSaveGoal, void>,
         updateSaveGoal: IUsecase<RequestUpdateSaveGoalUseCase, void>,
         getSaveGoal: IUsecase<string, GetSaveGoalDto>,
-        getAllSaveGoal: IUsecase<void, ListDto<GetAllSaveGoalDto>>
+        getAllSaveGoal: IUsecase<QueryAllFetch, ListDto<GetAllSaveGoalDto>>
     }
 
     public analyticUseCase?: {
         estimateLeftAmount: IUsecase<RequestEstimationLeftAmount, GetEstimationLeftAmoutDto>
         planningSaveGoalAdvisor: IUsecase<RequestSuggestPlanningSaveGoal, GetAllSuggestPlanningDto>
+        cashflowAnalyse: IUsecase<RequestCashFlow, CashFlowResponse>
     }
 
     public patrimonyUseCase?: {
@@ -514,7 +516,8 @@ export class DiContenair {
         this.analyticUseCase = {
             estimateLeftAmount: estimateUseCase,
             planningSaveGoalAdvisor: new SuggestPlanningSaveGoalUseCase(estimateUseCase, this.getRepository('account'), this.getRepository('saving'), 
-            this.getAgent('goal_ranking')! as IAgentScoringGoal, this.getAgent('planning')! as IAgentPlanningAdvisor)
+            this.getAgent('goal_ranking')! as IAgentScoringGoal, this.getAgent('planning')! as IAgentPlanningAdvisor),
+            cashflowAnalyse: new CashFlowAnalyseUseCase(this.getRepository('transaction'), this.getRepository('record'))
         }
     }
 

@@ -86,7 +86,7 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
 
         const saveGoalsForRankingAgent: InputSaveGoalAgent[] = []
 
-        const saveGoals = await this.saveGoalRepo.getAll()
+        const saveGoals = await this.saveGoalRepo.getAll({ queryAll: true, offset: 0, limit: 0})
 
         for(const saveGoal of  saveGoals) {
             saveGoalsForRankingAgent.push({

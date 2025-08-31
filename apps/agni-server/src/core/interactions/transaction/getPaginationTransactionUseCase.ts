@@ -1,5 +1,5 @@
-import { TransactionRepository, TransactionFilter, SortBy } from "../../repositories/transactionRepository";
-import { mapperMainTransactionCategory, mapperTransactionType } from "@core/domains/constants";
+import { TransactionRepository, TransactionFilter} from "../../repositories/transactionRepository";
+import { mapperMainTransactionCategory, mapperTransactionStatus, mapperTransactionType, TransactionStatus } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { isEmpty, DateParser } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
@@ -9,6 +9,7 @@ import { ListDto } from "@core/dto/base";
 import { RecordRepository } from "@core/repositories/recordRepository";
 import { TransactionDependencies } from "../facades";
 import { MomentDateService } from "@core/domains/entities/libs";
+import { SortBy } from "@core/repositories/dto";
 
 
 export type RequestGetPagination = {
@@ -22,6 +23,7 @@ export type RequestGetPagination = {
     tagFilterIds?: Array<string>
     dateStart?: Date
     dateEnd?: Date
+    status?: string
     types?: string[]
     minPrice?: number
     maxPrice?: number
@@ -111,6 +113,10 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
             }
         }
 
+        let status:TransactionStatus|undefined = undefined;
+        if (request.status)
+            status = mapperTransactionStatus(request.status) 
+
         let minPrice;
         if (!isEmpty(request.minPrice))
             minPrice  = new Money(request.minPrice)
@@ -119,33 +125,38 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
         if (!isEmpty(request.maxPrice))
             maxPrice = new Money(request.maxPrice)
 
+        let sortBy: SortBy|undefined = {
+            sortBy: 'date',
+            asc: false
+        };
+        if (request.sortBy)
+            sortBy.sortBy = request.sortBy
+
+        if (request.sortSense)
+            if (!['asc', 'desc'].includes(request.sortSense))
+                throw new ValidationError('SORT_SENSE_MUST_BE_ASC_DESC')
+
         let filters: TransactionFilter = {
+            offset: request.offset,
+            limit: request.limit,
             accounts: request.accountFilterIds || [], 
             tags: request.tagFilterIds || [],
             categories: request.categoryFilterIds || [],
             startDate: request.dateStart,
             endDate: request.dateEnd,
             budgets: request.budgetFilterIds || [],
+            status: status,
             types: types,
             minPrice: minPrice,
             maxPrice: maxPrice,
-            isFreeze: request.isFreeze
+            isFreeze: request.isFreeze,
+            sort: sortBy
         };
 
 
-        let sortBy: SortBy|null = {
-            sortBy: 'date',
-            asc: false
-        };
+        
 
-        if (request.sortBy)
-            sortBy.sortBy = request.sortBy
-
-        if (request.sortSense)
-            if (!['asc', 'desc'].includes(request.sortSense))
-                throw new ValidationError('SORT_SENSE_MUST_BE_ASC_DESC') 
-
-        let response = await this.transactionRepository.getPaginations(offset, limit, sortBy, filters);
+        let response = await this.transactionRepository.getPaginations(filters);
 
         let transactions: GetAllTransactionDto[] = []
         for (let i = 0; i < response.items.length ; i++) {

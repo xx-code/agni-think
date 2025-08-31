@@ -158,6 +158,7 @@ function onFilter(value: FormFilterTransaction) {
     paramsTransactions.dateStart = value.dateStart ? new Date(value.dateStart) : undefined
     paramsTransactions.minPrice = value.minPrice
     paramsTransactions.maxPrice = value.minPrice
+    paramsTransactions.status = value.status
 
     paramsBalance.categoryFilterIds = value.categoryIds
     paramsBalance.tagFilterIds = value.tagIds
@@ -366,9 +367,9 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
                 <UPagination 
                     class="mt-3" 
                     v-model:page="page" 
-                    v-on:update:page="() => paramsTransactions.offset = page - 1"
+                    v-on:update:page="() => paramsTransactions.offset = paramsTransactions.limit * (page -1)"
                     :items-per-page="paramsTransactions.limit"  
-                    :total="Number(transactions?.totals)" 
+                    :total="transactions?.totals" 
                     active-variant="subtle" />
                 <UInputNumber 
                     v-model="paramsTransactions.limit" 

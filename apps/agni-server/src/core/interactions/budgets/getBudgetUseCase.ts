@@ -45,6 +45,9 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
         ); 
 
         let transactions = await this.transactionRepository.getTransactions({
+            limit: 0, 
+            offset: 0,
+            queryAll: true,
             budgets: [budget.getId()],
             startDate: startBudgetUTCDate,
             endDate: budget.getSchedule().getUpdatedDate(),
