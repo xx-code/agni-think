@@ -6,6 +6,7 @@ import { CategoryRepository } from "@core/repositories/categoryRepository";
 import knex, {Knex} from "knex";
 import { KnexConnector } from "./postgreSqlConnector";
 import { isEmpty } from "@core/domains/helpers";
+import { QueryFilterAllRepository, RepositoryListResult } from "@core/repositories/dto";
 
 export class PostgreSqlCategoryRepository extends KnexConnector implements CategoryRepository {
     constructor(connector: Knex) {
@@ -98,10 +99,20 @@ export class PostgreSqlCategoryRepository extends KnexConnector implements Categ
         return category
     }
 
-    async getAll(): Promise<Category[]> {
-        let results = await this.connector('categories').select('*')
+    async getAll(queryFilter: QueryFilterAllRepository): Promise<RepositoryListResult<Category>> {
+        let query = this.connector('categories').select('*')
 
-        return results.map(result => (new Category(result['category_id'], result['title'], result['icon_id'], result['color'], result['is_system'])))
+        const total = await query.clone().clearSelect().clearOrder().count<{count: number}>("* as count").first() 
+        const totalCount = total?.count ?? 0
+
+        if (!queryFilter.queryAll)
+            query.limit(queryFilter.limit).offset(queryFilter.offset)
+
+        let results = await query;
+
+        const categories = results.map(result => (new Category(result['category_id'], result['title'], result['icon_id'], result['color'], result['is_system'])))
+
+        return { items: categories, total: totalCount }
     }
 
 }

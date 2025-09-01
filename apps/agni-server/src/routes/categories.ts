@@ -1,8 +1,9 @@
-import { body, matchedData, validationResult } from 'express-validator';
+import { body, matchedData, query, validationResult } from 'express-validator';
 import container from '../di_contenair';
 import { Router, Response, Request } from 'express';
 import { RequestCreationCategoryUseCase } from '@core/interactions/category/creationCategoryUseCase';
 import { RequestUpdateCategoryUseCase } from '@core/interactions/category/updateCategoryUseCase';
+import { QueryAllFetch } from '@core/dto/base';
 
 const router = Router();
 
@@ -59,9 +60,24 @@ router.get('/v1/categories/:id', async (req, res) => {
     }
 });
     
-router.get('/v1/categories', async (req, res) => {
+router.get(
+    '/v1/categories', 
+    query('limit').isNumeric().toInt(),
+    query('offset').isNumeric().toInt(),
+    query('queryAll').optional().isBoolean().toBoolean(),
+    async (req, res) => {
     try {
-        var allCategories = await container.categoryUseCase?.getAllCategory.execute()
+
+        const result = validationResult(req);
+
+        if (!result.isEmpty()) {
+            res.send({ errors: result.array() });
+            return;
+        }
+
+        const request: QueryAllFetch = matchedData(req)
+
+        var allCategories = await container.categoryUseCase?.getAllCategory.execute(request)
         res.status(200).json(allCategories)
     } catch(err) {
         res.status(400).send({ errors: [err]})

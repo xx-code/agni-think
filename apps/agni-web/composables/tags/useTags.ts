@@ -1,11 +1,14 @@
-import type { ListResponse } from "~/types/api";
+import type { Reactive } from "vue";
+import type { ListResponse, QueryFilterRequest } from "~/types/api";
 import type { GetAllTagsResponse } from "~/types/api/tag";
 import type { TagType } from "~/types/ui/tag";
 import type { UseApiFetchReturn } from "~/types/utils";
 
-export default function useTags(): UseApiFetchReturn<ListResponse<TagType>> {
+export default function useTags(query: Reactive<QueryFilterRequest>): UseApiFetchReturn<ListResponse<TagType>> {
+
     const { data, error, refresh } = useFetch('/api/tags', {
         method: 'GET',
+        query: query,
         transform: (data: ListResponse<GetAllTagsResponse>) => {
             return {
                 items: data.items.map(i => ({

@@ -11,8 +11,12 @@ import useUpdateTag from "~/composables/tags/useUpdateTag";
 import type { CategoryType, EditCategoryType } from "~/types/ui/category";
 import type { EditTagType, TagType } from "~/types/ui/tag";
 
-const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories();
-const {data: tags, error: errorTags, refresh: refresTags } = useTags();
+const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories({
+    limit: 0, offset: 0, queryAll: true
+});
+const {data: tags, error: errorTags, refresh: refresTags } = useTags({
+    limit: 0, offset: 0, queryAll: true
+});
 
 const overlay = useOverlay();
 const modalCategory = overlay.create(ModalEditCategory);

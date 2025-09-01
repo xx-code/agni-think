@@ -21,7 +21,11 @@ const schema = z.object({
     type: z.string(),
 })
 
-const {data: accounts} = useAccounts()
+const {data: accounts} = useAccounts({
+    limit: 0,
+    offset: 0,
+    queryAll: true
+})
 
 type Schema = z.output<typeof schema>;
 

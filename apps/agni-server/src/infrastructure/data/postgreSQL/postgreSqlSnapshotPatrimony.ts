@@ -73,15 +73,25 @@ export class PostgreSqlSnapshotPatrimonyRepository extends KnexConnector impleme
     }
 
     async getAll(filter: PatrimonyTransactionFilter): Promise<RepositoryListResult<PatrimonySnapshot>> {
-        let query = this.connector('patrimony_snapshots').select('*');
+        const query = this.connector('patrimony_snapshots').select('*'); 
+
+        if (filter.sort)
+
         if (filter.patrimonyIds && filter.patrimonyIds.length > 0) query.whereIn('patrimony_id', filter.patrimonyIds);
 
-        query.orderBy('date', filter.sort);
+        if (filter.sort)
+            query.orderBy(filter.sort.sortBy, filter.sort.asc ? 'asc' : 'desc')
 
         if (filter.startDate) 
             query.where('date', '>=', filter.startDate);
         if (filter.endDate) 
             query.where('date', '<=', filter.endDate);
+
+        const total = await query.clone().clearSelect().clearOrder().count<{count: number}>("* as count").first() 
+        const totalCount = total?.count ?? 0
+
+        if (!filter.queryAll)
+            query.offset(filter.offset).limit(filter.limit)
 
         let results = await query;
 
@@ -93,7 +103,7 @@ export class PostgreSqlSnapshotPatrimonyRepository extends KnexConnector impleme
                 mapperTransactionStatus(res['status']),
                 new Date(res['date']
             ))), 
-            total: results.length 
+            total: totalCount 
         } 
     }
 

@@ -5,8 +5,10 @@ import type { GetAllBudgetResponse } from "~/types/api/budget";
 export default defineEventHandler(async event => {
     try {
         const api = useApiLink(); 
+        const query = getQuery(event)
         const res = await $fetch(`${api}/budgets`, {
-            method: 'GET'
+            method: 'GET',
+            query: query
         });
         const data = (res as ListResponse<GetAllBudgetResponse>);
         return data;

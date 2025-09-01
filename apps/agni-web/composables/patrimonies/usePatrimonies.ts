@@ -6,7 +6,10 @@ import type { UseApiFetchReturn } from "~/types/utils";
 export function usePatrimonies(): UseApiFetchReturn<ListResponse<PatrimonyType>> {
     const query: GetAllPatrimonyRequest = {
         period: 'Month',
-        periodTime: 1
+        periodTime: 1,
+        limit: 0,
+        offset: 0,
+        queryAll: true
     }
     const { data, refresh, error } = useFetch('/api/patrimonies', {
         method: 'GET',
@@ -32,11 +35,14 @@ export function usePatrimonies(): UseApiFetchReturn<ListResponse<PatrimonyType>>
 export async function fetchPatrimonies(): Promise<ListResponse<PatrimonyType>> {
     const query: GetAllPatrimonyRequest = {
         period: 'Month',
-        periodTime: 1
+        periodTime: 1,
+        limit: 0,
+        offset: 0,
+        queryAll: true
     }
     const res = await $fetch<ListResponse<GetAllPatrimoniesResponse>>('/api/patrimonies', {
         query: query,
-        method: 'GET'
+        method: 'GET',
     })
 
     return {

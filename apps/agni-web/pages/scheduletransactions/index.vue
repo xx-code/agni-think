@@ -9,15 +9,29 @@ import { fetchScheduleTransaction } from '~/composables/scheduleTransactions/use
 import useScheduleTransactions from '~/composables/scheduleTransactions/useScheduleTransactions';
 import useUpdateScheduleTransaction from '~/composables/scheduleTransactions/useUpdateScheduleTransaction';
 import useTags from '~/composables/tags/useTags';
+import type { QueryFilterRequest } from '~/types/api';
 import type { EditScheduleTransactionType, ScheduleTransactionType, TableScheduleTransactionType } from '~/types/ui/scheduleTransaction';
 
-const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories();
-const {data: tags, error: errorTag, refresh: refreshTag } = useTags();
+const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories({
+    queryAll: true, offset: 0, limit: 0
+});
+const {data: tags, error: errorTag, refresh: refreshTag } = useTags({
+    queryAll: true, offset: 0, limit: 0
+});
 const toast = useToast();
 
 const getCategory = (id: string) => categories.value?.items.find(i => id === i.id)
 const getTag = (id: string) => tags.value?.items.find(i => id === i.id)
-const {data: scheduleTransactions, error: errorTransactions, refresh: refreshScheduleTransactions } = useScheduleTransactions();
+const page = ref(1)
+const scheduleFilter = reactive<QueryFilterRequest>({
+    limit: 8,
+    offset: 0,
+    queryAll: false
+})
+const {
+    data: scheduleTransactions, 
+    error: errorTransactions, 
+    refresh: refreshScheduleTransactions } = useScheduleTransactions(scheduleFilter);
 const displayScheluletransactionsTable = computed(() => {
     return scheduleTransactions.value?.items.map(i => ({
         id: i.id,
@@ -142,6 +156,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
                     size: 'md', 
                     class: 'rounded-full',
                     variant: 'outline',
+                    color: 'success',
                     onClick: () => togglePauseSchedule(row.original.id, row.original.isPause)
                  })
 
@@ -150,6 +165,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
                     size: 'md', 
                     class: 'rounded-full',
                     variant: 'outline',
+                    color: 'error',
                     onClick: () => togglePauseSchedule(row.original.id, row.original.isPause)
                  })
         }
@@ -316,21 +332,21 @@ const onDelete = async (id: string) => {
                     </div>
                 </template>
             </UTable>
-            <!-- <div class="flex flex-row gap-2 items-baseline-last justify-between">
+            <div class="flex flex-row gap-2 items-baseline-last justify-between">
                 <UPagination 
                     class="mt-3" 
                     v-model:page="page" 
-                    v-on:update:page="() => paramsTransactions.offset = page - 1"
-                    :items-per-page="paramsTransactions.limit"  
-                    :total="Number(transactions?.totals)" 
+                    v-on:update:page="() => scheduleFilter.offset = (scheduleFilter.limit * (page - 1))"
+                    :items-per-page="scheduleFilter.limit"  
+                    :total="scheduleTransactions?.totals" 
                     active-variant="subtle" />
                 <UInputNumber 
-                    v-model="paramsTransactions.limit" 
+                    v-model="scheduleFilter.limit" 
                     :min="1" 
                     orientation="vertical" 
                     style="width: 80px;"
                 />
-            </div> -->
+            </div>
         </div>
     </div>
 </template>

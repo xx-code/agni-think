@@ -26,7 +26,11 @@ const form = reactive({
     amount: 0
 })
 
-const {data: accounts} = useAccounts()
+const {data: accounts} = useAccounts({
+    offset: 0,
+    limit: 0,
+    queryAll: true
+})
 
 type Schema = z.output<typeof schema>
 

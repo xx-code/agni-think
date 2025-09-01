@@ -1,4 +1,5 @@
 import { Tag } from "../domains/entities/tag";
+import { QueryFilterAllRepository, RepositoryListResult } from "./dto";
 
 export interface TagRepository {
     createTagNotExist(ids: string[]): Promise<void>
@@ -10,7 +11,7 @@ export interface TagRepository {
     delete(title: string): Promise<void>
     get(id: string): Promise<Tag|null>
     getByName(value: string): Promise<Tag>
-    getAll(): Promise<Tag[]>
+    getAll(queryFilter: QueryFilterAllRepository): Promise<RepositoryListResult<Tag>>
 }
 
 export interface TagChecker {

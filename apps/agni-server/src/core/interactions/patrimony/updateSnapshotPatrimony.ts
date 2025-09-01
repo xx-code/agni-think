@@ -41,7 +41,8 @@ export class UpdateSnapshotPatrimonyUseCase implements IUsecase<RequestUpdateSna
             
             const pastSnapshot = await this.snapshotRepo.getLastest({ 
                 patrimonyIds: [snapshot.getPatrimonyId()], 
-                startDate: startDate, endDate: endDate
+                startDate: startDate, endDate: endDate,
+                limit: 0, offset: 0, queryAll: true
             })
 
             // if (pastSnapshot.length > 0)

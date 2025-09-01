@@ -1,4 +1,4 @@
-import { ListDto } from "@core/dto/base";
+import { ListDto, QueryAllFetch } from "@core/dto/base";
 import { AccountRepository } from "../../repositories/accountRepository";
 import { IUsecase } from "../interfaces";
 
@@ -11,21 +11,25 @@ export type GetAllAccountDto = {
 }
 
 
-export class GetAllAccountUseCase implements IUsecase<void, ListDto<GetAllAccountDto>>{
+export class GetAllAccountUseCase implements IUsecase<QueryAllFetch, ListDto<GetAllAccountDto>>{
     private repository: AccountRepository;
 
     constructor(repo: AccountRepository) {
         this.repository = repo;
     }
 
-    async execute(): Promise<ListDto<GetAllAccountDto>> {
-        let accounts = await this.repository.getAll();
+    async execute(request: QueryAllFetch): Promise<ListDto<GetAllAccountDto>> {
+        let accounts = await this.repository.getAll({
+            offset: request.offset,
+            limit: request.limit,
+            queryAll: request.queryAll
+        });
         
         let accountsDisplay: GetAllAccountDto[] = [];
-        for (let account of accounts) {
+        for (let account of accounts.items) {
             accountsDisplay.push({accountId: account.getId(), title: account.getTitle(), balance: account.getBalance(), type: account.getType()});
         }
 
-        return { items: accountsDisplay, totals: accountsDisplay.length}
+        return { items: accountsDisplay, totals: accounts.total}
     }
 }

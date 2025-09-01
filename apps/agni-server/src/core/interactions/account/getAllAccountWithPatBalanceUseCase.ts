@@ -1,4 +1,4 @@
-import { ListDto } from "@core/dto/base";
+import { ListDto, QueryAllFetch } from "@core/dto/base";
 import { AccountRepository } from "../../repositories/accountRepository";
 import { IUsecase } from "../interfaces";
 import { GetAccountBalanceByPeriodDto, RequestGetAccountBalanceByPeriod } from "./getPastAccountBalanceByPeriod";
@@ -12,7 +12,7 @@ export type GetAllAccountWithPastBalanceDto = {
     type: string
 }
 
-export type RequestGetAllAccountPastBalanceUseCase = {
+export type RequestGetAllAccountPastBalanceUseCase = QueryAllFetch & {
     period: string 
     periodTime: number
 }
@@ -31,15 +31,19 @@ export class GetAllAccountWithPastBalanceUseCase implements IUsecase<RequestGetA
     }
 
     async execute(request: RequestGetAllAccountPastBalanceUseCase): Promise<ListDto<GetAllAccountWithPastBalanceDto>> {
-        let accounts = await this.repository.getAll();
+        let accounts = await this.repository.getAll({
+            limit: request.limit,
+            offset: request.offset,
+            queryAll: request.queryAll
+        });
         const pastbalances = await this.getAccountBalanceByPeriod.execute({ 
             period: request.period, 
             periodTime: request.periodTime, 
-            accountIds: accounts.map(i => i.getId()) })
+            accountIds: accounts.items.map(i => i.getId()) })
         
         let accountsDisplay: GetAllAccountWithPastBalanceDto[] = [];
         for (let accountPastBalance of pastbalances) { 
-            let account = accounts.find(i => i.getId() === accountPastBalance.accountId)
+            let account = accounts.items.find(i => i.getId() === accountPastBalance.accountId)
             if (account)
                 accountsDisplay.push({
                     accountId: account.getId(), 

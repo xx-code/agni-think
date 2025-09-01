@@ -34,7 +34,9 @@ export class GetAllSnapshotOfPatrimony implements IUsecase<RequestAllSnapshotPat
         const snapshots = await this.snapshotPatrimonyRepo.getAll({ 
             patrimonyIds: [request.patrimonyId],
             startDate: startDate,
-            endDate: new Date()
+            endDate: new Date(),
+            limit: 0, offset: 0,
+            queryAll: true
         });
 
         return { 

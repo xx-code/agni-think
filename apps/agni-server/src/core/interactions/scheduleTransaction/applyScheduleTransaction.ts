@@ -30,10 +30,13 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
     async execute(): Promise<void> {
         try {
             await this.unitOfWork.start()
-            const scheduleTransactions = await this.scheduleTransactionRepo.getAll()
+            const scheduleTransactions = await this.scheduleTransactionRepo.getAll({
+                limit: 0, offset: 0,
+                queryAll: true
+            })
 
-            for(let i = 0; i < scheduleTransactions.length; i++) {
-                let scheduleTrans = scheduleTransactions[i]
+            for(let i = 0; i < scheduleTransactions.items.length; i++) {
+                let scheduleTrans = scheduleTransactions.items[i]
 
                 if (scheduleTrans.getSchedule().isDue(true) && !scheduleTrans.getIsPause()) {
                     if (scheduleTrans.getIsPay() === false) {

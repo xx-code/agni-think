@@ -22,8 +22,12 @@ const calendarSelection = reactive<{
 })
 
 const { data: cashflow } = useCashflow(calendarSelection) 
-const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories()
-const {data: tags, error: errorTag, refresh: refreshTag } = useTags()
+const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories({
+    limit: 0, offset: 0, queryAll: true
+})
+const {data: tags, error: errorTag, refresh: refreshTag } = useTags({
+    limit: 0, offset: 0, queryAll: true
+})
 
 const displaytransactionsTable = computed(() => {
     const getCategory = (id: string) => categories.value?.items.find(i => id === i.id)
@@ -85,13 +89,17 @@ const dataChart = computed(() => ({
     }],
 }))
 
-const {data: budgets} = useBudgets()
+const {data: budgets} = useBudgets({
+    limit: 0, offset: 0, queryAll: true
+})
 
 const budgetChart = computed(() => {
     return formatBudgetDataForChart(budgets.value?.items) // TODO: review
 });
 
-const {data:accounts, error:accountError, refresh:accountRefresh} = useAccountsWitPastBalance({ period: 'Month', periodTime: 1});
+const {data:accounts, error:accountError, refresh:accountRefresh} = useAccountsWitPastBalance({ 
+    period: 'Month', periodTime: 1, offset: 0, limit: 0, queryAll: true
+});
 
 const transactionAccountSelected = ref(ALL_ACCOUNT_ID)
 const accountsChecked: Ref<{id: string, checked: boolean}[]> = ref([]) // TODO: Review
@@ -116,7 +124,7 @@ const items = computed(() => {
 const paramsTransaction = reactive<FilterTransactionQuery>({
     offset: 0, limit: 5, status: 'Pending'})
 const {data: transactions} = useTransactionPagination(paramsTransaction);
-const {data: goals} =  useSaveGoals({limit: 4, offset: 0, sortSense: 'asc', orderBy: 'balance'});
+const {data: goals} =  useSaveGoals({limit: 4, offset: 0, sortSense: 'desc', orderBy: 'balance'});
 const displayGoals = computed(() => {
     return goals.value?.items 
 })

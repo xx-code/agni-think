@@ -7,6 +7,8 @@ import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
 import { mapperMainTransactionCategory } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
+import { QueryAllFetch } from "@core/dto/base";
+import { RepositoryListResult } from "@core/repositories/dto";
 
 export class PostgreSqlScheduleTransactionRepository extends KnexConnector implements ScheduleTransactionRepository {
     constructor(connector: Knex) {
@@ -76,11 +78,16 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
             tags
         );
     }
-    async getAll(): Promise<ScheduleTransaction[]> {
-        let query = this.connector('schedule_transactions').select('*');
+    async getAll(queryFilter: QueryAllFetch): Promise<RepositoryListResult<ScheduleTransaction>> {
+        const query = this.connector('schedule_transactions').select('*'); 
 
-        let results = await query;
+        const total = await query.clone().clearSelect().clearOrder().count<{count: number}>("* as count").first() 
+        const totalCount = total?.count ?? 0
 
+        if (!queryFilter.queryAll)
+            query.offset(queryFilter.offset).limit(queryFilter.limit)
+
+        const results = await query;
 
         let transactions: ScheduleTransaction[] = []
         
@@ -103,7 +110,7 @@ export class PostgreSqlScheduleTransactionRepository extends KnexConnector imple
         }
 
 
-        return transactions;
+        return { items: transactions, total: totalCount};
     }
 
     async update(scheduleTransaction: ScheduleTransaction): Promise<void> {

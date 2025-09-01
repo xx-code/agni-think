@@ -123,8 +123,8 @@ router.get("/v1/transactions/:id", async (req, res) => {
 }); 
 
 router.get("/v1/transactions", 
-    query('offset').isNumeric().default(0),
-    query('limit').isNumeric().default(25),
+    query('offset').isNumeric().toInt().default(0),
+    query('limit').isNumeric().toInt().default(25),
     query('sortBy').optional(),
     query('sortSense').optional(),
     query('status').optional().isString(),

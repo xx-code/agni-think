@@ -50,13 +50,13 @@ export class GetAllSaveGoalUseCase implements IUsecase<QueryFilterSaveGoal, List
             queryAll: request.queryAll,
             sort: request.offset && request.sortSense ? {
                 sortBy: request.orderBy as SortBy['sortBy'],
-                asc: request.sortSense ? true : false
+                asc: request.sortSense === 'asc' ? true : false
             } satisfies SortBy : undefined
         })
 
         let responses: GetAllSaveGoalDto[] = [] 
 
-        for(let saveGoal of saveGoals) {
+        for(let saveGoal of saveGoals.items) {
 
             responses.push(
                 {
@@ -73,6 +73,6 @@ export class GetAllSaveGoalUseCase implements IUsecase<QueryFilterSaveGoal, List
             ) 
         }
 
-        return { items: responses, totals: responses.length}
+        return { items: responses, totals: saveGoals.total}
     }
 }

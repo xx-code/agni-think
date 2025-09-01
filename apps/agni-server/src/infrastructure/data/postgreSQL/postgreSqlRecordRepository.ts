@@ -5,6 +5,7 @@ import { KnexConnector } from "./postgreSqlConnector";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { mapperTransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
+import { QueryFilterAllRepository, RepositoryListResult } from "@core/repositories/dto";
 
 export class PostgreSqlRecordRepository extends KnexConnector implements RecordRepository {
     
@@ -47,14 +48,24 @@ export class PostgreSqlRecordRepository extends KnexConnector implements RecordR
             mapperTransactionType(result['type']),
             result['description'])
     }
-    async getAll(): Promise<Record[]> {
-        let results = await this.connector('records').select('*')
+    async getAll(queryFilter: QueryFilterAllRepository): Promise<RepositoryListResult<Record>> {
+        const query = this.connector('records').select('*')
 
-        return results.map(result => (new Record(result['record_id'], 
+        const total = await query.clone().clearSelect().clearOrder().count<{count: number}>("* as count").first() 
+        const totalCount = total?.count ?? 0
+
+        if (!queryFilter.queryAll)
+            query.limit(queryFilter.limit).offset(queryFilter.offset)
+
+        const results = await query;
+
+        const records = results.map(result => (new Record(result['record_id'], 
             new Money(result['money_amount']), 
             result['date'], 
             mapperTransactionType(result['type']),
             result['description'])) )
+
+        return { items: records, total: totalCount}
     }
 
     async getManyById(ids: string[]): Promise<Record[]> {

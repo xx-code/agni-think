@@ -26,7 +26,11 @@ const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
 })
 
-const {data: accounts} = useAccounts()
+const {data: accounts} = useAccounts({
+    queryAll: true,
+    limit: 0,
+    offset: 0
+})
 const form = reactive({
     accountIdFrom: accountId || '',
     accountIdTo: '',

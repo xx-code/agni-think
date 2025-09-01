@@ -2,7 +2,7 @@ import { BudgetRepository } from "../../repositories/budgetRepository";
 import { TransactionRepository } from "../../repositories/transactionRepository";
 import { RecordRepository } from "@core/repositories/recordRepository";
 import { IUsecase } from "../interfaces";
-import { ListDto } from "@core/dto/base";
+import { ListDto, QueryAllFetch } from "@core/dto/base";
 import { RecordType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
 
@@ -18,7 +18,7 @@ export type GetAllBudgetDto = {
     endDate?: Date
 }
 
-export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetDto>> {
+export class GetAllBudgetUseCase implements IUsecase<QueryAllFetch, ListDto<GetAllBudgetDto>> {
    private budgetRepository: BudgetRepository;
    private transactionRepository: TransactionRepository;
    private recordRepository: RecordRepository
@@ -34,13 +34,17 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
    }
 
 
-   async execute(): Promise<ListDto<GetAllBudgetDto>> {
-        let budgets = await this.budgetRepository.getAll();
+   async execute(request: QueryAllFetch): Promise<ListDto<GetAllBudgetDto>> {
+        let budgets = await this.budgetRepository.getAll({
+            limit: request.limit,
+            offset: request.offset,
+            queryAll: request.queryAll
+        });
     
         let budgetsDisplay = []
 
-        for (let i = 0; i < budgets.length; i++) {
-            let budget = budgets[i];
+        for (let i = 0; i < budgets.items.length; i++) {
+            let budget = budgets.items[i];
             if (budget.getIsArchive())
                 continue;
 
@@ -82,6 +86,6 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
 
             budgetsDisplay.push(budgetDisplay);
         }
-        return { items: budgetsDisplay, totals: budgets.length }
+        return { items: budgetsDisplay, totals: budgets.total }
    }
 }

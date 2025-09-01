@@ -59,11 +59,15 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
         const workingStartDate = request.estimationPeriodStart;
         const workingEndDate = request.estimationPeriodEnd;
 
-        const accounts = await this.accountRepo.getAll();
+        const accounts = await this.accountRepo.getAll({
+            offset: 0,
+            limit: 0,
+            queryAll: true, 
+        });
 
         let currentInvestissment = 0
         let currentSaving = 0
-        for(const account of accounts) {
+        for(const account of accounts.items) {
             if (account.getType() == AccountType.BROKING)
                 currentInvestissment += account.getBalance()
 
@@ -88,7 +92,7 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
 
         const saveGoals = await this.saveGoalRepo.getAll({ queryAll: true, offset: 0, limit: 0})
 
-        for(const saveGoal of  saveGoals) {
+        for(const saveGoal of  saveGoals.items) {
             saveGoalsForRankingAgent.push({
                 id: saveGoal.getId(),
                 currentBalance: saveGoal.getBalance().getAmount(),
@@ -106,7 +110,7 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
 
         const saveGoalsForAdvisorAgent: GoalPlanningAdvisor[] = []
         for(const ranking of resultRankings.goals) {
-            const saveGoal = saveGoals.find(i => i.getId() === ranking.id)
+            const saveGoal = saveGoals.items.find(i => i.getId() === ranking.id)
             if (saveGoal) {
                 saveGoalsForAdvisorAgent.push({
                     id: saveGoal.getId(),
@@ -136,7 +140,7 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
         const suggestGoals: SuggestGoalPlanning[] = []
 
         for(const suggestGoal of resultPlannings.goals) {
-            const saveGoal = saveGoals.find(i => i.getId() === suggestGoal.id)
+            const saveGoal = saveGoals.items.find(i => i.getId() === suggestGoal.id)
             if (saveGoal) {
                 suggestGoals.push({
                     saveGoalId: suggestGoal.id,

@@ -4,6 +4,7 @@ import { body, matchedData, query, validationResult } from 'express-validator';
 import { RequestCreationAccountUseCase } from '@core/interactions/account/creationAccountUseCase';
 import { RequestUpdateAccountUseCase } from '@core/interactions/account/updateAccountUseCase';
 import { RequestGetAllAccountPastBalanceUseCase } from '@core/interactions/account/getAllAccountWithPatBalanceUseCase';
+import { QueryAllFetch } from '@core/dto/base';
 
 const router = Router();
 
@@ -63,9 +64,23 @@ router.get('/v1/accounts/:id', async (req, res) => {
     
 });
 
-router.get('/v1/accounts', async (req, res) => {
+router.get(
+    '/v1/accounts',
+    query('limit').isNumeric().toInt(),
+    query('offset').isNumeric().toInt(),
+    query('queryAll').optional().isBoolean().toBoolean(),
+    async (req, res) => {
     try {
-        var ucRes = await container.accountUseCase?.getAllAccount.execute()
+        const result = validationResult(req);
+        
+        if (!result.isEmpty()) {
+            res.send({ errors: result.array() });
+            return;
+        }
+
+        const request: QueryAllFetch = matchedData(req)
+
+        var ucRes = await container.accountUseCase?.getAllAccount.execute(request)
         res.status(200).json(ucRes)
     } catch(err) {
         res.status(400).send({ errors: [err] });
@@ -73,6 +88,9 @@ router.get('/v1/accounts', async (req, res) => {
 });
 
 router.get('/v1/accounts-with-past-balance',
+    query('limit').isNumeric().toInt(),
+    query('offset').isNumeric().toInt(),
+    query('queryAll').optional().isBoolean().toBoolean(),
     query('period').isString().notEmpty(),
     query('periodTime').isNumeric().notEmpty(), async (req, res) => {
     try {

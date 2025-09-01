@@ -1,3 +1,5 @@
+import type { QueryFilterRequest } from "."
+
 export type GetPatrimonyResponse = {
     id: string
     title: string
@@ -50,12 +52,12 @@ export type UpdateSnapshotPatrimonyRequest = {
     date?: string
 }
 
-export type GetAllSnapshotPatrimonyRequest = {
+export type GetAllSnapshotPatrimonyRequest = QueryFilterRequest & {
     period: string
     periodTime: number
 }
 
-export type GetAllPatrimonyRequest = {
+export type GetAllPatrimonyRequest = QueryFilterRequest & {
     period: string
     periodTime: number
 }

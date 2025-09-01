@@ -78,7 +78,14 @@ export class GetPatrimonyUseCase implements IUsecase<RequestGetPatrimony, GetPat
 
         let snapshots = await this.snapshotRepo.getAll({ patrimonyIds: [request.patrimonyId], 
             startDate: startDate, 
-            endDate: new Date()
+            endDate: new Date(),
+            limit: 0,
+            offset: 0,
+            queryAll: true,
+            sort: {
+                sortBy: 'date',
+                asc: false
+            }
         })  
 
         const currentSnaphot = snapshots.items.length > 0 ? snapshots.items[0].getCurrentBalanceObserver() : accountBalance

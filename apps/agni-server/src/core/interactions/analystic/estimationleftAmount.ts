@@ -54,7 +54,11 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
     }
 
     async execute(request: RequestEstimationLeftAmount): Promise<GetEstimationLeftAmoutDto> {
-        const scheduleTransactions = await this.scheduleTransactionRepo.getAll();
+        const scheduleTransactions = await this.scheduleTransactionRepo.getAll({
+            limit: 0,
+            offset: 0,
+            queryAll:true
+        });
         const freezeTransactions = await this.transactionRepo.getTransactions({ 
             isFreeze: true,
             startDate: request.startDate,
@@ -63,8 +67,16 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
             offset: 0,
             limit: 0
         });
-        const accounts = await this.accountRepo.getAll();
-        const budgets = await this.budgetRepo.getAll();
+        const accounts = await this.accountRepo.getAll({
+            limit: 0,
+            offset: 0,
+            queryAll: true
+        });
+        const budgets = await this.budgetRepo.getAll({
+            limit: 0,
+            offset: 0,
+            queryAll: true
+        });
 
         // Compute estimation money
         let amountFreezeTransction = 0
@@ -78,7 +90,7 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
         let income = 0
         let scheduleFreezeAmount = 0
         let scheduleSpendAmount = 0
-        for(const scheduleTrans of scheduleTransactions) {
+        for(const scheduleTrans of scheduleTransactions.items) {
             if (
                 MomentDateService.compareDate(scheduleTrans.getSchedule().getUpdatedDate(), request.startDate) >= 0 && 
                 MomentDateService.compareDate(scheduleTrans.getSchedule().getUpdatedDate(), request.endDate) <= 0 
@@ -100,7 +112,7 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
         }
 
         let previsionBudget = 0
-        for(const budget of budgets) {
+        for(const budget of budgets.items) {
             if (
                 MomentDateService.compareDate(budget.getSchedule().getUpdatedDate(), request.startDate) >= 0 && 
                 MomentDateService.compareDate(budget.getSchedule().getUpdatedDate(), request.endDate) <= 0 &&
@@ -136,7 +148,7 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
         }
 
         let currentBalance = 0
-        for(const account of accounts) {
+        for(const account of accounts.items) {
             if ([AccountType.BROKING, AccountType.SAVING].includes(account.getType())) {
                 continue;
             }

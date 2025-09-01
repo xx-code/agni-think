@@ -17,7 +17,11 @@ type BudgteItem = {
     balance: number
 }
 
-const {data: budgets, error, refresh} = useBudgets()
+const {data: budgets, error, refresh} = useBudgets({
+    limit: 0,
+    offset: 0,
+    queryAll: true
+})
 const displaybudgets = computed(() => {
     return budgets.value?.items.map(i => ({
         id: i.id,

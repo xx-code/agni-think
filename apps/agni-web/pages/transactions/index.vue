@@ -52,10 +52,18 @@ const paramsBalance = reactive<FilterBalanceTransactionQuery>({
   dateEnd: undefined,
 });
 
-const {data: accounts } = useAccounts();
-const {data: budgets, error: errorBudget, refresh: refreshBudget } = useBudgets();
-const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories()
-const {data: tags, error: errorTag, refresh: refreshTag } = useTags()
+const {data: accounts } = useAccounts({
+    limit: 0, offset: 0, queryAll: true
+});
+const {data: budgets, error: errorBudget, refresh: refreshBudget } = useBudgets({
+    limit: 0, offset: 0, queryAll: true
+});
+const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories({
+    limit: 0, offset: 0, queryAll: true
+})
+const {data: tags, error: errorTag, refresh: refreshTag } = useTags({
+    limit: 0, offset: 0, queryAll: true
+})
 
 
 

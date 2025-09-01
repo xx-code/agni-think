@@ -1,4 +1,5 @@
 import { Category } from "../domains/entities/category";
+import { QueryFilterAllRepository, RepositoryListResult } from "./dto";
 
 
 export interface CategoryRepository {
@@ -10,7 +11,7 @@ export interface CategoryRepository {
     update(category: Category): Promise<void>
     get(id: string): Promise<Category|null>
     getByTitle(title: string): Promise<Category>
-    getAll(): Promise<Category[]>
+    getAll(queryFilter: QueryFilterAllRepository): Promise<RepositoryListResult<Category>>
 }
 
 export interface CategoryUseChecker {

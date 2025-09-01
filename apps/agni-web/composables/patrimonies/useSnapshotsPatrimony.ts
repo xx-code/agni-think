@@ -6,7 +6,10 @@ import type { UseApiFetchReturn } from "~/types/utils";
 export function useSnapshotsPatrimony(patrimonyId: string): UseApiFetchReturn<ListResponse<SnapshotPatrimonyType>> {
     const query: GetAllSnapshotPatrimonyRequest = {
         period: 'Month',
-        periodTime: 1
+        periodTime: 1,
+        limit: 0,
+        offset: 0,
+        queryAll: true
     }
     const { data, error, refresh } = useFetch(`/api/patrimonies/${patrimonyId}/get-snapshots`, {
         method: 'GET',
@@ -25,7 +28,10 @@ export function useSnapshotsPatrimony(patrimonyId: string): UseApiFetchReturn<Li
 export async function fetchSnapshotsPatrimony(patrimonyId: string, startDate?: Date, endDate?: Date): Promise<ListResponse<SnapshotPatrimonyType>> {
     const query: GetAllSnapshotPatrimonyRequest = {
         period: 'Month',
-        periodTime: 1
+        periodTime: 1,
+        limit: 0,
+        offset: 0,
+        queryAll: true
     }
     const res = await $fetch<ListResponse<GetAllSnapshotPatrimonyResponse>>(`/api/patrimonies/${patrimonyId}/get-snapshots`, {
         method: "GET",
