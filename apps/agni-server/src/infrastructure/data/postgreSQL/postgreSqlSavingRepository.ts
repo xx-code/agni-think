@@ -5,7 +5,7 @@ import { Knex } from "knex";
 import { Money } from "@core/domains/entities/money";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import SaveGoalItem from "@core/domains/valueObjects/saveGoalItem";
-import { QueryFilterAllRepository } from "@core/repositories/dto";
+import { QueryFilterAllRepository, RepositoryListResult } from "@core/repositories/dto";
 
 export class PostgreSqlSavingRepository extends KnexConnector implements SavingRepository {
 
@@ -81,18 +81,21 @@ export class PostgreSqlSavingRepository extends KnexConnector implements SavingR
         );
     }
 
-    async getAll(filter: QueryFilterAllRepository): Promise<SaveGoal[]> {
-        const query = this.connector('save_goals').select('*');
+    async getAll(filter: QueryFilterAllRepository): Promise<RepositoryListResult<SaveGoal>> {
+        const query = this.connector('save_goals').select('*'); 
 
-        if (!filter.queryAll)
-            query.offset(filter.offset).limit(filter.limit);
+        const total = await query.clone().clearSelect().clearOrder().count<{count: number}>("* as count").first() 
+        const totalCount = total?.count ?? 0
 
         if (filter.sort)
             query.orderBy(filter.sort.sortBy, filter.sort.asc ? 'asc' : 'desc')
+
+        if (!filter.queryAll)
+            query.offset(filter.offset).limit(filter.limit); 
         
         const results = await query;
 
-        return Promise.all(results.map(async result => new SaveGoal(
+        const savegoals  = results.map(result => new SaveGoal(
             result.save_goal_id,
             result.title,
             new Money(result.target),
@@ -100,9 +103,11 @@ export class PostgreSqlSavingRepository extends KnexConnector implements SavingR
             result.desir_value,
             result.importance, 
             result.wish_due_date,
-            await this.getItems(result.save_goal_id),
+            [],
             result.description
-        )));
+        ));
+
+        return { items: savegoals, total: totalCount }
     }
 
     async update(saveGoal: SaveGoal): Promise<void> {

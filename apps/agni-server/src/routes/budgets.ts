@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
 import container from '../di_contenair'
-import { body, matchedData, validationResult } from 'express-validator';
+import { body, matchedData, query, validationResult } from 'express-validator';
 import { RequestCreationBudgetUseCase } from '@core/interactions/budgets/creationBudgetUseCase';
 import { RequestUpdateBudget } from '@core/interactions/budgets/updateBudgetUseCase';
+import { QueryAllFetch } from '@core/dto/base';
 
 const router = Router();
 
@@ -63,9 +64,23 @@ router.get('/v1/budgets/:id', async (req, res) => {
     }
 });
 
-router.get('/v1/budgets', async (req, res) => {
+router.get(
+    '/v1/budgets', 
+    query('limit').isNumeric().toInt(),
+    query('offset').isNumeric().toInt(),
+    query('queryAll').optional().isBoolean().toBoolean(),
+    async (req, res) => {
     try {
-        var budgets = await container.budgetUseCase?.getAllBudgets.execute();
+        const result = validationResult(req);
+        
+        if (!result.isEmpty()) {
+            res.send({ errors: result.array() });
+            return;
+        }
+
+        const request: QueryAllFetch = matchedData(req)
+
+        var budgets = await container.budgetUseCase?.getAllBudgets.execute(request);
         res.status(200).send(budgets);
     } catch(err) {
         console.log(err)

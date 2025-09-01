@@ -31,10 +31,26 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>;
 
-const {data: accounts} = useAccounts()
-const categories = useCategoriesNonSys()
-const {data: tags } = useTags()
-const {data: budgets} = useBudgets()
+const {data: accounts} = useAccounts({
+    queryAll: true,
+    limit: 0,
+    offset: 0
+})
+const categories = useCategoriesNonSys({
+    queryAll: true,
+    limit: 0,
+    offset: 0
+})
+const {data: tags } = useTags({
+    queryAll: true,
+    limit: 0,
+    offset: 0
+})
+const {data: budgets} = useBudgets({
+    queryAll: true,
+    limit: 0,
+    offset: 0
+})
 const {data: transationTypes } = useTransactionTypes()
 
 

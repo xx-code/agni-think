@@ -1,6 +1,6 @@
 import { CategoryRepository } from "../../repositories/categoryRepository";
 import { IUsecase } from "../interfaces";
-import { ListDto } from "@core/dto/base";
+import { ListDto, QueryAllFetch } from "@core/dto/base";
 
 export type GetAllCategoryDto = {
     categoryId: string
@@ -10,18 +10,22 @@ export type GetAllCategoryDto = {
     isSystem: boolean
 }
 
-export class GetAllCategoryUseCase implements IUsecase<void, ListDto<GetAllCategoryDto>> {
+export class GetAllCategoryUseCase implements IUsecase<QueryAllFetch, ListDto<GetAllCategoryDto>> {
     private repository: CategoryRepository;
 
     constructor(repo: CategoryRepository) {
         this.repository = repo;
     }
 
-    async execute(): Promise<ListDto<GetAllCategoryDto>> {
-        let results = await this.repository.getAll();
+    async execute(request: QueryAllFetch): Promise<ListDto<GetAllCategoryDto>> {
+        let results = await this.repository.getAll({
+            limit: request.limit,
+            offset: request.offset,
+            queryAll: request.queryAll
+        });
 
         let categories: GetAllCategoryDto[] = [];
-        for (let result of results) {
+        for (let result of results.items) {
             categories.push({
                 categoryId: result.getId(),
                 title: result.getTitle(),
@@ -31,6 +35,6 @@ export class GetAllCategoryUseCase implements IUsecase<void, ListDto<GetAllCateg
             });
         }
         
-        return { items: categories, totals: categories.length};
+        return { items: categories, totals: results.total};
     }
 }

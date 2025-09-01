@@ -1,3 +1,5 @@
+import type { QueryFilterRequest } from ".";
+
 export type GetAccountResponse = {
     accountId: string
     title: string
@@ -20,7 +22,7 @@ export type GetAllAccountWithPastBalanceResponse = {
     type: string
 }
 
-export type GetAllAccountPastBalanceRequest = {
+export type GetAllAccountPastBalanceRequest = QueryFilterRequest & {
     period: string 
     periodTime: number
 }

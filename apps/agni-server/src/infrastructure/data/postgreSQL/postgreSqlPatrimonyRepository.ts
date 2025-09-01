@@ -1,5 +1,5 @@
 import { Patrimony } from "@core/domains/entities/patrimony";
-import { RepositoryListResult } from "@core/repositories/dto";
+import { QueryFilterAllRepository, RepositoryListResult } from "@core/repositories/dto";
 import { PatrimonyRepository } from "@core/repositories/patrimonyRepository";
 import { KnexConnector } from "./postgreSqlConnector";
 import { Knex } from "knex";
@@ -64,8 +64,16 @@ export class PostgreSqlPatrimonyRepository extends KnexConnector implements Patr
         )
     }
 
-    async getAll(): Promise<RepositoryListResult<Patrimony>> {
-        let results = await this.connector('patrimonies').select('*')
+    async getAll(queryFilter: QueryFilterAllRepository): Promise<RepositoryListResult<Patrimony>> {
+        let query = this.connector('patrimonies').select('*')
+
+        const total = await query.clone().clearSelect().clearOrder().count<{count: number}>("* as count").first() 
+        const totalCount = total?.count ?? 0
+
+        if (!queryFilter.queryAll)
+            query.limit(queryFilter.limit).offset(queryFilter.offset)
+
+        let results = await query;
 
         const patrimonies: Patrimony[] = []
 
@@ -87,7 +95,7 @@ export class PostgreSqlPatrimonyRepository extends KnexConnector implements Patr
             patrimonies.push(pat)
         }
 
-        return { items: patrimonies, total: patrimonies.length }
+        return { items: patrimonies, total: totalCount }
     }
 
     async getManyById(ids: string[]): Promise<Patrimony[]> {

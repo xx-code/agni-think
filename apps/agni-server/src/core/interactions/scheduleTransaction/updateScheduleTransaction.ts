@@ -100,7 +100,8 @@ export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateS
             scheduleTransaction.setIsPause(request.isPause)
         } 
 
-        await this.scheduleTransactionRepo.update(scheduleTransaction)
+        if (scheduleTransaction.hasChange())
+            await this.scheduleTransactionRepo.update(scheduleTransaction)
     }
 
 }

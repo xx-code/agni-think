@@ -6,6 +6,7 @@ import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { AccountRepository } from "@core/repositories/accountRepository";
 import knex, { Knex } from 'knex'
 import { KnexConnector } from "./postgreSqlConnector";
+import { QueryFilterAllRepository, RepositoryListResult } from "@core/repositories/dto";
 
 export class PostgreSqlAccountRepository extends KnexConnector implements AccountRepository {
     constructor(connector: Knex) {
@@ -71,11 +72,19 @@ export class PostgreSqlAccountRepository extends KnexConnector implements Accoun
                     mapperTypeAccount(result['type']), result['balance']))
     }
 
-    async getAll(): Promise<Account[]> {
-        let results = await this.connector('accounts').select('*')
+    async getAll(queryFilter: QueryFilterAllRepository): Promise<RepositoryListResult<Account>> {
+        let query = this.connector('accounts').select('*') 
+
+        let total = await query.clone().clearSelect().clearOrder().count<{count: number}>("* as count").first() 
+        const totalCount = total?.count ?? 0
+
+        if (!queryFilter.queryAll)
+            query.limit(queryFilter.limit).offset(queryFilter.offset)
+
+        let results = await query; 
         let accounts = results.map(result => (new Account(result['account_id'], result['title'], mapperTypeAccount(result['type']), result['balance'])))
 
-        return accounts
+        return { items: accounts, total: totalCount}
     }
 
     async delete(id: string): Promise<void> {

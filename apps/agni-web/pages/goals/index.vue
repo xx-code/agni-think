@@ -31,14 +31,18 @@ type ItemRown = {
     wishDate?: Date
 }
 
+const page = ref(1)
 const filter = reactive<queryFilterSaveGoalRequest>({
     offset: 0,
     limit: 8,
-    queryAll: true
+    queryAll: false
 });
-
 const { data: goals, error: errorGoals, refresh: refreshGoals } =  useSaveGoals(filter)
-const { data: accounts, error: errorAccount, refresh: refreshAccounts } = useAccounts()
+const { data: accounts, error: errorAccount, refresh: refreshAccounts } = useAccounts({
+    limit: 0,
+    offset: 0,
+    queryAll: true
+})
 const { data:intensityDesirs } = useIntensityDesirTypes();
 const { data:importances } = useImportanceTypes()
 
@@ -317,6 +321,21 @@ const columns: TableColumn<ItemRown>[] =  [
                 :data="tableData" 
                 @select="onSelect">
             </UTable>
+            <div class="flex flex-row gap-2 items-baseline-last justify-between">
+                <UPagination 
+                    class="mt-3" 
+                    v-model:page="page" 
+                    v-on:update:page="() => filter.offset = (filter.limit * (page - 1))"
+                    :items-per-page="filter.limit"  
+                    :total="goals?.totals" 
+                    active-variant="subtle" />
+                <UInputNumber 
+                    v-model="filter.limit" 
+                    :min="1" 
+                    orientation="vertical" 
+                    style="width: 80px;"
+                />
+            </div>
         </div>
         <UModal v-model:open="deletePopOverOpen" class="w-50">
             <template #content>

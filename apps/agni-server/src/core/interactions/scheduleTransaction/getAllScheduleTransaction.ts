@@ -1,4 +1,4 @@
-import { ListDto } from "@core/dto/base"
+import { ListDto, QueryAllFetch } from "@core/dto/base"
 import { IUsecase } from "../interfaces"
 import { ScheduleTransactionRepository } from "@core/repositories/scheduleTransactionRepository"
 
@@ -19,7 +19,7 @@ export type GetAllScheduleTransactionDto = {
     dateEnd?: Date
 }
 
-export class GetAllScheluleTransacationUseCase implements IUsecase<void, ListDto<GetAllScheduleTransactionDto>> {
+export class GetAllScheluleTransacationUseCase implements IUsecase<QueryAllFetch, ListDto<GetAllScheduleTransactionDto>> {
 
     private scheduleTransactionRepo: ScheduleTransactionRepository
 
@@ -27,11 +27,15 @@ export class GetAllScheluleTransacationUseCase implements IUsecase<void, ListDto
         this.scheduleTransactionRepo = scheduleTransactionRepo
     }
 
-    async execute(): Promise<ListDto<GetAllScheduleTransactionDto>> {
-        const scheduleTransactions = await this.scheduleTransactionRepo.getAll()
+    async execute(request: QueryAllFetch): Promise<ListDto<GetAllScheduleTransactionDto>> {
+        const scheduleTransactions = await this.scheduleTransactionRepo.getAll({
+            limit: request.limit,
+            offset: request.offset,
+            queryAll: request.queryAll 
+        })
 
         const response: GetAllScheduleTransactionDto[] = []
-        scheduleTransactions.forEach(trans => {
+        scheduleTransactions.items.forEach(trans => {
             response.push({
                 id: trans.getId(),
                 name: trans.getName(),
@@ -50,7 +54,7 @@ export class GetAllScheluleTransacationUseCase implements IUsecase<void, ListDto
             })
         })
 
-        return { items: response, totals: response.length }
+        return { items: response, totals: scheduleTransactions.total }
     }
 
 }

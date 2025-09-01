@@ -1,7 +1,7 @@
 import { AccountRepository } from "@core/repositories/accountRepository";
 import { IUsecase } from "../interfaces";
 import { PatrimonyRepository, PatrimonySnapshotRepository } from "@core/repositories/patrimonyRepository";
-import { ListDto } from "@core/dto/base";
+import { ListDto, QueryAllFetch } from "@core/dto/base";
 import { GetAccountBalanceByPeriodDto, RequestGetAccountBalanceByPeriod } from "../account/getPastAccountBalanceByPeriod";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { mapperPeriod, PatrimonyType, Period } from "@core/domains/constants";
@@ -16,7 +16,7 @@ export type GetAllPatrimonyDto = {
     type: string
 }
 
-export type RequestGetAllPatrimony = {
+export type RequestGetAllPatrimony = QueryAllFetch & {
     period: string
     periodTime: number
 }
@@ -42,7 +42,11 @@ export class GetAllPatrimonyUseCase implements IUsecase<RequestGetAllPatrimony, 
     }
 
     async execute(request: RequestGetAllPatrimony): Promise<ListDto<GetAllPatrimonyDto>> {
-        const patrimonies = await this.patrimonyRepo.getAll()
+        const patrimonies = await this.patrimonyRepo.getAll({
+            limit: request.limit,
+            offset: request.offset,
+            queryAll: request.queryAll
+        })
 
         const resPatrimonies: GetAllPatrimonyDto[] = []
         const period = mapperPeriod(request.period)
@@ -53,7 +57,13 @@ export class GetAllPatrimonyUseCase implements IUsecase<RequestGetAllPatrimony, 
             patrimonyIds: patrimonies.items.map(i=> i.getId()), 
             startDate: startDate,
             endDate: new Date(),
-            sort: 'desc'
+            limit: 0,
+            offset: 0,
+            queryAll: true,
+            sort: {
+                sortBy: 'date', 
+                asc: false      
+            }
         })
 
         for(let i = 0; i < patrimonies.total; i++) {
@@ -83,7 +93,7 @@ export class GetAllPatrimonyUseCase implements IUsecase<RequestGetAllPatrimony, 
 
         const saveGoals = await this.saveGoalRepo.getAll({ queryAll: true, offset: 0, limit: 0})
         let saveAmount = 0 
-        saveGoals.filter(i => i.getBalance().getAmount() > 0).forEach(i => {
+        saveGoals.items.filter(i => i.getBalance().getAmount() > 0).forEach(i => {
             saveAmount += i.getBalance().getAmount() 
         })
 

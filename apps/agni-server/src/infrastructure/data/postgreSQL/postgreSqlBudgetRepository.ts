@@ -5,6 +5,7 @@ import { Budget } from "@core/domains/entities/budget";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { isEmpty } from "@core/domains/helpers";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
+import { QueryFilterAllRepository, RepositoryListResult } from "@core/repositories/dto";
 
 export class PostgresSqlBudgetRepository extends KnexConnector implements BudgetRepository {
     constructor(connector: Knex) {
@@ -60,8 +61,16 @@ export class PostgresSqlBudgetRepository extends KnexConnector implements Budget
         return budget
     }
 
-    async getAll(): Promise<Budget[]> {
-        const results = await this.connector('budgets');
+    async getAll(queryFilter: QueryFilterAllRepository): Promise<RepositoryListResult<Budget>> {
+        const query = this.connector('budgets'); 
+
+        const total = await query.clone().clearSelect().clearOrder().count<{count: number}>("* as count").first() 
+        const totalCount = total?.count ?? 0
+
+        if (!queryFilter.queryAll)
+            query.limit(queryFilter.limit).offset(queryFilter.offset)
+
+        let results = await query; 
 
         let budgets: Budget[] = []
         for(let result of results) {
@@ -77,7 +86,7 @@ export class PostgresSqlBudgetRepository extends KnexConnector implements Budget
             budgets.push(budget)
         } 
 
-        return budgets
+        return {items: budgets, total: totalCount}
     }
 
     async delete(id: string): Promise<void> {

@@ -154,15 +154,15 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
         };
 
 
-        
-
         let response = await this.transactionRepository.getPaginations(filters);
 
+        // TODO: BAD change 
+        const records = await this.recordRepository.getManyById(response.items.map(i => i.getRecordRef()))
         let transactions: GetAllTransactionDto[] = []
         for (let i = 0; i < response.items.length ; i++) {
             const transaction = response.items[i]
-            const record = await this.recordRepository.get(transaction.getRecordRef())
-            if (record !== null)
+            const record = records.find(i => i.getId() === transaction.getRecordRef());
+            if (record)
                 transactions.push({
                     accountId: transaction.getAccountRef(),
                     transactionId: transaction.getId(),

@@ -18,15 +18,21 @@ import type { FilterTransactionQuery } from "~/types/api/transaction";
 import useCategories from "~/composables/categories/useCategories";
 import useTags from "~/composables/tags/useTags";
 import { getLocalTimeZone } from "@internationalized/date";
+import useBudgets from "~/composables/budgets/useBudgets";
 
-// generate code
-const now = new Date();
-const prevMonth = new Date(now.getUTCFullYear(), now.getUTCMonth() - 1, 1);
 
-const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useAccountsWitPastBalance({ period: 'Month', periodTime: 1}); 
-const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories();
-const {data: tags, error: errorTags, refresh: refreshTag} = useTags();
-const {data: budgets, error: errorBudgets, refresh: refreshBudget } = useTags();
+const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useAccountsWitPastBalance({ 
+    period: 'Month', periodTime: 1, offset: 0, limit: 0, queryAll: true
+}); 
+const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories({
+    limit: 0, offset: 0, queryAll: true
+});
+const {data: tags, error: errorTags, refresh: refreshTag} = useTags({
+    limit: 0, offset: 0, queryAll: true
+});
+const {data: budgets, error: errorBudgets, refresh: refreshBudget } = useBudgets({
+    limit: 0, offset: 0, queryAll: true
+});
 
 const selectedAccountId = ref(ALL_ACCOUNT_ID);
 
@@ -46,7 +52,7 @@ const displayTransactions = computed(() => {
         amount: i.amount,
         budgets: i.budgetIds.map(i => ({
             id: i,
-            title: getBudget(i)?.value || ''
+            title: getBudget(i)?.title || ''
         })),
         category: {
             id: i.categoryId,
@@ -77,10 +83,7 @@ const displayFutureTransactions = computed(() => {
             id:i.id,
             accountId: i.accountId,
             amount: i.amount,
-            budgets: i.budgetIds.map(i => ({
-                id: i,
-                title: getBudget(i)?.value || ''
-            })),
+            budgets: [],
             category: {
                 id: i.categoryId,
                 title: getCategory(i.categoryId)?.title || '',

@@ -73,9 +73,9 @@ router.get('/v1/save-goals/:id', async (req, res) => {
 
 router.get(
     '/v1/save-goals',
-    query('limit').isNumeric(),
-    query('offset').isNumeric(),
-    query('queryAll').optional().isBoolean(),
+    query('limit').isNumeric().toInt(),
+    query('offset').isNumeric().toInt(),
+    query('queryAll').optional().isBoolean().toBoolean(),
     query('orderBy').optional().isString(),
     query('sortSense').optional().isString(),
     async (req, res) => {

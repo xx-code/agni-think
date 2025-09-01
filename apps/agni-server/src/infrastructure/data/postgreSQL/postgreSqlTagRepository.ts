@@ -5,6 +5,7 @@ import { Knex } from "knex";
 import { isEmpty } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError";
+import { QueryFilterAllRepository, RepositoryListResult } from "@core/repositories/dto";
 
 export class PostgreSqlTagRepository extends KnexConnector implements TagRepository {
     constructor(connector: Knex) {
@@ -83,8 +84,19 @@ export class PostgreSqlTagRepository extends KnexConnector implements TagReposit
         return new Tag(result.tag_id, result.value, result.color);
     }
 
-    async getAll(): Promise<Tag[]> {
-        let results = await this.connector('tags').select('*');
-        return results.map(result => new Tag(result.tag_id, result.value, result.color));
+    async getAll(queryFilter: QueryFilterAllRepository): Promise<RepositoryListResult<Tag>> {
+        const query = this.connector('tags').select('*');
+
+        const total = await query.clone().clearSelect().clearOrder().count<{count: number}>("* as count").first() 
+        const totalCount = total?.count ?? 0
+
+        if (!queryFilter.queryAll)
+            query.offset(queryFilter.offset).limit(queryFilter.limit) 
+
+        const results = await query
+
+        const tags = results.map(result => new Tag(result.tag_id, result.value, result.color));
+
+        return { items: tags, total: totalCount}
     }
 }

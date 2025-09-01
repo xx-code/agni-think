@@ -1,11 +1,3 @@
-import { MockAccountRepository } from './mock/repositories/mockAccountRepository';
-import { MockCategoryRepository } from './mock/repositories/mockCategoryRepository';
-import { MockTagRepository } from './mock/repositories/mockTagRepository';
-import { MockTransactionRepository } from './mock/repositories/mockTransactionRepository';
-import { MockRecordRepository } from './mock/repositories/mockRecordRepository';
-import { MockUnitOfWork } from './mock/repositories/mockUnitOfWorkRepository';
-import { MockBudgetRepository } from './mock/repositories/mockBudgetRepository';
-import { MockSavingRepository } from './mock/repositories/mockSavingRepository';
 import { PostgreSqlAccountRepository } from '@infra/data/postgreSQL/postgreSqlAccountRepository';
 import { Knex } from 'knex';
 import { PostgreSqlCategoryRepository } from '@infra/data/postgreSQL/postgreSqlCategoryRepository';
@@ -227,7 +219,7 @@ export class DiContenair {
         createAccount: IUsecase<RequestCreationAccountUseCase, CreatedDto>,
         updateAccount: IUsecase<RequestUpdateAccountUseCase, void>,
         getAccount: IUsecase<string, GetAccountDto>,
-        getAllAccount: IUsecase<void, ListDto<GetAllAccountDto>>,
+        getAllAccount: IUsecase<QueryAllFetch, ListDto<GetAllAccountDto>>,
         getAllAccountWithBalance: IUsecase<RequestGetAllAccountPastBalanceUseCase, ListDto<GetAllAccountWithPastBalanceDto>>
         deleteAccount: IUsecase<string, void>,
         getPastAccountBalanceByPeriod: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>
@@ -237,7 +229,7 @@ export class DiContenair {
         createCategory: IUsecase<RequestCreationCategoryUseCase, CreatedDto>,
         updateCategory: IUsecase<RequestUpdateCategoryUseCase, void>,
         getCategory: IUsecase<string, GetCategoryDto>,
-        getAllCategory: IUsecase<void, ListDto<GetAllCategoryDto>>,
+        getAllCategory: IUsecase<QueryAllFetch, ListDto<GetAllCategoryDto>>,
         deleteCategory: IUsecase<string, void>,
     };
 
@@ -245,7 +237,7 @@ export class DiContenair {
         createTag: IUsecase<RequestCreationTagUseCase, CreatedDto>,
         updateTag: IUsecase<RequestUpdateTagUseCase, void>,
         getTag: IUsecase<string, GetTagDto>,
-        getAllTag: IUsecase<void, ListDto<GetAllTagDto>>,
+        getAllTag: IUsecase<QueryAllFetch, ListDto<GetAllTagDto>>,
         deleteTag: IUsecase<string, void>
     }
 
@@ -266,7 +258,7 @@ export class DiContenair {
         createBudget: IUsecase<RequestCreationBudgetUseCase, CreatedDto>,
         updateBudget: IUsecase<RequestUpdateBudget, void>,
         getBudget: IUsecase<string, GetBudgetDto>,
-        getAllBudgets: IUsecase<void, ListDto<GetAllBudgetDto>>,
+        getAllBudgets: IUsecase<QueryAllFetch, ListDto<GetAllBudgetDto>>,
         deleteBudget: IUsecase<string, void>,
     }
 
@@ -275,7 +267,7 @@ export class DiContenair {
         createScheduleTransaction: IUsecase<RequestCreateScheduleTransaction, CreatedDto>,
         deleteScheduleTransaction: IUsecase<string, void>,
         getScheduleTransaction: IUsecase<string, GetScheduleTransactionDto>,
-        getAllScheduleTransaction: IUsecase<void, ListDto<GetAllScheduleTransactionDto>>,
+        getAllScheduleTransaction: IUsecase<QueryAllFetch, ListDto<GetAllScheduleTransactionDto>>,
         updateScheduleTransaction: IUsecase<RequestUpdateScheduleTransaction, void>
     }
 
@@ -328,14 +320,6 @@ export class DiContenair {
 
 
     async configMock() {
-        this.registerRepository('account', new MockAccountRepository())
-        this.registerRepository('category', new MockCategoryRepository())
-        this.registerRepository('tag', new MockTagRepository())
-        this.registerRepository('record', new MockRecordRepository())
-        this.registerRepository('transaction', new MockTransactionRepository())
-        this.registerRepository('budget', new MockBudgetRepository())
-        this.registerRepository('saving', new MockSavingRepository())
-        this.registerRepository('unit_of_work', new MockUnitOfWork())
     }
 
    async config(connector: Knex) {

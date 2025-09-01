@@ -92,6 +92,9 @@ router.delete('/v1/patrimonies/:id',
 router.get('/v1/patrimonies', 
     query('period').isString(),
     query('periodTime').isNumeric(),
+    query('limit').isNumeric().toInt(),
+    query('offset').isNumeric().toInt(),
+    query('queryAll').optional().isBoolean().toBoolean(),
     async (req, res) => {
         try {
             const data: RequestGetAllPatrimony = matchedData(req);
@@ -131,6 +134,9 @@ router.post('/v1/patrimonies/:id/add-snapshot',
 router.get('/v1/patrimonies/:id/snapshots', 
     query('period').isString(),
     query('periodTime').isNumeric(),
+    query('limit').isNumeric().toInt(),
+    query('offset').isNumeric().toInt(),
+    query('queryAll').optional().isBoolean().toBoolean(),
     async (req: Request, res: Response) => {
         try {
             const result = validationResult(req);
@@ -181,7 +187,6 @@ router.put('/v1/patrimonies/:id/update-snapshot/:id_snapshot',
                 return;
             }
 
-            console.log(result.array())
             res.status(400).send({errors: result.array()});
         } catch(err) {
             console.log(err)

@@ -11,10 +11,18 @@ const emit = defineEmits<{
     (e: 'submit', value: FormFilterTransaction): void
 }>();
 
-const { data:accounts } = useAccounts();
-const { data:categories } = useCategories();
-const { data:tags } = useTags();
-const { data:budgets } = useBudgets();
+const { data:accounts } = useAccounts({
+    limit: 0, offset: 0, queryAll: true
+});
+const { data:categories } = useCategories({
+    limit: 0, offset: 0, queryAll: true
+});
+const { data:tags } = useTags({
+    limit: 0, offset: 0, queryAll: true
+});
+const { data:budgets } = useBudgets({
+    limit: 0, offset: 0, queryAll: true
+});
 
 const selectedBudgetIds = ref<string[]>([]);
 const selectedCategoryIds = ref<string[]>([]);

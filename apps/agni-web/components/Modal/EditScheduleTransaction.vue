@@ -125,9 +125,21 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>;
 
-const {data: accounts} = useAccounts()
-const {data: categories} = useCategories()
-const {data: tags } = useTags()
+const {data: accounts} = useAccounts({
+  queryAll: true,
+  offset: 0,
+  limit: 0
+})
+const {data: categories} = useCategories({
+  queryAll: true,
+  offset: 0,
+  limit: 0
+})
+const {data: tags } = useTags({
+  limit: 0,
+  offset: 0,
+  queryAll: true
+})
 const {data: transationTypes } = useTransactionTypes()
 const {data: listPeriods, error, refresh} = usePeriodTypes();
 
