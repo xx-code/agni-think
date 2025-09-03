@@ -50,7 +50,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-    <UModal title="Ajouter ou diminuer but d'epargne">
+    <UModal :title="'Ajouter ou diminuer but d\'epargne ' + saveGoal?.title">
         <template #body>
             <UForm :schema="schema" :state="form" @submit="onSubmit" class="space-y-4">
                 <UFormField>

@@ -67,7 +67,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-    <UModal title="Etiteur de but d'epargne" >
+    <UModal :title="saveGoal ? saveGoal?.title : 'Etiteur de but d\'epargne '" >
         <template #body>
             <UForm :schema="schema" :state="form" @submit="onSubmit" class="space-y-4">
                 <UFormField label="Nom du but d'epargne" name="title">
