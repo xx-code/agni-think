@@ -19,6 +19,7 @@ import useCategories from "~/composables/categories/useCategories";
 import useTags from "~/composables/tags/useTags";
 import { getLocalTimeZone } from "@internationalized/date";
 import useBudgets from "~/composables/budgets/useBudgets";
+import useAnalyseBudgetRules from "~/composables/analytics/useBudgetRules";
 
 
 const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useAccountsWitPastBalance({ 
@@ -273,6 +274,28 @@ const onUpateAccount = async (payload: string) => {
         filterAcc = [payload] 
 }
 
+const { data: analyseBudgetRules } = useAnalyseBudgetRules({ period: 'Month', periodTime: 1 })
+
+const optionsChart = computed(() => ({
+    responsive: true,
+    plugins: {colors: { forceOverride: true}}
+})) 
+const dataChart = computed(() => {
+    let labels: string[] = []
+    let data: number[] = []
+    if (analyseBudgetRules.value) {
+        labels = analyseBudgetRules.value.map(i => i.transactionType)
+        data = analyseBudgetRules.value.map( i => i.value)    
+     } 
+
+    return {
+        labels: labels,
+        datasets: [{
+            label: '50/20/30 rules match',
+            data: data
+        }]
+    } 
+})
 
 </script>
 
@@ -381,7 +404,7 @@ const onUpateAccount = async (payload: string) => {
 
             </CustomCardTitle>
             <div>
-                <p>Graph 50%/30%/20%</p>
+                <DoughnutChart :data="dataChart" :options="optionsChart"/>
             </div>
         </div>
 

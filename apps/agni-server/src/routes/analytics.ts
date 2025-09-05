@@ -78,4 +78,27 @@ router.get('/v1/analytics/cashflow',
     }
 )
 
+router.get('/v1/analytics/budget-rules', 
+    query('period').isString(),
+    query('periodTime').isNumeric(),
+    query('beginDate').optional().isISO8601().toDate(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (!result.isEmpty()) { 
+                res.status(400).send({ errors: result.array() });
+                return;
+            }
+
+            const data: RequestCashFlow = matchedData(req);
+            const budgets = await container.analyticUseCase?.analyseBudgetRule.execute(data);
+
+            res.status(200).send(budgets);
+        } catch(err) {
+            console.log(err)
+            res.status(400).send({ errors: [ err ]});
+        }
+    }
+)
+
 export default router;

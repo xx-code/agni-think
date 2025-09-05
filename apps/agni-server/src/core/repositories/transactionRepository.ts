@@ -10,6 +10,8 @@ export type TransactionFilter = QueryFilterAllRepository & {
     tags?: Array<string>;
     startDate?: Date
     endDate?: Date
+    strictEndDate?: boolean
+    strictStartDate?: boolean
     status?: TransactionStatus
     types?: TransactionType[],
     minPrice?: Money

@@ -16,3 +16,14 @@ export type GetCashflowAnalyseResponse = {
     spendFlow: number[]
     gainsFlow: number[]
 }
+
+export type GetAnalyseBudgeRuleResponse = {
+    transactionType: string
+    value: number
+}
+
+export type GetAnalyseBudgeRuleRequest = {
+    period: string
+    periodTime: number
+    beginDate?: string
+}

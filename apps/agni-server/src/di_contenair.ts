@@ -75,6 +75,7 @@ import { PostgreSqlSnapshotPatrimonyRepository } from '@infra/data/postgreSQL/po
 import { GetAllSnapshotOfPatrimony, GetAllSnapshotPatrimonyDto, RequestAllSnapshotPatrimony } from '@core/interactions/patrimony/getAllSnapshotOfPatrimony';
 import { GetAccountBalanceByPeriodDto, GetPastAccountBalanceByPeriodUseCase, RequestGetAccountBalanceByPeriod } from '@core/interactions/account/getPastAccountBalanceByPeriod';
 import { CashFlowAnalyseUseCase, CashFlowResponse, RequestCashFlow } from '@core/interactions/analystic/cashflowAnalyse';
+import { AnalyseBudgetRuleDto, AnalyseBudgetRuleUseCase, RequestAnalyseBudgetRule } from '@core/interactions/analystic/analysebudgetRule';
 
 async function createTables(knex: Knex) {
     if (!(await knex.schema.hasTable('accounts')))
@@ -285,6 +286,7 @@ export class DiContenair {
         estimateLeftAmount: IUsecase<RequestEstimationLeftAmount, GetEstimationLeftAmoutDto>
         planningSaveGoalAdvisor: IUsecase<RequestSuggestPlanningSaveGoal, GetAllSuggestPlanningDto>
         cashflowAnalyse: IUsecase<RequestCashFlow, CashFlowResponse>
+        analyseBudgetRule: IUsecase<RequestAnalyseBudgetRule, AnalyseBudgetRuleDto[]>
     }
 
     public patrimonyUseCase?: {
@@ -501,7 +503,8 @@ export class DiContenair {
             estimateLeftAmount: estimateUseCase,
             planningSaveGoalAdvisor: new SuggestPlanningSaveGoalUseCase(estimateUseCase, this.getRepository('account'), this.getRepository('saving'), 
             this.getAgent('goal_ranking')! as IAgentScoringGoal, this.getAgent('planning')! as IAgentPlanningAdvisor),
-            cashflowAnalyse: new CashFlowAnalyseUseCase(this.getRepository('transaction'), this.getRepository('record'))
+            cashflowAnalyse: new CashFlowAnalyseUseCase(this.getRepository('transaction'), this.getRepository('record')),
+            analyseBudgetRule: new AnalyseBudgetRuleUseCase(this.getRepository('transaction'), this.getRepository('record'), this.getRepository('account'))
         }
     }
 
