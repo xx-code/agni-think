@@ -133,9 +133,10 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
                 query.where('is_freeze', '=', filterBy.isFreeze);
 
             if (filterBy.startDate) 
-                query.where('date', '>=', filterBy.startDate);
-            if (filterBy.endDate) 
-                query.where('date', '<=', filterBy.endDate);
+                query.where('date', filterBy.strictStartDate ? '>' : '>=', filterBy.startDate);
+
+            if (filterBy.endDate)  
+                query.where('date', filterBy.strictEndDate ? '<' : '<=', filterBy.endDate);
 
             let total = await query.clone().clearSelect().clearOrder().count<{count: number}>("* as count").first() 
             const totalCount = total?.count ?? 0
@@ -186,10 +187,10 @@ export class PostgreSqlTransactionRepository extends KnexConnector implements Tr
         if (filterBy.types && filterBy.types?.length > 0) query.whereIn('type', filterBy.types);
     
         if (filterBy.startDate) 
-            query.where('date', '>=', filterBy.startDate);
+            query.where('date', filterBy.strictStartDate ? '>' : '>=', filterBy.startDate);
 
         if (filterBy.endDate)  
-            query.where('date', '<=', filterBy.endDate);
+            query.where('date', filterBy.strictEndDate ? '<' : '<=', filterBy.endDate);
 
 
         let results = await query;
