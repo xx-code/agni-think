@@ -1,25 +1,26 @@
-import { TransactionRepository } from "@core/repositories/transactionRepository";
 import { IUsecase } from "../interfaces";
-import { AccountRepository } from "@core/repositories/accountRepository";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { RecordType, TransactionStatus } from "@core/domains/constants";
-import { RecordRepository } from "@core/repositories/recordRepository";
+import Repository from "@core/adapters/repository";
+import { Transaction } from "@core/domains/entities/transaction";
+import { Account } from "@core/domains/entities/account";
+import { Record } from "@core/domains/entities/record";
 
 export type RequestCompleteTransactionUsecase = {
     transactionId: string
 }
 
 export class CompteTransactionUsecase implements IUsecase<RequestCompleteTransactionUsecase, void> {
-    private transactionRepo: TransactionRepository
-    private accountRepo: AccountRepository
-    private recordRepo: RecordRepository
+    private transactionRepo: Repository<Transaction>
+    private accountRepo: Repository<Account>
+    private recordRepo: Repository<Record>
     private unitOfWork: UnitOfWorkRepository
 
     constructor(
-        transactionRepo: TransactionRepository, 
-        accountRepo: AccountRepository, 
-        recordRepo: RecordRepository,
+        transactionRepo: Repository<Transaction>, 
+        accountRepo: Repository<Account>, 
+        recordRepo: Repository<Record>,
         unitOfWork: UnitOfWorkRepository) 
     {
         this.transactionRepo = transactionRepo

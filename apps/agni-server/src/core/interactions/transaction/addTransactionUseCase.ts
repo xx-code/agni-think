@@ -1,4 +1,3 @@
-import { TransactionRepository } from "../../repositories/transactionRepository"
 import { GetUID } from "@core/adapters/libs"
 import { mapperMainTransactionCategory, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants"
 import { Money } from "@core/domains/entities/money"
@@ -10,6 +9,7 @@ import { ValueError } from "@core/errors/valueError"
 import { TransactionDependencies } from "../facades"
 import { CreatedDto } from "@core/dto/base"
 import { IUsecase } from "../interfaces"
+import Repository from "@core/adapters/repository"
 
 export type RequestAddTransactionUseCase = {
     accountId: string
@@ -24,13 +24,13 @@ export type RequestAddTransactionUseCase = {
 
 
 export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseCase, CreatedDto> {
-    private transactionRepository: TransactionRepository
+    private transactionRepository: Repository<Transaction>
     private transcationDependencies: TransactionDependencies
     private unitOfWork: UnitOfWorkRepository
 
     constructor(
         unitOfWork: UnitOfWorkRepository,
-        transactionRepo: TransactionRepository,
+        transactionRepo: Repository<Transaction>,
         transactionDependencies: TransactionDependencies
     ) {
         this.transactionRepository = transactionRepo
@@ -46,14 +46,20 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
             if (account === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
-            if (!(await this.transcationDependencies.categoryRepository?.isCategoryExistById(request.categoryId)))
+            if (!(await this.transcationDependencies.categoryRepository?.get(request.categoryId)))
                 throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
 
-            if (request.tagIds.length > 0 && !(await this.transcationDependencies.tagRepository?.isTagExistByIds(request.tagIds)))
-                throw new ResourceNotFoundError("TAGS_NOT_FOUND")
+            if (request.tagIds.length > 0) {
+                const foundTags = await this.transcationDependencies.tagRepository?.getManyByIds(request.tagIds) ?? [];
+                if (foundTags.length !== request.tagIds.length)
+                    throw new ResourceNotFoundError("TAGS_NOT_FOUND");
+            }
 
-            if (request.budgetIds.length > 0 && !(await this.transcationDependencies.budgetRepository?.isBudgetExistByIds(request.budgetIds)))
-                throw new ResourceNotFoundError("BUDGETS_NOT_FOUND")
+            if (request.budgetIds.length > 0) {
+                const foundBudgets = await this.transcationDependencies.budgetRepository?.getManyByIds(request.budgetIds) ?? [];
+                if (foundBudgets.length !== request.budgetIds.length)
+                    throw new ResourceNotFoundError("BUDGETS_NOT_FOUND");
+            }
            
             if (request.amount <= 0)
                 throw new ValueError("AMOUNT_MUST_GREATER_THANT_0")
@@ -68,7 +74,7 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
                 request.date, 
                 type === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT, 
                 request.description)
-            await this.transcationDependencies.recordRepository?.save(newRecord)
+            await this.transcationDependencies.recordRepository?.create(newRecord)
 
             newRecord.getType() === RecordType.CREDIT ? account!.addOnBalance(amount) : account!.substractBalance(amount)
 
@@ -82,14 +88,15 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
                 request.date, type, TransactionStatus.COMPLETE, 
                 request.tagIds, request.budgetIds)    
 
-            await this.transactionRepository.save(newTransaction);
+            await this.transactionRepository.create(newTransaction);
             
             await this.unitOfWork.commit()
 
             return {newId: newTransaction.getId()}
         } catch (err) {
             await this.unitOfWork.rollback()
-            throw err
+            console.log(err)
+            return {newId: ''}
         }
     }
 }

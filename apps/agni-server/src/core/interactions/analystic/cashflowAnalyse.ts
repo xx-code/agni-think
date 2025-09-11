@@ -1,9 +1,18 @@
 import { TransactionRepository } from "@core/repositories/transactionRepository"
 import { IUsecase } from "../interfaces"
-import { FREEZE_CATEGORY_ID, mapperPeriod, Period, RecordType, SAVING_CATEGORY_ID, TRANSFERT_CATEGORY_ID } from "@core/domains/constants"
+import { 
+    FREEZE_CATEGORY_ID, 
+    mapperPeriod, 
+    Period, 
+    RecordType, 
+    SAVING_CATEGORY_ID, 
+    TRANSFERT_CATEGORY_ID } from "@core/domains/constants"
 import UnExpectedError from "@core/errors/unExpectedError"
 import { MomentDateService } from "@core/domains/entities/libs"
 import { RecordRepository } from "@core/repositories/recordRepository"
+import Repository, { TransactionFilter } from "@core/adapters/repository"
+import { Transaction } from "@core/domains/entities/transaction"
+import { Record } from "@core/domains/entities/record"
 
 export type RequestCashFlow = {
     period: string
@@ -17,12 +26,12 @@ export type CashFlowResponse = {
 }
 
 export class CashFlowAnalyseUseCase implements IUsecase<RequestCashFlow, CashFlowResponse> {
-    private transRepo: TransactionRepository
-    private recordRepo: RecordRepository
+    private transRepo: Repository<Transaction>
+    private recordRepo: Repository<Record>
 
     constructor(
-        transactionRepository: TransactionRepository,
-        recordRepo: RecordRepository
+        transactionRepository: Repository<Transaction>,
+        recordRepo: Repository<Record>
     ) {
         this.transRepo = transactionRepository
         this.recordRepo = recordRepo
@@ -49,18 +58,19 @@ export class CashFlowAnalyseUseCase implements IUsecase<RequestCashFlow, CashFlo
                 (request.periodTime * (i - 1))) 
 
             const { startDate, endDate } = MomentDateService.getUTCDateByPeriod(beginDate, period, request.periodTime)
-            let transactions = await this.transRepo.getTransactions({
-                startDate: startDate,
-                endDate: endDate,
+            const extendFilter = new TransactionFilter()
+            extendFilter.startDate = startDate
+            extendFilter.endDate = endDate
+            const transactions = await this.transRepo.getAll({
                 offset: 0,
                 limit: 0,
                 queryAll: true
-            });
+            }, extendFilter);
 
-            transactions = transactions.filter(i => !categoriesToExludes.includes(i.getCategoryRef()))
+            let transactionItems = transactions.items 
+            transactionItems = transactions.items.filter(i => !categoriesToExludes.includes(i.getCategoryRef()))
 
-
-            const records = await this.recordRepo.getManyById(transactions.map(i => i.getRecordRef()))
+            const records = await this.recordRepo.getManyByIds(transactionItems.map(i => i.getRecordRef()))
 
             const spends = records.filter(i => i.getType() === RecordType.DEBIT)
             .reduce((acc: number, record) => {

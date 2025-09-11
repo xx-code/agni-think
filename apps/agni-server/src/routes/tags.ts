@@ -1,4 +1,4 @@
-import { QueryAllFetch } from "@core/dto/base";
+import { QueryFilter } from "@core/dto/base";
 import { RequestUpdateTagUseCase } from "@core/interactions/tag/updateTagUseCase";
 import { Router, Request, Response } from "express";
 import { body, matchedData, query, validationResult } from "express-validator";
@@ -74,7 +74,7 @@ router.get(
             return;
         }
 
-        const request: QueryAllFetch = matchedData(req)
+        const request: QueryFilter = matchedData(req)
 
         var tags = await container.tagUseCase?.getAllTag.execute(request);
         res.status(200).send(tags);

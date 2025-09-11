@@ -1,10 +1,11 @@
-import { BudgetRepository } from "../../repositories/budgetRepository";
-import { TransactionRepository } from "../../repositories/transactionRepository";
-import { RecordRepository } from "@core/repositories/recordRepository";
 import { IUsecase } from "../interfaces";
-import { ListDto, QueryAllFetch } from "@core/dto/base";
+import { ListDto, QueryFilter } from "@core/dto/base";
 import { RecordType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
+import Repository, { TransactionFilter } from "@core/adapters/repository";
+import { Budget } from "@core/domains/entities/budget";
+import { Transaction } from "@core/domains/entities/transaction";
+import { Record } from "@core/domains/entities/record";
 
 export type GetAllBudgetDto = {
     id: string,
@@ -18,15 +19,15 @@ export type GetAllBudgetDto = {
     endDate?: Date
 }
 
-export class GetAllBudgetUseCase implements IUsecase<QueryAllFetch, ListDto<GetAllBudgetDto>> {
-   private budgetRepository: BudgetRepository;
-   private transactionRepository: TransactionRepository;
-   private recordRepository: RecordRepository
+export class GetAllBudgetUseCase implements IUsecase<QueryFilter, ListDto<GetAllBudgetDto>> {
+   private budgetRepository: Repository<Budget>;
+   private transactionRepository: Repository<Transaction>;
+   private recordRepository: Repository<Record>
   
    constructor(
-    budgetRepository: BudgetRepository,
-    transactionRepository: TransactionRepository,
-    recordRepository: RecordRepository
+    budgetRepository: Repository<Budget>,
+    transactionRepository: Repository<Transaction>,
+    recordRepository: Repository<Record>
    ) {
        this.budgetRepository = budgetRepository
        this.transactionRepository = transactionRepository
@@ -34,7 +35,7 @@ export class GetAllBudgetUseCase implements IUsecase<QueryAllFetch, ListDto<GetA
    }
 
 
-   async execute(request: QueryAllFetch): Promise<ListDto<GetAllBudgetDto>> {
+   async execute(request: QueryFilter): Promise<ListDto<GetAllBudgetDto>> {
         let budgets = await this.budgetRepository.getAll({
             limit: request.limit,
             offset: request.offset,
@@ -56,17 +57,18 @@ export class GetAllBudgetUseCase implements IUsecase<QueryAllFetch, ListDto<GetA
                     budget.getSchedule().getPeriodTime()!
             ); 
 
-            let transactions = await this.transactionRepository.getTransactions({
-                budgets: [budget.getId()],
-                startDate: startBudgetUTCDate,
-                endDate: budget.getSchedule().getUpdatedDate(),
+            const extendFilter = new TransactionFilter()
+            extendFilter.budgets = [budget.getId()]
+            extendFilter.startDate = startBudgetUTCDate
+            extendFilter.endDate = budget.getSchedule().getUpdatedDate()
+            let transactions = await this.transactionRepository.getAll({
                 offset: 0,
                 limit: 0,
                 queryAll: true
-            });
+            }, extendFilter);
 
             let currentBalance = 0
-            let records = await this.recordRepository.getManyById(transactions.map(transaction => transaction.getRecordRef()))
+            let records = await this.recordRepository.getManyByIds(transactions.items.map(transaction => transaction.getRecordRef()))
             for (let record of records) {
                 if (record.getType() === RecordType.DEBIT)
                     currentBalance += record.getMoney().getAmount()

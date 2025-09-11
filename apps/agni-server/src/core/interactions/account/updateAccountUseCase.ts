@@ -1,8 +1,9 @@
 import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError";
-import { AccountRepository } from "../../repositories/accountRepository";
 import { mapperTypeAccount } from "@core/domains/constants";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import Repository from "@core/adapters/repository";
+import { Account } from "@core/domains/entities/account";
 
 export type RequestUpdateAccountUseCase = {
     id: string
@@ -11,9 +12,9 @@ export type RequestUpdateAccountUseCase = {
 }
 
 export class UpdateAccountUseCase implements IUsecase<RequestUpdateAccountUseCase, void> {
-    private repository: AccountRepository;
+    private repository: Repository<Account>;
     
-    constructor(repo: AccountRepository) {
+    constructor(repo: Repository<Account>) {
         this.repository = repo;
     }
     
@@ -23,7 +24,7 @@ export class UpdateAccountUseCase implements IUsecase<RequestUpdateAccountUseCas
             throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND") 
 
         if (request.title) {
-            if ((await this.repository.isExistByName(request.title)) && fetchedAccount.getTitle() !== request.title)
+            if ((await this.repository.existByName(request.title)) && fetchedAccount.getTitle() !== request.title)
                 throw new ResourceAlreadyExist("ACCOUNT_ALREADY_EXIST")
 
             fetchedAccount.setTitle(request.title)

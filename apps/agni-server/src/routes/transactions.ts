@@ -58,6 +58,7 @@ router.put("/v1/transactions/:id",
             }
             res.status(400).send({ errors: result.array() });
         } catch(err) {
+            console.log(err)
             res.status(400).send({ errors: [err] });
         }
     });

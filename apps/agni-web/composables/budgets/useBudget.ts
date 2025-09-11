@@ -15,7 +15,7 @@ export default function useBudget(budgetId: string): UseApiFetchReturn<BudgetTyp
                 startDate: new Date(data.startDate),
                 target: data.target,
                 updateDate: new Date(data.updateDate),
-                endDate: data.endDate
+                endDate: data.endDate ? new Date(data.endDate): undefined
             } satisfies BudgetType
         }
     });
@@ -37,6 +37,6 @@ export async function fetchBudget(budgetId: string): Promise<BudgetType> {
         startDate: new Date(res.startDate),
         target: res.target,
         updateDate: new Date(res.updateDate),
-        endDate: res.endDate
+        endDate: res.endDate ? new Date(res.endDate) : undefined 
     }
 }

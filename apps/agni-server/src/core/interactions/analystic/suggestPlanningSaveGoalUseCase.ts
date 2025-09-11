@@ -1,10 +1,11 @@
 import { IUsecase } from "../interfaces"
-import { SavingRepository } from "@core/repositories/savingRepository"
-import { AccountRepository } from "@core/repositories/accountRepository"
 import IAgentScoringGoal, { InputSaveGoalAgent } from "@core/agents/agentGoalScoring"
 import IAgentPlanningAdvisor, { GoalPlanningAdvisor } from "@core/agents/agentPlanningAdvisor"
-import { AccountType, Period } from "@core/domains/constants"
+import { AccountType } from "@core/domains/constants"
 import { GetEstimationLeftAmoutDto, RequestEstimationLeftAmount } from "./estimationleftAmount"
+import Repository from "@core/adapters/repository"
+import { Account } from "@core/domains/entities/account"
+import { SaveGoal } from "@core/domains/entities/saveGoal"
 
 export type SuggestPlanningWishSpend = {
     amount: number
@@ -35,16 +36,16 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
 
     private estimationLeftAmountUseCase: IUsecase<RequestEstimationLeftAmount, GetEstimationLeftAmoutDto>
 
-    private accountRepo: AccountRepository;
-    private saveGoalRepo: SavingRepository;
+    private accountRepo: Repository<Account>;
+    private saveGoalRepo: Repository<SaveGoal>;
 
     private goalRankingAgent: IAgentScoringGoal
     private planningAdvisor: IAgentPlanningAdvisor
 
     constructor( 
     estimationLeftAmountUseCase: IUsecase<RequestEstimationLeftAmount, GetEstimationLeftAmoutDto>,
-    accountRepo: AccountRepository,
-    saveGoalRepo: SavingRepository,
+    accountRepo: Repository<Account>,
+    saveGoalRepo: Repository<SaveGoal>,
     goalRankingAgent: IAgentScoringGoal,
     planningAdvisor: IAgentPlanningAdvisor) {
         this.estimationLeftAmountUseCase = estimationLeftAmountUseCase

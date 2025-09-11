@@ -53,6 +53,10 @@ export enum ImportanceGoal {
     URGENT = 4
 }
 
+export enum EventType {
+    NOTIFICATION
+}
+
 export const periodsSystem = [
     {
         name: 'Jour',

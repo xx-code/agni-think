@@ -128,8 +128,9 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
 
 async function openModalBudget(budgetId?: string) { 
     let budget: BudgetType|undefined;
-    if (budgetId)
+    if (budgetId) {
         budget = await fetchBudget(budgetId)
+    }
 
     modalEditBudget.open({
         budget: budget,

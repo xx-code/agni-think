@@ -1,15 +1,13 @@
-import { RecordRepository } from "../../repositories/recordRepository";
-import { AccountRepository } from "../../repositories/accountRepository";
-import { TransactionRepository } from "../../repositories/transactionRepository";
 import { GetUID } from "@core/adapters/libs";
-import { RecordType, TransactionStatus, TransactionType, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
-import { Money } from "@core/domains/entities/money";
+import { RecordType, TransactionStatus, TransactionType, TRANSFERT_CATEGORY_ID } from "@core/domains/constants"; import { Money } from "@core/domains/entities/money";
 import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
 import { ValueError } from "@core/errors/valueError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import Repository from "@core/adapters/repository";
+import { Account } from "@core/domains/entities/account";
 
 
 export type RequestTransfertTransactionUseCase = {
@@ -20,16 +18,16 @@ export type RequestTransfertTransactionUseCase = {
 }
 
 export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTransactionUseCase, void> {
-    private transactionRepository: TransactionRepository
-    private accountRepository: AccountRepository
-    private recordRepository: RecordRepository
+    private transactionRepository: Repository<Transaction>
+    private accountRepository: Repository<Account>
+    private recordRepository: Repository<Record>
     private unitOfWork: UnitOfWorkRepository
 
 
     constructor(
-        transactionRepository: TransactionRepository,
-        accountRepository: AccountRepository,
-        recordRepository: RecordRepository,
+        transactionRepository: Repository<Transaction>,
+        accountRepository: Repository<Account>,
+        recordRepository: Repository<Record>,
         unitOfWork: UnitOfWorkRepository
     ) {
         this.transactionRepository = transactionRepository
@@ -68,15 +66,15 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
             let toRecord: Record = new Record(GetUID(), amount, request.date, RecordType.CREDIT)
             toRecord.setDescription(`Transfert au compte ${accountTo.getTitle()}`)
 
-            await this.recordRepository.save(fromRecord);
+            await this.recordRepository.create(fromRecord);
 
-            await this.recordRepository.save(toRecord);
+            await this.recordRepository.create(toRecord);
 
             let transFrom = new Transaction(GetUID(), accountFrom.getId(), fromRecord.getId(), TRANSFERT_CATEGORY_ID, request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
-            await this.transactionRepository.save(transFrom)
+            await this.transactionRepository.create(transFrom)
 
             let transTo = new Transaction(GetUID(), accountTo.getId(), toRecord.getId(), TRANSFERT_CATEGORY_ID, request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
-            await this.transactionRepository.save(transTo);
+            await this.transactionRepository.create(transTo);
 
             await this.unitOfWork.commit()
         } catch (err) {

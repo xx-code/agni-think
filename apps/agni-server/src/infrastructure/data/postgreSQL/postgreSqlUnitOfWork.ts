@@ -1,12 +1,12 @@
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
-import { KnexConnector } from "./postgreSqlConnector";
 import { Knex } from "knex";
 
-export class PostgreSqlUnitOfWork extends KnexConnector implements UnitOfWorkRepository {
+export class PostgreSqlUnitOfWork implements UnitOfWorkRepository {
     private transaction: Knex.Transaction | null = null;
+    private connector: Knex
 
     constructor(connector: Knex) {
-        super(connector)
+        this.connector = connector
     }
     
     async initialisation(): Promise<void> {

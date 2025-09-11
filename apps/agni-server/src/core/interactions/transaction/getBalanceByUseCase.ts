@@ -1,10 +1,11 @@
-import { mapperMainTransactionCategory, RecordType, TransactionStatus } from "@core/domains/constants";
+import { mapperMainTransactionCategory, mapperTransactionType, RecordType, TransactionStatus } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import ValidationError from "@core/errors/validationError";
-import { RecordRepository } from "@core/repositories/recordRepository";
-import { TransactionRepository, TransactionFilter } from "@core/repositories/transactionRepository";
 import { IUsecase } from "../interfaces";
 import { MomentDateService } from "@core/domains/entities/libs";
+import Repository, { TransactionFilter } from "@core/adapters/repository";
+import { Transaction } from "@core/domains/entities/transaction";
+import { Record } from "@core/domains/entities/record";
 
 export type RequestGetBalanceBy = {
     accountIds?: string[],
@@ -19,12 +20,12 @@ export type RequestGetBalanceBy = {
 }
 
 export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number> {
-    private transactionRepository: TransactionRepository;
-    private recordRepository: RecordRepository
+    private transactionRepository: Repository<Transaction>;
+    private recordRepository: Repository<Record>
 
     constructor(
-        transaction_repo: TransactionRepository, 
-        recordRepository: RecordRepository) {
+        transaction_repo: Repository<Transaction>, 
+        recordRepository: Repository<Record>) {
         this.transactionRepository = transaction_repo;
         this.recordRepository = recordRepository
     }
@@ -62,7 +63,7 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number
             dateEnd = request.dateEnd
 
 
-        let filter: TransactionFilter = {
+        let filter = {
             offset: 0,
             limit: 0,
             queryAll: true,
@@ -73,14 +74,20 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number
             startDate: dateStart,
             endDate: dateEnd,
             types: types,
-            minPrice: minPrice,
-            maxPrice: maxPrice
         }
 
-        let transactions = await this.transactionRepository.getTransactions(filter);
+        const extendTransactionFilter = new TransactionFilter()
+        extendTransactionFilter.accounts = request.accountIds
+        extendTransactionFilter.categories = request.categoriesIds
+        extendTransactionFilter.budgets = request.budgetIds
+        extendTransactionFilter.tags = request.tagsIds
+        extendTransactionFilter.startDate = request.dateStart
+        extendTransactionFilter.endDate = request.dateEnd
+        extendTransactionFilter.types = request.types?.map(i => mapperMainTransactionCategory(i))
+        const transactions = await this.transactionRepository.getAll(filter);
 
         let records = await this.recordRepository
-            .getManyById(transactions.filter(i => i.getStatus() == TransactionStatus.COMPLETE)
+            .getManyByIds(transactions.items.filter(i => i.getStatus() == TransactionStatus.COMPLETE)
             .map(transaction => transaction.getRecordRef()))
         let balance = 0
         for (let record of records) {

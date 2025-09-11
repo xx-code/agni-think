@@ -1,6 +1,12 @@
 import { IObjectEquality } from '@core/domains/interface/equality';
 
-export default abstract class Entity implements IObjectEquality {
+export interface IEntity {
+    getId(): string
+    getCreatedAt(): Date
+    getUpdatedAt(): Date
+}
+
+export default abstract class Entity implements IEntity, IObjectEquality {
     private id: string;
     private change: boolean;
 

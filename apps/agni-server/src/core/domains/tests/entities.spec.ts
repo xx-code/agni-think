@@ -1,4 +1,3 @@
-import { stringify } from "querystring";
 import Entity, { TrackableProperty } from "../entities/entity";
 import ValueObject from "../valueObjects/valueObject";
 

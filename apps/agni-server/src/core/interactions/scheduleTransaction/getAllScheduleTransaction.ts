@@ -1,6 +1,7 @@
-import { ListDto, QueryAllFetch } from "@core/dto/base"
+import { ListDto, QueryFilter } from "@core/dto/base"
 import { IUsecase } from "../interfaces"
-import { ScheduleTransactionRepository } from "@core/repositories/scheduleTransactionRepository"
+import Repository from "@core/adapters/repository"
+import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction"
 
 export type GetAllScheduleTransactionDto = {
     id: string
@@ -19,15 +20,15 @@ export type GetAllScheduleTransactionDto = {
     dateEnd?: Date
 }
 
-export class GetAllScheluleTransacationUseCase implements IUsecase<QueryAllFetch, ListDto<GetAllScheduleTransactionDto>> {
+export class GetAllScheluleTransacationUseCase implements IUsecase<QueryFilter, ListDto<GetAllScheduleTransactionDto>> {
 
-    private scheduleTransactionRepo: ScheduleTransactionRepository
+    private scheduleTransactionRepo: Repository<ScheduleTransaction>
 
-    constructor(scheduleTransactionRepo: ScheduleTransactionRepository) {
+    constructor(scheduleTransactionRepo: Repository<ScheduleTransaction>) {
         this.scheduleTransactionRepo = scheduleTransactionRepo
     }
 
-    async execute(request: QueryAllFetch): Promise<ListDto<GetAllScheduleTransactionDto>> {
+    async execute(request: QueryFilter): Promise<ListDto<GetAllScheduleTransactionDto>> {
         const scheduleTransactions = await this.scheduleTransactionRepo.getAll({
             limit: request.limit,
             offset: request.offset,

@@ -1,6 +1,8 @@
+import Repository from "@core/adapters/repository";
 import { AccountRepository } from "../../repositories/accountRepository";
 import { IUsecase } from "../interfaces";
 import { GetAccountBalanceByPeriodDto, RequestGetAccountBalanceByPeriod } from "./getPastAccountBalanceByPeriod";
+import { Account } from "@core/domains/entities/account";
 
 
 export type GetManyAccountWithPastBalanceDto = {
@@ -19,11 +21,11 @@ export type RequestGetManyAccountPastBalance = {
 
 
 export class GetAllAccountWithPastBalanceUseCase implements IUsecase<RequestGetManyAccountPastBalance, GetManyAccountWithPastBalanceDto[]>{
-    private repository: AccountRepository;
+    private repository: Repository<Account>;
     private getAccountBalanceByPeriod: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>
 
     constructor(
-        repo: AccountRepository, 
+        repo: Repository<Account>, 
         getAccountBalance: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>
     ) {
         this.repository = repo;
@@ -31,7 +33,7 @@ export class GetAllAccountWithPastBalanceUseCase implements IUsecase<RequestGetM
     }
 
     async execute(request: RequestGetManyAccountPastBalance): Promise<GetManyAccountWithPastBalanceDto[]> {
-        let accounts = await this.repository.getManyIds(request.accountIds);
+        let accounts = await this.repository.getManyByIds(request.accountIds);
         const pastbalances = await this.getAccountBalanceByPeriod.execute({ 
             period: request.period, 
             periodTime: request.periodTime, 

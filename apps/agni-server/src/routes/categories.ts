@@ -3,7 +3,7 @@ import container from '../di_contenair';
 import { Router, Response, Request } from 'express';
 import { RequestCreationCategoryUseCase } from '@core/interactions/category/creationCategoryUseCase';
 import { RequestUpdateCategoryUseCase } from '@core/interactions/category/updateCategoryUseCase';
-import { QueryAllFetch } from '@core/dto/base';
+import { QueryFilter } from '@core/dto/base';
 
 const router = Router();
 
@@ -75,7 +75,7 @@ router.get(
             return;
         }
 
-        const request: QueryAllFetch = matchedData(req)
+        const request: QueryFilter = matchedData(req)
 
         var allCategories = await container.categoryUseCase?.getAllCategory.execute(request)
         res.status(200).json(allCategories)

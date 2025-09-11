@@ -1,6 +1,7 @@
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { TagRepository } from "../../repositories/tagRepository";
 import { IUsecase } from "../interfaces";
+import Repository from "@core/adapters/repository";
+import { Tag } from "@core/domains/entities/tag";
 
 export type GetTagDto = {
     id: string
@@ -10,9 +11,9 @@ export type GetTagDto = {
 }
 
 export class GetTagUseCase implements IUsecase<string, GetTagDto> {
-    private repository: TagRepository;
+    private repository: Repository<Tag>;
 
-    constructor(repo: TagRepository) {
+    constructor(repo: Repository<Tag>) {
         this.repository = repo;
     }
 

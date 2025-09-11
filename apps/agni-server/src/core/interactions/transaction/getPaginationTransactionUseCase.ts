@@ -1,15 +1,16 @@
-import { TransactionRepository, TransactionFilter} from "../../repositories/transactionRepository";
-import { mapperMainTransactionCategory, mapperTransactionStatus, mapperTransactionType, TransactionStatus } from "@core/domains/constants";
+import { mapperMainTransactionCategory, mapperTransactionStatus, TransactionStatus } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { isEmpty, DateParser } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import ValidationError from "@core/errors/validationError";
 import { IUsecase } from "../interfaces";
-import { ListDto } from "@core/dto/base";
-import { RecordRepository } from "@core/repositories/recordRepository";
+import { ListDto, QueryFilter } from "@core/dto/base";
 import { TransactionDependencies } from "../facades";
 import { MomentDateService } from "@core/domains/entities/libs";
-import { SortBy } from "@core/repositories/dto";
+import { QueryFilterAllRepository, SortBy } from "@core/repositories/dto";
+import Repository, { TransactionFilter } from "@core/adapters/repository";
+import { Transaction } from "@core/domains/entities/transaction";
+import { Record } from "@core/domains/entities/record";
 
 
 export type RequestGetPagination = {
@@ -58,14 +59,14 @@ export type GetAllTransactionDto = {
 }
 
 export class GetPaginationTransaction implements IUsecase<RequestGetPagination, ListDto<GetAllTransactionDto>> {
-    private transactionRepository: TransactionRepository;
+    private transactionRepository: Repository<Transaction>;
     private transactionDependencies: TransactionDependencies
-    private recordRepository: RecordRepository
 
-    constructor(transactionRepository: TransactionRepository, transactionDependencies: TransactionDependencies, recordRepository: RecordRepository) {
+    constructor(
+        transactionRepository: Repository<Transaction>, 
+        transactionDependencies: TransactionDependencies) {
         this.transactionRepository = transactionRepository;
         this.transactionDependencies = transactionDependencies
-        this.recordRepository = recordRepository 
     }
 
     async execute(request: RequestGetPagination): Promise<ListDto<GetAllTransactionDto>> {
@@ -82,22 +83,21 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
                 throw new ValidationError('Size must be greather than 0')
             limit = request.limit
         }
-        
 
         if (request.accountFilterIds !== undefined && request.accountFilterIds?.length > 0)
-            if (!(await this.transactionDependencies.accountRepository?.isExistByIds(request.accountFilterIds)))
+            if ((await this.transactionDependencies.accountRepository?.getManyByIds(request.accountFilterIds))?.length === 0)
                 throw new ResourceNotFoundError("an account to filter not valid")
         
         if (request.categoryFilterIds !== undefined && request.categoryFilterIds.length > 0)
-            if (!(await this.transactionDependencies.categoryRepository?.isCategoryExistByIds(request.categoryFilterIds)))
+            if ((await this.transactionDependencies.categoryRepository?.getManyByIds(request.categoryFilterIds))?.length === 0)
                 throw new ResourceNotFoundError("an category to filter not valid")
 
         if (request.tagFilterIds !== undefined && request.tagFilterIds.length > 0)
-            if (!(await this.transactionDependencies.tagRepository?.isTagExistByIds(request.tagFilterIds)))
+            if ((await this.transactionDependencies.tagRepository?.getManyByIds(request.tagFilterIds))?.length === 0)
                 throw new ResourceNotFoundError("an tag to filter not valid")
         
         if (request.budgetFilterIds !== undefined && request.budgetFilterIds.length > 0)
-            if (!(await this.transactionDependencies.budgetRepository?.isBudgetExistByIds(request.budgetFilterIds)))
+            if ((await this.transactionDependencies.budgetRepository?.getManyByIds(request.budgetFilterIds))?.length === 0)
                 throw new ResourceNotFoundError("an budget to filter not valid")
 
         if (request.dateStart && request.dateEnd)
@@ -136,32 +136,31 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
             if (!['asc', 'desc'].includes(request.sortSense))
                 throw new ValidationError('SORT_SENSE_MUST_BE_ASC_DESC')
 
-        let filters: TransactionFilter = {
+        let filters: QueryFilterAllRepository = {
             offset: request.offset,
             limit: request.limit,
-            accounts: request.accountFilterIds || [], 
-            tags: request.tagFilterIds || [],
-            categories: request.categoryFilterIds || [],
-            startDate: request.dateStart,
-            endDate: request.dateEnd,
-            budgets: request.budgetFilterIds || [],
-            status: status,
-            types: types,
-            minPrice: minPrice,
-            maxPrice: maxPrice,
-            isFreeze: request.isFreeze,
-            sort: sortBy
+            sort: sortBy,
+            queryAll: false
         };
 
-
-        let response = await this.transactionRepository.getPaginations(filters);
+        const extendTransactionFilter = new TransactionFilter()
+        extendTransactionFilter.accounts = request.accountFilterIds
+        extendTransactionFilter.categories = request.categoryFilterIds
+        extendTransactionFilter.budgets = request.budgetFilterIds
+        extendTransactionFilter.tags = request.tagFilterIds
+        extendTransactionFilter.startDate = request.dateStart
+        extendTransactionFilter.endDate = request.dateEnd
+        extendTransactionFilter.isFreeze = request.isFreeze,
+        extendTransactionFilter.status = status
+        extendTransactionFilter.types = types
+        let response = await this.transactionRepository.getAll(filters, extendTransactionFilter);
 
         // TODO: BAD change 
-        const records = await this.recordRepository.getManyById(response.items.map(i => i.getRecordRef()))
+        const records = await this.transactionDependencies.recordRepository?.getManyByIds(response.items.map(i => i.getRecordRef())) 
         let transactions: GetAllTransactionDto[] = []
         for (let i = 0; i < response.items.length ; i++) {
             const transaction = response.items[i]
-            const record = records.find(i => i.getId() === transaction.getRecordRef());
+            const record = records?.find(i => i.getId() === transaction.getRecordRef());
             if (record)
                 transactions.push({
                     accountId: transaction.getAccountRef(),

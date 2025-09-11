@@ -1,11 +1,13 @@
-import { AccountRepository } from "@core/repositories/accountRepository";
 import { IUsecase } from "../interfaces";
-import { PatrimonyRepository, PatrimonySnapshotRepository } from "@core/repositories/patrimonyRepository";
-import { ListDto, QueryAllFetch } from "@core/dto/base";
+import { ListDto, QueryFilter } from "@core/dto/base";
 import { GetAccountBalanceByPeriodDto, RequestGetAccountBalanceByPeriod } from "../account/getPastAccountBalanceByPeriod";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { mapperPeriod, PatrimonyType, Period } from "@core/domains/constants";
-import { SavingRepository } from "@core/repositories/savingRepository";
+import Repository, { PatrimonySnapshotFilter } from "@core/adapters/repository";
+import { Account } from "@core/domains/entities/account";
+import { Patrimony } from "@core/domains/entities/patrimony";
+import { PatrimonySnapshot } from "@core/domains/entities/patrimonySnapshot";
+import { SaveGoal } from "@core/domains/entities/saveGoal";
 
 export type GetAllPatrimonyDto = {
     id: string
@@ -16,22 +18,23 @@ export type GetAllPatrimonyDto = {
     type: string
 }
 
-export type RequestGetAllPatrimony = QueryAllFetch & {
+export type RequestGetAllPatrimony = QueryFilter & {
     period: string
     periodTime: number
 }
 
 export class GetAllPatrimonyUseCase implements IUsecase<RequestGetAllPatrimony, ListDto<GetAllPatrimonyDto>> {
-    private accountRepo: AccountRepository
-    private patrimonyRepo: PatrimonyRepository
-    private snapshotRepo: PatrimonySnapshotRepository
+    private accountRepo: Repository<Account>
+    private patrimonyRepo: Repository<Patrimony>
+    private snapshotRepo: Repository<PatrimonySnapshot>
     private getAccountBalanceByPeriod: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>
-    private saveGoalRepo: SavingRepository
+    private saveGoalRepo: Repository<SaveGoal>
 
-    constructor(accountRepo: AccountRepository, 
-        patrimonyRepo: PatrimonyRepository, 
-        patrimonyTransactionRepo: PatrimonySnapshotRepository,
-        saveGoalRepo: SavingRepository,
+    constructor(
+        accountRepo: Repository<Account>, 
+        patrimonyRepo: Repository<Patrimony>, 
+        patrimonyTransactionRepo: Repository<PatrimonySnapshot>,
+        saveGoalRepo: Repository<SaveGoal>,
         getAccountBalanceByPeriod: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>,
     ) {
         this.accountRepo = accountRepo
@@ -53,10 +56,11 @@ export class GetAllPatrimonyUseCase implements IUsecase<RequestGetAllPatrimony, 
         const beginDate = MomentDateService.getUTCDateSubstraction(new Date(), period, request.periodTime)
         const { startDate, endDate } = MomentDateService.getUTCDateByPeriod(beginDate, period, request.periodTime)
 
+        const extendFilter = new PatrimonySnapshotFilter()
+        extendFilter.patrimonyIds = patrimonies.items.map(i => i.getId())
+        extendFilter.startDate = startDate
+        extendFilter.endDate = new Date()
         const snapshots = await this.snapshotRepo.getAll({ 
-            patrimonyIds: patrimonies.items.map(i=> i.getId()), 
-            startDate: startDate,
-            endDate: new Date(),
             limit: 0,
             offset: 0,
             queryAll: true,
@@ -64,12 +68,15 @@ export class GetAllPatrimonyUseCase implements IUsecase<RequestGetAllPatrimony, 
                 sortBy: 'date', 
                 asc: false      
             }
-        })
+        }, extendFilter)
 
         for(let i = 0; i < patrimonies.total; i++) {
             const patrimony = patrimonies.items[i]
-            const accounts = await this.accountRepo.getManyIds(patrimony.getAccounts().map(i => i.accountId))
-            const pastbalanceAccounts = await this.getAccountBalanceByPeriod.execute({period: request.period, periodTime: request.periodTime, accountIds: accounts.map(i => i.getId())})
+            const accounts = await this.accountRepo.getManyByIds(patrimony.getAccounts().map(i => i.accountId))
+            const pastbalanceAccounts = await this.getAccountBalanceByPeriod.execute({
+                period: request.period, 
+                periodTime: request.periodTime, 
+                accountIds: accounts.map(i => i.getId())})
 
             let accountBalance = accounts.reduce((acc:number, account) => acc + account.getBalance(), 0)
             let accountPeriodLastAmount = pastbalanceAccounts.reduce((acc:number, account) => acc + account.balance, 0)
