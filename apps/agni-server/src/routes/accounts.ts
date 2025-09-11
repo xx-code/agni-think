@@ -4,7 +4,7 @@ import { body, matchedData, query, validationResult } from 'express-validator';
 import { RequestCreationAccountUseCase } from '@core/interactions/account/creationAccountUseCase';
 import { RequestUpdateAccountUseCase } from '@core/interactions/account/updateAccountUseCase';
 import { RequestGetAllAccountPastBalanceUseCase } from '@core/interactions/account/getAllAccountWithPatBalanceUseCase';
-import { QueryAllFetch } from '@core/dto/base';
+import { QueryFilter } from '@core/dto/base';
 
 const router = Router();
 
@@ -78,7 +78,7 @@ router.get(
             return;
         }
 
-        const request: QueryAllFetch = matchedData(req)
+        const request: QueryFilter = matchedData(req)
 
         var ucRes = await container.accountUseCase?.getAllAccount.execute(request)
         res.status(200).json(ucRes)

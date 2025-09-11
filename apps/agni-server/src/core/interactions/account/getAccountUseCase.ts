@@ -1,6 +1,7 @@
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { AccountRepository } from "../../repositories/accountRepository";
 import { IUsecase } from "../interfaces";
+import Repository from "@core/adapters/repository";
+import { Account } from "@core/domains/entities/account";
 
 export type GetAccountDto = {
     accountId: string
@@ -11,9 +12,9 @@ export type GetAccountDto = {
 
 
 export class GetAccountUseCase implements IUsecase<string, GetAccountDto> {
-    private repository: AccountRepository;
+    private repository: Repository<Account>;
 
-    constructor(repo: AccountRepository) {
+    constructor(repo: Repository<Account>) {
         this.repository = repo;
     }
     

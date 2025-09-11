@@ -1,10 +1,12 @@
-import { AccountRepository } from "@core/repositories/accountRepository";
 import { IUsecase } from "../interfaces";
-import { PatrimonyRepository, PatrimonySnapshotRepository } from "@core/repositories/patrimonyRepository";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { GetAccountBalanceByPeriodDto, RequestGetAccountBalanceByPeriod } from "../account/getPastAccountBalanceByPeriod";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { mapperPeriod } from "@core/domains/constants";
+import Repository, { PatrimonySnapshotFilter } from "@core/adapters/repository";
+import { Account } from "@core/domains/entities/account";
+import { Patrimony } from "@core/domains/entities/patrimony";
+import { PatrimonySnapshot } from "@core/domains/entities/patrimonySnapshot";
 
 export type GetPatrimonyAccountDto = {
     accountId: string
@@ -30,14 +32,14 @@ export type RequestGetPatrimony = {
 }
  
 export class GetPatrimonyUseCase implements IUsecase<RequestGetPatrimony, GetPatrimonyDto > {
-    private accountRepo: AccountRepository
-    private patrimonyRepo: PatrimonyRepository
-    private snapshotRepo: PatrimonySnapshotRepository
+    private accountRepo: Repository<Account>
+    private patrimonyRepo: Repository<Patrimony>
+    private snapshotRepo: Repository<PatrimonySnapshot>
     private getAccountBalanceByPeriod: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>
 
-    constructor(accountRepo: AccountRepository, 
-            patrimonyRepo: PatrimonyRepository, 
-            patrimonyTransactionRepo: PatrimonySnapshotRepository,
+    constructor(accountRepo: Repository<Account>, 
+            patrimonyRepo: Repository<Patrimony>, 
+            patrimonyTransactionRepo: Repository<PatrimonySnapshot>,
             getAccountBalanceByPeriod: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]> 
         ) {
         this.accountRepo = accountRepo
@@ -56,7 +58,7 @@ export class GetPatrimonyUseCase implements IUsecase<RequestGetPatrimony, GetPat
         const period = mapperPeriod(request.period)
         const beginDate = MomentDateService.getUTCDateSubstraction(new Date(), period, request.periodTime)
         const { startDate, endDate } = MomentDateService.getUTCDateByPeriod(beginDate, period, request.periodTime)
-        const accounts = await this.accountRepo.getManyIds(patrimony.getAccounts().map(i => i.accountId))
+        const accounts = await this.accountRepo.getManyByIds(patrimony.getAccounts().map(i => i.accountId))
         const accountPastBalances = await this.getAccountBalanceByPeriod.execute({ 
             period: mapperPeriod(request.period), 
             periodTime: request.periodTime, accountIds: patrimony.getAccounts().map(i => i.accountId)})
@@ -76,9 +78,11 @@ export class GetPatrimonyUseCase implements IUsecase<RequestGetPatrimony, GetPat
         let accountBalance = accounts.reduce((acc:number, account) => acc + account.getBalance(), 0)
         let accountPeriodLastAmount = accountPastBalances.reduce((acc:number, account) => acc + account.balance, 0)
 
-        let snapshots = await this.snapshotRepo.getAll({ patrimonyIds: [request.patrimonyId], 
-            startDate: startDate, 
-            endDate: new Date(),
+        const extendPatrimonySnapshotFilter = new PatrimonySnapshotFilter() 
+        extendPatrimonySnapshotFilter.startDate = startDate
+        extendPatrimonySnapshotFilter.endDate = new Date()
+        extendPatrimonySnapshotFilter.patrimonyIds = [request.patrimonyId]
+        let snapshots = await this.snapshotRepo.getAll({  
             limit: 0,
             offset: 0,
             queryAll: true,

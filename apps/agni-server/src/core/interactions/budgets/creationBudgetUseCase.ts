@@ -1,12 +1,12 @@
 import { GetUID } from "@core/adapters/libs";
 import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError";
-import { BudgetRepository } from "../../repositories/budgetRepository";
 import { Budget } from "@core/domains/entities/budget";
 import { IUsecase } from "../interfaces";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
 import { mapperPeriod } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { CreatedDto } from "@core/dto/base";
+import Repository from "@core/adapters/repository";
 
 export type RequestCreateBudgetSchedule = {
     period: string;
@@ -22,16 +22,16 @@ export type RequestCreationBudgetUseCase = {
 } 
 
 export class CreationBudgetUseCase implements IUsecase<RequestCreationBudgetUseCase, CreatedDto> {
-    private budgetRepository: BudgetRepository
+    private budgetRepository: Repository<Budget>
 
     constructor(
-        budgetRepository: BudgetRepository,
+        budgetRepository: Repository<Budget>,
     ) {
         this.budgetRepository = budgetRepository
     }
 
     async execute(request: RequestCreationBudgetUseCase): Promise<CreatedDto> {
-        if ((await this.budgetRepository.isBudgetExistByName(request.title)))
+        if ((await this.budgetRepository.existByName(request.title)))
             throw new ResourceAlreadyExist("BUDGET_ALREADY_EXIST")
 
         const scheduler = new Scheduler(
@@ -43,7 +43,7 @@ export class CreationBudgetUseCase implements IUsecase<RequestCreationBudgetUseC
 
         const newBudget = new Budget(GetUID(), false, request.target, request.title, scheduler); 
     
-        await this.budgetRepository.save(newBudget!);
+        await this.budgetRepository.create(newBudget);
 
         return { newId: newBudget.getId() };
     }

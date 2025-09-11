@@ -1,9 +1,11 @@
-import { BudgetRepository } from "../../repositories/budgetRepository";
-import { TransactionRepository } from "../../repositories/transactionRepository";
-import { RecordRepository } from "@core/repositories/recordRepository";
+import Repository, { TransactionFilter } from "@core/adapters/repository";
 import { IUsecase } from "../interfaces";
 import { RecordType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
+import { Budget } from "@core/domains/entities/budget";
+import { Transaction } from "@core/domains/entities/transaction";
+import { Record } from "@core/domains/entities/record";
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 
 export type GetBudgetDto = {
     id: string,
@@ -18,14 +20,14 @@ export type GetBudgetDto = {
 }
 
 export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
-   private budgetRepository: BudgetRepository;
-   private transactionRepository: TransactionRepository;
-   private recordRepository: RecordRepository
+   private budgetRepository: Repository<Budget>;
+   private transactionRepository: Repository<Transaction>;
+   private recordRepository: Repository<Record>
 
    constructor(
-    budgetRepository: BudgetRepository,
-    transactionRepository: TransactionRepository,
-    recordRepository: RecordRepository
+    budgetRepository: Repository<Budget>,
+    transactionRepository: Repository<Transaction>,
+    recordRepository: Repository<Record>
    ) {
        this.budgetRepository = budgetRepository
        this.recordRepository = recordRepository
@@ -35,6 +37,8 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
 
     async execute(id: string): Promise<GetBudgetDto> {
         let budget = await this.budgetRepository.get(id);
+        if (!budget)
+            throw new ResourceNotFoundError("BUDGET_NOT_FOUND")
            
         let startBudgetUTCDate = budget.getSchedule().getStartedDate(); 
         if (budget.getSchedule().getPeriodTime() !== undefined)
@@ -44,17 +48,18 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
                 budget.getSchedule().getPeriodTime()!
         ); 
 
-        let transactions = await this.transactionRepository.getTransactions({
+        const extendFilter = new TransactionFilter()
+        extendFilter.budgets = [budget.getId()]
+        extendFilter.startDate = startBudgetUTCDate
+        extendFilter.endDate = budget.getSchedule().getUpdatedDate()
+        let transactions = await this.transactionRepository.getAll({
             limit: 0, 
             offset: 0,
             queryAll: true,
-            budgets: [budget.getId()],
-            startDate: startBudgetUTCDate,
-            endDate: budget.getSchedule().getUpdatedDate(),
-        });
+        }, extendFilter);
 
         let currentBalance = 0
-        let records = await this.recordRepository.getManyById(transactions.map(transaction => transaction.getRecordRef()))
+        let records = await this.recordRepository.getManyByIds(transactions.items.map(transaction => transaction.getRecordRef()))
         for (let record of records) {
             if (record.getType() === RecordType.DEBIT)
                 currentBalance += record.getMoney().getAmount()

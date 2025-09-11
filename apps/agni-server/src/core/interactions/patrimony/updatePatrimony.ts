@@ -1,8 +1,9 @@
-import { PatrimonyRepository } from "@core/repositories/patrimonyRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { AccountRepository } from "@core/repositories/accountRepository";
 import { mapperPatrimonyType } from "@core/domains/constants";
+import Repository from "@core/adapters/repository";
+import { Patrimony } from "@core/domains/entities/patrimony";
+import { Account } from "@core/domains/entities/account";
 
 export type RequestUpdatePatrimony = {
     patrimonyId: string
@@ -13,10 +14,10 @@ export type RequestUpdatePatrimony = {
 }
 
 export class UpdatePatrimonyUseCase implements IUsecase<RequestUpdatePatrimony, void> {
-    private patrimonyRepo: PatrimonyRepository
-    private accountRepo: AccountRepository
+    private patrimonyRepo: Repository<Patrimony>
+    private accountRepo: Repository<Account>
 
-    constructor(patrimonyRepo: PatrimonyRepository, accountRepo: AccountRepository) {
+    constructor(patrimonyRepo: Repository<Patrimony>, accountRepo: Repository<Account>) {
         this.patrimonyRepo = patrimonyRepo
         this.accountRepo = accountRepo
     }
@@ -34,7 +35,7 @@ export class UpdatePatrimonyUseCase implements IUsecase<RequestUpdatePatrimony, 
             patrimony.setAmount(request.amount)
 
         if (request.accountIds) {
-            if (!await this.accountRepo.isExistByIds(request.accountIds))
+            if ((await this.accountRepo.getManyByIds(request.accountIds)).length === 0)
                 throw new ResourceNotFoundError("SOME_ACCOUNT_NOT_FOUND") 
         }
 

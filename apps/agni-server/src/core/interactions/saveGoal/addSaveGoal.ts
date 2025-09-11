@@ -1,10 +1,10 @@
 import { GetUID } from "@core/adapters/libs";
 import { Money } from "@core/domains/entities/money";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
-import { SavingRepository } from "../../repositories/savingRepository";
 import { IUsecase } from "../interfaces";
 import { CreatedDto } from "@core/dto/base";
 import SaveGoalItem from "@core/domains/valueObjects/saveGoalItem";
+import Repository from "@core/adapters/repository";
 
 export type RequestAddItemSaveGoalUseCase = {
     title: string
@@ -24,9 +24,9 @@ export type RequestAddSaveGoalUseCase = {
 
 
 export class AddSaveGoalUseCase implements IUsecase<RequestAddSaveGoalUseCase, CreatedDto> {
-    private savingRepository: SavingRepository
+    private savingRepository: Repository<SaveGoal>
 
-    constructor(savingRepo: SavingRepository) {
+    constructor(savingRepo: Repository<SaveGoal>) {
         this.savingRepository = savingRepo
     }
 

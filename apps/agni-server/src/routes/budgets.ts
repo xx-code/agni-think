@@ -3,7 +3,7 @@ import container from '../di_contenair'
 import { body, matchedData, query, validationResult } from 'express-validator';
 import { RequestCreationBudgetUseCase } from '@core/interactions/budgets/creationBudgetUseCase';
 import { RequestUpdateBudget } from '@core/interactions/budgets/updateBudgetUseCase';
-import { QueryAllFetch } from '@core/dto/base';
+import { QueryFilter } from '@core/dto/base';
 
 const router = Router();
 
@@ -78,7 +78,7 @@ router.get(
             return;
         }
 
-        const request: QueryAllFetch = matchedData(req)
+        const request: QueryFilter = matchedData(req)
 
         var budgets = await container.budgetUseCase?.getAllBudgets.execute(request);
         res.status(200).send(budgets);

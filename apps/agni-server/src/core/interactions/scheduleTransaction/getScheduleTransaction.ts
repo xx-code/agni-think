@@ -1,6 +1,7 @@
-import { ScheduleTransactionRepository } from "@core/repositories/scheduleTransactionRepository";
+import Repository from "@core/adapters/repository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction";
 
 export type GetScheduleTransactionDto = {
     id: string
@@ -20,9 +21,9 @@ export type GetScheduleTransactionDto = {
 }
 
 export class GetScheduleTransactionUsecase implements IUsecase<string, GetScheduleTransactionDto> {
-    private scheduleTransactionRepo: ScheduleTransactionRepository 
+    private scheduleTransactionRepo: Repository<ScheduleTransaction> 
 
-    constructor(scheduleTransactionRepo: ScheduleTransactionRepository ) {
+    constructor(scheduleTransactionRepo: Repository<ScheduleTransaction> ) {
         this.scheduleTransactionRepo = scheduleTransactionRepo
     }
 

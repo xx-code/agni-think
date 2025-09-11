@@ -1,13 +1,15 @@
+import Repository from "@core/adapters/repository"
 import { FREEZE_CATEGORY_ID, SAVING_CATEGORY_ID, TRANSFERT_CATEGORY_ID } from "@core/domains/constants"
 import { Category } from "@core/domains/entities/category"
+import { Tag } from "@core/domains/entities/tag"
 import { CategoryRepository } from "@core/repositories/categoryRepository"
 import { TagRepository } from "@core/repositories/tagRepository"
 
 export class SystemSeeder {
-    categoryRepository: CategoryRepository
-    tagRepository: TagRepository
+    categoryRepository: Repository<Category>
+    tagRepository: Repository<Tag>
 
-    constructor(categoryRepository: CategoryRepository, tagRepository: TagRepository) {
+    constructor(categoryRepository: Repository<Category>, tagRepository: Repository<Tag>) {
         this.categoryRepository = categoryRepository
         this.tagRepository = tagRepository
     }
@@ -21,13 +23,13 @@ export class SystemSeeder {
         const freeze = new Category(FREEZE_CATEGORY_ID, 'Freeze', 'i-lucide-snowflake', '#455A64', true)  
         const transfer = new Category(TRANSFERT_CATEGORY_ID, 'Transfert', 'i-lucide-arrow-left-right', '#29B6F6', true)  
 
-        if (!(await this.categoryRepository.isCategoryExistById(SAVING_CATEGORY_ID)))
-            await this.categoryRepository.save(savingCate)
+        if (!(await this.categoryRepository.get(SAVING_CATEGORY_ID)))
+            await this.categoryRepository.create(savingCate)
 
-        if (!(await this.categoryRepository.isCategoryExistById(FREEZE_CATEGORY_ID)))
-            await this.categoryRepository.save(freeze)
+        if (!(await this.categoryRepository.get(FREEZE_CATEGORY_ID)))
+            await this.categoryRepository.create(freeze)
 
-        if (!(await this.categoryRepository.isCategoryExistById(TRANSFERT_CATEGORY_ID)))
-            await this.categoryRepository.save(transfer)
+        if (!(await this.categoryRepository.get(TRANSFERT_CATEGORY_ID)))
+            await this.categoryRepository.create(transfer)
     }
 }

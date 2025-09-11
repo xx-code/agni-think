@@ -1,4 +1,4 @@
-import { QueryAllFetch } from '@core/dto/base';
+import { QueryFilter } from '@core/dto/base';
 import { RequestCreateScheduleTransaction } from '@core/interactions/scheduleTransaction/createScheduleTransaction';
 import { RequestUpdateScheduleTransaction } from '@core/interactions/scheduleTransaction/updateScheduleTransaction';
 import { Router, Request, Response } from 'express';
@@ -61,7 +61,7 @@ router.get(
             return;
         }
 
-        const request: QueryAllFetch = matchedData(req)
+        const request: QueryFilter = matchedData(req)
 
         var schedules = await container.scheduleTransactionUseCase?.getAllScheduleTransaction.execute(request);
         res.status(200).send(schedules);

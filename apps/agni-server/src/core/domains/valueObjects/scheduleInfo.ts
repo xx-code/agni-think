@@ -70,7 +70,7 @@ export class Scheduler extends ValueObject {
     
     getUpdatedDate(strictDatebefore: boolean = false): Date {
         if(this.periodTime !== undefined && !strictDatebefore) {
-            var updatedDate = MomentDateService.getUTCDateAddition(this.startedDate, this.period, this.periodTime!, strictDatebefore)
+            var updatedDate = MomentDateService.getUTCDateAddition(this.startedDate, this.period, this.periodTime, strictDatebefore)
             return updatedDate
         }
 

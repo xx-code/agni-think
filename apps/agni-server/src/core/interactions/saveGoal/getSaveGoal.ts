@@ -1,6 +1,7 @@
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError"
-import { SavingRepository } from "../../repositories/savingRepository"
 import { IUsecase } from "../interfaces"
+import Repository from "@core/adapters/repository"
+import { SaveGoal } from "@core/domains/entities/saveGoal"
 
 export type GetSaveGoalItemDto = {
     title: string
@@ -22,9 +23,9 @@ export type GetSaveGoalDto = {
 }
 
 export class GetSaveGoalUseCase implements IUsecase<string, GetSaveGoalDto> {
-    private savingRepository: SavingRepository
+    private savingRepository: Repository<SaveGoal>
 
-    constructor(savingRepository: SavingRepository) {
+    constructor(savingRepository: Repository<SaveGoal>) {
         this.savingRepository = savingRepository
     }
 

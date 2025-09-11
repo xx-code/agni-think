@@ -9,10 +9,10 @@ export class Patrimony extends Entity {
     private accounts: ValueObjectCollection<PatrimonyAccount>
     private type: TrackableProperty<PatrimonyType> 
 
-    constructor(id: string, title: string, amount: number, type: PatrimonyType, accounts: PatrimonyAccount[]) {
+    constructor(id: string, title: string, amount: number, type: PatrimonyType, accounts: string[]) {
         super(id) 
         this.title = new TrackableProperty(title, this.markHasChange.bind(this))
-        this.accounts = new ValueObjectCollection(accounts, this.markHasChange.bind(this))
+        this.accounts = new ValueObjectCollection(accounts.map(i => new PatrimonyAccount(i)), this.markHasChange.bind(this))
         this.amount = new TrackableProperty(amount, this.markHasChange.bind(this))
         this.type = new TrackableProperty(type, this.markHasChange.bind(this))
     }

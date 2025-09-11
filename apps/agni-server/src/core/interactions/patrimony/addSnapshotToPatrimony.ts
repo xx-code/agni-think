@@ -1,11 +1,11 @@
-import { PatrimonyRepository, PatrimonySnapshotRepository } from "@core/repositories/patrimonyRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { PatrimonySnapshot } from "@core/domains/entities/patrimonySnapshot";
 import { CreatedDto } from "@core/dto/base";
 import { GetUID } from "@core/adapters/libs";
-import { mapperTransactionStatus, Period, TransactionType } from "@core/domains/constants";
-import { MomentDateService } from "@core/domains/entities/libs";
+import { mapperTransactionStatus } from "@core/domains/constants";
+import Repository from "@core/adapters/repository";
+import { Patrimony } from "@core/domains/entities/patrimony";
 
 export type RequestAddSnapshotPatrimony = {
     patrimonyId: string
@@ -15,35 +15,22 @@ export type RequestAddSnapshotPatrimony = {
 }
 
 export class AddSnapshotPatrimonyUseCase implements IUsecase<RequestAddSnapshotPatrimony, CreatedDto> {
-    private patrimonyRepo: PatrimonyRepository
-    private snapshotRepo: PatrimonySnapshotRepository
+    private patrimonyRepo: Repository<Patrimony>
+    private snapshotRepo: Repository<PatrimonySnapshot>
 
-    constructor(patrimonyRepo: PatrimonyRepository, snapshotRepo: PatrimonySnapshotRepository) {
+    constructor(patrimonyRepo: Repository<Patrimony>, snapshotRepo: Repository<PatrimonySnapshot>) {
         this.patrimonyRepo = patrimonyRepo
         this.snapshotRepo = snapshotRepo
     }
 
     async execute(request: RequestAddSnapshotPatrimony): Promise<CreatedDto> {
-        if (! await this.patrimonyRepo.exist(request.patrimonyId))
+        if (!(await this.patrimonyRepo.get(request.patrimonyId)))
             throw new ResourceNotFoundError("PATRIMONY_NO_FOUND")
-
-        const {startDate, endDate} = MomentDateService.getUTCDateByPeriod(request.date, Period.MONTH, 1)
-
-        const pastSnapshot = await this.snapshotRepo.getLastest({ 
-            patrimonyIds: [request.patrimonyId], 
-            startDate: startDate, endDate: endDate,
-            limit: 0,
-            offset: 0,
-            queryAll: true
-        })
-
-        // if (pastSnapshot.length > 0)
-        //     throw new ResourceNotFoundError("PATRIMONY_HAVE_ALREADY_SNAPSHOT_FOR_THIS_DATE")
 
         const snapshot = new PatrimonySnapshot(GetUID(), request.patrimonyId, request.balance, 
             mapperTransactionStatus(request.status), request.date)
 
-        await this.snapshotRepo.save(snapshot)
+        await this.snapshotRepo.create(snapshot)
 
         return { newId: snapshot.getId() }
     }

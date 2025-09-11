@@ -1,4 +1,3 @@
-import { ScheduleTransactionRepository } from "@core/repositories/scheduleTransactionRepository"
 import { IUsecase } from "../interfaces"
 import { TransactionDependencies } from "../facades"
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError"
@@ -8,6 +7,8 @@ import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError"
 import { isStringDifferent } from "@core/domains/helpers"
 import ValidationError from "@core/errors/validationError"
 import { Money } from "@core/domains/entities/money"
+import Repository from "@core/adapters/repository"
+import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction"
 
 export type RequestUpdateScheduleTransactionScheduler = {
     period: string,
@@ -29,11 +30,11 @@ export type RequestUpdateScheduleTransaction = {
 }
 
 export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateScheduleTransaction, void> {
-    private scheduleTransactionRepo: ScheduleTransactionRepository
+    private scheduleTransactionRepo: Repository<ScheduleTransaction>
     private transactionDependencies: TransactionDependencies
 
     constructor(
-        scheduleTransactionRepo: ScheduleTransactionRepository,
+        scheduleTransactionRepo: Repository<ScheduleTransaction>,
         transactionDependencies: TransactionDependencies) 
     {
         this.scheduleTransactionRepo = scheduleTransactionRepo
@@ -53,14 +54,14 @@ export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateS
         }
 
         if (request.accountId) {
-            if (!await this.transactionDependencies.accountRepository?.isExistById(request.accountId))
+            if (!await this.transactionDependencies.accountRepository?.get(request.accountId))
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
             
             scheduleTransaction.setAccountRef(request.accountId)
         }
 
         if (!scheduleTransaction.getIsFreeze() && request.categoryId) {
-            if (!await this.transactionDependencies.categoryRepository?.isCategoryExistById(request.categoryId))
+            if (!await this.transactionDependencies.categoryRepository?.get(request.categoryId))
                 throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
 
             scheduleTransaction.setCategoryRef(request.categoryId)
@@ -68,7 +69,7 @@ export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateS
 
         if (!scheduleTransaction.getIsFreeze() && request.tagIds) {
             if (request.tagIds.length > 0)
-                if (!await this.transactionDependencies.tagRepository?.isTagExistByIds(request.tagIds))
+                if ((await this.transactionDependencies.tagRepository?.getManyByIds(request.tagIds))?.length === 0)
                     throw new ResourceNotFoundError("TAGS_NOT_FOUND")
 
             scheduleTransaction.setTags(request.tagIds)

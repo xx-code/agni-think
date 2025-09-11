@@ -1,8 +1,9 @@
-import { BudgetRepository } from "../../repositories/budgetRepository";
 import { mapperPeriod } from "@core/domains/constants";
 import { IUsecase } from "../interfaces";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
-import { MomentDateService } from "@core/domains/entities/libs";
+import { Budget } from "@core/domains/entities/budget";
+import Repository from "@core/adapters/repository";
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 
 export type RequestCreateBudgetSchedule = {
     period: string;
@@ -19,14 +20,16 @@ export type RequestUpdateBudget = {
 } 
 
 export class UpdateBudgetUseCase implements IUsecase<RequestUpdateBudget, void> {
-    private budgetRepository: BudgetRepository;
+    private budgetRepository: Repository<Budget>;
 
-   constructor(repo: BudgetRepository) {
+   constructor(repo: Repository<Budget>) {
     this.budgetRepository = repo
    }
 
    async execute(request: RequestUpdateBudget): Promise<void> {
     let budget = await this.budgetRepository.get(request.id)
+    if (!budget)
+        throw new ResourceNotFoundError("BUDGET_NOT_FOUND")
     
     if (request.title)
         budget.setTitle(request.title)

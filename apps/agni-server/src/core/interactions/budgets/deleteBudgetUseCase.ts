@@ -1,16 +1,17 @@
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { BudgetRepository } from "../../repositories/budgetRepository";
 import { IUsecase } from "../interfaces";
+import Repository from "@core/adapters/repository";
+import { Budget } from "@core/domains/entities/budget";
 
 export class DeleteBudgetUseCase implements IUsecase<string, void> {
-    private repository: BudgetRepository;
+    private repository: Repository<Budget>;
 
-    constructor(budgetRepo: BudgetRepository) {
+    constructor(budgetRepo: Repository<Budget>) {
         this.repository = budgetRepo;
     }
 
     async execute(id: string): Promise<void> {
-        if (!(await this.repository.isBudgetExistById(id)))
+        if (!(await this.repository.get(id)))
             throw new ResourceNotFoundError('BUDGET_NOT_FOUND')
 
         await this.repository.delete(id)

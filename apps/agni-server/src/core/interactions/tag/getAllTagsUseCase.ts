@@ -1,6 +1,7 @@
-import { ListDto, QueryAllFetch } from "@core/dto/base";
-import { TagRepository } from "../../repositories/tagRepository";
+import { ListDto, QueryFilter } from "@core/dto/base";
 import { IUsecase } from "../interfaces";
+import Repository from "@core/adapters/repository";
+import { Tag } from "@core/domains/entities/tag";
 
 export type GetAllTagDto = {
     id: string
@@ -9,14 +10,14 @@ export type GetAllTagDto = {
     isSystem: boolean
 }
 
-export class GetAllTagUseCase implements IUsecase<QueryAllFetch, ListDto<GetAllTagDto>> {
-    private repository: TagRepository;
+export class GetAllTagUseCase implements IUsecase<QueryFilter, ListDto<GetAllTagDto>> {
+    private repository: Repository<Tag>;
 
-    constructor(repo: TagRepository) {
+    constructor(repo: Repository<Tag>) {
         this.repository = repo;
     }
 
-    async execute(request: QueryAllFetch): Promise<ListDto<GetAllTagDto>> {
+    async execute(request: QueryFilter): Promise<ListDto<GetAllTagDto>> {
         let results = await this.repository.getAll({
             limit: request.limit,
             offset: request.offset,

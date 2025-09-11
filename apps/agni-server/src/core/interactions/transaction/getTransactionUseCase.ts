@@ -1,7 +1,8 @@
-import { RecordRepository } from "@core/repositories/recordRepository";
-import { TransactionRepository } from "@core/repositories/transactionRepository";
+import Repository from "@core/adapters/repository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { Transaction } from "@core/domains/entities/transaction";
+import { Record } from "@core/domains/entities/record";
 
 export type GetTransactionDto = {
     transactionId: string
@@ -18,12 +19,12 @@ export type GetTransactionDto = {
 }
 
 export class GetTransactionUseCase implements IUsecase<string, GetTransactionDto> {
-    private transactionRepository: TransactionRepository;
-    private recordRepository: RecordRepository; 
+    private transactionRepository: Repository<Transaction>;
+    private recordRepository: Repository<Record>; 
 
     constructor(
-        transactionRepository: TransactionRepository,
-        recordRepository: RecordRepository 
+        transactionRepository: Repository<Transaction>,
+        recordRepository: Repository<Record> 
     ) {
         this.transactionRepository = transactionRepository
         this.recordRepository = recordRepository
@@ -31,6 +32,9 @@ export class GetTransactionUseCase implements IUsecase<string, GetTransactionDto
 
     async execute(id: string): Promise<GetTransactionDto> {
         let transaction = await this.transactionRepository.get(id);
+        if (!transaction)
+            throw new ResourceNotFoundError("TRANSACTION_NOT_FOUND")
+
         let record = await this.recordRepository.get(transaction.getRecordRef())
         if (record === null)
             throw new ResourceNotFoundError("RECORD_NOT_FOUND")

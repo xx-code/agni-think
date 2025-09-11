@@ -1,9 +1,9 @@
 import { GetUID } from "@core/adapters/libs";
 import { Tag } from "@core/domains/entities/tag";
-import { TagRepository } from "@core/repositories/tagRepository";
 import { IUsecase } from "../interfaces";
 import { CreatedDto } from "@core/dto/base";
 import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError";
+import Repository from "@core/adapters/repository";
 
 export type RequestCreationTagUseCase = {
     value: string
@@ -12,19 +12,19 @@ export type RequestCreationTagUseCase = {
 } 
 
 export class CreationTagUseCase implements IUsecase<RequestCreationTagUseCase, CreatedDto> {
-    private tagRepo: TagRepository;
+    private tagRepo: Repository<Tag>;
 
-    constructor(repo: TagRepository) {
+    constructor(repo: Repository<Tag>) {
         this.tagRepo = repo;
     }
 
     async execute(request: RequestCreationTagUseCase): Promise<CreatedDto> {
-        if (await this.tagRepo.isTagExistByName(request.value))
+        if (await this.tagRepo.existByName(request.value))
             throw new ResourceAlreadyExist("TAG_ALREADY_EXIST")
 
         let newTag = new Tag(GetUID(), request.value, request.color, request.isSystem)
 
-        await this.tagRepo.save(newTag);
+        await this.tagRepo.create(newTag);
 
         return { newId: newTag.getId() }
     }

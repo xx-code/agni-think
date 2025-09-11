@@ -1,9 +1,9 @@
-import { ListDto, QueryAllFetch } from "@core/dto/base"
-import { SavingRepository } from "../../repositories/savingRepository"
+import { ListDto, QueryFilter } from "@core/dto/base"
 import { IUsecase } from "../interfaces"
-import { BadRequestError } from "openai"
 import UnExpectedError from "@core/errors/unExpectedError"
 import { SortBy } from "@core/repositories/dto"
+import Repository from "@core/adapters/repository"
+import { SaveGoal } from "@core/domains/entities/saveGoal"
 
 export type GetAllSaveGoalItemDto = {
     title: string
@@ -24,15 +24,15 @@ export type GetAllSaveGoalDto = {
     items: GetAllSaveGoalItemDto[]
 }
 
-export type QueryFilterSaveGoal = QueryAllFetch & {
+export type QueryFilterSaveGoal = QueryFilter & {
     orderBy? : string 
     sortSense? : 'asc' | 'desc'
 }
 
 export class GetAllSaveGoalUseCase implements IUsecase<QueryFilterSaveGoal, ListDto<GetAllSaveGoalDto>> {
-    private savingRepository: SavingRepository
+    private savingRepository: Repository<SaveGoal>
 
-    constructor(savingRepo: SavingRepository) {
+    constructor(savingRepo: Repository<SaveGoal>) {
         this.savingRepository = savingRepo
     }
 

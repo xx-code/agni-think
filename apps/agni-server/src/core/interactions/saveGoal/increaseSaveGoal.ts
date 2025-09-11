@@ -5,15 +5,13 @@ import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
 import ValidationError from "@core/errors/validationError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
-import { AccountRepository } from "../../repositories/accountRepository";
-import { RecordRepository } from "../../repositories/recordRepository";
-import { SavingRepository } from "../../repositories/savingRepository";
-import { TransactionRepository } from "../../repositories/transactionRepository";
 import { ValueError } from "@core/errors/valueError";
-import { CategoryRepository } from "@core/repositories/categoryRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { MomentDateService } from "@core/domains/entities/libs";
+import Repository from "@core/adapters/repository";
+import { SaveGoal } from "@core/domains/entities/saveGoal";
+import { Account } from "@core/domains/entities/account";
 
 
 export type RequestIncreaseSaveGoal = {
@@ -24,13 +22,16 @@ export type RequestIncreaseSaveGoal = {
 
 export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal, void> {
 
-    private savingRepository: SavingRepository
-    private accountRepository: AccountRepository
-    private transactionRepository: TransactionRepository;
-    private recordRepository: RecordRepository;
+    private savingRepository: Repository<SaveGoal>
+    private accountRepository: Repository<Account>
+    private transactionRepository: Repository<Transaction>;
+    private recordRepository: Repository<Record>;
     private unitOfWork: UnitOfWorkRepository
 
-    constructor(accountRepository: AccountRepository, savingRepository: SavingRepository, transactionRepository: TransactionRepository,  recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository) {
+    constructor(accountRepository: Repository<Account>, 
+        savingRepository: Repository<SaveGoal>, 
+        transactionRepository: Repository<Transaction>,  
+        recordRepository: Repository<Record>, unitOfWork: UnitOfWorkRepository) {
         this.accountRepository = accountRepository
         this.savingRepository = savingRepository
         this.transactionRepository = transactionRepository
@@ -69,13 +70,13 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
             let idRecordFrom = GetUID()
             let newRecordFrom = new Record(idRecordFrom, increaseAmount, date, RecordType.DEBIT)
             newRecordFrom.setDescription('Saving ' + savingGoal.getTitle()) 
-            await this.recordRepository.save(newRecordFrom)
+            await this.recordRepository.create(newRecordFrom)
        
             let idTransFrom = GetUID()
             let newTransactionFrom = new Transaction(idTransFrom, request.accountId, idRecordFrom, SAVING_CATEGORY_ID, date,
                 TransactionType.OTHER, TransactionStatus.COMPLETE,
             )
-            await this.transactionRepository.save(newTransactionFrom);
+            await this.transactionRepository.create(newTransactionFrom);
             
             await this.savingRepository.update(savingGoal)
 

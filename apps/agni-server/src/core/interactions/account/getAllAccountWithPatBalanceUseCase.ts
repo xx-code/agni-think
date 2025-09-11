@@ -1,7 +1,8 @@
-import { ListDto, QueryAllFetch } from "@core/dto/base";
-import { AccountRepository } from "../../repositories/accountRepository";
+import { ListDto, QueryFilter } from "@core/dto/base";
 import { IUsecase } from "../interfaces";
 import { GetAccountBalanceByPeriodDto, RequestGetAccountBalanceByPeriod } from "./getPastAccountBalanceByPeriod";
+import Repository from "@core/adapters/repository";
+import { Account } from "@core/domains/entities/account";
 
 
 export type GetAllAccountWithPastBalanceDto = {
@@ -12,18 +13,18 @@ export type GetAllAccountWithPastBalanceDto = {
     type: string
 }
 
-export type RequestGetAllAccountPastBalanceUseCase = QueryAllFetch & {
+export type RequestGetAllAccountPastBalanceUseCase = QueryFilter & {
     period: string 
     periodTime: number
 }
 
 
 export class GetAllAccountWithPastBalanceUseCase implements IUsecase<RequestGetAllAccountPastBalanceUseCase, ListDto<GetAllAccountWithPastBalanceDto>>{
-    private repository: AccountRepository;
+    private repository: Repository<Account>;
     private getAccountBalanceByPeriod: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>
 
     constructor(
-        repo: AccountRepository, 
+        repo: Repository<Account>, 
         getAccountBalance: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>
     ) {
         this.repository = repo;

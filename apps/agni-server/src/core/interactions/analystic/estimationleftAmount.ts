@@ -1,11 +1,12 @@
-import { BudgetRepository } from "@core/repositories/budgetRepository"
 import { IUsecase } from "../interfaces"
-import { TransactionRepository } from "@core/repositories/transactionRepository"
-import { AccountRepository } from "@core/repositories/accountRepository"
-import { ScheduleTransactionRepository } from "@core/repositories/scheduleTransactionRepository"
-import { RecordRepository } from "@core/repositories/recordRepository"
 import { MomentDateService } from "@core/domains/entities/libs"
 import { AccountType, RecordType, TransactionType } from "@core/domains/constants"
+import Repository, { TransactionFilter } from "@core/adapters/repository"
+import { Budget } from "@core/domains/entities/budget"
+import { Transaction } from "@core/domains/entities/transaction"
+import { Account } from "@core/domains/entities/account"
+import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction"
+import { Record } from "@core/domains/entities/record"
 
 export type SuggestPlanningWishSpend = {
     amount: number
@@ -34,18 +35,18 @@ export type GetEstimationLeftAmoutDto = {
 } 
 
 export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLeftAmount, GetEstimationLeftAmoutDto> {
-    private budgetRepo: BudgetRepository
-    private transactionRepo: TransactionRepository
-    private accountRepo: AccountRepository
-    private scheduleTransactionRepo: ScheduleTransactionRepository
-    private recordRepository: RecordRepository
+    private budgetRepo: Repository<Budget>
+    private transactionRepo: Repository<Transaction>
+    private accountRepo: Repository<Account>
+    private scheduleTransactionRepo: Repository<ScheduleTransaction>
+    private recordRepository: Repository<Record>
 
     constructor(
-    budgetRepo: BudgetRepository,
-    transationRepo: TransactionRepository,
-    accountRepo: AccountRepository,
-    recordRepository: RecordRepository,
-    scheduleTransactionRepo: ScheduleTransactionRepository) {
+    budgetRepo: Repository<Budget>,
+    transationRepo: Repository<Transaction>,
+    accountRepo: Repository<Account>,
+    recordRepository: Repository<Record>,
+    scheduleTransactionRepo: Repository<ScheduleTransaction>) {
         this.budgetRepo = budgetRepo
         this.transactionRepo = transationRepo
         this.accountRepo = accountRepo
@@ -59,14 +60,15 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
             offset: 0,
             queryAll:true
         });
-        const freezeTransactions = await this.transactionRepo.getTransactions({ 
-            isFreeze: true,
-            startDate: request.startDate,
-            endDate: request.endDate,
+        const extenFilter = new TransactionFilter()
+        extenFilter.isFreeze = true
+        extenFilter.startDate = request.startDate
+        extenFilter.endDate = request.endDate
+        const freezeTransactions = await this.transactionRepo.getAll({ 
             queryAll: true,
             offset: 0,
             limit: 0
-        });
+        }, extenFilter);
         const accounts = await this.accountRepo.getAll({
             limit: 0,
             offset: 0,
@@ -80,7 +82,7 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
 
         // Compute estimation money
         let amountFreezeTransction = 0
-        for(const freeze of freezeTransactions) {
+        for(const freeze of freezeTransactions.items) {
             const record  = await this.recordRepository.get(freeze.getRecordRef());
             if (record)
                 amountFreezeTransction += record?.getMoney().getAmount()
@@ -126,17 +128,18 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
                         budget.getSchedule().getPeriodTime()!
                 ); 
 
-                let transactions = await this.transactionRepo.getTransactions({
-                    budgets: [budget.getId()],
-                    startDate: startBudgetUTCDate,
-                    endDate: budget.getSchedule().getUpdatedDate(),
+                const extendFilter = new TransactionFilter()
+                extenFilter.budgets = [budget.getId()]
+                extenFilter.startDate = startBudgetUTCDate
+                extendFilter.endDate = budget.getSchedule().getUpdatedDate() 
+                let transactions = await this.transactionRepo.getAll({
                     queryAll: true,
                     offset: 0,
                     limit: 0
                 });
 
                 let currentBalance = 0
-                let records = await this.recordRepository.getManyById(transactions.map(transaction => transaction.getRecordRef()))
+                let records = await this.recordRepository.getManyByIds(transactions.items.map(transaction => transaction.getRecordRef()))
                 for (let record of records) {
                     if (record.getType() === RecordType.DEBIT)
                         currentBalance += record.getMoney().getAmount()

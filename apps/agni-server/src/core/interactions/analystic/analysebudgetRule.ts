@@ -1,9 +1,10 @@
-import { TransactionRepository } from "@core/repositories/transactionRepository";
 import { IUsecase } from "../interfaces";
-import { RecordRepository } from "@core/repositories/recordRepository";
 import { MomentDateService } from "@core/domains/entities/libs";
-import { AccountType, mapperPeriod, RecordType, SAVING_CATEGORY_ID, TransactionType } from "@core/domains/constants";
-import { AccountRepository } from "@core/repositories/accountRepository";
+import { AccountType, mapperPeriod, RecordType, TransactionType } from "@core/domains/constants";
+import Repository, { TransactionFilter } from "@core/adapters/repository";
+import { Transaction } from "@core/domains/entities/transaction";
+import { Record } from "@core/domains/entities/record";
+import { Account } from "@core/domains/entities/account";
 
 export type RequestAnalyseBudgetRule = {
     period: string
@@ -17,14 +18,14 @@ export type AnalyseBudgetRuleDto = {
 }
 
 export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRule, AnalyseBudgetRuleDto[]> {
-    private transactionRepo: TransactionRepository
-    private recordRepo: RecordRepository
-    private accountRepo: AccountRepository
+    private transactionRepo: Repository<Transaction>
+    private recordRepo: Repository<Record>
+    private accountRepo: Repository<Account>
 
     constructor(
-        transactionRepo: TransactionRepository, 
-        recordRepo: RecordRepository,
-        accountRepo: AccountRepository
+        transactionRepo: Repository<Transaction>, 
+        recordRepo: Repository<Record>,
+        accountRepo: Repository<Account>
     ) {
         this.transactionRepo = transactionRepo
         this.recordRepo = recordRepo
@@ -39,17 +40,15 @@ export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRu
 
         const { startDate, endDate } = MomentDateService.getUTCDateByPeriod(beginDate, period, request.periodTime)
 
-        console.log(startDate.toISOString())
-        console.log(endDate.toISOString())
-
-        const transactions = await this.transactionRepo.getTransactions({
-            startDate: startDate,
-            endDate: endDate,
+        const extendFilter = new TransactionFilter()
+        extendFilter.startDate = startDate
+        extendFilter.endDate = endDate
+        const transactions = await this.transactionRepo.getAll({
             limit: 0, offset: 0,
             queryAll: true 
-        })
+        }, extendFilter)
 
-        const records = await this.recordRepo.getManyById(transactions.map(i => i.getRecordRef()))
+        const records = await this.recordRepo.getManyByIds(transactions.items.map(i => i.getRecordRef()))
         const accounts = await this.accountRepo.getAll({
             limit: 0, offset: 0, queryAll: true
         });
@@ -57,12 +56,12 @@ export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRu
         const transactionTypes = [TransactionType.FIXEDCOST, TransactionType.VARIABLECOST] 
         const results: AnalyseBudgetRuleDto[] = []
         
-        const incomeTransactions = transactions.filter(i => i.getTransactionType() === TransactionType.INCOME).map(i => i.getRecordRef())
+        const incomeTransactions = transactions.items.filter(i => i.getTransactionType() === TransactionType.INCOME).map(i => i.getRecordRef())
         const recordByIncomes = records.filter(i => incomeTransactions.includes(i.getId()))
         const incomeAmount = recordByIncomes.reduce((acc: number, record) => acc + record.getMoney().getAmount(), 0)
         
         transactionTypes.forEach(type => {
-            const transactionByTypes = transactions.filter(i => i.getTransactionType() === type).map(i => i.getRecordRef())
+            const transactionByTypes = transactions.items.filter(i => i.getTransactionType() === type).map(i => i.getRecordRef())
             const recordByTypes = records.filter(i => transactionByTypes.includes(i.getId()) && i.getType() === RecordType.DEBIT)
             const amount = recordByTypes.reduce((acc: number, record) => acc + record.getMoney().getAmount(), 0)
             results.push({
@@ -75,7 +74,7 @@ export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRu
         const savingAccountIds = accounts.items.filter(i => i.getType() === AccountType.BROKING || i.getType() === AccountType.SAVING)
         .map(i => i.getId())
 
-        const savingTransactions = transactions.filter(i => savingAccountIds.includes(i.getAccountRef())).map(i => i.getRecordRef())
+        const savingTransactions = transactions.items.filter(i => savingAccountIds.includes(i.getAccountRef())).map(i => i.getRecordRef())
         const recordBySaves = records.filter(i => savingTransactions.includes(i.getId()) && i.getType() === RecordType.CREDIT)
         const amountSave = recordBySaves.reduce((acc: number, record) => acc + record.getMoney().getAmount(), 0)
 

@@ -1,8 +1,9 @@
-import { PatrimonySnapshotRepository } from "@core/repositories/patrimonyRepository";
 import { IUsecase } from "../interfaces";
 import { ListDto } from "@core/dto/base";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { mapperPeriod } from "@core/domains/constants";
+import Repository, { PatrimonySnapshotFilter } from "@core/adapters/repository";
+import { PatrimonySnapshot } from "@core/domains/entities/patrimonySnapshot";
 
 export type RequestAllSnapshotPatrimony = {
     patrimonyId: string
@@ -19,10 +20,10 @@ export type GetAllSnapshotPatrimonyDto = {
 }
 
 export class GetAllSnapshotOfPatrimony implements IUsecase<RequestAllSnapshotPatrimony, ListDto<GetAllSnapshotPatrimonyDto>> {
-    private snapshotPatrimonyRepo: PatrimonySnapshotRepository
+    private snapshotPatrimonyRepo: Repository<PatrimonySnapshot>
 
     constructor(
-        snapshotPatrimonyRepo: PatrimonySnapshotRepository) {
+        snapshotPatrimonyRepo: Repository<PatrimonySnapshot>) {
             this.snapshotPatrimonyRepo = snapshotPatrimonyRepo
     }
 
@@ -31,11 +32,13 @@ export class GetAllSnapshotOfPatrimony implements IUsecase<RequestAllSnapshotPat
         const beginDate = MomentDateService.getUTCDateSubstraction(new Date(), period, request.periodTime)
         const { startDate, endDate } = MomentDateService.getUTCDateByPeriod(beginDate, period, request.periodTime)
 
+        const extendFilter = new PatrimonySnapshotFilter()
+        extendFilter.startDate = startDate
+        extendFilter.endDate = new Date()
+        extendFilter.patrimonyIds = [request.patrimonyId]
         const snapshots = await this.snapshotPatrimonyRepo.getAll({ 
-            patrimonyIds: [request.patrimonyId],
-            startDate: startDate,
-            endDate: new Date(),
-            limit: 0, offset: 0,
+            limit: 0, 
+            offset: 0,
             queryAll: true
         });
 

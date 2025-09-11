@@ -7,7 +7,7 @@ export type ListDto<TOut> = {
     totals: number 
 }
 
-export type QueryAllFetch = {
+export interface QueryFilter {
     queryAll?: boolean
     offset: number
     limit: number

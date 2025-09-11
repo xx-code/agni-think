@@ -24,6 +24,7 @@ services:
       - DB_HOST=db
       - DB_CLIENT=pg #postgre
       - DB_NAME=${DB_NAME}    
+      - RUN_MIGRATION=true
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - API_AGENT_URL=http://agent:8000 

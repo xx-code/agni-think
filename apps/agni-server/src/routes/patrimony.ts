@@ -102,6 +102,7 @@ router.get('/v1/patrimonies',
 
             res.status(200).json(patrimonies)
         } catch(err) {
+            console.log(err)
             res.status(400).send({errors: [err]});
         }
     }
