@@ -11,4 +11,6 @@ export interface QueryFilter {
     queryAll?: boolean
     offset: number
     limit: number
+    sortBy?: string
+    sortSense?: string
 }

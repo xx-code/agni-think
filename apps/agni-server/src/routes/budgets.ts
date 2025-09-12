@@ -69,6 +69,8 @@ router.get(
     query('limit').isNumeric().toInt(),
     query('offset').isNumeric().toInt(),
     query('queryAll').optional().isBoolean().toBoolean(),
+    query('sortBy').optional().isString(),
+    query('sortSense').optional().isString(),
     async (req, res) => {
     try {
         const result = validationResult(req);

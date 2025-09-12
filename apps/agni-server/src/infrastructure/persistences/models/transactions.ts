@@ -63,7 +63,7 @@ export class TransactionModelMapper implements Mapper<Transaction, TransactionMo
             status: entity.getStatus(),
             type: entity.getTransactionType(),
             date: entity.getUTCDate(),
-            is_freeze: false,
+            is_freeze: entity.getIsFreeze(),
             budget_ids: JSON.stringify(entity.getBudgetRefs()),
             tag_ids: JSON.stringify(entity.getTags()) 
         }

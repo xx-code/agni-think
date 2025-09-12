@@ -54,7 +54,10 @@ const patriomiesDonutChart = computed(() => {
     if (patrimonies.value){
         labels = patrimonies.value.items.map(pat => pat.title)
         patrimonies.value.items.forEach(pat => {
-            data.push(pat.type === 'Asset' ? pat.currentBalance :  -1*pat.currentBalance)
+            let value = pat.currentBalance 
+            if (pat.type !== 'Asset' && value > 0)
+              value *= -1
+            data.push(value)
         })
     }
 
