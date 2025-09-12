@@ -166,6 +166,7 @@ router.post("/v1/transfert-transaction",
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestTransfertTransactionUseCase = matchedData(req);
+                data.date = new Date()
                 await container.transactionUseCase?.transfertTransaction.execute(data);
 
                 res.sendStatus(200);

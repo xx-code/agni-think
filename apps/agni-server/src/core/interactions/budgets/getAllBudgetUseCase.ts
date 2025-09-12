@@ -39,6 +39,10 @@ export class GetAllBudgetUseCase implements IUsecase<QueryFilter, ListDto<GetAll
         let budgets = await this.budgetRepository.getAll({
             limit: request.limit,
             offset: request.offset,
+            sort: request.sortBy ? {
+                sortBy: request.sortBy,
+                asc: request.sortSense === 'asc'
+            } : undefined,
             queryAll: request.queryAll
         });
     

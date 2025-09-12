@@ -90,7 +90,7 @@ const dataChart = computed(() => ({
 }))
 
 const {data: budgets} = useBudgets({
-    limit: 0, offset: 0, queryAll: true
+    limit: 0, offset: 0, queryAll: false
 })
 
 const budgetChart = computed(() => {
@@ -124,7 +124,7 @@ const items = computed(() => {
 const paramsTransaction = reactive<FilterTransactionQuery>({
     offset: 0, limit: 5, status: 'Pending'})
 const {data: transactions} = useTransactionPagination(paramsTransaction);
-const {data: goals} =  useSaveGoals({limit: 4, offset: 0, sortSense: 'desc', orderBy: 'balance'});
+const {data: goals} =  useSaveGoals({limit: 4, offset: 0, sortSense: 'desc', sortBy: 'balance', queryAll: false});
 const displayGoals = computed(() => {
     return goals.value?.items 
 })
