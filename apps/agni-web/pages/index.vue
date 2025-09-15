@@ -213,7 +213,7 @@ watchEffect(() => {
             </div>
             <div>
                 <UDropdownMenu :items="items" :ui="{content: 'w-48'}">
-                    <UButton icon="i-lucide-plus" size="xl" variant="solid">
+                    <UButton icon="i-lucide-plus" color="primary" size="xl" variant="solid">
                         Ajoute carte
                     </UButton>
                 </UDropdownMenu>

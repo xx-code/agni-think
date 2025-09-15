@@ -14,6 +14,8 @@ type BudgteItem = {
     title: string    
     percentageSpend: number
     target: number
+    realTarget: number
+    saveTarget: number
     balance: number
 }
 
@@ -28,7 +30,9 @@ const displaybudgets = computed(() => {
         title: i.title,
         percentageSpend: roundNumber(computePercentage(i.target, i.currentBalance)),
         balance: i.currentBalance,
-        target: i.target
+        target: i.target,
+        realTarget: i.realTarget,
+        saveTarget: i.saveGoalTarget
 
     } satisfies BudgteItem))
 })
@@ -98,6 +102,7 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
             await useUpdateBudget(oldValue.id, {
                 title: value.title,
                 target: value.target,
+                saveGoalIds: value.saveGoalIds,
                 schedule: {
                     period: value.period,
                     periodTime: value.periodTime,
@@ -109,6 +114,7 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
             await useCreateBudget({
                 title: value.title,
                 target: value.target,
+                saveGoalIds: value.saveGoalIds,
                 schedule: {
                     period: value.period,
                     periodTime: value.periodTime,
@@ -175,9 +181,17 @@ const onDeleteBudget = async (budgetId: string) => {
                             <div class="flex items-center">
                                 <AmountTitle :amount="budget.target - budget.balance" /> 
                                 <p class="text-2xl" style="font-weight: bold;color: #D9D9D9;">/</p>
-                                <p style="color: #6755D7;">
+                                <div class="flex flex-col">
+                                    <!-- Total target -->
+                                    <p style="color: #6755D7; font-weight: bold;">
                                     ${{ budget.target }}
-                                </p>
+                                    </p>
+
+                                    <!-- Breakdown of target -->
+                                    <p class="text-xs" style="color: #9E9E9E;">
+                                    (Réel: ${{ budget.realTarget }} + SaveGoal: ${{ budget.saveTarget }})
+                                    </p>
+                                </div>
                             </div>
                         </div>
                         

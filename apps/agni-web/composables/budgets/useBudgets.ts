@@ -15,10 +15,13 @@ export default function useBudgets(query: Reactive<QueryFilterRequest>): UseApiF
                     title: i.title,
                     period: i.period,
                     periodTime: i.periodTime,
+                    saveGoalIds: i.saveGoalIds,
                     currentBalance: i.currentBalance,
                     startDate: new Date(i.startDate),
                     updateDate: new Date(i.updateDate),
                     target: i.target,
+                    realTarget: i.realTarget,
+                    saveGoalTarget: i.saveGoalTarget,
                     endDate: i.endDate   
                 })),
                 totals: data.totals

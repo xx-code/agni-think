@@ -6,11 +6,15 @@ import { Budget } from "@core/domains/entities/budget";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { SaveGoal } from "@core/domains/entities/saveGoal";
 
 export type GetBudgetDto = {
     id: string,
     title: string,
     target: number,
+    realTarget: number,
+    saveGoalTarget: number
+    saveGoalIds: string[]
     period: string
     periodTime?: number
     currentBalance: number
@@ -23,15 +27,18 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
    private budgetRepository: Repository<Budget>;
    private transactionRepository: Repository<Transaction>;
    private recordRepository: Repository<Record>
+   private saveGoalRepository: Repository<SaveGoal>
 
    constructor(
     budgetRepository: Repository<Budget>,
     transactionRepository: Repository<Transaction>,
-    recordRepository: Repository<Record>
+    recordRepository: Repository<Record>,
+    saveGoalRepository: Repository<SaveGoal>
    ) {
        this.budgetRepository = budgetRepository
        this.recordRepository = recordRepository
        this.transactionRepository = transactionRepository
+       this.saveGoalRepository = saveGoalRepository
    }
 
 
@@ -64,6 +71,11 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
             if (record.getType() === RecordType.DEBIT)
                 currentBalance += record.getMoney().getAmount()
         }
+
+        let saveBalance = 0
+        let saveGoals = await this.saveGoalRepository.getManyByIds(budget.getSaveGoalIds())
+        for (let saveGoal of saveGoals) 
+            saveBalance += saveGoal.getBalance().getAmount()
         
         let budgetDisplay: GetBudgetDto = {
             id: budget.getId(),
@@ -71,7 +83,10 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
             currentBalance: currentBalance,
             period: budget.getSchedule().getPeriod(),
             periodTime: budget.getSchedule().getPeriodTime(),
-            target: budget.getTarget(),
+            target: budget.getTarget() + saveBalance,
+            realTarget: budget.getTarget(),
+            saveGoalIds: budget.getSaveGoalIds(),
+            saveGoalTarget: saveBalance,
             startDate: budget.getSchedule().getStartedDate(),
             updateDate: budget.getSchedule().getUpdatedDate(),
             endDate: budget.getSchedule().getEndingDate()

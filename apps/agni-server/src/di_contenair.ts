@@ -445,11 +445,13 @@ export class DiContenair {
 
     private registerBudgetUsecases() {
         this.budgetUseCase = {
-            createBudget: new CreationBudgetUseCase(this.getRepository('budget')),
+            createBudget: new CreationBudgetUseCase(this.getRepository('budget'), this.getRepository('save_goal')),
             deleteBudget: new DeleteBudgetUseCase(this.getRepository('budget')),
-            getBudget: new GetBudgetUseCase(this.getRepository('budget'), this.getRepository('transaction'), this.getRepository('record')),
-            getAllBudgets: new GetAllBudgetUseCase(this.getRepository('budget'), this.getRepository('transaction'), this.getRepository('record')),
-            updateBudget: new UpdateBudgetUseCase(this.getRepository('budget'))
+            getBudget: new GetBudgetUseCase(this.getRepository('budget'), 
+            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal')),
+            getAllBudgets: new GetAllBudgetUseCase(this.getRepository('budget'), 
+            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal')),
+            updateBudget: new UpdateBudgetUseCase(this.getRepository('budget'), this.getRepository('save_goal'))
         }
     }
 

@@ -10,6 +10,7 @@ import useTags from '~/composables/tags/useTags';
 import useBudgets from '~/composables/budgets/useBudgets';
 import useTransactionTypes from '~/composables/internals/useTransactionTypes';
 import type { FormSubmitEvent } from '#ui/types';
+import { ALL_ACCOUNT_ID } from '~/composables/accounts/useAccountsWithPastBalance';
 
 const { transaction, accountSelectedId } = defineProps<{
     transaction?: TransactionType
@@ -55,7 +56,7 @@ const {data: transationTypes } = useTransactionTypes()
 
 
 const form = reactive<Partial<Schema>>({
-    accountId: transaction?.accountId || (accountSelectedId || '') ,
+    accountId: transaction?.accountId || (accountSelectedId === ALL_ACCOUNT_ID ?  '' : accountSelectedId) ,
     transactionType: transaction?.type || '',
     categoryId: transaction?.categoryId || '',
     description: transaction?.description || '',
