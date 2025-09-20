@@ -2,6 +2,7 @@
 import type { NuxtError } from '#app'
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import { fetchPlanningAdvisorAgent } from '~/composables/agents/usePlanningAdvisorAgent'
+import useGetEstimationLeftAmount from '~/composables/analytics/useGetEstimationLeftAmount'
 import type { PlanningAgentAdvisorType } from '~/types/ui/agent'
 
 export type TargetGoal = {
@@ -27,11 +28,13 @@ const isAsked = ref(false);
 const isLoading = ref(false);
 
 const comment = ref<string>()
+const avaliableMoney = ref()
+const amountToAllocate = ref()
+const futureAmountToAllocate = ref()
 const wishSpends = ref<EditWishSpend[]>([ ])
 
-const date = new Date()
-const startDate = shallowRef(new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate()));
-const endDate = shallowRef(new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate()));
+const startDate = ref();
+const endDate = ref();
 
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
@@ -50,6 +53,23 @@ function removeWishSpend(id: number) {
     wishSpends.value.splice(index, 1);
 }
 
+async function getAvaliableAmount() {
+    try {
+        const res = await useGetEstimationLeftAmount({
+            endDate: endDate.value.toDate(getLocalTimeZone()).toISOString(),
+            startDate: startDate.value.toDate(getLocalTimeZone()).toISOString()
+        })
+
+        avaliableMoney.value = res.data.value?.estimateAmount
+    } catch(err) {
+        avaliableMoney.value = undefined
+        isAsked.value = false;
+        const error = err as NuxtError
+        alert("Error! : " + error.message + "\n" +  error.data)
+        emit('close', false)
+    }
+}
+
 async function makePlanning() {
     try {
         isAsked.value = true;
@@ -57,8 +77,8 @@ async function makePlanning() {
         const res = await fetchPlanningAdvisorAgent({
             estimationPeriodStart: startDate.value.toDate(getLocalTimeZone()).toISOString(),
             estimationPeriodEnd: endDate.value.toDate(getLocalTimeZone()).toISOString(),
-            comment: comment.value || '',
-            wishGoals: targetGoalEdits.value.filter(i => i.checked).map(i => ({goalId: i.goalId, amountSuggest: i.amount})),
+            amountToAllocate: amountToAllocate.value,
+            futureAmountToAllocate: futureAmountToAllocate.value,
             wishSpends: wishSpends.value.map(i => ({ amount: i.amount, description: i.description})) 
         });
         agentResponse.value = res; 
@@ -66,6 +86,7 @@ async function makePlanning() {
     } catch(err) {
         isAsked.value = false;
         const error = err as NuxtError
+        console.log(error.data)
         alert("Error! : " + error.message + "\n" +  error.data)
         emit('close', false)
     } 
@@ -102,44 +123,56 @@ async function makePlanning() {
                     </UPopover>
                 </UFormField>
 
-                <UFormField label="Petit commentaire">
-                    <UTextarea v-model="comment" />
-                </UFormField>
-                <div class="flex flex-row-reverse">
-                    <UButton label="Ajouter Depense"  @click="addWishSpend"/>
+                <div v-if="endDate && startDate">
+                    <UButton label="Estimate argent disponible" @click="getAvaliableAmount" /> 
                 </div>
 
-                <div class="space-y-1.5">
-                    <div  v-for="wishSpend in wishSpends" :key="wishSpend.id">
-                        <div class="flex justify-between items-center">
-                            <div class="flex flex-col gap-y-1">
-                                <UFormField label="Somme & Detail">
-                                    <UInput v-model="wishSpend.amount" type="number"  class="w-25"/> 
-                                </UFormField>
-                                <UTextarea v-model="wishSpend.description" class="w-100" />
+                <div v-if="avaliableMoney !== undefined">
+                    <div>
+                        <p>Argent Disponible: {{ formatCurrency(avaliableMoney)  }} </p>
+                    </div> 
+                    <UFormField label="Argent a repartie">
+                        <UInput v-model="amountToAllocate" />
+                    </UFormField>
+                    <UFormField label="Estimation des prochaines entre">
+                        <UInput v-model="futureAmountToAllocate" />
+                    </UFormField>
+                    <div class="flex flex-row-reverse">
+                        <UButton label="Ajouter Depense"  @click="addWishSpend"/>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div  v-for="wishSpend in wishSpends" :key="wishSpend.id">
+                            <div class="flex justify-between items-center">
+                                <div class="flex flex-col gap-y-1">
+                                    <UFormField label="Somme & Detail">
+                                        <UInput v-model="wishSpend.amount" type="number"  class="w-25"/> 
+                                    </UFormField>
+                                    <UTextarea v-model="wishSpend.description" class="w-100" />
+                                </div>
+                                <UButton icon="i-lucide-trash" color="error" @click="() => removeWishSpend(wishSpend.id)"/> 
                             </div>
-                            <UButton icon="i-lucide-trash" color="error" @click="() => removeWishSpend(wishSpend.id)"/> 
                         </div>
                     </div>
-                </div>
 
-                <USeparator label="But cible" /> 
+                    <USeparator label="But cible" /> 
 
-                <div class="space-y-1.5">
-                    <div v-for="goal in targetGoalEdits" :key="goal.goalId">
-                        <div class="flex items-center" :label="goal.title">
-                            <UCheckbox class="mr-2" v-model="goal.checked" />
-                            <h4 class="mr-2">{{  goal.title }}: </h4>
-                            <UInput v-model="goal.amount" type="number" />
+                    <div class="space-y-1.5">
+                        <div v-for="goal in targetGoalEdits" :key="goal.goalId">
+                            <div class="flex items-center" :label="goal.title">
+                                <UCheckbox class="mr-2" v-model="goal.checked" />
+                                <h4 class="mr-2">{{  goal.title }}: </h4>
+                                <UInput v-model="goal.amount" type="number" />
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="space-x-2">
-                    <UButton label="Goodbye!" color="neutral" @click="emit('close', false)" />
-                    <UButton label="Let's Go!" @click="makePlanning" />
+                    <div class="space-x-2">
+                        <UButton label="Goodbye!" color="neutral" @click="emit('close', false)" />
+                        <UButton label="Let's Go!" @click="makePlanning" />
+                    </div>
                 </div>
-            </div>
+            </div> 
 
             <div v-else>
                 <div v-if="isLoading" class="space-y-3">

@@ -33,13 +33,12 @@ export type WishGoalTargetPlanningAdvisor = {
 }
 
 export type AgentPlanningAdvisorInput = {
-    comment: string
     currentAmountInInvestissment: number
     currentAmountInSaving: number
     percentForSavingAndInvestissment: number
     income: number
     amountToAllocate: number
-    whishGoalTarget: WishGoalTargetPlanningAdvisor[]
+    futureAmountToAllocate: number
     goals: GoalPlanningAdvisor[]
     wishSpends: WishSpendPlanningAdvisor[]
 }

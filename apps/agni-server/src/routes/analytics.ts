@@ -29,15 +29,13 @@ router.get('/v1/analytics/estimation-left-amount',
 });
 
 router.post('/v1/analytics/save-goal-planning', 
-    body('comment').isString().optional(),
+    body('amountToAllocate').isNumeric().toFloat(),
+    body('futureAmountToAllocate').isNumeric().toFloat(),
     body('estimationPeriodStart').notEmpty().isISO8601().toDate(),
     body('estimationPeriodEnd').notEmpty().isISO8601().toDate(),
-    body('wishGoals').isArray().optional(),
-    body('wishGoals.*.goalId').exists().isString(),
-    body('wishGoals.*.amountSuggest').exists().isNumeric(),
-    body('wishSpends').isArray().optional(),
-    body('wishSpends.*.amount').exists().isNumeric(),
-    body('wishSpends.*.description').exists().isString(),
+    body('wishSpends').optional().isArray(),
+    // body('wishSpends.*.amount').exists().isNumeric(),
+    // body('wishSpends.*.description').exists().isString(),
     async (req,  res) => {
         try {
             const result = validationResult(req);
