@@ -1,23 +1,6 @@
-import { MockAccountRepository } from './mock/repositories/mockAccountRepository';
-import { MockCategoryRepository } from './mock/repositories/mockCategoryRepository';
-import { MockTagRepository } from './mock/repositories/mockTagRepository';
-import { MockTransactionRepository } from './mock/repositories/mockTransactionRepository';
-import { MockRecordRepository } from './mock/repositories/mockRecordRepository';
-import { MockUnitOfWork } from './mock/repositories/mockUnitOfWorkRepository';
-import { MockBudgetRepository } from './mock/repositories/mockBudgetRepository';
-import { MockSavingRepository } from './mock/repositories/mockSavingRepository';
-import { PostgreSqlAccountRepository } from '@infra/data/postgreSQL/postgreSqlAccountRepository';
 import { Knex } from 'knex';
-import { PostgreSqlCategoryRepository } from '@infra/data/postgreSQL/postgreSqlCategoryRepository';
-import { PostgreSqlTagRepository } from '@infra/data/postgreSQL/postgreSqlTagRepository';
-import { PostgreSqlRecordRepository } from '@infra/data/postgreSQL/postgreSqlRecordRepository';
-import { PostgreSqlTransactionRepository } from '@infra/data/postgreSQL/postgreSqlTransactionRepository';
-import { PostgreSqlUnitOfWork } from '@infra/data/postgreSQL/postgreSqlUnitOfWork';
-import { PostgresSqlBudgetRepository } from '@infra/data/postgreSQL/postgreSqlBudgetRepository';
-import { PostgreSqlSavingRepository } from '@infra/data/postgreSQL/postgreSqlSavingRepository';
-import { IUsecase } from '@core/interactions/interfaces';
 import { CreationAccountUseCase, RequestCreationAccountUseCase } from '@core/interactions/account/creationAccountUseCase';
-import { CreatedDto, ListDto } from '@core/dto/base';
+import { CreatedDto, ListDto, QueryFilter } from '@core/dto/base';
 import { RequestUpdateAccountUseCase, UpdateAccountUseCase } from '@core/interactions/account/updateAccountUseCase';
 import { GetAccountDto, GetAccountUseCase } from '@core/interactions/account/getAccountUseCase';
 import { GetAllAccountDto, GetAllAccountUseCase } from '@core/interactions/account/getAllAccountUseCase';
@@ -61,7 +44,6 @@ import { GetSaveGoalDto, GetSaveGoalUseCase } from '@core/interactions/saveGoal/
 import { GetAllSaveGoalDto, GetAllSaveGoalUseCase } from '@core/interactions/saveGoal/getAllSaveGoal';
 import { DecreaseSaveGoalUseCase, RequestDecreaseSaveGoal } from '@core/interactions/saveGoal/decreaseSaveGoal';
 import { CompteTransactionUsecase, RequestCompleteTransactionUsecase } from '@core/interactions/transaction/CompleteTransactionUseCase';
-import { PostgreSqlScheduleTransactionRepository } from '@infra/data/postgreSQL/postgreSqlScheduleTransactionRepository';
 import { GetAllAccountWithPastBalanceDto, GetAllAccountWithPastBalanceUseCase, RequestGetAllAccountPastBalanceUseCase } from '@core/interactions/account/getAllAccountWithPatBalanceUseCase';
 import { EstimationLeftAmountUseCase, GetEstimationLeftAmoutDto, RequestEstimationLeftAmount } from '@core/interactions/analystic/estimationleftAmount';
 import { IAgent } from '@core/agents/interface';
@@ -70,135 +52,81 @@ import HttpAgentPlanningAdvisor from '@infra/agents/httpAgentPlanningAdvisor';
 import { GetAllSuggestPlanningDto, RequestSuggestPlanningSaveGoal, SuggestPlanningSaveGoalUseCase } from '@core/interactions/analystic/suggestPlanningSaveGoalUseCase';
 import IAgentScoringGoal from '@core/agents/agentGoalScoring';
 import IAgentPlanningAdvisor from '@core/agents/agentPlanningAdvisor';
+import { CreatePatrimonyUseCase, RequestCreatePatrimony } from '@core/interactions/patrimony/createPatrimony';
+import { RequestUpdatePatrimony, UpdatePatrimonyUseCase } from '@core/interactions/patrimony/updatePatrimony';
+import { GetPatrimonyDto, GetPatrimonyUseCase, RequestGetPatrimony } from '@core/interactions/patrimony/getPatrimony';
+import { GetAllPatrimonyDto, GetAllPatrimonyUseCase, RequestGetAllPatrimony } from '@core/interactions/patrimony/getAllPatrimony';
+import { AddSnapshotPatrimonyUseCase, RequestAddSnapshotPatrimony } from '@core/interactions/patrimony/addSnapshotToPatrimony';
+import { RequestUpdateSnapshotPatrimony, UpdateSnapshotPatrimonyUseCase } from '@core/interactions/patrimony/updateSnapshotPatrimony';
+import DeletePatrimonyUseCase from '@core/interactions/patrimony/deletePatrimony';
+import { RemoveSnapshotFromPatrimonyUseCase } from '@core/interactions/patrimony/removeSnapshotFromPatrimony';
+import { GetAllSnapshotOfPatrimony, GetAllSnapshotPatrimonyDto, RequestAllSnapshotPatrimony } from '@core/interactions/patrimony/getAllSnapshotOfPatrimony';
+import { GetAccountBalanceByPeriodDto, GetPastAccountBalanceByPeriodUseCase, RequestGetAccountBalanceByPeriod } from '@core/interactions/account/getPastAccountBalanceByPeriod';
+import { CashFlowAnalyseUseCase, CashFlowResponse, RequestCashFlow } from '@core/interactions/analystic/cashflowAnalyse';
+import { AnalyseBudgetRuleDto, AnalyseBudgetRuleUseCase, RequestAnalyseBudgetRule } from '@core/interactions/analystic/analysebudgetRule';
+import Entity, { IEntity } from '@core/domains/entities/entity';
+import KnexRepository from '@infra/persistences/knexRepository';
+import Repository from '@core/adapters/repository';
+import UnExpectedError from '@core/errors/unExpectedError';
+import { Account } from '@core/domains/entities/account';
+import { AccountModel, AccountModelMapper, KnexAccountTable } from '@infra/persistences/models/account';
+import { CategoryModel, CategoryModelMapper, KnexCategoryTable } from '@infra/persistences/models/category';
+import { Category } from '@core/domains/entities/category';
+import { KnexTagTable, TagModel, TagModelMapper } from '@infra/persistences/models/tag';
+import { Tag } from '@core/domains/entities/tag';
+import { KnexRecordTable, RecordModel, RecordModelMapper } from '@infra/persistences/models/record';
+import { Record } from '@core/domains/entities/record';
+import { BudgetModel, BudgetModelMapper, KnexBudgetTable } from '@infra/persistences/models/budget';
+import { Budget } from '@core/domains/entities/budget';
+import { KnexScheduleTransactionTable, ScheduleTransactionMapper, ScheduleTransactionModel } from '@infra/persistences/models/scheduleTransaction';
+import { ScheduleTransaction } from '@core/domains/entities/scheduleTransaction';
+import { KnexTransactionTable, TransactionFilterExtends, TransactionModel, TransactionModelMapper } from '@infra/persistences/models/transactions';
+import { Transaction } from '@core/domains/entities/transaction';
+import { KnexSaveGoalTable, SaveGoalModel, SaveGoalModelMapper } from '@infra/persistences/models/saveGoal';
+import { SaveGoal } from '@core/domains/entities/saveGoal';
+import { KnexPatrimonyTable, PatrimonyModel, PatrimonyModelMapper } from '@infra/persistences/models/patrimony';
+import { Patrimony } from '@core/domains/entities/patrimony';
+import { KnexPatrimonySnapshotTable, PatrimonySnapshotFilterExtendAdpater, PatrimonySnapshotModel, PatrimonySnapshotModelMapper } from '@infra/persistences/models/patrimonySnapshot';
+import { PatrimonySnapshot } from '@core/domains/entities/patrimonySnapshot';
+import { KnexNotificationTable, NotificaitonExtendFilterAdapter, NotificationModel, NotificationModelMapper } from '@infra/persistences/models/notification';
+import { IUsecase } from '@core/interactions/interfaces';
+import Notification from '@core/domains/entities/notification';
+import { UnitOfWorkRepository } from '@core/repositories/unitOfWorkRepository';
+import { PostgreSqlUnitOfWork } from '@infra/data/postgreSQL/postgreSqlUnitOfWork';
+import { IEventListener, IEventRegister } from '@core/adapters/event';
+import { EventRegister } from '@infra/event';
+import { PushNotificationUseCase, RequestPushNotification } from '@core/interactions/notification/pushNotification';
+import { DeleteNotifcationUseCase } from '@core/interactions/notification/deleteNotification';
+import { ToggleReadNotificationUseCase } from '@core/interactions/notification/toggleReadNotification';
+import { GetAllNotificationDto, GetAllNotificationUseCases, NotificationQueryFilter } from '@core/interactions/notification/getAllNotication';
+import { IncomeAnalysticResponse, IncomeAnalysticUseCase, RequestIncomAnalystic } from '@core/interactions/analystic/income';
+import { RequestSavingAnalystic, SavingAnalysticResponse, SavingAnalysticUseCase } from '@core/interactions/analystic/savings';
+import { RequestSpendAnalystic, SpendAnalysticResponse, SpendAnalysticUseCase } from '@core/interactions/analystic/spends';
 
-async function createTables(knex: Knex) {
-    if (!(await knex.schema.hasTable('accounts')))
-        await knex.schema.createTable("accounts", (table) => {
-            table.uuid('account_id').primary()
-            table.string('title')
-            table.string('type')
-            table.float('balance')
-        });
-
-    if (!(await knex.schema.hasTable('budgets')))
-        await knex.schema.createTable('budgets', (table) => {
-            table.uuid('budget_id').primary()
-            table.string('title')
-            table.float('target')
-            table.json('scheduler')
-            table.boolean('is_archived')
-        });   
-
-    if (!(await knex.schema.hasTable('categories')))
-        await knex.schema.createTable("categories", (table) => {
-            table.uuid('category_id').primary()
-            table.string('title')
-            table.string('color').notNullable()
-            table.string('icon_id')
-            table.boolean('is_system')
-        });
-
-    if (!(await knex.schema.hasTable('records')))
-        await knex.schema.createTable('records', (table) => {
-            table.uuid('record_id').primary()
-            table.float('money_amount')
-            table.date('date')
-            table.string('type')
-            table.string('description')
-        });
-
-    if (!(await knex.schema.hasTable('save_goals')))
-        await knex.schema.createTable('save_goals', (table) => {
-            table.uuid('save_goal_id').primary()
-            table.string('title')
-            table.float('target')
-            table.float('balance')
-            table.integer('desir_value')
-            table.integer('importance')
-            table.date('wish_due_date')
-            table.string('description')
-            
-        });
-
-    if (!(await knex.schema.hasTable('save_goal_items')))
-        await knex.schema.createTable('save_goal_items', (table) => {
-            table.uuid('save_goal_id').index().references('save_goal_id').inTable('save_goals').onDelete('CASCADE')
-            table.json('save_goal')
-        });
-
-    if (!(await knex.schema.hasTable('schedule_transactions')))
-        await knex.schema.createTable('schedule_transactions', (table) => {
-            table.uuid('schedule_transaction_id').primary()
-            table.uuid('account_id')
-            table.uuid('category_id')
-            table.float('amount')
-            table.string('name')
-            table.string('type')
-            table.boolean('is_pause')
-            table.boolean('is_pay')
-            table.boolean('is_freeze')
-            table.json('scheduler')
-        });
-
-    if (!(await knex.schema.hasTable('schedule_transaction_tags')))
-        await knex.schema.createTable('schedule_transaction_tags', (table) => {
-            table.uuid('schedule_transaction_id').index().references('schedule_transaction_id').inTable('schedule_transactions').onDelete('CASCADE')
-            table.uuid('tag_id').index().references('tag_id').inTable('tags').onDelete('CASCADE')
-        });
-
-    if (!(await knex.schema.hasTable('tags')))
-        await knex.schema.createTable('tags', (table) => {
-            table.uuid('tag_id').primary();
-            table.string('value').unique().notNullable();
-            table.string('color').nullable();
-            table.boolean('is_system');
-        });
-
-    if (!(await knex.schema.hasTable('transactions')))
-        await knex.schema.createTable('transactions', (table) => {
-            table.uuid('transaction_id').primary()
-            table.uuid('account_id')
-            table.uuid('record_id')
-            table.uuid('category_id')
-            table.string('status')
-            table.string('type')
-            table.date('date')
-            table.boolean('is_freeze')
-        });
-
-    if (!(await knex.schema.hasTable('transaction_tags')))
-        await knex.schema.createTable('transaction_tags', (table) => {
-            table.uuid('transaction_id').index().references('transaction_id').inTable('transactions').onDelete('CASCADE')
-            table.uuid('tag_id').index().references('tag_id').inTable('tags').onDelete('CASCADE')
-        });
-
-    if (!(await knex.schema.hasTable('transaction_budgets')))
-        await knex.schema.createTable('transaction_budgets', (table) => {
-            table.uuid('transaction_id').index().references('transaction_id').inTable('transactions').onDelete('CASCADE')
-            table.uuid('budget_id').index().references('budget_id').inTable('budgets').onDelete('CASCADE')
-        });
-}
 
 export class DiContenair {
-    private services: Map<any, any>;  
-    private repositories: Map<any, any>;
-    private checkers: Map<any, any>;
-    private agents: Map<string, IAgent<unknown, unknown>>
+    private services: Map<any, unknown>;  
+    private repositories: Map<string, Repository<any>>;
+    private unitOfWork: UnitOfWorkRepository|undefined = undefined;
+    private checkers: Map<any, unknown>;
+    private agents: Map<string, IAgent<unknown, unknown>> 
+    private eventRegister: IEventRegister|undefined = undefined
 
     public accountUseCase?: {
         createAccount: IUsecase<RequestCreationAccountUseCase, CreatedDto>,
         updateAccount: IUsecase<RequestUpdateAccountUseCase, void>,
         getAccount: IUsecase<string, GetAccountDto>,
-        getAllAccount: IUsecase<void, ListDto<GetAllAccountDto>>,
+        getAllAccount: IUsecase<QueryFilter, ListDto<GetAllAccountDto>>,
         getAllAccountWithBalance: IUsecase<RequestGetAllAccountPastBalanceUseCase, ListDto<GetAllAccountWithPastBalanceDto>>
         deleteAccount: IUsecase<string, void>,
+        getPastAccountBalanceByPeriod: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>
     };
 
     public categoryUseCase?: {
         createCategory: IUsecase<RequestCreationCategoryUseCase, CreatedDto>,
         updateCategory: IUsecase<RequestUpdateCategoryUseCase, void>,
         getCategory: IUsecase<string, GetCategoryDto>,
-        getAllCategory: IUsecase<void, ListDto<GetAllCategoryDto>>,
+        getAllCategory: IUsecase<QueryFilter, ListDto<GetAllCategoryDto>>,
         deleteCategory: IUsecase<string, void>,
     };
 
@@ -206,7 +134,7 @@ export class DiContenair {
         createTag: IUsecase<RequestCreationTagUseCase, CreatedDto>,
         updateTag: IUsecase<RequestUpdateTagUseCase, void>,
         getTag: IUsecase<string, GetTagDto>,
-        getAllTag: IUsecase<void, ListDto<GetAllTagDto>>,
+        getAllTag: IUsecase<QueryFilter, ListDto<GetAllTagDto>>,
         deleteTag: IUsecase<string, void>
     }
 
@@ -227,7 +155,7 @@ export class DiContenair {
         createBudget: IUsecase<RequestCreationBudgetUseCase, CreatedDto>,
         updateBudget: IUsecase<RequestUpdateBudget, void>,
         getBudget: IUsecase<string, GetBudgetDto>,
-        getAllBudgets: IUsecase<void, ListDto<GetAllBudgetDto>>,
+        getAllBudgets: IUsecase<QueryFilter, ListDto<GetAllBudgetDto>>,
         deleteBudget: IUsecase<string, void>,
     }
 
@@ -236,7 +164,7 @@ export class DiContenair {
         createScheduleTransaction: IUsecase<RequestCreateScheduleTransaction, CreatedDto>,
         deleteScheduleTransaction: IUsecase<string, void>,
         getScheduleTransaction: IUsecase<string, GetScheduleTransactionDto>,
-        getAllScheduleTransaction: IUsecase<void, ListDto<GetAllScheduleTransactionDto>>,
+        getAllScheduleTransaction: IUsecase<QueryFilter, ListDto<GetAllScheduleTransactionDto>>,
         updateScheduleTransaction: IUsecase<RequestUpdateScheduleTransaction, void>
     }
 
@@ -247,73 +175,183 @@ export class DiContenair {
         deleteSaveGoal: IUsecase<RequestDeleteSaveGoal, void>,
         updateSaveGoal: IUsecase<RequestUpdateSaveGoalUseCase, void>,
         getSaveGoal: IUsecase<string, GetSaveGoalDto>,
-        getAllSaveGoal: IUsecase<void, ListDto<GetAllSaveGoalDto>>
+        getAllSaveGoal: IUsecase<QueryFilter, ListDto<GetAllSaveGoalDto>>
     }
 
     public analyticUseCase?: {
         estimateLeftAmount: IUsecase<RequestEstimationLeftAmount, GetEstimationLeftAmoutDto>
         planningSaveGoalAdvisor: IUsecase<RequestSuggestPlanningSaveGoal, GetAllSuggestPlanningDto>
+        cashflowAnalyse: IUsecase<RequestCashFlow, CashFlowResponse>
+        analyseBudgetRule: IUsecase<RequestAnalyseBudgetRule, AnalyseBudgetRuleDto[]>
+        incomeAnalystic: IUsecase<RequestIncomAnalystic, IncomeAnalysticResponse>
+        savingAnalystic: IUsecase<RequestSavingAnalystic, SavingAnalysticResponse>
+        spendAnalystic: IUsecase<RequestSpendAnalystic, SpendAnalysticResponse>
+    }
+
+    public patrimonyUseCase?: {
+        createPatrimony: IUsecase<RequestCreatePatrimony, CreatedDto>,
+        deletePatrimony: IUsecase<string, void>
+        updatePatrimony: IUsecase<RequestUpdatePatrimony, void>
+        getPatrimony: IUsecase<RequestGetPatrimony, GetPatrimonyDto>
+        getAllPatrimony: IUsecase<RequestGetAllPatrimony, ListDto<GetAllPatrimonyDto>>
+        addSnapshotPatrimony: IUsecase<RequestAddSnapshotPatrimony, CreatedDto>
+        removeSnapshotPatrimony: IUsecase<string, void>
+        updateSnapshotPatrimony: IUsecase<RequestUpdateSnapshotPatrimony, void>
+        getSnapshotPatrimony: IUsecase<RequestAllSnapshotPatrimony, ListDto<GetAllSnapshotPatrimonyDto>>
+    }
+
+    public notificationUseCase?: {
+        pushNotification: IUsecase<RequestPushNotification, CreatedDto> & IEventListener
+        deleteNotification: IUsecase<string, void>
+        toggleReadNotification: IUsecase<string, void>
+        getAllNotification: IUsecase<NotificationQueryFilter, ListDto<GetAllNotificationDto>>
     }
 
     constructor() {
         this.services = new Map();
         this.repositories = new Map();
         this.checkers = new Map();
-        this.agents = new Map();
+        this.agents = new Map(); 
     }
 
     registerAgent<In, Out>(name: string, agent: IAgent<In, Out>) {
         this.agents.set(name, agent) 
     }
 
+    getAgent(name: string): IAgent<unknown, unknown>|undefined {
+        return this.agents.get(name)
+    }
+
     registerService(name: string, service: any) {
         this.services.set(name, service)
     }
 
-    registerRepository(name: string, service: any) {
-        this.repositories.set(name, service)
+    getService(name: string): any {
+        return this.services.get(name)
+    } 
+
+    registerRepository<TEntity extends Entity>(name: string, repo: Repository<TEntity>) {
+        this.repositories.set(name, repo)
     }
+
+    getRepository<TEntity extends Entity>(name: string): Repository<TEntity> {
+        const repo = this.repositories.get(name)
+        if (repo)
+            return repo  
+
+        throw new UnExpectedError(`REPOSITORY_NOT_SETUP_${name}`)
+    } 
+
+    getChecker(name: string): any {
+        return this.checkers.get(name)
+    } 
 
 
     async configMock() {
-        this.registerRepository('account', new MockAccountRepository())
-        this.registerRepository('category', new MockCategoryRepository())
-        this.registerRepository('tag', new MockTagRepository())
-        this.registerRepository('record', new MockRecordRepository())
-        this.registerRepository('transaction', new MockTransactionRepository())
-        this.registerRepository('budget', new MockBudgetRepository())
-        this.registerRepository('saving', new MockSavingRepository())
-        this.registerRepository('unit_of_work', new MockUnitOfWork())
     }
 
-   async config(connector: Knex) {
-        await createTables(connector);
-        let accountRepository = new PostgreSqlAccountRepository(connector)
+    private async registerKnexRepositories(connector: Knex) {
+        const accountTable = new KnexAccountTable()
+        await accountTable.createTable(connector)
+        const accountModelMapper = new AccountModelMapper()
+        const accountRepository = new KnexRepository<Account, AccountModel>(
+            connector, accountTable, accountModelMapper
+        ) 
         this.registerRepository('account', accountRepository)
 
-        let categoryRepository = new PostgreSqlCategoryRepository(connector)
+        const categoryTable = new KnexCategoryTable()
+        await categoryTable.createTable(connector)
+        const categoryModelMapper = new CategoryModelMapper()
+        const categoryRepository = new KnexRepository<Category, CategoryModel>(
+            connector, categoryTable, categoryModelMapper
+        )
         this.registerRepository('category', categoryRepository)
 
-        let tagRepository = new PostgreSqlTagRepository(connector)
+        const tagTable = new KnexTagTable()
+        await tagTable.createTable(connector)
+        const tagModelMapper = new TagModelMapper()
+        const tagRepository = new KnexRepository<Tag, TagModel>(
+            connector, tagTable, tagModelMapper
+        )
         this.registerRepository('tag', tagRepository)
 
-        let recordRepository = new PostgreSqlRecordRepository(connector)
+        const recordTable = new KnexRecordTable() 
+        await recordTable.createTable(connector)
+        const recordModelMapper = new RecordModelMapper()
+        const recordRepository = new KnexRepository<Record, RecordModel>(
+            connector, recordTable, recordModelMapper
+        )
         this.registerRepository('record', recordRepository)
 
-        let unitOfWork = new PostgreSqlUnitOfWork(connector)
-        this.registerRepository('unit_of_work', unitOfWork)
-
-        let budgetRepository = new PostgresSqlBudgetRepository(connector)
+        const budgetTable = new KnexBudgetTable() 
+        await budgetTable.createTable(connector)
+        const budgetModelMapper = new BudgetModelMapper()
+        const budgetRepository = new KnexRepository<Budget, BudgetModel>(
+            connector, budgetTable, budgetModelMapper 
+        )
         this.registerRepository('budget', budgetRepository)
 
-        let savingRepository = new PostgreSqlSavingRepository(connector)
-        this.registerRepository('saving', savingRepository)
+        const scheduleTransactionTable = new KnexScheduleTransactionTable() 
+        await scheduleTransactionTable.createTable(connector)
+        const scheduleTransactionMapper = new ScheduleTransactionMapper()
+        const scheduleTransactionRepository = new KnexRepository<ScheduleTransaction, ScheduleTransactionModel>(
+            connector, scheduleTransactionTable, scheduleTransactionMapper
+        )
+        this.registerRepository('schedule_transaction', scheduleTransactionRepository)
 
-        let transactionRepository = new PostgreSqlTransactionRepository(connector)
+        const transactionTable = new KnexTransactionTable()
+        await transactionTable.createTable(connector)
+        const transactionModelMapper = new TransactionModelMapper()
+        const transactionFitlerAdapter = new TransactionFilterExtends()
+        const transactionRepository = new KnexRepository<Transaction, TransactionModel>(
+            connector, transactionTable, transactionModelMapper, transactionFitlerAdapter
+        )
         this.registerRepository('transaction', transactionRepository)
 
-        let scheduleTransactionRepository = new PostgreSqlScheduleTransactionRepository(connector);
-        this.registerRepository('schedule_transaction', scheduleTransactionRepository)
+        const saveGoalTable = new KnexSaveGoalTable()
+        await saveGoalTable.createTable(connector)
+        const saveGoalModelMapper = new SaveGoalModelMapper()
+        const saveGoalRepository = new KnexRepository<SaveGoal, SaveGoalModel>(
+            connector, saveGoalTable, saveGoalModelMapper
+        )
+        this.registerRepository('save_goal', saveGoalRepository)
+
+        const patrimonyTable = new KnexPatrimonyTable()
+        await patrimonyTable.createTable(connector)
+        const patrimonyModelMapper = new PatrimonyModelMapper()
+        const patrimonyRepository = new KnexRepository<Patrimony, PatrimonyModel>(
+            connector, patrimonyTable, patrimonyModelMapper
+        )
+        this.registerRepository('patrimony', patrimonyRepository)
+
+        const patrimonySnapshotTable = new KnexPatrimonySnapshotTable()
+        await patrimonySnapshotTable.createTable(connector)
+        const patrimonySnapshotModelMapper = new PatrimonySnapshotModelMapper()
+        const patrimonySnapshotFilterAdapter = new PatrimonySnapshotFilterExtendAdpater()
+        const patrimonySnapshotRepository = new KnexRepository<PatrimonySnapshot, PatrimonySnapshotModel>(
+            connector, patrimonySnapshotTable, patrimonySnapshotModelMapper, patrimonySnapshotFilterAdapter 
+        )
+        this.registerRepository('patrimony_snapshot', patrimonySnapshotRepository)
+
+        const notificationTable = new KnexNotificationTable()
+        await notificationTable.createTable(connector)
+        const notificationModelMapper = new NotificationModelMapper()
+        const notificationFilterAdpater = new NotificaitonExtendFilterAdapter()
+        const notificationRepository = new KnexRepository<Notification, NotificationModel>(
+            connector, notificationTable, notificationModelMapper , notificationFilterAdpater
+        )
+        this.registerRepository('notification', notificationRepository)
+
+        this.unitOfWork = new PostgreSqlUnitOfWork(connector)
+    }
+
+    async config(connector: Knex) {
+        // adapter 
+        this.eventRegister = new EventRegister()
+        
+
+        // repository
+        await this.registerKnexRepositories(connector)
 
         // agents
         const agentGoalRanking = new AgentGoalScoring();
@@ -322,6 +360,7 @@ export class DiContenair {
         this.registerAgent('planning', agentPlanningAdvisor);
 
         // usecases
+        this.registerNotificationUseCases(this.eventRegister)
         this.registerAccountUsecases();
         this.registerCategoryUsecases();
         this.registerTagUsecases();
@@ -330,33 +369,23 @@ export class DiContenair {
         this.registerScheduleTransactionUsecases();
         this.registerSaveGoalUsecases();
         this.registerAnalyticUseCases();
-    }
-
-    getService(name: string): any {
-        return this.services.get(name)
-    }
-
-    getRepository(name: string): any {
-        return this.repositories.get(name)
-    }
-
-    getChecker(name: string): any {
-        return this.checkers.get(name)
-    }
-
-    getAgent(name: string): IAgent<unknown, unknown>|undefined {
-        return this.agents.get(name)
-    }
+        this.registerPatrimonyUseCases(); 
+    }  
 
     private registerAccountUsecases() {
+        const getAccountBalanceByPeriodUc = new GetPastAccountBalanceByPeriodUseCase(
+            this.getRepository('transaction'), 
+            this.getRepository('record'))
         this.accountUseCase = {
             createAccount: new CreationAccountUseCase(this.getRepository('account')),
             updateAccount: new UpdateAccountUseCase(this.getRepository('account')),
             getAccount: new GetAccountUseCase(this.getRepository('account')),
             getAllAccount: new GetAllAccountUseCase(this.getRepository('account')),
-            getAllAccountWithBalance: new GetAllAccountWithPastBalanceUseCase(this.getRepository('account'), 
-            this.getRepository('transaction'), this.getRepository('record')),
-            deleteAccount: new DeleteAccountUseCase(this.getRepository('account'))
+            getAllAccountWithBalance: new GetAllAccountWithPastBalanceUseCase(
+                this.getRepository('account'), 
+                getAccountBalanceByPeriodUc),
+            deleteAccount: new DeleteAccountUseCase(this.getRepository('account')),
+            getPastAccountBalanceByPeriod: getAccountBalanceByPeriodUc
         } 
     }
 
@@ -381,6 +410,12 @@ export class DiContenair {
     }
     
     private registerTransactionUsecases() {
+        if (!this.unitOfWork)
+            throw new UnExpectedError("UNIT_OF_WORK_NOT_SETUP")
+
+        if (!this.eventRegister)
+            throw new UnExpectedError("EVENT_REGISTER_NOT_SETUP")
+
         const transDept: TransactionDependencies = {
             accountRepository: this.getRepository('account'),
             budgetRepository: this.getRepository('budget'),
@@ -388,33 +423,51 @@ export class DiContenair {
             recordRepository: this.getRepository('record'),
             tagRepository: this.getRepository('tag')
         }
-        const addUseCase = new AddTransactionUseCase(this.getRepository('unit_of_work'), this.getRepository('transaction'), transDept);
-        const deleteUseCase = new DeleteTransactionUseCase(this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work'), this.getRepository('account'));
+        const addUseCase = new AddTransactionUseCase(
+            this.unitOfWork, 
+            this.getRepository('transaction'), transDept);
+        const deleteUseCase = new DeleteTransactionUseCase(
+            this.getRepository('transaction'), 
+            this.getRepository('record'), 
+            this.unitOfWork, 
+            this.getRepository('account'));
         this.transactionUseCase = {
             createTransaction: addUseCase,
-            completeTransaction: new CompteTransactionUsecase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record'), this.getRepository('unit_of_work')),
-            updateTransaction: new UpdateTransactionUseCase(this.getRepository('transaction'), transDept, addUseCase, deleteUseCase, this.getRepository('unit_of_work')),
-            transfertTransaction: new TransfertTransactionUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record'), this.getRepository('unit_of_work')),
-            autoFreezeTransaction: new AutoDeleteFreezeBalanceUseCase(this.getRepository('account'), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
+            completeTransaction: new CompteTransactionUsecase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record'), this.unitOfWork),
+            updateTransaction: new UpdateTransactionUseCase(this.getRepository('transaction'), transDept, addUseCase, deleteUseCase, this.unitOfWork),
+            transfertTransaction: new TransfertTransactionUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record'), this.unitOfWork),
+            autoFreezeTransaction: new AutoDeleteFreezeBalanceUseCase(
+                this.getRepository('account'), 
+                this.getRepository('transaction'), 
+                this.getRepository('record'), 
+                this.unitOfWork, this.eventRegister),
             deleteTransaction: deleteUseCase,
             getBalanceBy: new GetBalanceByUseCase(this.getRepository('transaction'), this.getRepository('record')),
-            freezeTransaction: new AddFreezeBalanceUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record'), this.getRepository('unit_of_work')),
-            getPaginition: new GetPaginationTransaction(this.getRepository('transaction'), transDept, this.getRepository('record')),
+            freezeTransaction: new AddFreezeBalanceUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record'), this.unitOfWork),
+            getPaginition: new GetPaginationTransaction(this.getRepository('transaction'), transDept),
             getTransaction: new GetTransactionUseCase(this.getRepository('transaction'), this.getRepository('record'))
         }
     }
 
     private registerBudgetUsecases() {
         this.budgetUseCase = {
-            createBudget: new CreationBudgetUseCase(this.getRepository('budget')),
+            createBudget: new CreationBudgetUseCase(this.getRepository('budget'), this.getRepository('save_goal')),
             deleteBudget: new DeleteBudgetUseCase(this.getRepository('budget')),
-            getBudget: new GetBudgetUseCase(this.getRepository('budget'), this.getRepository('transaction'), this.getRepository('record')),
-            getAllBudgets: new GetAllBudgetUseCase(this.getRepository('budget'), this.getRepository('transaction'), this.getRepository('record')),
-            updateBudget: new UpdateBudgetUseCase(this.getRepository('budget'))
+            getBudget: new GetBudgetUseCase(this.getRepository('budget'), 
+            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal')),
+            getAllBudgets: new GetAllBudgetUseCase(this.getRepository('budget'), 
+            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal')),
+            updateBudget: new UpdateBudgetUseCase(this.getRepository('budget'), this.getRepository('save_goal'))
         }
     }
 
     private registerScheduleTransactionUsecases() {
+        if (!this.unitOfWork)
+            throw new UnExpectedError("UNIT_OF_WORK_NOT_SETUP")
+
+        if (!this.eventRegister)
+            throw new UnExpectedError("EVENT_REGISTER_NOT_SETUP")
+
         const transDept: TransactionDependencies = {
             accountRepository: this.getRepository('account'),
             budgetRepository: this.getRepository('budget'),
@@ -423,7 +476,10 @@ export class DiContenair {
             tagRepository: this.getRepository('tag')
         }
         this.scheduleTransactionUseCase = {
-            applyScheduleTransaction: new ApplyScheduleTransactionUsecase(this.getRepository('schedule_transaction'), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
+            applyScheduleTransaction: new ApplyScheduleTransactionUsecase(
+                this.getRepository('schedule_transaction'), 
+                this.getRepository('transaction'), 
+                this.getRepository('record'), this.unitOfWork, this.eventRegister),
             createScheduleTransaction: new CreateScheduleTransactionUseCase(transDept, this.getRepository('schedule_transaction')),
             updateScheduleTransaction: new UpdateScheduleTransactionUseCase(this.getRepository('schedule_transaction'), transDept),
             deleteScheduleTransaction: new DeleteScheduleTransactionUseCase(this.getRepository('schedule_transaction')),
@@ -433,17 +489,23 @@ export class DiContenair {
     }
 
     private registerSaveGoalUsecases() {
+        if (!this.unitOfWork)
+            throw new UnExpectedError("UNIT_OF_WORK_NOT_SETUP")
+
         this.saveGoalUseCase = {
-            addSaveGoal: new AddSaveGoalUseCase(this.getRepository('saving')),
-            increaseSaveGoal: new IncreaseSaveGoalUseCase(this.getRepository('cagetory'), this.getRepository('account'), 
-            this.getRepository('saving'), this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
-            decreaseSaveGoal: new DecreaseSaveGoalUseCase(this.getRepository('category'), this.getRepository('account'), this.getRepository('saving'),
-            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('unit_of_work')),
-            deleteSaveGoal: new DeleteSaveGoalUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('saving'), 
-            this.getRepository('record'), this.getRepository('unit_of_work')),
-            getAllSaveGoal: new GetAllSaveGoalUseCase(this.getRepository('saving')),
-            getSaveGoal: new GetSaveGoalUseCase(this.getRepository('saving')),
-            updateSaveGoal: new UpdateSaveGoalUseCase(this.getRepository('saving'))
+            addSaveGoal: new AddSaveGoalUseCase(this.getRepository('save_goal')),
+            increaseSaveGoal: new IncreaseSaveGoalUseCase(this.getRepository('account'), this.getRepository('save_goal'), this.getRepository('transaction'), 
+            this.getRepository('record'), this.unitOfWork),
+
+            decreaseSaveGoal: new DecreaseSaveGoalUseCase(this.getRepository('account'), this.getRepository('save_goal'),
+            this.getRepository('transaction'), this.getRepository('record'), this.unitOfWork),
+
+            deleteSaveGoal: new DeleteSaveGoalUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('save_goal'), 
+            this.getRepository('record'), this.unitOfWork),
+
+            getAllSaveGoal: new GetAllSaveGoalUseCase(this.getRepository('save_goal')),
+            getSaveGoal: new GetSaveGoalUseCase(this.getRepository('save_goal')),
+            updateSaveGoal: new UpdateSaveGoalUseCase(this.getRepository('save_goal'))
         }
     }
 
@@ -452,9 +514,72 @@ export class DiContenair {
             this.getRepository('account'), this.getRepository('record'), this.getRepository('schedule_transaction'))
         this.analyticUseCase = {
             estimateLeftAmount: estimateUseCase,
-            planningSaveGoalAdvisor: new SuggestPlanningSaveGoalUseCase(estimateUseCase, this.getRepository('account'), this.getRepository('saving'), 
-            this.getAgent('goal_ranking')! as IAgentScoringGoal, this.getAgent('planning')! as IAgentPlanningAdvisor)
+            planningSaveGoalAdvisor: new SuggestPlanningSaveGoalUseCase(estimateUseCase, this.getRepository('account'), this.getRepository('save_goal'), 
+            this.getAgent('goal_ranking')! as IAgentScoringGoal, this.getAgent('planning')! as IAgentPlanningAdvisor),
+            cashflowAnalyse: new CashFlowAnalyseUseCase(this.getRepository('transaction'), this.getRepository('record')),
+            analyseBudgetRule: new AnalyseBudgetRuleUseCase(this.getRepository('transaction'), this.getRepository('record'), this.getRepository('account')),
+            incomeAnalystic: new IncomeAnalysticUseCase(this.getRepository('record'), this.getRepository('transaction')),
+            savingAnalystic: new SavingAnalysticUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record')),
+            spendAnalystic: new SpendAnalysticUseCase(this.getRepository('record'), this.getRepository('transaction'), this.getRepository('category'), this.getRepository('tag')) 
         }
+    }
+
+    private registerPatrimonyUseCases() {
+        if (!this.unitOfWork)
+            throw new UnExpectedError("UNIT_OF_WORK_NOT_SETUP")
+
+        this.patrimonyUseCase = {
+            addSnapshotPatrimony: new AddSnapshotPatrimonyUseCase(
+                this.getRepository('patrimony'),
+                this.getRepository('patrimony_snapshot')
+            ),
+            createPatrimony: new CreatePatrimonyUseCase(
+                this.getRepository('patrimony'),
+                this.getRepository('account'),
+                this.getRepository('patrimony_snapshot'),
+                this.unitOfWork
+            ),
+            deletePatrimony: new DeletePatrimonyUseCase(
+                this.getRepository('patrimony'),
+                this.unitOfWork
+            ),
+            getAllPatrimony: new GetAllPatrimonyUseCase(
+                this.getRepository('account'),
+                this.getRepository('patrimony'),
+                this.getRepository('patrimony_snapshot'),
+                this.getRepository('save_goal'),
+                this.accountUseCase?.getPastAccountBalanceByPeriod!
+            ),
+            getPatrimony: new GetPatrimonyUseCase(
+                this.getRepository('account'),
+                this.getRepository('patrimony'),
+                this.getRepository('patrimony_snapshot'),
+                this.accountUseCase?.getPastAccountBalanceByPeriod!
+            ),
+            removeSnapshotPatrimony: new RemoveSnapshotFromPatrimonyUseCase(
+                this.getRepository('patrimony_snapshot')
+            ),
+            updatePatrimony: new UpdatePatrimonyUseCase(
+                this.getRepository('patrimony'),
+                this.getRepository('account')
+            ),
+            updateSnapshotPatrimony: new UpdateSnapshotPatrimonyUseCase(
+                this.getRepository('patrimony_snapshot')
+            ),
+            getSnapshotPatrimony: new GetAllSnapshotOfPatrimony(
+                this.getRepository('patrimony_snapshot')
+            )
+        }
+    }
+    
+    private registerNotificationUseCases(event: IEventRegister) {
+        this.notificationUseCase = {
+            pushNotification: new PushNotificationUseCase(this.getRepository('notification')),
+            deleteNotification: new DeleteNotifcationUseCase(this.getRepository('notification')),
+            toggleReadNotification: new ToggleReadNotificationUseCase(this.getRepository('notification')),
+            getAllNotification: new GetAllNotificationUseCases(this.getRepository('notification'))
+        }
+        event.subscribe('notification', this.notificationUseCase.pushNotification!)
     }
 }
 

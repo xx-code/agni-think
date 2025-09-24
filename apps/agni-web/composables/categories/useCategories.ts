@@ -1,11 +1,13 @@
-import type { ListResponse } from "~/types/api";
+import type { Reactive } from "vue";
+import type { ListResponse, QueryFilterRequest } from "~/types/api";
 import type { GetAllCategoriesResponse } from "~/types/api/category";
 import type { CategoryType } from "~/types/ui/category";
 import type { UseApiFetchReturn } from "~/types/utils";
 
-export default function useCategories(): UseApiFetchReturn<ListResponse<CategoryType>> {
+export default function useCategories(query: Reactive<QueryFilterRequest>): UseApiFetchReturn<ListResponse<CategoryType>> {
     const { data, error, refresh } = useFetch('/api/categories', {
         method: 'GET',
+        query: query,
         transform: (data: ListResponse<GetAllCategoriesResponse>) => {
             return {
                items: data.items.map(i => ({
@@ -21,4 +23,19 @@ export default function useCategories(): UseApiFetchReturn<ListResponse<Category
     });
 
     return { data, error, refresh };
+}
+
+// Refactoring
+export function useCategoriesNonSys(query: Reactive<QueryFilterRequest>) {
+    const { data, error, refresh } = useCategories(query);
+
+    return computed(() => {
+        const categories: CategoryType[] = []; 
+        data.value?.items.forEach(cat => {
+            if (!cat.isSystem)
+                categories.push(cat)
+        })
+
+        return categories
+    })
 }

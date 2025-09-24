@@ -1,7 +1,7 @@
+import { QueryFilter } from "@core/dto/base";
 import { RequestUpdateTagUseCase } from "@core/interactions/tag/updateTagUseCase";
 import { Router, Request, Response } from "express";
-import { body, matchedData, validationResult } from "express-validator";
-import TagController from "src/controllers/tags";
+import { body, matchedData, query, validationResult } from "express-validator";
 import container from "src/di_contenair";
 
 const router = Router();
@@ -60,9 +60,23 @@ router.get(`/v1/tags/:id`, async (req, res) => {
     }
 });
 
-router.get(`/v1/tags`, async (req, res) => {
+router.get(
+    `/v1/tags`,
+    query('limit').isNumeric().toInt(),
+    query('offset').isNumeric().toInt(),
+    query('queryAll').optional().isBoolean().toBoolean(),
+    async (req, res) => {
     try {
-        var tags = await container.tagUseCase?.getAllTag.execute();
+        const result = validationResult(req);
+
+        if (!result.isEmpty()) {
+            res.send({ errors: result.array() });
+            return;
+        }
+
+        const request: QueryFilter = matchedData(req)
+
+        var tags = await container.tagUseCase?.getAllTag.execute(request);
         res.status(200).send(tags);
     } catch(err) {
         res.status(400).send({ errors: [err] });

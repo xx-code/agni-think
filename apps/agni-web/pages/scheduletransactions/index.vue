@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ModalEditScheduleTransaction } from '#components';
 import type { TableColumn, TableRow } from '#ui/types';
+import { getLocalTimeZone } from '@internationalized/date';
 import useCategories from '~/composables/categories/useCategories';
 import useCreateScheduleTransaction from '~/composables/scheduleTransactions/useCreateScheduleTransaction';
 import useDeleteScheduleTransaction from '~/composables/scheduleTransactions/useDeleteScheduleTransaction';
@@ -8,15 +9,29 @@ import { fetchScheduleTransaction } from '~/composables/scheduleTransactions/use
 import useScheduleTransactions from '~/composables/scheduleTransactions/useScheduleTransactions';
 import useUpdateScheduleTransaction from '~/composables/scheduleTransactions/useUpdateScheduleTransaction';
 import useTags from '~/composables/tags/useTags';
+import type { QueryFilterRequest } from '~/types/api';
 import type { EditScheduleTransactionType, ScheduleTransactionType, TableScheduleTransactionType } from '~/types/ui/scheduleTransaction';
 
-const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories();
-const {data: tags, error: errorTag, refresh: refreshTag } = useTags();
+const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories({
+    queryAll: true, offset: 0, limit: 0
+});
+const {data: tags, error: errorTag, refresh: refreshTag } = useTags({
+    queryAll: true, offset: 0, limit: 0
+});
 const toast = useToast();
 
 const getCategory = (id: string) => categories.value?.items.find(i => id === i.id)
 const getTag = (id: string) => tags.value?.items.find(i => id === i.id)
-const {data: scheduleTransactions, error: errorTransactions, refresh: refreshScheduleTransactions } = useScheduleTransactions();
+const page = ref(1)
+const scheduleFilter = reactive<QueryFilterRequest>({
+    limit: 8,
+    offset: 0,
+    queryAll: false
+})
+const {
+    data: scheduleTransactions, 
+    error: errorTransactions, 
+    refresh: refreshScheduleTransactions } = useScheduleTransactions(scheduleFilter);
 const displayScheluletransactionsTable = computed(() => {
     return scheduleTransactions.value?.items.map(i => ({
         id: i.id,
@@ -103,28 +118,14 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
         accessorKey: 'dateStart',
         header: 'Date Debut',
         cell: ({ row }) => {
-            return new Date(row.getValue('dateStart')).toLocaleString('en-Us', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'UTC'
-            })
+            return formatDate(row.getValue('dateStart'))
         }
     },
     {
         accessorKey: 'dateUpdate',
         header: 'Date Mise a jour',
         cell: ({ row }) => {
-            return new Date(row.getValue('dateUpdate')).toLocaleString('en-Us', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'UTC'
-            })
+            return formatDate(row.getValue('dateUpdate'))        
         }
     },
     {
@@ -134,14 +135,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
             if (row.getValue('dateEnd') === undefined)
                 return '';
 
-            return new Date(row.getValue('dateEnd')).toLocaleString('en-Us', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'UTC'
-            });
+            return formatDate(row.getValue('dateEnd'))
         }
     },
     {
@@ -162,6 +156,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
                     size: 'md', 
                     class: 'rounded-full',
                     variant: 'outline',
+                    color: 'success',
                     onClick: () => togglePauseSchedule(row.original.id, row.original.isPause)
                  })
 
@@ -170,6 +165,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
                     size: 'md', 
                     class: 'rounded-full',
                     variant: 'outline',
+                    color: 'error',
                     onClick: () => togglePauseSchedule(row.original.id, row.original.isPause)
                  })
         }
@@ -254,8 +250,8 @@ async function onSubmitTransaction(value: EditScheduleTransactionType, oldValue?
                 amount: value.amount,
                 categoryId: value.categoryId,
                 schedule:{
-                    dateStart:  value.dateStart.toString(),
-                    dateEnd: value.dateEnd?.toString(),
+                    dateStart:  value.dateStart.toDate(getLocalTimeZone()).toISOString(),
+                    dateEnd: value.dateEnd?.toDate(getLocalTimeZone()).toISOString(),
                     period: value.period,
                     periodTime: value.periodTime
                 },
@@ -271,8 +267,8 @@ async function onSubmitTransaction(value: EditScheduleTransactionType, oldValue?
                 categoryId: value.categoryId,
                 isFreeze: value.isFreeze,
                 schedule:{
-                    dateStart:  value.dateStart.toString(),
-                    dateEnd: value.dateEnd?.toString(),
+                    dateStart:  value.dateStart.toDate(getLocalTimeZone()).toISOString(),
+                    dateEnd: value.dateEnd?.toDate(getLocalTimeZone()).toISOString(),
                     period: value.period,
                     periodTime: value.periodTime
                 },
@@ -336,21 +332,21 @@ const onDelete = async (id: string) => {
                     </div>
                 </template>
             </UTable>
-            <!-- <div class="flex flex-row gap-2 items-baseline-last justify-between">
+            <div class="flex flex-row gap-2 items-baseline-last justify-between">
                 <UPagination 
                     class="mt-3" 
                     v-model:page="page" 
-                    v-on:update:page="() => paramsTransactions.offset = page - 1"
-                    :items-per-page="paramsTransactions.limit"  
-                    :total="Number(transactions?.totals)" 
+                    v-on:update:page="() => scheduleFilter.offset = (scheduleFilter.limit * (page - 1))"
+                    :items-per-page="scheduleFilter.limit"  
+                    :total="scheduleTransactions?.totals" 
                     active-variant="subtle" />
                 <UInputNumber 
-                    v-model="paramsTransactions.limit" 
+                    v-model="scheduleFilter.limit" 
                     :min="1" 
                     orientation="vertical" 
                     style="width: 80px;"
                 />
-            </div> -->
+            </div>
         </div>
     </div>
 </template>

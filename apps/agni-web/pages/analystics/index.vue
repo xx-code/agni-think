@@ -19,8 +19,9 @@ const toast = useToast();
 async function estimation() {
     try {
         const res = await fetchEstimationLeftAmount({ 
-            endDate: endDate.value.toString(), 
-            startDate: startDate.value.toString() });
+            endDate: endDate.value.toDate(getLocalTimeZone()).toISOString(), 
+            startDate: startDate.value.toDate(getLocalTimeZone()).toISOString() 
+        });
         amount.value = res.estimateAmount;
     } catch(err) {
         toast.add({
@@ -38,7 +39,7 @@ async function estimation() {
         <div class="space-x-3 flex items-center">
             <UPopover>
                 <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
-                    {{ startDate ? df.format(startDate.toDate(getLocalTimeZone())) : 'Selectionnez une de debut' }}
+                    {{ startDate ? df.format(startDate.toDate(getLocalTimeZone()))  : 'Selectionnez une de debut' }}
                 </UButton>
                 <template #content>
                     <UCalendar v-model="startDate" />

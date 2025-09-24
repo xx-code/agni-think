@@ -1,6 +1,7 @@
-import { ScheduleTransactionRepository } from "@core/repositories/scheduleTransactionRepository";
+import Repository from "@core/adapters/repository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction";
 
 export type GetScheduleTransactionDto = {
     id: string
@@ -12,17 +13,17 @@ export type GetScheduleTransactionDto = {
     amount: number
     isPause: boolean
     isFreeze: boolean
-    dateStart: string
+    dateStart: Date
     period: string
-    dateUpdate: string
+    dateUpdate: Date
     periodTime?: number
-    dateEnd?: string
+    dateEnd?: Date
 }
 
 export class GetScheduleTransactionUsecase implements IUsecase<string, GetScheduleTransactionDto> {
-    private scheduleTransactionRepo: ScheduleTransactionRepository 
+    private scheduleTransactionRepo: Repository<ScheduleTransaction> 
 
-    constructor(scheduleTransactionRepo: ScheduleTransactionRepository ) {
+    constructor(scheduleTransactionRepo: Repository<ScheduleTransaction> ) {
         this.scheduleTransactionRepo = scheduleTransactionRepo
     }
 
@@ -42,9 +43,9 @@ export class GetScheduleTransactionUsecase implements IUsecase<string, GetSchedu
             type: scheduleTransaction.getTransactionType(),
             isPause: scheduleTransaction.getIsPause(),
             isFreeze: scheduleTransaction.getIsFreeze(),
-            dateStart: scheduleTransaction.getSchedule().getStartedDate().toISOString(),
-            dateUpdate: scheduleTransaction.getSchedule().getUpdatedDate().toISOString(),
-            dateEnd: scheduleTransaction.getSchedule().getEndingDate()?.toISOString(),
+            dateStart: scheduleTransaction.getSchedule().getStartedDate(),
+            dateUpdate: scheduleTransaction.getSchedule().getUpdatedDate(),
+            dateEnd: scheduleTransaction.getSchedule().getEndingDate(),
             period: scheduleTransaction.getSchedule().getPeriod(),
             periodTime: scheduleTransaction.getSchedule().getPeriodTime()
         }

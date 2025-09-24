@@ -1,7 +1,7 @@
-import { SAVING_CATEGORY_ID, TRANSFERT_CATEGORY_ID, FREEZE_CATEGORY_ID } from "@core/domains/constants";
-import { CategoryRepository } from "../../repositories/categoryRepository";
+import Repository from "@core/adapters/repository";
 import { IUsecase } from "../interfaces";
-import { ListDto } from "@core/dto/base";
+import { ListDto, QueryFilter } from "@core/dto/base";
+import { Category } from "@core/domains/entities/category";
 
 export type GetAllCategoryDto = {
     categoryId: string
@@ -11,18 +11,22 @@ export type GetAllCategoryDto = {
     isSystem: boolean
 }
 
-export class GetAllCategoryUseCase implements IUsecase<void, ListDto<GetAllCategoryDto>> {
-    private repository: CategoryRepository;
+export class GetAllCategoryUseCase implements IUsecase<QueryFilter, ListDto<GetAllCategoryDto>> {
+    private repository: Repository<Category>;
 
-    constructor(repo: CategoryRepository) {
+    constructor(repo: Repository<Category>) {
         this.repository = repo;
     }
 
-    async execute(): Promise<ListDto<GetAllCategoryDto>> {
-        let results = await this.repository.getAll();
+    async execute(request: QueryFilter): Promise<ListDto<GetAllCategoryDto>> {
+        let results = await this.repository.getAll({
+            limit: request.limit,
+            offset: request.offset,
+            queryAll: request.queryAll
+        });
 
         let categories: GetAllCategoryDto[] = [];
-        for (let result of results) {
+        for (let result of results.items) {
             categories.push({
                 categoryId: result.getId(),
                 title: result.getTitle(),
@@ -32,6 +36,6 @@ export class GetAllCategoryUseCase implements IUsecase<void, ListDto<GetAllCateg
             });
         }
         
-        return { items: categories, totals: categories.length};
+        return { items: categories, totals: results.total};
     }
 }

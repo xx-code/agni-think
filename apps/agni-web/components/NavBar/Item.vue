@@ -41,13 +41,16 @@ const title = computed(() => props.isResponsive ? '' : props.title)
         @media (max-width: 975px) {
             justify-content: center;
             padding-left: 0px;
+            p {
+                display: none;
+            }
         }
 
     }
     .icon {
         margin-right:5px; 
         @media (max-width: 975px) {
-            
+            margin: 0; 
         }
     }
     .link-active {

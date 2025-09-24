@@ -1,7 +1,8 @@
+import { QueryFilter } from '@core/dto/base';
 import { RequestCreateScheduleTransaction } from '@core/interactions/scheduleTransaction/createScheduleTransaction';
 import { RequestUpdateScheduleTransaction } from '@core/interactions/scheduleTransaction/updateScheduleTransaction';
 import { Router, Request, Response } from 'express';
-import { body, matchedData, validationResult } from 'express-validator';
+import { body, matchedData, query, validationResult } from 'express-validator';
 import container from 'src/di_contenair';
 
 const router = Router();
@@ -25,8 +26,8 @@ router.post('/v1/schedule-transactions',
     body('schedule').notEmpty().isObject(),
     body('schedule.period').notEmpty().isString(),
     body('schedule.periodTime').optional().isNumeric(),
-    body('schedule.dateStart').notEmpty().isDate(),
-    body('schedule.dateEnd').optional().isDate(),
+    body('schedule.dateStart').notEmpty().isISO8601().toDate(),
+    body('schedule.dateEnd').optional().isISO8601().toDate(),
     body('tagIds').isArray(),
     body('type').notEmpty(),
     async (req, res) => {
@@ -46,9 +47,23 @@ router.post('/v1/schedule-transactions',
         }         
     });
 
-router.get('/v1/schedule-transactions', async (req, res) => {
+router.get(
+    '/v1/schedule-transactions', 
+    query('limit').isNumeric().toInt(),
+    query('offset').isNumeric().toInt(),
+    query('queryAll').optional().isBoolean().toBoolean(),
+    async (req, res) => {
     try {
-        var schedules = await container.scheduleTransactionUseCase?.getAllScheduleTransaction.execute();
+        const result = validationResult(req);
+
+        if (!result.isEmpty()) {
+            res.send({ errors: result.array() });
+            return;
+        }
+
+        const request: QueryFilter = matchedData(req)
+
+        var schedules = await container.scheduleTransactionUseCase?.getAllScheduleTransaction.execute(request);
         res.status(200).send(schedules);
     } catch(err) {
         res.status(400).send({ errors: [err] })
@@ -81,26 +96,28 @@ router.put('/v1/schedule-transactions/:id',
     body('isPause').optional().isBoolean(),
     body('name').optional().isString(),
     body('schedule').optional().isObject(),
-    // body('schedule.period').notEmpty().isString(),
-    // body('schedule.periodTime').optional().isNumeric(),
-    // body('schedule.dateStart').optional().isDate(),
-    // body('schedule.dateEnd').notEmpty().isDate(),
+    body('schedule.period').optional().isString(),
+    body('schedule.periodTime').optional().isNumeric(),
+    body('schedule.dateStart').optional().isISO8601().toDate(),
+    body('schedule.dateEnd').optional().isISO8601().toDate(),
     body('tagIds').optional().isArray(),
     body('type').optional().isString(),
     async (req: Request, res: Response) => {
         try {
             const result = validationResult(req);
-            if (result.isEmpty()) {
-                const data: RequestUpdateScheduleTransaction = matchedData(req);
-                data.id = req.params.id;
-                await container.scheduleTransactionUseCase?.updateScheduleTransaction.execute(data);
-
-                res.sendStatus(200);
+            if (!result.isEmpty()) {
+                console.log(result)
+                res.status(400).send({ errors: result.array() });
                 return;
             } 
 
-            res.status(400).send({ errors: result.array() });
+            const data: RequestUpdateScheduleTransaction = matchedData(req);
+            data.id = req.params.id;
+            await container.scheduleTransactionUseCase?.updateScheduleTransaction.execute(data);
+
+            res.sendStatus(200);
         } catch(err) {
+            console.log(err)
             res.status(400).send({ errors: [err] })
         } 
     });

@@ -1,19 +1,21 @@
 import { Router, Request, Response } from 'express';
 import container from '../di_contenair'
-import { body, matchedData, validationResult } from 'express-validator';
+import { body, matchedData, query, validationResult } from 'express-validator';
 import { RequestCreationBudgetUseCase } from '@core/interactions/budgets/creationBudgetUseCase';
 import { RequestUpdateBudget } from '@core/interactions/budgets/updateBudgetUseCase';
+import { QueryFilter } from '@core/dto/base';
 
 const router = Router();
 
 router.post('/v1/budgets', 
     body('title').notEmpty().isString(),
     body('target').notEmpty().isNumeric(),
+    body('saveGoalIds').toArray(),
     body('schedule').notEmpty().isObject(),
     body('schedule.period').notEmpty().isString(),
     body('schedule.periodTime').optional().isNumeric(),
-    body('schedule.dateStart').notEmpty().isDate(),
-    body('schedule.dateEnd').optional().isDate(),
+    body('schedule.dateStart').notEmpty().isISO8601().toDate(),
+    body('schedule.dateEnd').optional().isISO8601().toDate(),
     async (req, res) => {
         try {
             const result = validationResult(req);
@@ -34,6 +36,7 @@ router.post('/v1/budgets',
 router.put('/v1/budgets/:id', 
     body('title').optional().isString(),
     body('target').optional().isNumeric(),
+    body('saveGoalIds').optional().toArray(),
     body('schedule').optional().isObject(),
     async (req: Request, res: Response) => {
         try {
@@ -49,6 +52,7 @@ router.put('/v1/budgets/:id',
             
             res.status(400).send({ errors: result.array() });
         } catch(err) {
+            console.log(err)
             res.status(400).send({ errors: [ err ]});
         }
     });
@@ -63,9 +67,25 @@ router.get('/v1/budgets/:id', async (req, res) => {
     }
 });
 
-router.get('/v1/budgets', async (req, res) => {
+router.get(
+    '/v1/budgets', 
+    query('limit').isNumeric().toInt(),
+    query('offset').isNumeric().toInt(),
+    query('queryAll').optional().isBoolean().toBoolean(),
+    query('sortBy').optional().isString(),
+    query('sortSense').optional().isString(),
+    async (req, res) => {
     try {
-        var budgets = await container.budgetUseCase?.getAllBudgets.execute();
+        const result = validationResult(req);
+        
+        if (!result.isEmpty()) {
+            res.send({ errors: result.array() });
+            return;
+        }
+
+        const request: QueryFilter = matchedData(req)
+
+        var budgets = await container.budgetUseCase?.getAllBudgets.execute(request);
         res.status(200).send(budgets);
     } catch(err) {
         console.log(err)

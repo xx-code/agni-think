@@ -5,11 +5,12 @@ import * as z from 'zod';
 import { reactive, shallowRef } from "vue";
 import type { EditTransactionType, TransactionType } from '~/types/ui/transaction';
 import useAccounts from '~/composables/accounts/useAccounts';
-import useCategories from '~/composables/categories/useCategories';
+import useCategories, { useCategoriesNonSys } from '~/composables/categories/useCategories';
 import useTags from '~/composables/tags/useTags';
 import useBudgets from '~/composables/budgets/useBudgets';
 import useTransactionTypes from '~/composables/internals/useTransactionTypes';
 import type { FormSubmitEvent } from '#ui/types';
+import { ALL_ACCOUNT_ID } from '~/composables/accounts/useAccountsWithPastBalance';
 
 const { transaction, accountSelectedId } = defineProps<{
     transaction?: TransactionType
@@ -24,22 +25,38 @@ const schema = z.object({
     transactionType: z.string().nonempty('Vous devez selectionner une categories'),
     categoryId: z.string().nonempty('Vous devez selectionner une categories'),
     description: z.string().nonempty('Vous devez ajouter une description'),
-    amount: z.number().min(1, 'La somme doit etre plus grand que zero'),
+    amount: z.number().gt(0, 'La somme doit etre plus grand que zero'),
     tagIds: z.string().array(),
     budgetIds: z.string().array()
 })
 
 type Schema = z.output<typeof schema>;
 
-const {data: accounts} = useAccounts()
-const {data: categories} = useCategories()
-const {data: tags } = useTags()
-const {data: budgets} = useBudgets()
+const {data: accounts} = useAccounts({
+    queryAll: true,
+    limit: 0,
+    offset: 0
+})
+const categories = useCategoriesNonSys({
+    queryAll: true,
+    limit: 0,
+    offset: 0
+})
+const {data: tags } = useTags({
+    queryAll: true,
+    limit: 0,
+    offset: 0
+})
+const {data: budgets} = useBudgets({
+    queryAll: true,
+    limit: 0,
+    offset: 0
+})
 const {data: transationTypes } = useTransactionTypes()
 
 
 const form = reactive<Partial<Schema>>({
-    accountId: transaction?.accountId || (accountSelectedId || '') ,
+    accountId: transaction?.accountId || (accountSelectedId === ALL_ACCOUNT_ID ?  '' : accountSelectedId) ,
     transactionType: transaction?.type || '',
     categoryId: transaction?.categoryId || '',
     description: transaction?.description || '',
@@ -49,8 +66,8 @@ const form = reactive<Partial<Schema>>({
 })
 
 
-let valDate = transaction ? new Date(transaction.date)  : new Date();
-const date = shallowRef(new CalendarDate(valDate.getUTCFullYear(), valDate.getUTCMonth() + 1, valDate.getUTCDate()))
+let valDate = transaction ? transaction.date  : new Date();
+const date = shallowRef(new CalendarDate(valDate.getFullYear(), valDate.getMonth() + 1, valDate.getDate()))
 
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
@@ -114,7 +131,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     <USelectMenu 
                         v-model="form.categoryId" 
                         value-key="value" 
-                        :items="categories?.items.map(i => ({value: i.id, label: i.title}))" 
+                        :items="categories.map(i => ({value: i.id, label: i.title}))" 
                         class="w-full" />
                 </UFormField>
                 

@@ -1,11 +1,10 @@
 import { GetUID } from "@core/adapters/libs";
 import { Money } from "@core/domains/entities/money";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
-import { SavingRepository } from "../../repositories/savingRepository";
 import { IUsecase } from "../interfaces";
 import { CreatedDto } from "@core/dto/base";
 import SaveGoalItem from "@core/domains/valueObjects/saveGoalItem";
-import { MomentDateService } from "@core/domains/entities/libs";
+import Repository from "@core/adapters/repository";
 
 export type RequestAddItemSaveGoalUseCase = {
     title: string
@@ -19,15 +18,15 @@ export type RequestAddSaveGoalUseCase = {
     description: string
     desirValue: number
     importance: number
-    wishDueDate?: string
+    wishDueDate?: Date
     items: RequestAddItemSaveGoalUseCase[]
 }
 
 
 export class AddSaveGoalUseCase implements IUsecase<RequestAddSaveGoalUseCase, CreatedDto> {
-    private savingRepository: SavingRepository
+    private savingRepository: Repository<SaveGoal>
 
-    constructor(savingRepo: SavingRepository) {
+    constructor(savingRepo: Repository<SaveGoal>) {
         this.savingRepository = savingRepo
     }
 
@@ -52,7 +51,7 @@ export class AddSaveGoalUseCase implements IUsecase<RequestAddSaveGoalUseCase, C
             new Money(0), 
             request.desirValue,
             request.importance,
-            request.wishDueDate?MomentDateService.formatDate(request.wishDueDate).toISOString():undefined,
+            request.wishDueDate,
             items, request.description)
 
         await this.savingRepository.create(newSaveGoal)

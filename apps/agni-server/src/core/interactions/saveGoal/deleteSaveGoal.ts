@@ -1,15 +1,14 @@
 import { RecordType, SAVING_CATEGORY_ID, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { Transaction } from "@core/domains/entities/transaction";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
-import { AccountRepository } from "../../repositories/accountRepository";
-import { SavingRepository } from "../../repositories/savingRepository";
-import { TransactionRepository } from "../../repositories/transactionRepository";
 import { GetUID } from "@core/adapters/libs";
-import { RecordRepository } from "@core/repositories/recordRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { Record } from "@core/domains/entities/record";
 import { MomentDateService } from "@core/domains/entities/libs";
+import Repository from "@core/adapters/repository";
+import { Account } from "@core/domains/entities/account";
+import { SaveGoal } from "@core/domains/entities/saveGoal";
 
 export type RequestDeleteSaveGoal = {
     id: string
@@ -17,16 +16,17 @@ export type RequestDeleteSaveGoal = {
 }
 
 export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, void> {
-    private transactionRepo: TransactionRepository
-    private accountRepo: AccountRepository
-    private savingRepo: SavingRepository
-    private recordRepo: RecordRepository
+    private transactionRepo: Repository<Transaction>
+    private accountRepo: Repository<Account>
+    private savingRepo: Repository<SaveGoal>
+    private recordRepo: Repository<Record>
     private unitOfWork: UnitOfWorkRepository
 
-    constructor(transactionRepository: TransactionRepository,
-        accountRepository: AccountRepository,
-        savingRepository: SavingRepository,
-        recordRepository: RecordRepository,
+    constructor(
+        transactionRepository: Repository<Transaction>,
+        accountRepository: Repository<Account>,
+        savingRepository: Repository<SaveGoal>,
+        recordRepository: Repository<Record>,
         unitOfWorkRepository: UnitOfWorkRepository
     ) {
         this.transactionRepo = transactionRepository
@@ -51,17 +51,17 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
             if (savingGoal.getBalance().getAmount() > 0) {
                 let date = MomentDateService.getTodayWithTime()
 
-                let newRecord = new Record(GetUID(), savingGoal.getBalance(), date.toLocaleString(), RecordType.CREDIT, "Deposit from " + savingGoal.getDescription())
+                let newRecord = new Record(GetUID(), savingGoal.getBalance(), date, RecordType.CREDIT, "Deposit from " + savingGoal.getDescription())
                 let newTransaction = new Transaction(GetUID(), accountTranfert.getId(), newRecord.getId(), SAVING_CATEGORY_ID, 
-                date.toLocaleString(), TransactionType.OTHER, TransactionStatus.COMPLETE, [])
+                date, TransactionType.OTHER, TransactionStatus.COMPLETE, [])
 
                 accountTranfert.addOnBalance(savingGoal.getBalance())
 
                 await this.accountRepo.update(accountTranfert)
 
-                await this.recordRepo.save(newRecord)
+                await this.recordRepo.create(newRecord)
 
-                await this.transactionRepo.save(newTransaction)
+                await this.transactionRepo.create(newTransaction)
             } 
             
             await this.savingRepo.delete(savingGoal.getId())

@@ -33,6 +33,11 @@ export enum TransactionStatus {
     COMPLETE = "Complete"
 }
 
+export enum PatrimonyType {
+    ASSET = "Asset",
+    LIABILITY = "Liability"
+}
+
 export enum IntensityEmotionalDesir {
     INDIFFERENT = 0,
     PLEASURE = 1,
@@ -46,6 +51,10 @@ export enum ImportanceGoal {
     NORMAL = 2,
     IMPORTANT = 3,
     URGENT = 4
+}
+
+export enum EventType {
+    NOTIFICATION
 }
 
 export const periodsSystem = [
@@ -101,6 +110,17 @@ export function mapperIntensityEmotionalDesir(value: number) {
     
 }
 
+export function mapperPatrimonyType(value: string): PatrimonyType {
+    switch(value.toLowerCase()) {
+        case PatrimonyType.ASSET.toLowerCase():
+            return PatrimonyType.ASSET
+        case PatrimonyType.LIABILITY.toLowerCase():
+            return PatrimonyType.LIABILITY
+        default:
+            throw new ValueError("PATRIMONY_TYPE_NOT_VALID (" + value + ")")
+    }
+}
+
 export function mapperTypeAccount(value: string): AccountType {
     switch(value.toLowerCase()) {
         case AccountType.CHECKING.toLowerCase():
@@ -144,7 +164,7 @@ export function mapperMainTransactionCategory(value: string) {
     }
 }
 
-export function mapperTransactionStatus(value: string) {
+export function mapperTransactionStatus(value: string): TransactionStatus {
     switch(value.toLowerCase()) {
         case TransactionStatus.COMPLETE.toLowerCase():
             return TransactionStatus.COMPLETE

@@ -4,16 +4,13 @@ import { Money } from "@core/domains/entities/money";
 import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
-import { AccountRepository } from "../../repositories/accountRepository";
-import { RecordRepository } from "../../repositories/recordRepository";
-import { SavingRepository } from "../../repositories/savingRepository";
-import { TransactionRepository } from "../../repositories/transactionRepository";
 import { ValueError } from "@core/errors/valueError";
-import { CategoryRepository } from "@core/repositories/categoryRepository";
-import { Category } from "@core/domains/entities/category";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { MomentDateService } from "@core/domains/entities/libs";
+import Repository from "@core/adapters/repository";
+import { SaveGoal } from "@core/domains/entities/saveGoal";
+import { Account } from "@core/domains/entities/account";
 
 
 export type RequestDecreaseSaveGoal = {
@@ -24,15 +21,15 @@ export type RequestDecreaseSaveGoal = {
 
 export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal, void> {
 
-    private savingRepository: SavingRepository
-    private accountRepository: AccountRepository
-    private transactionRepository: TransactionRepository;
-    private categoryRepository: CategoryRepository;
-    private recordRepository: RecordRepository;
+    private savingRepository: Repository<SaveGoal>
+    private accountRepository: Repository<Account>
+    private transactionRepository: Repository<Transaction>;
+    private recordRepository: Repository<Record>;
     private unitOfWork: UnitOfWorkRepository
 
-    constructor(categoryRepository: CategoryRepository,  accountRepository: AccountRepository, savingRepository: SavingRepository, transactionRepository: TransactionRepository, recordRepository: RecordRepository, unitOfWork: UnitOfWorkRepository) {
-        this.categoryRepository = categoryRepository
+    constructor(accountRepository: Repository<Account>, 
+        savingRepository: Repository<SaveGoal>, transactionRepository: Repository<Transaction>, 
+        recordRepository: Repository<Record>, unitOfWork: UnitOfWorkRepository) {
         this.accountRepository = accountRepository
         this.savingRepository = savingRepository
         this.transactionRepository = transactionRepository
@@ -57,27 +54,22 @@ export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal
             if (savingGoal.getBalance().getAmount() < decreaseBalance.getAmount()) {
                 throw new ValueError('Price must be smaller than save account')
             }
-
-            if (!(await this.categoryRepository.isCategoryExistById(SAVING_CATEGORY_ID))) {
-                let new_category = new Category(SAVING_CATEGORY_ID, 'saving', 'saving')
-                await this.categoryRepository.save(new_category)
-            }
             
             savingGoal.decreaseBalance(decreaseBalance)
             account.addOnBalance(decreaseBalance)
 
             // transfert between account check transfert usecase
-            let date = MomentDateService.getTodayWithTime().toString()
+            let date = MomentDateService.getTodayWithTime()
 
             let idRecordSaving = GetUID()
-            let newRecordSaving = new Record(idRecordSaving, decreaseBalance, date.toString(), RecordType.CREDIT)
+            let newRecordSaving = new Record(idRecordSaving, decreaseBalance, date, RecordType.CREDIT)
             newRecordSaving.setDescription('Saving ' + savingGoal.getTitle())
-            await this.recordRepository.save(newRecordSaving)
+            await this.recordRepository.create(newRecordSaving)
 
             let idTransTo = GetUID()
             let newTransactionTo = new Transaction(idTransTo, request.accountId, idRecordSaving, 
                 SAVING_CATEGORY_ID, date, TransactionType.OTHER, TransactionStatus.COMPLETE,)
-            await this.transactionRepository.save(newTransactionTo)
+            await this.transactionRepository.create(newTransactionTo)
 
             await this.savingRepository.update(savingGoal)
 

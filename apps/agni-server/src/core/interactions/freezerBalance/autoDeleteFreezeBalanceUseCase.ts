@@ -1,51 +1,44 @@
-import { FREEZE_CATEGORY_ID } from "@core/domains/constants";
-import { AccountRepository } from "@core/repositories/accountRepository";
-import { RecordRepository } from "@core/repositories/recordRepository";
-import { TransactionRepository, TransactionFilter, SortBy } from "@core/repositories/transactionRepository";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { MomentDateService } from "@core/domains/entities/libs";
+import Repository, { TransactionFilter } from "@core/adapters/repository";
+import { Account } from "@core/domains/entities/account";
+import { Transaction } from "@core/domains/entities/transaction";
+import { Record } from "@core/domains/entities/record";
+import { IEventRegister } from "@core/adapters/event";
 
 export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
-    private accountRepository: AccountRepository
-    private transactionRepository: TransactionRepository;
-    private recordRepository: RecordRepository
+    private accountRepository: Repository<Account>
+    private transactionRepository: Repository<Transaction>;
+    private recordRepository: Repository<Record>
     private unitOfWork: UnitOfWorkRepository
+    private eventManager: IEventRegister
 
     constructor(
-        accountRepository: AccountRepository, 
-        transactionRepository: TransactionRepository, 
-        recordRepository: RecordRepository, 
-        unitOfWork: UnitOfWorkRepository) {
+        accountRepository: Repository<Account>, 
+        transactionRepository: Repository<Transaction>, 
+        recordRepository: Repository<Record>, 
+        unitOfWork: UnitOfWorkRepository,
+        eventManager: IEventRegister) {
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
         this.recordRepository = recordRepository;
         this.unitOfWork = unitOfWork
+        this.eventManager = eventManager
     }
 
     async execute(): Promise<void> {
         try {
-            let categoriesIds = [FREEZE_CATEGORY_ID]
+            await this.unitOfWork.start()
 
-        
-            let filters: TransactionFilter = {
-                accounts: [], 
-                tags: [],
-                budgets: [],
-                categories: categoriesIds,
-                startDate: '',
-                endDate: '',
-                types: [],
-                isFreeze: true,
+            const extendFilter = new TransactionFilter()
+            extendFilter.isFreeze = true
+            let response = await this.transactionRepository.getAll({
+                offset: 0,
+                limit: 0,
                 queryAll: true
-            };
-
-            let sortBy: SortBy|null = null;
-      
-            let response = await this.transactionRepository.getPaginations(0, 0, sortBy, filters);
-
-            this.unitOfWork.start()
+            }, extendFilter);
 
             for (let i = 0; i < response.items.length ; i++) {
                 let account = await this.accountRepository.get(response.items[i].getAccountRef())
@@ -62,17 +55,20 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
 
                 account.addOnBalance(record.getMoney())
 
-                if (MomentDateService.compareDate(MomentDateService.getToday().toISOString(), record.getUTCDate()) >= 0) {
+                if (MomentDateService.compareDate(MomentDateService.getToday(), record.getUTCDate()) >= 0) {
                     await this.accountRepository.update(account)
                     await this.recordRepository.delete(record.getId())
                     await this.transactionRepository.delete(response.items[i].getId())
+                    this.eventManager.notify('notification', {
+                        title: 'Transaction geler',
+                        content:`Le compte ${account.getTitle()} a une transaction degele`
+                    })
                 }
             }
             
-            this.unitOfWork.commit()
+            await this.unitOfWork.commit()
         } catch (err) {
-            this.unitOfWork.rollback()
-            console.log(err)
+            await this.unitOfWork.rollback()
         }
     }
 }

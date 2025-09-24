@@ -1,11 +1,11 @@
 import { Money } from "@core/domains/entities/money"
 import { ValueError } from "@core/errors/valueError"
-import { SavingRepository } from "@core/repositories/savingRepository"
 import { IUsecase } from "../interfaces"
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError"
 import SaveGoalItem from "@core/domains/valueObjects/saveGoalItem"
 import { ImportanceGoal, IntensityEmotionalDesir } from "@core/domains/constants"
-import { MomentDateService } from "@core/domains/entities/libs"
+import Repository from "@core/adapters/repository"
+import { SaveGoal } from "@core/domains/entities/saveGoal"
 
 export type RequestUpdateItemSaveGoalUseCase = {
     id: string,
@@ -21,15 +21,15 @@ export type RequestUpdateSaveGoalUseCase = {
     title?: string
     desirValue?: IntensityEmotionalDesir,
     importance?: ImportanceGoal,
-    wishDueDate?: string,
+    wishDueDate?: Date,
     description?: string
     items?: RequestUpdateItemSaveGoalUseCase[]
 }
 
 export class UpdateSaveGoalUseCase implements IUsecase<RequestUpdateSaveGoalUseCase, void> {
-    private savingRepo: SavingRepository
+    private savingRepo: Repository<SaveGoal>
 
-    constructor(savingRepo: SavingRepository) {
+    constructor(savingRepo: Repository<SaveGoal>) {
         this.savingRepo = savingRepo
     }
 
@@ -62,9 +62,7 @@ export class UpdateSaveGoalUseCase implements IUsecase<RequestUpdateSaveGoalUseC
             saveGoal.setImportance(request.importance)
         }
 
-        if (request.wishDueDate) {
-            saveGoal.setWishDueDate(MomentDateService.formatDate(request.wishDueDate).toISOString()) 
-        }
+        saveGoal.setWishDueDate(request.wishDueDate) 
 
         if (request.items) {
             let items: SaveGoalItem[] = [];
@@ -77,7 +75,6 @@ export class UpdateSaveGoalUseCase implements IUsecase<RequestUpdateSaveGoalUseC
             };
             saveGoal.setItems(items);
         }
-        
         
         if (saveGoal.hasChange())
             await this.savingRepo.update(saveGoal)

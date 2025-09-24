@@ -32,9 +32,9 @@ export type TableScheduleTransactionType = {
     amount: number
     isPause: boolean
     isFreeze: boolean
-    dateStart: string
-    dateUpdate: string
-    dateEnd?: string
+    dateStart: Date
+    dateUpdate: Date
+    dateEnd?: Date
 }
 
 export type ScheduleTransactionType = {
@@ -46,11 +46,11 @@ export type ScheduleTransactionType = {
     type: string
     amount: number
     isPause: boolean
-    dateStart: string
+    dateStart: Date
     isFreeze: boolean
     period: string
-    dateUpdate: string
+    dateUpdate: Date
     periodTime?: number
-    dateEnd?: string
+    dateEnd?: Date
 }
 

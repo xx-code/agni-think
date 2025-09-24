@@ -35,5 +35,5 @@ export type TaskTimer = {
 }
 
 export interface TaskScheduler {
-    runTask(timer: TaskTimer, task: () => Promise<void>, taskName?: string): void
+    runTask(timer: string, task: () => Promise<void>, taskName?: string): void
 }

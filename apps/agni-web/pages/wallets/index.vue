@@ -17,17 +17,23 @@ import useTransfertTransaction from "~/composables/transactions/useTransfertTran
 import type { FilterTransactionQuery } from "~/types/api/transaction";
 import useCategories from "~/composables/categories/useCategories";
 import useTags from "~/composables/tags/useTags";
+import { getLocalTimeZone } from "@internationalized/date";
+import useBudgets from "~/composables/budgets/useBudgets";
+import useAnalyseBudgetRules from "~/composables/analytics/useBudgetRules";
 
-// generate code
-const now = new Date();
-const prevMonth = new Date(now.getUTCFullYear(), now.getUTCMonth() - 1, 1);
-const startDate = new Date(prevMonth.getUTCFullYear(), prevMonth.getUTCMonth(), 1);
-const endDate = new Date(prevMonth.getUTCFullYear(), prevMonth.getUTCMonth() + 1, 0);
 
-const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useAccountsWitPastBalance({ period: 'Month', periodTime: 1}); 
-const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories();
-const {data: tags, error: errorTags, refresh: refreshTag} = useTags();
-const {data: budgets, error: errorBudgets, refresh: refreshBudget } = useTags();
+const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useAccountsWitPastBalance({ 
+    period: 'Month', periodTime: 1, offset: 0, limit: 0, queryAll: true
+}); 
+const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories({
+    limit: 0, offset: 0, queryAll: true
+});
+const {data: tags, error: errorTags, refresh: refreshTag} = useTags({
+    limit: 0, offset: 0, queryAll: true
+});
+const {data: budgets, error: errorBudgets, refresh: refreshBudget } = useBudgets({
+    limit: 0, offset: 0, queryAll: true
+});
 
 const selectedAccountId = ref(ALL_ACCOUNT_ID);
 
@@ -47,7 +53,7 @@ const displayTransactions = computed(() => {
         amount: i.amount,
         budgets: i.budgetIds.map(i => ({
             id: i,
-            title: getBudget(i)?.value || ''
+            title: getBudget(i)?.title || ''
         })),
         category: {
             id: i.categoryId,
@@ -55,7 +61,7 @@ const displayTransactions = computed(() => {
             color: getCategory(i.categoryId)?.color || '',
             icon: getCategory(i.categoryId)?.icon || ''
         },
-        date: i.date.toString(),
+        date: i.date,
         description: i.description,
         recordType: i.recordType,
         status: i.status,
@@ -78,17 +84,14 @@ const displayFutureTransactions = computed(() => {
             id:i.id,
             accountId: i.accountId,
             amount: i.amount,
-            budgets: i.budgetIds.map(i => ({
-                id: i,
-                title: getBudget(i)?.value || ''
-            })),
+            budgets: [],
             category: {
                 id: i.categoryId,
                 title: getCategory(i.categoryId)?.title || '',
                 color: getCategory(i.categoryId)?.color || '',
                 icon: getCategory(i.categoryId)?.icon || ''
             },
-            date: i.date.toString(),
+            date: i.date,
             description: i.description,
             recordType: i.recordType,
             status: i.status,
@@ -199,7 +202,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
                 amount: value.amount,
                 budgetIds: value.budgetIds,
                 categoryId: value.categoryId,
-                date: value.date.toString(),
+                date: value.date.toDate(getLocalTimeZone()).toISOString(),
                 description: value.description,
                 tagIds: value.tagIds,
                 type: value.type
@@ -271,6 +274,28 @@ const onUpateAccount = async (payload: string) => {
         filterAcc = [payload] 
 }
 
+const { data: analyseBudgetRules } = useAnalyseBudgetRules({ period: 'Month', periodTime: 1 })
+
+const optionsChart = computed(() => ({
+    responsive: true,
+    plugins: {colors: { forceOverride: true}}
+})) 
+const dataChart = computed(() => {
+    let labels: string[] = []
+    let data: number[] = []
+    if (analyseBudgetRules.value) {
+        labels = analyseBudgetRules.value.map(i => i.transactionType)
+        data = analyseBudgetRules.value.map( i => i.value)    
+     } 
+
+    return {
+        labels: labels,
+        datasets: [{
+            label: '50/20/30 rules match',
+            data: data
+        }]
+    } 
+})
 
 </script>
 
@@ -352,14 +377,22 @@ const onUpateAccount = async (payload: string) => {
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
                 <div v-for="trans in displayTransactions" :key="trans.id">
                     <RowTransaction 
-                        :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
-                        :description="trans.description" :icon="trans.category.icon" :color="trans.category.color"
-                        :tags="trans.tags.map((tag: any)=>tag.value)" :date="trans.date" :recordType="trans.recordType"/>
+                        :id="trans.id" 
+                        :balance="trans.amount" 
+                        :title="trans.category.title" 
+                        :description="trans.description" 
+                        :icon="trans.category.icon" 
+                        :color="trans.category.color"
+                        :tags="trans.tags.map((tag: any)=>tag.value)" 
+                        :date="trans.date" 
+                        :recordType="trans.recordType"
+                        :doShowEdit="true"
+                    />
                 </div>
                 <UPagination 
                     class="mt-3" 
                     v-model:page="pageTransaction" 
-                    v-on:update:page="() => paramsTransaction.offset = pageTransaction - 1"
+                    v-on:update:page="() => paramsTransaction.offset = paramsTransaction.limit * (pageTransaction -1)"
                     :items-per-page="paramsTransaction.limit"  
                     :total="Number(transactions?.totals)" 
                     active-variant="subtle" />
@@ -371,7 +404,7 @@ const onUpateAccount = async (payload: string) => {
 
             </CustomCardTitle>
             <div>
-                <p>Graph 50%/30%/20%</p>
+                <DoughnutChart :data="dataChart" :options="optionsChart"/>
             </div>
         </div>
 
@@ -381,14 +414,22 @@ const onUpateAccount = async (payload: string) => {
             <div class="flex flex-col gap-1" style="margin-top: 1rem;">
                 <div v-for="trans in displayFutureTransactions" :key="trans.id">
                     <RowTransaction 
-                        :id="trans.id" :balance="trans.amount" :title="trans.category.title" 
-                        :description="trans.description" :icon="trans.category.icon" 
-                        :tags="trans.tags.map((tag: any) =>tag.value)" :date="trans.date" :color="trans.category.color"/>    
+                        :id="trans.id" 
+                        :balance="trans.amount" 
+                        :title="trans.category.title" 
+                        :description="trans.description" 
+                        :icon="trans.category.icon" 
+                        :tags="trans.tags.map((tag: any) => tag.value)" 
+                        :date="trans.date" 
+                        :color="trans.category.color"
+                        :recordType="trans.recordType"
+                        :doShowEdit="false"
+                    />    
                 </div>
                 <UPagination 
                     class="mt-3" 
                     v-model:page="pageFreezeTransaction" 
-                    v-on:update:page="() => paramsFreezeTransaction.offset = pageFreezeTransaction - 1"
+                    v-on:update:page="() => paramsFreezeTransaction.offset = paramsFreezeTransaction.limit * (pageFreezeTransaction -1)"
                     :items-per-page="paramsFreezeTransaction.limit"  
                     :total="Number(freezeTransactions?.totals)" 
                     active-variant="subtle" />

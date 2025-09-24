@@ -10,10 +10,10 @@ export default defineEventHandler(async event => {
             body: request
         });
     } catch(err) {
-        console.log('Delete budget: ' + err);
+        console.log('Updatge budget: ' + err);
         return createError({
             status: 500,
-            message: 'Delete budget error',
+            message: 'Udpate budget error',
             data: err
         });
     }

@@ -1,6 +1,7 @@
-import { ListDto } from "@core/dto/base"
+import { ListDto, QueryFilter } from "@core/dto/base"
 import { IUsecase } from "../interfaces"
-import { ScheduleTransactionRepository } from "@core/repositories/scheduleTransactionRepository"
+import Repository from "@core/adapters/repository"
+import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction"
 
 export type GetAllScheduleTransactionDto = {
     id: string
@@ -12,26 +13,30 @@ export type GetAllScheduleTransactionDto = {
     amount: number,
     isPause: boolean
     isFreeze: boolean
-    dateStart: string
+    dateStart: Date
     period: string
-    dateUpdate: string
+    dateUpdate: Date
     periodTime?: number
-    dateEnd?: string
+    dateEnd?: Date
 }
 
-export class GetAllScheluleTransacationUseCase implements IUsecase<void, ListDto<GetAllScheduleTransactionDto>> {
+export class GetAllScheluleTransacationUseCase implements IUsecase<QueryFilter, ListDto<GetAllScheduleTransactionDto>> {
 
-    private scheduleTransactionRepo: ScheduleTransactionRepository
+    private scheduleTransactionRepo: Repository<ScheduleTransaction>
 
-    constructor(scheduleTransactionRepo: ScheduleTransactionRepository) {
+    constructor(scheduleTransactionRepo: Repository<ScheduleTransaction>) {
         this.scheduleTransactionRepo = scheduleTransactionRepo
     }
 
-    async execute(): Promise<ListDto<GetAllScheduleTransactionDto>> {
-        const scheduleTransactions = await this.scheduleTransactionRepo.getAll()
+    async execute(request: QueryFilter): Promise<ListDto<GetAllScheduleTransactionDto>> {
+        const scheduleTransactions = await this.scheduleTransactionRepo.getAll({
+            limit: request.limit,
+            offset: request.offset,
+            queryAll: request.queryAll 
+        })
 
         const response: GetAllScheduleTransactionDto[] = []
-        scheduleTransactions.forEach(trans => {
+        scheduleTransactions.items.forEach(trans => {
             response.push({
                 id: trans.getId(),
                 name: trans.getName(),
@@ -41,16 +46,16 @@ export class GetAllScheluleTransacationUseCase implements IUsecase<void, ListDto
                 tagIds: trans.getTags(),
                 type: trans.getTransactionType(),
                 isPause: trans.getIsPause(),
-                dateStart: trans.getSchedule().getStartedDate().toISOString(),
-                dateUpdate: trans.getSchedule().getUpdatedDate().toISOString(),
-                dateEnd: trans.getSchedule().getEndingDate()?.toISOString(),
+                dateStart: trans.getSchedule().getStartedDate(),
+                dateUpdate: trans.getSchedule().getUpdatedDate(),
+                dateEnd: trans.getSchedule().getEndingDate(),
                 period: trans.getSchedule().getPeriod(),
                 isFreeze: trans.getIsFreeze(),
                 periodTime: trans.getSchedule().getPeriodTime()
             })
         })
 
-        return { items: response, totals: response.length }
+        return { items: response, totals: scheduleTransactions.total }
     }
 
 }

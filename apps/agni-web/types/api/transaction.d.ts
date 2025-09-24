@@ -6,7 +6,7 @@ export type GetTransactionResponse = {
     transactionId: string
     accountId: string
     amount: number
-    date: string
+    date: Date
     description: string
     recordType: string
     type: string
@@ -20,7 +20,7 @@ export type GetAllTransactionResponse = {
     transactionId: string
     accountId: string
     amount: number
-    date: string
+    date: Date
     description: string
     recordType: string
     type: string
@@ -35,8 +35,8 @@ export type FilterBalanceTransactionQuery = {
     tagFilterIds?: string[],
     categoryFilterIds?: string[],
     budgetFilterIds?: string[],
-    dateStart?: string,
-    dateEnd?: string,
+    dateStart?: Date,
+    dateEnd?: Date,
     types?: string,
     minPrice?: number,
     maxPrice?: number
@@ -51,11 +51,12 @@ export type FilterTransactionQuery = {
     categoryFilterIds?: string[],
     budgetFilterIds?: string[],
     tagFilterIds?: string[],
-    dateStart?: string,
-    dateEnd?: string,
+    dateStart?: Date,
+    dateEnd?: Date,
     types?: string[],
     minPrice?: number,
     maxPrice?: number,
+    status?: string,
     isFreeze?: boolean
 }
 
@@ -64,7 +65,7 @@ export type CreateTransactionRequest = {
     amount: number
     categoryId: string
     description: string
-    date: string
+    date: string,
     tagIds: string[]
     budgetIds: string[]
     type: string

@@ -12,10 +12,13 @@ export default function useBudget(budgetId: string): UseApiFetchReturn<BudgetTyp
                 currentBalance: data.currentBalance,
                 period: data.period,
                 periodTime: data.periodTime,
-                startDate: data.startDate,
+                startDate: new Date(data.startDate),
                 target: data.target,
-                updateDate: data.updateDate,
-                endDate: data.endDate
+                realTarget: data.realTarget,
+                saveGoalIds: data.saveGoalIds,
+                saveGoalTarget: data.saveGoalTarget,
+                updateDate: new Date(data.updateDate),
+                endDate: data.endDate ? new Date(data.endDate): undefined
             } satisfies BudgetType
         }
     });
@@ -34,9 +37,12 @@ export async function fetchBudget(budgetId: string): Promise<BudgetType> {
         currentBalance: res.currentBalance,
         period: res.period,
         periodTime: res.periodTime,
-        startDate: res.startDate,
+        startDate: new Date(res.startDate),
         target: res.target,
-        updateDate: res.updateDate,
-        endDate: res.endDate
+        realTarget: res.realTarget,
+        saveGoalIds: res.saveGoalIds,
+        saveGoalTarget: res.saveGoalTarget,
+        updateDate: new Date(res.updateDate),
+        endDate: res.endDate ? new Date(res.endDate) : undefined 
     }
 }

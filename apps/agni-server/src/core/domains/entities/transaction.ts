@@ -11,23 +11,23 @@ export class Transaction extends Entity {
     private budgetRefs: ValueObjectCollection<TransactionBudget>
     private categoryRef: TrackableProperty<string>
     private recordRef: TrackableProperty<string>
-    private date: TrackableProperty<string>
+    private date: TrackableProperty<Date>
     private type: TrackableProperty<TransactionType>
     private status: TrackableProperty<TransactionStatus>
 
     private isFreeze: boolean
 
 
-    constructor(id: string, accountRef: string, recordRef: string, categoryRef: string,  date: string, 
-        type: TransactionType, status: TransactionStatus, tagRefs: string[]=[], budgetRefs: string[]=[]) {
+    constructor(id: string, accountRef: string, recordRef: string, categoryRef: string,  date: Date, 
+        type: TransactionType, status: TransactionStatus, tagRefs: string[]=[], budgetRefs: string[]=[], isFreeze:boolean=false) {
         super(id)
         this.accountRef = new TrackableProperty<string>(accountRef, this.markHasChange.bind(this))
         this.recordRef = new TrackableProperty<string>(recordRef, this.markHasChange.bind(this))
         this.tagRefs = new ValueObjectCollection(tagRefs.map(tag => new TransactionTag(tag)), this.markHasChange.bind(this))
         this.budgetRefs = new ValueObjectCollection(budgetRefs.map(budget => new TransactionBudget(budget)), this.markHasChange.bind(this))
         this.categoryRef = new TrackableProperty<string>(categoryRef, this.markHasChange.bind(this))
-        this.isFreeze = false;
-        this.date = new TrackableProperty<string>(date, this.markHasChange.bind(this))
+        this.isFreeze = isFreeze;
+        this.date = new TrackableProperty<Date>(date, this.markHasChange.bind(this))
         this.type = new TrackableProperty<TransactionType>(type, this.markHasChange.bind(this))
         this.status = new TrackableProperty<TransactionStatus>(status, this.markHasChange.bind(this))
     }
@@ -103,11 +103,11 @@ export class Transaction extends Entity {
         return this.recordRef.get()
     }
 
-    setDate(date: string) {
+    setDate(date: Date) {
         this.date.set(date)
     }
 
-    getUTCDate(): string {
+    getUTCDate(): Date {
         return this.date.get()
     }
 

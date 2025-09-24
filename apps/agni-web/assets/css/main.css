@@ -2,7 +2,7 @@
 @import "@nuxt/ui";
 
 @theme {
-    --font-sans: 'lexend', sans-serif;
+  --font-sans: 'lexend', sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {

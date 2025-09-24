@@ -1,17 +1,18 @@
+import Repository from "@core/adapters/repository";
 import { ResourceNotFoundError } from "../../errors/resournceNotFoundError";
-import { AccountRepository } from "../../repositories/accountRepository";
 import { IUsecase } from "../interfaces";
+import { Account } from "@core/domains/entities/account";
 
 
 export class DeleteAccountUseCase implements IUsecase<string, void> {
-    private repository: AccountRepository;
+    private repository: Repository<Account>;
 
-    constructor(repo: AccountRepository) {
+    constructor(repo: Repository<Account>) {
         this.repository = repo;
     }
 
     async execute(id: string): Promise<void> {
-        if (!(await this.repository.isExistById(id)))
+        if (!(await this.repository.get(id)))
             throw new ResourceNotFoundError('ACCOUNT_NOT_FOUND')
             
         await this.repository.delete(id)

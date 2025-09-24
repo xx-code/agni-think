@@ -12,7 +12,7 @@ export async function up(knex: Knex): Promise<void> {
 
 
 export async function down(knex: Knex): Promise<void> {
-    if ((await knex.schema.hasColumn('sschedule_transactions', 'is_freeze'))) {
+    if ((await knex.schema.hasColumn('schedule_transactions', 'is_freeze'))) {
         await knex.schema.alterTable('schedule_transactions', (table) => {
             table.dropColumn('is_freeze')
         })

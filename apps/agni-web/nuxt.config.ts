@@ -8,12 +8,10 @@ export default defineNuxtConfig({
   modules: ['@nuxt/icon', '@nuxt/fonts', '@nuxt/ui'],
   css: [
     '@/assets/css/main.css'
-  ],
-  ui: {
-  },
+  ], 
   runtimeConfig: { 
     public : {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || ''
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api'
     } 
   }
 })

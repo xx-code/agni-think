@@ -1,6 +1,9 @@
-import { ListDto } from "@core/dto/base"
-import { SavingRepository } from "../../repositories/savingRepository"
+import { ListDto, QueryFilter } from "@core/dto/base"
 import { IUsecase } from "../interfaces"
+import UnExpectedError from "@core/errors/unExpectedError"
+import { SortBy } from "@core/repositories/dto"
+import Repository from "@core/adapters/repository"
+import { SaveGoal } from "@core/domains/entities/saveGoal"
 
 export type GetAllSaveGoalItemDto = {
     title: string
@@ -17,23 +20,43 @@ export type GetAllSaveGoalDto = {
     balance: number,
     desirValue: number
     importance: number
-    wishDueDate?: string
+    wishDueDate?: Date
     items: GetAllSaveGoalItemDto[]
 }
 
-export class GetAllSaveGoalUseCase implements IUsecase<void, ListDto<GetAllSaveGoalDto>> {
-    private savingRepository: SavingRepository
+export type QueryFilterSaveGoal = QueryFilter & {
+    orderBy? : string 
+    sortSense? : 'asc' | 'desc'
+}
 
-    constructor(savingRepo: SavingRepository) {
+export class GetAllSaveGoalUseCase implements IUsecase<QueryFilterSaveGoal, ListDto<GetAllSaveGoalDto>> {
+    private savingRepository: Repository<SaveGoal>
+
+    constructor(savingRepo: Repository<SaveGoal>) {
         this.savingRepository = savingRepo
     }
 
-    async execute(): Promise<ListDto<GetAllSaveGoalDto>> {
-        let saveGoals = await this.savingRepository.getAll()
+    async execute(request: QueryFilterSaveGoal): Promise<ListDto<GetAllSaveGoalDto>> {
+
+        if (request.orderBy && !['target', 'balance'].includes(request.orderBy))
+            throw new UnExpectedError("ORDER_BY_MUST_BE_TARGERT_OR_BALANCE")
+
+        if (request.orderBy && !request.sortSense)
+            throw new UnExpectedError("YOU_HAVE_TO_CHOOSE_SENSE")
+
+        let saveGoals = await this.savingRepository.getAll({
+            offset: request.offset,
+            limit: request.limit,
+            queryAll: request.queryAll,
+            sort: request.offset && request.sortSense ? {
+                sortBy: request.orderBy as SortBy['sortBy'],
+                asc: request.sortSense === 'asc' ? true : false
+            } satisfies SortBy : undefined
+        })
 
         let responses: GetAllSaveGoalDto[] = [] 
 
-        for(let saveGoal of saveGoals) {
+        for(let saveGoal of saveGoals.items) {
 
             responses.push(
                 {
@@ -50,6 +73,6 @@ export class GetAllSaveGoalUseCase implements IUsecase<void, ListDto<GetAllSaveG
             ) 
         }
 
-        return { items: responses, totals: responses.length}
+        return { items: responses, totals: saveGoals.total}
     }
 }

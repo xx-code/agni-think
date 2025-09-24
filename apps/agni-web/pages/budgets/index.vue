@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ModalEditBudget } from "#components"
+import { getLocalTimeZone } from "@internationalized/date"
 import { computed, ref } from "vue"
 import { fetchBudget } from "~/composables/budgets/useBudget"
 import useBudgets from "~/composables/budgets/useBudgets"
@@ -8,7 +9,33 @@ import useDeleteBudget from "~/composables/budgets/useDeleteBudget"
 import useUpdateBudget from "~/composables/budgets/useUpdateBudget"
 import type { BudgetType, EditBudgetType } from "~/types/ui/budget"
 
-const {data: budgets, error, refresh} = useBudgets()
+type BudgteItem = {
+    id: string
+    title: string    
+    percentageSpend: number
+    target: number
+    realTarget: number
+    saveTarget: number
+    balance: number
+}
+
+const {data: budgets, error, refresh} = useBudgets({
+    limit: 0,
+    offset: 0,
+    queryAll: true
+})
+const displaybudgets = computed(() => {
+    return budgets.value?.items.map(i => ({
+        id: i.id,
+        title: i.title,
+        percentageSpend: roundNumber(computePercentage(i.target, i.currentBalance)),
+        balance: i.currentBalance,
+        target: i.target,
+        realTarget: i.realTarget,
+        saveTarget: i.saveGoalTarget
+
+    } satisfies BudgteItem))
+})
 
 const overlay = useOverlay();
 const modalEditBudget = overlay.create(ModalEditBudget);
@@ -75,22 +102,24 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
             await useUpdateBudget(oldValue.id, {
                 title: value.title,
                 target: value.target,
+                saveGoalIds: value.saveGoalIds,
                 schedule: {
                     period: value.period,
                     periodTime: value.periodTime,
-                    dateStart: value.startDate.toString(),
-                    dateEnd: value.endDate?.toString()
+                    dateStart: value.startDate.toDate(getLocalTimeZone()).toISOString(),
+                    dateEnd: value.endDate?.toDate(getLocalTimeZone()).toISOString()
                 }
             })
         else 
             await useCreateBudget({
                 title: value.title,
                 target: value.target,
+                saveGoalIds: value.saveGoalIds,
                 schedule: {
                     period: value.period,
                     periodTime: value.periodTime,
-                    dateStart: value.startDate.toString(),
-                    dateEnd: value.endDate?.toString()
+                    dateStart: value.startDate.toDate(getLocalTimeZone()).toISOString(),
+                    dateEnd: value.endDate?.toDate(getLocalTimeZone()).toISOString()
                 }
             })
         refresh()
@@ -105,14 +134,17 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
 
 async function openModalBudget(budgetId?: string) { 
     let budget: BudgetType|undefined;
-    if (budgetId)
+    if (budgetId) {
         budget = await fetchBudget(budgetId)
+    }
 
     modalEditBudget.open({
         budget: budget,
         onSubmit: onSubmitBudget
     }); 
 }
+
+const v = ref(50)
 
 const onDeleteBudget = async (budgetId: string) => {
     await useDeleteBudget(budgetId)
@@ -135,7 +167,7 @@ const onDeleteBudget = async (budgetId: string) => {
 
     <div style="margin-top: 1rem;">
         <div class="grid xs:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            <div v-for="budget of budgets?.items" :key="budget.id">
+            <div v-for="budget of displaybudgets" :key="budget.id">
                 <div class="card-grid rounded-md" >
                     <CustomCardTitle :title="budget.title">
                         <div class="flex gap-1">
@@ -147,20 +179,28 @@ const onDeleteBudget = async (budgetId: string) => {
                         <div>
                             <p class="text-sm" style="font-weight: 500;color: #D9D9D9;">Reste</p>
                             <div class="flex items-center">
-                                <AmountTitle :amount="budget.target - budget.currentBalance" /> 
+                                <AmountTitle :amount="budget.target - budget.balance" sign="$"/> 
                                 <p class="text-2xl" style="font-weight: bold;color: #D9D9D9;">/</p>
-                                <p style="color: #6755D7;">
+                                <div class="flex flex-col">
+                                    <!-- Total target -->
+                                    <p style="color: #6755D7; font-weight: bold;">
                                     ${{ budget.target }}
-                                </p>
+                                    </p>
+
+                                    <!-- Breakdown of target -->
+                                    <p class="text-xs" style="color: #9E9E9E;">
+                                    (Réel: ${{ budget.realTarget }} + SaveGoal: ${{ budget.saveTarget }})
+                                    </p>
+                                </div>
                             </div>
                         </div>
                         
                     </div>
                     <div style="margin-top: 1rem;">
-                        <UProgress v-model="budget.currentBalance" :max="budget.target" size="xl"/>
+                        <UProgress status v-model="budget.percentageSpend"  ></UProgress>
                         <div class="flex items-center mt-2">
-                            <AmountTitle :amount="budget.currentBalance" />
-                            <p style="font-weight: 500;color:#1E3050;" class="text-sm ml-2">| {{ ((budget.currentBalance/budget.target) * 100).toFixed(2) }}% Dépense</p>
+                            <p class="text-xl mr-2 font-semibold text-gray-500">Depense: </p>
+                            <AmountTitle :amount="budget.balance" sign="$"/>
                         </div>
                     </div>
                 </div>

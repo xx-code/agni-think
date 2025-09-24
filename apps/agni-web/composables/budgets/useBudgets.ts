@@ -1,11 +1,13 @@
-import type { ListResponse } from "~/types/api";
+import type { Reactive } from "vue";
+import type { ListResponse, QueryFilterRequest } from "~/types/api";
 import type { GetAllBudgetResponse } from "~/types/api/budget";
 import type { BudgetType } from "~/types/ui/budget";
 import type { UseApiFetchReturn } from "~/types/utils";
 
-export default function useBudgets(): UseApiFetchReturn<ListResponse<BudgetType>> {
+export default function useBudgets(query: Reactive<QueryFilterRequest>): UseApiFetchReturn<ListResponse<BudgetType>> {
     const { data, error, refresh } = useFetch('/api/budgets', {
         method: 'GET',
+        query: query,
         transform: (data: ListResponse<GetAllBudgetResponse>) => {
             return {
                 items: data.items.map(i => ({
@@ -13,10 +15,13 @@ export default function useBudgets(): UseApiFetchReturn<ListResponse<BudgetType>
                     title: i.title,
                     period: i.period,
                     periodTime: i.periodTime,
+                    saveGoalIds: i.saveGoalIds,
                     currentBalance: i.currentBalance,
-                    startDate: i.startDate,
-                    updateDate: i.updateDate,
+                    startDate: new Date(i.startDate),
+                    updateDate: new Date(i.updateDate),
                     target: i.target,
+                    realTarget: i.realTarget,
+                    saveGoalTarget: i.saveGoalTarget,
                     endDate: i.endDate   
                 })),
                 totals: data.totals

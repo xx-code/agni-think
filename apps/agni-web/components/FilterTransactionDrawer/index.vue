@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CalendarDate, DateFormatter } from '@internationalized/date';
+import { boolean } from 'zod/v4';
 import useAccounts from '~/composables/accounts/useAccounts';
 import useBudgets from '~/composables/budgets/useBudgets';
 import useCategories from '~/composables/categories/useCategories';
@@ -10,15 +11,24 @@ const emit = defineEmits<{
     (e: 'submit', value: FormFilterTransaction): void
 }>();
 
-const { data:accounts } = useAccounts();
-const { data:categories } = useCategories();
-const { data:tags } = useTags();
-const { data:budgets } = useBudgets();
+const { data:accounts } = useAccounts({
+    limit: 0, offset: 0, queryAll: true
+});
+const { data:categories } = useCategories({
+    limit: 0, offset: 0, queryAll: true
+});
+const { data:tags } = useTags({
+    limit: 0, offset: 0, queryAll: true
+});
+const { data:budgets } = useBudgets({
+    limit: 0, offset: 0, queryAll: true
+});
 
 const selectedBudgetIds = ref<string[]>([]);
 const selectedCategoryIds = ref<string[]>([]);
 const selectedTagIds = ref<string[]>([]);
 const selectedAccountIds: Ref<string[]> = ref([]);
+const selectedStatus = ref<string>()
 
 const date = shallowRef({
   start: new CalendarDate(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, new Date().getUTCDate()),
@@ -27,10 +37,12 @@ const date = shallowRef({
 
 const filters = ref<{
     filterDate: boolean,
-    filterPrice: boolean
+    filterPrice: boolean,
+    filterStatus: boolean
 }>({
     filterDate: false,
-    filterPrice: false 
+    filterPrice: false,
+    filterStatus: false
 })
 
 const minAmount = ref<number|undefined>()
@@ -48,7 +60,8 @@ function submit() {
         accountIds: selectedAccountIds.value,
         budgetIds: selectedBudgetIds.value,
         categoryIds: selectedCategoryIds.value,
-        status: [],
+        types: [],
+        status: filters.value.filterStatus ? selectedStatus.value : undefined, 
         tagIds: selectedTagIds.value,
         dateEnd:  filters.value.filterDate ? date.value.end.toString() : undefined,
         dateStart: filters.value.filterDate ? date.value.start.toString() : undefined,
@@ -60,6 +73,7 @@ function submit() {
 function clean() {
     filters.value.filterDate = false;
     filters.value.filterPrice = false;
+    filters.value.filterStatus = false;
     selectedAccountIds.value = [];
     selectedBudgetIds.value = [];
     selectedCategoryIds.value = [];
@@ -111,11 +125,19 @@ function clean() {
                 </div> 
                 
                 <div>
-                    <USwitch v-model="filters.filterDate" />
+                    <USwitch v-model="filters.filterDate" label="Fitlrer par date" />
                     <MultiCalendarSelection 
                         class="mt-2" 
                         :disabled="!filters.filterDate"
                         @submit="onDateUpdate"/>
+                </div>
+
+                <div >
+                    <USwitch v-model="filters.filterStatus" label="Fitlrer par status" />
+                    <UTabs class="mt-2" default-value="Complete"
+                        v-model="selectedStatus" value-key="value" 
+                        v-if="filters.filterStatus"
+                        :items="[{label: 'Complete', value: 'Complete' }, { label: 'Pending', value: 'Pending'}]" />
                 </div>
 
                 <div>

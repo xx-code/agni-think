@@ -125,9 +125,21 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>;
 
-const {data: accounts} = useAccounts()
-const {data: categories} = useCategories()
-const {data: tags } = useTags()
+const {data: accounts} = useAccounts({
+  queryAll: true,
+  offset: 0,
+  limit: 0
+})
+const {data: categories} = useCategories({
+  queryAll: true,
+  offset: 0,
+  limit: 0
+})
+const {data: tags } = useTags({
+  limit: 0,
+  offset: 0,
+  queryAll: true
+})
 const {data: transationTypes } = useTransactionTypes()
 const {data: listPeriods, error, refresh} = usePeriodTypes();
 
@@ -146,13 +158,13 @@ const form = reactive({
 })
 
 
-let startDated = scheduleTransaction ? new Date(scheduleTransaction.dateStart)  : new Date();
+let startDated = scheduleTransaction ? scheduleTransaction.dateStart   : new Date();
 let endDated: Date|undefined; 
 if (scheduleTransaction?.dateEnd)
-    endDated = new Date(scheduleTransaction.dateEnd);
+    endDated = scheduleTransaction.dateEnd;
 
-const startDate = shallowRef(new CalendarDate(startDated.getUTCFullYear(), startDated.getUTCMonth() + 1, startDated.getUTCDate()))
-const endDate = shallowRef(endDated ?new CalendarDate(endDated.getUTCFullYear(), endDated.getUTCMonth() + 1, endDated.getUTCDate()) : undefined);
+const startDate = shallowRef(new CalendarDate(startDated.getFullYear(), startDated.getMonth() + 1, startDated.getDate()))
+const endDate = shallowRef(endDated ?new CalendarDate(endDated.getFullYear(), endDated.getMonth() + 1, endDated.getDate()) : undefined);
 
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
@@ -245,7 +257,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                 <UFormField label="Date de debut" name="startDate">
                     <UPopover>
                         <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
-                            {{ startDate ? df.format(startDate.toDate(getLocalTimeZone())) : 'Selectionnez une de debut' }}
+                            {{ startDate ? df.format(startDate.toDate(getLocalTimeZone()))  : 'Selectionnez une de debut' }}
                         </UButton>
                         <template #content>
                             <UCalendar v-model="startDate" />

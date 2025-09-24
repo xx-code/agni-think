@@ -1,23 +1,24 @@
 import { RecordType, SAVING_CATEGORY_ID, TransactionStatus } from "@core/domains/constants";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { ValueError } from "@core/errors/valueError";
-import { AccountRepository } from "@core/repositories/accountRepository";
-import { RecordRepository } from "@core/repositories/recordRepository";
-import { TransactionRepository } from "@core/repositories/transactionRepository";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { IUsecase } from "../interfaces";
+import Repository from "@core/adapters/repository";
+import { Transaction } from "@core/domains/entities/transaction";
+import { Account } from "@core/domains/entities/account";
+import { Record } from "@core/domains/entities/record";
 
 export class DeleteTransactionUseCase implements IUsecase<string, void> {
-    private transRepository: TransactionRepository;
-    private accountRepo: AccountRepository;
-    private recordRepo: RecordRepository;
+    private transRepository: Repository<Transaction>;
+    private accountRepo: Repository<Account>;
+    private recordRepo: Repository<Record>;
     private unitOfWork: UnitOfWorkRepository
 
     constructor(
-        repo: TransactionRepository, 
-        recordRepo: RecordRepository, 
+        repo: Repository<Transaction>, 
+        recordRepo: Repository<Record>, 
         unitOfWork: UnitOfWorkRepository, 
-        accountRepo: AccountRepository) {
+        accountRepo: Repository<Account>) {
         this.transRepository = repo
         this.accountRepo = accountRepo
         this.recordRepo = recordRepo
@@ -28,10 +29,9 @@ export class DeleteTransactionUseCase implements IUsecase<string, void> {
         try {   
             await this.unitOfWork.start()
 
-            if (!(await this.transRepository.isTransactionExistById(id)))
-                throw new ResourceNotFoundError('TRANSACTION_NOT_FOUND')
-
             let transaction = await this.transRepository.get(id);
+            if (!transaction)
+                throw new ResourceNotFoundError('TRANSACTION_NOT_FOUND')
 
             if ([SAVING_CATEGORY_ID].includes(transaction.getCategoryRef()))
                 throw new ValueError("CANT_UPDATE_TRANSACTION")
@@ -48,7 +48,6 @@ export class DeleteTransactionUseCase implements IUsecase<string, void> {
                 record.getType() === RecordType.CREDIT ? account.substractBalance(record.getMoney()) : account.addOnBalance(record.getMoney())
                 await this.accountRepo.update(account);
             }
-            
             
             await this.recordRepo.delete(record.getId())
 

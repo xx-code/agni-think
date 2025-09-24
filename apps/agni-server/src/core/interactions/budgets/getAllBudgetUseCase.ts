@@ -1,46 +1,64 @@
-import { BudgetRepository } from "../../repositories/budgetRepository";
-import { TransactionRepository } from "../../repositories/transactionRepository";
-import { RecordRepository } from "@core/repositories/recordRepository";
 import { IUsecase } from "../interfaces";
-import { ListDto } from "@core/dto/base";
+import { ListDto, QueryFilter } from "@core/dto/base";
 import { RecordType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
+import Repository, { TransactionFilter } from "@core/adapters/repository";
+import { Budget } from "@core/domains/entities/budget";
+import { Transaction } from "@core/domains/entities/transaction";
+import { Record } from "@core/domains/entities/record";
+import { SaveGoal } from "@core/domains/entities/saveGoal";
 
 export type GetAllBudgetDto = {
     id: string,
     title: string,
     target: number,
+    realTarget: number,
+    saveGoalTarget: number,
+    saveGoalIds: string[]
     period: string
     periodTime?: number
     currentBalance: number
-    startDate: string
-    updateDate: string
-    endDate?: string
+    startDate: Date
+    updateDate: Date
+    endDate?: Date
 }
 
-export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetDto>> {
-   private budgetRepository: BudgetRepository;
-   private transactionRepository: TransactionRepository;
-   private recordRepository: RecordRepository
+export class GetAllBudgetUseCase implements IUsecase<QueryFilter, ListDto<GetAllBudgetDto>> {
+   private budgetRepository: Repository<Budget>;
+   private transactionRepository: Repository<Transaction>;
+   private recordRepository: Repository<Record>
+   private saveGoalRepository: Repository<SaveGoal>
   
    constructor(
-    budgetRepository: BudgetRepository,
-    transactionRepository: TransactionRepository,
-    recordRepository: RecordRepository
+    budgetRepository: Repository<Budget>,
+    transactionRepository: Repository<Transaction>,
+    recordRepository: Repository<Record>,
+    saveGoalRepository: Repository<SaveGoal>
    ) {
        this.budgetRepository = budgetRepository
        this.transactionRepository = transactionRepository
        this.recordRepository = recordRepository
+       this.saveGoalRepository = saveGoalRepository
    }
 
 
-   async execute(): Promise<ListDto<GetAllBudgetDto>> {
-        let budgets = await this.budgetRepository.getAll();
+   async execute(request: QueryFilter): Promise<ListDto<GetAllBudgetDto>> {
+        let budgets = await this.budgetRepository.getAll({
+            limit: request.limit,
+            offset: request.offset,
+            sort: request.sortBy ? {
+                sortBy: request.sortBy,
+                asc: request.sortSense === 'asc'
+            } : undefined,
+            queryAll: request.queryAll
+        });
     
         let budgetsDisplay = []
 
-        for (let i = 0; i < budgets.length; i++) {
-            let budget = budgets[i];
+        for (let i = 0; i < budgets.items.length; i++) {
+            let budget = budgets.items[i];
+            if (budget.getIsArchive())
+                continue;
 
             let startBudgetUTCDate = budget.getSchedule().getStartedDate(); 
             if (budget.getSchedule().getPeriodTime() !== undefined)
@@ -50,18 +68,27 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
                     budget.getSchedule().getPeriodTime()!
             ); 
 
-            let transactions = await this.transactionRepository.getTransactions({
-                budgets: [budget.getId()],
-                startDate: startBudgetUTCDate.toISOString(),
-                endDate: budget.getSchedule().getUpdatedDate()?.toISOString(),
-            });
+            const extendFilter = new TransactionFilter()
+            extendFilter.budgets = [budget.getId()]
+            extendFilter.startDate = startBudgetUTCDate
+            extendFilter.endDate = budget.getSchedule().getUpdatedDate()
+            let transactions = await this.transactionRepository.getAll({
+                offset: 0,
+                limit: 0,
+                queryAll: true
+            }, extendFilter);
 
             let currentBalance = 0
-            let records = await this.recordRepository.getManyById(transactions.map(transaction => transaction.getRecordRef()))
+            let records = await this.recordRepository.getManyByIds(transactions.items.map(transaction => transaction.getRecordRef()))
             for (let record of records) {
                 if (record.getType() === RecordType.DEBIT)
                     currentBalance += record.getMoney().getAmount()
             }
+
+            let saveGoals = await this.saveGoalRepository.getManyByIds(budget.getSaveGoalIds())
+            let saveBalance = 0
+            for (let saveGoal of saveGoals) 
+                saveBalance += saveGoal.getBalance().getAmount() 
 
             let budgetDisplay: GetAllBudgetDto = {
                 id: budget.getId(),
@@ -69,14 +96,17 @@ export class GetAllBudgetUseCase implements IUsecase<void, ListDto<GetAllBudgetD
                 currentBalance: currentBalance,
                 period: budget.getSchedule().getPeriod(),
                 periodTime: budget.getSchedule().getPeriodTime(),
-                target: budget.getTarget(),
-                startDate: budget.getSchedule().getStartedDate().toISOString(),
-                updateDate: budget.getSchedule().getUpdatedDate().toISOString(),
-                endDate: budget.getSchedule().getEndingDate()?.toISOString()
+                target: budget.getTarget() + saveBalance,
+                saveGoalTarget: saveBalance,
+                saveGoalIds: budget.getSaveGoalIds(),
+                realTarget: budget.getTarget(),
+                startDate: budget.getSchedule().getStartedDate(),
+                updateDate: budget.getSchedule().getUpdatedDate(),
+                endDate: budget.getSchedule().getEndingDate()
             };
 
             budgetsDisplay.push(budgetDisplay);
         }
-        return { items: budgetsDisplay, totals: budgets.length }
+        return { items: budgetsDisplay, totals: budgets.total }
    }
 }

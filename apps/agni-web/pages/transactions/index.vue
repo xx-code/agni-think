@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h,  ref, resolveComponent, shallowRef, watch,  type Ref } from "vue"; 
+import { computed, h,  ref, resolveComponent  } from "vue"; 
 import type { TableColumn, TableRow } from "@nuxt/ui"; 
 import useAccounts from "~/composables/accounts/useAccounts";
 import useBudgets from "~/composables/budgets/useBudgets";
@@ -16,6 +16,7 @@ import useUpdateTransaction from "~/composables/transactions/useUpdateTransactio
 import useCreateTransaction from "~/composables/transactions/useCreateTransaction";
 import type { FormFilterTransaction } from "~/types/ui/component";
 import useCompleteTransaction from "~/composables/transactions/useCompleteTransaction";
+import { getLocalTimeZone } from "@internationalized/date";
 
 
 const toast = useToast();
@@ -51,10 +52,18 @@ const paramsBalance = reactive<FilterBalanceTransactionQuery>({
   dateEnd: undefined,
 });
 
-const {data: accounts } = useAccounts();
-const {data: budgets, error: errorBudget, refresh: refreshBudget } = useBudgets();
-const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories()
-const {data: tags, error: errorTag, refresh: refreshTag } = useTags()
+const {data: accounts } = useAccounts({
+    limit: 0, offset: 0, queryAll: true
+});
+const {data: budgets, error: errorBudget, refresh: refreshBudget } = useBudgets({
+    limit: 0, offset: 0, queryAll: true
+});
+const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories({
+    limit: 0, offset: 0, queryAll: true
+})
+const {data: tags, error: errorTag, refresh: refreshTag } = useTags({
+    limit: 0, offset: 0, queryAll: true
+})
 
 
 
@@ -104,7 +113,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
                 amount: value.amount,
                 budgetIds: value.budgetIds,
                 categoryId: value.categoryId,
-                date: value.date.toString(),
+                date: value.date.toDate(getLocalTimeZone()).toISOString(),
                 description: value.description,
                 tagIds: value.tagIds,
                 type: value.type
@@ -115,7 +124,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
                 amount: value.amount,
                 budgetIds: value.budgetIds,
                 categoryId: value.categoryId,
-                date: value.date.toString(),
+                date: value.date.toDate(getLocalTimeZone()).toISOString(),
                 description: value.description,
                 tagIds: value.tagIds,
                 type: value.type
@@ -153,18 +162,19 @@ function onFilter(value: FormFilterTransaction) {
     paramsTransactions.tagFilterIds = value.tagIds
     paramsTransactions.accountFilterIds = value.accountIds
     paramsTransactions.budgetFilterIds = value.budgetIds
-    paramsTransactions.dateEnd = value.dateEnd
-    paramsTransactions.dateStart = value.dateStart
+    paramsTransactions.dateEnd = value.dateEnd ? new Date(value.dateEnd) : undefined
+    paramsTransactions.dateStart = value.dateStart ? new Date(value.dateStart) : undefined
     paramsTransactions.minPrice = value.minPrice
     paramsTransactions.maxPrice = value.minPrice
+    paramsTransactions.status = value.status
 
-    paramsBalance.categoryFilterIds = value.categoryIds,
-    paramsBalance.tagFilterIds = value.tagIds,
-    paramsBalance.accountFilterIds = value.accountIds,
-    paramsBalance.budgetFilterIds = value.budgetIds,
-    paramsBalance.dateEnd = value.dateEnd,
-    paramsBalance.dateStart = value.dateStart,
-    paramsBalance.maxPrice = value.maxPrice,
+    paramsBalance.categoryFilterIds = value.categoryIds
+    paramsBalance.tagFilterIds = value.tagIds
+    paramsBalance.accountFilterIds = value.accountIds
+    paramsBalance.budgetFilterIds = value.budgetIds
+    paramsBalance.dateEnd = value.dateEnd ? new Date(value.dateEnd) : undefined
+    paramsBalance.dateStart = value.dateStart ? new Date(value.dateStart) : undefined
+    paramsBalance.maxPrice = value.maxPrice
     paramsBalance.minPrice = value.minPrice
 }
 
@@ -221,14 +231,7 @@ const tableColumn: TableColumn<TransactionTableType>[] = [
         accessorKey: 'date',
         header: 'Date',
         cell: ({ row }) => {
-            return new Date(row.getValue('date')).toLocaleString('fr-FR', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                timeZone: 'UTC'
-            })
+            return formatDate(row.getValue('date')) 
         }
     },
     {
@@ -372,9 +375,9 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
                 <UPagination 
                     class="mt-3" 
                     v-model:page="page" 
-                    v-on:update:page="() => paramsTransactions.offset = page - 1"
+                    v-on:update:page="() => paramsTransactions.offset = paramsTransactions.limit * (page -1)"
                     :items-per-page="paramsTransactions.limit"  
-                    :total="Number(transactions?.totals)" 
+                    :total="transactions?.totals" 
                     active-variant="subtle" />
                 <UInputNumber 
                     v-model="paramsTransactions.limit" 

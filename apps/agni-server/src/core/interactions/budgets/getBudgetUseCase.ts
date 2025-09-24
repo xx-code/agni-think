@@ -1,40 +1,51 @@
-import { BudgetRepository } from "../../repositories/budgetRepository";
-import { TransactionRepository } from "../../repositories/transactionRepository";
-import { RecordRepository } from "@core/repositories/recordRepository";
+import Repository, { TransactionFilter } from "@core/adapters/repository";
 import { IUsecase } from "../interfaces";
 import { RecordType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
+import { Budget } from "@core/domains/entities/budget";
+import { Transaction } from "@core/domains/entities/transaction";
+import { Record } from "@core/domains/entities/record";
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
+import { SaveGoal } from "@core/domains/entities/saveGoal";
 
 export type GetBudgetDto = {
     id: string,
     title: string,
     target: number,
+    realTarget: number,
+    saveGoalTarget: number
+    saveGoalIds: string[]
     period: string
     periodTime?: number
     currentBalance: number
-    startDate: string
-    updateDate: string
-    endDate?: string
+    startDate: Date
+    updateDate: Date
+    endDate?: Date
 }
 
 export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
-   private budgetRepository: BudgetRepository;
-   private transactionRepository: TransactionRepository;
-   private recordRepository: RecordRepository
+   private budgetRepository: Repository<Budget>;
+   private transactionRepository: Repository<Transaction>;
+   private recordRepository: Repository<Record>
+   private saveGoalRepository: Repository<SaveGoal>
 
    constructor(
-    budgetRepository: BudgetRepository,
-    transactionRepository: TransactionRepository,
-    recordRepository: RecordRepository
+    budgetRepository: Repository<Budget>,
+    transactionRepository: Repository<Transaction>,
+    recordRepository: Repository<Record>,
+    saveGoalRepository: Repository<SaveGoal>
    ) {
        this.budgetRepository = budgetRepository
        this.recordRepository = recordRepository
        this.transactionRepository = transactionRepository
+       this.saveGoalRepository = saveGoalRepository
    }
 
 
     async execute(id: string): Promise<GetBudgetDto> {
         let budget = await this.budgetRepository.get(id);
+        if (!budget)
+            throw new ResourceNotFoundError("BUDGET_NOT_FOUND")
            
         let startBudgetUTCDate = budget.getSchedule().getStartedDate(); 
         if (budget.getSchedule().getPeriodTime() !== undefined)
@@ -44,18 +55,27 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
                 budget.getSchedule().getPeriodTime()!
         ); 
 
-        let transactions = await this.transactionRepository.getTransactions({
-            budgets: [budget.getId()],
-            startDate: startBudgetUTCDate.toISOString(),
-            endDate: budget.getSchedule().getUpdatedDate()?.toISOString(),
-        });
+        const extendFilter = new TransactionFilter()
+        extendFilter.budgets = [budget.getId()]
+        extendFilter.startDate = startBudgetUTCDate
+        extendFilter.endDate = budget.getSchedule().getUpdatedDate()
+        let transactions = await this.transactionRepository.getAll({
+            limit: 0, 
+            offset: 0,
+            queryAll: true,
+        }, extendFilter);
 
         let currentBalance = 0
-        let records = await this.recordRepository.getManyById(transactions.map(transaction => transaction.getRecordRef()))
+        let records = await this.recordRepository.getManyByIds(transactions.items.map(transaction => transaction.getRecordRef()))
         for (let record of records) {
             if (record.getType() === RecordType.DEBIT)
                 currentBalance += record.getMoney().getAmount()
         }
+
+        let saveBalance = 0
+        let saveGoals = await this.saveGoalRepository.getManyByIds(budget.getSaveGoalIds())
+        for (let saveGoal of saveGoals) 
+            saveBalance += saveGoal.getBalance().getAmount()
         
         let budgetDisplay: GetBudgetDto = {
             id: budget.getId(),
@@ -63,10 +83,13 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
             currentBalance: currentBalance,
             period: budget.getSchedule().getPeriod(),
             periodTime: budget.getSchedule().getPeriodTime(),
-            target: budget.getTarget(),
-            startDate: budget.getSchedule().getStartedDate().toISOString(),
-            updateDate: budget.getSchedule().getUpdatedDate().toISOString(),
-            endDate: budget.getSchedule().getEndingDate()?.toISOString()
+            target: budget.getTarget() + saveBalance,
+            realTarget: budget.getTarget(),
+            saveGoalIds: budget.getSaveGoalIds(),
+            saveGoalTarget: saveBalance,
+            startDate: budget.getSchedule().getStartedDate(),
+            updateDate: budget.getSchedule().getUpdatedDate(),
+            endDate: budget.getSchedule().getEndingDate()
         };
 
         return budgetDisplay

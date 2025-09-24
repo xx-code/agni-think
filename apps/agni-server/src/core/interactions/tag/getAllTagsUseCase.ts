@@ -1,6 +1,7 @@
-import { ListDto } from "@core/dto/base";
-import { TagRepository } from "../../repositories/tagRepository";
+import { ListDto, QueryFilter } from "@core/dto/base";
 import { IUsecase } from "../interfaces";
+import Repository from "@core/adapters/repository";
+import { Tag } from "@core/domains/entities/tag";
 
 export type GetAllTagDto = {
     id: string
@@ -9,18 +10,22 @@ export type GetAllTagDto = {
     isSystem: boolean
 }
 
-export class GetAllTagUseCase implements IUsecase<void, ListDto<GetAllTagDto>> {
-    private repository: TagRepository;
+export class GetAllTagUseCase implements IUsecase<QueryFilter, ListDto<GetAllTagDto>> {
+    private repository: Repository<Tag>;
 
-    constructor(repo: TagRepository) {
+    constructor(repo: Repository<Tag>) {
         this.repository = repo;
     }
 
-    async execute(): Promise<ListDto<GetAllTagDto>> {
-        let results = await this.repository.getAll();
+    async execute(request: QueryFilter): Promise<ListDto<GetAllTagDto>> {
+        let results = await this.repository.getAll({
+            limit: request.limit,
+            offset: request.offset,
+            queryAll: request.queryAll
+        });
 
         let tags: GetAllTagDto[] = []
-        for(let result of results) {
+        for(let result of results.items) {
             tags.push({
                 id: result.getId(),
                 value: result.getValue(),
@@ -29,6 +34,6 @@ export class GetAllTagUseCase implements IUsecase<void, ListDto<GetAllTagDto>> {
             })
         }  
 
-        return { items: tags, totals: tags.length }
+        return { items: tags, totals: results.total }
     }
 }

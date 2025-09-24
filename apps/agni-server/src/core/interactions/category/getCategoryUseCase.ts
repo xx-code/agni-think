@@ -1,6 +1,7 @@
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { CategoryRepository } from "../../repositories/categoryRepository";
 import { IUsecase } from "../interfaces";
+import { Category } from "@core/domains/entities/category";
+import Repository from "@core/adapters/repository";
 
 export type GetCategoryDto = {
     categoryId: string
@@ -11,9 +12,9 @@ export type GetCategoryDto = {
 }
 
 export class GetCategoryUseCase implements IUsecase<string, GetCategoryDto> {
-    private repository: CategoryRepository;
+    private repository: Repository<Category>;
 
-    constructor(repo: CategoryRepository) {
+    constructor(repo: Repository<Category>) {
         this.repository = repo;
     }
 

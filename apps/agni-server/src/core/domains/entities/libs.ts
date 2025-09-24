@@ -1,4 +1,3 @@
-import { DateService } from "@core/adapters/libs";
 import { ValueError } from "@core/errors/valueError";
 import { Period } from "../constants";
 
@@ -52,12 +51,22 @@ export class MomentDateService {
     static formatDate(date: string):Date {
         // this.assertValidDate(date)
 
-        let formatted = moment(date)
+        let formatted = moment.utc(date)
         if (!formatted.isValid())
             throw new ValueError(`${date} is not valid`)
 
-        formatted = moment(date).format("YYYY-MM-DD")
+        formatted = moment.utc(date).format("YYYY-MM-DD")
         return new Date(formatted)
+    }
+    static formatDateStr(date: string):string {
+        // this.assertValidDate(date)
+
+        let formatted = moment.utc(date)
+        if (!formatted.isValid())
+            throw new ValueError(`${date} is not valid`)
+
+        formatted = moment.utc(date).format("YYYY-MM-DD")
+        return formatted
     }
 
     static formatDateWithtime(date: string): Date {
@@ -73,28 +82,26 @@ export class MomentDateService {
     }
 
     static getTodayWithTime(): Date {
-        let today = moment().format("YYYY-MM-DDTHH:mm")
+        let today = moment.utc().format("YYYY-MM-DDTHH:mm")
         return new Date(today)
     }
 
     static getToday(): Date {
-        let today = moment().format("YYYY-MM-DD")
+        let today = moment.utc().format("YYYY-MM-DD")
         return new Date(today)
     }
 
-    static getUTCDateAddition(date: Date, period: Period, periodTime: number): Date {
+    static getUTCDateAddition(date: Date, period: Period, periodTime: number, strictDatebefore: boolean=true): Date {
         let formatted = moment(date)
-        if (!formatted.isValid())
-            throw new ValueError(`${date} is not valid`)
       
         let today = moment()    
-        const value = this.periodMatcherToMoment(period) 
+        const periodStr = this.periodMatcherToMoment(period) 
 
-        let dateFormat = formatted.add(periodTime, value)
-
+        let dateFormat = formatted.add(periodTime, periodStr)
         if (dateFormat.isBefore(today)) {
-            var diff = today.diff(dateFormat, value)
-            dateFormat = dateFormat.add(periodTime * diff, value)
+            var diff = today.diff(dateFormat, periodStr)
+            if (diff === 0 && !strictDatebefore) diff += 1
+            dateFormat = dateFormat.add(diff + periodTime, periodStr)
         }
 
         return new Date(dateFormat) 
@@ -102,27 +109,24 @@ export class MomentDateService {
 
     static getUTCDateSubstraction(date: Date, period: Period, periodTime: number): Date {
         let formatted = moment(date)
-        if (!formatted.isValid())
-            throw new ValueError(`${date} is not valid`)
-      
-        let today = moment()    
+
+        let today = moment()  
         const value = this.periodMatcherToMoment(period) 
 
         let dateFormat = formatted.subtract(periodTime, value)
-
         if (dateFormat.isAfter(today)) {
             var diff = dateFormat.diff(today, value)
-            dateFormat = dateFormat.subtract(periodTime * diff, value)
+            dateFormat = dateFormat.subtract(periodTime + diff, value)
         }
 
         return new Date(dateFormat) 
     }
 
-    static compareDate(date1: string, date2: string): 0 | 1 | -1 {
+    static compareDate(date1: Date, date2: Date): 0 | 1 | -1 {
         // MomentDateService.assertValidDate(date1)
         // MomentDateService.assertValidDate(date2)
 
-        let formatted1 = moment(date1)
+        let formatted1 = moment.utc(date1)
         if (!formatted1.isValid())
             throw new ValueError(`date1: ${date1} is not valid`)
 
@@ -140,11 +144,11 @@ export class MomentDateService {
     }
 
     static compareDateWithDate(date1: Date, date2: Date): 0 | 1 | -1{
-        let formatted1 = moment(date1)
+        let formatted1 = moment.utc(date1)
         if (!formatted1.isValid())
             throw new ValueError(`date1: ${date1} is not valid`)
 
-        let formatted2 = moment(date2)
+        let formatted2 = moment.utc(date2)
         if (!formatted2.isValid())
             throw new ValueError(`date2: ${date2} is not valid`)
         
@@ -157,10 +161,12 @@ export class MomentDateService {
         return 0
     }
 
-    static getUTCDateByPeriod(period: Period, periodTime: number): {startDate: Date, endDate: Date} {
+    static getUTCDateByPeriod(beginDate: Date, period: Period, periodTime: number, startOfBeginPeriod: boolean = false): {startDate: Date, endDate: Date} {
         const momentPeriod = this.periodMatcherToMoment(period); 
-        const startDate = moment().startOf(momentPeriod);
-        const endDate = moment().add(periodTime, momentPeriod).startOf(momentPeriod);
+        const startDate = moment(beginDate).startOf(momentPeriod);
+        let endDate = moment(beginDate).add(periodTime, momentPeriod).startOf(momentPeriod)
+        if (!startOfBeginPeriod)
+            endDate = moment(endDate).subtract('days', 1) 
 
         return { 
             startDate: new Date(startDate.format("YYYY-MM-DD")),

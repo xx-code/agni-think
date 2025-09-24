@@ -14,6 +14,8 @@ import SaveGoalRoute from './routes/savingGoals';
 import BudgetRoute from './routes/budgets';
 import InternalRoute from './routes/internal';
 import AnalyticRoute from './routes/analytics';
+import PatrimonyRoute from './routes/patrimony';
+import NotificationRoute from './routes/notification';
 import { ApplyScheduleTransactionCronScheduler, AutoDeletreFreezeTransactionCronScheduler, CronScheduler } from "@infra/adapters/cronScheduler";
 import path = require("path");
 import axios from "axios";
@@ -28,7 +30,7 @@ const db: Knex = knex( {
     host: process.env.DB_HOST || '',
     user: process.env.DB_USER || '',
     password: process.env.DB_PASSWORD || '',
-    database : process.env.DB_NAME || ''//"agni-prod"
+    database : process.env.DB_NAME || '',//"agni-prod",
   }
 })
 
@@ -57,6 +59,8 @@ app.use(BudgetRoute)
 app.use(ScheduleTransactionRoute)
 app.use(InternalRoute)
 app.use(AnalyticRoute)
+app.use(PatrimonyRoute)
+app.use(NotificationRoute)
 
 app.listen(port, async () => {
   try {
@@ -89,10 +93,10 @@ app.listen(port, async () => {
     }
 
     const applyScheduleTransaction = new ApplyScheduleTransactionCronScheduler();
-    applyScheduleTransaction.execute({ minute:0, hour:0 });
+    await applyScheduleTransaction.execute("0 */12 * * *");
 
     const autoFreezeTransaction = new AutoDeletreFreezeTransactionCronScheduler();
-    autoFreezeTransaction.execute({ minute: 0, hour: 0 });
+    await autoFreezeTransaction.execute("0 */12 * * *");
 
   } catch(err) {
     console.log({

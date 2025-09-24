@@ -11,8 +11,8 @@ export default function useScheduleTransaction(scheduleTransactionId: string): U
                 accountId: data.accountId,
                 amount: data.amount,
                 categoryId: data.categoryId,
-                dateStart: data.dateStart,
-                dateUpdate: data.dateUpdate,
+                dateStart: new Date(data.dateStart),
+                dateUpdate: new Date(data.dateUpdate),
                 isPause: data.isPause,
                 name: data.name,
                 period: data.period,
@@ -20,7 +20,7 @@ export default function useScheduleTransaction(scheduleTransactionId: string): U
                 periodTime: data.periodTime,
                 tagIds: data.tagIds,
                 type: data.type,
-                dateEnd: data.dateEnd 
+                dateEnd: data.dateEnd ? new Date(data.dateEnd) : undefined
             } satisfies ScheduleTransactionType
         }
     });
@@ -29,7 +29,7 @@ export default function useScheduleTransaction(scheduleTransactionId: string): U
 }
 
 export async function fetchScheduleTransaction(scheduleTransactionId: string): Promise<ScheduleTransactionType> {
-    const res = await $fetch<ScheduleTransactionType>(`/api/schedule-transactions/${scheduleTransactionId}`, {
+    const res = await $fetch<GetScheduleTransactionResponse>(`/api/schedule-transactions/${scheduleTransactionId}`, {
         method: 'GET'
     });
 
@@ -38,8 +38,8 @@ export async function fetchScheduleTransaction(scheduleTransactionId: string): P
             accountId: res.accountId,
             amount: res.amount,
             categoryId: res.categoryId,
-            dateStart: res.dateStart,
-            dateUpdate: res.dateUpdate,
+            dateStart: new Date(res.dateStart),
+            dateUpdate: new Date(res.dateUpdate),
             isPause: res.isPause,
             isFreeze: res.isFreeze,
             name: res.name,
@@ -47,6 +47,6 @@ export async function fetchScheduleTransaction(scheduleTransactionId: string): P
             periodTime: res.periodTime,
             tagIds: res.tagIds,
             type: res.type,
-            dateEnd: res.dateEnd
+            dateEnd: res.dateEnd ? new Date(res.dateEnd) : undefined
         } 
 }

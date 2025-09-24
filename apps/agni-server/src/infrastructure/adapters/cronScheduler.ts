@@ -3,31 +3,26 @@ import container from "src/di_contenair";
 import cron from 'node-cron';
 
 export class CronScheduler implements TaskScheduler { 
-    runTask(timer: TaskTimer, task?: () => Promise<void>, taskName?: string): void {
-        cron.schedule(this.cronBuildTimer(timer), async () => {
+    async runTask(timer: string, task?: () => Promise<void>, taskName?: string): Promise<void> {
+        if (task) {
+            console.log(`[First start]: ${taskName || ''} - started`);
+            await task()
+            console.log(`[First start]: ${taskName || ''} - ended`);
+        }
+        cron.schedule(timer, async () => {
             if (!task) {
                 console.log(`Task not defined`)
                 return 
             }
             console.log(`[server Task]: ${taskName || ''} - started`);
-            task();
-            console.log(`[server Task]: ${taskName || ''} - end`);
-        },   { timezone: 'America/Toronto' }) ;
-    }
-
-    private cronBuildTimer(timer: TaskTimer): string {
-        if (!timer.seconde && !timer.minute && !timer.hour &&
-            !timer.month && timer.dayOfMonth && timer.dayOfweek)
-            throw new Error("Timer not set for the task");
-
-
-        return `${timer.seconde?.toString() || '*'} ${timer.minute?.toString() || '*'} ${timer.hour?.toString() || '*' }` 
-        +` ${timer.dayOfMonth?.toString() || '*'} ${timer.month?.toString() || '*'} ${timer.dayOfweek?.toString() || '*'}`
+            await task();
+            console.log(`[server Task]: ${taskName || ''} - ended`);
+        }) ;
     }
 }
 
 export class ApplyScheduleTransactionCronScheduler {
-    execute(timer: TaskTimer) {
+    execute(timer: string) {
         const cronScheduler = new CronScheduler();
         cronScheduler.runTask(
             timer, 
@@ -38,7 +33,7 @@ export class ApplyScheduleTransactionCronScheduler {
 }
 
 export class AutoDeletreFreezeTransactionCronScheduler {
-    execute(timer: TaskTimer) {
+    execute(timer: string) {
         const cronScheduler = new CronScheduler();
         cronScheduler.runTask(
             timer,

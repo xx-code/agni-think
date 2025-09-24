@@ -1,3 +1,4 @@
+import type { Reactive } from "vue";
 import type { ListResponse } from "~/types/api";
 import type { GetAllAccountPastBalanceRequest, GetAllAccountWithPastBalanceResponse } from "~/types/api/account";
 import type { AccountWithPastBalanceType } from "~/types/ui/account";
@@ -23,7 +24,7 @@ function computeDiffPercent(pastBalance: number, balance: number) {
     return Number((Math.abs(((balance/pastBalance) * 100) - 100)).toFixed(2))
 }
 
-export default function useAccountsWitPastBalance(request: GetAllAccountPastBalanceRequest): 
+export default function useAccountsWitPastBalance(request: Reactive<GetAllAccountPastBalanceRequest>): 
 UseApiFetchReturn<ListResponse<AccountWithPastBalanceType>> {
 
     const { data, error, refresh } = useFetch('/api/accounts/getAllAccountWithBalance', {

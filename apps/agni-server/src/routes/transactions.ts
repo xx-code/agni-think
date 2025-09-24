@@ -15,7 +15,7 @@ router.post("/v1/transactions",
     body('amount').notEmpty().isNumeric(),
     body('budgetIds').isArray(),
     body('categoryId').notEmpty().isString(),
-    body('date').notEmpty().isDate(),
+    body('date').notEmpty().isISO8601().toDate(),
     body('description').notEmpty().isString(),
     body('tagIds').isArray(),
     body('type').notEmpty().isString(),
@@ -41,7 +41,7 @@ router.put("/v1/transactions/:id",
     body('amount').optional().isNumeric(),
     body('budgetIds').optional().isArray(),
     body('categoryId').optional().isString(),
-    body('date').optional().isDate(),
+    body('date').optional().isISO8601().toDate(),
     body('description').optional(),
     body('tagIds').optional().isArray(),
     body('type').optional().isString(),
@@ -56,9 +56,9 @@ router.put("/v1/transactions/:id",
                 res.sendStatus(200);
                 return;
             }
-            
             res.status(400).send({ errors: result.array() });
         } catch(err) {
+            console.log(err)
             res.status(400).send({ errors: [err] });
         }
     });
@@ -83,13 +83,13 @@ router.delete("/v1/transactions/:id", async (req, res) => {
 });
 
 router.get("/v1/transactions-balance",
-    query('accountFilterIds').optional().isArray(),
-    query('categoryFilterIds').optional().isArray(),
-    query('budgetFilterIds').optional().isArray(),
-    query('tagFilterIds').optional().isArray(),
-    query('dateStart').optional().isDate(),
-    query('dateEnd').optional().isDate(),
-    query('types').optional().isArray(),
+    query('accountFilterIds').optional().toArray(),
+    query('categoryFilterIds').optional().toArray(),
+    query('budgetFilterIds').optional().toArray(),
+    query('tagFilterIds').optional().toArray(),
+    query('dateStart').optional().isISO8601().toDate(),
+    query('dateEnd').optional().isISO8601().toDate(),
+    query('types').optional().toArray(),
     query('minPrice').optional().isNumeric(),
     query('maxPrice').optional().isNumeric(),
     async (req, res) => {
@@ -102,9 +102,13 @@ router.get("/v1/transactions-balance",
                 res.status(200).json({balance: balance});
                 return;
             }
+
+
+            console.log(result)
             
             res.status(400).send({ errors: result.array() });
         } catch(err) {
+            console.log(err)
             res.status(400).send({ errors: [err] });
         }
     });
@@ -120,16 +124,17 @@ router.get("/v1/transactions/:id", async (req, res) => {
 }); 
 
 router.get("/v1/transactions", 
-    query('offset').isNumeric().default(0),
-    query('limit').isNumeric().default(25),
+    query('offset').isNumeric().toInt().default(0),
+    query('limit').isNumeric().toInt().default(25),
     query('sortBy').optional(),
     query('sortSense').optional(),
-    query('accountFilterIds').optional().isArray(),
-    query('categoryFilterIds').optional().isArray(),
-    query('budgetFilterIds').optional().isArray(),
-    query('tagFilterIds').optional().isArray(),
-    query('dateStart').optional().isDate(),
-    query('dateEnd').optional().isDate(),
+    query('status').optional().isString(),
+    query('accountFilterIds').optional().toArray(),
+    query('categoryFilterIds').optional().toArray(),
+    query('budgetFilterIds').optional().toArray(),
+    query('tagFilterIds').optional().toArray(),
+    query('dateStart').optional().isISO8601().toDate(),
+    query('dateEnd').optional().isISO8601().toDate(),
     query('types').optional().isArray(),
     query('minPrice').optional().isNumeric(),
     query('maxPrice').optional().isNumeric(),
@@ -161,6 +166,7 @@ router.post("/v1/transfert-transaction",
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestTransfertTransactionUseCase = matchedData(req);
+                data.date = new Date()
                 await container.transactionUseCase?.transfertTransaction.execute(data);
 
                 res.sendStatus(200);

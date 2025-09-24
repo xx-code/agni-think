@@ -6,7 +6,7 @@
     <div class="nav-container">
         <div class="nav-content">
             <div class="top-nav">
-                <NavBarLogoTitle title="Agni." />
+                <NavBarLogoTitle title="Agni." title-responsive="A." />
             </div>
             <div>
                 <NavBarItem title="Dashboard" link="/" icon="i-lucide-circle-gauge"  />
@@ -16,6 +16,7 @@
                 <NavBarItem title="Budgets" link="/budgets" icon="i-lucide-wallet-cards"  />
                 <NavBarItem title="Goals" link="/goals" icon="i-lucide-piggy-bank"  />
                 <NavBarItem title="Analystics" link="/analystics" icon="i-lucide-chart-network"/>
+                <NavBarItem title="Patrimoine" link="/patrimonies" icon="i-lucide-castle" />
                 <NavBarItem title="Settings" link="/settings" icon="i-lucide-settings"/>
             </div>
         </div>

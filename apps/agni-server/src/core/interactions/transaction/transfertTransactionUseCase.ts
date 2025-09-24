@@ -1,36 +1,33 @@
-import { RecordRepository } from "../../repositories/recordRepository";
-import { AccountRepository } from "../../repositories/accountRepository";
-import { TransactionRepository } from "../../repositories/transactionRepository";
 import { GetUID } from "@core/adapters/libs";
-import { RecordType, TransactionStatus, TransactionType, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
-import { Money } from "@core/domains/entities/money";
+import { RecordType, TransactionStatus, TransactionType, TRANSFERT_CATEGORY_ID } from "@core/domains/constants"; import { Money } from "@core/domains/entities/money";
 import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
 import { ValueError } from "@core/errors/valueError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { MomentDateService } from "@core/domains/entities/libs";
+import Repository from "@core/adapters/repository";
+import { Account } from "@core/domains/entities/account";
 
 
 export type RequestTransfertTransactionUseCase = {
     accountIdFrom: string;
     accountIdTo: string;
-    date: string;
+    date: Date;
     amount: number;
 }
 
 export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTransactionUseCase, void> {
-    private transactionRepository: TransactionRepository
-    private accountRepository: AccountRepository
-    private recordRepository: RecordRepository
+    private transactionRepository: Repository<Transaction>
+    private accountRepository: Repository<Account>
+    private recordRepository: Repository<Record>
     private unitOfWork: UnitOfWorkRepository
 
 
     constructor(
-        transactionRepository: TransactionRepository,
-        accountRepository: AccountRepository,
-        recordRepository: RecordRepository,
+        transactionRepository: Repository<Transaction>,
+        accountRepository: Repository<Account>,
+        recordRepository: Repository<Record>,
         unitOfWork: UnitOfWorkRepository
     ) {
         this.transactionRepository = transactionRepository
@@ -62,23 +59,22 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
             await this.accountRepository.update(accountFrom)
             await this.accountRepository.update(accountTo)
 
-            let date = MomentDateService.formatDateWithtime(request.date).toISOString()
             
-            let fromRecord: Record = new Record(GetUID(), amount, date, RecordType.DEBIT)
+            let fromRecord: Record = new Record(GetUID(), amount, request.date, RecordType.DEBIT)
             fromRecord.setDescription(`Transfert du compte ${accountFrom.getTitle()}`) 
 
-            let toRecord: Record = new Record(GetUID(), amount, date, RecordType.CREDIT)
+            let toRecord: Record = new Record(GetUID(), amount, request.date, RecordType.CREDIT)
             toRecord.setDescription(`Transfert au compte ${accountTo.getTitle()}`)
 
-            await this.recordRepository.save(fromRecord);
+            await this.recordRepository.create(fromRecord);
 
-            await this.recordRepository.save(toRecord);
+            await this.recordRepository.create(toRecord);
 
-            let transFrom = new Transaction(GetUID(), accountFrom.getId(), fromRecord.getId(), TRANSFERT_CATEGORY_ID, date, TransactionType.OTHER, TransactionStatus.COMPLETE)
-            await this.transactionRepository.save(transFrom)
+            let transFrom = new Transaction(GetUID(), accountFrom.getId(), fromRecord.getId(), TRANSFERT_CATEGORY_ID, request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
+            await this.transactionRepository.create(transFrom)
 
-            let transTo = new Transaction(GetUID(), accountTo.getId(), toRecord.getId(), TRANSFERT_CATEGORY_ID, date, TransactionType.OTHER, TransactionStatus.COMPLETE)
-            await this.transactionRepository.save(transTo);
+            let transTo = new Transaction(GetUID(), accountTo.getId(), toRecord.getId(), TRANSFERT_CATEGORY_ID, request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
+            await this.transactionRepository.create(transTo);
 
             await this.unitOfWork.commit()
         } catch (err) {

@@ -22,10 +22,15 @@ class GoalToPlanDto(BaseModel):
     description: str
     target: float
     score: float
-    current_balance: float
+    amount_in_goal: float
+    left_amount: float
     desir_value: int
     importance: int
     wish_due_date: Optional[str] = None 
+
+class WishGoalToTargetDto(BaseModel):
+    goal_uuid: str
+    amount: int
 
 class AgentPlanningAdivsorInput(BaseModel):
     current_amount_in_investissment: float
@@ -33,5 +38,5 @@ class AgentPlanningAdivsorInput(BaseModel):
     percent_of_net_income_saving_and_investissment: float
     net_income: float
     amount_to_allocate: float
+    future_amount_to_allocate: float
     goals: list[GoalToPlanDto]
-    wish_spends: list[WishSpendPlanningDto]
