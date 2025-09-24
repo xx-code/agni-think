@@ -54,13 +54,13 @@ const incomeCardInfo = computed<CardInfo>(() => {
     if (analyticIncomes.value && analyticIncomes.value.incomes.length > 2)
         lastIncome = analyticIncomes.value.incomes[analyticIncomes.value.incomes.length - 2]
 
-    const percent = computePercentage(currentIncome, lastIncome)
+    const percent = computePercentage(lastIncome, currentIncome)
     const lastDesc = analyticIncomes.value?.incomesByDescription[analyticIncomes.value.incomesByDescription.length - 1]
 
     return {
         amount: currentIncome,
         description: "Source: " +  lastDesc?.map(i => i.label + ' ' + formatCurrency(i.income)).join(' . '),
-        cardInfo: `%${percent}`,
+        cardInfo: `%${percent.toFixed(2)}`,
         isPositif: currentIncome > lastIncome,
     }
 })
@@ -74,13 +74,13 @@ const spendCardInfo = computed<CardInfo>(() => {
     if (analyticSpend.value && analyticSpend.value.totalSpends.length > 2)
         lastSpend = analyticSpend.value.totalSpends[analyticSpend.value.totalSpends.length - 2]
 
-    const percent = computePercentage(currentSpend, lastSpend)
+    const percent = computePercentage(lastSpend, currentSpend)
 
     return {
         amount: currentSpend,
-        description: analyticSpendAllocation.value?.map(i => `${i.transactionType} ${formatCurrency(i.value)}`).join(' . ') ?? '',
-        cardInfo: `%${percent}`, 
-        isPositif: currentSpend > lastSpend 
+        description: analyticSpendAllocation.value?.map(i => `${i.transactionType} %${i.value}`).join(' . ') ?? '',
+        cardInfo: `%${percent.toFixed(2)}`, 
+        isPositif: currentSpend < lastSpend 
     } 
 })
 
@@ -94,7 +94,7 @@ const cashflowCardInfo = computed<CardInfo>(() => {
     if (cashflow.value && cashflow.value.incomes.length > 1 && cashflow.value.spends.length > 1) {
         const stop = cashflow.value.incomes.length > 3 ? cashflow.value.incomes.length - 3 : 1
         for(let i = cashflow.value.incomes.length - 1; i > stop; i--) {
-            if (cashflow.value.incomes[i] < 0)
+            if ((cashflow.value.incomes[i] - cashflow.value.spends[i]) < 0)
                 isPositif = false
         
             lastCashFlows.push(cashflow.value.incomes[i] - cashflow.value.spends[i])
@@ -123,10 +123,10 @@ const savingCardInfo = computed<CardInfo>(() => {
     // }
 
     return {
-        amount: currentSavingRate,
+        amount: currentSavingRate * 100,
         description: `Epagne total se mois: ${formatCurrency(currentSaving)}`,
-        cardInfo: `Objectif ${currentSavingRate}% >= 10%`,
-        isPositif: currentSavingRate > 10
+        cardInfo: `Objectif ${(currentSavingRate * 100).toFixed(2)}% >= 10%`,
+        isPositif: (currentSavingRate * 100) > 10
     }
 })
 
@@ -325,23 +325,27 @@ watchEffect(() => {
                 title="Revenu net du mois"
                 :amount="incomeCardInfo.amount"
                 :chip-info="incomeCardInfo.cardInfo"
+                :is-percentage="false"
                 :description="incomeCardInfo.description"
                 :is-positive="incomeCardInfo.isPositif" />
             <CardResumeAnalytics 
                 title="Depense totales"
                 :amount="spendCardInfo.amount"
                 :chip-info="spendCardInfo.cardInfo"
+                :is-percentage="false"
                 :description="spendCardInfo.description"
                 :is-positive="spendCardInfo.isPositif" />
             <CardResumeAnalytics 
                 title="Cashflow net"
                 :amount="cashflowCardInfo.amount"
                 :chip-info="cashflowCardInfo.cardInfo"
+                :is-percentage="false"
                 :description="cashflowCardInfo.description"
                 :is-positive="cashflowCardInfo.isPositif" />
             <CardResumeAnalytics 
                 title="Taux d'epargne"
                 :amount="savingCardInfo.amount"
+                :is-percentage="true"
                 :chip-info="savingCardInfo.cardInfo"
                 :description="savingCardInfo.description"
                 :is-positive="savingCardInfo.isPositif" />

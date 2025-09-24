@@ -179,7 +179,7 @@ const onDeleteBudget = async (budgetId: string) => {
                         <div>
                             <p class="text-sm" style="font-weight: 500;color: #D9D9D9;">Reste</p>
                             <div class="flex items-center">
-                                <AmountTitle :amount="budget.target - budget.balance" /> 
+                                <AmountTitle :amount="budget.target - budget.balance" sign="$"/> 
                                 <p class="text-2xl" style="font-weight: bold;color: #D9D9D9;">/</p>
                                 <div class="flex flex-col">
                                     <!-- Total target -->
@@ -200,7 +200,7 @@ const onDeleteBudget = async (budgetId: string) => {
                         <UProgress status v-model="budget.percentageSpend"  ></UProgress>
                         <div class="flex items-center mt-2">
                             <p class="text-xl mr-2 font-semibold text-gray-500">Depense: </p>
-                            <AmountTitle :amount="budget.balance" />
+                            <AmountTitle :amount="budget.balance" sign="$"/>
                         </div>
                     </div>
                 </div>

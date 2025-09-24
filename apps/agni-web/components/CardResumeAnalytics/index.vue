@@ -1,10 +1,11 @@
 <script setup lang="ts">
-const { title, amount, description, chipInfo, isPositive } = defineProps<{
+const { title, amount, description, chipInfo, isPositive, isPercentage } = defineProps<{
     title: string
     amount: number
     description: string
     chipInfo: string
     isPositive: boolean
+    isPercentage: boolean
 }>()
 
 </script>
@@ -14,7 +15,7 @@ const { title, amount, description, chipInfo, isPositive } = defineProps<{
         <div class="space-y-2">
             <h4 class="text-gray-500 text-md font-bold">{{ title }}</h4>
             <div style="">
-                <AmountTitle :amount="amount" />
+                <AmountTitle :amount="amount" :sign="isPercentage ? '%' : '$'"/>
                 <UBadge size="md" :color="isPositive ? 'success' : 'error'">
                     {{ chipInfo }}
                 </UBadge>
