@@ -1,5 +1,8 @@
 import { RequestCashFlow } from "@core/interactions/analystic/cashflowAnalyse";
 import { RequestEstimationLeftAmount } from "@core/interactions/analystic/estimationleftAmount";
+import { RequestIncomAnalystic } from "@core/interactions/analystic/income";
+import { RequestSavingAnalystic } from "@core/interactions/analystic/savings";
+import { RequestSpendAnalystic } from "@core/interactions/analystic/spends";
 import { RequestSuggestPlanningSaveGoal } from "@core/interactions/analystic/suggestPlanningSaveGoalUseCase";
 import { Router } from "express";
 import { body, matchedData, query, validationResult } from "express-validator";
@@ -92,6 +95,75 @@ router.get('/v1/analytics/budget-rules',
             const budgets = await container.analyticUseCase?.analyseBudgetRule.execute(data);
 
             res.status(200).send(budgets);
+        } catch(err) {
+            console.log(err)
+            res.status(400).send({ errors: [ err ]});
+        }
+    }
+)
+
+router.get('/v1/analytics/incomes', 
+    query('period').isString(),
+    query('periodTime').isNumeric(),
+    query('showNumber').isNumeric(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (!result.isEmpty()) { 
+                res.status(400).send({ errors: result.array() });
+                return;
+            }
+
+            const data: RequestIncomAnalystic = matchedData(req);
+            const incomes = await container.analyticUseCase?.incomeAnalystic.execute(data);
+
+            res.status(200).send(incomes);
+        } catch(err) {
+            console.log(err)
+            res.status(400).send({ errors: [ err ]});
+        }
+    }
+)
+
+router.get('/v1/analytics/savings', 
+    query('period').isString(),
+    query('periodTime').isNumeric(),
+    query('showNumber').isNumeric(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (!result.isEmpty()) { 
+                res.status(400).send({ errors: result.array() });
+                return;
+            }
+
+            const data: RequestSavingAnalystic = matchedData(req);
+            const savings = await container.analyticUseCase?.savingAnalystic.execute(data);
+
+            res.status(200).send(savings);
+        } catch(err) {
+            console.log(err)
+            res.status(400).send({ errors: [ err ]});
+        }
+    }
+)
+
+router.get('/v1/analytics/spends', 
+    query('period').isString(),
+    query('periodTime').isNumeric(),
+    query('showNumber').isNumeric(),
+    async (req, res) => {
+        try {
+            const result = validationResult(req);
+            if (!result.isEmpty()) { 
+                res.status(400).send({ errors: result.array() });
+                return;
+            }
+
+            const data: RequestSpendAnalystic = matchedData(req);
+            const spends = await container.analyticUseCase?.spendAnalystic.execute(data);
+
+            res.status(200).send(spends);
         } catch(err) {
             console.log(err)
             res.status(400).send({ errors: [ err ]});
