@@ -25,7 +25,7 @@ const schema = z.object({
     transactionType: z.string().nonempty('Vous devez selectionner une categories'),
     categoryId: z.string().nonempty('Vous devez selectionner une categories'),
     description: z.string().nonempty('Vous devez ajouter une description'),
-    amount: z.number().min(1, 'La somme doit etre plus grand que zero'),
+    amount: z.number().gt(0, 'La somme doit etre plus grand que zero'),
     tagIds: z.string().array(),
     budgetIds: z.string().array()
 })
