@@ -1,15 +1,15 @@
 import useApiLink from "~/composables/useApiLink";
-import type { GetEstimationLeftAmountResponse } from "~/types/api/analytics";
+import type { GetIncomeAnalysticResponse } from "~/types/api/analytics";
 
 export default defineEventHandler(async event => {
     try {
         const api = useApiLink(); 
         const query = getQuery(event);
-        const res = await $fetch(`${api}/analytics/estimation-left-amount`, {
+        const res = await $fetch(`${api}/analytics/incomes`, {
             method: 'GET',
             query: query
         });
-        const data = (res as GetEstimationLeftAmountResponse);
+        const data = (res as GetIncomeAnalysticResponse);
         return data;
     } catch(err) {
         console.log('Get estimation amount: ' + err);

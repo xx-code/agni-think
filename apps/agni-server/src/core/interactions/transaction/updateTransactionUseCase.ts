@@ -9,7 +9,6 @@ import { TransactionDependencies } from "../facades";
 import { CreatedDto } from "@core/dto/base";
 import Repository from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
-import { IEventRegister } from "@core/adapters/event";
 
 
 export type RequestUpdateTransactionUseCase = {
@@ -79,6 +78,7 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
             if (request.type) {
                 let type = mapperMainTransactionCategory(request.type)
                 record.setType(type === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT)
+                transaction.setTransactionType(type)
             }
 
             if (request.description) {

@@ -99,6 +99,9 @@ import { PushNotificationUseCase, RequestPushNotification } from '@core/interact
 import { DeleteNotifcationUseCase } from '@core/interactions/notification/deleteNotification';
 import { ToggleReadNotificationUseCase } from '@core/interactions/notification/toggleReadNotification';
 import { GetAllNotificationDto, GetAllNotificationUseCases, NotificationQueryFilter } from '@core/interactions/notification/getAllNotication';
+import { IncomeAnalysticResponse, IncomeAnalysticUseCase, RequestIncomAnalystic } from '@core/interactions/analystic/income';
+import { RequestSavingAnalystic, SavingAnalysticResponse, SavingAnalysticUseCase } from '@core/interactions/analystic/savings';
+import { RequestSpendAnalystic, SpendAnalysticResponse, SpendAnalysticUseCase } from '@core/interactions/analystic/spends';
 
 
 export class DiContenair {
@@ -180,6 +183,9 @@ export class DiContenair {
         planningSaveGoalAdvisor: IUsecase<RequestSuggestPlanningSaveGoal, GetAllSuggestPlanningDto>
         cashflowAnalyse: IUsecase<RequestCashFlow, CashFlowResponse>
         analyseBudgetRule: IUsecase<RequestAnalyseBudgetRule, AnalyseBudgetRuleDto[]>
+        incomeAnalystic: IUsecase<RequestIncomAnalystic, IncomeAnalysticResponse>
+        savingAnalystic: IUsecase<RequestSavingAnalystic, SavingAnalysticResponse>
+        spendAnalystic: IUsecase<RequestSpendAnalystic, SpendAnalysticResponse>
     }
 
     public patrimonyUseCase?: {
@@ -445,11 +451,13 @@ export class DiContenair {
 
     private registerBudgetUsecases() {
         this.budgetUseCase = {
-            createBudget: new CreationBudgetUseCase(this.getRepository('budget')),
+            createBudget: new CreationBudgetUseCase(this.getRepository('budget'), this.getRepository('save_goal')),
             deleteBudget: new DeleteBudgetUseCase(this.getRepository('budget')),
-            getBudget: new GetBudgetUseCase(this.getRepository('budget'), this.getRepository('transaction'), this.getRepository('record')),
-            getAllBudgets: new GetAllBudgetUseCase(this.getRepository('budget'), this.getRepository('transaction'), this.getRepository('record')),
-            updateBudget: new UpdateBudgetUseCase(this.getRepository('budget'))
+            getBudget: new GetBudgetUseCase(this.getRepository('budget'), 
+            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal')),
+            getAllBudgets: new GetAllBudgetUseCase(this.getRepository('budget'), 
+            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal')),
+            updateBudget: new UpdateBudgetUseCase(this.getRepository('budget'), this.getRepository('save_goal'))
         }
     }
 
@@ -509,7 +517,10 @@ export class DiContenair {
             planningSaveGoalAdvisor: new SuggestPlanningSaveGoalUseCase(estimateUseCase, this.getRepository('account'), this.getRepository('save_goal'), 
             this.getAgent('goal_ranking')! as IAgentScoringGoal, this.getAgent('planning')! as IAgentPlanningAdvisor),
             cashflowAnalyse: new CashFlowAnalyseUseCase(this.getRepository('transaction'), this.getRepository('record')),
-            analyseBudgetRule: new AnalyseBudgetRuleUseCase(this.getRepository('transaction'), this.getRepository('record'), this.getRepository('account'))
+            analyseBudgetRule: new AnalyseBudgetRuleUseCase(this.getRepository('transaction'), this.getRepository('record'), this.getRepository('account')),
+            incomeAnalystic: new IncomeAnalysticUseCase(this.getRepository('record'), this.getRepository('transaction')),
+            savingAnalystic: new SavingAnalysticUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record')),
+            spendAnalystic: new SpendAnalysticUseCase(this.getRepository('record'), this.getRepository('transaction'), this.getRepository('category'), this.getRepository('tag')) 
         }
     }
 

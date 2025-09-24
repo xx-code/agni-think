@@ -27,3 +27,51 @@ export type GetAnalyseBudgeRuleRequest = {
     periodTime: number
     beginDate?: string
 }
+
+// export type GetIncomeByDescription = {
+//     label: string
+//     income: number
+// }
+
+export type GetIncomeAnalysticRequest = {
+    period: string
+    periodTime: number
+    beginDate?: string
+}
+export type GetIncomeAnalysticResponse = {
+    incomes: number[]
+    incomesByDescription: {label: string, income: number}[][]
+}
+
+export type GetSavingAnalysticRequest = {
+    period: string
+    periodTime: number
+    beginDate?: string
+}
+export type GetSavingAnalysticResponse = {
+    savings: number[]
+    investements: number[]
+    savingRates: number[] 
+    investementRates: number[]
+}
+
+type GetSpendTag = {
+    tagId: string
+    spend: number
+}
+
+type GetSpendCategory = {
+    categoryId: string
+    spend: number
+    spendBytag: GetSpendTag[]
+}
+
+export type GetSpendAnalysticRequest = {
+    period: string
+    periodTime: number
+    beginDate?: string 
+}
+export type GetSpendAnalysticResponse = {
+    totalSpends: number[] 
+    spendByCategories: GetSpendCategory[][] 
+}

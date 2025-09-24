@@ -1,21 +1,32 @@
 <script setup lang="ts">
-const props = defineProps<{ amount: number }>()
+const {amount, sign = "$"} = defineProps<{ amount: number, sign: string }>()
 
-const amountRounded = props.amount?.toFixed(2) ?? "0"
-const integerValue = amountRounded.slice(0, amountRounded.indexOf(".")) 
-const decimalValue = amountRounded.replace(integerValue + ".", "")
+
+const amountRounded = ref<string>(amount?.toFixed(2) ?? "0") 
+const amountValue = computed<{integer: string, decimal: string}>(() => { 
+    let integerValue = amountRounded.value.slice(0, amountRounded.value.indexOf(".")) 
+    return {
+        integer: integerValue,
+        decimal: amountRounded.value.replace(integerValue + ".", "")
+    }
+}) 
+
+watch([() => amount], () => {
+    amountRounded.value = amount.toFixed(2) 
+})
+
 
 </script>
 
 <template>
    <div class="amount-title text-2xl">
-        <span class="integer">$</span>
-        <div v-for="val in integerValue" :key="val">
+        <span class="integer">{{sign}}</span>
+        <div v-for="val in amountValue.integer" :key="val">
             <span class="interger">{{ val }}</span>
             
         </div>
         <span class="interger">.</span>
-        <div v-for="val in decimalValue" :key="val">
+        <div v-for="val in amountValue.decimal" :key="val">
             <span class="decimal">{{ val }}</span>
         </div>
    </div> 

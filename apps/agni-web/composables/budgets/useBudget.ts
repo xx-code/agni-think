@@ -14,6 +14,9 @@ export default function useBudget(budgetId: string): UseApiFetchReturn<BudgetTyp
                 periodTime: data.periodTime,
                 startDate: new Date(data.startDate),
                 target: data.target,
+                realTarget: data.realTarget,
+                saveGoalIds: data.saveGoalIds,
+                saveGoalTarget: data.saveGoalTarget,
                 updateDate: new Date(data.updateDate),
                 endDate: data.endDate ? new Date(data.endDate): undefined
             } satisfies BudgetType
@@ -36,6 +39,9 @@ export async function fetchBudget(budgetId: string): Promise<BudgetType> {
         periodTime: res.periodTime,
         startDate: new Date(res.startDate),
         target: res.target,
+        realTarget: res.realTarget,
+        saveGoalIds: res.saveGoalIds,
+        saveGoalTarget: res.saveGoalTarget,
         updateDate: new Date(res.updateDate),
         endDate: res.endDate ? new Date(res.endDate) : undefined 
     }

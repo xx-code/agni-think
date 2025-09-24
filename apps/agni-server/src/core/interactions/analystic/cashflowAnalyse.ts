@@ -1,4 +1,3 @@
-import { TransactionRepository } from "@core/repositories/transactionRepository"
 import { IUsecase } from "../interfaces"
 import { 
     FREEZE_CATEGORY_ID, 
@@ -9,7 +8,6 @@ import {
     TRANSFERT_CATEGORY_ID } from "@core/domains/constants"
 import UnExpectedError from "@core/errors/unExpectedError"
 import { MomentDateService } from "@core/domains/entities/libs"
-import { RecordRepository } from "@core/repositories/recordRepository"
 import Repository, { TransactionFilter } from "@core/adapters/repository"
 import { Transaction } from "@core/domains/entities/transaction"
 import { Record } from "@core/domains/entities/record"

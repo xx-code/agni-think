@@ -10,6 +10,7 @@ const router = Router();
 router.post('/v1/budgets', 
     body('title').notEmpty().isString(),
     body('target').notEmpty().isNumeric(),
+    body('saveGoalIds').toArray(),
     body('schedule').notEmpty().isObject(),
     body('schedule.period').notEmpty().isString(),
     body('schedule.periodTime').optional().isNumeric(),
@@ -35,6 +36,7 @@ router.post('/v1/budgets',
 router.put('/v1/budgets/:id', 
     body('title').optional().isString(),
     body('target').optional().isNumeric(),
+    body('saveGoalIds').optional().toArray(),
     body('schedule').optional().isObject(),
     async (req: Request, res: Response) => {
         try {
@@ -50,6 +52,7 @@ router.put('/v1/budgets/:id',
             
             res.status(400).send({ errors: result.array() });
         } catch(err) {
+            console.log(err)
             res.status(400).send({ errors: [ err ]});
         }
     });

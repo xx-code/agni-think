@@ -19,6 +19,7 @@ export type InputSaveGoalAgent = {
 
 export interface AgentGoalScoringInput {
     allocateAmount: number
+    futureAllocateAmout: number
     saveGoals: InputSaveGoalAgent[]
 }
 

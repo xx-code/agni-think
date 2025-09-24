@@ -4,8 +4,11 @@ import cron from 'node-cron';
 
 export class CronScheduler implements TaskScheduler { 
     async runTask(timer: string, task?: () => Promise<void>, taskName?: string): Promise<void> {
-        if (task)
+        if (task) {
+            console.log(`[First start]: ${taskName || ''} - started`);
             await task()
+            console.log(`[First start]: ${taskName || ''} - ended`);
+        }
         cron.schedule(timer, async () => {
             if (!task) {
                 console.log(`Task not defined`)
@@ -13,7 +16,7 @@ export class CronScheduler implements TaskScheduler {
             }
             console.log(`[server Task]: ${taskName || ''} - started`);
             await task();
-            console.log(`[server Task]: ${taskName || ''} - end`);
+            console.log(`[server Task]: ${taskName || ''} - ended`);
         }) ;
     }
 }

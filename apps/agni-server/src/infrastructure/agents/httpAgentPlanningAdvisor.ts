@@ -6,8 +6,7 @@ type RequestHttpAgent = {
     percent_of_net_income_saving_and_investissment: number,
     net_income: number,
     amount_to_allocate: number,
-    comment: string,
-    goals_i_want_to_target: {goal_uuid: string, amount: number}[] 
+    future_amount_to_allocate: number
     goals:{
         uuid: string,
         description: string,
@@ -18,10 +17,6 @@ type RequestHttpAgent = {
         desir_value: number,
         importance: number,
         wish_due_date?: string
-    }[],
-    wish_spends:{
-        amount: number,
-        description: string
     }[]
 }
 
@@ -41,10 +36,9 @@ export default class HttpAgentPlanningAdvisor implements IAgentPlanningAdvisor {
             const api = process.env.API_AGENT_URL || 'http://127.0.0.1:8000'
             const res = await axios.post(api + "/agents/" + "planning-advisor",{
                     amount_to_allocate: input.amountToAllocate,
+                    future_amount_to_allocate: input.futureAmountToAllocate,
                     current_amount_in_investissment: input.currentAmountInInvestissment,
                     current_amount_in_saving: input.currentAmountInSaving,
-                    comment: input.comment,
-                    goals_i_want_to_target: input.whishGoalTarget.map(i => ({ amount: i.amount, goal_uuid:i.goalId})),
                     goals: input.goals.map(i => ({
                         uuid: i.id,
                         description: i.description,
@@ -58,10 +52,6 @@ export default class HttpAgentPlanningAdvisor implements IAgentPlanningAdvisor {
                     })),
                     net_income: input.income,
                     percent_of_net_income_saving_and_investissment: input.percentForSavingAndInvestissment,
-                    wish_spends: input.wishSpends?.map(i => ({
-                        amount: i.amount,
-                        description: i.description
-                    })) || []
                 } satisfies RequestHttpAgent
             );
 

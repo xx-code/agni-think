@@ -1,6 +1,6 @@
 import { IUsecase } from "../interfaces";
 import { MomentDateService } from "@core/domains/entities/libs";
-import { AccountType, mapperPeriod, RecordType, TransactionType } from "@core/domains/constants";
+import { AccountType, mapperPeriod, RecordType, SAVING_CATEGORY_ID, TransactionType } from "@core/domains/constants";
 import Repository, { TransactionFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
@@ -79,8 +79,17 @@ export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRu
         const amountSave = recordBySaves.reduce((acc: number, record) => acc + record.getMoney().getAmount(), 0)
 
         results.push({
-            transactionType: 'Saving',
+            transactionType: 'Saving long-term',
             value: Number(((amountSave * 100) / incomeAmount).toFixed(2))
+        })
+
+        const savingShortTermTrans = transactions.items.filter(i => i.getCategoryRef() === SAVING_CATEGORY_ID).map(i => i.getRecordRef())
+        const recordByShortSaves = records.filter(i => savingShortTermTrans.includes(i.getId()) && i.getType() === RecordType.DEBIT)
+        const amountShortSave = recordByShortSaves.reduce((acc: number, record) => acc + record.getMoney().getAmount(), 0)
+
+        results.push({
+            transactionType: 'Saving short-term',
+            value: Number(((amountShortSave * 100) / incomeAmount).toFixed(2))
         })
 
         return results

@@ -38,7 +38,5 @@ class AgentPlanningAdivsorInput(BaseModel):
     percent_of_net_income_saving_and_investissment: float
     net_income: float
     amount_to_allocate: float
-    comment: str
+    future_amount_to_allocate: float
     goals: list[GoalToPlanDto]
-    goals_i_want_to_target: list[WishGoalToTargetDto]
-    wish_spends: list[WishSpendPlanningDto]

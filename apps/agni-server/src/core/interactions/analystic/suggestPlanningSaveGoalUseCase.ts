@@ -1,11 +1,13 @@
 import { IUsecase } from "../interfaces"
 import IAgentScoringGoal, { InputSaveGoalAgent } from "@core/agents/agentGoalScoring"
 import IAgentPlanningAdvisor, { GoalPlanningAdvisor } from "@core/agents/agentPlanningAdvisor"
-import { AccountType } from "@core/domains/constants"
+import { AccountType, ImportanceGoal, IntensityEmotionalDesir, Period } from "@core/domains/constants"
 import { GetEstimationLeftAmoutDto, RequestEstimationLeftAmount } from "./estimationleftAmount"
 import Repository from "@core/adapters/repository"
 import { Account } from "@core/domains/entities/account"
 import { SaveGoal } from "@core/domains/entities/saveGoal"
+import { GetUID } from "@core/adapters/libs"
+import { MomentDateService } from "@core/domains/entities/libs"
 
 export type SuggestPlanningWishSpend = {
     amount: number
@@ -22,9 +24,9 @@ export type SuggestGoalPlanning = {
 export type RequestSuggestPlanningSaveGoal = {
     estimationPeriodStart: Date,
     estimationPeriodEnd: Date
-    comment: string,
+    amountToAllocate: number
+    futureAmountToAllocate: number
     wishSpends?: SuggestPlanningWishSpend[]
-    wishGoals?: { goalId: string, amountSuggest: number}[]
 }
 
 export type GetAllSuggestPlanningDto = {
@@ -81,13 +83,13 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
             endDate: workingEndDate
         });
 
-        const estimationAmountToAllocate = responseEstimationUc.estimateAmount;
+        // const estimationAmountToAllocate = responseEstimationUc.estimateAmount;
 
-        if (estimationAmountToAllocate <= 0)
-            return {
-                comment: "Vous n'avez pas d'argent a allouer desoler",
-                suggestGoalPlanning: []
-            };
+        // if (estimationAmountToAllocate <= 0)
+        //     return {
+        //         comment: "Vous n'avez pas d'argent a allouer desoler",
+        //         suggestGoalPlanning: []
+        //     };
 
         const saveGoalsForRankingAgent: InputSaveGoalAgent[] = []
 
@@ -103,16 +105,28 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
                 dueDate: saveGoal.getWishDueDate()
             });
         }
+        if (request.wishSpends)
+            for(const wishSpend of request.wishSpends) {
+                saveGoalsForRankingAgent.push({
+                    id: GetUID(),
+                    currentBalance: 0,
+                    desirValue: IntensityEmotionalDesir.OBSESSION,
+                    dueDate: MomentDateService.getUTCDateAddition(new Date(), Period.DAY, 2),
+                    importance: ImportanceGoal.NORMAL,
+                    target: wishSpend.amount
+                })        
+            }
         
         const resultRankings = await this.goalRankingAgent.process({
-            allocateAmount: estimationAmountToAllocate,
+            allocateAmount: request.amountToAllocate,
+            futureAllocateAmout: request.futureAmountToAllocate,
             saveGoals: saveGoalsForRankingAgent
         });
 
         const saveGoalsForAdvisorAgent: GoalPlanningAdvisor[] = []
         for(const ranking of resultRankings.goals) {
             const saveGoal = saveGoals.items.find(i => i.getId() === ranking.id)
-            if (saveGoal) {
+            if (saveGoal && saveGoal.getBalance().getAmount() < saveGoal.getTarget().getAmount()) {
                 saveGoalsForAdvisorAgent.push({
                     id: saveGoal.getId(),
                     currentBalance: saveGoal.getBalance().getAmount(),
@@ -123,13 +137,12 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
                     target: saveGoal.getTarget().getAmount(),
                     wishDueDate: saveGoal.getWishDueDate()?.toISOString()
                 })
-            }
+            } 
         }
 
         const resultPlannings = await this.planningAdvisor.process({
-            comment: request.comment,
-            whishGoalTarget: request.wishGoals?.map(i => ({ goalId: i.goalId, amount: i.amountSuggest})) || [],
-            amountToAllocate: estimationAmountToAllocate,
+            amountToAllocate: request.amountToAllocate,
+            futureAmountToAllocate: request.futureAmountToAllocate,
             currentAmountInInvestissment: currentInvestissment,
             currentAmountInSaving: currentSaving,
             income: responseEstimationUc.balanceScheduleIncome,
