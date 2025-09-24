@@ -1,16 +1,15 @@
 services:
   web:
     container_name: web
-    env_file: ./apps/agni-web/.env.production
     environment:
       - NODE_ENV=production
-      - NUXT_PUBLIC_API_BASE=http://api:5001/v1
+      - NUXT_PUBLIC_API_BASE=http://api:${API_PORT}/v1
     build:
       context: .
       dockerfile: ./apps/agni-web/dockerfile
     restart: always
     ports:
-      - "${WEB_PORT}:${WEB_PORT}"
+      - "${WEB_PORT}:80"
     depends_on:
       api:
         condition: service_started
@@ -18,10 +17,10 @@ services:
       - agni
   api:
     container_name: api
-    env_file: ./apps/agni-server/.env.production
     environment:
       - NODE_ENV=production
       - DB_HOST=db
+      - PORT=${API_PORT}
       - DB_CLIENT=pg #postgre
       - DB_NAME=${DB_NAME}    
       - RUN_MIGRATION=true

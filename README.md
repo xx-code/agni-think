@@ -53,29 +53,57 @@ apps/
 ## ✨ Features
 <!--TODO list feature, future features-->
 
+
 ## 🚀 Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/xx-code/agin-think.git
 
-# Navigate into the main directory
+# Navigate into le dossier principal
 cd agni-think/
 
-# Install dependencies
+# Installer les dépendances
 npm install
 
-# server
-# Navigate into the server directory
+# Backend
 cd apps/agni-server
+npm run dev # pour le développement
 
-# Start the development server
-npm run dev
-
-# Navigate into the web directory
-cd apps/agni-web
-
-npm run dev
-
+# Frontend
+cd ../agni-web
+npm run dev # pour le développement
 ```
+
+## 📦 Deployment
+
+### Backend (agni-server)
+1. Set your environment variables in a `.env` file (see `.env.example`).
+2. For production deployment, use:
+  ```bash
+  npm run build
+  npm run start
+  ```
+3. You can also use Docker:
+  ```bash
+  docker-compose up -d --build
+  ```
+
+### Frontend (agni-web)
+1. Set your environment variables in `.env` or `.env.production`.
+2. To build for production:
+  ```bash
+  npm run build
+  npm run start
+  ```
+3. For Docker:
+  ```bash
+  docker-compose up -d --build
+  ```
+
+### Access
+After deployment, the backend server is available on the configured port (default 5002), and the frontend on port 3000.
+
+### Update
+To update, pull the repository and rerun the build/start commands.
 
