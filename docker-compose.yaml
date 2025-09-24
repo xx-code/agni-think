@@ -26,7 +26,7 @@ services:
       - RUN_MIGRATION=true
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - API_AGENT_URL=http://agent:8000 
+      - API_AGENT_URL=http://agent:${AGENT_POR} 
     user: node
     build:
       context: .
