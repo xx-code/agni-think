@@ -9,8 +9,7 @@ export default defineEventHandler(async event => {
             method: 'GET',
             query: query
         });
-        const data = (res as GetSavingAnalysticResponse);
-        return data;
+        return res;
     } catch(err) {
         console.log('Get estimation amount: ' + err);
         return createError({

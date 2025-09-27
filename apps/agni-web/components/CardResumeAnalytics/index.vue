@@ -17,6 +17,8 @@ const { title, amount, description, chipInfo, isPositive, isPercentage } = defin
             <div style="">
                 <AmountTitle :amount="amount" :sign="isPercentage ? '%' : '$'"/>
                 <UBadge size="md" :color="isPositive ? 'success' : 'error'">
+                    <UIcon v-if="isPositive" name="i-lucide-arrow-up" />
+                    <UIcon v-else="isPositive" name="i-lucide-arrow-down" />
                     {{ chipInfo }}
                 </UBadge>
             </div>

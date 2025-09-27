@@ -16,7 +16,7 @@ export default function useAccounts(query: Reactive<QueryFilterRequest>): UseApi
                     balance: i.balance,
                     type: i.type
                 })),
-                totals: data.totals
+                totals: Number(data.totals) 
             } satisfies ListResponse<AccountType>;
         }
     });

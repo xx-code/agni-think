@@ -11,11 +11,10 @@ import useSaveGoals from '~/composables/goals/useSaveGoals'
 import useTags from '~/composables/tags/useTags'
 import useTransactionPagination from '~/composables/transactions/useTransactionPagination'
 import type { FilterTransactionQuery } from '~/types/api/transaction'
-import type { TransactionTableType } from '~/types/ui/transaction'
 import { formatBudgetDataForChart } from '~/utils/formatBudgetDataForChart'
 import { getListTime } from '~/utils/getListTime'
 
-type CardInfo ={
+type CardInfo = {
     amount: number
     description: string
     cardInfo: string
@@ -32,10 +31,10 @@ const calendarSelection = reactive<{
     showNumber: 6  
 })
 
-const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories({
+const {data: categories } = useCategories({
     limit: 0, offset: 0, queryAll: true
 })
-const {data: tags, error: errorTag, refresh: refreshTag } = useTags({
+const {data: tags } = useTags({
     limit: 0, offset: 0, queryAll: true
 })
 
@@ -54,13 +53,13 @@ const incomeCardInfo = computed<CardInfo>(() => {
     if (analyticIncomes.value && analyticIncomes.value.incomes.length > 2)
         lastIncome = analyticIncomes.value.incomes[analyticIncomes.value.incomes.length - 2]
 
-    const percent = computePercentage(lastIncome, currentIncome)
+    const percent = computePercentage(lastIncome, Math.abs(lastIncome - currentIncome))
     const lastDesc = analyticIncomes.value?.incomesByDescription[analyticIncomes.value.incomesByDescription.length - 1]
 
     return {
         amount: currentIncome,
         description: "Source: " +  lastDesc?.map(i => i.label + ' ' + formatCurrency(i.income)).join(' . '),
-        cardInfo: `%${percent.toFixed(2)}`,
+        cardInfo: `%${percent.toFixed(2)} ${calendarSelection.period}/${calendarSelection.period}`,
         isPositif: currentIncome > lastIncome,
     }
 })
@@ -74,12 +73,16 @@ const spendCardInfo = computed<CardInfo>(() => {
     if (analyticSpend.value && analyticSpend.value.totalSpends.length > 2)
         lastSpend = analyticSpend.value.totalSpends[analyticSpend.value.totalSpends.length - 2]
 
-    const percent = computePercentage(lastSpend, currentSpend)
+    const percent = computePercentage(lastSpend, Math.abs(lastSpend - currentSpend) )
+
+    let lastAllocations = ''
+    if (analyticSpendAllocation.value && analyticSpendAllocation.value?.distributionSpends.length > 0)
+        lastAllocations = analyticSpendAllocation.value?.distributionSpends[0].map(i => `${i.transactionType} %${i.value}`).join(' . ') ?? ''
 
     return {
         amount: currentSpend,
-        description: analyticSpendAllocation.value?.map(i => `${i.transactionType} %${i.value}`).join(' . ') ?? '',
-        cardInfo: `%${percent.toFixed(2)}`, 
+        description: lastAllocations,
+        cardInfo: `%${percent.toFixed(2)} ${calendarSelection.period}/${calendarSelection.period}`, 
         isPositif: currentSpend < lastSpend 
     } 
 })
@@ -101,10 +104,12 @@ const cashflowCardInfo = computed<CardInfo>(() => {
         }
     }
 
+    const mean = Number((lastCashFlows.reduce(((acc, i) => acc + i), 0)/3).toFixed(2))// Change mean mobile
+
     return {
         amount: currentCashFlow,
-        cardInfo: `3 ${calendarSelection.period} prositif`,
-        description: `Moyen ${(lastCashFlows.reduce(((acc, i) => acc + i), 0)/3).toFixed(2)}`,
+        cardInfo: isPositif  ?`3 ${calendarSelection.period} positif` : `un ou plusieurs ${calendarSelection.period} negatif`,
+        description: `Moyen ${formatCurrency(mean)}`,
         isPositif: isPositif 
     }
 })
@@ -128,38 +133,6 @@ const savingCardInfo = computed<CardInfo>(() => {
         cardInfo: `Objectif ${(currentSavingRate * 100).toFixed(2)}% >= 10%`,
         isPositif: (currentSavingRate * 100) > 10
     }
-})
-
-const displaytransactionsTable = computed(() => {
-    const getCategory = (id: string) => categories.value?.items.find(i => id === i.id)
-    const getTag = (id: string) => tags.value?.items.find(i => id === i.id)
-    const getBudget = (id: string) => budgets.value?.items.find(i => id === i.id)
-
-    return transactions.value?.items.map(i => ({
-        id: i.id,
-        accountId: i.accountId,
-        amount: i.amount,
-        date: i.date,
-        description: i.description,
-        recordType: i.recordType,
-        type: i.type,
-        status: i.status,
-        category: {
-            id: i.categoryId,
-            icon: getCategory(i.categoryId)?.icon || '',
-            color: getCategory(i.categoryId)?.color || '',
-            title: getCategory(i.categoryId)?.title || '',
-        },
-        tags: i.tagIds.map(i => ({
-            id: i,
-            value: getTag(i)?.value || '',
-            color: getTag(i)?.color || ''
-        })),
-        budgets: i.budgetIds.map(i => ({
-            id: i,
-            title: getBudget(i)?.title || ''
-        }))
-    } satisfies TransactionTableType))    
 })
 
 const labels = computed(() => {
@@ -187,6 +160,52 @@ const dataChart = computed(() => ({
         data: cashflow.value?.spends || [],
         backgroundColor: 'rgba(103, 85, 215, 0.1)',
         borderWidth: 1
+    }],
+}))
+
+const getCategory = (id: string) => {
+    const cat = categories.value?.items.find(i => i.id === id)
+    return cat
+}
+const getTag = (id: string) => {
+    const tag = tags.value?.items.find(i => i.id === id)
+    return tag
+}
+
+const bestCategories = computed(() => {
+    if (analyticSpend.value && analyticSpend.value.spendByCategories.length > 0 )  {
+        const spendLength = analyticSpend.value.spendByCategories.length
+        const length = analyticSpend.value.spendByCategories[spendLength - 1].length
+        const results = []
+        for(let i = 0; i < length; i++) {
+            if (i > 4)
+                break
+            const spends = analyticSpend.value.spendByCategories[spendLength - 1].sort((a, b) => b.spend - a.spend)
+            results.push(spends[i])
+        }
+
+        return results
+    }
+
+    return []
+})
+
+const spendLabels = computed<{label: string, color: string}[]>(() => {
+    if (bestCategories.value.length > 0 )  {
+        const categories = bestCategories.value.map(i => getCategory(i.categoryId)).filter(i => i !== undefined)
+
+        return categories.map(i => ({label: i.title, color: i.color ?? "#b2bac4"}))
+    }
+
+    return []
+})
+const dataSpendChart = computed(() => ({
+    labels: spendLabels.value.map(i => i.label),
+    datasets: [{
+        label: '',
+        data: bestCategories.value.map(i => i.spend) || [],
+        backgroundColor: spendLabels.value.map(i => i.color),
+        borderWidth: 1,
     }],
 }))
 
@@ -367,26 +386,11 @@ watchEffect(() => {
                 </div>
             </div>
             <div class="card-grid rounded-md md:col-span-2 flex flex-col gap-2">
-                <CustomCardTitle title="Transactions en attende">
+                <CustomCardTitle title="Depenses par categories">
                 </CustomCardTitle>
-                <div>
-                    <div class="flex flex-col gap-1" >
-                        <div v-for="trans in displaytransactionsTable" :key="trans.accountId">
-                            <RowTransaction 
-                                :id="trans.id" 
-                                :balance="trans.amount" 
-                                :title="trans.category.title" 
-                                :description="trans.description" 
-                                :icon="trans.category.icon" 
-                                :tags="trans.tags.map((tag: any) => tag.value)" 
-                                :date="trans.date" 
-                                :color="trans.category.color"
-                                :recordType="trans.recordType"
-                                :doShowEdit="false" 
-                            />
-                        </div>
-                    </div>
-                </div> 
+                <div class="flex justify-center items-center" style="height: 280px;">
+                    <BarChart  :data="dataSpendChart" :options="optionsChart" />
+                </div>
             </div>
 
             <div class="card-grid rounded-md">

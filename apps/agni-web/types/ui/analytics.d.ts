@@ -7,9 +7,13 @@ export type GetCashflowAnalyseType = {
     incomes: number[]
 }
 
-export type GetAnalyseBudgeRuleType = {
+export type GetBudgetRuleType = {
     transactionType: string
     value: number
+}
+
+export type GetAnalyseBudgeRuleType = {
+    distributionSpends: GetBudgetRuleType[][]
 }
 
 export type IncomeByDescriptionType = {

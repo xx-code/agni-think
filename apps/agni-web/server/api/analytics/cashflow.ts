@@ -9,8 +9,7 @@ export default defineEventHandler(async event => {
             method: 'GET',
             query: query
         });
-        const data = (res as GetEstimationLeftAmountResponse);
-        return data;
+        return res;
     } catch(err) {
         console.log('Get Cashflow: ' + err);
         return createError({
