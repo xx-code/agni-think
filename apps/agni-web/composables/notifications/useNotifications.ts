@@ -17,7 +17,7 @@ export default function useNotification(query: Reactive<NotificationQueryFilterR
                     content: i.content,
                     dateTime: new Date(i.dateTime)
                 })),
-                totals: data.totals
+                totals: Number(data.totals) 
             }
         }
     })
@@ -40,7 +40,7 @@ export async function fetchNotifications(query: NotificationQueryFilterRequest):
             content: i.content,
             dateTime: new Date(i.dateTime)
         })),
-        totals: res.totals
+        totals: Number(res.totals) 
     }
 }
 

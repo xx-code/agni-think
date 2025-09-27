@@ -40,7 +40,7 @@ export class GetAllSnapshotOfPatrimony implements IUsecase<RequestAllSnapshotPat
             limit: 0, 
             offset: 0,
             queryAll: true
-        });
+        }, extendFilter);
 
         return { 
             items: snapshots.items.map(i => ({

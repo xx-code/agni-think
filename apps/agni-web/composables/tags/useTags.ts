@@ -16,7 +16,7 @@ export default function useTags(query: Reactive<QueryFilterRequest>): UseApiFetc
                     value: i.value,
                     color: i.color  
                 })),
-                totals: data.totals
+                totals: Number(data.totals) 
             } satisfies ListResponse<TagType>
         }
     });

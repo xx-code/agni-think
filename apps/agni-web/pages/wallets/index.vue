@@ -274,28 +274,28 @@ const onUpateAccount = async (payload: string) => {
         filterAcc = [payload] 
 }
 
-const { data: analyseBudgetRules } = useAnalyseBudgetRules({ period: 'Month', periodTime: 1 })
+// const { data: analyseBudgetRules } = useAnalyseBudgetRules({ period: 'Month', periodTime: 1 })
 
-const optionsChart = computed(() => ({
-    responsive: true,
-    plugins: {colors: { forceOverride: true}}
-})) 
-const dataChart = computed(() => {
-    let labels: string[] = []
-    let data: number[] = []
-    if (analyseBudgetRules.value) {
-        labels = analyseBudgetRules.value.map(i => i.transactionType)
-        data = analyseBudgetRules.value.map( i => i.value)    
-     } 
+// const optionsChart = computed(() => ({
+//     responsive: true,
+//     plugins: {colors: { forceOverride: true}}
+// })) 
+// const dataChart = computed(() => {
+//     let labels: string[] = []
+//     let data: number[] = []
+//     if (analyseBudgetRules.value) {
+//         labels = analyseBudgetRules.value.map(i => i.transactionType)
+//         data = analyseBudgetRules.value.map( i => i.value)    
+//      } 
 
-    return {
-        labels: labels,
-        datasets: [{
-            label: '50/20/30 rules match',
-            data: data
-        }]
-    } 
-})
+//     return {
+//         labels: labels,
+//         datasets: [{
+//             label: '50/20/30 rules match',
+//             data: data
+//         }]
+//     } 
+// })
 
 </script>
 
@@ -404,7 +404,7 @@ const dataChart = computed(() => {
 
             </CustomCardTitle>
             <div>
-                <DoughnutChart :data="dataChart" :options="optionsChart"/>
+                <!-- <DoughnutChart :data="dataChart" :options="optionsChart"/> -->
             </div>
         </div>
 

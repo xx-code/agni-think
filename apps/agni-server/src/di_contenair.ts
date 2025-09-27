@@ -63,7 +63,7 @@ import { RemoveSnapshotFromPatrimonyUseCase } from '@core/interactions/patrimony
 import { GetAllSnapshotOfPatrimony, GetAllSnapshotPatrimonyDto, RequestAllSnapshotPatrimony } from '@core/interactions/patrimony/getAllSnapshotOfPatrimony';
 import { GetAccountBalanceByPeriodDto, GetPastAccountBalanceByPeriodUseCase, RequestGetAccountBalanceByPeriod } from '@core/interactions/account/getPastAccountBalanceByPeriod';
 import { CashFlowAnalyseUseCase, CashFlowResponse, RequestCashFlow } from '@core/interactions/analystic/cashflowAnalyse';
-import { AnalyseBudgetRuleDto, AnalyseBudgetRuleUseCase, RequestAnalyseBudgetRule } from '@core/interactions/analystic/analysebudgetRule';
+import { AnalyseBudgetResponse, AnalyseBudgetRuleUseCase, RequestAnalyseBudgetRule } from '@core/interactions/analystic/analysebudgetRule';
 import Entity, { IEntity } from '@core/domains/entities/entity';
 import KnexRepository from '@infra/persistences/knexRepository';
 import Repository from '@core/adapters/repository';
@@ -182,7 +182,7 @@ export class DiContenair {
         estimateLeftAmount: IUsecase<RequestEstimationLeftAmount, GetEstimationLeftAmoutDto>
         planningSaveGoalAdvisor: IUsecase<RequestSuggestPlanningSaveGoal, GetAllSuggestPlanningDto>
         cashflowAnalyse: IUsecase<RequestCashFlow, CashFlowResponse>
-        analyseBudgetRule: IUsecase<RequestAnalyseBudgetRule, AnalyseBudgetRuleDto[]>
+        analyseBudgetRule: IUsecase<RequestAnalyseBudgetRule, AnalyseBudgetResponse>
         incomeAnalystic: IUsecase<RequestIncomAnalystic, IncomeAnalysticResponse>
         savingAnalystic: IUsecase<RequestSavingAnalystic, SavingAnalysticResponse>
         spendAnalystic: IUsecase<RequestSpendAnalystic, SpendAnalysticResponse>

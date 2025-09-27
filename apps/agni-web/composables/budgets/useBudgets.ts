@@ -24,7 +24,7 @@ export default function useBudgets(query: Reactive<QueryFilterRequest>): UseApiF
                     saveGoalTarget: i.saveGoalTarget,
                     endDate: i.endDate   
                 })),
-                totals: data.totals
+               totals: Number(data.totals) 
             } satisfies ListResponse<GetAllBudgetResponse>
         }
     });

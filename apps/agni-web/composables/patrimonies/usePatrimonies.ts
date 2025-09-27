@@ -24,7 +24,7 @@ export function usePatrimonies(): UseApiFetchReturn<ListResponse<PatrimonyType>>
                     currentBalance: i.currentSnapshotBalance,
                     type: i.type as TypePatrimony 
                 })),
-                totals: data.totals
+                totals: Number(data.totals) 
             } satisfies ListResponse<PatrimonyType> 
         }
     })
@@ -54,6 +54,6 @@ export async function fetchPatrimonies(): Promise<ListResponse<PatrimonyType>> {
             currentBalance: i.currentSnapshotBalance,
             type: i.type as TypePatrimony 
         })),
-        totals: res.totals
+        totals: Number(res.totals) 
     } 
 }

@@ -17,7 +17,7 @@ export default function useCategories(query: Reactive<QueryFilterRequest>): UseA
                     isSystem: i.isSystem,
                     color: i.color
                })),
-               totals: data.totals
+               totals: Number(data.totals) 
             } satisfies ListResponse<CategoryType>
         } 
     });

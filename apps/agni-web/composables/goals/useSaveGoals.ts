@@ -21,7 +21,7 @@ export default function useSaveGoals(query: Reactive<queryFilterSaveGoalRequest>
                     importance: i.importance,
                     wishDueDate: i.wishDueDate ? new Date(i.wishDueDate) : undefined 
                 })),
-                totals: data.totals
+                totals: Number(data.totals)
             } satisfies ListResponse<SaveGoalType> 
         }
     });
