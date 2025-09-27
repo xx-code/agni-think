@@ -90,7 +90,7 @@ function clean() {
             <div class="min-w-96 min-h-96 size-full m-4 space-y-5">
                 <div>
                     <UInputMenu 
-                        placeholder="Compote" 
+                        placeholder="Compte" 
                         multiple 
                         v-model="selectedAccountIds" 
                         value-key="value"

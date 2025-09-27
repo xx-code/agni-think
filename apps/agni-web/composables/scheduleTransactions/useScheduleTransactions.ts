@@ -29,7 +29,7 @@ export default function useScheduleTransactions(query: Reactive<QueryFilterReque
                         dateEnd: i.dateEnd ? new Date(i.dateEnd) : undefined
                     }
                 )),
-                totals:data.totals 
+                totals: Number(data.totals)  
             }  satisfies ListResponse<ScheduleTransactionType> 
         }
     })

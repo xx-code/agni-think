@@ -27,29 +27,29 @@ const toast = useToast();
 
 const page = ref(1);
 const paramsTransactions = reactive<FilterTransactionQuery>({
-  offset: 0,
-  limit: 8,
-  accountFilterIds: [],
-  categoryFilterIds: [],
-  tagFilterIds: [],
-  budgetFilterIds: [],
-  minPrice: undefined,
-  maxPrice: undefined,
-  dateStart: undefined,
-  dateEnd: undefined,
-  isFreeze: false
+    offset: 0,
+    limit: 8,
+    accountFilterIds: [],
+    categoryFilterIds: [],
+    tagFilterIds: [],
+    budgetFilterIds: [],
+    minPrice: undefined,
+    maxPrice: undefined,
+    dateStart: undefined,
+    dateEnd: undefined,
+    isFreeze: false
 });
 
 
 const paramsBalance = reactive<FilterBalanceTransactionQuery>({
-  accountFilterIds: [],
-  categoryFilterIds: [],
-  tagFilterIds: [],
-  budgetFilterIds: [],
-  maxPrice: undefined,
-  minPrice: undefined,
-  dateStart: undefined,
-  dateEnd: undefined,
+    accountFilterIds: [],
+    categoryFilterIds: [],
+    tagFilterIds: [],
+    budgetFilterIds: [],
+    maxPrice: undefined,
+    minPrice: undefined,
+    dateStart: undefined,
+    dateEnd: undefined,
 });
 
 const {data: accounts } = useAccounts({

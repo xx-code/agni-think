@@ -1,9 +1,10 @@
+import type { Reactive } from "vue";
 import type { ListResponse } from "~/types/api";
 import type { FilterTransactionQuery, GetAllTransactionResponse } from "~/types/api/transaction";
 import type { TransactionType } from "~/types/ui/transaction";
 import type { UseApiFetchReturn } from "~/types/utils";
 
-export default function useTransactionPagination(query: FilterTransactionQuery): UseApiFetchReturn<ListResponse<TransactionType>> {
+export default function useTransactionPagination(query: Reactive<FilterTransactionQuery>): UseApiFetchReturn<ListResponse<TransactionType>> {
 
     const { data, error, refresh } = useFetch('/api/transactions/pagination', {
         method: 'POST',
@@ -23,7 +24,7 @@ export default function useTransactionPagination(query: FilterTransactionQuery):
                     tagIds: i.tagRefs,
                     budgetIds: i.budgets
                 })),
-                totals: data.totals
+                totals: Number(data.totals) 
             } satisfies ListResponse<TransactionType>
         }
     });

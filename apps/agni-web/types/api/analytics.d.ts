@@ -17,15 +17,19 @@ export type GetCashflowAnalyseResponse = {
     gainsFlow: number[]
 }
 
-export type GetAnalyseBudgeRuleResponse = {
-    transactionType: string
+export type GetBudgetRule = {
+    type: string
     value: number
+}
+
+export type GetAnalyseBudgeRuleResponse = {
+    distributionSpends: GetBudgetRule[][]
 }
 
 export type GetAnalyseBudgeRuleRequest = {
     period: string
     periodTime: number
-    beginDate?: string
+    showNumber: number
 }
 
 // export type GetIncomeByDescription = {
@@ -36,7 +40,7 @@ export type GetAnalyseBudgeRuleRequest = {
 export type GetIncomeAnalysticRequest = {
     period: string
     periodTime: number
-    beginDate?: string
+    showNumber: number
 }
 export type GetIncomeAnalysticResponse = {
     incomes: number[]
@@ -46,7 +50,7 @@ export type GetIncomeAnalysticResponse = {
 export type GetSavingAnalysticRequest = {
     period: string
     periodTime: number
-    beginDate?: string
+    showNumber: number
 }
 export type GetSavingAnalysticResponse = {
     savings: number[]
@@ -69,7 +73,7 @@ type GetSpendCategory = {
 export type GetSpendAnalysticRequest = {
     period: string
     periodTime: number
-    beginDate?: string 
+    showNumber: number 
 }
 export type GetSpendAnalysticResponse = {
     totalSpends: number[] 

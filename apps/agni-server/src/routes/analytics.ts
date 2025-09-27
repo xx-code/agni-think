@@ -82,7 +82,7 @@ router.get('/v1/analytics/cashflow',
 router.get('/v1/analytics/budget-rules', 
     query('period').isString(),
     query('periodTime').isNumeric(),
-    query('beginDate').optional().isISO8601().toDate(),
+    query('showNumber').isNumeric(),
     async (req, res) => {
         try {
             const result = validationResult(req);
