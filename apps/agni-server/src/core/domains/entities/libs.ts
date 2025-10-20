@@ -91,24 +91,18 @@ export class MomentDateService {
         return new Date(today)
     }
 
-    static getUTCDateAddition(date: Date, period: Period, periodTime: number): Date {
+    static getUTCDateAddition(date: Date, period: Period, periodTime: number, strictDatebefore: boolean=true): Date {
         let formatted = moment(date)
       
         let today = moment()    
         const periodStr = this.periodMatcherToMoment(period) 
 
-        let dateFormat = formatted.clone().add(periodTime, periodStr)
-        while (dateFormat.isBefore(today)) {
-            dateFormat.add(periodTime, periodStr)
+        let dateFormat = formatted.add(periodTime, periodStr)
+        if (dateFormat.isBefore(today)) {
+            var diff = today.diff(dateFormat, periodStr)
+            if (diff === 0 && !strictDatebefore) diff += 1
+            dateFormat = dateFormat.add(diff + periodTime, periodStr)
         }
-        // if () {
-        //     var diff = today.diff(dateFormat, periodStr)
-        //     console.log(diff)
-        //     if (diff === 0 && !strictDatebefore) diff += 1
-        //     console.log(diff)
-        //     console.log("diff/2 : " + diff/2)
-        //     dateFormat = dateFormat.add((diff / periodTime) + periodTime, periodStr)
-        // }
 
         return new Date(dateFormat) 
     }
