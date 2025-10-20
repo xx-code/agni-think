@@ -325,7 +325,7 @@ const columns: TableColumn<ItemRown>[] =  [
                 <UPagination 
                     class="mt-3" 
                     v-model:page="page" 
-                    v-on:update:page="(p) => filter.offset = (filter.limit * (p - 1))"
+                    v-on:update:page="() => filter.offset = (filter.limit * (page - 1))"
                     :items-per-page="filter.limit"  
                     :total="goals?.totals" 
                     active-variant="subtle" />

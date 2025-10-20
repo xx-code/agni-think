@@ -32,7 +32,7 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
 
     async execute(): Promise<void> {
         try {
-            // await this.unitOfWork.start()
+            await this.unitOfWork.start()
             const scheduleTransactions = await this.scheduleTransactionRepo.getAll({
                 limit: 0, offset: 0,
                 queryAll: true
@@ -41,22 +41,22 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
             for(let i = 0; i < scheduleTransactions.items.length; i++) {
                 let scheduleTrans = scheduleTransactions.items[i]
 
-                if (scheduleTrans.getSchedule().isDue() && !scheduleTrans.getIsPause()) {
+                if (scheduleTrans.getSchedule().isDue(true) && !scheduleTrans.getIsPause()) {
                     if (scheduleTrans.getIsPay() === false) {
                         const record = new Record(
                             GetUID(),
                             scheduleTrans.getAmount(),
-                            scheduleTrans.getSchedule().getUpdatedDate(),
+                            scheduleTrans.getSchedule().getUpdatedDate(true),
                             scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
                             scheduleTrans.getName()
                         )
                         await this.recordRepo.create(record)
 
-                        let date = scheduleTrans.getSchedule().getUpdatedDate() 
+                        let date = scheduleTrans.getSchedule().getUpdatedDate(true) 
 
                         if (scheduleTrans.getIsFreeze())
                             date = MomentDateService.getUTCDateAddition(
-                                scheduleTrans.getSchedule().getUpdatedDate(), 
+                                scheduleTrans.getSchedule().getUpdatedDate(true), 
                                 scheduleTrans.getSchedule().getPeriod(),
                                 scheduleTrans.getSchedule().getPeriodTime() || 1)
 
@@ -74,8 +74,6 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                             transaction.setIsFreeze()
 
                         scheduleTrans.setIsPay(true);
-                        // TODO have a best way 
-                        scheduleTrans.getSchedule().updateSchedule()
                         await this.scheduleTransactionRepo.update(scheduleTrans);
                         await this.transactionRepo.create(transaction)
                         this.eventManager.notify('notification', {
@@ -89,7 +87,7 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                 }
             }
 
-            // await this.unitOfWork.commit()
+            await this.unitOfWork.commit()
         }
         catch (err: any){
             await this.unitOfWork.rollback()

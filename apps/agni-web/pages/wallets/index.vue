@@ -429,7 +429,7 @@ const onUpateAccount = async (payload: string) => {
                 <UPagination 
                     class="mt-3" 
                     v-model:page="pageFreezeTransaction" 
-                    v-on:update:page="(p) => paramsFreezeTransaction.offset = paramsFreezeTransaction.limit * (p -1)"
+                    v-on:update:page="() => paramsFreezeTransaction.offset = paramsFreezeTransaction.limit * (pageFreezeTransaction -1)"
                     :items-per-page="paramsFreezeTransaction.limit"  
                     :total="Number(freezeTransactions?.totals)" 
                     active-variant="subtle" />

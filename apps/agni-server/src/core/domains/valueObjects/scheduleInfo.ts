@@ -9,34 +9,28 @@ export class Scheduler extends ValueObject {
     private startedDate: Date
     private updatedDate?: Date 
     private endingDate?: Date
-
     
     constructor(
         period: Period, 
         startedDate: Date, 
         periodTime?: number,
-        endingDate?: Date,
-        updateDate?: Date
-    ) {
+        endingDate?: Date) {
         super();
         this.assertBuildScheduler(periodTime, endingDate) 
 
-        // First creation scheduler
-        if (updateDate == undefined) {
-            if (periodTime === undefined && endingDate !== undefined)
-                this.updatedDate = endingDate
-            else if(periodTime !== undefined)
-                this.updatedDate = MomentDateService.getUTCDateAddition(startedDate, period, periodTime!)
-        } else {
-            this.updatedDate = updateDate
-        }
+        if (periodTime === undefined && endingDate !== undefined)
+            this.updatedDate = endingDate
+        else if(periodTime !== undefined)
+            this.updatedDate = MomentDateService.getUTCDateAddition(startedDate, period, periodTime!) 
 
         this.period = period
         this.periodTime = periodTime
         this.startedDate = startedDate
+
+        
+
         this.endingDate = endingDate
     }
-
 
     updateSheduler(
         period: Period,  
@@ -74,24 +68,13 @@ export class Scheduler extends ValueObject {
         return this.startedDate
     }
     
-    getUpdatedDate(): Date {
-        return this.updatedDate === undefined ? this.endingDate! : this.updatedDate!
-    }
-
-    computeUpdateDate(): Date {
-        if(this.periodTime !== undefined) {
-            var updatedDate = MomentDateService.getUTCDateAddition(this.startedDate, this.period, this.periodTime)
+    getUpdatedDate(strictDatebefore: boolean = false): Date {
+        if(this.periodTime !== undefined && !strictDatebefore) {
+            var updatedDate = MomentDateService.getUTCDateAddition(this.startedDate, this.period, this.periodTime, strictDatebefore)
             return updatedDate
         }
 
-        return this.endingDate!
-    }
-
-    updateSchedule() {
-        if(this.periodTime !== undefined) {
-            var updatedDate = MomentDateService.getUTCDateAddition(this.startedDate, this.period, this.periodTime)
-            this.updatedDate = updatedDate
-        }
+        return this.updatedDate!
     }
 
     getEndingDate(): Date | undefined {
@@ -106,11 +89,11 @@ export class Scheduler extends ValueObject {
             throw new ValueError("SCHEDULER_WITH_PERIOD_UNDETERMINED_HAVE_NOT_END_DATE")
     }
 
-    isDue(): boolean {
-        if (this.updatedDate === undefined && this.updatedDate === undefined)
+    isDue(strictDatebefore: boolean = false): boolean {
+        if (!this.updatedDate)
             return false;
 
-        return MomentDateService.compareDateWithDate(new Date(), this.updatedDate == undefined ? this.endingDate! : this.updatedDate ) >= 0
+        return MomentDateService.compareDateWithDate(new Date(), this.getUpdatedDate(strictDatebefore)) >= 0
     }
 
     isEqual(object: Scheduler): boolean {
@@ -134,7 +117,7 @@ export class Scheduler extends ValueObject {
 
     toJson(): string {
         return JSON.stringify({period: this.period, periodTime: this.periodTime, 
-            startedDate:this.startedDate, endingDate: this.endingDate, updateDate: this.updatedDate})
+            startedDate:this.startedDate, endingDate: this.endingDate})
     }
 
    static fromJson(value: any): Scheduler {
@@ -143,16 +126,15 @@ export class Scheduler extends ValueObject {
                 period: string, 
                 periodTime?: number,
                 startedDate: string,
-                updateDate?: string,
                 endingDate?: string
             } = value;
 
             var endDate  = object.endingDate ? new Date(object.endingDate) : undefined
-            var updateDate  = object.updateDate ? new Date(object.updateDate) : undefined
 
-            return new Scheduler(mapperPeriod(object.period), new Date(object.startedDate) , object.periodTime, endDate, updateDate)
+            return new Scheduler(mapperPeriod(object.period), new Date(object.startedDate) , object.periodTime, endDate)
         } catch(err) {
             throw err
         }
+        
     }
 }
