@@ -336,7 +336,7 @@ const onDelete = async (id: string) => {
                 <UPagination 
                     class="mt-3" 
                     v-model:page="page" 
-                    v-on:update:page="() => scheduleFilter.offset = (scheduleFilter.limit * (page - 1))"
+                    v-on:update:page="(p) => scheduleFilter.offset = (scheduleFilter.limit * (p - 1))"
                     :items-per-page="scheduleFilter.limit"  
                     :total="scheduleTransactions?.totals" 
                     active-variant="subtle" />

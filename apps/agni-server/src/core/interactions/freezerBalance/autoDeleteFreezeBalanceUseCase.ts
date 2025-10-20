@@ -30,7 +30,7 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
 
     async execute(): Promise<void> {
         try {
-            await this.unitOfWork.start()
+            // await this.unitOfWork.start()
 
             const extendFilter = new TransactionFilter()
             extendFilter.isFreeze = true
@@ -66,7 +66,7 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
                 }
             }
             
-            await this.unitOfWork.commit()
+            // await this.unitOfWork.commit()
         } catch (err) {
             await this.unitOfWork.rollback()
         }

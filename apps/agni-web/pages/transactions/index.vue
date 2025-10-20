@@ -28,7 +28,7 @@ const toast = useToast();
 const page = ref(1);
 const paramsTransactions = reactive<FilterTransactionQuery>({
     offset: 0,
-    limit: 8,
+    limit: 5,
     accountFilterIds: [],
     categoryFilterIds: [],
     tagFilterIds: [],
@@ -375,7 +375,7 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
                 <UPagination 
                     class="mt-3" 
                     v-model:page="page" 
-                    v-on:update:page="() => paramsTransactions.offset = paramsTransactions.limit * (page -1)"
+                    v-on:update:page="(p) => paramsTransactions.offset = paramsTransactions.limit * (p - 1)"
                     :items-per-page="paramsTransactions.limit"  
                     :total="transactions?.totals" 
                     active-variant="subtle" />

@@ -44,7 +44,7 @@ export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRu
             throw new UnExpectedError("BAD_PERIOD_SELECTION")
 
         if (request.showNumber <= 0)
-            throw new UnExpectedError("SHOWNUMBER_MUST_BE_GREATER_THAN_)")
+            throw new UnExpectedError("SHOW_NUMBER_MUST_BE_GREATER_THAN_")
 
         let results: BudgetRuleDto[][] = []
 
