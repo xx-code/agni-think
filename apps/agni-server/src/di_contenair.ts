@@ -24,7 +24,7 @@ import { AddFreezeBalanceUseCase, RequestNewFreezeBalance } from '@core/interact
 import { TransactionDependencies } from '@core/interactions/facades';
 import { DeleteTransactionUseCase } from '@core/interactions/transaction/deleteTransactionUseCase';
 import { AutoDeleteFreezeBalanceUseCase } from '@core/interactions/freezerBalance/autoDeleteFreezeBalanceUseCase';
-import { GetBalanceByUseCase, RequestGetBalanceBy } from '@core/interactions/transaction/getBalanceByUseCase';
+import { GetBalanceByUseCase } from '@core/interactions/transaction/getBalanceByUseCase';
 import { CreationBudgetUseCase, RequestCreationBudgetUseCase } from '@core/interactions/budgets/creationBudgetUseCase';
 import { RequestUpdateBudget, UpdateBudgetUseCase } from '@core/interactions/budgets/updateBudgetUseCase';
 import { GetBudgetDto, GetBudgetUseCase } from '@core/interactions/budgets/getBudgetUseCase';
@@ -82,7 +82,7 @@ import { KnexScheduleTransactionTable, ScheduleTransactionMapper, ScheduleTransa
 import { ScheduleTransaction } from '@core/domains/entities/scheduleTransaction';
 import { KnexTransactionTable, TransactionFilterExtends, TransactionModel, TransactionModelMapper } from '@infra/persistences/models/transactions';
 import { Transaction } from '@core/domains/entities/transaction';
-import { KnexSaveGoalTable, SaveGoalModel, SaveGoalModelMapper } from '@infra/persistences/models/saveGoal';
+import { KnexSaveGoalTable, SaveGoalExtendFilterAdapter, SaveGoalModel, SaveGoalModelMapper } from '@infra/persistences/models/saveGoal';
 import { SaveGoal } from '@core/domains/entities/saveGoal';
 import { KnexPatrimonyTable, PatrimonyModel, PatrimonyModelMapper } from '@infra/persistences/models/patrimony';
 import { Patrimony } from '@core/domains/entities/patrimony';
@@ -102,6 +102,8 @@ import { GetAllNotificationDto, GetAllNotificationUseCases, NotificationQueryFil
 import { IncomeAnalysticResponse, IncomeAnalysticUseCase, RequestIncomAnalystic } from '@core/interactions/analystic/income';
 import { RequestSavingAnalystic, SavingAnalysticResponse, SavingAnalysticUseCase } from '@core/interactions/analystic/savings';
 import { RequestSpendAnalystic, SpendAnalysticResponse, SpendAnalysticUseCase } from '@core/interactions/analystic/spends';
+import { GetAccountDetailDto, GetAccountDetailUseCase } from '@core/interactions/account/getAccountWithDetailUseCase';
+import { GetAllAccountWithDetailUseCase } from '@core/interactions/account/getAllAccountWithDetailUseCase';
 
 
 export class DiContenair {
@@ -116,7 +118,9 @@ export class DiContenair {
         createAccount: IUsecase<RequestCreationAccountUseCase, CreatedDto>,
         updateAccount: IUsecase<RequestUpdateAccountUseCase, void>,
         getAccount: IUsecase<string, GetAccountDto>,
+        getAccountWithDetail: IUsecase<string, GetAccountDetailDto>,
         getAllAccount: IUsecase<QueryFilter, ListDto<GetAllAccountDto>>,
+        getAllAccountWithDetail: IUsecase<QueryFilter, ListDto<GetAllAccountDto>>,
         getAllAccountWithBalance: IUsecase<RequestGetAllAccountPastBalanceUseCase, ListDto<GetAllAccountWithPastBalanceDto>>
         deleteAccount: IUsecase<string, void>,
         getPastAccountBalanceByPeriod: IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>
@@ -144,7 +148,7 @@ export class DiContenair {
         completeTransaction: IUsecase<RequestCompleteTransactionUsecase, void>,
         getTransaction: IUsecase<string, GetTransactionDto>,
         getPaginition: IUsecase<RequestGetPagination, ListDto<GetAllTransactionDto>>,
-        getBalanceBy: IUsecase<RequestGetBalanceBy, number>,
+        getBalanceBy: IUsecase<RequestGetPagination, number>,
         deleteTransaction: IUsecase<string, void>,
         transfertTransaction: IUsecase<RequestTransfertTransactionUseCase, void>,
         freezeTransaction: IUsecase<RequestNewFreezeBalance, CreatedDto>
@@ -311,8 +315,9 @@ export class DiContenair {
         const saveGoalTable = new KnexSaveGoalTable()
         await saveGoalTable.createTable(connector)
         const saveGoalModelMapper = new SaveGoalModelMapper()
+        const saveGoalFilterAdapter = new SaveGoalExtendFilterAdapter()
         const saveGoalRepository = new KnexRepository<SaveGoal, SaveGoalModel>(
-            connector, saveGoalTable, saveGoalModelMapper
+            connector, saveGoalTable, saveGoalModelMapper, saveGoalFilterAdapter
         )
         this.registerRepository('save_goal', saveGoalRepository)
 
@@ -380,7 +385,11 @@ export class DiContenair {
             createAccount: new CreationAccountUseCase(this.getRepository('account')),
             updateAccount: new UpdateAccountUseCase(this.getRepository('account')),
             getAccount: new GetAccountUseCase(this.getRepository('account')),
+            getAccountWithDetail: new GetAccountDetailUseCase(this.getRepository('account'), this.getRepository('transaction'), 
+                this.getRepository('save_goal'), this.getRepository('record')),
             getAllAccount: new GetAllAccountUseCase(this.getRepository('account')),
+            getAllAccountWithDetail: new GetAllAccountWithDetailUseCase(this.getRepository('account'), this.getRepository('transaction'),
+                this.getRepository('save_goal'), this.getRepository('record')),
             getAllAccountWithBalance: new GetAllAccountWithPastBalanceUseCase(
                 this.getRepository('account'), 
                 getAccountBalanceByPeriodUc),
@@ -493,7 +502,7 @@ export class DiContenair {
             throw new UnExpectedError("UNIT_OF_WORK_NOT_SETUP")
 
         this.saveGoalUseCase = {
-            addSaveGoal: new AddSaveGoalUseCase(this.getRepository('save_goal')),
+            addSaveGoal: new AddSaveGoalUseCase(this.getRepository('save_goal'), this.getRepository('account')),
             increaseSaveGoal: new IncreaseSaveGoalUseCase(this.getRepository('account'), this.getRepository('save_goal'), this.getRepository('transaction'), 
             this.getRepository('record'), this.unitOfWork),
 
@@ -505,7 +514,7 @@ export class DiContenair {
 
             getAllSaveGoal: new GetAllSaveGoalUseCase(this.getRepository('save_goal')),
             getSaveGoal: new GetSaveGoalUseCase(this.getRepository('save_goal')),
-            updateSaveGoal: new UpdateSaveGoalUseCase(this.getRepository('save_goal'))
+            updateSaveGoal: new UpdateSaveGoalUseCase(this.getRepository('save_goal'), this.getRepository('account'))
         }
     }
 

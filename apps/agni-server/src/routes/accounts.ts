@@ -54,10 +54,23 @@ router.put('/v1/accounts/:id',
         
     });
 
-router.get('/v1/accounts/:id', async (req, res) => {
+router.get('/v1/accounts/:id', 
+    async (req: Request, res: Response) => {
     try {
-        var ucRes = await container.accountUseCase?.getAccount.execute(req.params.id)
-        res.status(200).json(ucRes)
+        const account = await container.accountUseCase?.getAccount.execute(req.params.id)
+        res.status(200).json(account)
+    } catch(err) {
+        res.status(400).send({ errors: [err] });
+    }
+    
+});
+
+router.get('/v1/accounts-with-detail/:id', 
+    async (req: Request, res: Response) => {
+    try {
+        const account = await container.accountUseCase?.getAccountWithDetail.execute(req.params.id)
+        res.status(200).json(account)
+        return 
     } catch(err) {
         res.status(400).send({ errors: [err] });
     }
@@ -79,9 +92,30 @@ router.get(
         }
 
         const request: QueryFilter = matchedData(req)
-
         var ucRes = await container.accountUseCase?.getAllAccount.execute(request)
         res.status(200).json(ucRes)
+    } catch(err) {
+        res.status(400).send({ errors: [err] });
+    }
+});
+
+router.get(
+    '/v1/accounts-with-detail',
+    query('limit').isNumeric().toInt(),
+    query('offset').isNumeric().toInt(),
+    query('queryAll').optional().isBoolean().toBoolean(),
+    async (req, res) => {
+    try {
+        const result = validationResult(req);
+        
+        if (!result.isEmpty()) {
+            res.send({ errors: result.array() });
+            return;
+        }
+
+        const request: QueryFilter = matchedData(req)
+        const account = await container.accountUseCase?.getAllAccountWithDetail.execute(request)
+        res.status(200).json(account)
     } catch(err) {
         res.status(400).send({ errors: [err] });
     }

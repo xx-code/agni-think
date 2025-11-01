@@ -21,6 +21,7 @@ export type GetAllSaveGoalDto = {
     desirValue: number
     importance: number
     wishDueDate?: Date
+    accountId?: string
     items: GetAllSaveGoalItemDto[]
 }
 
@@ -57,7 +58,6 @@ export class GetAllSaveGoalUseCase implements IUsecase<QueryFilterSaveGoal, List
         let responses: GetAllSaveGoalDto[] = [] 
 
         for(let saveGoal of saveGoals.items) {
-
             responses.push(
                 {
                     id: saveGoal.getId(),
@@ -68,6 +68,7 @@ export class GetAllSaveGoalUseCase implements IUsecase<QueryFilterSaveGoal, List
                     desirValue: saveGoal.getDesirValue(),
                     importance: saveGoal.getImportance(),
                     wishDueDate: saveGoal.getWishDueDate(),
+                    accountId: saveGoal.getAccountId(),
                     items: saveGoal.getItems().map(item => ({title: item.title, link: item.link, price: item.price.getAmount(), htmlToTrack: item.htmlToTrack}))
                 }
             ) 

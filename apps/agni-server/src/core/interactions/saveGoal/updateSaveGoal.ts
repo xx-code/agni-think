@@ -6,6 +6,7 @@ import SaveGoalItem from "@core/domains/valueObjects/saveGoalItem"
 import { ImportanceGoal, IntensityEmotionalDesir } from "@core/domains/constants"
 import Repository from "@core/adapters/repository"
 import { SaveGoal } from "@core/domains/entities/saveGoal"
+import { Account } from "@core/domains/entities/account"
 
 export type RequestUpdateItemSaveGoalUseCase = {
     id: string,
@@ -19,6 +20,7 @@ export type RequestUpdateSaveGoalUseCase = {
     id: string
     target?: number
     title?: string
+    accountId?: string
     desirValue?: IntensityEmotionalDesir,
     importance?: ImportanceGoal,
     wishDueDate?: Date,
@@ -28,9 +30,11 @@ export type RequestUpdateSaveGoalUseCase = {
 
 export class UpdateSaveGoalUseCase implements IUsecase<RequestUpdateSaveGoalUseCase, void> {
     private savingRepo: Repository<SaveGoal>
+    private accountRepo: Repository<Account>
 
-    constructor(savingRepo: Repository<SaveGoal>) {
+    constructor(savingRepo: Repository<SaveGoal>, accountRepo: Repository<Account>) {
         this.savingRepo = savingRepo
+        this.accountRepo = accountRepo
     }
 
     async execute(request: RequestUpdateSaveGoalUseCase): Promise<void> {
@@ -52,6 +56,14 @@ export class UpdateSaveGoalUseCase implements IUsecase<RequestUpdateSaveGoalUseC
 
             saveGoal.setTarget(target)
         } 
+
+        if (request.accountId) {
+            console.log(request.accountId)
+            if (!await this.accountRepo.get(request.accountId))
+                throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
+
+            saveGoal.setAccountId(request.accountId)
+        }
 
         if (request.desirValue !== undefined)
         {

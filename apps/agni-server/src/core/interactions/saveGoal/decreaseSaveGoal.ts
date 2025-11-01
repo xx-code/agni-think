@@ -11,6 +11,7 @@ import { MomentDateService } from "@core/domains/entities/libs";
 import Repository from "@core/adapters/repository";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
 import { Account } from "@core/domains/entities/account";
+import UnExpectedError from "@core/errors/unExpectedError";
 
 
 export type RequestDecreaseSaveGoal = {
@@ -49,11 +50,16 @@ export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal
             if (account === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND");
 
+            if (savingGoal.getAccountId())
+                if (savingGoal.getAccountId() != request.accountId)
+                    throw new UnExpectedError("ACCOUNT_ID_DIFF_OF_SAVING_GOAL_ACCOUNT_ID")
+
             let decreaseBalance = new Money(request.decreaseAmount)
 
             if (savingGoal.getBalance().getAmount() < decreaseBalance.getAmount()) {
                 throw new ValueError('Price must be smaller than save account')
             }
+
             
             savingGoal.decreaseBalance(decreaseBalance)
             account.addOnBalance(decreaseBalance)
