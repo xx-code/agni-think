@@ -33,7 +33,7 @@ export class AddFreezeBalanceUseCase implements IUsecase<RequestNewFreezeBalance
 
     async execute(request: RequestNewFreezeBalance): Promise<CreatedDto> {
         try {
-            await this.unitOfWork.start()
+            // await this.unitOfWork.start()
 
             let fetchedAccount = await this.accountRepository.get(request.accountId);
             if (!fetchedAccount) {
@@ -57,11 +57,11 @@ export class AddFreezeBalanceUseCase implements IUsecase<RequestNewFreezeBalance
             
             await this.transactionRepository.create(newTransaction)
 
-            await this.unitOfWork.commit()
+            // await this.unitOfWork.commit()
 
             return { newId: newTransaction.getId()}
         } catch (err) {
-            await this.unitOfWork.rollback()
+            // await this.unitOfWork.rollback()
             throw err
         }
     }

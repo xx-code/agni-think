@@ -38,7 +38,7 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
 
     async execute(request: RequestTransfertTransactionUseCase): Promise<void> {
         try {
-            await this.unitOfWork.start()
+            // await this.unitOfWork.start()
 
             let accountFrom = await this.accountRepository.get(request.accountIdFrom);
             if (accountFrom === null)
@@ -76,9 +76,9 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
             let transTo = new Transaction(GetUID(), accountTo.getId(), toRecord.getId(), TRANSFERT_CATEGORY_ID, request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
             await this.transactionRepository.create(transTo);
 
-            await this.unitOfWork.commit()
+            // await this.unitOfWork.commit()
         } catch (err) {
-            await this.unitOfWork.rollback()
+            // await this.unitOfWork.rollback()
             throw err
         }
     }
