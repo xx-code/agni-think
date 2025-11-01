@@ -17,3 +17,8 @@ export type AccountWithPastBalanceType = AccountType & {
         doIncrease: boolean
     }
 }
+
+export type AccountWithDetailType = AccountType & {
+    lockedBalance: number
+    freezedBalance: number
+}

@@ -4,7 +4,7 @@ import type { GetBalanceResponse } from "~/types/api/transaction";
 export default defineEventHandler(async event => {
     try {
         const api = useApiLink(); 
-        const request = readBody(event);
+        const request = await readBody(event);
 
         const res = await $fetch(`${api}/transactions-balance`, {
             method: 'GET',

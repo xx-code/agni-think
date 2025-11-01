@@ -68,7 +68,7 @@ const {data: tags, error: errorTag, refresh: refreshTag } = useTags({
 
 
 const {data:transactions, error: errorTransaction,  refresh:refreshTransactions } = useTransactionPagination(paramsTransactions);
-const {data:balance, error: errorBalance, refresh:refreshBalance} = useBalance(paramsBalance);
+const {data:balance, error: errorBalance, refresh:refreshBalance} = useBalance(paramsTransactions);
 
 const displaytransactionsTable = computed(() => {
     const getCategory = (id: string) => categories.value?.items.find(i => id === i.id)
@@ -167,15 +167,6 @@ function onFilter(value: FormFilterTransaction) {
     paramsTransactions.minPrice = value.minPrice
     paramsTransactions.maxPrice = value.minPrice
     paramsTransactions.status = value.status
-
-    paramsBalance.categoryFilterIds = value.categoryIds
-    paramsBalance.tagFilterIds = value.tagIds
-    paramsBalance.accountFilterIds = value.accountIds
-    paramsBalance.budgetFilterIds = value.budgetIds
-    paramsBalance.dateEnd = value.dateEnd ? new Date(value.dateEnd) : undefined
-    paramsBalance.dateStart = value.dateStart ? new Date(value.dateStart) : undefined
-    paramsBalance.maxPrice = value.maxPrice
-    paramsBalance.minPrice = value.minPrice
 }
 
 const UIcon = resolveComponent('UIcon');

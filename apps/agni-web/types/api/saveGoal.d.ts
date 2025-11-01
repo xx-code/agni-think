@@ -9,6 +9,7 @@ export type GetSaveGoalResponse = {
     desirValue: number
     importance: number
     wishDueDate?: Date
+    accountId?: string
     items: {
         title: string
         link: string
@@ -26,6 +27,7 @@ export type GetAllSaveGoalResponse = {
     desirValue: number
     importance: number
     wishDueDate?: Date
+    accountId?: string
     items: {
         title: string
         price: number
@@ -37,6 +39,7 @@ export type GetAllSaveGoalResponse = {
 export type CreateSaveGoalRequest = {
     target: number;
     title: string;
+    accountId?: string
     description: string
     desirValue: number
     importance: number
@@ -52,6 +55,7 @@ export type CreateSaveGoalRequest = {
 export type UpdateSaveGoalRequest = {
     target?: number
     title?: string
+    accountId?: string
     description?: string
     desirValue?: number
     importance?: number

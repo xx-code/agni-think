@@ -13,6 +13,7 @@ export default function useSaveGoal(saveGoalId: string): UseApiFetchReturn<SaveG
                 balance: data.balance,
                 target: data.target,
                 items: data.items,
+                accountId: data.accountId,
                 importance: data.importance,
                 desirValue: data.desirValue,
                 wishDueDate: data.wishDueDate ? new Date(data.wishDueDate) : undefined
@@ -34,6 +35,7 @@ export async function fetchSaveGoal(saveGoalId: string): Promise<SaveGoalType> {
         description: res.description,
         balance: res.balance,
         target: res.target,
+        accountId: res.accountId,
         importance: res.importance,
         desirValue: res.desirValue,
         wishDueDate: res.wishDueDate ? new Date(res.wishDueDate) : undefined,

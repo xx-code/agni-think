@@ -3,6 +3,8 @@ const props = defineProps({
     id: String,
     title: String,
     balance: Number,
+    freezedBalance: Number,
+    lockedBalance: Number,
     diffPastBalancePer: Number,
     isPositif: Boolean,
     pastDateInfo: String,
@@ -31,8 +33,16 @@ const props = defineProps({
                 <!--- -->
 
                 <div class="card-content">
-                    <div class="content">
+                    <!-- <div class="content">
                         <p>${{ balance }}</p>
+                    </div> -->
+                    <AmountTitle 
+                        :amount="balance ?? 0"
+                        :sign="'$'"
+                    />
+                    <div class="text-xs text-gray-300">
+                        <p>Freezed Balance: ${{ freezedBalance }}</p>
+                        <p>Locked Balance: ${{ lockedBalance }}</p>
                     </div>
                 </div>
 
