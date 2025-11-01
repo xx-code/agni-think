@@ -19,6 +19,7 @@ export type GetSaveGoalDto = {
     desirValue: number
     importance: number
     wishDueDate?: Date
+    accountId?: string
     items: GetSaveGoalItemDto[] 
 }
 
@@ -44,6 +45,7 @@ export class GetSaveGoalUseCase implements IUsecase<string, GetSaveGoalDto> {
             desirValue: saveGoal.getDesirValue(),
             importance: saveGoal.getImportance(),
             wishDueDate: saveGoal.getWishDueDate(),
+            accountId: saveGoal.getAccountId(),
             items: saveGoal.getItems().map(item => ({title: item.title, link: item.link, price: item.price.getAmount(), htmlToTrack: item.htmlToTrack}))
         }
 

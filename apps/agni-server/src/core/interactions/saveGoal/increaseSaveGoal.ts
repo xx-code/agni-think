@@ -12,6 +12,7 @@ import { MomentDateService } from "@core/domains/entities/libs";
 import Repository from "@core/adapters/repository";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
 import { Account } from "@core/domains/entities/account";
+import UnExpectedError from "@core/errors/unExpectedError";
 
 
 export type RequestIncreaseSaveGoal = {
@@ -50,6 +51,10 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
             let account = await this.accountRepository.get(request.accountId)
             if (account === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
+
+            if (savingGoal.getAccountId())
+                if (savingGoal.getAccountId() != request.accountId)
+                    throw new UnExpectedError("ACCOUNT_ID_DIFF_OF_SAVING_GOAL_ACCOUNT_ID")
 
             let increaseAmount = new Money(request.increaseAmount)
 

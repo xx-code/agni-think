@@ -9,6 +9,7 @@ import { MomentDateService } from "@core/domains/entities/libs";
 import Repository from "@core/adapters/repository";
 import { Account } from "@core/domains/entities/account";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
+import UnExpectedError from "@core/errors/unExpectedError";
 
 export type RequestDeleteSaveGoal = {
     id: string
@@ -47,6 +48,10 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
             let accountTranfert = await this.accountRepo.get(request.accountDepositId)
             if (accountTranfert == null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
+
+            if (savingGoal.getAccountId())
+                if (savingGoal.getAccountId() != request.accountDepositId)
+                    throw new UnExpectedError("ACCOUNT_ID_DIFF_OF_SAVING_GOAL_ACCOUNT_ID")
 
             if (savingGoal.getBalance().getAmount() > 0) {
                 let date = MomentDateService.getTodayWithTime()

@@ -2,6 +2,7 @@ import type { CalendarDate } from "@internationalized/date"
 
 export type EditSaveGoalType = {
     title: string,
+    accountId?: string,
     description: string,
     target: number,
     desirValue: number
@@ -11,6 +12,7 @@ export type EditSaveGoalType = {
 
 export type SaveGoalType = {
     id: string,
+    accountId?: string
     title: string,
     description: string,
     target: number,
