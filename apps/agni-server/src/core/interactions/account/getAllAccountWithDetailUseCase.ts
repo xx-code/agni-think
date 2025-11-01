@@ -41,6 +41,7 @@ export class GetAllAccountWithDetailUseCase implements IUsecase<QueryFilter, Lis
         let accountsDisplay: GetAllAccountWithDetailDto[] = [];
         for (let account of accounts.items) {
             const transactionExtendFilter = new TransactionFilter()
+            transactionExtendFilter.accounts = [account.getId()]
             transactionExtendFilter.isFreeze = true
             const freezeTransacions = await this.transactionRepo.getAll({ offset: 0, limit: 1, queryAll: true }, transactionExtendFilter)
             const records = await this.recordRepo.getManyByIds(freezeTransacions.items.map(i => i.getRecordRef()))

@@ -12,6 +12,7 @@ const amountValue = computed<{integer: string, decimal: string}>(() => {
 }) 
 
 watch([() => amount], () => {
+    amountRounded.value = ""
     amountRounded.value = amount.toFixed(2) 
 })
 

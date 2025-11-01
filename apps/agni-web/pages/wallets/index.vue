@@ -327,8 +327,8 @@ const onUpateAccount = async (payload: string) => {
                         :sign="'$'"
                     />
                     <div class="text-xs text-gray-300">
-                        <p>Freezed Balance: ${{ getAccount(selectedAccountId)?.freezedBalance ?? 0 }}</p>
-                        <p>Locked Balance: ${{ getAccount(selectedAccountId)?.lockedBalance ?? 0 }}</p>
+                        <p>Freezed Balance: ${{ getAccount(selectedAccountId)?.freezedBalance.toFixed(2) ?? 0 }}</p>
+                        <p>Locked Balance: ${{ getAccount(selectedAccountId)?.lockedBalance.toFixed(2) ?? 0 }}</p>
                     </div>
                 </div>
 

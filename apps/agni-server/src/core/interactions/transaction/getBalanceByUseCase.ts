@@ -71,7 +71,6 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetPagination, numbe
         extendTransactionFilter.types = types
 
         const transactions = await this.transactionRepository.getAll(filter, extendTransactionFilter);
-        console.log(transactions.total)
 
         let records = await this.recordRepository
             .getManyByIds(transactions.items.filter(i => i.getStatus() == TransactionStatus.COMPLETE)

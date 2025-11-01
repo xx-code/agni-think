@@ -41,8 +41,8 @@ const props = defineProps({
                         :sign="'$'"
                     />
                     <div class="text-xs text-gray-300">
-                        <p>Freezed Balance: ${{ freezedBalance }}</p>
-                        <p>Locked Balance: ${{ lockedBalance }}</p>
+                        <p>Freezed Balance: ${{ freezedBalance?.toFixed(2) }}</p>
+                        <p>Locked Balance: ${{ lockedBalance?.toFixed(2) }}</p>
                     </div>
                 </div>
 
