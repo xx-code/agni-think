@@ -12,6 +12,7 @@ import { MomentDateService } from "@core/domains/entities/libs";
 import Repository from "@core/adapters/repository";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
 import { Account } from "@core/domains/entities/account";
+import UnExpectedError from "@core/errors/unExpectedError";
 
 
 export type RequestIncreaseSaveGoal = {
@@ -41,7 +42,7 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
 
     async execute(request: RequestIncreaseSaveGoal): Promise<void> {
         try {
-            await this.unitOfWork.start()
+            // await this.unitOfWork.start()
 
             let savingGoal = await this.savingRepository.get(request.id)
             if (savingGoal === null)
@@ -50,6 +51,10 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
             let account = await this.accountRepository.get(request.accountId)
             if (account === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
+
+            if (savingGoal.getAccountId())
+                if (savingGoal.getAccountId() != request.accountId)
+                    throw new UnExpectedError("ACCOUNT_ID_DIFF_OF_SAVING_GOAL_ACCOUNT_ID")
 
             let increaseAmount = new Money(request.increaseAmount)
 
@@ -82,9 +87,9 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
 
             await this.accountRepository.update(account)
 
-            await this.unitOfWork.commit()
+            // await this.unitOfWork.commit()
         } catch (err: any) {
-            await this.unitOfWork.rollback()
+            // await this.unitOfWork.rollback()
             throw err
         }
     }

@@ -1,6 +1,7 @@
 import { TransactionStatus, TransactionType } from "@core/domains/constants"
 import Notification from "@core/domains/entities/notification"
 import { PatrimonySnapshot } from "@core/domains/entities/patrimonySnapshot"
+import { SaveGoal } from "@core/domains/entities/saveGoal"
 import { Transaction } from "@core/domains/entities/transaction"
 import { QueryFilterAllRepository, RepositoryListResult } from "@core/repositories/dto"
 
@@ -68,6 +69,16 @@ export class NotificaitonExtendFilter implements QueryFilterExtend<Notification>
         if (this.isRead !== undefined)
             return entity.getIsRead() === this.isRead
         return true
+    } 
+}
+
+export class SaveGoalExtendFilter implements QueryFilterExtend<SaveGoal> { 
+    accountId?: string
+
+    isSatisty(entity: SaveGoal): boolean {
+        if (this.accountId !== undefined)
+            return entity.getAccountId() == this.accountId
+
+        return true
     }
-    
 }

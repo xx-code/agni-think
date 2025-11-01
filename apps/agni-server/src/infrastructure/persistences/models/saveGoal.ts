@@ -1,8 +1,9 @@
 import { SaveGoal } from "@core/domains/entities/saveGoal";
 import { Knex } from "knex";
-import Mapper, { KnexTable } from "./mapper";
+import Mapper, { KnexFilterExtendAdapter, KnexTable } from "./mapper";
 import { Money } from "@core/domains/entities/money";
 import { KnexModel } from "./model";
+import { SaveGoalExtendFilter } from "@core/adapters/repository";
 
 export class KnexSaveGoalTable implements KnexTable {
     getTableName(): string {
@@ -19,6 +20,7 @@ export class KnexSaveGoalTable implements KnexTable {
                 table.integer('importance')
                 table.date('wish_due_date').nullable()
                 table.string('description')
+                table.uuid('account_id').nullable()
             });
     }
 }
@@ -31,6 +33,7 @@ export type SaveGoalModel = KnexModel & {
     desir_value: number
     importance: number
     wish_due_date?: Date
+    account_id?: string
     description: string
 }
 
@@ -45,6 +48,7 @@ export class SaveGoalModelMapper implements Mapper<SaveGoal, SaveGoalModel> {
             model.importance, 
             model.wish_due_date,
             [],
+            model.account_id,
             model.description
         )
     }
@@ -57,6 +61,7 @@ export class SaveGoalModelMapper implements Mapper<SaveGoal, SaveGoalModel> {
             description: entity.getDescription(),
             desir_value: entity.getDesirValue(),
             wish_due_date: entity.getWishDueDate(),
+            account_id: entity.getAccountId(),    
             importance: entity.getImportance()
         }
     }
@@ -68,5 +73,12 @@ export class SaveGoalModelMapper implements Mapper<SaveGoal, SaveGoalModel> {
     }
     getNameField(): string {
         return 'title'
+    }
+}
+
+export class SaveGoalExtendFilterAdapter implements KnexFilterExtendAdapter<SaveGoal, SaveGoalModelMapper> {
+    filterQuery(query: Knex.QueryBuilder, filtersExtend: SaveGoalExtendFilter): void {
+        if (filtersExtend.accountId !== undefined)
+            query.where('account_id', '=', filtersExtend.accountId)
     }
 }

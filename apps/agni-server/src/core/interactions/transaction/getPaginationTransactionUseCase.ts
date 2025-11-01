@@ -10,7 +10,6 @@ import { MomentDateService } from "@core/domains/entities/libs";
 import { QueryFilterAllRepository, SortBy } from "@core/repositories/dto";
 import Repository, { TransactionFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
-import { Record } from "@core/domains/entities/record";
 
 
 export type RequestGetPagination = {

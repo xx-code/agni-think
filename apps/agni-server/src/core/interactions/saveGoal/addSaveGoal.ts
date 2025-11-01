@@ -5,6 +5,8 @@ import { IUsecase } from "../interfaces";
 import { CreatedDto } from "@core/dto/base";
 import SaveGoalItem from "@core/domains/valueObjects/saveGoalItem";
 import Repository from "@core/adapters/repository";
+import { Account } from "@core/domains/entities/account";
+import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 
 export type RequestAddItemSaveGoalUseCase = {
     title: string
@@ -19,15 +21,18 @@ export type RequestAddSaveGoalUseCase = {
     desirValue: number
     importance: number
     wishDueDate?: Date
+    accountId?: string
     items: RequestAddItemSaveGoalUseCase[]
 }
 
 
 export class AddSaveGoalUseCase implements IUsecase<RequestAddSaveGoalUseCase, CreatedDto> {
     private savingRepository: Repository<SaveGoal>
+    private accountRepository: Repository<Account>
 
-    constructor(savingRepo: Repository<SaveGoal>) {
+    constructor(savingRepo: Repository<SaveGoal>, accountRepository: Repository<Account>) {
         this.savingRepository = savingRepo
+        this.accountRepository = accountRepository
     }
 
     async execute(request: RequestAddSaveGoalUseCase): Promise<CreatedDto> {
@@ -43,6 +48,9 @@ export class AddSaveGoalUseCase implements IUsecase<RequestAddSaveGoalUseCase, C
             items.push(item)
         }
 
+        if (request.accountId && (!await this.accountRepository.get(request.accountId)))
+            throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
+
         let money = new Money(request.target)
         let newSaveGoal = new SaveGoal(
             GetUID(), 
@@ -52,7 +60,9 @@ export class AddSaveGoalUseCase implements IUsecase<RequestAddSaveGoalUseCase, C
             request.desirValue,
             request.importance,
             request.wishDueDate,
-            items, request.description)
+            items, 
+            request.accountId,
+            request.description)
 
         await this.savingRepository.create(newSaveGoal)
 

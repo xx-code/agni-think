@@ -9,6 +9,7 @@ import { MomentDateService } from "@core/domains/entities/libs";
 import Repository from "@core/adapters/repository";
 import { Account } from "@core/domains/entities/account";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
+import UnExpectedError from "@core/errors/unExpectedError";
 
 export type RequestDeleteSaveGoal = {
     id: string
@@ -38,7 +39,7 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
 
     async execute(request: RequestDeleteSaveGoal): Promise<void> {
         try {
-            await this.unitOfWork.start()
+            // await this.unitOfWork.start()
 
             let savingGoal = await this.savingRepo.get(request.id)
             if (savingGoal == null)
@@ -47,6 +48,10 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
             let accountTranfert = await this.accountRepo.get(request.accountDepositId)
             if (accountTranfert == null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
+
+            if (savingGoal.getAccountId())
+                if (savingGoal.getAccountId() != request.accountDepositId)
+                    throw new UnExpectedError("ACCOUNT_ID_DIFF_OF_SAVING_GOAL_ACCOUNT_ID")
 
             if (savingGoal.getBalance().getAmount() > 0) {
                 let date = MomentDateService.getTodayWithTime()
@@ -66,10 +71,10 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
             
             await this.savingRepo.delete(savingGoal.getId())
 
-            await this.unitOfWork.commit()
+            // await this.unitOfWork.commit()
 
         } catch(err: any) {
-            await this.unitOfWork.rollback()
+            // await this.unitOfWork.rollback()
             throw err
         }
     }

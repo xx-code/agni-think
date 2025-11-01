@@ -6,20 +6,10 @@ import { MomentDateService } from "@core/domains/entities/libs";
 import Repository, { TransactionFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
+import { RequestGetPagination } from "./getPaginationTransactionUseCase";
 
-export type RequestGetBalanceBy = {
-    accountIds?: string[],
-    tagsIds?: string[],
-    budgetIds?: string[],
-    categoriesIds?: string[],
-    dateStart?: Date,
-    dateEnd?: Date,
-    types?: string[],
-    minPrice?: number,
-    maxPrice?: number
-}
 
-export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number> {
+export class GetBalanceByUseCase implements IUsecase<RequestGetPagination, number> {
     private transactionRepository: Repository<Transaction>;
     private recordRepository: Repository<Record>
 
@@ -30,7 +20,7 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number
         this.recordRepository = recordRepository
     }
 
-    async execute(request: RequestGetBalanceBy): Promise<number> {
+    async execute(request: RequestGetPagination): Promise<number> {
         if (request.dateStart && request.dateEnd) {
             // compare date
             if (MomentDateService.compareDate(request.dateEnd, request.dateStart) < 0) {
@@ -67,24 +57,21 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetBalanceBy, number
             offset: 0,
             limit: 0,
             queryAll: true,
-            accounts: request.accountIds || [],
-            categories: request.categoriesIds || [],
-            budgets: request.budgetIds || [],
-            tags: request.tagsIds || [],
-            startDate: dateStart,
-            endDate: dateEnd,
-            types: types,
         }
 
+
         const extendTransactionFilter = new TransactionFilter()
-        extendTransactionFilter.accounts = request.accountIds
-        extendTransactionFilter.categories = request.categoriesIds
-        extendTransactionFilter.budgets = request.budgetIds
-        extendTransactionFilter.tags = request.tagsIds
+        extendTransactionFilter.accounts = request.accountFilterIds
+        extendTransactionFilter.categories = request.categoryFilterIds
+        extendTransactionFilter.budgets = request.budgetFilterIds
+        extendTransactionFilter.tags = request.tagFilterIds
         extendTransactionFilter.startDate = request.dateStart
         extendTransactionFilter.endDate = request.dateEnd
-        extendTransactionFilter.types = request.types?.map(i => mapperMainTransactionCategory(i))
-        const transactions = await this.transactionRepository.getAll(filter);
+        extendTransactionFilter.isFreeze = undefined
+        extendTransactionFilter.types = types
+
+        const transactions = await this.transactionRepository.getAll(filter, extendTransactionFilter);
+        console.log(transactions.total)
 
         let records = await this.recordRepository
             .getManyByIds(transactions.items.filter(i => i.getStatus() == TransactionStatus.COMPLETE)

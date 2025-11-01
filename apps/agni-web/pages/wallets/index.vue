@@ -20,11 +20,14 @@ import useTags from "~/composables/tags/useTags";
 import { getLocalTimeZone } from "@internationalized/date";
 import useBudgets from "~/composables/budgets/useBudgets";
 import useAnalyseBudgetRules from "~/composables/analytics/useBudgetRules";
+import { fetchAccountsWithDetail } from "~/composables/accounts/useAccounts";
 
+ 
+const { data: accounts, refresh: refreshAccounts } = await useAsyncData('account_with_detail+all', async () => {
+    const res = await fetchAccountsWithDetail({ offset: 0, limit: 0, queryAll: true })
 
-const {data: accounts, error: errorAccounts, refresh: refreshAccounts} = useAccountsWitPastBalance({ 
-    period: 'Month', periodTime: 1, offset: 0, limit: 0, queryAll: true
-}); 
+    return res.items
+})
 const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories({
     limit: 0, offset: 0, queryAll: true
 });
@@ -115,11 +118,15 @@ const modalFreezeTransaction = overlay.create(ModalEditFreezeTransaction);
 
 const onSelectAccount = (id: string) => {
     selectedAccountId.value = id
+    if (id !== ALL_ACCOUNT_ID) {
+        paramsTransaction.accountFilterIds = [id]
+    }
+
     onUpateAccount(id)
 }
 const getAccount = (id: string) => {
     if (accounts.value)
-        return accounts.value.items.find(acc => acc.id === id)
+        return accounts.value.find(acc => acc.id === id)
     return null
 }
 
@@ -308,19 +315,24 @@ const onUpateAccount = async (payload: string) => {
                     v-model="selectedAccountId" 
                     @update:modelValue="onUpateAccount" 
                     value-key="id"  label-key="title" 
-                    :items="accounts?.items.map(acc => ({ 
+                    :items="accounts?.map(acc => ({ 
                         id: acc.id, 
                         title: acc.title, 
                         type: 'item' }))"
                     /> 
                 </CustomCardTitle>
                 <div class="card-money" style="margin-top: 1rem;">
-                    <h2>
-                        ${{ getAccount(selectedAccountId)?.balance }}
-                    </h2>
+                    <AmountTitle 
+                        :amount="getAccount(selectedAccountId)?.balance ?? 0"
+                        :sign="'$'"
+                    />
+                    <div class="text-xs text-gray-300">
+                        <p>Freezed Balance: ${{ getAccount(selectedAccountId)?.freezedBalance ?? 0 }}</p>
+                        <p>Locked Balance: ${{ getAccount(selectedAccountId)?.lockedBalance ?? 0 }}</p>
+                    </div>
                 </div>
 
-                <div class="card-bottom" style="margin-top: 1rem;">
+                <!-- <div class="card-bottom" style="margin-top: 1rem;">
                     <div class="flex items-center">
                         <UBadge 
                             variant="subtle"
@@ -330,7 +342,7 @@ const onUpateAccount = async (payload: string) => {
                         </UBadge>
                         <p>Vs {{ }} precendent</p>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="flex justify-between mt-5">
                     <UButton icon="i-lucide-banknote" size="xl" @click="openModalEditTransaction()"/>
@@ -345,7 +357,7 @@ const onUpateAccount = async (payload: string) => {
                 <UButton icon="i-lucide-plus" size="xl" variant="solid" @click="openAccountModal()">Ajouter Carte</UButton>
             </div>
             <div class="flex overflow-x-auto gap-2"  >
-                <div v-for="account in accounts?.items" :key="account.id">
+                <div v-for="account in accounts" :key="account.id">
                     <CardResumeAccount 
                         @customClick="onSelectAccount(account.id)"
                         style="width: 200px;"
@@ -353,8 +365,10 @@ const onUpateAccount = async (payload: string) => {
                         :id="account.id"
                         :title="account.title"
                         :balance="account.balance"
-                        :diff-past-balance-per="account.pastBalanceDetail.diffPercent"
-                        :is-positif="account.pastBalanceDetail.doIncrease"
+                        :diff-past-balance-per="0"
+                        :is-positif="true"
+                        :freezed-balance="account.freezedBalance"
+                        :locked-balance="account.lockedBalance"
                         :allow-edit="account.id === ALL_ACCOUNT_ID ? false : true"
                         :allow-delete="account.id === ALL_ACCOUNT_ID ? false :true" 
                         @edit="openAccountModal(account.id)"
@@ -459,6 +473,5 @@ const onUpateAccount = async (payload: string) => {
             color: #ADADAD;
         }
     }
-    
 }
 </style>

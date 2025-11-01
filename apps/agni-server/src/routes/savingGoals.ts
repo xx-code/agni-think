@@ -12,6 +12,7 @@ const router = Router();
 
 router.post('/v1/save-goals', 
     body('title').notEmpty().isString(),           
+    body('accountId').optional().isString(),
     body('description').notEmpty().isString(),           
     body('target').notEmpty().isNumeric(),           
     body('items').isArray(),
@@ -38,6 +39,7 @@ router.post('/v1/save-goals',
 
 router.put('/v1/save-goals/:id', 
     body('title').optional().isString(),           
+    body('accountId').optional().isString(),
     body('description').optional().isString(),           
     body('target').optional().isNumeric(),           
     body('items').optional().isArray(),
@@ -49,6 +51,7 @@ router.put('/v1/save-goals/:id',
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestUpdateSaveGoalUseCase = matchedData(req); 
+                console.log(data)
                 data.id = req.params.id;
                 await container.saveGoalUseCase?.updateSaveGoal.execute(data);
 

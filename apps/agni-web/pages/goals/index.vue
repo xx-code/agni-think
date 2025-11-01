@@ -78,6 +78,7 @@ async function onSubmitSaveGoal(value: EditSaveGoalType, oldValue?: SaveGoalType
                 title: value.title,
                 description: value.description,
                 target: value.target,
+                accountId: value.accountId,
                 importance: value.importance,
                 desirValue: value.desirValue,
                 wishDueDate: value.wishDueDate?.toDate(getLocalTimeZone()).toISOString()
@@ -87,6 +88,7 @@ async function onSubmitSaveGoal(value: EditSaveGoalType, oldValue?: SaveGoalType
                 title: value.title,
                 description: value.description,
                 target: value.target,
+                accountId: value.accountId,
                 importance: value.importance,
                 desirValue: value.desirValue,
                 wishDueDate: value.wishDueDate?.toDate(getLocalTimeZone()).toISOString(),

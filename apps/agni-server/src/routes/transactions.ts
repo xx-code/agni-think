@@ -1,6 +1,5 @@
 import { RequestNewFreezeBalance } from '@core/interactions/freezerBalance/addFreezeBalanceUseCase';
 import { RequestAddTransactionUseCase } from '@core/interactions/transaction/addTransactionUseCase';
-import { RequestGetBalanceBy } from '@core/interactions/transaction/getBalanceByUseCase';
 import { RequestGetPagination } from '@core/interactions/transaction/getPaginationTransactionUseCase';
 import { RequestTransfertTransactionUseCase } from '@core/interactions/transaction/transfertTransactionUseCase';
 import { RequestUpdateTransactionUseCase } from '@core/interactions/transaction/updateTransactionUseCase';
@@ -83,28 +82,28 @@ router.delete("/v1/transactions/:id", async (req, res) => {
 });
 
 router.get("/v1/transactions-balance",
+    query('status').optional().isString(),
     query('accountFilterIds').optional().toArray(),
     query('categoryFilterIds').optional().toArray(),
     query('budgetFilterIds').optional().toArray(),
     query('tagFilterIds').optional().toArray(),
     query('dateStart').optional().isISO8601().toDate(),
     query('dateEnd').optional().isISO8601().toDate(),
-    query('types').optional().toArray(),
+    query('types').optional().isArray(),
     query('minPrice').optional().isNumeric(),
     query('maxPrice').optional().isNumeric(),
+    query('isFreeze').optional().isBoolean(),
     async (req, res) => {
         try {
             const result = validationResult(req); 
             if (result.isEmpty()) {
-                const data: RequestGetBalanceBy = matchedData(req);
+                const data: RequestGetPagination = matchedData(req);
                 const balance = await container.transactionUseCase?.getBalanceBy.execute(data);
 
                 res.status(200).json({balance: balance});
                 return;
             }
 
-
-            console.log(result)
             
             res.status(400).send({ errors: result.array() });
         } catch(err) {

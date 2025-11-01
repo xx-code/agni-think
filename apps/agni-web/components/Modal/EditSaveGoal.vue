@@ -6,6 +6,7 @@ import type { EditSaveGoalType, SaveGoalType } from '~/types/ui/saveGoal';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
 import useIntensityDesirTypes from '~/composables/internals/useIntensityDerisTypes';
 import useImportanceTypes from '~/composables/internals/useImportanceTypes';
+import useAccounts from '~/composables/accounts/useAccounts';
 
 const { saveGoal } = defineProps<{
     saveGoal?: SaveGoalType
@@ -17,6 +18,7 @@ const emit = defineEmits<{
 const schema = z.object({
     title: z.string().nonempty('Vous devez ajouter un titre'),
     description: z.string().optional(),
+    accountId: z.string().optional(),
     targetAmount: z.number().gt(0, 'La somme d\'argent doit etre superieux a zero'),
     desirValue: z.any(),
     importance: z.any(),
@@ -27,9 +29,11 @@ type Schema = z.output<typeof schema>;
 
 const { data:intensityDesir } = useIntensityDesirTypes();
 const { data:importances } = useImportanceTypes();
+const { data:accounts } = useAccounts({ queryAll: true, offset: 0, limit: 10});
 
 const form = reactive({
     title: saveGoal?.title || '',
+    accountId: saveGoal?.accountId || '',
     description: saveGoal?.description || '',
     targetAmount: saveGoal?.target || 0,
     desirValue: saveGoal?.desirValue,
@@ -51,10 +55,11 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     emit('submit', {
         title: data.title,
         target: data.targetAmount,
+        accountId: data.accountId,
         description: data.description || '',
         desirValue: data.desirValue,
         importance: data.importance,
-        wishDueDate: form.hasWishDueDate ? wishDate.value : undefined
+        wishDueDate: form.hasWishDueDate ? wishDate.value : undefined,
     }, saveGoal);
 
     form.title = "";
@@ -99,6 +104,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                         v-model="form.importance"
                         :items="importances || []" />
                 </UFormField> 
+
+                <UFormField label="Compte" name="accountId" >
+                    <USelect 
+                        v-model="form.accountId" 
+                        value-key="value" 
+                        :items="accounts?.items.map(i => ({value: i.id, label: i.title}))" 
+                        class="w-full" />
+                </UFormField>
 
                 <UFormField label="Date butoir desirer" name="hasWishDueDate">
                     <USwitch v-model="form.hasWishDueDate" />

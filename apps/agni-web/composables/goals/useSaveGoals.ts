@@ -17,6 +17,7 @@ export default function useSaveGoals(query: Reactive<queryFilterSaveGoalRequest>
                     balance: i.balance,
                     target: i.target,
                     items: i.items,
+                    accountId: i.accountId,
                     desirValue: i.desirValue,
                     importance: i.importance,
                     wishDueDate: i.wishDueDate ? new Date(i.wishDueDate) : undefined 
