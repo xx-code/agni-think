@@ -41,7 +41,7 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
 
     async execute(request: RequestIncreaseSaveGoal): Promise<void> {
         try {
-            await this.unitOfWork.start()
+            // await this.unitOfWork.start()
 
             let savingGoal = await this.savingRepository.get(request.id)
             if (savingGoal === null)
@@ -82,9 +82,9 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
 
             await this.accountRepository.update(account)
 
-            await this.unitOfWork.commit()
+            // await this.unitOfWork.commit()
         } catch (err: any) {
-            await this.unitOfWork.rollback()
+            // await this.unitOfWork.rollback()
             throw err
         }
     }

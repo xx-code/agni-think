@@ -48,7 +48,7 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
 
     async execute(request: RequestUpdateTransactionUseCase): Promise<void> {
         try {
-            await this.unitOfWork.start()
+            // await this.unitOfWork.start()
 
             let transaction = await this.transactionRepository.get(request.id);
             if (!transaction)
@@ -127,9 +127,9 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
                 })
             }
 
-            this.unitOfWork.commit()
+            // this.unitOfWork.commit()
         } catch (err) {
-            this.unitOfWork.rollback()
+            // this.unitOfWork.rollback()
             throw err
         }
     }

@@ -40,7 +40,7 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
 
     async execute(request: RequestAddTransactionUseCase): Promise<CreatedDto> {
         try {
-            await this.unitOfWork.start()
+            // await this.unitOfWork.start()
 
             let account = await this.transcationDependencies.accountRepository?.get(request.accountId) 
             if (account === null)
@@ -90,12 +90,11 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
 
             await this.transactionRepository.create(newTransaction);
             
-            await this.unitOfWork.commit()
+            // await this.unitOfWork.commit()
 
             return {newId: newTransaction.getId()}
         } catch (err) {
-            await this.unitOfWork.rollback()
-            console.log(err)
+            // await this.unitOfWork.rollback()
             return {newId: ''}
         }
     }
