@@ -8,3 +8,11 @@ export default function useAccountTypes(): UseApiFetchReturn<GetAccountTypeRespo
 
     return { data, error, refresh };
 }
+
+export async function fetchAccountTypes(): Promise<GetAccountTypeResponse[]> {
+    const res = await $fetch<GetAccountTypeResponse[]>('/api/internals/account-types', {
+        method: 'GET'
+    })
+
+    return res
+}

@@ -315,7 +315,7 @@ const columns: TableColumn<ItemRown>[] =  [
                 label="Conseiller en planification" 
                 @click="openPlanningAdvisorModal()"/>
        </div> 
-       <div style="margin-top: 1rem;">
+       <div style="margin-top: 1rem;" class="bg-white p-2 rounded-lg">
             <UTable 
                 ref="table"
                 v-model:row-selection="rowSelection"
