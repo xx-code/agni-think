@@ -168,7 +168,7 @@ const onDeleteBudget = async (budgetId: string) => {
     <div style="margin-top: 1rem;">
         <div class="grid xs:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
             <div v-for="budget of displaybudgets" :key="budget.id">
-                <div class="card-grid rounded-md" >
+                <div class="card-grid rounded-md bg-white" >
                     <CustomCardTitle :title="budget.title">
                         <div class="flex gap-1">
                             <UButton icon="i-lucide-pencil" variant="outline" color="neutral" size="xl" @click="openModalBudget(budget.id)"/>

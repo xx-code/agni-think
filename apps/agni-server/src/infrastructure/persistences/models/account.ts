@@ -55,6 +55,6 @@ export class AccountModelMapper implements Mapper<Account, AccountModel> {
         return 'account_id'
     }
     getNameField(): string {
-        return 'name'
+        return 'title'
     }
 } 

@@ -31,7 +31,7 @@
     transition: 250ms ease-out;
 }
 .nav-container {
-    background-color: rgba(103, 85, 215, 0.1);
+    background-color: #feffff;
     width: 225px;
     transition: 250ms ease-out;
     @media (max-width: 975px) {
