@@ -24,6 +24,7 @@ import { fetchAccountsWithDetail } from "~/composables/accounts/useAccounts";
 import { fetchAccountTypes } from "~/composables/internals/useAccountTypes";
 
 type AccountByType = {
+    id: string
     title: string
     accounts: AccountWithDetailType[]
 }
@@ -36,6 +37,7 @@ const { data: accounts, refresh: refreshAccounts } = await useAsyncData('account
     for(const type of accountTypes) {
         const accounts = res.items.filter(i => i.type === type.id)
         accountsByType.push({
+            id: type.id,
             title: type.value,
             accounts: accounts
         } satisfies AccountByType) 
@@ -51,7 +53,8 @@ const totalAccountBalance = computed(() => {
 
     if (accounts.value) {
         for(const acc of accounts.value) {
-            total += acc.accounts.reduce((acc, curr) => acc += curr.balance, 0)
+            if (acc.id !== 'Saving' && acc.id !== 'Broking')
+                total += acc.accounts.reduce((acc, curr) => acc += curr.balance, 0)
             totalFreezed += acc.accounts.reduce((acc, curr) => acc += curr.freezedBalance, 0)
             totalLocked += acc.accounts.reduce((acc, curr) => acc += curr.lockedBalance, 0)
         }
