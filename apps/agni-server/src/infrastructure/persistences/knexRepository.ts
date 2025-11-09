@@ -89,7 +89,7 @@ export default class KnexRepository <TEntity extends Entity, TModel extends Knex
     }
 
     async existByName(name: string): Promise<boolean> {
-        const result = await this.connector(this.table.getTableName()).whereLike(this.mapper.getNameField(), name).first();
+        const result = await this.connector(this.table.getTableName()).where(this.mapper.getNameField(), 'like' , name).first();
 
         return result !== undefined
     }

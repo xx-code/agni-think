@@ -52,6 +52,7 @@ export class GetAccountDetailUseCase implements IUsecase<string, GetAccountDetai
 
         const transactionExtendFilter = new TransactionFilter()
         transactionExtendFilter.isFreeze = true
+        transactionExtendFilter.accounts = [account.getId()]
         const freezeTransacions = await this.transactionRepo.getAll({ offset: 0, limit: 1, queryAll: true }, transactionExtendFilter)
         const records = await this.recordRepo.getManyByIds(freezeTransacions.items.map(i => i.getRecordRef()))
         const freezeAmount = records.reduce((acc, curr) => acc += curr.getMoney().getAmount(), 0)

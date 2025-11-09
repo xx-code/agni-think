@@ -321,7 +321,7 @@ watchEffect(() => {
 <template>
     <div>
         <div class="option-diplay-container">
-            <div class="flex gap-2">
+            <div class="flex gap-2 ">
                 <UDropdownMenu :items="listTypeDateDisplay">
                     <UButton size="xl" variant="outline" color="neutral">
                         <UIcon name="i-lucide-calendar"  />
@@ -371,13 +371,13 @@ watchEffect(() => {
         </div> 
         <div class="card-grid-list sm:grid-cols-1 md:grid-cols-3 grid gap-2">
 
-            <div class="card-grid rounded-md md:col-span-2">
+            <div class="card-grid rounded-md md:col-span-2 bg-white">
                 <CustomCardTitle title="Money flow" />
                 <div class="flex justify-center items-center" style="height: 280px;">
                     <BarChart  :data="dataChart" :options="optionsChart" />
                 </div>
             </div>
-            <div class="card-grid rounded-md">
+            <div class="card-grid rounded-md bg-white">
                 <CustomCardTitle title="Budgets">
                     <UButton icon="i-lucide-external-link" variant="outline" color="neutral" />
                 </CustomCardTitle>
@@ -385,7 +385,7 @@ watchEffect(() => {
                     <DoughnutChart :data="budgetChart" :options="optionsChart"/>
                 </div>
             </div>
-            <div class="card-grid rounded-md md:col-span-2 flex flex-col gap-2">
+            <div class="card-grid rounded-md md:col-span-2 flex flex-col gap-2 bg-white">
                 <CustomCardTitle title="Depenses par categories">
                 </CustomCardTitle>
                 <div class="flex justify-center items-center" style="height: 280px;">
@@ -393,7 +393,7 @@ watchEffect(() => {
                 </div>
             </div>
 
-            <div class="card-grid rounded-md">
+            <div class="card-grid rounded-md bg-white">
                 <CustomCardTitle title="But d'epargne">
                     <UButton icon="i-lucide-external-link" variant="outline" color="neutral" />
                 </CustomCardTitle>

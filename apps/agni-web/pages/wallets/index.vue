@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import useAccountsWitPastBalance, { ALL_ACCOUNT_ID } from "~/composables/accounts/useAccountsWithPastBalance";
 import useDeleteAccount from "~/composables/accounts/useDeleteAccount";
-import type { AccountType, EditAccountType } from "~/types/ui/account";
+import type { AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
 import useCreateAccount from "~/composables/accounts/useCreateAccount";
 import useUpdateAccount from "~/composables/accounts/useUpdateAccount";
 import useTransactionPagination from "~/composables/transactions/useTransactionPagination";
@@ -21,13 +21,48 @@ import { getLocalTimeZone } from "@internationalized/date";
 import useBudgets from "~/composables/budgets/useBudgets";
 import useAnalyseBudgetRules from "~/composables/analytics/useBudgetRules";
 import { fetchAccountsWithDetail } from "~/composables/accounts/useAccounts";
+import { fetchAccountTypes } from "~/composables/internals/useAccountTypes";
 
- 
-const { data: accounts, refresh: refreshAccounts } = await useAsyncData('account_with_detail+all', async () => {
+type AccountByType = {
+    id: string
+    title: string
+    accounts: AccountWithDetailType[]
+}
+
+const { data: accounts, refresh: refreshAccounts } = await useAsyncData('accounts+categories+tags+budgets', async () => {
     const res = await fetchAccountsWithDetail({ offset: 0, limit: 0, queryAll: true })
+    const accountTypes = await fetchAccountTypes()
 
-    return res.items
+    const accountsByType = []
+    for(const type of accountTypes) {
+        const accounts = res.items.filter(i => i.type === type.id)
+        accountsByType.push({
+            id: type.id,
+            title: type.value,
+            accounts: accounts
+        } satisfies AccountByType) 
+    }
+
+    return accountsByType
 })
+
+const totalAccountBalance = computed(() => {
+    let total = 0 
+    let totalFreezed = 0
+    let totalLocked = 0
+
+    if (accounts.value) {
+        for(const acc of accounts.value) {
+            if (acc.id !== 'Saving' && acc.id !== 'Broking')
+                total += acc.accounts.reduce((acc, curr) => acc += curr.balance, 0)
+            totalFreezed += acc.accounts.reduce((acc, curr) => acc += curr.freezedBalance, 0)
+            totalLocked += acc.accounts.reduce((acc, curr) => acc += curr.lockedBalance, 0)
+        }
+    }  
+
+    return { totalBalance: total, totalFreezedBalance: totalFreezed, totalLockedBalance: totalLocked }
+})
+
 const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories({
     limit: 0, offset: 0, queryAll: true
 });
@@ -123,11 +158,6 @@ const onSelectAccount = (id: string) => {
     }
 
     onUpateAccount(id)
-}
-const getAccount = (id: string) => {
-    if (accounts.value)
-        return accounts.value.find(acc => acc.id === id)
-    return null
 }
 
 const toast = useToast();
@@ -225,14 +255,14 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
     }
 }
 
-async function openModalEditTransaction(transactionId?: string) {
-    let transaction:TransactionType|undefined;
-    if (transactionId)
-        transaction = await fetchTransaction(transactionId);
+async function openModalEditTransaction(accountId?: string) {
+    // let transaction:TransactionType|undefined;
+    // if (transactionId)
+    //     transaction = await fetchTransaction(transactionId);
 
     const instant = modalTransaction.open({
-        transaction: transaction,
-        accountSelectedId: selectedAccountId.value,
+        transaction: undefined,
+        accountSelectedId: accountId,
         onSubmit: onSubmitTransaction 
     });
 
@@ -281,180 +311,103 @@ const onUpateAccount = async (payload: string) => {
         filterAcc = [payload] 
 }
 
-// const { data: analyseBudgetRules } = useAnalyseBudgetRules({ period: 'Month', periodTime: 1 })
-
-// const optionsChart = computed(() => ({
-//     responsive: true,
-//     plugins: {colors: { forceOverride: true}}
-// })) 
-// const dataChart = computed(() => {
-//     let labels: string[] = []
-//     let data: number[] = []
-//     if (analyseBudgetRules.value) {
-//         labels = analyseBudgetRules.value.map(i => i.transactionType)
-//         data = analyseBudgetRules.value.map( i => i.value)    
-//      } 
-
-//     return {
-//         labels: labels,
-//         datasets: [{
-//             label: '50/20/30 rules match',
-//             data: data
-//         }]
-//     } 
-// })
-
 </script>
 
 <template>
-    <div class="grid xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-1" style="margin-top: 1rem;">
-        <div>
-            <div class="card rounded-md">
-                <CustomCardTitle :title="getAccount(selectedAccountId)?.title">
-                   <USelect 
-                    v-model="selectedAccountId" 
-                    @update:modelValue="onUpateAccount" 
-                    value-key="id"  label-key="title" 
-                    :items="accounts?.map(acc => ({ 
-                        id: acc.id, 
-                        title: acc.title, 
-                        type: 'item' }))"
-                    /> 
-                </CustomCardTitle>
-                <div class="card-money" style="margin-top: 1rem;">
-                    <AmountTitle 
-                        :amount="getAccount(selectedAccountId)?.balance ?? 0"
-                        :sign="'$'"
-                    />
-                    <div class="text-xs text-gray-300">
-                        <p>Freezed Balance: ${{ getAccount(selectedAccountId)?.freezedBalance ?? 0 }}</p>
-                        <p>Locked Balance: ${{ getAccount(selectedAccountId)?.lockedBalance ?? 0 }}</p>
+    <div  style="margin-top: 1rem;">
+        <div class="self-end" style="margin-bottom: 1rem;">
+            <UButton icon="i-lucide-plus" size="xl" variant="solid" @click="openAccountModal()">Ajouter Carte</UButton>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-2">
+            <div class="bg-white rounded-md p-2 border-1 border-gray-200">
+                <div class="text-xs text-gray-500">Total Balance</div> 
+                <div class="flex items-start justify-between">
+                    <div class="card-money" style="margin-top: 1rem;">
+                        <AmountTitle 
+                            :amount="totalAccountBalance.totalBalance"
+                            :sign="'$'"
+                        />
+                        <div class="text-xs text-gray-300">
+                            <p>Freezed Balance: ${{ totalAccountBalance.totalFreezedBalance.toFixed(2) ?? 0 }}</p>
+                            <p>Locked Balance: ${{ totalAccountBalance.totalLockedBalance.toFixed(2) ?? 0 }}</p>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <div className="mt-3 flex gap-2">
+                            <UButton icon="i-lucide-banknote" size="md" @click="openModalEditTransaction()"/>
+                            <UButton icon="i-lucide-arrow-right-left" size="md" @click="openModalTransferAccount(selectedAccountId)" />
+                            <UButton icon="i-lucide-snowflake" size="md" @click="openModalEditFreezeTransaction(selectedAccountId)"/>
+                        </div>
+                    </div>
+                </div> 
+                
+                <div className="mt-4">
+                    <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                        <div className="h-3 rounded-full" style="width:50%; background:linear-gradient(90deg,#10b981,#60a5fa)" />
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 mt-2">
+                        <span>Disponible</span>
+                        <span>Verrouillé</span>
                     </div>
                 </div>
+            </div>
 
-                <!-- <div class="card-bottom" style="margin-top: 1rem;">
-                    <div class="flex items-center">
-                        <UBadge 
-                            variant="subtle"
-                            :color="getAccount(selectedAccountId)?.pastBalanceDetail.doIncrease ? 'success' : 'error'"
-                            :icon="getAccount(selectedAccountId)?.pastBalanceDetail.doIncrease ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'">
-                            {{ getAccount(selectedAccountId)?.pastBalanceDetail.diffPercent }}%
-                        </UBadge>
-                        <p>Vs {{ }} precendent</p>
+
+            <div class="bg-white rounded-md p-2 border-1 border-gray-200">
+                <h2 class="text-xs text-gray-500">Gestion financière responsable</h2> 
+                <div className="space-y-2 text-sm text-gray-600" >
+                    <div className="p-3 rounded-md bg-emerald-50 border">📈 Dépenses mensuelles: <strong>--%</strong></div>
+
+                    <div className="mt-3">
+                        <button className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md">Voir recommandations</button>
                     </div>
-                </div> -->
-
-                <div class="flex justify-between mt-5">
-                    <UButton icon="i-lucide-banknote" size="xl" @click="openModalEditTransaction()"/>
-                    <UButton icon="i-lucide-arrow-right-left" size="xl" @click="openModalTransferAccount(selectedAccountId)" />
-                    <UButton icon="i-lucide-snowflake" size="xl" @click="openModalEditFreezeTransaction(selectedAccountId)"/>
                 </div>
             </div>
         </div>
-
-        <div class="xs:col-1 sm:col-span-1 md:col-span-3 flex flex-col" >
-            <div class="self-end" style="margin-bottom: 1rem;">
-                <UButton icon="i-lucide-plus" size="xl" variant="solid" @click="openAccountModal()">Ajouter Carte</UButton>
-            </div>
-            <div class="flex overflow-x-auto gap-2"  >
-                <div v-for="account in accounts" :key="account.id">
-                    <CardResumeAccount 
-                        @customClick="onSelectAccount(account.id)"
-                        style="width: 200px;"
-                        v-if="account.id !== selectedAccountId"
-                        :id="account.id"
-                        :title="account.title"
-                        :balance="account.balance"
-                        :diff-past-balance-per="0"
-                        :is-positif="true"
-                        :freezed-balance="account.freezedBalance"
-                        :locked-balance="account.lockedBalance"
-                        :allow-edit="account.id === ALL_ACCOUNT_ID ? false : true"
-                        :allow-delete="account.id === ALL_ACCOUNT_ID ? false :true" 
-                        @edit="openAccountModal(account.id)"
-                        @delete="onDeleteAccount(account.id)"
-
-                    /> 
-                </div>
-            </div> 
-        </div>
-    </div> 
-
-    <div class="grid md:grid-cols-3 gap-2" style="margin-top: 1rem;">
-        <div class="card rounded-md col-span-2 ">
-            <CustomCardTitle title="Recente transaction">
-                <div class="flex gap-1">
-                    <!-- <USelect class="rounded-full" v-model="transactionAccountSelected" :items="accounts.map(acc => (acc.title))" /> -->
-                    <UButton class="rounded-full" size="sm" label="Voir plus" variant="outline" color="neutral" />
-                </div>
-            </CustomCardTitle>
-            <div class="flex flex-col gap-1" style="margin-top: 1rem;">
-                <div v-for="trans in displayTransactions" :key="trans.id">
-                    <RowTransaction 
-                        :id="trans.id" 
-                        :balance="trans.amount" 
-                        :title="trans.category.title" 
-                        :description="trans.description" 
-                        :icon="trans.category.icon" 
-                        :color="trans.category.color"
-                        :tags="trans.tags.map((tag: any)=>tag.value)" 
-                        :date="trans.date" 
-                        :recordType="trans.recordType"
-                        :doShowEdit="true"
-                    />
-                </div>
-                <UPagination 
-                    class="mt-3" 
-                    v-model:page="pageTransaction" 
-                    v-on:update:page="() => paramsTransaction.offset = paramsTransaction.limit * (pageTransaction -1)"
-                    :items-per-page="paramsTransaction.limit"  
-                    :total="Number(transactions?.totals)" 
-                    active-variant="subtle" />
-            </div>
-        </div>
-    
-        <div class="card rounded-md md:row-span-2">
-            <CustomCardTitle title="Gestion financière responsable">
-
-            </CustomCardTitle>
-            <div>
-                <!-- <DoughnutChart :data="dataChart" :options="optionsChart"/> -->
-            </div>
-        </div>
-
-        <div class="card rounded-md col-span-2 ">
-            <CustomCardTitle title="Freeze transactions">
-            </CustomCardTitle>
-            <div class="flex flex-col gap-1" style="margin-top: 1rem;">
-                <div v-for="trans in displayFutureTransactions" :key="trans.id">
-                    <RowTransaction 
-                        :id="trans.id" 
-                        :balance="trans.amount" 
-                        :title="trans.category.title" 
-                        :description="trans.description" 
-                        :icon="trans.category.icon" 
-                        :tags="trans.tags.map((tag: any) => tag.value)" 
-                        :date="trans.date" 
-                        :color="trans.category.color"
-                        :recordType="trans.recordType"
-                        :doShowEdit="false"
-                    />    
-                </div>
-                <UPagination 
-                    class="mt-3" 
-                    v-model:page="pageFreezeTransaction" 
-                    v-on:update:page="() => paramsFreezeTransaction.offset = paramsFreezeTransaction.limit * (pageFreezeTransaction -1)"
-                    :items-per-page="paramsFreezeTransaction.limit"  
-                    :total="Number(freezeTransactions?.totals)" 
-                    active-variant="subtle" />
-            </div>
-        </div>
-
         
-    </div>
+        <div class="space-y-2 mt-2">
+            <div v-for="group in accounts">
+                <h3 
+                    class="font-black"
+                    v-if="group.accounts.length > 0">
+                    {{ group.title }}
+                </h3>
+                <div class="xs:col-1 sm:col-span-1 md:col-span-3 flex flex-col" >
+                    <!-- <div class="self-end" style="margin-bottom: 1rem;">
+                        <UButton icon="i-lucide-plus" size="xl" variant="solid" @click="openAccountModal()">Ajouter Carte</UButton>
+                    </div> -->
+                    <div class="flex overflow-x-auto gap-2"  >
+                        <div v-for="account in group.accounts" :key="account.id">
+                            <CardResumeAccount 
+                                @customClick="onSelectAccount(account.id)"
+                                style="width: 200px;"
+                                v-if="account.id !== selectedAccountId"
+                                :id="account.id"
+                                :title="account.title"
+                                :balance="account.balance"
+                                :diff-past-balance-per="0"
+                                :is-positif="true"
+                                :freezed-balance="account.freezedBalance"
+                                :locked-balance="account.lockedBalance"
+                                :allow-edit="account.id === ALL_ACCOUNT_ID ? false : true"
+                                :allow-delete="account.id === ALL_ACCOUNT_ID ? false :true" 
+                                @add="openModalEditTransaction(account.id)"
+                                @edit="openAccountModal(account.id)"
+                                @delete="onDeleteAccount(account.id)"
+
+                            /> 
+                        </div>
+                    </div> 
+                </div>
+            </div>
+        </div> 
+
+    </div> 
 </template>
 
 <style scoped lang="scss">
+
 .card {
     border: solid 1px #E6E6E6;
     padding: 0.5rem;
