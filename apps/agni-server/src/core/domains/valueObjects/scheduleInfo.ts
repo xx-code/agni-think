@@ -135,6 +135,5 @@ export class Scheduler extends ValueObject {
         } catch(err) {
             throw err
         }
-        
     }
 }

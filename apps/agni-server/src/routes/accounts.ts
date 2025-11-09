@@ -8,9 +8,14 @@ import { QueryFilter } from '@core/dto/base';
 
 const router = Router();
 
+
 router.post('/v1/accounts', 
     body('title').isString().notEmpty(), 
     body('type').isString().notEmpty(),
+    body('currencyId').isString().notEmpty(),
+    body('creditLimit').optional().isNumeric(),
+    body('contributionType').optional().isString(),
+    body('managementType').optional().isString(),
     async (req, res) => {
         try {
             const result = validationResult(req);
@@ -27,13 +32,17 @@ router.post('/v1/accounts',
 
             res.status(400).send({ errors: result.array() });
         } catch(err) {
+            console.log(err)
             res.status(400).send({ errors: [err] });
         }
     });
 
 router.put('/v1/accounts/:id', 
     body('title').optional().isString(),
-    body('type').optional().isString(),
+    body('currencyId').optional().isString(),
+    body('creditLimit').optional().isNumeric(),
+    body('contributionType').optional().isString(),
+    body('managementType').optional().isString(),
     async (req: Request, res: Response) => {
         try {
             const result = validationResult(req);

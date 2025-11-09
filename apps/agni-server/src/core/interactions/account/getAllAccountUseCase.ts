@@ -1,9 +1,7 @@
 import { ListDto, QueryFilter } from "@core/dto/base";
-import { AccountRepository } from "../../repositories/accountRepository";
 import { IUsecase } from "../interfaces";
 import Repository from "@core/adapters/repository";
 import { Account } from "@core/domains/entities/account";
-
 
 export type GetAllAccountDto = {
     accountId: string

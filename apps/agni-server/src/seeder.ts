@@ -1,17 +1,18 @@
 import Repository from "@core/adapters/repository"
-import { FREEZE_CATEGORY_ID, SAVING_CATEGORY_ID, TRANSFERT_CATEGORY_ID } from "@core/domains/constants"
+import { DOLLAR_CURRENT_ID, FREEZE_CATEGORY_ID, SAVING_CATEGORY_ID, TRANSFERT_CATEGORY_ID } from "@core/domains/constants"
 import { Category } from "@core/domains/entities/category"
+import { Currency } from "@core/domains/entities/currency"
 import { Tag } from "@core/domains/entities/tag"
-import { CategoryRepository } from "@core/repositories/categoryRepository"
-import { TagRepository } from "@core/repositories/tagRepository"
 
 export class SystemSeeder {
     categoryRepository: Repository<Category>
     tagRepository: Repository<Tag>
+    currencyRepository: Repository<Currency>
 
-    constructor(categoryRepository: Repository<Category>, tagRepository: Repository<Tag>) {
+    constructor(categoryRepository: Repository<Category>, tagRepository: Repository<Tag>, currencyRepo: Repository<Currency>) {
         this.categoryRepository = categoryRepository
         this.tagRepository = tagRepository
+        this.currencyRepository = currencyRepo
     }
 
     async seed() {
@@ -31,5 +32,11 @@ export class SystemSeeder {
 
         if (!(await this.categoryRepository.get(TRANSFERT_CATEGORY_ID)))
             await this.categoryRepository.create(transfer)
+
+        if (!(await this.currencyRepository.get(DOLLAR_CURRENT_ID)))
+        {
+            const dollarCurrency = new Currency(DOLLAR_CURRENT_ID, "Dollar canada", "$", "fr-Fr", undefined, true)
+            await this.currencyRepository.create(dollarCurrency)
+        }
     }
 }

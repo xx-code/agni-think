@@ -1,4 +1,6 @@
 import { TransactionStatus, TransactionType } from "@core/domains/constants"
+import { Holding } from "@core/domains/entities/holding"
+import { HoldingTransaction } from "@core/domains/entities/holdingTransaction"
 import Notification from "@core/domains/entities/notification"
 import { PatrimonySnapshot } from "@core/domains/entities/patrimonySnapshot"
 import { SaveGoal } from "@core/domains/entities/saveGoal"
@@ -78,6 +80,28 @@ export class SaveGoalExtendFilter implements QueryFilterExtend<SaveGoal> {
     isSatisty(entity: SaveGoal): boolean {
         if (this.accountId !== undefined)
             return entity.getAccountId() == this.accountId
+
+        return true
+    }
+}
+
+export class HoldingExtendFilter implements QueryFilterExtend<Holding> {
+    accountId?: string
+
+    isSatisty(entity: Holding): boolean {
+        if (this.accountId !== undefined)
+            return entity.getAccountId() == this.accountId
+
+        return true
+    }
+}
+
+export class HoldingTransactionExtendFilter implements QueryFilterExtend<HoldingTransaction> {
+    holdingId?: string
+
+    isSatisty(entity: HoldingTransaction): boolean {
+        if (this.holdingId !== undefined)
+            return entity.getHoldingId() == this.holdingId
 
         return true
     }

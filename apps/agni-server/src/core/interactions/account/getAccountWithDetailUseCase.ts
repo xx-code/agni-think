@@ -4,8 +4,20 @@ import Repository, { SaveGoalExtendFilter, TransactionFilter } from "@core/adapt
 import { Account } from "@core/domains/entities/account";
 import { Transaction } from "@core/domains/entities/transaction";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
-import { TransactionFilterExtends } from "@infra/persistences/models/transactions";
 import { Record } from "@core/domains/entities/record";
+import { CreditCardAccountDetail } from "@core/domains/valueObjects/creditCardAccount";
+import { BrockageAccountDetail } from "@core/domains/valueObjects/brockageAccount";
+import { AccountType } from "@core/domains/constants";
+
+export type GetBrokingDetailDto = {
+    managementType: string
+    contributionType: string
+}
+
+export type GetCreditCardDetailDto = {
+    creditCardLimit: number
+    creditUtilisation: number
+}
 
 export type GetAccountDetailDto = {
     accountId: string
@@ -14,6 +26,8 @@ export type GetAccountDetailDto = {
     type: string
     lockedBalance: number
     freezedBalance: number
+    detailForCreditCard?: GetCreditCardDetailDto 
+    detailForBroking?: GetBrokingDetailDto
 }
 
 
@@ -47,6 +61,30 @@ export class GetAccountDetailUseCase implements IUsecase<string, GetAccountDetai
         savingGoalExtendFilter.accountId = id
         const savingGoals = await this.savingGoalRepo.getAll({ offset: 0, limit: 1, queryAll: true }, savingGoalExtendFilter)
         const savingGoalAmount = savingGoals.items.reduce((acc, curr) => acc += curr.getBalance().getAmount(), 0)
+        
+        let detail: GetCreditCardDetailDto | GetBrokingDetailDto | undefined 
+        switch(account.getType()) {
+            case AccountType.CREDIT_CARD:
+                const creditLimit = (account.getDetail() as CreditCardAccountDetail).creditLimite
+                let utilization = 0 
+                if (account.getBalance() < 0) {
+                    utilization = Number((creditLimit / Math.abs(account.getBalance())).toFixed(2))  
+                } 
+
+                detail = { 
+                    creditCardLimit: creditLimit,
+                    creditUtilisation: utilization
+                }
+                break
+            case AccountType.BROKING:
+                detail = {
+                    contributionType: (account.getDetail() as BrockageAccountDetail).contributionAccount,
+                    managementType: (account.getDetail() as BrockageAccountDetail).managementType
+                }
+                break
+            default:
+                break
+        }
 
         return {
             accountId: account.getId(), 
@@ -54,7 +92,9 @@ export class GetAccountDetailUseCase implements IUsecase<string, GetAccountDetai
             balance: account.getBalance(), 
             type: account.getType(),
             freezedBalance: freezeAmount,
-            lockedBalance: savingGoalAmount
+            lockedBalance: savingGoalAmount,
+            detailForCreditCard: detail as (GetCreditCardDetailDto|undefined),
+            detailForBroking: detail as (GetBrokingDetailDto|undefined) 
         }
     }
 }
