@@ -32,7 +32,6 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
 
     async execute(): Promise<void> {
         try {
-            await this.unitOfWork.start()
             const scheduleTransactions = await this.scheduleTransactionRepo.getAll({
                 limit: 0, offset: 0,
                 queryAll: true
@@ -87,10 +86,8 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                 }
             }
 
-            await this.unitOfWork.commit()
         }
         catch (err: any){
-            await this.unitOfWork.rollback()
             throw err
         }   
     }

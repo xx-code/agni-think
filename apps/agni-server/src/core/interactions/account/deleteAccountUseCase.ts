@@ -3,7 +3,6 @@ import { ResourceNotFoundError } from "../../errors/resournceNotFoundError";
 import { IUsecase } from "../interfaces";
 import { Account } from "@core/domains/entities/account";
 
-
 export class DeleteAccountUseCase implements IUsecase<string, void> {
     private repository: Repository<Account>;
 

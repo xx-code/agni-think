@@ -16,7 +16,9 @@ import InternalRoute from './routes/internal';
 import AnalyticRoute from './routes/analytics';
 import PatrimonyRoute from './routes/patrimony';
 import NotificationRoute from './routes/notification';
-import { ApplyScheduleTransactionCronScheduler, AutoDeletreFreezeTransactionCronScheduler, CronScheduler } from "@infra/adapters/cronScheduler";
+import CurrencyRoute from './routes/currency';
+import HoldingRoute from './routes/holding';
+import { ApplyScheduleTransactionCronScheduler, AutoDeletreFreezeTransactionCronScheduler } from "@infra/adapters/cronScheduler";
 import path = require("path");
 import axios from "axios";
 
@@ -61,6 +63,8 @@ app.use(InternalRoute)
 app.use(AnalyticRoute)
 app.use(PatrimonyRoute)
 app.use(NotificationRoute)
+app.use(CurrencyRoute)
+app.use(HoldingRoute)
 
 app.listen(port, async () => {
   try {
@@ -72,7 +76,7 @@ app.listen(port, async () => {
       console.log('[server]: Migration done');
     }
 
-    const seeder = new SystemSeeder(container.getRepository('category'), container.getRepository('tag'))
+    const seeder = new SystemSeeder(container.getRepository('category'), container.getRepository('tag'), container.getRepository('currency'))
     seeder.seed() 
     console.log('[server]: Seed');
     console.log(`[server]: Server is running at http://localhost:${port}`);
