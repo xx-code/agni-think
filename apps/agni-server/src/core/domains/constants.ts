@@ -12,7 +12,6 @@ export enum Period {
     DAY = 'Day'
 }
 
-
 export enum AccountType {
     CHECKING = "Checking",
     CREDIT_CARD = "CreditCard",
@@ -21,11 +20,38 @@ export enum AccountType {
     BROKING = "Broking"
 }
 
+export enum HoldingType {
+    ACTION = "Action", 
+    FNB = "Fnb", 
+    BOND = "Bond", 
+    CRYPTO = "Crypto"
+}
+
+export enum ManagementAccountType {
+    SELF_DIRECTED = "Self_directed", 
+    MANAGED = "Managed", 
+    ROBOT = "Robot"
+}
+
+export enum ContributionAccountType {
+    REGISTERED = "Registered",    // REER, CELI, etc.
+    UNREGISTERED  = "Unregistered"
+}
+
 export enum TransactionType {
     INCOME = "Income",
     FIXEDCOST = "FixedCost",
     VARIABLECOST = "VariableCost",
     OTHER = "Other"
+}
+
+export enum HoldingTransactionType {
+    BUY = "Buy",
+    SELL = "Sell", 
+    DIVIDEND = "Dividend", 
+    CONTRIBUTION = "Contribution", 
+    FEE = "Fee", 
+    TRANSFER = "Transfer"
 }
 
 export enum TransactionStatus {
@@ -106,8 +132,66 @@ export function mapperPeriod(value: string): Period {
     }
 }
 
+export function mapperHoldingTransactionType(value: string): HoldingTransactionType {
+    switch(value.toLowerCase()) {
+        case HoldingTransactionType.BUY.toLowerCase():
+            return HoldingTransactionType.BUY
+        case HoldingTransactionType.SELL.toLowerCase():
+            return HoldingTransactionType.SELL
+        case HoldingTransactionType.CONTRIBUTION.toLowerCase():
+            return HoldingTransactionType.CONTRIBUTION
+        case HoldingTransactionType.DIVIDEND.toLowerCase():
+            return HoldingTransactionType.DIVIDEND
+        case HoldingTransactionType.FEE.toLowerCase():
+            return HoldingTransactionType.FEE
+        case HoldingTransactionType.TRANSFER.toLowerCase():
+            return HoldingTransactionType.TRANSFER
+        default:
+            throw new ValueError("HOLDING_TRANSACTION_TYPE_NOT_VALID")
+    }
+}
+
 export function mapperIntensityEmotionalDesir(value: number) {
     
+}
+
+export function mapperContributionAcccountType(value: string): ContributionAccountType {
+    switch(value.toLowerCase()) {
+        case ContributionAccountType.REGISTERED.toLowerCase():
+            return ContributionAccountType.REGISTERED
+        case ContributionAccountType.UNREGISTERED.toLowerCase():
+            return ContributionAccountType.UNREGISTERED
+        default:
+            throw new ValueError("CONTRIBUTION_ACCOUNT_TYPE")
+    }
+}
+
+export function mapperManagementAccountType(value: string): ManagementAccountType {
+    switch(value.toLowerCase()) {
+        case ManagementAccountType.SELF_DIRECTED.toLowerCase():
+            return ManagementAccountType.SELF_DIRECTED
+        case ManagementAccountType.MANAGED.toLowerCase():
+            return ManagementAccountType.MANAGED
+        case ManagementAccountType.ROBOT.toLowerCase():
+            return ManagementAccountType.ROBOT
+        default:
+            throw new ValueError("NOT_CONTRIBUTION_ACCOUNT_TYPE")
+    }
+}
+
+export function mapperHoldingType(value: string): HoldingType {
+    switch(value.toLowerCase()) {
+        case HoldingType.ACTION.toLowerCase():
+            return HoldingType.ACTION 
+        case HoldingType.BOND.toLowerCase():
+            return HoldingType.BOND
+        case HoldingType.CRYPTO.toLowerCase():
+            return HoldingType.CRYPTO
+        case HoldingType.FNB.toLowerCase():
+            return HoldingType.FNB
+        default:
+            throw new ValueError("NOT_HOLDING_TYPE")
+    }
 }
 
 export function mapperPatrimonyType(value: string): PatrimonyType {
@@ -182,5 +266,7 @@ export const SAVING_CATEGORY_ID = '98a57fb1-c890-4059-b678-b8d0814fa7ec'
 export const TRANSFERT_CATEGORY_ID = '6e57b8ed-2111-45d3-b55f-3994a40e7630'
 
 export const TAG_SUBSCRIPTION_ID = 'ce64ec0d-a663-4f76-855f-ce67be9b6a5b'
+
+export const DOLLAR_CURRENT_ID = '4be50a1e-71b9-4941-b00a-ca8409949736'
 
 export type typePeriod = keyof typeof Period

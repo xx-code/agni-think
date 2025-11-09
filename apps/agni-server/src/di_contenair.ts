@@ -66,7 +66,7 @@ import { CashFlowAnalyseUseCase, CashFlowResponse, RequestCashFlow } from '@core
 import { AnalyseBudgetResponse, AnalyseBudgetRuleUseCase, RequestAnalyseBudgetRule } from '@core/interactions/analystic/analysebudgetRule';
 import Entity, { IEntity } from '@core/domains/entities/entity';
 import KnexRepository from '@infra/persistences/knexRepository';
-import Repository from '@core/adapters/repository';
+import Repository, { HoldingTransactionExtendFilter } from '@core/adapters/repository';
 import UnExpectedError from '@core/errors/unExpectedError';
 import { Account } from '@core/domains/entities/account';
 import { AccountModel, AccountModelMapper, KnexAccountTable } from '@infra/persistences/models/account';
@@ -104,6 +104,26 @@ import { RequestSavingAnalystic, SavingAnalysticResponse, SavingAnalysticUseCase
 import { RequestSpendAnalystic, SpendAnalysticResponse, SpendAnalysticUseCase } from '@core/interactions/analystic/spends';
 import { GetAccountDetailDto, GetAccountDetailUseCase } from '@core/interactions/account/getAccountWithDetailUseCase';
 import { GetAllAccountWithDetailUseCase } from '@core/interactions/account/getAllAccountWithDetailUseCase';
+import { HoldingExtendFilterAdapter, HoldingModel, HoldingModelMapper, KnexHoldingTable } from '@infra/persistences/models/holding';
+import { Holding } from '@core/domains/entities/holding';
+import { HoldingTransactionExtendFilterAdapter, HoldingTransactionModel, HoldingTransactionModelMapper, KnexHoldingTransactionTable } from '@infra/persistences/models/holdingTransaction';
+import { HoldingTransaction } from '@core/domains/entities/holdingTransaction';
+import { CurrencyModel, CurrencyModelMapper, KnexCurrencyTable } from '@infra/persistences/models/currency';
+import { Currency } from '@core/domains/entities/currency';
+import { RequestUpdateCurrency, UpdateCurrencyUseCase } from '@core/interactions/currency/updateCurrencyUseCase';
+import { CreateCurrencyUseCase, RequestCreateCurrency } from '@core/interactions/currency/createCurrencyUseCase';
+import { GetCurrencyDto, GetCurrencyUseCase } from '@core/interactions/currency/getCurrencyUseCase';
+import { GetAllCurrencyDto, GetAllCurrencyUseCase } from '@core/interactions/currency/getAllCurrencyUseCase';
+import { CreateHoldingUseCase, RequestCreateHoldingDto } from '@core/interactions/holding/createHoldingUseCase';
+import { RequestUpdateHoldingDto, UpdateHoldingUseCase } from '@core/interactions/holding/updateHoldingUseCase';
+import { GetAllHoldingDto, GetAllHoldingUseCase, HoldingQueryFilter } from '@core/interactions/holding/getAllHoldingUseCase';
+import { GetHoldingTransactionDto, GetHoldingTransactionUseCase } from '@core/interactions/holdingTransactions/getHoldingTransaction';
+import { AddHoldingTransactionUseCase, RequestAddHoldingTransactionDto } from '@core/interactions/holdingTransactions/addHoldingTransaction';
+import { GetAllHoldingTransactionDto, GetAllHoldingTransactionUseCase, HoldingTransactionQueryFilter } from '@core/interactions/holdingTransactions/getAllHoldingTransaction';
+import { DeleteCurrencyUseCase } from '@core/interactions/currency/deleteCurrencyUseCase';
+import { DeleteHoldingUseCase } from '@core/interactions/holding/deleteHoldingUseCase';
+import { DeleteHoldingTransactionUseCase } from '@core/interactions/holdingTransactions/deleteHoldingTransaction';
+import { RequestUpdateHoldingTransactionDto, UpdateHoldingTransactionUseCase } from '@core/interactions/holdingTransactions/updateHoldingTransaction';
 
 
 export class DiContenair {
@@ -202,6 +222,26 @@ export class DiContenair {
         removeSnapshotPatrimony: IUsecase<string, void>
         updateSnapshotPatrimony: IUsecase<RequestUpdateSnapshotPatrimony, void>
         getSnapshotPatrimony: IUsecase<RequestAllSnapshotPatrimony, ListDto<GetAllSnapshotPatrimonyDto>>
+    }
+
+    public currencyUseCase?: {
+        createCurrency: IUsecase<RequestCreateCurrency, CreatedDto>
+        deleteCurrency: IUsecase<string, void>
+        updateCurrency: IUsecase<RequestUpdateCurrency, void>
+        getCurrency: IUsecase<string, GetCurrencyDto>
+        getAllCurrency: IUsecase<QueryFilter, ListDto<GetAllCurrencyDto>>
+    }
+
+    public holdingUseCase?: {
+        createHolding: IUsecase<RequestCreateHoldingDto, CreatedDto>
+        updateHolding: IUsecase<RequestUpdateHoldingDto, void>
+        getAllHolding: IUsecase<HoldingQueryFilter, ListDto<GetAllHoldingDto>>
+        deleteHolding: IUsecase<string, void>
+        addHoldingTransaction: IUsecase<RequestAddHoldingTransactionDto, CreatedDto>
+        deleteHoldingTransaction: IUsecase<string, void>
+        getAllHoldingTransaction: IUsecase<HoldingTransactionQueryFilter, ListDto<GetAllHoldingTransactionDto>>
+        getHoldingTransaction: IUsecase<string, GetHoldingTransactionDto>
+        updateHoldingTransaction: IUsecase<RequestUpdateHoldingTransactionDto, void>
     }
 
     public notificationUseCase?: {
@@ -347,6 +387,32 @@ export class DiContenair {
         )
         this.registerRepository('notification', notificationRepository)
 
+        const holdingTable = new KnexHoldingTable()
+        await holdingTable.createTable(connector)
+        const holdingModelMapper = new HoldingModelMapper()
+        const holdingFilterAdapater = new HoldingExtendFilterAdapter()
+        const holdingRepository = new KnexRepository<Holding, HoldingModel>(
+            connector, holdingTable, holdingModelMapper, holdingFilterAdapater  
+        )
+        this.registerRepository('holding', holdingRepository)
+
+        const holdingTransactionTable = new KnexHoldingTransactionTable()
+        await holdingTransactionTable.createTable(connector)
+        const holdingTransactionModelMapper = new HoldingTransactionModelMapper()
+        const holdingTransactionAdapter = new HoldingTransactionExtendFilterAdapter()
+        const holdingTransactionRepository = new KnexRepository<HoldingTransaction, HoldingTransactionModel>(
+            connector, holdingTransactionTable, holdingTransactionModelMapper, holdingTransactionAdapter
+        )
+        this.registerRepository('holding_transaction', holdingTransactionRepository)
+
+        const currencyTable = new KnexCurrencyTable()
+        await currencyTable.createTable(connector)
+        const currencyModelMapper = new CurrencyModelMapper()
+        const currencyRepository = new KnexRepository<Currency, CurrencyModel>(
+            connector, currencyTable, currencyModelMapper
+        )
+        this.registerRepository('currency', currencyRepository)
+
         this.unitOfWork = new PostgreSqlUnitOfWork(connector)
     }
 
@@ -375,6 +441,8 @@ export class DiContenair {
         this.registerSaveGoalUsecases();
         this.registerAnalyticUseCases();
         this.registerPatrimonyUseCases(); 
+        this.registerCurrencyUseCases();
+        this.registerHoldingUseCases();
     }  
 
     private registerAccountUsecases() {
@@ -382,7 +450,7 @@ export class DiContenair {
             this.getRepository('transaction'), 
             this.getRepository('record'))
         this.accountUseCase = {
-            createAccount: new CreationAccountUseCase(this.getRepository('account')),
+            createAccount: new CreationAccountUseCase(this.getRepository('account'), this.getRepository('currency')),
             updateAccount: new UpdateAccountUseCase(this.getRepository('account')),
             getAccount: new GetAccountUseCase(this.getRepository('account')),
             getAccountWithDetail: new GetAccountDetailUseCase(this.getRepository('account'), this.getRepository('transaction'), 
@@ -589,6 +657,33 @@ export class DiContenair {
             getAllNotification: new GetAllNotificationUseCases(this.getRepository('notification'))
         }
         event.subscribe('notification', this.notificationUseCase.pushNotification!)
+    }
+
+    private registerCurrencyUseCases() {
+        this.currencyUseCase = {
+            createCurrency: new CreateCurrencyUseCase(this.getRepository('currency')),
+            deleteCurrency: new DeleteCurrencyUseCase(this.getRepository('currency')),
+            getAllCurrency: new GetAllCurrencyUseCase(this.getRepository('currency')),
+            getCurrency: new GetCurrencyUseCase(this.getRepository('currency')),
+            updateCurrency: new UpdateCurrencyUseCase(this.getRepository('currency'))
+        }
+    }
+
+    private registerHoldingUseCases() {
+        const addHoldingTransaction = new AddHoldingTransactionUseCase(this.getRepository('holding'), 
+                this.getRepository('holding_transaction'), this.getRepository('account'))
+        const deleteHoldingTransaction = new DeleteHoldingTransactionUseCase(this.getRepository('holding'), this.getRepository('holding_transaction')) 
+        this.holdingUseCase = {
+            addHoldingTransaction: addHoldingTransaction,
+            createHolding: new CreateHoldingUseCase(this.getRepository('account'), this.getRepository('holding')),
+            deleteHolding: deleteHoldingTransaction,
+            deleteHoldingTransaction: new DeleteHoldingTransactionUseCase(this.getRepository('holding'), this.getRepository('holding_transaction')),
+            getAllHolding: new GetAllHoldingUseCase(this.getRepository('holding')),
+            getAllHoldingTransaction: new GetAllHoldingTransactionUseCase(this.getRepository('holding_transaction')),
+            getHoldingTransaction: new GetHoldingTransactionUseCase(this.getRepository('holding_transaction')),
+            updateHolding:  new UpdateHoldingUseCase(this.getRepository('holding'), this.getRepository('account')),
+            updateHoldingTransaction: new UpdateHoldingTransactionUseCase(this.getRepository('holding_transaction'), addHoldingTransaction, deleteHoldingTransaction)
+        }
     }
 }
 
