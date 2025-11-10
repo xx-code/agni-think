@@ -72,7 +72,7 @@ export class GetAllAccountWithDetailUseCase implements IUsecase<QueryFilter, Lis
                     const creditLimit = (account.getDetail() as CreditCardAccountDetail).creditLimite
                     let utilization = 0 
                     if (account.getBalance() < 0) {
-                        utilization = Number((creditLimit / Math.abs(account.getBalance())).toFixed(2))  
+                        utilization = Number((creditLimit / Math.abs(account.getBalance()) * 100).toFixed(2))  
                     }
                     detail = { 
                         creditCardLimit: creditLimit,
