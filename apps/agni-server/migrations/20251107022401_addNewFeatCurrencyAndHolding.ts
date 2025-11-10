@@ -1,6 +1,6 @@
 import { AccountType, ContributionAccountType, DOLLAR_CURRENT_ID, ManagementAccountType, mapperTypeAccount } from "@core/domains/constants";
-import { BrockageAccountDetail } from "@core/domains/valueObjects/brockageAccount";
-import { CreditCardAccountDetail } from "@core/domains/valueObjects/creditCardAccount";
+import { BrockageAccountDetail } from "../../agni-server/src/core/domains/valueObjects/brockageAccount";
+import { CreditCardAccountDetail } from "../../agni-server/src/core/domains/valueObjects/creditCardAccount";
 import type { Knex } from "knex";
 
 
