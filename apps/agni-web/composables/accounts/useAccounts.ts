@@ -1,7 +1,7 @@
 import type { Reactive } from "vue";
 import type { ListResponse, QueryFilterRequest } from "~/types/api";
 import type { GetAllAccountResponse, GetallAccountWithDetailResponse } from "~/types/api/account";
-import type { AccountType, AccountWithDetailType } from "~/types/ui/account";
+import type { AccountBrokeDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType } from "~/types/ui/account";
 import type { UseApiFetchReturn } from "~/types/utils";
 
 export const ALL_ACCOUNT_ID = "all"
@@ -47,16 +47,34 @@ export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promis
         query: query
     })
 
-    const accountsWithPastBalances: AccountWithDetailType[] = [];
+    const accountsWithPastBalances: AccountWithDetailType[] = []; 
 
     for(const account of res.items) { 
+        const detailAccount = (type: string) => {
+            switch(type) {
+                case 'Broking':
+                    return {
+                        managementType: account.detailForBroking?.contributionType ?? "",
+                        type: account.detailForBroking?.managementType ?? ""
+                    } satisfies AccountBrokeDetailType 
+                case 'CreditCard':    
+                    return {
+                        creditUtilisation: account.detailForCreditCard?.creditUtilisation ?? 0,
+                        creditLimit: account.detailForCreditCard?.creditCardLimit ?? 0
+                    } satisfies AccountCreditDetailType
+                default:
+                    return undefined
+            }
+        }
+
         accountsWithPastBalances.push({
             id: account.accountId,
             title: account.title,
             balance: account.balance,
             type: account.type,
             lockedBalance: account.lockedBalance, 
-            freezedBalance: account.freezedBalance
+            freezedBalance: account.freezedBalance,
+            detail: detailAccount(account.type)
         });            
     }
 
@@ -67,7 +85,8 @@ export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promis
         balance: totals[0],
         lockedBalance: totals[1],
         freezedBalance: totals[2],
-        type: ''
+        type: '',
+        detail: undefined
     }
 
     accountsWithPastBalances.unshift(totalAccount)

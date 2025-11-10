@@ -22,3 +22,13 @@ export type GetImportanceGoalTypeResponse = {
     id: string,
     value: number
 }
+
+export type GetManagementTypeResponse = {
+    id: string
+    value: string
+}
+
+export type GetContributionTypeResponse = {
+    id: string
+    value: string
+}

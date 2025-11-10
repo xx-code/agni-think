@@ -41,6 +41,10 @@ const emit = defineEmits<{
             </div>
         </div> 
 
+        <div>
+            <slot/>
+        </div>
+
         <div class="flex justify-center">
             <UButton 
                 size="xs"
