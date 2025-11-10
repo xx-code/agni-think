@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import useAccountsWitPastBalance, { ALL_ACCOUNT_ID } from "~/composables/accounts/useAccountsWithPastBalance";
+import { ALL_ACCOUNT_ID } from "~/composables/accounts/useAccountsWithPastBalance";
 import useDeleteAccount from "~/composables/accounts/useDeleteAccount";
-import type { AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
+import type { AccountBrokeDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
 import useCreateAccount from "~/composables/accounts/useCreateAccount";
 import useUpdateAccount from "~/composables/accounts/useUpdateAccount";
 import useTransactionPagination from "~/composables/transactions/useTransactionPagination";
 import { ModalEditAccount, ModalEditFreezeTransaction, ModalEditTransaction, ModalEditTransfer } from "#components";
-import { fetchAccount } from "~/composables/accounts/useAccount";
+import { fetchAccount, fetchAccountWithDetail } from "~/composables/accounts/useAccount";
 import type { EditFreezeTransactionType, EditTransactionType, EditTransfertType, TransactionTableType, TransactionType } from "~/types/ui/transaction";
 import useUpdateTransaction from "~/composables/transactions/useUpdateTransaction";
 import useCreateTransaction from "~/composables/transactions/useCreateTransaction";
@@ -35,6 +35,7 @@ const { data: accounts, refresh: refreshAccounts } = await useAsyncData('account
 
     const accountsByType = []
     for(const type of accountTypes) {
+
         const accounts = res.items.filter(i => i.type === type.id)
         accountsByType.push({
             id: type.id,
@@ -179,9 +180,9 @@ const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => 
 }
 
 const openAccountModal = async (accountId?: string) => {
-    let account:AccountType|undefined;
+    let account: AccountWithDetailType |undefined;
     if (accountId) {
-        account = await fetchAccount(accountId);
+        account = await fetchAccountWithDetail(accountId);
     }
         
     modalAccount.open({
@@ -394,9 +395,15 @@ const onUpateAccount = async (payload: string) => {
                                 :allow-delete="account.id === ALL_ACCOUNT_ID ? false :true" 
                                 @add="openModalEditTransaction(account.id)"
                                 @edit="openAccountModal(account.id)"
-                                @delete="onDeleteAccount(account.id)"
+                                @delete="onDeleteAccount(account.id)"> 
 
-                            /> 
+                                <div v-if="account.type === 'CreditCard'">
+                                    <p class="text-sm text-gray-500">Limit de credit: {{ (account.detail as AccountCreditDetailType).creditLimit }}</p>
+                                    <p class="text-sm font-semibold" :style="{color: creditUilisationToColor((account.detail as AccountCreditDetailType).creditUtilisation)}">
+                                        Utilisation: {{ (account.detail as AccountCreditDetailType).creditUtilisation }} %
+                                    </p>
+                                </div>
+                            </CardResumeAccount>
                         </div>
                     </div> 
                 </div>

@@ -1,5 +1,5 @@
 import type { GetAccountResponse, GetAccountWithDetailResponse } from "~/types/api/account";
-import type { AccountType, AccountWithDetailType } from "~/types/ui/account";
+import type { AccountBrokeDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType } from "~/types/ui/account";
 import type { UseApiFetchReturn } from "~/types/utils";
 
 export default function useAccount(accountId: string): UseApiFetchReturn<AccountType> {
@@ -35,12 +35,29 @@ export async function fetchAccountWithDetail(accountId: string): Promise<Account
     const res = await $fetch<GetAccountWithDetailResponse>(`/api/accounts/${accountId}/getAccountWithDetail`, {
         method: 'GET'
     });
+    const detailAccount = (type: string) => {
+        switch(type) {
+            case 'Broking':
+                return {
+                    managementType: res.detailForBroking?.contributionType ?? "",
+                    type: res.detailForBroking?.managementType ?? ""
+                } satisfies AccountBrokeDetailType 
+            case 'CreditCard':    
+                return {
+                    creditUtilisation: res.detailForCreditCard?.creditUtilisation ?? 0,
+                    creditLimit: res.detailForCreditCard?.creditCardLimit ?? 0
+                } satisfies AccountCreditDetailType
+            default:
+                return undefined
+        }
+    }
     return {
         id: res.accountId,
         title: res.title,
         balance: res.balance,
         type: res.type,
         lockedBalance: res.lockedBalance,
-        freezedBalance: res.freezedBalance
+        freezedBalance: res.freezedBalance,
+        detail: detailAccount(res.type) 
     };
 }
