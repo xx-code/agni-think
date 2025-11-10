@@ -12,7 +12,7 @@ const { title, amount, description, chipInfo, isPositive, isPercentage } = defin
 
 <template>
     <UCard>
-        <div class="space-y-2">
+        <div class="space-y-2 bg-white">
             <h4 class="text-gray-500 text-md font-bold">{{ title }}</h4>
             <div style="">
                 <AmountTitle :amount="amount" :sign="isPercentage ? '%' : '$'"/>

@@ -1,4 +1,4 @@
-import { AccountType, ImportanceGoal, IntensityEmotionalDesir, Period, TransactionType } from '@core/domains/constants';
+import { AccountType, ContributionAccountType, ImportanceGoal, IntensityEmotionalDesir, ManagementAccountType, Period, TransactionType } from '@core/domains/constants';
 import { Router } from 'express';
 
 const router = Router();
@@ -132,5 +132,48 @@ router.get('/v1/internal/importance-type', (req, res) => {
         
     res.status(200).send(types)
 });
+
+router.get('/v1/internal/contribution-type', (req, res) => {
+    const types: {id: string, value: string}[] = []
+    Object.keys(ContributionAccountType).forEach(key => {
+        const valueAcc = ContributionAccountType[key as keyof typeof ContributionAccountType]
+        switch(valueAcc) {
+            case ContributionAccountType.REGISTERED:
+                types.push({value: 'Enregisterer', id: ContributionAccountType.REGISTERED})
+                break;
+            case ContributionAccountType.UNREGISTERED:
+                types.push({value: 'Unregister', id: ContributionAccountType.UNREGISTERED})
+                break;
+            default:
+                break;
+        }
+    })
+        
+    res.status(200).send(types)
+});
+
+router.get('/v1/internal/management-account-type', (req, res) => {
+    const types: {id: string, value: string}[] = []
+    Object.keys(ManagementAccountType).forEach(key => {
+        const valueAcc = ManagementAccountType[key as keyof typeof ManagementAccountType]
+        switch(valueAcc) {
+            case ManagementAccountType.MANAGED:
+                types.push({value: 'Manager', id: ManagementAccountType.MANAGED})
+                break;
+            case ManagementAccountType.ROBOT:
+                types.push({value: 'Robot', id: ManagementAccountType.ROBOT})
+                break;
+            case ManagementAccountType.SELF_DIRECTED:
+                types.push({value: 'Gerer', id: ManagementAccountType.SELF_DIRECTED})
+                break;
+            default:
+                break;
+        }
+    })
+        
+    res.status(200).send(types)
+});
+
+
 
 export default router;

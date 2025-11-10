@@ -107,7 +107,7 @@ const openModalTag = async (tagId?: string) => {
             <div class="flex flex-wrap gap-3">
                 <div v-for="category of categories?.items" :key="category.id">
                     <div 
-                        class="flex items-center gap-2 border-1 rounded-md p-1" 
+                        class="bg-white flex items-center gap-2 border-1 rounded-md p-1" 
                         :style="'color:'+category.color+';'">
                         <UIcon :name="category.icon" />
                         {{ category.title }}
@@ -134,7 +134,7 @@ const openModalTag = async (tagId?: string) => {
             <div class="flex flex-wrap gap-3">
                 <div v-for="tag of tags?.items" :key="tag.id">
                     <div 
-                        class="flex items-center gap-2 border-1 rounded-md p-1" 
+                        class="bg-white flex items-center gap-2 border-1 rounded-md p-1" 
                         :style="'color:'+tag.color+';'">
                         {{ tag.value }}
                         <UButton 

@@ -46,7 +46,7 @@ export class UpdateAccountUseCase implements IUsecase<RequestUpdateAccountUseCas
         if ((request.contributionType || request.managementType) && fetchedAccount.getType() === AccountType.BROKING) {
             const currentDetail = (fetchedAccount.getDetail() as BrockageAccountDetail)
 
-            if (currentDetail === undefined)
+            if (currentDetail === undefined && (!request.contributionType || !request.managementType))
                 throw new UnExpectedError("ACCOUNT_DETAIL_NOT_FAIL_CORRUPTED")
 
             const detailBroke = new BrockageAccountDetail(currentDetail.managementType, currentDetail.contributionAccount)

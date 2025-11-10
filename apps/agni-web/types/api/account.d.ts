@@ -14,7 +14,19 @@ export type GetAccountWithDetailResponse = {
     type: string   
     lockedBalance: number
     freezedBalance: number
+    detailForCreditCard?: GetAllCreditCardDetailResponse 
+    detailForBroking?: GetAllBrokingDetailResponse
 };
+
+export type GetAllBrokingDetailResponse = {
+    managementType: string
+    contributionType: string
+}
+
+export type GetAllCreditCardDetailResponse = {
+    creditCardLimit: number
+    creditUtilisation: number
+}
 
 export type GetAllAccountResponse = {
     accountId: string
@@ -30,6 +42,8 @@ export type GetallAccountWithDetailResponse = {
     type: string   
     lockedBalance: number
     freezedBalance: number
+    detailForCreditCard?: GetAllCreditCardDetailResponse 
+    detailForBroking?: GetAllBrokingDetailResponse
 };
 
 export type GetAllAccountWithPastBalanceResponse = {
@@ -53,4 +67,7 @@ export type CreateAccountRequest = {
 export type UpdateAccountRequest = {
     title?: string
     type?: string
+    creditLimit?: number
+    contributionType?: string
+    managementType?: string
 }

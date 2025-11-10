@@ -13,62 +13,47 @@ const props = defineProps({
     allowDelete: Boolean
 })
 
+const emit = defineEmits<{
+    (e: 'edit', id?: string): void    
+    (e: 'add', id?: string): void
+    (e: 'delete', id?: string): void
+}>(); 
+
 </script>
 
 <template>
-    <div class="card rounded-md shrink-0">
-        <div class="content">
-            <div class="card-title">
-                <div class="content">
-                    <h2>{{ title }}</h2>
-                    <div class="container-btn">
-                        <UButton variant="outline" color="neutral" v-if="allowOpen" icon="i-lucide-external-link" @click="$emit('open', id)"/>          
-                        <UButton variant="outline" color="neutral" v-if="allowEdit" icon="i-lucide-pencil" @click="$emit('edit', id)"/>          
-                        <UButton variant="outline" color="neutral" v-if="allowDelete" icon="i-lucide-trash-2" @click="$emit('delete', id)"/>          
-                    </div>
-                </div>
+    <div className="bg-white rounded-md p-2 border-1 border-gray-200">
+        <div class="flex items-start justify-between">
+            <div>
+                <div className="text-xs text-gray-500">{{ title }}</div>
+                <AmountTitle 
+                    class="text-xl"
+                    :amount="balance ?? 0"
+                    :sign="'$'"
+                />
+                <div className="text-[11px] text-gray-400 mt-1">Freezed: ${{ freezedBalance?.toFixed(2) }} · Locked: ${{lockedBalance?.toFixed(2)}}</div>
             </div>
-
-            <div @click="$emit('customClick', id)" style="cursor: pointer;">
-                <!--- -->
-
-                <div class="card-content">
-                    <!-- <div class="content">
-                        <p>${{ balance }}</p>
-                    </div> -->
-                    <AmountTitle 
-                        :amount="balance ?? 0"
-                        :sign="'$'"
-                    />
-                    <div class="text-xs text-gray-300">
-                        <p>Freezed Balance: ${{ freezedBalance }}</p>
-                        <p>Locked Balance: ${{ lockedBalance }}</p>
-                    </div>
-                </div>
-
-                <!--- -->
-
-                <div class="card-bottom">
-                    <div class="content">
-                        <div>
-                            <UBadge 
-                                variant="subtle"
-                                :color="isPositif ? 'success' : 'error'"
-                                :icon="isPositif ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'">
-                                {{ diffPastBalancePer }}%
-                            </UBadge>
-                        </div>
-                        <div>
-                            <p>Vs {{ pastDateInfo }} precendent</p>
-                        </div>
-                    </div> 
-                </div>
-
+            <div className="text-right">
+                <div className="mt-3 flex gap-2" />
+                <!-- <UButton variant="outline" color="neutral" v-if="allowOpen" icon="i-lucide-external-link" @click="$emit('open', id)"/>           -->
+                <UButton variant="outline" color="neutral" v-if="allowEdit" icon="i-lucide-pencil" @click="emit('edit', id)"/>          
+                <UButton variant="outline" color="neutral" v-if="allowDelete" icon="i-lucide-trash-2" @click="$emit('delete', id)"/> 
             </div>
+        </div> 
 
-            
+        <div>
+            <slot/>
         </div>
-    </div> 
+
+        <div class="flex justify-center">
+            <UButton 
+                size="xs"
+                label="Ajoute"
+                icon="i-lucide-banknote"
+                variant="outline" 
+                @click="$emit('add', id)"/>          
+        </div>
+    </div>
 </template>
 
 <style scoped lang="scss">
