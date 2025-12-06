@@ -95,7 +95,7 @@ export class TransactionFilterExtends implements KnexFilterExtendAdapter<Transac
             //     this.select('transaction_id').from('transaction_tags').whereIn('tag_id', filtersExtend.tags!);
             // });
             // query.whereRaw('tag_ids ?| array[?]', filtersExtend.tags)
-            query.whereRaw("tag_ids @> ?::jsonb", JSON.stringify([filtersExtend.tags]));
+            query.whereRaw("tag_ids @> ?::jsonb", [JSON.stringify(filtersExtend.tags)]);
         }
         if (filtersExtend.budgets && filtersExtend.budgets?.length > 0) {
             // query.whereIn('transaction_id', function() {
