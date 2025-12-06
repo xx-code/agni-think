@@ -312,6 +312,13 @@ const onUpateAccount = async (payload: string) => {
         filterAcc = [payload] 
 }
 
+const computeAllUtilization = (accounts: AccountWithDetailType[]) => {
+    const creditCardAccount = accounts.filter(i => i.type === 'CreditCard')
+    const sum = creditCardAccount.reduce((acc, account) => acc += (account.detail as AccountCreditDetailType).creditUtilisation, 0)
+
+    return (sum/creditCardAccount.length).toFixed(2)
+}
+
 </script>
 
 <template>
@@ -369,11 +376,17 @@ const onUpateAccount = async (payload: string) => {
         
         <div class="space-y-2 mt-2">
             <div v-for="group in accounts">
-                <h3 
-                    class="font-black"
-                    v-if="group.accounts.length > 0">
-                    {{ group.title }}
-                </h3>
+                <div class="flex items-center">
+                    <h3 
+                        class="font-black"
+                        v-if="group.accounts.length > 0">
+                        {{ group.title }}
+                    </h3>
+                    <h5 class="ml-2 font-semibold" v-if="group.id === 'CreditCard'" :style="{color: creditUilisationToColor(Number(computeAllUtilization(group.accounts))) }">
+                        Use: {{ computeAllUtilization(group.accounts) }} %
+                    </h5>
+                </div>
+                
                 <div class="xs:col-1 sm:col-span-1 md:col-span-3 flex flex-col" >
                     <!-- <div class="self-end" style="margin-bottom: 1rem;">
                         <UButton icon="i-lucide-plus" size="xl" variant="solid" @click="openAccountModal()">Ajouter Carte</UButton>
