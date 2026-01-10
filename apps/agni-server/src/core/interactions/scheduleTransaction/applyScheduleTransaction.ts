@@ -83,6 +83,7 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                     scheduleTrans.reSchedule(new Scheduler(dueDate, { period: scheduler.repeater!.period, interval: scheduler.repeater!.interval}))
                     await this.scheduleTransactionRepo.update(scheduleTrans);
                 }
+                await this.transactionRepo.create(transaction)
 
                 this.eventManager.notify('notification', {
                     title: 'Schedule Transaction',
