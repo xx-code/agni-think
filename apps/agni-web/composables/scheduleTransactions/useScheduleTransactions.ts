@@ -11,21 +11,19 @@ export default function useScheduleTransactions(query: Reactive<QueryFilterReque
         query:query,
         transform: (data: ListResponse<GetAllScheduleTransactionsResponse>) => {
             return {
-                items: data.items.map(i => (
-                    {
-                        id: i.id,
-                        accountId: i.accountId,
-                        amount: i.amount,
-                        categoryId: i.categoryId,
-                        isPause: i.isPause,
-                        name: i.name,
-                        isFreeze: i.isFreeze,
-                        tagIds: i.tagIds,
-                        type: i.type,
-                        repeater: i.repeater,
-                        dueDate: new Date(i.dueDate) 
-                    }
-                )),
+                items: data.items.map(i => ({
+                    id: i.id,
+                    accountId: i.accountId,
+                    amount: i.amount,
+                    categoryId: i.categoryId,
+                    isPause: i.isPause,
+                    name: i.name,
+                    isFreeze: i.isFreeze,
+                    tagIds: i.tagIds,
+                    type: i.type,
+                    repeater: i.repeater,
+                    dueDate: new Date(i.dueDate) 
+                })),
                 totals: Number(data.totals)  
             }  satisfies ListResponse<ScheduleTransactionType> 
         }

@@ -69,7 +69,7 @@ export class UpdateBudgetUseCase implements IUsecase<RequestUpdateBudget, void> 
         if (budgetToArchive) {
             budgetToArchive.setTitle(budgetToArchive.getTitle() + "(Archived)")
             budgetToArchive.setIsArchive(true)
-            await this.budgetRepository.update(budget);
+            await this.budgetRepository.update(budgetToArchive);
         }
 
         await this.budgetRepository.create(new Budget(

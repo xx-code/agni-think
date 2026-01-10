@@ -35,7 +35,7 @@ export type CreateBudgetRequest = {
     schedule: {
         repeater?: {
             period: string
-            interval: numbrer
+            interval: number 
         }
         dueDate: string
     } 
@@ -48,7 +48,7 @@ export type UpdateBudgetRequest = {
     schedule?: {
         repeater?: {
             period: string
-            interval: numbrer
+            interval: number
         }
         dueDate: string
     }  

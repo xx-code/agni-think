@@ -116,7 +116,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
         accessorKey: 'dueDate',
         header: 'Date d\'échéance',
         cell: ({ row }) => {
-            return formatDate(row.original.dueDate)
+            return formatDate(row.getValue('dueDate'))
         }
     },
     {

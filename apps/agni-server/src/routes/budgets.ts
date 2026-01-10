@@ -40,7 +40,7 @@ router.put('/v1/budgets/:id',
     body('schedule').optional().isObject(),
     body('schedule.repeater').optional().isObject(),
     body('schedule.repeater.period').notEmpty().isString(),
-    body('schedule.repeater.period.interval').notEmpty().isNumeric(),
+    body('schedule.repeater.interval').notEmpty().isNumeric(),
     body('schedule.dueDate').notEmpty().isISO8601().toDate(),
     async (req: Request, res: Response) => {
         try {
