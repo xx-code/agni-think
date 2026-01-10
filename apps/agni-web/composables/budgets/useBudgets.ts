@@ -13,16 +13,13 @@ export default function useBudgets(query: Reactive<QueryFilterRequest>): UseApiF
                 items: data.items.map(i => ({
                     id: i.id,
                     title: i.title,
-                    period: i.period,
-                    periodTime: i.periodTime,
                     saveGoalIds: i.saveGoalIds,
                     currentBalance: i.currentBalance,
-                    startDate: new Date(i.startDate),
-                    updateDate: new Date(i.updateDate),
                     target: i.target,
                     realTarget: i.realTarget,
                     saveGoalTarget: i.saveGoalTarget,
-                    endDate: i.endDate   
+                    dueDate: new Date(i.dueDate),
+                    repeater: i.repeater
                 })),
                totals: Number(data.totals) 
             } satisfies ListResponse<GetAllBudgetResponse>

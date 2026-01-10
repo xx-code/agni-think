@@ -3,15 +3,16 @@ import type { CalendarDate } from "@internationalized/date"
 export type EditScheduleTransactionType = {
     name: string
     accountId: string
-    categoryId: string
+    categoryId?: string
     tagIds: string[]
     type: string
     amount: number
     isFreeze: boolean
-    dateStart: CalendarDate
-    period: string
-    periodTime?: number
-    dateEnd?: CalendarDate
+    repeater?: {
+        period: string
+        interval: number
+    }
+    dueDate: CalendarDate
 }
 
 export type TableScheduleTransactionType = {
@@ -32,9 +33,11 @@ export type TableScheduleTransactionType = {
     amount: number
     isPause: boolean
     isFreeze: boolean
-    dateStart: Date
-    dateUpdate: Date
-    dateEnd?: Date
+    repeater?: {
+        period: string
+        interval: number
+    }
+    dueDate: Date
 }
 
 export type ScheduleTransactionType = {
@@ -46,11 +49,11 @@ export type ScheduleTransactionType = {
     type: string
     amount: number
     isPause: boolean
-    dateStart: Date
     isFreeze: boolean
-    period: string
-    dateUpdate: Date
-    periodTime?: number
-    dateEnd?: Date
+    repeater?: {
+        period: string
+        interval: number
+    }
+    dueDate: Date
 }
 

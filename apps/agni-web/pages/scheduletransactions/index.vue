@@ -36,13 +36,11 @@ const displayScheluletransactionsTable = computed(() => {
     return scheduleTransactions.value?.items.map(i => ({
         id: i.id,
         amount: i.amount,
-        dateStart: i.dateStart,
-        dateUpdate: i.dateUpdate,
-        dateEnd: i.dateEnd,
         name: i.name,
         type: i.type,
         isPause: i.isPause,
         isFreeze: i.isFreeze,
+        dueDate: i.dueDate, 
         category: {
             id: i.categoryId,
             icon: getCategory(i.categoryId)?.icon || '',
@@ -59,7 +57,7 @@ const displayScheluletransactionsTable = computed(() => {
 
 async function togglePauseSchedule(id:string, isPause: boolean) {
     await useUpdateScheduleTransaction(id, {
-        isPause: !isPause
+        isPause: !isPause,
     });
 
     refreshScheduleTransactions();
@@ -115,27 +113,10 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
         }
     },
     {
-        accessorKey: 'dateStart',
-        header: 'Date Debut',
+        accessorKey: 'dueDate',
+        header: 'Date d\'échéance',
         cell: ({ row }) => {
-            return formatDate(row.getValue('dateStart'))
-        }
-    },
-    {
-        accessorKey: 'dateUpdate',
-        header: 'Date Mise a jour',
-        cell: ({ row }) => {
-            return formatDate(row.getValue('dateUpdate'))        
-        }
-    },
-    {
-        accessorKey: 'dateEnd',
-        header: 'Date de fin',
-        cell: ({ row }) => {
-            if (row.getValue('dateEnd') === undefined)
-                return '';
-
-            return formatDate(row.getValue('dateEnd'))
+            return formatDate(row.original.dueDate)
         }
     },
     {
@@ -250,10 +231,8 @@ async function onSubmitTransaction(value: EditScheduleTransactionType, oldValue?
                 amount: value.amount,
                 categoryId: value.categoryId,
                 schedule:{
-                    dateStart:  value.dateStart.toDate(getLocalTimeZone()).toISOString(),
-                    dateEnd: value.dateEnd?.toDate(getLocalTimeZone()).toISOString(),
-                    period: value.period,
-                    periodTime: value.periodTime
+                    dueDate:  value.dueDate.toDate(getLocalTimeZone()).toISOString(),
+                    repeater: value.repeater
                 },
                 isPause: oldValue.isPause,
                 name: value.name,
@@ -267,10 +246,8 @@ async function onSubmitTransaction(value: EditScheduleTransactionType, oldValue?
                 categoryId: value.categoryId,
                 isFreeze: value.isFreeze,
                 schedule:{
-                    dateStart:  value.dateStart.toDate(getLocalTimeZone()).toISOString(),
-                    dateEnd: value.dateEnd?.toDate(getLocalTimeZone()).toISOString(),
-                    period: value.period,
-                    periodTime: value.periodTime
+                    dueDate:  value.dueDate.toDate(getLocalTimeZone()).toISOString(),
+                    repeater: value.repeater
                 },
                 description: value.name,
                 name: value.name,

@@ -8,11 +8,11 @@ export type GetScheduleTransactionResponse = {
     amount: number
     isPause: boolean
     isFreeze: boolean
-    dateStart: Date
-    period: string
-    dateUpdate: Date
-    periodTime?: number
-    dateEnd?: Date
+    dueDate: Date
+    repeater?: {
+        period: string
+        interval: number
+    }
 }
 
 export type GetAllScheduleTransactionsResponse = {
@@ -25,28 +25,29 @@ export type GetAllScheduleTransactionsResponse = {
     amount: number,
     isPause: boolean
     isFreeze: boolean
-    dateStart: Date
-    period: string
-    dateUpdate: Date
-    periodTime?: number
-    dateEnd?: Date
+    dueDate: Date
+    repeater?: {
+        period: string
+        interval: number
+    }
 }
 
 export type CreateScheduleTransactionRequest = {
     name: string
     accountId: string
     amount: number
-    categoryId: string
+    categoryId?: string
     description: string 
     tagIds: string[]
     type: string
     isFreeze: boolean
     schedule: {
-        period: string,
-        periodTime?: number
-        dateStart: string
-        dateEnd?: string
-    }
+        repeater?: {
+            period: string
+            interval: numbrer
+        }
+        dueDate: string
+    } 
 }
 
 export type UpdateScheduleTransactionRequest = {
@@ -58,9 +59,10 @@ export type UpdateScheduleTransactionRequest = {
     type?: string
     isPause?: boolean
     schedule?: {
-        period: string,
-        periodTime?: number
-        dateStart: string
-        dateEnd?: string
+        repeater?: {
+            period: string
+            interval: numbrer
+        }
+        dueDate: string
     }
 }
