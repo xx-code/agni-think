@@ -4,13 +4,13 @@ export type GetBudgetResponse = {
     target: number,
     realTarget: number,
     saveGoalTarget: number
-    period: string
-    periodTime?: number
     currentBalance: number
     saveGoalIds: string[]
-    startDate: Date 
-    updateDate: Date
-    endDate?: Date
+    dueDate: Date
+    repeater?: {
+        period: string
+        interval: number
+    }
 } 
 
 export type GetAllBudgetResponse = {
@@ -19,13 +19,13 @@ export type GetAllBudgetResponse = {
     target: number,
     realTarget: number,
     saveGoalTarget: number
-    period: string
-    periodTime?: number
     saveGoalIds: string[]
     currentBalance: number
-    startDate: Date
-    updateDate: Date
-    endDate?: Date
+    dueDate: Date
+    repeater?: {
+        period: string
+        interval: number
+    }
 }
 
 export type CreateBudgetRequest = {
@@ -33,10 +33,11 @@ export type CreateBudgetRequest = {
     target: number;
     saveGoalIds: string[]
     schedule: {
-        period: string;
-        periodTime?: number;
-        dateStart: string;
-        dateEnd?: string
+        repeater?: {
+            period: string
+            interval: numbrer
+        }
+        dueDate: string
     } 
 } 
 
@@ -45,9 +46,10 @@ export type UpdateBudgetRequest = {
     target?: number;
     saveGoalIds?: string[]
     schedule?: {
-        period: string;
-        periodTime?: number;
-        dateStart: string;
-        dateEnd?: string;
-    } 
+        repeater?: {
+            period: string
+            interval: numbrer
+        }
+        dueDate: string
+    }  
 }

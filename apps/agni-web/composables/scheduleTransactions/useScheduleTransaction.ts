@@ -11,16 +11,13 @@ export default function useScheduleTransaction(scheduleTransactionId: string): U
                 accountId: data.accountId,
                 amount: data.amount,
                 categoryId: data.categoryId,
-                dateStart: new Date(data.dateStart),
-                dateUpdate: new Date(data.dateUpdate),
                 isPause: data.isPause,
                 name: data.name,
-                period: data.period,
                 isFreeze: data.isFreeze,
-                periodTime: data.periodTime,
                 tagIds: data.tagIds,
                 type: data.type,
-                dateEnd: data.dateEnd ? new Date(data.dateEnd) : undefined
+                repeater: data.repeater,
+                dueDate: new Date(data.dueDate) 
             } satisfies ScheduleTransactionType
         }
     });
@@ -38,15 +35,12 @@ export async function fetchScheduleTransaction(scheduleTransactionId: string): P
             accountId: res.accountId,
             amount: res.amount,
             categoryId: res.categoryId,
-            dateStart: new Date(res.dateStart),
-            dateUpdate: new Date(res.dateUpdate),
             isPause: res.isPause,
             isFreeze: res.isFreeze,
             name: res.name,
-            period: res.period,
-            periodTime: res.periodTime,
             tagIds: res.tagIds,
             type: res.type,
-            dateEnd: res.dateEnd ? new Date(res.dateEnd) : undefined
+            repeater: res.repeater,
+            dueDate: new Date(res.dueDate)
         } 
 }

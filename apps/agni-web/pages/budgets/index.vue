@@ -17,6 +17,7 @@ type BudgteItem = {
     realTarget: number
     saveTarget: number
     balance: number
+    dueDate: Date
 }
 
 const {data: budgets, error, refresh} = useBudgets({
@@ -32,8 +33,8 @@ const displaybudgets = computed(() => {
         balance: i.currentBalance,
         target: i.target,
         realTarget: i.realTarget,
-        saveTarget: i.saveGoalTarget
-
+        saveTarget: i.saveGoalTarget,
+        dueDate: i.dueDate
     } satisfies BudgteItem))
 })
 
@@ -104,10 +105,8 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
                 target: value.target,
                 saveGoalIds: value.saveGoalIds,
                 schedule: {
-                    period: value.period,
-                    periodTime: value.periodTime,
-                    dateStart: value.startDate.toDate(getLocalTimeZone()).toISOString(),
-                    dateEnd: value.endDate?.toDate(getLocalTimeZone()).toISOString()
+                    repeater: value.repeater,
+                    dueDate: value.dueDate.toDate(getLocalTimeZone()).toISOString(),
                 }
             })
         else 
@@ -116,10 +115,8 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
                 target: value.target,
                 saveGoalIds: value.saveGoalIds,
                 schedule: {
-                    period: value.period,
-                    periodTime: value.periodTime,
-                    dateStart: value.startDate.toDate(getLocalTimeZone()).toISOString(),
-                    dateEnd: value.endDate?.toDate(getLocalTimeZone()).toISOString()
+                    repeater: value.repeater,
+                    dueDate: value.dueDate.toDate(getLocalTimeZone()).toISOString(),
                 }
             })
         refresh()
@@ -192,6 +189,9 @@ const onDeleteBudget = async (budgetId: string) => {
                                     (Réel: ${{ budget.realTarget }} + SaveGoal: ${{ budget.saveTarget }})
                                     </p>
                                 </div>
+                                <p class="text-xs" style="color: #9E9E9E;">
+                                    Date mise a jour: {{  formatDate(budget.dueDate)}}
+                                </p>
                             </div>
                         </div>
                         
