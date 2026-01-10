@@ -5,7 +5,6 @@ import { Budget } from "@core/domains/entities/budget";
 import Repository from "@core/adapters/repository";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
-import { GetUID } from "@core/adapters/libs";
 
 export type RequestCreateBudgetSchedule = {
     repeater?: {
@@ -63,23 +62,8 @@ export class UpdateBudgetUseCase implements IUsecase<RequestUpdateBudget, void> 
         budget.reSchedule(scheduler)
     }
             
-    // TODO: Refactor
     if (budget.hasChange()) {
-        const budgetToArchive = await this.budgetRepository.get(request.id)
-        if (budgetToArchive) {
-            budgetToArchive.setTitle(budgetToArchive.getTitle() + "(Archived)")
-            budgetToArchive.setIsArchive(true)
-            await this.budgetRepository.update(budgetToArchive);
-        }
-
-        await this.budgetRepository.create(new Budget(
-            GetUID(), 
-            false,
-            budget.getTarget(),
-            budget.getTitle(), 
-            budget.getSchedule(), 
-            budget.getSaveGoalIds()
-        ));
+        await this.budgetRepository.update(budget);
     }
    }
 }
