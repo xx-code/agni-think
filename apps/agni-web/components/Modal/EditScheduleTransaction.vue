@@ -52,9 +52,7 @@ function onChangeIsRecurrence(isRecurrence: boolean) {
     form.repeater = isRecurrence ? (scheduleTransaction?.repeater || { period: "Day", interval: 1}) : undefined
 }
 let rawDueDate = scheduleTransaction ? scheduleTransaction.dueDate : new Date();
-
-const dueDate = shallowRef(new CalendarDate(rawDueDate.getFullYear(), rawDueDate.getMonth() + 1, rawDueDate.getDate()))
-
+const dueDate = shallowRef(new CalendarDate(rawDueDate.getFullYear(), rawDueDate.getMonth() + 1, rawDueDate.getDate()));
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
 });
@@ -166,7 +164,7 @@ async function onSubmit(event: FormSubmitEvent<EditScheduleTransactionType>) {
                     </UPopover>
                 </UFormField>
                 
-                <UFormField label="Date de fin" name="isRecurrence">
+                <UFormField label="Est repete" name="isRecurrence">
                     <USwitch v-model="isRecurrence" @update:model-value="onChangeIsRecurrence" />
                 </UFormField>
 

@@ -90,6 +90,7 @@ export class ScheduleTransactionFilter implements QueryFilterExtend<ScheduleTran
 
 export class BudgetFilter implements QueryFilterExtend<Budget> {
     schedulerDueDate?: RepositoryDateComparator
+    isArchive?: boolean
 
     isSatisty(entity: Budget): boolean {
         if (this.schedulerDueDate) {
@@ -113,6 +114,8 @@ export class BudgetFilter implements QueryFilterExtend<Budget> {
             }
             if (!isValid) return false;
         }
+
+        if (this.isArchive !== undefined &&  this.isArchive !== entity.getIsArchive()) return false
 
         return true;
     } 

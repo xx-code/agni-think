@@ -26,6 +26,7 @@ export class AutoUpdateBudgetUseCase implements IUsecase<void, void> {
 
             const filterExtend = new BudgetFilter()
             filterExtend.schedulerDueDate = { date: new Date(Date.now()), comparator: "<="} 
+            filterExtend.isArchive = false
 
             const budgets = await this.budgetRepo.getAll({
                 limit: 0, offset: 0,
@@ -34,6 +35,8 @@ export class AutoUpdateBudgetUseCase implements IUsecase<void, void> {
 
             for(let i = 0; i < budgets.items.length; i++) {
                 const budget = budgets.items[i]
+
+                console.log(budget)
 
                 if (budget.getSchedule().repeater === undefined) {
                     budget.setIsArchive(true)
