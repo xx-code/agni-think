@@ -29,7 +29,7 @@ router.post('/v1/schedule-transactions',
     body('schedule.repeater.interval').notEmpty().isNumeric(),
     body('schedule.dueDate').notEmpty().isISO8601().toDate(),
     body('tagIds').isArray(),
-    body('type').notEmpty(),
+    body('type').optional().isString(),
     async (req, res) => {
         try {
             const result = validationResult(req);

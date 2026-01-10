@@ -27,7 +27,7 @@ export type RequestCreateScheduleTransaction = {
     categoryId?: string
     description: string 
     tagIds: string[]
-    type: string
+    type?: string
     schedule: RequestCreateScheduleTransactionScheduler
 }
 
@@ -51,6 +51,9 @@ export class CreateScheduleTransactionUseCase implements IUsecase<RequestCreateS
 
         if (!request.isFreeze && !request.categoryId)
             throw new ValidationError("CATEGORY_MUST_BE_DEFINE_WHEN_IS_NOT_FREEZE_TRANSACTION")
+
+        if (!request.isFreeze && !request.type)
+            throw new ValidationError("TYPE_TRANSACTION_MUST_BE_DEFINE")
 
         if (!request.isFreeze && !await this.transcationDependencies.categoryRepository?.get(request.categoryId!))
             throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
@@ -76,7 +79,7 @@ export class CreateScheduleTransactionUseCase implements IUsecase<RequestCreateS
             request.accountId, 
             request.isFreeze ? FREEZE_CATEGORY_ID : request.categoryId!,
             new Money(request.amount),
-            request.isFreeze ? TransactionType.OTHER : mapperMainTransactionCategory(request.type),
+            request.isFreeze ? TransactionType.OTHER : mapperMainTransactionCategory(request.type!),
             scheduler,
             false,
             request.isFreeze,
