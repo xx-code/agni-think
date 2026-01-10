@@ -66,7 +66,7 @@ function validate(state: Partial<EditScheduleTransactionType>): FormError[] {
   if (!state.accountId) errors.push({ name: 'accountId', message: 'Required' })
   if (!state.categoryId) errors.push({ name: 'categoryId', message: 'Required' })
   if (!state.amount) errors.push({ name: 'amount', message: 'Required' })
-  if (!state.dueDate) errors.push({ name: 'dueDate', message: 'Required' })
+  if (!dueDate.value) errors.push({ name: 'dueDate', message: 'Required' })
   if (!state.type) errors.push({ name: 'type', message: 'Required' })
 
   if (state.repeater && !state.repeater.period) errors.push({ name: 'period', message: 'Required' })

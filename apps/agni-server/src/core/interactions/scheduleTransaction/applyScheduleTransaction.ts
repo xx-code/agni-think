@@ -35,7 +35,7 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
         try {
 
             const filterExtend = new ScheduleTransactionFilter()
-            filterExtend.schedulerDueDate = { date: new Date(Date.now()), comparator: ">="} 
+            filterExtend.schedulerDueDate = { date: new Date(Date.now()), comparator: "<="} 
 
             const scheduleTransactions = await this.scheduleTransactionRepo.getAll({
                 limit: 0, offset: 0,

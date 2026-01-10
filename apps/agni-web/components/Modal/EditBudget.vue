@@ -45,7 +45,7 @@ function validate(state: Partial<EditBudgetType>): FormError[] {
 
   if (!state.title) errors.push({ name: 'title', message: 'Required' })
   if (!state.target) errors.push({ name: 'target', message: 'Required' })
-  if (!state.dueDate) errors.push({ name: 'dueDate', message: 'Required' })
+  if (!dueDate.value) errors.push({ name: 'dueDate', message: 'Required' })
   if (state.repeater && !state.repeater.period) errors.push({ name: 'period', message: 'Required' })
   if (state.repeater && !state.repeater.interval) errors.push({ name: 'interval', message: 'Required' })
 
