@@ -19,7 +19,7 @@ router.post('/v1/schedule-transactions/apply-schedule', async (req, res) => {
 router.post('/v1/schedule-transactions', 
     body('accountId').notEmpty().isString(),
     body('amount').notEmpty().isNumeric(),
-    body('categoryId').notEmpty().isString(),
+    body('categoryId').optional().isString(),
     body('isFreeze').isBoolean().default(false),
     body('description').notEmpty().isString(),
     body('name').notEmpty().isString(),
