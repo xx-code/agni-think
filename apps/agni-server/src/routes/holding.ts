@@ -52,7 +52,7 @@ router.put(
         const result = validationResult(req);
         if (result.isEmpty()) {
             const data: RequestUpdateHoldingDto = matchedData(req);
-            data.id = req.params.id
+            data.id = req.params.id as string
             var created = await container.holdingUseCase?.updateHolding.execute(data);
 
             res.status(200).json(created)
@@ -132,7 +132,7 @@ router.put(
         const result = validationResult(req);
         if (result.isEmpty()) {
             const data: RequestUpdateHoldingTransactionDto = matchedData(req);
-            data.id = req.params.id
+            data.id = req.params.id as string
 
             var results = await container.holdingUseCase?.updateHoldingTransaction.execute(data);
 
@@ -151,7 +151,8 @@ router.get(
     '/v1/holding-transactions/:id', 
     async (req: Request, res: Response) => {
     try {
-        const result = await container.holdingUseCase?.getHoldingTransaction.execute(req.params.id)
+        const id = req.params.id as string
+        const result = await container.holdingUseCase?.getHoldingTransaction.execute(id)
         
         res.status(200).json(result)
     } catch(err) {
@@ -191,7 +192,8 @@ router.delete(
     '/v1/holdings/:id', 
     async (req: Request, res: Response) => {
     try {
-        const result = await container.holdingUseCase?.deleteHolding.execute(req.params.id)
+        const id = req.params.id as string
+        const result = await container.holdingUseCase?.deleteHolding.execute(id)
         
         res.status(200).json(result)
     } catch(err) {
@@ -203,7 +205,8 @@ router.delete(
     '/v1/holding-transactions/:id', 
     async (req: Request, res: Response) => {
     try {
-        const result = await container.holdingUseCase?.deleteHoldingTransaction.execute(req.params.id)
+        const id = req.params.id as string
+        const result = await container.holdingUseCase?.deleteHoldingTransaction.execute(id)
         
         res.status(200).json(result)
     } catch(err) {

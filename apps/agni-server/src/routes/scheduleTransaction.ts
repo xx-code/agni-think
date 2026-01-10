@@ -112,7 +112,7 @@ router.put('/v1/schedule-transactions/:id',
             } 
 
             const data: RequestUpdateScheduleTransaction = matchedData(req);
-            data.id = req.params.id;
+            data.id = req.params.id as string;
             await container.scheduleTransactionUseCase?.updateScheduleTransaction.execute(data);
 
             res.sendStatus(200);

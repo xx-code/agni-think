@@ -53,7 +53,7 @@ router.put('/v1/accounts/:id',
             }
 
             const data: RequestUpdateAccountUseCase = matchedData(req);
-            data.id = req.params.id;
+            data.id = req.params.id as string;
             await container.accountUseCase?.updateAccount.execute(data);
 
             res.sendStatus(200);
@@ -66,7 +66,8 @@ router.put('/v1/accounts/:id',
 router.get('/v1/accounts/:id', 
     async (req: Request, res: Response) => {
     try {
-        const account = await container.accountUseCase?.getAccount.execute(req.params.id)
+        const id = req.params.id as string
+        const account = await container.accountUseCase?.getAccount.execute(id)
         res.status(200).json(account)
     } catch(err) {
         res.status(400).send({ errors: [err] });
@@ -77,7 +78,8 @@ router.get('/v1/accounts/:id',
 router.get('/v1/accounts-with-detail/:id', 
     async (req: Request, res: Response) => {
     try {
-        const account = await container.accountUseCase?.getAccountWithDetail.execute(req.params.id)
+        const id = req.params.id as string
+        const account = await container.accountUseCase?.getAccountWithDetail.execute(id)
         res.status(200).json(account)
         return 
     } catch(err) {
