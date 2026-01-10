@@ -49,7 +49,7 @@ router.put("/v1/transactions/:id",
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestUpdateTransactionUseCase = matchedData(req);
-                data.id = req.params.id;
+                data.id = req.params.id as string;
                 await container.transactionUseCase?.updateTransaction.execute(data);
 
                 res.sendStatus(200);

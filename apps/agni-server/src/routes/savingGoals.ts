@@ -52,7 +52,7 @@ router.put('/v1/save-goals/:id',
             if (result.isEmpty()) {
                 const data: RequestUpdateSaveGoalUseCase = matchedData(req); 
                 console.log(data)
-                data.id = req.params.id;
+                data.id = req.params.id as string;
                 await container.saveGoalUseCase?.updateSaveGoal.execute(data);
 
                 res.sendStatus(200);
@@ -103,7 +103,7 @@ router.delete('/v1/save-goals/:id', body('accountDepositId').isString().notEmpty
         const result = validationResult(req);
         if (result.isEmpty()) {
             const data: RequestDeleteSaveGoal = matchedData(req);
-            data.id = req.params.id;
+            data.id = req.params.id as string;
             await container.saveGoalUseCase?.deleteSaveGoal.execute(data);
             
             res.sendStatus(200);
@@ -124,7 +124,7 @@ router.patch('/v1/save-goals/:id/increase-balance',
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestIncreaseSaveGoal = matchedData(req);
-                data.id = req.params.id
+                data.id = req.params.id as string
                 await container.saveGoalUseCase?.increaseSaveGoal.execute(data);
 
                 res.sendStatus(200);
@@ -146,7 +146,7 @@ router.patch('/v1/save-goals/:id/decrease-balance',
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestDecreaseSaveGoal = matchedData(req);
-                data.id = req.params.id;
+                data.id = req.params.id as string;
                 await container.saveGoalUseCase?.decreaseSaveGoal.execute(data);
 
                 res.sendStatus(200);

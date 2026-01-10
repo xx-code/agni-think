@@ -47,7 +47,7 @@ router.put('/v1/budgets/:id',
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestUpdateBudget = matchedData(req);
-                data.id = req.params.id;
+                data.id = req.params.id as string;
                 await container.budgetUseCase?.updateBudget.execute(data);
 
                 res.sendStatus(200);

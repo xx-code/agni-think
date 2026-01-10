@@ -38,7 +38,7 @@ router.put('/v1/categories/:id',
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestUpdateCategoryUseCase = matchedData(req);
-                data.id = req.params.id;
+                data.id = req.params.id as string;
                 await container.categoryUseCase?.updateCategory.execute(data);
 
                 res.sendStatus(200);
