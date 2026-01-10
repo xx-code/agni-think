@@ -1,10 +1,11 @@
 import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction";
-import { Knex } from "knex";
-import Mapper, { KnexTable } from "./mapper";
+import knex, { Knex } from "knex";
+import Mapper, { KnexFilterExtendAdapter, KnexTable } from "./mapper";
 import { Money } from "@core/domains/entities/money";
 import { mapperMainTransactionCategory } from "@core/domains/constants";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
 import { KnexModel } from "./model";
+import { QueryFilterExtend, ScheduleTransactionFilter } from "@core/adapters/repository";
 
 export class KnexScheduleTransactionTable implements KnexTable {
     getTableName(): string {
@@ -83,5 +84,69 @@ export class ScheduleTransactionMapper implements Mapper<ScheduleTransaction, Sc
     }
     getNameField(): string {
         return 'name'
+    }
+}
+
+export class ScheduleTransactionFilterExtends implements KnexFilterExtendAdapter<ScheduleTransaction, ScheduleTransactionModel> {
+    filterQuery(query: Knex.QueryBuilder, filtersExtend: ScheduleTransactionFilter): void {
+        if (filtersExtend.schedulerStartDate) {
+            switch(filtersExtend.schedulerStartDate.comparator) {
+                case "<": 
+                    query.whereRaw("(scheduler->>startedDate)::timestamp < ?", [filtersExtend.schedulerStartDate])
+                    break
+                case "<=":
+                    query.whereRaw("(scheduler->>startedDate)::timestamp <= ?", [filtersExtend.schedulerStartDate])
+                    break
+                case ">":
+                    query.whereRaw("(scheduler->>startedDate)::timestamp > ?", [filtersExtend.schedulerStartDate])
+                    break
+                case ">=":
+                    query.whereRaw("(scheduler->>startedDate)::timestamp >= ?", [filtersExtend.schedulerStartDate])
+                    break
+                case "=":
+                    query.whereRaw("(scheduler->>startedDate)::timestamp ==- ?", [filtersExtend.schedulerStartDate])
+                    break
+            }
+        }
+
+        // if (filtersExtend.schedulerUpdateDate) {
+        //     switch(filtersExtend.schedulerUpdateDate.comparator) {
+        //         case "<": 
+        //             query.whereRaw("(scheduler->>updateDate)::timestamp < ?", [filtersExtend.schedulerUpdateDate])
+        //             break
+        //         case "<=":
+        //             query.whereRaw("(scheduler->>updateDate)::timestamp <= ?", [filtersExtend.schedulerUpdateDate])
+        //             break
+        //         case ">":
+        //             query.whereRaw("(scheduler->>updateDate)::timestamp > ?", [filtersExtend.schedulerUpdateDate])
+        //             break
+        //         case ">=":
+        //             query.whereRaw("(scheduler->>updateDate)::timestamp >= ?", [filtersExtend.schedulerUpdateDate])
+        //             break
+        //         case "=":
+        //             query.whereRaw("(scheduler->>updateDate)::timestamp ==- ?", [filtersExtend.schedulerUpdateDate])
+        //             break
+        //     }
+        // }
+
+        if (filtersExtend.schedulerEndDate) {
+            switch(filtersExtend.schedulerEndDate.comparator) {
+                case "<": 
+                    query.whereRaw("(scheduler->>endingDate)::timestamp < ?", [filtersExtend.schedulerEndDate])
+                    break
+                case "<=":
+                    query.whereRaw("(scheduler->>endingDate)::timestamp <= ?", [filtersExtend.schedulerEndDate])
+                    break
+                case ">":
+                    query.whereRaw("(scheduler->>endingDate)::timestamp > ?", [filtersExtend.schedulerEndDate])
+                    break
+                case ">=":
+                    query.whereRaw("(scheduler->>endingDate)::timestamp >= ?", [filtersExtend.schedulerEndDate])
+                    break
+                case "=":
+                    query.whereRaw("(scheduler->>endingDate)::timestamp ==- ?", [filtersExtend.schedulerEndDate])
+                    break
+            }
+        }
     }
 }

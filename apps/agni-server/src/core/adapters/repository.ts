@@ -4,6 +4,7 @@ import { HoldingTransaction } from "@core/domains/entities/holdingTransaction"
 import Notification from "@core/domains/entities/notification"
 import { PatrimonySnapshot } from "@core/domains/entities/patrimonySnapshot"
 import { SaveGoal } from "@core/domains/entities/saveGoal"
+import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction"
 import { Transaction } from "@core/domains/entities/transaction"
 import { QueryFilterAllRepository, RepositoryListResult } from "@core/repositories/dto"
 
@@ -19,6 +20,11 @@ export default interface Repository<T> {
     update(entity: T): Promise<void>
     delete(id: string): Promise<void>
     existByName(name: string): Promise<boolean>
+}
+
+export type RepositoryDateComparator = {
+    date: Date
+    comparator: '<' | '<=' | '>' | '>=' | '='
 }
 
 export class TransactionFilter implements QueryFilterExtend<Transaction> { 
@@ -48,6 +54,83 @@ export class TransactionFilter implements QueryFilterExtend<Transaction> {
         // minPrice/maxPrice à adapter selon l'implémentation de Money
         return true;
     }
+}
+
+
+export class ScheduleTransactionFilter implements QueryFilterExtend<ScheduleTransaction> {
+    schedulerStartDate?: RepositoryDateComparator
+    schedulerEndDate?: RepositoryDateComparator
+    schedulerUpdateDate?: RepositoryDateComparator
+
+    isSatisty(entity: ScheduleTransaction): boolean {
+        if (this.schedulerStartDate) {
+            var isValid = true
+            switch(this.schedulerStartDate.comparator) {
+                case "<": 
+                    isValid = this.schedulerStartDate.date < entity.getSchedule().getStartedDate() 
+                    break
+                case "<=": 
+                    isValid = this.schedulerStartDate.date <= entity.getSchedule().getStartedDate()
+                    break
+                case ">": 
+                    isValid = this.schedulerStartDate.date > entity.getSchedule().getStartedDate()
+                    break
+                case ">=": 
+                    isValid = this.schedulerStartDate.date >= entity.getSchedule().getStartedDate()
+                    break
+                case "=": 
+                    isValid = this.schedulerStartDate.date == entity.getSchedule().getStartedDate()
+                    break
+            }
+            if (!isValid) return false;
+        }
+
+        if (this.schedulerEndDate && entity.getSchedule().getEndingDate() !== undefined) {
+            var isValid = true
+            switch(this.schedulerEndDate.comparator) {
+                case "<": 
+                    isValid = this.schedulerEndDate.date < entity.getSchedule().getEndingDate()!
+                    break
+                case "<=": 
+                    isValid = this.schedulerEndDate.date <= entity.getSchedule().getEndingDate()!
+                    break
+                case ">": 
+                    isValid = this.schedulerEndDate.date > entity.getSchedule().getEndingDate()!
+                    break
+                case ">=": 
+                    isValid = this.schedulerEndDate.date >= entity.getSchedule().getEndingDate()!
+                    break
+                case "=": 
+                    isValid = this.schedulerEndDate.date == entity.getSchedule().getEndingDate()!
+                    break
+            }
+            if (!isValid) return false;
+        }
+
+        if (this.schedulerUpdateDate) {
+            var isValid = true
+            switch(this.schedulerUpdateDate.comparator) {
+                case "<": 
+                    isValid = this.schedulerUpdateDate.date < entity.getSchedule().getUpdatedDate()
+                    break
+                case "<=": 
+                    isValid = this.schedulerUpdateDate.date <= entity.getSchedule().getUpdatedDate()
+                    break
+                case ">": 
+                    isValid = this.schedulerUpdateDate.date > entity.getSchedule().getUpdatedDate()
+                    break
+                case ">=": 
+                    isValid = this.schedulerUpdateDate.date >= entity.getSchedule().getUpdatedDate()
+                    break
+                case "=": 
+                    isValid = this.schedulerUpdateDate.date == entity.getSchedule().getUpdatedDate()
+                    break
+            }
+            if (!isValid) return false;
+        }
+
+        return true;
+    } 
 }
 
 export class PatrimonySnapshotFilter implements QueryFilterExtend<PatrimonySnapshot> { 
