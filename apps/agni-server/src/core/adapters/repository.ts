@@ -1,4 +1,5 @@
 import { TransactionStatus, TransactionType } from "@core/domains/constants"
+import { Budget } from "@core/domains/entities/budget"
 import { Holding } from "@core/domains/entities/holding"
 import { HoldingTransaction } from "@core/domains/entities/holdingTransaction"
 import Notification from "@core/domains/entities/notification"
@@ -61,6 +62,36 @@ export class ScheduleTransactionFilter implements QueryFilterExtend<ScheduleTran
     schedulerDueDate?: RepositoryDateComparator
 
     isSatisty(entity: ScheduleTransaction): boolean {
+        if (this.schedulerDueDate) {
+            var isValid = true
+            switch(this.schedulerDueDate.comparator) {
+                case "<": 
+                    isValid = this.schedulerDueDate.date < entity.getSchedule().dueDate 
+                    break
+                case "<=": 
+                    isValid = this.schedulerDueDate.date <= entity.getSchedule().dueDate
+                    break
+                case ">": 
+                    isValid = this.schedulerDueDate.date > entity.getSchedule().dueDate
+                    break
+                case ">=": 
+                    isValid = this.schedulerDueDate.date >= entity.getSchedule().dueDate
+                    break
+                case "=": 
+                    isValid = this.schedulerDueDate.date == entity.getSchedule().dueDate
+                    break
+            }
+            if (!isValid) return false;
+        }
+
+        return true;
+    } 
+}
+
+export class BudgetFilter implements QueryFilterExtend<Budget> {
+    schedulerDueDate?: RepositoryDateComparator
+
+    isSatisty(entity: Budget): boolean {
         if (this.schedulerDueDate) {
             var isValid = true
             switch(this.schedulerDueDate.comparator) {

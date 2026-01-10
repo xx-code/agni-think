@@ -18,7 +18,7 @@ import PatrimonyRoute from './routes/patrimony';
 import NotificationRoute from './routes/notification';
 import CurrencyRoute from './routes/currency';
 import HoldingRoute from './routes/holding';
-import { ApplyScheduleTransactionCronScheduler, AutoDeletreFreezeTransactionCronScheduler } from "@infra/adapters/cronScheduler";
+import { ApplyScheduleTransactionCronScheduler, AutoDeletreFreezeTransactionCronScheduler, AutoUpdateBudgetTransactionCronScheduler } from "@infra/adapters/cronScheduler";
 import path = require("path");
 import axios from "axios";
 
@@ -101,6 +101,9 @@ app.listen(port, async () => {
 
     const autoFreezeTransaction = new AutoDeletreFreezeTransactionCronScheduler();
     await autoFreezeTransaction.execute("0 */12 * * *");
+
+    const autoBudgetReopen = new AutoUpdateBudgetTransactionCronScheduler();
+    await autoBudgetReopen.execute("0 */12 * * *") 
 
   } catch(err) {
     console.log({

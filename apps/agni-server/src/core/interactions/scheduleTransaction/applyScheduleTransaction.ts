@@ -75,7 +75,7 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                 if (scheduleTrans.getIsFreeze())
                     transaction.setIsFreeze()
 
-                if (scheduleTrans.getSchedule().repeater !== undefined) {
+                if (scheduleTrans.getSchedule().repeater === undefined) {
                     await this.scheduleTransactionRepo.delete(scheduleTrans.getId())
                 } else {
                     const scheduler = scheduleTrans.getSchedule()
