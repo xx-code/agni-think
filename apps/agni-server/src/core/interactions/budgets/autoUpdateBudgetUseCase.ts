@@ -25,7 +25,7 @@ export class AutoUpdateBudgetUseCase implements IUsecase<void, void> {
         try {
 
             const filterExtend = new BudgetFilter()
-            filterExtend.schedulerDueDate = { date: new Date(Date.now()), comparator: ">="} 
+            filterExtend.schedulerDueDate = { date: new Date(Date.now()), comparator: "<="} 
 
             const budgets = await this.budgetRepo.getAll({
                 limit: 0, offset: 0,
