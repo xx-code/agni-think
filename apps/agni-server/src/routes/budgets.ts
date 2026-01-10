@@ -12,10 +12,10 @@ router.post('/v1/budgets',
     body('target').notEmpty().isNumeric(),
     body('saveGoalIds').toArray(),
     body('schedule').notEmpty().isObject(),
-    body('schedule.period').notEmpty().isString(),
-    body('schedule.periodTime').optional().isNumeric(),
-    body('schedule.dateStart').notEmpty().isISO8601().toDate(),
-    body('schedule.dateEnd').optional().isISO8601().toDate(),
+    body('schedule.repeater').optional().isObject(),
+    body('schedule.repeater.period').notEmpty().isString(),
+    body('schedule.repeater.period.interval').notEmpty().isNumeric(),
+    body('schedule.dueDate').notEmpty().isISO8601().toDate(),
     async (req, res) => {
         try {
             const result = validationResult(req);
@@ -38,6 +38,10 @@ router.put('/v1/budgets/:id',
     body('target').optional().isNumeric(),
     body('saveGoalIds').optional().toArray(),
     body('schedule').optional().isObject(),
+    body('schedule.repeater').optional().isObject(),
+    body('schedule.repeater.period').notEmpty().isString(),
+    body('schedule.repeater.period.interval').notEmpty().isNumeric(),
+    body('schedule.dueDate').notEmpty().isISO8601().toDate(),
     async (req: Request, res: Response) => {
         try {
             const result = validationResult(req);

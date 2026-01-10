@@ -94,8 +94,7 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
         let scheduleSpendAmount = 0
         for(const scheduleTrans of scheduleTransactions.items) {
             if (
-                MomentDateService.compareDate(scheduleTrans.getSchedule().getUpdatedDate(), request.startDate) >= 0 && 
-                MomentDateService.compareDate(scheduleTrans.getSchedule().getUpdatedDate(), request.endDate) <= 0 
+                MomentDateService.compareDate(scheduleTrans.getSchedule().dueDate, request.endDate) <= 0 
             ) {
                 if (scheduleTrans.getTransactionType() === TransactionType.INCOME)
                 {
@@ -116,22 +115,21 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
         let previsionBudget = 0
         for(const budget of budgets.items) {
             if (
-                MomentDateService.compareDate(budget.getSchedule().getUpdatedDate(), request.startDate) >= 0 && 
-                MomentDateService.compareDate(budget.getSchedule().getUpdatedDate(), request.endDate) <= 0 &&
+                MomentDateService.compareDate(budget.getSchedule().dueDate, request.endDate) <= 0 &&
                 budget.getIsArchive() === false
             ) {
-                let startBudgetUTCDate = budget.getSchedule().getStartedDate(); 
-                if (budget.getSchedule().getPeriodTime() !== undefined)
+                let startBudgetUTCDate = budget.getSchedule().dueDate; 
+                if (budget.getSchedule().repeater !== undefined)
                     startBudgetUTCDate = MomentDateService.getUTCDateSubstraction(
-                        budget.getSchedule().getUpdatedDate(), 
-                        budget.getSchedule().getPeriod(), 
-                        budget.getSchedule().getPeriodTime()!
+                        budget.getSchedule().dueDate, 
+                        budget.getSchedule().repeater!.period, 
+                        budget.getSchedule().repeater!.interval
                 ); 
 
                 const extendFilter = new TransactionFilter()
                 extenFilter.budgets = [budget.getId()]
                 extenFilter.startDate = startBudgetUTCDate
-                extendFilter.endDate = budget.getSchedule().getUpdatedDate() 
+                extendFilter.endDate = budget.getSchedule().dueDate 
                 let transactions = await this.transactionRepo.getAll({
                     queryAll: true,
                     offset: 0,

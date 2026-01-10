@@ -11,10 +11,11 @@ import Repository from "@core/adapters/repository"
 import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction"
 
 export type RequestUpdateScheduleTransactionScheduler = {
-    period: string,
-    periodTime?: number
-    dateStart: Date
-    dateEnd?: Date
+    repeater?: {
+        period: string
+        interval: number
+    }
+    dueDate: Date
 }
 
 export type RequestUpdateScheduleTransaction = {
@@ -88,11 +89,12 @@ export class UpdateScheduleTransactionUseCase implements IUsecase<RequestUpdateS
 
         if (request.schedule) {
             const scheduler = new Scheduler(
-                mapperPeriod(request.schedule.period),
-                request.schedule.dateStart ,
-                request.schedule.periodTime,
-                request.schedule.dateEnd
-            )
+            new Date(request.schedule.dueDate),
+            request.schedule.repeater ? {
+                period: mapperPeriod(request.schedule.repeater.period),
+                interval: request.schedule.repeater.interval
+            } : undefined
+        )
 
             scheduleTransaction.reSchedule(scheduler)
         }

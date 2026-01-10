@@ -1,9 +1,11 @@
 import { TransactionStatus, TransactionType } from "@core/domains/constants"
+import { Budget } from "@core/domains/entities/budget"
 import { Holding } from "@core/domains/entities/holding"
 import { HoldingTransaction } from "@core/domains/entities/holdingTransaction"
 import Notification from "@core/domains/entities/notification"
 import { PatrimonySnapshot } from "@core/domains/entities/patrimonySnapshot"
 import { SaveGoal } from "@core/domains/entities/saveGoal"
+import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction"
 import { Transaction } from "@core/domains/entities/transaction"
 import { QueryFilterAllRepository, RepositoryListResult } from "@core/repositories/dto"
 
@@ -19,6 +21,11 @@ export default interface Repository<T> {
     update(entity: T): Promise<void>
     delete(id: string): Promise<void>
     existByName(name: string): Promise<boolean>
+}
+
+export type RepositoryDateComparator = {
+    date: Date
+    comparator: '<' | '<=' | '>' | '>=' | '='
 }
 
 export class TransactionFilter implements QueryFilterExtend<Transaction> { 
@@ -48,6 +55,67 @@ export class TransactionFilter implements QueryFilterExtend<Transaction> {
         // minPrice/maxPrice à adapter selon l'implémentation de Money
         return true;
     }
+}
+
+
+export class ScheduleTransactionFilter implements QueryFilterExtend<ScheduleTransaction> {
+    schedulerDueDate?: RepositoryDateComparator
+
+    isSatisty(entity: ScheduleTransaction): boolean {
+        if (this.schedulerDueDate) {
+            var isValid = true
+            switch(this.schedulerDueDate.comparator) {
+                case "<": 
+                    isValid = this.schedulerDueDate.date < entity.getSchedule().dueDate 
+                    break
+                case "<=": 
+                    isValid = this.schedulerDueDate.date <= entity.getSchedule().dueDate
+                    break
+                case ">": 
+                    isValid = this.schedulerDueDate.date > entity.getSchedule().dueDate
+                    break
+                case ">=": 
+                    isValid = this.schedulerDueDate.date >= entity.getSchedule().dueDate
+                    break
+                case "=": 
+                    isValid = this.schedulerDueDate.date == entity.getSchedule().dueDate
+                    break
+            }
+            if (!isValid) return false;
+        }
+
+        return true;
+    } 
+}
+
+export class BudgetFilter implements QueryFilterExtend<Budget> {
+    schedulerDueDate?: RepositoryDateComparator
+
+    isSatisty(entity: Budget): boolean {
+        if (this.schedulerDueDate) {
+            var isValid = true
+            switch(this.schedulerDueDate.comparator) {
+                case "<": 
+                    isValid = this.schedulerDueDate.date < entity.getSchedule().dueDate 
+                    break
+                case "<=": 
+                    isValid = this.schedulerDueDate.date <= entity.getSchedule().dueDate
+                    break
+                case ">": 
+                    isValid = this.schedulerDueDate.date > entity.getSchedule().dueDate
+                    break
+                case ">=": 
+                    isValid = this.schedulerDueDate.date >= entity.getSchedule().dueDate
+                    break
+                case "=": 
+                    isValid = this.schedulerDueDate.date == entity.getSchedule().dueDate
+                    break
+            }
+            if (!isValid) return false;
+        }
+
+        return true;
+    } 
 }
 
 export class PatrimonySnapshotFilter implements QueryFilterExtend<PatrimonySnapshot> { 

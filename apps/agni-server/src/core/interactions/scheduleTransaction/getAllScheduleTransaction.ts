@@ -13,11 +13,11 @@ export type GetAllScheduleTransactionDto = {
     amount: number,
     isPause: boolean
     isFreeze: boolean
-    dateStart: Date
-    period: string
-    dateUpdate: Date
-    periodTime?: number
-    dateEnd?: Date
+    dueDate: Date
+    repeater?: {
+        period: string
+        interval: number
+    }
 }
 
 export class GetAllScheluleTransacationUseCase implements IUsecase<QueryFilter, ListDto<GetAllScheduleTransactionDto>> {
@@ -46,12 +46,12 @@ export class GetAllScheluleTransacationUseCase implements IUsecase<QueryFilter, 
                 tagIds: trans.getTags(),
                 type: trans.getTransactionType(),
                 isPause: trans.getIsPause(),
-                dateStart: trans.getSchedule().getStartedDate(),
-                dateUpdate: trans.getSchedule().getUpdatedDate(),
-                dateEnd: trans.getSchedule().getEndingDate(),
-                period: trans.getSchedule().getPeriod(),
                 isFreeze: trans.getIsFreeze(),
-                periodTime: trans.getSchedule().getPeriodTime()
+                dueDate: trans.getSchedule().dueDate,
+                repeater: trans.getSchedule(). repeater ? {
+                    period: trans.getSchedule().repeater!.period,
+                    interval: trans.getSchedule().repeater!.interval
+                } : undefined
             })
         })
 

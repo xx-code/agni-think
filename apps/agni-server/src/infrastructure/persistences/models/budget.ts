@@ -1,8 +1,9 @@
 import { Knex } from "knex";
-import Mapper, { KnexTable } from "./mapper";
+import Mapper, { KnexFilterExtendAdapter, KnexTable } from "./mapper";
 import { Budget } from "@core/domains/entities/budget";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
 import { KnexModel } from "./model";
+import { BudgetFilter } from "@core/adapters/repository";
 
 export class KnexBudgetTable implements KnexTable {
     getTableName(): string {
@@ -60,5 +61,29 @@ export class BudgetModelMapper implements Mapper<Budget, BudgetModel> {
     }
     getNameField(): string {
         return 'title'
+    }
+}
+
+export class BudgetFilterExtends implements KnexFilterExtendAdapter<Budget, BudgetModel> {
+    filterQuery(query: Knex.QueryBuilder, filtersExtend: BudgetFilter): void {
+        if (filtersExtend.schedulerDueDate) {
+            switch(filtersExtend.schedulerDueDate.comparator) {
+                case "<": 
+                    query.whereRaw("(scheduler->>'due_date')::timestamp < ?", [filtersExtend.schedulerDueDate.date])
+                    break
+                case "<=":
+                    query.whereRaw("(scheduler->>'due_date')::timestamp <= ?", [filtersExtend.schedulerDueDate.date])
+                    break
+                case ">":
+                    query.whereRaw("(scheduler->>'due_date')::timestamp > ?", [filtersExtend.schedulerDueDate.date])
+                    break
+                case ">=":
+                    query.whereRaw("(scheduler->>'due_date')::timestamp >= ?", [filtersExtend.schedulerDueDate.date])
+                    break
+                case "=":
+                    query.whereRaw("(scheduler->>'due_date')::timestamp = ?", [filtersExtend.schedulerDueDate.date])
+                    break
+            }
+        }
     }
 }

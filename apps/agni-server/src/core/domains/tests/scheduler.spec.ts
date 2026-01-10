@@ -1,101 +1,127 @@
 // Scheduler.test.ts
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Scheduler } from "../valueObjects/scheduleInfo";
+import { describe, it, expect, beforeEach } from "vitest";
+import { Scheduler, SchedulerRecurrence } from "../valueObjects/scheduleInfo";
 import { Period } from "../constants";
-import { MomentDateService } from "../entities/libs";
-
-// On mock MomentDateService pour pas dépendre du temps réel
-vi.mock("./MomentDateService", () => ({
-  MomentDateService: {
-    getUTCDateAddition: vi.fn(),
-    compareDate: vi.fn(),
-    compareDateWithDate: vi.fn(),
-  },
-}));
 
 describe("Scheduler", () => {
-    const startDate = new Date("2025-01-01T00:00:00Z");
-    const endDate = new Date("2025-01-10T00:00:00Z");
+    const due_date = new Date("2025-01-01T00:00:00Z");
+    const futureDate = new Date("2025-02-01T00:00:00Z");
 
     beforeEach(() => {
-        vi.clearAllMocks();
+        // Setup
     });
 
-    it("doit lancer une erreur si ni periodTime ni endingDate n'est fourni", () => {
-        expect(() => new Scheduler(Period.DAY, startDate)).toThrow(
-        "SCHEDULER_WITH_PERIOD_UNDETERMINED_HAVE_NOT_END_DATE"
-        );
+    it("crée un scheduler avec une due_date uniquement", () => {
+        const scheduler = new Scheduler(due_date);
+
+        expect(scheduler.dueDate).toEqual(due_date);
+        expect(scheduler.repeater).toBeUndefined();
     });
 
-    it("crée un scheduler avec une période et periodTime", () => {
-        const startDate = new Date("2024-12-30T05:00:00.000Z");
+    it("crée un scheduler avec une due_date et repeater", () => {
+        const repeater: SchedulerRecurrence = {
+            period: Period.MONTH,
+            interval: 1
+        };
+        const scheduler = new Scheduler(due_date, repeater);
 
-        // Use vi.spyOn to spy on the method.
-        const getUTCDateAdditionSpy = vi.spyOn(MomentDateService, 'getUTCDateAddition');
-
-        // Now, use vi.mocked to cast the spy to a mock type and use mockReturnValue.
-        vi.mocked(getUTCDateAdditionSpy).mockReturnValue(
-            new Date("2025-01-02T00:00:00Z")
-        );        const scheduler = new Scheduler(Period.DAY, startDate, 1);
-
-        expect(scheduler.getPeriod()).toBe(Period.DAY);
-        expect(scheduler.getPeriodTime()).toBe(1);
-        expect(scheduler.getStartedDate()).toEqual(startDate);
-        expect(scheduler.getUpdatedDate()).toEqual(new Date("2025-01-02T00:00:00Z"));
+        expect(scheduler.dueDate).toEqual(due_date);
+        expect(scheduler.repeater).toEqual(repeater);
+        expect(scheduler.repeater?.period).toBe(Period.MONTH);
+        expect(scheduler.repeater?.interval).toBe(1);
     });
 
-    it("crée un scheduler avec une date de fin", () => {
-        const scheduler = new Scheduler(Period.DAY, startDate, undefined, endDate);
+    it("isEqual compare correctement deux schedulers", () => {
+        const repeater: SchedulerRecurrence = {
+            period: Period.DAY,
+            interval: 1
+        };
+        const scheduler1 = new Scheduler(due_date, repeater);
+        const scheduler2 = new Scheduler(due_date, repeater);
+        const scheduler3 = new Scheduler(futureDate, repeater);
 
-        expect(scheduler.getEndingDate()).toEqual(endDate);
-        expect(scheduler.getUpdatedDate()).toEqual(endDate);
+        expect(scheduler1.isEqual(scheduler2)).toBe(true);
+        expect(scheduler1.isEqual(scheduler3)).toBe(false);
     });
 
-    it("updateScheduler ajuste la date correctement", () => {
-        const startDate = new Date("2025-01-05T00:00:00Z");
+    it("isEqual retourne false si repeater est différent", () => {
+        const repeater1: SchedulerRecurrence = {
+            period: Period.DAY,
+            interval: 1
+        };
+        const repeater2: SchedulerRecurrence = {
+            period: Period.DAY,
+            interval: 2
+        };
+        const scheduler1 = new Scheduler(due_date, repeater1);
+        const scheduler2 = new Scheduler(due_date, repeater2);
 
-        // Use vi.spyOn to spy on the method.
-        const getUTCDateAdditionSpy = vi.spyOn(MomentDateService, 'getUTCDateAddition');
-
-        // Now, use vi.mocked to cast the spy to a mock type and use mockReturnValue.
-        vi.mocked(getUTCDateAdditionSpy).mockReturnValue(
-            new Date("2025-01-05T00:00:00Z")
-        );       
-
-        const scheduler = new Scheduler(Period.DAY, startDate, 1);
-        scheduler.updateSheduler(Period.DAY, startDate, new Date("2025-01-02T00:00:00Z"), 4, endDate);
-
-        expect(scheduler.getUpdatedDate()).toEqual(new Date("2025-01-05T00:00:00Z"));
+        expect(scheduler1.isEqual(scheduler2)).toBe(false);
     });
 
-    it("isDue retourne true si la date courante >= updatedDate", () => {
-        const startDate = new Date("2024-12-30T05:00:00.000Z");
+    it("toJson sérialise correctement sans repeater", () => {
+        const scheduler = new Scheduler(due_date);
+        const json = scheduler.toJson();
+        const parsed = JSON.parse(json);
 
-        // Use vi.spyOn to spy on the method.
-        const getUTCDateAdditionSpy = vi.spyOn(MomentDateService, 'getUTCDateAddition');
-        const compareDateWithDate = vi.spyOn(MomentDateService, 'compareDateWithDate');
-
-        // Now, use vi.mocked to cast the spy to a mock type and use mockReturnValue.
-        vi.mocked(getUTCDateAdditionSpy).mockReturnValue(
-            new Date("2025-01-02T00:00:00Z")
-        );       
-        vi.mocked(compareDateWithDate).mockReturnValue(1)
-
-        const scheduler = new Scheduler(Period.DAY, startDate, 1);
-
-        expect(scheduler.isDue()).toBe(true);
+        expect(parsed.due_date).toBeDefined();
+        expect(parsed.repeater).toBeUndefined();
     });
 
-    it("toJson / fromJson conserve les valeurs", () => {
-        const scheduler = new Scheduler(Period.DAY, startDate, 2, endDate);
+    it("toJson sérialise correctement avec repeater", () => {
+        const repeater: SchedulerRecurrence = {
+            period: Period.WEEK,
+            interval: 2
+        };
+        const scheduler = new Scheduler(due_date, repeater);
+        const json = scheduler.toJson();
+        const parsed = JSON.parse(json);
+
+        expect(parsed.due_date).toBeDefined();
+        expect(parsed.repeater.period).toBe(Period.WEEK);
+        expect(parsed.repeater.interval).toBe(2);
+    });
+
+    it("fromJson reconstruit un scheduler sans repeater", () => {
+        const scheduler = new Scheduler(due_date);
         const json = scheduler.toJson();
 
         const parsed = Scheduler.fromJson(JSON.parse(json));
 
-        expect(parsed.getPeriod()).toBe(scheduler.getPeriod());
-        expect(parsed.getPeriodTime()).toBe(scheduler.getPeriodTime());
-        expect(parsed.getEndingDate()?.toISOString()).toBe(
-        scheduler.getEndingDate()?.toISOString()
-        );
+        expect(parsed.dueDate.toISOString()).toBe(due_date.toISOString());
+        expect(parsed.repeater).toBeUndefined();
+    });
+
+    it("fromJson reconstruit un scheduler avec repeater", () => {
+        const repeater: SchedulerRecurrence = {
+            period: Period.MONTH,
+            interval: 3
+        };
+        const scheduler = new Scheduler(due_date, repeater);
+        const json = scheduler.toJson();
+
+        const parsed = Scheduler.fromJson(JSON.parse(json));
+
+        expect(parsed.dueDate.toISOString()).toBe(due_date.toISOString());
+        expect(parsed.repeater?.period).toBe(Period.MONTH);
+        expect(parsed.repeater?.interval).toBe(3);
+    });
+
+    it("fromJson lance une erreur avec un JSON invalide", () => {
+        const invalidJson = { invalid: "data" };
+
+        expect(() => Scheduler.fromJson(invalidJson)).toThrow();
+    });
+
+    it("toJson / fromJson conserve les valeurs", () => {
+        const repeater: SchedulerRecurrence = {
+            period: Period.DAY,
+            interval: 5
+        };
+        const scheduler = new Scheduler(due_date, repeater);
+        const json = scheduler.toJson();
+        const parsed = Scheduler.fromJson(JSON.parse(json));
+
+        expect(parsed.isEqual(scheduler)).toBe(true);
     });
 });
