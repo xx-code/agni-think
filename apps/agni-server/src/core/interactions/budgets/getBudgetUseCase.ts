@@ -15,12 +15,12 @@ export type GetBudgetDto = {
     realTarget: number,
     saveGoalTarget: number
     saveGoalIds: string[]
-    period: string
-    periodTime?: number
     currentBalance: number
-    startDate: Date
-    updateDate: Date
-    endDate?: Date
+    dueDate: Date,
+    repeater?: {
+        period: string
+        interval: number
+    }
 }
 
 export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
@@ -47,18 +47,18 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
         if (!budget)
             throw new ResourceNotFoundError("BUDGET_NOT_FOUND")
            
-        let startBudgetUTCDate = budget.getSchedule().getStartedDate(); 
-        if (budget.getSchedule().getPeriodTime() !== undefined)
+        let startBudgetUTCDate = budget.getSchedule().dueDate; 
+        if (budget.getSchedule().repeater !== undefined)
             startBudgetUTCDate = MomentDateService.getUTCDateSubstraction(
-                budget.getSchedule().getUpdatedDate(), 
-                budget.getSchedule().getPeriod(), 
-                budget.getSchedule().getPeriodTime()!
+                budget.getSchedule().dueDate, 
+                budget.getSchedule().repeater!.period, 
+                budget.getSchedule().repeater!.interval
         ); 
 
         const extendFilter = new TransactionFilter()
         extendFilter.budgets = [budget.getId()]
         extendFilter.startDate = startBudgetUTCDate
-        extendFilter.endDate = budget.getSchedule().getUpdatedDate()
+        extendFilter.endDate = budget.getSchedule().dueDate
         let transactions = await this.transactionRepository.getAll({
             limit: 0, 
             offset: 0,
@@ -81,15 +81,15 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
             id: budget.getId(),
             title: budget.getTitle(),
             currentBalance: currentBalance,
-            period: budget.getSchedule().getPeriod(),
-            periodTime: budget.getSchedule().getPeriodTime(),
             target: budget.getTarget() + saveBalance,
             realTarget: budget.getTarget(),
             saveGoalIds: budget.getSaveGoalIds(),
             saveGoalTarget: saveBalance,
-            startDate: budget.getSchedule().getStartedDate(),
-            updateDate: budget.getSchedule().getUpdatedDate(),
-            endDate: budget.getSchedule().getEndingDate()
+            dueDate: budget.getSchedule().dueDate,
+            repeater: budget.getSchedule(). repeater ? {
+                period: budget.getSchedule().repeater!.period,
+                interval: budget.getSchedule().repeater!.interval
+            } : undefined 
         };
 
         return budgetDisplay

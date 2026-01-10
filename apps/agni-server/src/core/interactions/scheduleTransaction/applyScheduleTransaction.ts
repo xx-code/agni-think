@@ -5,9 +5,10 @@ import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { Record } from "@core/domains/entities/record";
 import { RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
-import Repository from "@core/adapters/repository";
+import Repository, { ScheduleTransactionFilter } from "@core/adapters/repository";
 import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction";
 import { IEventRegister } from "@core/adapters/event";
+import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
 
 export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
     private scheduleTransactionRepo: Repository<ScheduleTransaction> 
@@ -32,58 +33,61 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
 
     async execute(): Promise<void> {
         try {
+
+            const filterExtend = new ScheduleTransactionFilter()
+            filterExtend.schedulerDueDate = { date: new Date(Date.now()), comparator: ">="} 
+
             const scheduleTransactions = await this.scheduleTransactionRepo.getAll({
                 limit: 0, offset: 0,
                 queryAll: true
-            })
+            }, filterExtend)
 
             for(let i = 0; i < scheduleTransactions.items.length; i++) {
                 let scheduleTrans = scheduleTransactions.items[i]
 
-                if (scheduleTrans.getSchedule().isDue(true) && !scheduleTrans.getIsPause()) {
-                    if (scheduleTrans.getIsPay() === false) {
-                        const record = new Record(
-                            GetUID(),
-                            scheduleTrans.getAmount(),
-                            scheduleTrans.getSchedule().getUpdatedDate(true),
-                            scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
-                            scheduleTrans.getName()
-                        )
-                        await this.recordRepo.create(record)
+                const record = new Record(
+                    GetUID(),
+                    scheduleTrans.getAmount(),
+                    scheduleTrans.getSchedule().dueDate,
+                    scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
+                    scheduleTrans.getName()
+                )
+                await this.recordRepo.create(record)
 
-                        let date = scheduleTrans.getSchedule().getUpdatedDate(true) 
+                let date = scheduleTrans.getSchedule().dueDate 
 
-                        if (scheduleTrans.getIsFreeze())
-                            date = MomentDateService.getUTCDateAddition(
-                                scheduleTrans.getSchedule().getUpdatedDate(true), 
-                                scheduleTrans.getSchedule().getPeriod(),
-                                scheduleTrans.getSchedule().getPeriodTime() || 1)
+                if (scheduleTrans.getIsFreeze() && scheduleTrans.getSchedule().repeater !== undefined)
+                    date = MomentDateService.getUTCDateAddition(
+                        scheduleTrans.getSchedule().dueDate, 
+                        scheduleTrans.getSchedule().repeater!.period,
+                        scheduleTrans.getSchedule().repeater!.interval)
 
-                        const transaction = new Transaction(
-                            GetUID(),
-                            scheduleTrans.getAccountRef(),
-                            record.getId(),
-                            scheduleTrans.getCategoryRef(),
-                            date,
-                            scheduleTrans.getTransactionType(),
-                            TransactionStatus.PENDING,
-                            scheduleTrans.getTags() 
-                        )
-                        if (scheduleTrans.getIsFreeze())
-                            transaction.setIsFreeze()
+                const transaction = new Transaction(
+                    GetUID(),
+                    scheduleTrans.getAccountRef(),
+                    record.getId(),
+                    scheduleTrans.getCategoryRef(),
+                    date,
+                    scheduleTrans.getTransactionType(),
+                    TransactionStatus.PENDING,
+                    scheduleTrans.getTags() 
+                )
+                if (scheduleTrans.getIsFreeze())
+                    transaction.setIsFreeze()
 
-                        scheduleTrans.setIsPay(true);
-                        await this.scheduleTransactionRepo.update(scheduleTrans);
-                        await this.transactionRepo.create(transaction)
-                        this.eventManager.notify('notification', {
-                            title: 'Schedule Transaction',
-                            content:`la transaction ${scheduleTrans.getName()} de ${record.getMoney().getAmount()} est en pending`
-                        })
-                    } 
+                if (scheduleTrans.getSchedule().repeater !== undefined) {
+                    await this.scheduleTransactionRepo.delete(scheduleTrans.getId())
                 } else {
-                    scheduleTrans.setIsPay(false);
+                    const scheduler = scheduleTrans.getSchedule()
+                    const dueDate = MomentDateService.getUTCDateAddition(scheduler.dueDate, scheduler.repeater!.period, scheduler.repeater!.interval)
+                    scheduleTrans.reSchedule(new Scheduler(dueDate, { period: scheduler.repeater!.period, interval: scheduler.repeater!.interval}))
                     await this.scheduleTransactionRepo.update(scheduleTrans);
                 }
+
+                this.eventManager.notify('notification', {
+                    title: 'Schedule Transaction',
+                    content:`la transaction ${scheduleTrans.getName()} de ${record.getMoney().getAmount()} est en pending`
+                })
             }
 
         }

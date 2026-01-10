@@ -7,10 +7,11 @@ import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
 
 export type RequestCreateBudgetSchedule = {
-    period: string;
-    periodTime?: number;
-    dateStart: Date;
-    dateEnd?: Date;
+    repeater?: {
+        period: string
+        interval: number
+    }
+    dueDate: Date
 }
 
 export type RequestUpdateBudget = {
@@ -52,10 +53,11 @@ export class UpdateBudgetUseCase implements IUsecase<RequestUpdateBudget, void> 
 
     if (request.schedule) {
         const scheduler = new Scheduler(
-            mapperPeriod(request.schedule.period),
-            request.schedule.dateStart ,
-            request.schedule.periodTime,
-            request.schedule.dateEnd
+            new Date(request.schedule.dueDate),
+            request.schedule.repeater ? {
+                period: mapperPeriod(request.schedule.repeater.period),
+                interval: request.schedule.repeater.interval
+            } : undefined
         )
         budget.reSchedule(scheduler)
     }

@@ -12,10 +12,11 @@ import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
 import Repository from "@core/adapters/repository";
 
 export type RequestCreateScheduleTransactionScheduler = {
-    period: string,
-    periodTime?: number
-    dateStart: Date
-    dateEnd?: Date
+    repeater?: {
+        period: string
+        interval: number
+    }
+    dueDate: Date
 }
 
 export type RequestCreateScheduleTransaction = {
@@ -59,10 +60,11 @@ export class CreateScheduleTransactionUseCase implements IUsecase<RequestCreateS
             throw new ValidationError("AMOUNT_SCHEDULE_TRANSACTION_MUST_GREATER_THAN_0")
 
         const scheduler = new Scheduler(
-            mapperPeriod(request.schedule.period),
-            request.schedule.dateStart ,
-            request.schedule.periodTime,
-            request.schedule.dateEnd
+            new Date(request.schedule.dueDate),
+            request.schedule.repeater ? {
+                period: mapperPeriod(request.schedule.repeater.period),
+                interval: request.schedule.repeater.interval
+            } : undefined
         )
 
         const scheduleTransaction = new ScheduleTransaction(
@@ -73,7 +75,6 @@ export class CreateScheduleTransactionUseCase implements IUsecase<RequestCreateS
             new Money(request.amount),
             request.isFreeze ? TransactionType.OTHER : mapperMainTransactionCategory(request.type),
             scheduler,
-            false,
             false,
             request.isFreeze,
             request.tagIds

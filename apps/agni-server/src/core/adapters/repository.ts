@@ -58,72 +58,26 @@ export class TransactionFilter implements QueryFilterExtend<Transaction> {
 
 
 export class ScheduleTransactionFilter implements QueryFilterExtend<ScheduleTransaction> {
-    schedulerStartDate?: RepositoryDateComparator
-    schedulerEndDate?: RepositoryDateComparator
-    schedulerUpdateDate?: RepositoryDateComparator
+    schedulerDueDate?: RepositoryDateComparator
 
     isSatisty(entity: ScheduleTransaction): boolean {
-        if (this.schedulerStartDate) {
+        if (this.schedulerDueDate) {
             var isValid = true
-            switch(this.schedulerStartDate.comparator) {
+            switch(this.schedulerDueDate.comparator) {
                 case "<": 
-                    isValid = this.schedulerStartDate.date < entity.getSchedule().getStartedDate() 
+                    isValid = this.schedulerDueDate.date < entity.getSchedule().dueDate 
                     break
                 case "<=": 
-                    isValid = this.schedulerStartDate.date <= entity.getSchedule().getStartedDate()
+                    isValid = this.schedulerDueDate.date <= entity.getSchedule().dueDate
                     break
                 case ">": 
-                    isValid = this.schedulerStartDate.date > entity.getSchedule().getStartedDate()
+                    isValid = this.schedulerDueDate.date > entity.getSchedule().dueDate
                     break
                 case ">=": 
-                    isValid = this.schedulerStartDate.date >= entity.getSchedule().getStartedDate()
+                    isValid = this.schedulerDueDate.date >= entity.getSchedule().dueDate
                     break
                 case "=": 
-                    isValid = this.schedulerStartDate.date == entity.getSchedule().getStartedDate()
-                    break
-            }
-            if (!isValid) return false;
-        }
-
-        if (this.schedulerEndDate && entity.getSchedule().getEndingDate() !== undefined) {
-            var isValid = true
-            switch(this.schedulerEndDate.comparator) {
-                case "<": 
-                    isValid = this.schedulerEndDate.date < entity.getSchedule().getEndingDate()!
-                    break
-                case "<=": 
-                    isValid = this.schedulerEndDate.date <= entity.getSchedule().getEndingDate()!
-                    break
-                case ">": 
-                    isValid = this.schedulerEndDate.date > entity.getSchedule().getEndingDate()!
-                    break
-                case ">=": 
-                    isValid = this.schedulerEndDate.date >= entity.getSchedule().getEndingDate()!
-                    break
-                case "=": 
-                    isValid = this.schedulerEndDate.date == entity.getSchedule().getEndingDate()!
-                    break
-            }
-            if (!isValid) return false;
-        }
-
-        if (this.schedulerUpdateDate) {
-            var isValid = true
-            switch(this.schedulerUpdateDate.comparator) {
-                case "<": 
-                    isValid = this.schedulerUpdateDate.date < entity.getSchedule().getUpdatedDate()
-                    break
-                case "<=": 
-                    isValid = this.schedulerUpdateDate.date <= entity.getSchedule().getUpdatedDate()
-                    break
-                case ">": 
-                    isValid = this.schedulerUpdateDate.date > entity.getSchedule().getUpdatedDate()
-                    break
-                case ">=": 
-                    isValid = this.schedulerUpdateDate.date >= entity.getSchedule().getUpdatedDate()
-                    break
-                case "=": 
-                    isValid = this.schedulerUpdateDate.date == entity.getSchedule().getUpdatedDate()
+                    isValid = this.schedulerDueDate.date == entity.getSchedule().dueDate
                     break
             }
             if (!isValid) return false;

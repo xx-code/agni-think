@@ -78,7 +78,7 @@ import { KnexRecordTable, RecordModel, RecordModelMapper } from '@infra/persiste
 import { Record } from '@core/domains/entities/record';
 import { BudgetModel, BudgetModelMapper, KnexBudgetTable } from '@infra/persistences/models/budget';
 import { Budget } from '@core/domains/entities/budget';
-import { KnexScheduleTransactionTable, ScheduleTransactionMapper, ScheduleTransactionModel } from '@infra/persistences/models/scheduleTransaction';
+import { KnexScheduleTransactionTable, ScheduleTransactionFilterExtends, ScheduleTransactionMapper, ScheduleTransactionModel } from '@infra/persistences/models/scheduleTransaction';
 import { ScheduleTransaction } from '@core/domains/entities/scheduleTransaction';
 import { KnexTransactionTable, TransactionFilterExtends, TransactionModel, TransactionModelMapper } from '@infra/persistences/models/transactions';
 import { Transaction } from '@core/domains/entities/transaction';
@@ -338,8 +338,9 @@ export class DiContenair {
         const scheduleTransactionTable = new KnexScheduleTransactionTable() 
         await scheduleTransactionTable.createTable(connector)
         const scheduleTransactionMapper = new ScheduleTransactionMapper()
+        const scheduleTransactionFilterAdapter = new ScheduleTransactionFilterExtends()
         const scheduleTransactionRepository = new KnexRepository<ScheduleTransaction, ScheduleTransactionModel>(
-            connector, scheduleTransactionTable, scheduleTransactionMapper
+            connector, scheduleTransactionTable, scheduleTransactionMapper, scheduleTransactionFilterAdapter
         )
         this.registerRepository('schedule_transaction', scheduleTransactionRepository)
 
