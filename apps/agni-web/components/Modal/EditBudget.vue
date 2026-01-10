@@ -94,7 +94,7 @@ async function onSubmit(event: FormSubmitEvent<EditBudgetType>) {
                     </UPopover>
                 </UFormField>
                 
-                <UFormField label="Date de fin" name="isRecurrence">
+                <UFormField label="Est repete" name="isRecurrence">
                     <USwitch v-model="isRecurrence" @update:model-value="onChangeIsRecurrence" />
                 </UFormField>
 

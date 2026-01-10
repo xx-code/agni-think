@@ -84,6 +84,8 @@ export class BudgetFilterExtends implements KnexFilterExtendAdapter<Budget, Budg
                     query.whereRaw("(scheduler->>'due_date')::timestamp = ?", [filtersExtend.schedulerDueDate.date])
                     break
             }
+            if (filtersExtend.isArchive !== undefined)
+                query.where("is_archived", "=", filtersExtend.isArchive)
         }
     }
 }
