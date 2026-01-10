@@ -98,7 +98,8 @@ export class MomentDateService {
         const periodStr = this.periodMatcherToMoment(period) 
 
         let dateFormat = formatted.add(periodTime, periodStr)
-        if (dateFormat.isBefore(today)) {
+        // TODO: To be optimize
+        while(dateFormat.isBefore(today)) {
             var diff = today.diff(dateFormat, periodStr)
             if (diff === 0 && !strictDatebefore) diff += 1
             dateFormat = dateFormat.add(diff + periodTime, periodStr)
@@ -114,7 +115,8 @@ export class MomentDateService {
         const value = this.periodMatcherToMoment(period) 
 
         let dateFormat = formatted.subtract(periodTime, value)
-        if (dateFormat.isAfter(today)) {
+        // TODO: To be optimize
+        while(dateFormat.isAfter(today)) {
             var diff = dateFormat.diff(today, value)
             dateFormat = dateFormat.subtract(periodTime + diff, value)
         }
