@@ -45,7 +45,7 @@ router.put('/v1/patrimonies/:id',
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestUpdatePatrimony = matchedData(req);
-                data.patrimonyId = req.params.id
+                data.patrimonyId = req.params.id as string
                 await container.patrimonyUseCase?.updatePatrimony.execute(data);
 
                 res.sendStatus(200)
@@ -67,7 +67,7 @@ router.get('/v1/patrimonies/:id',
     async (req:Request, res: Response) => {
         try {
             const data: RequestGetPatrimony = matchedData(req);
-            data.patrimonyId = req.params.id
+            data.patrimonyId = req.params.id as string
             const patrimony = await container.patrimonyUseCase?.getPatrimony.execute(data)
 
             res.status(200).json(patrimony)
@@ -117,7 +117,7 @@ router.post('/v1/patrimonies/:id/add-snapshot',
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestAddSnapshotPatrimony = matchedData(req);
-                data.patrimonyId = req.params.id
+                data.patrimonyId = req.params.id as string
                 var created = await container.patrimonyUseCase?.addSnapshotPatrimony.execute(data);
 
                 res.status(200).json(created)
@@ -143,7 +143,7 @@ router.get('/v1/patrimonies/:id/snapshots',
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestAllSnapshotPatrimony = matchedData(req);
-                data.patrimonyId = req.params.id
+                data.patrimonyId = req.params.id as string
                 var snapshots = await container.patrimonyUseCase?.getSnapshotPatrimony.execute(data);
 
                 res.status(200).json(snapshots)
@@ -180,8 +180,8 @@ router.put('/v1/patrimonies/:id/update-snapshot/:id_snapshot',
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestUpdateSnapshotPatrimony = matchedData(req);
-                data.patrimonyId = req.params.id
-                data.snapshotId = req.params.id_snapshot
+                data.patrimonyId = req.params.id as string
+                data.snapshotId = req.params.id_snapshot as string
                 await container.patrimonyUseCase?.updateSnapshotPatrimony.execute(data);
 
                 res.sendStatus(200)

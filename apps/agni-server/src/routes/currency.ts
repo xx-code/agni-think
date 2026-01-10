@@ -44,7 +44,7 @@ router.put(
         const result = validationResult(req);
         if (result.isEmpty()) {
             const data: RequestUpdateCurrency = matchedData(req);
-            data.id = req.params.id
+            data.id = req.params.id as string
             var created = await container.currencyUseCase?.updateCurrency.execute(data);
 
             res.status(200).json(created)
@@ -59,7 +59,8 @@ router.put(
 
 router.get('/v1/currencies/:id', async (req: Request, res: Response) => {
     try {
-        var result = await container.currencyUseCase?.getCurrency.execute(req.params.id);
+        const id = req.params.id as string
+        var result = await container.currencyUseCase?.getCurrency.execute(id);
 
         res.status(200).json(result)
     } catch(err) {

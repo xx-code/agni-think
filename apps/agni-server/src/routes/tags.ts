@@ -38,7 +38,7 @@ router.put(`/v1/tags/:id`,
             const result = validationResult(req);
             if (result.isEmpty()) {
                 const data: RequestUpdateTagUseCase = matchedData(req);
-                data.id = req.params.id;
+                data.id = req.params.id as string;
                 await container.tagUseCase?.updateTag.execute(data);
 
                 res.sendStatus(200);
