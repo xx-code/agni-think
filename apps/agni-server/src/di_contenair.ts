@@ -76,7 +76,7 @@ import { KnexTagTable, TagModel, TagModelMapper } from '@infra/persistences/mode
 import { Tag } from '@core/domains/entities/tag';
 import { KnexRecordTable, RecordModel, RecordModelMapper } from '@infra/persistences/models/record';
 import { Record } from '@core/domains/entities/record';
-import { BudgetModel, BudgetModelMapper, KnexBudgetTable } from '@infra/persistences/models/budget';
+import { BudgetFilterExtends, BudgetModel, BudgetModelMapper, KnexBudgetTable } from '@infra/persistences/models/budget';
 import { Budget } from '@core/domains/entities/budget';
 import { KnexScheduleTransactionTable, ScheduleTransactionFilterExtends, ScheduleTransactionMapper, ScheduleTransactionModel } from '@infra/persistences/models/scheduleTransaction';
 import { ScheduleTransaction } from '@core/domains/entities/scheduleTransaction';
@@ -332,8 +332,9 @@ export class DiContenair {
         const budgetTable = new KnexBudgetTable() 
         await budgetTable.createTable(connector)
         const budgetModelMapper = new BudgetModelMapper()
+        const budgetFilterAdapter = new BudgetFilterExtends()
         const budgetRepository = new KnexRepository<Budget, BudgetModel>(
-            connector, budgetTable, budgetModelMapper 
+            connector, budgetTable, budgetModelMapper, budgetFilterAdapter
         )
         this.registerRepository('budget', budgetRepository)
 
