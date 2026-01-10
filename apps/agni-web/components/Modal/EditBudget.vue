@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
-import * as z from 'zod';
-import { reactive, shallowRef } from "vue";
-import type { FormSubmitEvent } from '@nuxt/ui';
+import { reactive, shallowRef, ref } from "vue";
+import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import usePeriodTypes from '~/composables/internals/usePeriodTypes';
 import type { BudgetType, EditBudgetType } from '~/types/ui/budget';
 import useSaveGoals from '~/composables/goals/useSaveGoals';
@@ -10,64 +9,63 @@ import useSaveGoals from '~/composables/goals/useSaveGoals';
 const { budget } = defineProps<{
     budget?: BudgetType
 }>();
+
 const emit = defineEmits<{
     (e: 'submit', value: EditBudgetType, oldValue?: BudgetType): void    
     (e: 'close', close: boolean): void
 }>();
 
-const schema = z.object({
-    title: z.string().nonempty("Vous devez ajouter un titre"),
-    target: z.number().min(1, "Vous devez ajouter une valeur superieux a zero"),
-    period: z.string().nonempty("Vous devez selectionner une period"),
-    periodTime: z.number().min(1, "Vous devez selectionner un nombre de periode"),
-});
 
 const { data:saveGoals } = useSaveGoals({ offset: 0, limit: 0, queryAll: true})
 
 const {data: listPeriods, error, refresh} = usePeriodTypes();
 
-const form = reactive({
+const form = reactive<Partial<EditBudgetType>>({
     title: budget?.title || '',
     target: budget?.target || 0,
-    period: budget?.period || '',
-    periodTime: budget?.periodTime || 0,
-    hasEndDate: false
-});
+    saveGoalIds: [],
+    repeater: budget?.repeater,
+
+})
 const saveGoalIds = ref(budget?.saveGoalIds || [])
+const isRecurrence = ref(budget?.repeater !== undefined)
+function onChangeIsRecurrence(isRecurrence: boolean) {
+    form.repeater = isRecurrence ? (budget?.repeater || { period: "Day", interval: 1}) : undefined
+}
 
-let startDated = budget ? budget.startDate  : new Date();
-let endDated: Date|undefined; 
-if (budget?.endDate)
-    endDated = budget.endDate;
-
-
-const startDate = shallowRef(new CalendarDate(startDated.getFullYear(), startDated.getMonth() + 1, startDated.getDate()));
-const endDate = shallowRef(endDated ? new CalendarDate(endDated.getFullYear(), endDated.getMonth() + 1, endDated.getDate()) : undefined);
+let rawDueDate = budget ? budget.dueDate : new Date();
+const dueDate = shallowRef(new CalendarDate(rawDueDate.getFullYear(), rawDueDate.getMonth() + 1, rawDueDate.getDate()));
 
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
 })
 
-type Schema = z.output<typeof schema>
+function validate(state: Partial<EditBudgetType>): FormError[] {
+  const errors = []
 
+  if (!state.title) errors.push({ name: 'title', message: 'Required' })
+  if (!state.target) errors.push({ name: 'target', message: 'Required' })
+  if (!state.dueDate) errors.push({ name: 'dueDate', message: 'Required' })
+  if (state.repeater && !state.repeater.period) errors.push({ name: 'period', message: 'Required' })
+  if (state.repeater && !state.repeater.interval) errors.push({ name: 'interval', message: 'Required' })
 
-async function onSubmit(event: FormSubmitEvent<Schema>) {
+  return errors
+}
+
+async function onSubmit(event: FormSubmitEvent<EditBudgetType>) {
     const data = event.data;
     emit('submit', {
         title: data.title,
         target: data.target,
         saveGoalIds: saveGoalIds.value,
-        period: data.period,
-        periodTime: data.periodTime,
-        startDate: startDate.value,
-        endDate: endDate.value 
+        dueDate: dueDate.value, 
+        repeater: data.repeater
     }, budget);
 
     form.title = "";
-    form.period = "";
-    form.periodTime = 0;
     form.target = 0;
-    form.hasEndDate = false;
+    form.dueDate = undefined;
+    form.repeater = undefined;
     
     emit('close', true);
 }
@@ -76,7 +74,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 <template>
     <UModal title="Editeur de budget">
         <template #body>
-            <UForm :schema="schema" :state="form" @submit="onSubmit" class="space-y-4">
+            <UForm :validate="validate" :state="form" @submit="onSubmit" class="space-y-4">
                 <UFormField label="Titre" name="title">
                     <UInput v-model="form.title" />
                 </UFormField>
@@ -85,41 +83,30 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     <UInput v-model="form.target" type="number"/>
                 </UFormField>
 
-                <UFormField label="Date de debut" name="startDate">
+                <UFormField label="Date d'echeance" name="dueDate">
                     <UPopover>
                         <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
-                            {{ startDate ? df.format(startDate.toDate(getLocalTimeZone()))  : 'Selectionnez une de debut' }}
+                            {{ dueDate ? df.format(dueDate.toDate(getLocalTimeZone()))  : 'Selectionnez une de debut' }}
                         </UButton>
                         <template #content>
-                            <UCalendar v-model="startDate" />
+                            <UCalendar v-model="dueDate" />
                         </template>
                     </UPopover>
                 </UFormField>
                 
-                <UFormField label="Date de fin" name="endDate">
-                    <USwitch v-model="form.hasEndDate" />
+                <UFormField label="Date de fin" name="isRecurrence">
+                    <USwitch v-model="isRecurrence" @update:model-value="onChangeIsRecurrence" />
                 </UFormField>
 
-                <UFormField label="Date de fin" name="endDate" v-if="form.hasEndDate">
-                    <UPopover>
-                        <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
-                            {{ endDate ? df.format(endDate.toDate(getLocalTimeZone())) : 'Selectionnez une de fin' }}
-                        </UButton>
-                        <template #content>
-                            <UCalendar v-model="endDate" />
-                        </template>
-                    </UPopover>
-                </UFormField>
-
-                <UFormField label="Periode" name="period">
+                <UFormField label="Periode" name="period" v-if="form.repeater">
                     <USelect 
-                        v-model="form.period" 
+                        v-model="form.repeater.period" 
                         value-key="value" 
                         :items="listPeriods?.map(i => ({ label: i.value, value: i.id}))"/>
                 </UFormField>
 
-                <UFormField label="Nombre de temps" name="periodTime">
-                    <UInput v-model="form.periodTime" type="number" />
+                <UFormField label="Nombre de temps" name="interval" v-if="form.repeater">
+                    <UInput v-model="form.repeater.interval" type="number" />
                 </UFormField>
 
                 <UFormField label="But d'epargne relie" >

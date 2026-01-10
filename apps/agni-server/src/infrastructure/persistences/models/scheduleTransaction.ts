@@ -1,10 +1,11 @@
 import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction";
-import { Knex } from "knex";
-import Mapper, { KnexTable } from "./mapper";
+import knex, { Knex } from "knex";
+import Mapper, { KnexFilterExtendAdapter, KnexTable } from "./mapper";
 import { Money } from "@core/domains/entities/money";
 import { mapperMainTransactionCategory } from "@core/domains/constants";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
 import { KnexModel } from "./model";
+import { QueryFilterExtend, ScheduleTransactionFilter } from "@core/adapters/repository";
 
 export class KnexScheduleTransactionTable implements KnexTable {
     getTableName(): string {
@@ -21,7 +22,6 @@ export class KnexScheduleTransactionTable implements KnexTable {
                 table.string('name')
                 table.string('type')
                 table.boolean('is_pause')
-                table.boolean('is_pay')
                 table.boolean('is_freeze')
                 table.json('scheduler')
                 table.jsonb('tag_ids')
@@ -38,7 +38,6 @@ export type ScheduleTransactionModel = KnexModel & {
     name: string
     type: string
     is_pause: boolean
-    is_pay: boolean
     is_freeze: boolean
     scheduler: any
     tag_ids: any
@@ -54,7 +53,6 @@ export class ScheduleTransactionMapper implements Mapper<ScheduleTransaction, Sc
             new Money(model.amount),
             mapperMainTransactionCategory(model.type),
             Scheduler.fromJson(model.scheduler),
-            model.is_pay,
             model.is_pause,
             model.is_freeze,
             model.tag_ids ? Array.from(model.tag_ids) : []
@@ -69,7 +67,6 @@ export class ScheduleTransactionMapper implements Mapper<ScheduleTransaction, Sc
             name: entity.getName(),
             type: entity.getTransactionType(),
             is_pause: entity.getIsPause(),
-            is_pay: entity.getIsPay(),
             is_freeze: entity.getIsFreeze(),
             scheduler: entity.getSchedule().toJson(),
             tag_ids: JSON.stringify(entity.getTags()) 
@@ -83,5 +80,29 @@ export class ScheduleTransactionMapper implements Mapper<ScheduleTransaction, Sc
     }
     getNameField(): string {
         return 'name'
+    }
+}
+
+export class ScheduleTransactionFilterExtends implements KnexFilterExtendAdapter<ScheduleTransaction, ScheduleTransactionModel> {
+    filterQuery(query: Knex.QueryBuilder, filtersExtend: ScheduleTransactionFilter): void {
+        if (filtersExtend.schedulerDueDate) {
+            switch(filtersExtend.schedulerDueDate.comparator) {
+                case "<": 
+                    query.whereRaw("(scheduler->>'due_date')::timestamp < ?", [filtersExtend.schedulerDueDate.date])
+                    break
+                case "<=":
+                    query.whereRaw("(scheduler->>'due_date')::timestamp <= ?", [filtersExtend.schedulerDueDate.date])
+                    break
+                case ">":
+                    query.whereRaw("(scheduler->>'due_date')::timestamp > ?", [filtersExtend.schedulerDueDate.date])
+                    break
+                case ">=":
+                    query.whereRaw("(scheduler->>'due_date')::timestamp >= ?", [filtersExtend.schedulerDueDate.date])
+                    break
+                case "=":
+                    query.whereRaw("(scheduler->>'due_date')::timestamp = ?", [filtersExtend.schedulerDueDate.date])
+                    break
+            }
+        }
     }
 }

@@ -12,10 +12,11 @@ import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
 import Repository from "@core/adapters/repository";
 
 export type RequestCreateScheduleTransactionScheduler = {
-    period: string,
-    periodTime?: number
-    dateStart: Date
-    dateEnd?: Date
+    repeater?: {
+        period: string
+        interval: number
+    }
+    dueDate: Date
 }
 
 export type RequestCreateScheduleTransaction = {
@@ -23,7 +24,7 @@ export type RequestCreateScheduleTransaction = {
     accountId: string
     amount: number
     isFreeze: boolean
-    categoryId: string
+    categoryId?: string
     description: string 
     tagIds: string[]
     type: string
@@ -48,7 +49,10 @@ export class CreateScheduleTransactionUseCase implements IUsecase<RequestCreateS
         if (!await this.transcationDependencies.accountRepository?.get(request.accountId))
             throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
-        if (!request.isFreeze && !await this.transcationDependencies.categoryRepository?.get(request.categoryId))
+        if (!request.isFreeze && !request.categoryId)
+            throw new ValidationError("CATEGORY_MUST_BE_DEFINE_WHEN_IS_NOT_FREEZE_TRANSACTION")
+
+        if (!request.isFreeze && !await this.transcationDependencies.categoryRepository?.get(request.categoryId!))
             throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
 
         if (!request.isFreeze && request.tagIds.length > 0)
@@ -59,24 +63,24 @@ export class CreateScheduleTransactionUseCase implements IUsecase<RequestCreateS
             throw new ValidationError("AMOUNT_SCHEDULE_TRANSACTION_MUST_GREATER_THAN_0")
 
         const scheduler = new Scheduler(
-            mapperPeriod(request.schedule.period),
-            request.schedule.dateStart ,
-            request.schedule.periodTime,
-            request.schedule.dateEnd
+            new Date(request.schedule.dueDate),
+            request.schedule.repeater ? {
+                period: mapperPeriod(request.schedule.repeater.period),
+                interval: request.schedule.repeater.interval
+            } : undefined
         )
 
         const scheduleTransaction = new ScheduleTransaction(
             GetUID(), 
             request.name, 
             request.accountId, 
-            request.isFreeze ? FREEZE_CATEGORY_ID : request.categoryId,
+            request.isFreeze ? FREEZE_CATEGORY_ID : request.categoryId!,
             new Money(request.amount),
             request.isFreeze ? TransactionType.OTHER : mapperMainTransactionCategory(request.type),
             scheduler,
             false,
-            false,
             request.isFreeze,
-            request.tagIds
+            request.isFreeze ? [] : request.tagIds
         )
 
         await this.scheduleTransactionRepo.create(scheduleTransaction)

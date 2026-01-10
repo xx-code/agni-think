@@ -17,16 +17,13 @@ export default function useScheduleTransactions(query: Reactive<QueryFilterReque
                         accountId: i.accountId,
                         amount: i.amount,
                         categoryId: i.categoryId,
-                        dateStart: new Date(i.dateStart),
-                        dateUpdate: new Date(i.dateUpdate),
                         isPause: i.isPause,
                         name: i.name,
-                        period: i.period,
                         isFreeze: i.isFreeze,
-                        periodTime: i.periodTime,
                         tagIds: i.tagIds,
                         type: i.type,
-                        dateEnd: i.dateEnd ? new Date(i.dateEnd) : undefined
+                        repeater: i.repeater,
+                        dueDate: new Date(i.dueDate) 
                     }
                 )),
                 totals: Number(data.totals)  

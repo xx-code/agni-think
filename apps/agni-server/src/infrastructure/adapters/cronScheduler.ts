@@ -42,3 +42,14 @@ export class AutoDeletreFreezeTransactionCronScheduler {
         )
     }
 }
+
+export class AutoUpdateBudgetTransactionCronScheduler {
+    execute(timer: string) {
+        const cronScheduler = new CronScheduler()
+        cronScheduler.runTask(
+            timer,
+            async () => await container.budgetUseCase?.autoUpdateBudget.execute(),
+            "Budget"
+        )
+    }    
+}

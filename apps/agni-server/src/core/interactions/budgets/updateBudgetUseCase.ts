@@ -5,12 +5,14 @@ import { Budget } from "@core/domains/entities/budget";
 import Repository from "@core/adapters/repository";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
+import { GetUID } from "@core/adapters/libs";
 
 export type RequestCreateBudgetSchedule = {
-    period: string;
-    periodTime?: number;
-    dateStart: Date;
-    dateEnd?: Date;
+    repeater?: {
+        period: string
+        interval: number
+    }
+    dueDate: Date
 }
 
 export type RequestUpdateBudget = {
@@ -52,15 +54,32 @@ export class UpdateBudgetUseCase implements IUsecase<RequestUpdateBudget, void> 
 
     if (request.schedule) {
         const scheduler = new Scheduler(
-            mapperPeriod(request.schedule.period),
-            request.schedule.dateStart ,
-            request.schedule.periodTime,
-            request.schedule.dateEnd
+            new Date(request.schedule.dueDate),
+            request.schedule.repeater ? {
+                period: mapperPeriod(request.schedule.repeater.period),
+                interval: request.schedule.repeater.interval
+            } : undefined
         )
         budget.reSchedule(scheduler)
     }
             
-    if (budget.hasChange())
-        await this.budgetRepository.update(budget);
+    // TODO: Refactor
+    if (budget.hasChange()) {
+        const budgetToArchive = await this.budgetRepository.get(request.id)
+        if (budgetToArchive) {
+            budgetToArchive.setTitle(budgetToArchive.getTitle() + "(Archived)")
+            budgetToArchive.setIsArchive(true)
+            await this.budgetRepository.update(budget);
+        }
+
+        await this.budgetRepository.create(new Budget(
+            GetUID(), 
+            false,
+            budget.getTarget(),
+            budget.getTitle(), 
+            budget.getSchedule(), 
+            budget.getSaveGoalIds()
+        ));
+    }
    }
 }
