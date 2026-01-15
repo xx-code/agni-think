@@ -117,7 +117,7 @@ const emit = defineEmits<{
         :close="{ onClick: () => emit('close', false)}">
         <template #body>
             <div>
-                <div>
+                <div v-if="freezeTransactions?.items && freezeTransactions.items.length > 0">
                     <h4 class="mb-2 font-bold">Freeze transactions</h4>
                     <ListTransaction :transactions="freezeTransactions?.items ?? []" />
                     <div class="flex flex-row gap-2 items-baseline-last justify-between">
@@ -137,7 +137,7 @@ const emit = defineEmits<{
                     </div>
                 </div>
 
-                <div>
+                <div v-if="transactions?.items && transactions.items.length > 0">
                     <h4 class="mb-2 font-bold">Transactions</h4>
                     <ListTransaction :transactions="transactions?.items ?? []" />
                     <div class="flex flex-row gap-2 items-baseline-last justify-between">
