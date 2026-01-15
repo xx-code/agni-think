@@ -141,8 +141,8 @@ function clean() {
                 </div>
 
                 <div>
-                    <USwitch v-model="filters.filterPrice" />
-                    <div class="flex gap-1 mt-2">
+                    <USwitch v-model="filters.filterPrice" label="Filtrer par somme" />
+                    <div  v-if="filters.filterPrice" class="flex gap-1 mt-2">
                         <UInput 
                             placeholder="Min" 
                             v-model="minAmount" 

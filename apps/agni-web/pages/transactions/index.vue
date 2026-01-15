@@ -331,6 +331,8 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
             <div class="flex items-center gap-3">
                 <UButton variant="outline" color="neutral" :label="formatCurrency(balance ? balance.balance : 0)" size="xl"/>
                 <FilterTransactionDrawer @submit="onFilter" /> 
+
+                <USwitch v-model="paramsTransactions.isFreeze"  label="Freeze Transactions"/>
             </div>
 
             <UButton icon="i-lucide-plus" label="Ajouter transaction" size="xl" @click="openTransaction()" />
