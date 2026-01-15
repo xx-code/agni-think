@@ -31,3 +31,26 @@ export default function useTransactionPagination(query: Reactive<FilterTransacti
 
     return { data, error, refresh };
 }
+
+export async function fetchTransactionPagination(query: MaybeRefOrGetter<FilterTransactionQuery>): Promise<ListResponse<TransactionType>> {
+    const res = await $fetch<ListResponse<GetAllTransactionResponse>>('/api/transactions/pagination', {
+        method: 'POST',
+        body: query
+    });
+
+    return {
+        items: res.items.map(i => ({ id: i.transactionId,
+            accountId: i.accountId,
+            amount: i.amount,
+            date: new Date(i.date),
+            description: i.description,
+            recordType: i.recordType,
+            type: i.type,
+            status: i.status,
+            categoryId: i.categoryId,
+            tagIds: i.tagRefs,
+            budgetIds: i.budgets
+        })),
+        totals: Number(res.totals) 
+    } satisfies ListResponse<TransactionType>
+}

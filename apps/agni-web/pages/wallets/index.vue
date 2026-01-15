@@ -6,7 +6,7 @@ import type { AccountBrokeDetailType, AccountCreditDetailType, AccountType, Acco
 import useCreateAccount from "~/composables/accounts/useCreateAccount";
 import useUpdateAccount from "~/composables/accounts/useUpdateAccount";
 import useTransactionPagination from "~/composables/transactions/useTransactionPagination";
-import { ModalEditAccount, ModalEditFreezeTransaction, ModalEditTransaction, ModalEditTransfer } from "#components";
+import { ModalEditAccount, ModalEditFreezeTransaction, ModalEditTransaction, ModalEditTransfer, ModalQuickTransView } from "#components";
 import { fetchAccount, fetchAccountWithDetail } from "~/composables/accounts/useAccount";
 import type { EditFreezeTransactionType, EditTransactionType, EditTransfertType, TransactionTableType, TransactionType } from "~/types/ui/transaction";
 import useUpdateTransaction from "~/composables/transactions/useUpdateTransaction";
@@ -22,6 +22,7 @@ import useBudgets from "~/composables/budgets/useBudgets";
 import useAnalyseBudgetRules from "~/composables/analytics/useBudgetRules";
 import { fetchAccountsWithDetail } from "~/composables/accounts/useAccounts";
 import { fetchAccountTypes } from "~/composables/internals/useAccountTypes";
+import type { NuxtError } from "#app";
 
 type AccountByType = {
     id: string
@@ -151,6 +152,7 @@ const modalAccount = overlay.create(ModalEditAccount);
 const modalTransfer = overlay.create(ModalEditTransfer);
 const modalTransaction = overlay.create(ModalEditTransaction);
 const modalFreezeTransaction = overlay.create(ModalEditFreezeTransaction);
+const slideTransactions = overlay.create(ModalQuickTransView)
 
 const onSelectAccount = (id: string) => {
     selectedAccountId.value = id
@@ -319,6 +321,18 @@ const computeAllUtilization = (accounts: AccountWithDetailType[]) => {
     return (sum/creditCardAccount.length).toFixed(2)
 }
 
+const openTransactionViews = async (accountId: string) => {
+    try {
+        let account = await fetchAccountWithDetail(accountId);
+            
+        slideTransactions.open({
+            account: account
+        });
+    } catch (err) {
+        console.log(err)
+    } 
+}
+
 </script>
 
 <template>
@@ -394,7 +408,7 @@ const computeAllUtilization = (accounts: AccountWithDetailType[]) => {
                     <div class="flex overflow-x-auto gap-2"  >
                         <div v-for="account in group.accounts" :key="account.id">
                             <CardResumeAccount 
-                                @customClick="onSelectAccount(account.id)"
+                                @open="openTransactionViews(account.id)"
                                 style="width: 200px;"
                                 v-if="account.id !== selectedAccountId"
                                 :id="account.id"

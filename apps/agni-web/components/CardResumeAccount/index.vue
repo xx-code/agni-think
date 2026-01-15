@@ -1,22 +1,27 @@
 <script setup lang="ts">
-const props = defineProps({
-    id: String,
-    title: String,
-    balance: Number,
-    freezedBalance: Number,
-    lockedBalance: Number,
-    diffPastBalancePer: Number,
-    isPositif: Boolean,
-    pastDateInfo: String,
-    allowOpen: Boolean,
-    allowEdit: Boolean,
-    allowDelete: Boolean
-})
+const {
+    id,
+    title,
+    balance,
+    freezedBalance,
+    lockedBalance,
+    allowDelete,
+    allowEdit
+} = defineProps<{
+    id: string,
+    title: string,
+    balance: number,
+    freezedBalance: number,
+    lockedBalance: number,
+    allowEdit: boolean,
+    allowDelete: boolean
+}>()
 
 const emit = defineEmits<{
     (e: 'edit', id?: string): void    
     (e: 'add', id?: string): void
     (e: 'delete', id?: string): void
+    (e: 'open', id: string): void
 }>(); 
 
 </script>
@@ -45,7 +50,14 @@ const emit = defineEmits<{
             <slot/>
         </div>
 
-        <div class="flex justify-center">
+        <div class="flex justify-center gap-3">
+            <UButton 
+                size="xs"
+                label="open"
+                icon="i-lucide-plus"
+                variant="outline" 
+                color="secondary"
+                @click="$emit('open', id)"/>      
             <UButton 
                 size="xs"
                 label="Ajoute"

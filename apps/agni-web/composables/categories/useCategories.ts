@@ -39,3 +39,20 @@ export function useCategoriesNonSys(query: Reactive<QueryFilterRequest>) {
         return categories
     })
 }
+
+export async function fetchCategories(query: Reactive<QueryFilterRequest>): Promise<ListResponse<CategoryType>> {
+    const res = await $fetch<ListResponse<GetAllCategoriesResponse>>('/api/categories', {
+        query: query
+    })
+
+    return {
+        items: res.items.map(i => ({
+            id: i.categoryId,
+            title: i.title,
+            icon: i.icon,
+            isSystem: i.isSystem,
+            color: i.color
+        })),
+        totals: Number(res.totals) 
+    } satisfies ListResponse<CategoryType>
+}
