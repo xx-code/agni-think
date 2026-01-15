@@ -136,6 +136,7 @@ const emit = defineEmits<{
                         />
                     </div>
                 </div>
+
                 <div>
                     <h4 class="mb-2 font-bold">Transactions</h4>
                     <ListTransaction :transactions="transactions?.items ?? []" />

@@ -366,7 +366,7 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
                 <UPagination 
                     class="mt-3" 
                     v-model:page="page" 
-                    v-on:update:page="() => paramsTransactions.offset = paramsTransactions.limit * (page -1)"
+                    v-on:update:page="v => paramsTransactions.offset = (paramsTransactions.limit * (v - 1))"
                     :items-per-page="paramsTransactions.limit"  
                     :total="transactions?.totals" 
                     active-variant="subtle" />
