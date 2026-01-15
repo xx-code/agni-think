@@ -331,6 +331,8 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
             <div class="flex items-center gap-3">
                 <UButton variant="outline" color="neutral" :label="formatCurrency(balance ? balance.balance : 0)" size="xl"/>
                 <FilterTransactionDrawer @submit="onFilter" /> 
+
+                <USwitch v-model="paramsTransactions.isFreeze"  label="Freeze Transactions"/>
             </div>
 
             <UButton icon="i-lucide-plus" label="Ajouter transaction" size="xl" @click="openTransaction()" />
@@ -366,7 +368,7 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
                 <UPagination 
                     class="mt-3" 
                     v-model:page="page" 
-                    v-on:update:page="() => paramsTransactions.offset = paramsTransactions.limit * (page -1)"
+                    v-on:update:page="v => paramsTransactions.offset = (paramsTransactions.limit * (v - 1))"
                     :items-per-page="paramsTransactions.limit"  
                     :total="transactions?.totals" 
                     active-variant="subtle" />
