@@ -92,7 +92,6 @@ import { KnexNotificationTable, NotificaitonExtendFilterAdapter, NotificationMod
 import { IUsecase } from '@core/interactions/interfaces';
 import Notification from '@core/domains/entities/notification';
 import { UnitOfWorkRepository } from '@core/repositories/unitOfWorkRepository';
-import { PostgreSqlUnitOfWork } from '@infra/data/postgreSQL/postgreSqlUnitOfWork';
 import { IEventListener, IEventRegister } from '@core/adapters/event';
 import { EventRegister } from '@infra/event';
 import { PushNotificationUseCase, RequestPushNotification } from '@core/interactions/notification/pushNotification';
@@ -125,6 +124,7 @@ import { DeleteHoldingUseCase } from '@core/interactions/holding/deleteHoldingUs
 import { DeleteHoldingTransactionUseCase } from '@core/interactions/holdingTransactions/deleteHoldingTransaction';
 import { RequestUpdateHoldingTransactionDto, UpdateHoldingTransactionUseCase } from '@core/interactions/holdingTransactions/updateHoldingTransaction';
 import { AutoUpdateBudgetUseCase } from '@core/interactions/budgets/autoUpdateBudgetUseCase';
+import { KnexUnitOfWork } from '@infra/persistences/knexUnitOfWork';
 
 
 export class DiContenair {
@@ -417,7 +417,7 @@ export class DiContenair {
         )
         this.registerRepository('currency', currencyRepository)
 
-        this.unitOfWork = new PostgreSqlUnitOfWork(connector)
+        this.unitOfWork = new KnexUnitOfWork(connector)
     }
 
     async config(connector: Knex) {
@@ -476,7 +476,7 @@ export class DiContenair {
             updateCategory: new UpdateCategoryUseCase(this.getRepository('category')),
             getCategory: new GetCategoryUseCase(this.getRepository('category')),
             getAllCategory: new GetAllCategoryUseCase(this.getRepository('category')),
-            deleteCategory: new DeleteCategoryUseCase(this.getRepository('category'), this.getChecker('category')) 
+            deleteCategory: new DeleteCategoryUseCase(this.getRepository('category')) 
         }
     }
 
@@ -485,7 +485,7 @@ export class DiContenair {
             createTag: new CreationTagUseCase(this.getRepository('tag')),
             updateTag: new UpdateTagUseCase(this.getRepository('tag')),
             getTag: new GetTagUseCase(this.getRepository('tag')),
-            deleteTag: new DeleteTagUseCase(this.getRepository('tag'), this.getChecker('tag')),
+            deleteTag: new DeleteTagUseCase(this.getRepository('tag')),
             getAllTag: new GetAllTagUseCase(this.getRepository('tag'))
         }
     }
@@ -684,8 +684,8 @@ export class DiContenair {
         this.holdingUseCase = {
             addHoldingTransaction: addHoldingTransaction,
             createHolding: new CreateHoldingUseCase(this.getRepository('account'), this.getRepository('holding')),
-            deleteHolding: deleteHoldingTransaction,
-            deleteHoldingTransaction: new DeleteHoldingTransactionUseCase(this.getRepository('holding'), this.getRepository('holding_transaction')),
+            deleteHolding: new DeleteHoldingUseCase(this.getRepository("holding")),
+            deleteHoldingTransaction: deleteHoldingTransaction,
             getAllHolding: new GetAllHoldingUseCase(this.getRepository('holding')),
             getAllHoldingTransaction: new GetAllHoldingTransactionUseCase(this.getRepository('holding_transaction')),
             getHoldingTransaction: new GetHoldingTransactionUseCase(this.getRepository('holding_transaction')),

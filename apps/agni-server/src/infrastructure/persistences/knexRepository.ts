@@ -22,21 +22,34 @@ export default class KnexRepository <TEntity extends Entity, TModel extends Knex
         this.table = table
     }
 
-    async create(entity: TEntity): Promise<void> {
+    async create(entity: TEntity, trx?: Knex.Transaction): Promise<void> {
         const model = this.mapper.fromDomain(entity) 
-        await this.connector(this.table.getTableName()).insert<TModel>(model)
+
+        if (trx === undefined)
+            await this.connector(this.table.getTableName()).insert<TModel>(model)
+        else 
+            await trx(this.table.getTableName()).insert<TModel>(model)
     }
 
-    async get(id: string): Promise<TEntity | null> {
-        const result = await this.connector(this.table.getTableName()).where(this.mapper.getIdField(), '=', id).select("*").first()
+    async get(id: string, trx?: Knex.Transaction): Promise<TEntity | null> {
+        let result 
+        if (trx  === undefined)
+            result = await this.connector(this.table.getTableName()).where(this.mapper.getIdField(), '=', id).select("*").first()
+        else 
+            result = await trx(this.table.getTableName()).where(this.mapper.getIdField(), '=', id).select("*").first()
+
         if (result)
             return this.mapper.toDomain(result as TModel)
 
         return null
     }
 
-    async getAll(filters: QueryFilterAllRepository, filterExtend?: QueryFilterExtend<TEntity>): Promise<RepositoryListResult<TEntity>> {
-        const query = this.connector(this.table.getTableName()).select('*');
+    async getAll(filters: QueryFilterAllRepository, filterExtend?: QueryFilterExtend<TEntity>, trx?: Knex.Transaction): Promise<RepositoryListResult<TEntity>> {
+        let query
+        if (trx == undefined)
+            query = this.connector(this.table.getTableName()).select('*');
+        else 
+            query = trx(this.table.getTableName()).select('*');
 
         if (filters.sort) 
         {
@@ -68,8 +81,13 @@ export default class KnexRepository <TEntity extends Entity, TModel extends Knex
         }
     }
 
-    async getManyByIds(ids: string[]): Promise<TEntity[]> {
-        const results = await this.connector(this.table.getTableName()).whereIn(this.mapper.getIdField(), ids).select('*')
+    async getManyByIds(ids: string[], trx?: Knex.Transaction): Promise<TEntity[]> {
+        let results = []
+        if (trx === undefined)
+            results = await this.connector(this.table.getTableName()).whereIn(this.mapper.getIdField(), ids).select('*')
+        else 
+            results = await trx(this.table.getTableName()).whereIn(this.mapper.getIdField(), ids).select('*')
+
         const entities: TEntity[] = []
         results.forEach((i: TModel) => {
             entities.push(this.mapper.toDomain(i))
@@ -78,18 +96,29 @@ export default class KnexRepository <TEntity extends Entity, TModel extends Knex
         return entities
     }
 
-    async update(entity: TEntity): Promise<void> {
+    async update(entity: TEntity, trx?: Knex.Transaction): Promise<void> {
         const model = this.mapper.fromDomain(entity) 
-        await this.connector(this.table.getTableName()).where(this.mapper.getIdField(), '=', entity.getId()).update(model)
+        if (trx === undefined)
+            await this.connector(this.table.getTableName()).where(this.mapper.getIdField(), '=', entity.getId()).update(model)
+        else 
+            await trx(this.table.getTableName()).where(this.mapper.getIdField(), '=', entity.getId()).update(model)
     }
 
-    async delete(id: string): Promise<void> {
-        await this.connector(this.table.getTableName())
-            .where(this.mapper.getIdField(), '=', id).delete()
+    async delete(id: string, trx?: Knex.Transaction): Promise<void> {
+        if (trx === undefined)
+            await this.connector(this.table.getTableName())
+                .where(this.mapper.getIdField(), '=', id).delete()
+        else
+            await trx(this.table.getTableName())
+                .where(this.mapper.getIdField(), '=', id).delete()
     }
 
-    async existByName(name: string): Promise<boolean> {
-        const result = await this.connector(this.table.getTableName()).where(this.mapper.getNameField(), 'like' , name).first();
+    async existByName(name: string, trx?: Knex.Transaction): Promise<boolean> {
+        let result
+        if (trx === undefined)
+            result = await this.connector(this.table.getTableName()).where(this.mapper.getNameField(), 'like' , name).first();
+        else
+            result = await trx(this.table.getTableName()).where(this.mapper.getNameField(), 'like' , name).first();
 
         return result !== undefined
     }

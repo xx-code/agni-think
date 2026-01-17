@@ -1,13 +1,10 @@
 import { CreatedDto } from "@core/dto/base";
 import { IUsecase } from "../interfaces";
-import { PatrimonyRepository, PatrimonySnapshotRepository } from "@core/repositories/patrimonyRepository";
-import { AccountRepository } from "@core/repositories/accountRepository";
 import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { Patrimony } from "@core/domains/entities/patrimony";
 import { GetUID } from "@core/adapters/libs";
 import { mapperPatrimonyType, TransactionStatus } from "@core/domains/constants";
-import { PatrimonyAccount } from "@core/domains/valueObjects/patrimonyAccount";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { PatrimonySnapshot } from "@core/domains/entities/patrimonySnapshot";
 import Repository from "@core/adapters/repository";
@@ -40,7 +37,7 @@ export class CreatePatrimonyUseCase implements IUsecase<RequestCreatePatrimony, 
 
     async execute(request: RequestCreatePatrimony): Promise<CreatedDto> {
         try {
-            await this.unitOfWork.start()
+            const trx = await this.unitOfWork.start()
 
             if (await this.patrimonyRepo.existByName(request.title))
                 throw new ResourceAlreadyExist("PATRIMONY_ALREADY_EXIST")
@@ -53,14 +50,14 @@ export class CreatePatrimonyUseCase implements IUsecase<RequestCreatePatrimony, 
             const patrimony = new Patrimony(GetUID(), request.title, request.amount, 
                 mapperPatrimonyType(request.type), request.accountIds ? request.accountIds : []) 
 
-            await this.patrimonyRepo.create(patrimony)
+            await this.patrimonyRepo.create(patrimony, trx)
 
             if (patrimony.getAmount() > 0) {
                 const firstSnapshot = new PatrimonySnapshot(GetUID(), 
                     patrimony.getId(), patrimony.getAmount(), TransactionStatus.COMPLETE, 
                     new Date()
                 );
-                await this.snapshotRepo.create(firstSnapshot);
+                await this.snapshotRepo.create(firstSnapshot, trx);
             } 
 
             await this.unitOfWork.commit()

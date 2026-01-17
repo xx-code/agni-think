@@ -31,7 +31,7 @@ export class CompteTransactionUsecase implements IUsecase<RequestCompleteTransac
 
     async execute(request: RequestCompleteTransactionUsecase): Promise<void> {
         try {
-            // await this.unitOfWork.start()
+            const trx = await this.unitOfWork.start()
 
             const transaction = await this.transactionRepo.get(request.transactionId)
             if (transaction === null)
@@ -47,15 +47,15 @@ export class CompteTransactionUsecase implements IUsecase<RequestCompleteTransac
 
             record.getType() === RecordType.CREDIT ? account!.addOnBalance(record.getMoney()) : account!.substractBalance(record.getMoney())
 
-            await this.accountRepo.update(account)
+            await this.accountRepo.update(account, trx)
 
             transaction.setStatus(TransactionStatus.COMPLETE)
 
-            await this.transactionRepo.update(transaction)
+            await this.transactionRepo.update(transaction, trx)
 
-            // await this.unitOfWork.commit()
+            await this.unitOfWork.commit()
         } catch(err) {
-            // await this.unitOfWork.rollback()
+            await this.unitOfWork.rollback()
             throw err
         }
     }

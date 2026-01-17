@@ -1,13 +1,11 @@
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { Knex } from "knex";
 
-// TODO: To be redesign
-
-export class PostgreSqlUnitOfWork implements UnitOfWorkRepository {
+export class KnexUnitOfWork implements UnitOfWorkRepository {
     private transaction: Knex.Transaction | null = null;
     private connector: Knex
 
-    constructor(connector: Knex.Transaction) {
+    constructor(connector: Knex) {
         this.connector = connector
     }
     
@@ -16,11 +14,9 @@ export class PostgreSqlUnitOfWork implements UnitOfWorkRepository {
     }
 
     async start(): Promise<any> {
-        if (this.transaction) {
-            console.log("A transaction is already in progress.")
-            return 
-        }
-        this.transaction = await this.connector.transaction();
+        if (this.transaction === null)
+            this.transaction = await this.connector.transaction();
+
         return this.transaction
     }
 

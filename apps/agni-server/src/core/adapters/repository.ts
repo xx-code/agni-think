@@ -14,13 +14,13 @@ export interface QueryFilterExtend<T>{
 }
 
 export default interface Repository<T> {
-    create(entity: T): Promise<void>
-    get(id: string): Promise<T|null>
-    getAll(filters: QueryFilterAllRepository, filterExtend?: QueryFilterExtend<T>): Promise<RepositoryListResult<T>>
-    getManyByIds(ids: string[]): Promise<T[]>
-    update(entity: T): Promise<void>
-    delete(id: string): Promise<void>
-    existByName(name: string): Promise<boolean>
+    create(entity: T, trx?: any): Promise<void>
+    get(id: string, trx?: any): Promise<T|null>
+    getAll(filters: QueryFilterAllRepository, filterExtend?: QueryFilterExtend<T>, trx?: any): Promise<RepositoryListResult<T>>
+    getManyByIds(ids: string[], trx?: any): Promise<T[]>
+    update(entity: T, trx?: any): Promise<void>
+    delete(id: string, trx?: any): Promise<void>
+    existByName(name: string, trx?: any): Promise<boolean>
 }
 
 export type RepositoryDateComparator = {
