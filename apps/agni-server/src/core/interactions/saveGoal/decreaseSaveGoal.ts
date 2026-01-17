@@ -40,7 +40,7 @@ export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal
 
     async execute(request: RequestDecreaseSaveGoal): Promise<void> {
         try {
-            // await this.unitOfWork.start()
+            const trx = await this.unitOfWork.start()
 
             let savingGoal = await this.savingRepository.get(request.id)
             if (savingGoal === null)
@@ -70,16 +70,16 @@ export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal
             let idRecordSaving = GetUID()
             let newRecordSaving = new Record(idRecordSaving, decreaseBalance, date, RecordType.CREDIT)
             newRecordSaving.setDescription('Saving ' + savingGoal.getTitle())
-            await this.recordRepository.create(newRecordSaving)
+            await this.recordRepository.create(newRecordSaving, trx)
 
             let idTransTo = GetUID()
             let newTransactionTo = new Transaction(idTransTo, request.accountId, idRecordSaving, 
                 SAVING_CATEGORY_ID, date, TransactionType.OTHER, TransactionStatus.COMPLETE,)
-            await this.transactionRepository.create(newTransactionTo)
+            await this.transactionRepository.create(newTransactionTo, trx)
 
-            await this.savingRepository.update(savingGoal)
+            await this.savingRepository.update(savingGoal, trx)
 
-            await this.accountRepository.update(account)
+            await this.accountRepository.update(account, trx)
 
             // await this.unitOfWork.commit()
         } 

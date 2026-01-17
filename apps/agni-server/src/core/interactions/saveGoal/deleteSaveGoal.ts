@@ -39,7 +39,7 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
 
     async execute(request: RequestDeleteSaveGoal): Promise<void> {
         try {
-            // await this.unitOfWork.start()
+            const trx = await this.unitOfWork.start()
 
             let savingGoal = await this.savingRepo.get(request.id)
             if (savingGoal == null)
@@ -62,19 +62,19 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
 
                 accountTranfert.addOnBalance(savingGoal.getBalance())
 
-                await this.accountRepo.update(accountTranfert)
+                await this.accountRepo.update(accountTranfert, trx)
 
-                await this.recordRepo.create(newRecord)
+                await this.recordRepo.create(newRecord, trx)
 
-                await this.transactionRepo.create(newTransaction)
+                await this.transactionRepo.create(newTransaction, trx)
             } 
             
-            await this.savingRepo.delete(savingGoal.getId())
+            await this.savingRepo.delete(savingGoal.getId(), trx)
 
-            // await this.unitOfWork.commit()
+            await this.unitOfWork.commit()
 
         } catch(err: any) {
-            // await this.unitOfWork.rollback()
+            await this.unitOfWork.rollback()
             throw err
         }
     }

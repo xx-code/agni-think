@@ -33,7 +33,7 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
 
     async execute(): Promise<void> {
         try {
-
+            const trx = await this.unitOfWork.start() 
             const filterExtend = new ScheduleTransactionFilter()
             filterExtend.schedulerDueDate = { date: new Date(Date.now()), comparator: "<="} 
 
@@ -76,14 +76,14 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                     transaction.setIsFreeze()
 
                 if (scheduleTrans.getSchedule().repeater === undefined) {
-                    await this.scheduleTransactionRepo.delete(scheduleTrans.getId())
+                    await this.scheduleTransactionRepo.delete(scheduleTrans.getId(), trx)
                 } else {
                     const scheduler = scheduleTrans.getSchedule()
                     const dueDate = MomentDateService.getUTCDateAddition(scheduler.dueDate, scheduler.repeater!.period, scheduler.repeater!.interval)
                     scheduleTrans.reSchedule(new Scheduler(dueDate, { period: scheduler.repeater!.period, interval: scheduler.repeater!.interval}))
-                    await this.scheduleTransactionRepo.update(scheduleTrans);
+                    await this.scheduleTransactionRepo.update(scheduleTrans, trx);
                 }
-                await this.transactionRepo.create(transaction)
+                await this.transactionRepo.create(transaction, trx)
 
                 this.eventManager.notify('notification', {
                     title: 'Schedule Transaction',
@@ -93,6 +93,7 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
 
         }
         catch (err: any){
+            this.unitOfWork.rollback()
             throw err
         }   
     }

@@ -1,10 +1,6 @@
 import { IUsecase } from "../interfaces";
-import { Transaction } from "@core/domains/entities/transaction";
-import { GetUID } from "@core/adapters/libs";
-import { Record } from "@core/domains/entities/record";
-import { RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
-import Repository, { BudgetFilter, ScheduleTransactionFilter } from "@core/adapters/repository";
+import Repository, { BudgetFilter } from "@core/adapters/repository";
 import { IEventRegister } from "@core/adapters/event";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
 import { Budget } from "@core/domains/entities/budget";
