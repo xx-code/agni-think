@@ -15,12 +15,12 @@ export default class DeletePatrimonyUseCase implements IUsecase<string, void> {
 
     async execute(patrimonyId: string): Promise<void> {
         try {
-            this.unitOfWorkRepo.start()
+            const trx = this.unitOfWorkRepo.start()
 
             if (!await this.patrimonyRepo.get(patrimonyId))
                 throw new ResourceNotFoundError("PATRIMONY_NOT_FOUND")
 
-            await this.patrimonyRepo.delete(patrimonyId)
+            await this.patrimonyRepo.delete(patrimonyId, trx)
 
             this.unitOfWorkRepo.commit()
         } catch(err) {

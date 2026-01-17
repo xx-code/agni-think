@@ -27,7 +27,7 @@ export class DeleteTransactionUseCase implements IUsecase<string, void> {
     
     async execute(id: string): Promise<void> {
         try {   
-            // await this.unitOfWork.start()
+            const trx = await this.unitOfWork.start()
 
             let transaction = await this.transRepository.get(id);
             if (!transaction)
@@ -46,16 +46,16 @@ export class DeleteTransactionUseCase implements IUsecase<string, void> {
 
             if (transaction.getStatus() === TransactionStatus.COMPLETE) {
                 record.getType() === RecordType.CREDIT ? account.substractBalance(record.getMoney()) : account.addOnBalance(record.getMoney())
-                await this.accountRepo.update(account);
+                await this.accountRepo.update(account, trx);
             }
             
-            await this.recordRepo.delete(record.getId())
+            await this.recordRepo.delete(record.getId(), trx)
 
-            await this.transRepository.delete(id);
+            await this.transRepository.delete(id, trx);
             
-            // await this.unitOfWork.commit()
+            await this.unitOfWork.commit()
         } catch(err) {
-            // await this.unitOfWork.rollback()
+            await this.unitOfWork.rollback()
             throw err
         }
     }

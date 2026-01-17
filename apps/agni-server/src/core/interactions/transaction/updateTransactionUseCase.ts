@@ -48,8 +48,6 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
 
     async execute(request: RequestUpdateTransactionUseCase): Promise<void> {
         try {
-            // await this.unitOfWork.start()
-
             let transaction = await this.transactionRepository.get(request.id);
             if (!transaction)
                 throw new ResourceNotFoundError("TRANSACTION_NOT_FOUND")
@@ -113,8 +111,6 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
             }
 
             if (record.hasChange() || transaction.hasChange())  {
-                await this.deleteTransactionUsecase.execute(request.id)
-                
                 await this.addTransactionUsecase.execute({
                     accountId: transaction.getAccountRef(),
                     amount: record.getMoney().getAmount(),
@@ -125,11 +121,11 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
                     type: transaction.getTransactionType(),
                     budgetIds: transaction.getBudgetRefs()
                 })
+
+                await this.deleteTransactionUsecase.execute(request.id)
             }
 
-            // this.unitOfWork.commit()
         } catch (err) {
-            // this.unitOfWork.rollback()
             throw err
         }
     }

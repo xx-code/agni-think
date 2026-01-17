@@ -38,7 +38,7 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
 
     async execute(request: RequestTransfertTransactionUseCase): Promise<void> {
         try {
-            // await this.unitOfWork.start()
+            const trx = await this.unitOfWork.start()
 
             let accountFrom = await this.accountRepository.get(request.accountIdFrom);
             if (accountFrom === null)
@@ -56,8 +56,8 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
             accountFrom.substractBalance(amount)
             accountTo.addOnBalance(amount)
 
-            await this.accountRepository.update(accountFrom)
-            await this.accountRepository.update(accountTo)
+            await this.accountRepository.update(accountFrom, trx)
+            await this.accountRepository.update(accountTo, trx)
 
             
             let fromRecord: Record = new Record(GetUID(), amount, request.date, RecordType.DEBIT)
@@ -66,19 +66,19 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
             let toRecord: Record = new Record(GetUID(), amount, request.date, RecordType.CREDIT)
             toRecord.setDescription(`Transfert au compte ${accountTo.getTitle()}`)
 
-            await this.recordRepository.create(fromRecord);
+            await this.recordRepository.create(fromRecord, trx);
 
-            await this.recordRepository.create(toRecord);
+            await this.recordRepository.create(toRecord, trx);
 
             let transFrom = new Transaction(GetUID(), accountFrom.getId(), fromRecord.getId(), TRANSFERT_CATEGORY_ID, request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
-            await this.transactionRepository.create(transFrom)
+            await this.transactionRepository.create(transFrom, trx)
 
             let transTo = new Transaction(GetUID(), accountTo.getId(), toRecord.getId(), TRANSFERT_CATEGORY_ID, request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
-            await this.transactionRepository.create(transTo);
+            await this.transactionRepository.create(transTo, trx);
 
-            // await this.unitOfWork.commit()
+            await this.unitOfWork.commit()
         } catch (err) {
-            // await this.unitOfWork.rollback()
+            await this.unitOfWork.rollback()
             throw err
         }
     }

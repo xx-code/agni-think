@@ -40,8 +40,6 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
 
     async execute(request: RequestAddTransactionUseCase): Promise<CreatedDto> {
         try {
-            // await this.unitOfWork.start()
-
             let account = await this.transcationDependencies.accountRepository?.get(request.accountId) 
             if (account === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
@@ -64,6 +62,8 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
             if (request.amount <= 0)
                 throw new ValueError("AMOUNT_MUST_GREATER_THANT_0")
 
+            const trx: any = await this.unitOfWork.start() 
+
             let amount = new Money(request.amount)
 
             const type = mapperMainTransactionCategory(request.type)
@@ -74,11 +74,11 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
                 request.date, 
                 type === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT, 
                 request.description)
-            await this.transcationDependencies.recordRepository?.create(newRecord)
+            await this.transcationDependencies.recordRepository?.create(newRecord, trx)
 
             newRecord.getType() === RecordType.CREDIT ? account!.addOnBalance(amount) : account!.substractBalance(amount)
 
-            await this.transcationDependencies.accountRepository?.update(account!)
+            await this.transcationDependencies.accountRepository?.update(account!, trx)
             
             let newTransaction = new Transaction(
                 GetUID(), 
@@ -88,14 +88,14 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
                 request.date, type, TransactionStatus.COMPLETE, 
                 request.tagIds, request.budgetIds)    
 
-            await this.transactionRepository.create(newTransaction);
+            await this.transactionRepository.create(newTransaction, trx);
             
-            // await this.unitOfWork.commit()
+            await this.unitOfWork.commit()
 
             return {newId: newTransaction.getId()}
         } catch (err) {
-            // await this.unitOfWork.rollback()
-            return {newId: ''}
+            await this.unitOfWork.rollback()
+            throw err
         }
     }
 }
