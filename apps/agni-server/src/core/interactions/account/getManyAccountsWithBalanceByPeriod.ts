@@ -1,5 +1,4 @@
 import Repository from "@core/adapters/repository";
-import { AccountRepository } from "../../repositories/accountRepository";
 import { IUsecase } from "../interfaces";
 import { GetAccountBalanceByPeriodDto, RequestGetAccountBalanceByPeriod } from "./getPastAccountBalanceByPeriod";
 import { Account } from "@core/domains/entities/account";
