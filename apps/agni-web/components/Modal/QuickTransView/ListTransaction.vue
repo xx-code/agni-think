@@ -15,7 +15,7 @@ const { transactions } = defineProps<{
                 <div class="flex gap-2">
                     <div class="flex items-center justify-center rounded-full"
                     :style="{ background: `${trans.color}22`, width: '35px',height: '35px'}">
-                        <UIcon name="i-lucide-plus" class="text-white text-lg" :style="{color: trans.color }"/>  
+                        <UIcon :name="trans.icon" class="text-white text-lg" :style="{color: trans.color }"/>  
                     </div>
                     <div>
                         <h4>{{ trans.category }}</h4>
