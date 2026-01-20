@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { CalendarDate, DateFormatter } from '@internationalized/date';
-import { boolean } from 'zod/v4';
 import useAccounts from '~/composables/accounts/useAccounts';
 import useBudgets from '~/composables/budgets/useBudgets';
 import useCategories from '~/composables/categories/useCategories';
+import useTransactionTypes from '~/composables/internals/useTransactionTypes';
 import useTags from '~/composables/tags/useTags';
 import type { FormFilterTransaction } from '~/types/ui/component';
 
@@ -23,12 +23,15 @@ const { data:tags } = useTags({
 const { data:budgets } = useBudgets({
     limit: 0, offset: 0, queryAll: true
 });
+const { data:typeTransactions } = useTransactionTypes()
 
+// TODO: Refactor
 const selectedBudgetIds = ref<string[]>([]);
 const selectedCategoryIds = ref<string[]>([]);
 const selectedTagIds = ref<string[]>([]);
 const selectedAccountIds: Ref<string[]> = ref([]);
 const selectedStatus = ref<string>()
+const selectedTypeTransaction = ref<string[]>([])
 
 const date = shallowRef({
   start: new CalendarDate(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, new Date().getUTCDate()),
@@ -42,7 +45,7 @@ const filters = ref<{
 }>({
     filterDate: false,
     filterPrice: false,
-    filterStatus: false
+    filterStatus: false,
 })
 
 const minAmount = ref<number|undefined>()
@@ -60,7 +63,7 @@ function submit() {
         accountIds: selectedAccountIds.value,
         budgetIds: selectedBudgetIds.value,
         categoryIds: selectedCategoryIds.value,
-        types: [],
+        types:  selectedTypeTransaction.value,
         status: filters.value.filterStatus ? selectedStatus.value : undefined, 
         tagIds: selectedTagIds.value,
         dateEnd:  filters.value.filterDate ? date.value.end.toString() : undefined,
@@ -74,6 +77,7 @@ function clean() {
     filters.value.filterDate = false;
     filters.value.filterPrice = false;
     filters.value.filterStatus = false;
+    selectedTypeTransaction.value = [];
     selectedAccountIds.value = [];
     selectedBudgetIds.value = [];
     selectedCategoryIds.value = [];
@@ -123,6 +127,15 @@ function clean() {
                         value-key="value" 
                         :items="budgets?.items.map(i => ({ label: i.title, value: i.id }))"/>
                 </div> 
+
+                <div >
+                    <UInputMenu 
+                        placeholder="Type de transaction" 
+                        multiple 
+                        v-model="selectedTypeTransaction" 
+                        value-key="value" 
+                        :items="typeTransactions?.map(i => ({ label: i.value, value: i.id }))"/>
+                </div>
                 
                 <div>
                     <USwitch v-model="filters.filterDate" label="Fitlrer par date" />
@@ -138,7 +151,7 @@ function clean() {
                         v-model="selectedStatus" value-key="value" 
                         v-if="filters.filterStatus"
                         :items="[{label: 'Complete', value: 'Complete' }, { label: 'Pending', value: 'Pending'}]" />
-                </div>
+                </div> 
 
                 <div>
                     <USwitch v-model="filters.filterPrice" label="Filtrer par somme" />

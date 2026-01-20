@@ -167,6 +167,7 @@ function onFilter(value: FormFilterTransaction) {
     paramsTransactions.dateEnd = value.dateEnd ? new Date(value.dateEnd) : undefined
     paramsTransactions.dateStart = value.dateStart ? new Date(value.dateStart) : undefined
     paramsTransactions.minPrice = value.minPrice
+    paramsTransactions.types = value.types
     paramsTransactions.maxPrice = value.minPrice
     paramsTransactions.status = value.status
     paramsTransactions.offset = 0
