@@ -1,10 +1,10 @@
 import { mapperMainTransactionCategory, mapperTransactionStatus, TransactionStatus } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
-import { isEmpty, DateParser } from "@core/domains/helpers";
+import { isEmpty } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import ValidationError from "@core/errors/validationError";
 import { IUsecase } from "../interfaces";
-import { ListDto, QueryFilter } from "@core/dto/base";
+import { ListDto } from "@core/dto/base";
 import { TransactionDependencies } from "../facades";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { QueryFilterAllRepository, SortBy } from "@core/repositories/dto";
@@ -116,11 +116,11 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
         if (request.status)
             status = mapperTransactionStatus(request.status) 
 
-        let minPrice;
+        let minPrice: Money|undefined = undefined
         if (!isEmpty(request.minPrice))
             minPrice  = new Money(request.minPrice)
 
-        let maxPrice;
+        let maxPrice: Money|undefined = undefined
         if (!isEmpty(request.maxPrice))
             maxPrice = new Money(request.maxPrice)
 
@@ -149,13 +149,14 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
         extendTransactionFilter.tags = request.tagFilterIds
         extendTransactionFilter.startDate = request.dateStart
         extendTransactionFilter.endDate = request.dateEnd
-        extendTransactionFilter.isFreeze = request.isFreeze,
+        extendTransactionFilter.isFreeze = request.isFreeze
         extendTransactionFilter.status = status
         extendTransactionFilter.types = types
         let response = await this.transactionRepository.getAll(filters, extendTransactionFilter);
 
         // TODO: BAD change 
-        const records = await this.transactionDependencies.recordRepository?.getManyByIds(response.items.map(i => i.getRecordRef())) 
+        let records = await this.transactionDependencies.recordRepository?.getManyByIds(response.items.map(i => i.getRecordRef())) 
+
         let transactions: GetAllTransactionDto[] = []
         for (let i = 0; i < response.items.length ; i++) {
             const transaction = response.items[i]
@@ -176,6 +177,6 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
                 })
         }
 
-        return { items: transactions,  totals: response.total };
+        return { items: transactions,  totals: records ? records.length : 0};
     }
 }

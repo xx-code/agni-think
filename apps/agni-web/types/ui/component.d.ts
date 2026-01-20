@@ -3,7 +3,7 @@ export type FormFilterTransaction = {
     categoryIds: string[]
     tagIds: string[]
     budgetIds: string[]
-    types: string[]
+    types?: string[]
     status?: string
     minPrice?: number
     maxPrice?: number
