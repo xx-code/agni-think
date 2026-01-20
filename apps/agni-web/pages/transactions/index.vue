@@ -102,6 +102,8 @@ const displaytransactionsTable = computed(() => {
     } satisfies TransactionTableType))    
 })
 
+const extentedState = ref()
+
 const overlay = useOverlay()
 const modalTransaction = overlay.create(ModalEditTransaction);
 
@@ -169,7 +171,10 @@ function onFilter(value: FormFilterTransaction) {
     paramsTransactions.status = value.status
     paramsTransactions.offset = 0
     page.value = 1
+
+    extentedState.value = {}
 }
+
 
 const UIcon = resolveComponent('UIcon');
 const UButton = resolveComponent('UButton');
@@ -325,6 +330,8 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
     
     return options;
 }
+
+
 </script>
 
 <template>
@@ -356,12 +363,17 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
         <div style="margin-top: 1rem;" class="bg-white p-2 rounded-lg">
             <UTable 
                 :data="displaytransactionsTable" 
+                ref="table"
+                v-model:expanded="extentedState"
                 :columns="tableColumn" 
                 class="flex-1">
                 <template #expanded="{ row }">
-                    <div class="flex flex-row flex-wrap">
+                    <div class="flex flex-row flex-wrap gap-2">
                         <div v-for="tag in row.original.tags" :key="tag.id">
                             <UBadge :label="tag.value" :style="{color:tag.color, borderColor: tag.color}" variant="outline" color="neutral"/>  
+                        </div>
+                        <div v-for="budget in row.original.budgets" :key="budget.id" >
+                            <UBadge :label="budget.title" variant="outline" color="neutral"/>  
                         </div>
                     </div>
                 </template>
@@ -370,7 +382,7 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
                 <UPagination 
                     class="mt-3" 
                     v-model:page="page" 
-                    v-on:update:page="v => paramsTransactions.offset = (paramsTransactions.limit * (v - 1))"
+                    v-on:update:page="v => { paramsTransactions.offset = (paramsTransactions.limit * (v - 1)); extentedState = {}} "
                     :items-per-page="paramsTransactions.limit"  
                     :total="transactions?.totals" 
                     active-variant="subtle" />
