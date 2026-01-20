@@ -167,6 +167,8 @@ function onFilter(value: FormFilterTransaction) {
     paramsTransactions.minPrice = value.minPrice
     paramsTransactions.maxPrice = value.minPrice
     paramsTransactions.status = value.status
+    paramsTransactions.offset = 0
+    page.value = 1
 }
 
 const UIcon = resolveComponent('UIcon');
