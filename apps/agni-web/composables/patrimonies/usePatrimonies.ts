@@ -1,12 +1,12 @@
-import type { ListResponse } from "~/types/api";
-import type { GetAllPatrimoniesResponse, GetAllPatrimonyRequest } from "~/types/api/patrimony";
+import type { ListResponse, QueryFilterRequest } from "~/types/api";
+import type { GetAllPatrimoniesResponse } from "~/types/api/patrimony";
 import type { PatrimonyType, TypePatrimony } from "~/types/ui/patrimony";
 import type { UseApiFetchReturn } from "~/types/utils";
 
 export function usePatrimonies(): UseApiFetchReturn<ListResponse<PatrimonyType>> {
-    const query: GetAllPatrimonyRequest = {
-        period: 'Month',
-        periodTime: 1,
+    const query: QueryFilterRequest = {
+        // period: 'Month',
+        // periodTime: 1,
         limit: 0,
         offset: 0,
         queryAll: true
@@ -33,9 +33,9 @@ export function usePatrimonies(): UseApiFetchReturn<ListResponse<PatrimonyType>>
 }
 
 export async function fetchPatrimonies(): Promise<ListResponse<PatrimonyType>> {
-    const query: GetAllPatrimonyRequest = {
-        period: 'Month',
-        periodTime: 1,
+    const query: QueryFilterRequest = {
+        // period: 'Month',
+        // periodTime: 1,
         limit: 0,
         offset: 0,
         queryAll: true

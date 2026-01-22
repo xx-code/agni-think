@@ -52,16 +52,6 @@ export type UpdateSnapshotPatrimonyRequest = {
     date?: string
 }
 
-export type GetAllSnapshotPatrimonyRequest = QueryFilterRequest & {
-    period: string
-    periodTime: number
-}
-
-export type GetAllPatrimonyRequest = QueryFilterRequest & {
-    period: string
-    periodTime: number
-}
-
 export type GetPatrimonyRequest = {
     period: string
     periodTime: number
