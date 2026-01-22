@@ -33,17 +33,19 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
 
     async execute(): Promise<void> {
         try {
-            const trx = await this.unitOfWork.start() 
+            // const trx = await this.unitOfWork.start() 
             const filterExtend = new ScheduleTransactionFilter()
             filterExtend.schedulerDueDate = { date: new Date(Date.now()), comparator: "<="} 
 
+            const notifications = []
             const scheduleTransactions = await this.scheduleTransactionRepo.getAll({
                 limit: 0, offset: 0,
                 queryAll: true
             }, filterExtend)
 
-            for(let i = 0; i < scheduleTransactions.items.length; i++) {
-                let scheduleTrans = scheduleTransactions.items[i]
+            const shedules = scheduleTransactions.items.filter(i => !i.getIsPause())
+            for(let i = 0; i < shedules.length; i++) {
+                let scheduleTrans = shedules[i]
 
                 const record = new Record(
                     GetUID(),
@@ -76,24 +78,31 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                     transaction.setIsFreeze()
 
                 if (scheduleTrans.getSchedule().repeater === undefined) {
-                    await this.scheduleTransactionRepo.delete(scheduleTrans.getId(), trx)
+                    await this.scheduleTransactionRepo.delete(scheduleTrans.getId())
                 } else {
                     const scheduler = scheduleTrans.getSchedule()
                     const dueDate = MomentDateService.getUTCDateAddition(scheduler.dueDate, scheduler.repeater!.period, scheduler.repeater!.interval)
                     scheduleTrans.reSchedule(new Scheduler(dueDate, { period: scheduler.repeater!.period, interval: scheduler.repeater!.interval}))
-                    await this.scheduleTransactionRepo.update(scheduleTrans, trx);
+                    await this.scheduleTransactionRepo.update(scheduleTrans);
                 }
-                await this.transactionRepo.create(transaction, trx)
+                await this.transactionRepo.create(transaction)
 
+                notifications.push(`la transaction ${scheduleTrans.getName()} de ${record.getMoney().getAmount()} est en pending`)
                 this.eventManager.notify('notification', {
                     title: 'Schedule Transaction',
                     content:`la transaction ${scheduleTrans.getName()} de ${record.getMoney().getAmount()} est en pending`
                 })
             }
-            this.unitOfWork.commit()
+            //this.unitOfWork.commit()
+            // notifications.forEach(n => {
+            //     this.eventManager.notify('notification', {
+            //         title: 'Schedule Transaction',
+            //         content: n
+            //     })
+            // })
         }
         catch (err: any){
-            this.unitOfWork.rollback()
+            //this.unitOfWork.rollback()
             throw err
         }   
     }
