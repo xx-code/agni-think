@@ -90,7 +90,7 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                     content:`la transaction ${scheduleTrans.getName()} de ${record.getMoney().getAmount()} est en pending`
                 })
             }
-
+            this.unitOfWork.commit()
         }
         catch (err: any){
             this.unitOfWork.rollback()
