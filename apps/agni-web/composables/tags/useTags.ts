@@ -23,3 +23,20 @@ export default function useTags(query: Reactive<QueryFilterRequest>): UseApiFetc
 
     return { data, error, refresh };
 }
+
+export async function fetchTags(query: QueryFilterRequest): Promise<ListResponse<TagType>> {
+
+    const res = await $fetch<ListResponse<GetAllTagsResponse>>('/api/tags', {
+        method: 'GET',
+        query: query
+    });
+
+    return { 
+        items: res.items.map(i => ({
+            id: i.id,
+            value: i.value,
+            color: i.color  
+        } satisfies TagType)),
+        totals: Number(res.totals)
+     };
+}

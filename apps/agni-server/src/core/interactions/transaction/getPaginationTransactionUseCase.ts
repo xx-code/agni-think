@@ -177,6 +177,6 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
                 })
         }
 
-        return { items: transactions,  totals: records ? records.length : 0};
+        return { items: transactions,  totals: response.total};
     }
 }
