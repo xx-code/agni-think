@@ -32,12 +32,13 @@ type Schema = z.output<typeof schema>;
 const form = reactive({
     title: patrimony?.title || '',
     amount: patrimony?.amount || 0,
+    accounts: patrimony?.accounts.map(i => i.accountId) || [],
     // description: patrimony?.description || '',
     type: patrimony?.type,
     // categoryId: patrimony?.id
 });
 
-const selectedAccountId = ref<string[]>([])
+const selectedAccountId = ref<string[]>(patrimony?.accounts.map(i => i.accountId) ?? [])
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
     const data = event.data;

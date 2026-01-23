@@ -13,6 +13,7 @@ import { fetchSnapshotsPatrimony } from '~/composables/patrimonies/useSnapshotsP
 import { useUpdatePatrimony } from '~/composables/patrimonies/useUpdatePatrimony';
 import { useUpdateSnapshotPatrimony } from '~/composables/patrimonies/useUpdateSnapshotPatrimony';
 import type { EditePatrimony, EditSnapshotPatrimony, PatrimonyDetailType, SnapshotPatrimonyType, TypePatrimony } from '~/types/ui/patrimony';
+import AssetCard from './AssetCard.vue';
 
 const {data:patrimonies, refresh} = usePatrimonies()
 
@@ -150,10 +151,19 @@ function openSnapshot(snapshot?: SnapshotPatrimonyType) {
 }
 
 async function deletePatrimony(patrimonyId: string) {
-    await useDeletePatrimony(patrimonyId)
-    selectedPatrimony.value = undefined
-    snapshots.value = []
-    refresh()
+    try {
+    const isOk = confirm("Voulez vous supprmier le patrimoine")
+    if (isOk) {
+        await useDeletePatrimony(patrimonyId)
+        selectedPatrimony.value = undefined
+        snapshots.value = []
+        refresh()
+    }
+    } catch(err) {
+        console.log(err)
+        const nuxtError = err as NuxtError
+        alert("Error: " + nuxtError?.message || 'Error Patrimony')
+    } 
 }
 
 async function removeSnapshot(patrimonyId: string, snapshotId: string) {
@@ -190,10 +200,10 @@ const columns: TableColumn<SnapshotPatrimonyType>[] = [
         header: '',
         cell: ({ row }) => {
             return (
-                h('div', { class: 'space-x-1'},
+                h('div', { class: 'space-x-1 text-right'},
                     [
-                        h(UButton, { icon: 'i-lucide-edit', onClick: () => openSnapshot(row.original) }),
-                        h(UButton, { icon: 'i-lucide-trash', onClick: () => removeSnapshot(row.original.patrimonyId, row.original.id) }),
+                        h(UButton, { variant: 'ghost', color: 'info', icon: 'i-lucide-edit', onClick: () => openSnapshot(row.original) }),
+                        h(UButton, { variant: 'ghost', color: 'error', icon: 'i-lucide-trash', onClick: () => removeSnapshot(row.original.patrimonyId, row.original.id) }),
                     ]
                 )
             )
@@ -211,14 +221,14 @@ function computerPercentagePatrimony(totalAmount: number, assetAmount: number) {
   <div class="space-y-6 mt-6">
     <!-- SECTION : Résumé global -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <UCard class="rounded-2xl shadow-sm">
+      <UCard class="rounded-lg shadow-sm">
         <h4 class="text-sm font-medium text-gray-400">Valeur nette totale</h4>
         <p class="font-bold text-2xl mt-2 text-gray-800">
           {{ formatCurrency(totalPatrimony.currentBalance) }}
         </p>
       </UCard>
 
-      <UCard class="rounded-2xl shadow-sm">
+      <UCard class="rounded-lg shadow-sm">
         <h4 class="text-sm font-medium text-gray-400">Évolution mensuelle</h4>
         <p 
           :class="[
@@ -234,7 +244,7 @@ function computerPercentagePatrimony(totalAmount: number, assetAmount: number) {
         </p>
       </UCard>
 
-      <UCard class="rounded-2xl shadow-sm">
+      <UCard class="rounded-lg shadow-sm">
         <h4 class="text-sm font-medium text-gray-400">Actifs vs Passifs</h4>
         <p class="font-bold text-2xl mt-2 text-gray-700">
           <span class="text-green-600">
@@ -249,14 +259,14 @@ function computerPercentagePatrimony(totalAmount: number, assetAmount: number) {
 
     <!-- SECTION : Graphiques -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <UCard class="rounded-2xl shadow-sm">
+      <UCard class="rounded-lg shadow-sm">
         <CustomCardTitle title="Répartition du patrimoine"/>
         <div class="flex justify-center items-center h-[280px]">
           <DoughnutChart :data="patriomiesDonutChart" :options="optionsChart"/>
         </div>
       </UCard>
 
-      <UCard class="rounded-2xl shadow-sm">
+      <UCard class="rounded-lg shadow-sm">
         <CustomCardTitle title="Répartition des actifs"/>
         <div class="flex justify-center items-center h-[280px] text-gray-400 italic">
           (À venir)
@@ -269,77 +279,48 @@ function computerPercentagePatrimony(totalAmount: number, assetAmount: number) {
       <UButton 
         label="Ajouter un patrimoine" 
         icon="i-lucide-castle"
-        class="rounded-xl shadow-md hover:scale-105 transition-transform"
         @click="openPatrimony()" />
     </div>
 
     <!-- SECTION : Liste patrimoines -->
+
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <div 
-        v-for="patrimony in patrimonies?.items" 
-        :key="patrimony.id"
-      >
-        <UCard 
-          :class="[
-            'rounded-2xl transition border hover:shadow-md cursor-pointer',
-            patrimony.id === selectedPatrimony?.id ? 'border-pink-500 ring-1 ring-pink-300' : 'border-gray-200'
-          ]"
-          @click="onClickPatrimony(patrimony.id)"
-        >
-          <div class="flex items-center justify-between">
-            <h5 class="font-semibold text-gray-700">{{ patrimony.title }}</h5>
-            <div class="flex gap-1">
-              <UButton :disabled="patrimony.id !== selectedPatrimony?.id" 
-                icon="i-lucide-plus" size="xs" @click.stop="() => openSnapshot()" />
-              <UButton :disabled="patrimony.id !== selectedPatrimony?.id" 
-                icon="i-lucide-square-pen" size="xs" @click.stop="openPatrimony(patrimony.id)" />
-              <UButton :disabled="patrimony.id !== selectedPatrimony?.id"
-                icon="i-lucide-trash" size="xs" @click.stop="deletePatrimony(patrimony.id)" />
-            </div>
-          </div>
+        v-for="patrimony in patrimonies?.items.filter(i => i.type == 'Asset')" 
+        :key="patrimony.id">
+        <AssetCard 
+            :patrimony="patrimony"
+            @open="onClickPatrimony(patrimony.id)"
+            @delete="deletePatrimony(patrimony.id)"
+            @update="openPatrimony(patrimony.id)"
+        /> 
+      </div>
+    </div>
 
-          <UKbd 
-            :value="patrimony.type === 'Asset' ? 'Actif' : 'Passif'" 
-            class="mt-2"
-          />
-
-          <p class="font-bold text-xl mt-4 text-gray-900">
-            {{ formatCurrency(patrimony.currentBalance) }}
-          </p>
-
-          <p 
-            :class="[
-              'font-semibold text-md mt-2',
-              computeDiff(patrimony.currentBalance, patrimony.lastSnapshotBalance, patrimony.type) > 0 
-                ? 'text-green-500' 
-                : 'text-red-500'
-            ]">
-            <span>
-              {{ computeDiff(patrimony.currentBalance, patrimony.lastSnapshotBalance, patrimony.type) > 0 ? '+' : '-' }}
-            </span>
-            {{
-              Math.abs(
-                roundNumber(
-                  computePercentage(
-                    patrimony.currentBalance,
-                    computeDiff(patrimony.currentBalance, patrimony.lastSnapshotBalance, patrimony.type)
-                  )
-                )
-              )
-            }}%
-          </p>
-        </UCard>
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div 
+        v-for="patrimony in patrimonies?.items.filter(i => i.type == 'Liability')" 
+            :key="patrimony.id">
+            <AssetCard 
+                :patrimony="patrimony"
+                @open="onClickPatrimony(patrimony.id)"
+                @delete="deletePatrimony(patrimony.id)"
+                @update="openPatrimony(patrimony.id)"
+            />    
       </div>
     </div>
 
     <!-- SECTION : Table snapshots -->
-    <UCard class="mt-4 rounded-2xl shadow-sm">
-      <CustomCardTitle title="Historique des snapshots"/>
-      <UTable 
-        :columns="columns" 
-        :data="snapshots"
-        class="mt-2"
-      />
+    <UCard class="mt-4 rounded-lg shadow-sm">
+        <div class="flex justify-between items-center">
+            <CustomCardTitle :title="'Historique des snapshots - ' + (selectedPatrimony?.title ?? '')"/>
+            <UButton label="Snapshot" icon="i-lucide-circle-fading-plus"  @click="openSnapshot()"/>
+        </div>
+        <UTable 
+            :columns="columns" 
+            :data="snapshots"
+            class="mt-2"
+        />
     </UCard>
   </div>
 </template>
