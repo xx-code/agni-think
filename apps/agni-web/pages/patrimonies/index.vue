@@ -123,6 +123,7 @@ async function onSubmitSnapshot(snapshot: EditSnapshotPatrimony, oldSnapshot?: S
         await onClickPatrimony(selectedPatrimony.value?.id || '')
         refresh()
     } catch(err) {
+        console.log(err)
         const nuxtError = err as NuxtError
         alert("Error: " + nuxtError?.cause || 'Error Patrimony')
     }

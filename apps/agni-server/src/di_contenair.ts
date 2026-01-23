@@ -55,7 +55,7 @@ import IAgentPlanningAdvisor from '@core/agents/agentPlanningAdvisor';
 import { CreatePatrimonyUseCase, RequestCreatePatrimony } from '@core/interactions/patrimony/createPatrimony';
 import { RequestUpdatePatrimony, UpdatePatrimonyUseCase } from '@core/interactions/patrimony/updatePatrimony';
 import { GetPatrimonyDto, GetPatrimonyUseCase, RequestGetPatrimony } from '@core/interactions/patrimony/getPatrimony';
-import { GetAllPatrimonyDto, GetAllPatrimonyUseCase, RequestGetAllPatrimony } from '@core/interactions/patrimony/getAllPatrimony';
+import { GetAllPatrimonyDto, GetAllPatrimonyUseCase} from '@core/interactions/patrimony/getAllPatrimony';
 import { AddSnapshotPatrimonyUseCase, RequestAddSnapshotPatrimony } from '@core/interactions/patrimony/addSnapshotToPatrimony';
 import { RequestUpdateSnapshotPatrimony, UpdateSnapshotPatrimonyUseCase } from '@core/interactions/patrimony/updateSnapshotPatrimony';
 import DeletePatrimonyUseCase from '@core/interactions/patrimony/deletePatrimony';
@@ -219,7 +219,7 @@ export class DiContenair {
         deletePatrimony: IUsecase<string, void>
         updatePatrimony: IUsecase<RequestUpdatePatrimony, void>
         getPatrimony: IUsecase<RequestGetPatrimony, GetPatrimonyDto>
-        getAllPatrimony: IUsecase<RequestGetAllPatrimony, ListDto<GetAllPatrimonyDto>>
+        getAllPatrimony: IUsecase<QueryFilter, ListDto<GetAllPatrimonyDto>>
         addSnapshotPatrimony: IUsecase<RequestAddSnapshotPatrimony, CreatedDto>
         removeSnapshotPatrimony: IUsecase<string, void>
         updateSnapshotPatrimony: IUsecase<RequestUpdateSnapshotPatrimony, void>

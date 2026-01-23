@@ -11,9 +11,11 @@ const df = new DateFormatter('en-US', {
   dateStyle: 'medium'
 });
 
+const today = new Date()
+
 const modelValue = shallowRef({
-  start: new CalendarDate(2022, 1, 20),
-  end: new CalendarDate(2022, 2, 10)
+  start: new CalendarDate(today.getFullYear(), today.getMonth() + 1, 1),
+  end: new CalendarDate(today.getFullYear(), today.getMonth() + 1, 5)
 });
 
 </script>
@@ -39,7 +41,6 @@ const modelValue = shallowRef({
       <UCalendar 
         v-model="modelValue" 
         class="p-2" 
-        :number-of-months="2" 
         range 
         v-on:update:model-value="emit('submit', modelValue.start, modelValue.end)"/>
     </template>

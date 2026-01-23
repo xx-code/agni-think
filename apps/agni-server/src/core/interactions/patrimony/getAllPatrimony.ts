@@ -1,8 +1,7 @@
 import { IUsecase } from "../interfaces";
 import { ListDto, QueryFilter } from "@core/dto/base";
 import { GetAccountBalanceByPeriodDto, RequestGetAccountBalanceByPeriod } from "../account/getPastAccountBalanceByPeriod";
-import { MomentDateService } from "@core/domains/entities/libs";
-import { mapperPeriod, PatrimonyType, Period } from "@core/domains/constants";
+import { PatrimonyType, Period } from "@core/domains/constants";
 import Repository, { PatrimonySnapshotFilter } from "@core/adapters/repository";
 import { Account } from "@core/domains/entities/account";
 import { Patrimony } from "@core/domains/entities/patrimony";
@@ -18,12 +17,8 @@ export type GetAllPatrimonyDto = {
     type: string
 }
 
-export type RequestGetAllPatrimony = QueryFilter & {
-    period: string
-    periodTime: number
-}
 
-export class GetAllPatrimonyUseCase implements IUsecase<RequestGetAllPatrimony, ListDto<GetAllPatrimonyDto>> {
+export class GetAllPatrimonyUseCase implements IUsecase<QueryFilter, ListDto<GetAllPatrimonyDto>> {
     private accountRepo: Repository<Account>
     private patrimonyRepo: Repository<Patrimony>
     private snapshotRepo: Repository<PatrimonySnapshot>
@@ -44,7 +39,7 @@ export class GetAllPatrimonyUseCase implements IUsecase<RequestGetAllPatrimony, 
         this.getAccountBalanceByPeriod = getAccountBalanceByPeriod
     }
 
-    async execute(request: RequestGetAllPatrimony): Promise<ListDto<GetAllPatrimonyDto>> {
+    async execute(request: QueryFilter): Promise<ListDto<GetAllPatrimonyDto>> {
         const patrimonies = await this.patrimonyRepo.getAll({
             limit: request.limit,
             offset: request.offset,
@@ -52,16 +47,12 @@ export class GetAllPatrimonyUseCase implements IUsecase<RequestGetAllPatrimony, 
         })
 
         const resPatrimonies: GetAllPatrimonyDto[] = []
-        const period = mapperPeriod(request.period)
-        const beginDate = MomentDateService.getUTCDateSubstraction(new Date(), period, request.periodTime)
-        const { startDate, endDate } = MomentDateService.getUTCDateByPeriod(beginDate, period, request.periodTime)
 
         const extendFilter = new PatrimonySnapshotFilter()
         extendFilter.patrimonyIds = patrimonies.items.map(i => i.getId())
-        extendFilter.startDate = startDate
-        extendFilter.endDate = new Date()
+
         const snapshots = await this.snapshotRepo.getAll({ 
-            limit: 0,
+            limit: 2,
             offset: 0,
             queryAll: true,
             sort: {
@@ -74,9 +65,10 @@ export class GetAllPatrimonyUseCase implements IUsecase<RequestGetAllPatrimony, 
             const patrimony = patrimonies.items[i]
             const accounts = await this.accountRepo.getManyByIds(patrimony.getAccounts().map(i => i.accountId))
             const pastbalanceAccounts = await this.getAccountBalanceByPeriod.execute({
-                period: request.period, 
-                periodTime: request.periodTime, 
-                accountIds: accounts.map(i => i.getId())})
+                period: Period.MONTH, 
+                periodTime: 1, 
+                accountIds: accounts.map(i => i.getId())
+            })
 
             let accountBalance = accounts.reduce((acc:number, account) => acc + account.getBalance(), 0)
             let accountPeriodLastAmount = pastbalanceAccounts.reduce((acc:number, account) => acc + account.balance, 0)
@@ -91,7 +83,7 @@ export class GetAllPatrimonyUseCase implements IUsecase<RequestGetAllPatrimony, 
             resPatrimonies.push({
                 id: patrimony.getId(),
                 amount: amount,
-                currentSnapshotBalance: currentSnaphot ,
+                currentSnapshotBalance: currentSnaphot,
                 lastSnapshotBalance: lastSnapshot,
                 title: patrimony.getTitle(),
                 type: patrimony.getType()

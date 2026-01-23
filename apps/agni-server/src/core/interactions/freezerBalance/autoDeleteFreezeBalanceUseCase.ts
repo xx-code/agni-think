@@ -30,7 +30,7 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
 
     async execute(): Promise<void> {
         try {
-            const trx = await this.unitOfWork.start()
+            // const trx = await this.unitOfWork.start()
 
             const extendFilter = new TransactionFilter()
             extendFilter.isFreeze = true
@@ -56,9 +56,9 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
                 account.addOnBalance(record.getMoney())
 
                 if (MomentDateService.compareDate(MomentDateService.getToday(), record.getUTCDate()) >= 0) {
-                    await this.accountRepository.update(account, trx)
-                    await this.recordRepository.delete(record.getId(), trx)
-                    await this.transactionRepository.delete(response.items[i].getId(), trx)
+                    await this.accountRepository.update(account, /*trx*/)
+                    await this.recordRepository.delete(record.getId(), /*trx*/)
+                    await this.transactionRepository.delete(response.items[i].getId(), /*trx*/)
                     this.eventManager.notify('notification', {
                         title: 'Transaction geler',
                         content:`Le compte ${account.getTitle()} a une transaction degele`
@@ -66,9 +66,10 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
                 }
             }
             
-            await this.unitOfWork.commit()
+            // await this.unitOfWork.commit()
         } catch (err) {
-            await this.unitOfWork.rollback()
+            // await this.unitOfWork.rollback()
+            console.log(err)
         }
     }
 }
