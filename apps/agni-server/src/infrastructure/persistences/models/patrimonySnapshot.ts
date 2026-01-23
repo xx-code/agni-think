@@ -54,7 +54,7 @@ export class PatrimonySnapshotModelMapper implements Mapper<PatrimonySnapshot, P
         return ['date']
     }
     getIdField(): string {
-        return 'patrimony_id'
+        return 'patrimony_snapshot_id'
     }
     getNameField(): string {
         throw new Error("Method not implemented.");

@@ -4,6 +4,7 @@ import { mapperPatrimonyType } from "@core/domains/constants";
 import Repository from "@core/adapters/repository";
 import { Patrimony } from "@core/domains/entities/patrimony";
 import { Account } from "@core/domains/entities/account";
+import { PatrimonyAccount } from "@core/domains/valueObjects/patrimonyAccount";
 
 export type RequestUpdatePatrimony = {
     patrimonyId: string
@@ -37,6 +38,8 @@ export class UpdatePatrimonyUseCase implements IUsecase<RequestUpdatePatrimony, 
         if (request.accountIds) {
             if ((await this.accountRepo.getManyByIds(request.accountIds)).length === 0)
                 throw new ResourceNotFoundError("SOME_ACCOUNT_NOT_FOUND") 
+            
+            patrimony.setAccounts(request.accountIds.map(i => new PatrimonyAccount(i)))
         }
 
         if (request.type)

@@ -7,7 +7,7 @@ import { RequestAddSnapshotPatrimony } from "@core/interactions/patrimony/addSna
 import { RequestUpdateSnapshotPatrimony } from "@core/interactions/patrimony/updateSnapshotPatrimony";
 import { RequestAllSnapshotPatrimony } from "@core/interactions/patrimony/getAllSnapshotOfPatrimony";
 import { RequestGetPatrimony } from "@core/interactions/patrimony/getPatrimony";
-import { RequestGetAllPatrimony } from "@core/interactions/patrimony/getAllPatrimony";
+import { QueryFilter } from "@core/dto/base";
 
 const router = Router();
 
@@ -90,14 +90,12 @@ router.delete('/v1/patrimonies/:id',
 )
 
 router.get('/v1/patrimonies', 
-    query('period').isString(),
-    query('periodTime').isNumeric(),
     query('limit').isNumeric().toInt(),
     query('offset').isNumeric().toInt(),
     query('queryAll').optional().isBoolean().toBoolean(),
     async (req, res) => {
         try {
-            const data: RequestGetAllPatrimony = matchedData(req);
+            const data: QueryFilter = matchedData(req);
             const patrimonies = await container.patrimonyUseCase?.getAllPatrimony.execute(data)
 
             res.status(200).json(patrimonies)
@@ -133,8 +131,6 @@ router.post('/v1/patrimonies/:id/add-snapshot',
 )
 
 router.get('/v1/patrimonies/:id/snapshots', 
-    query('period').isString(),
-    query('periodTime').isNumeric(),
     query('limit').isNumeric().toInt(),
     query('offset').isNumeric().toInt(),
     query('queryAll').optional().isBoolean().toBoolean(),
