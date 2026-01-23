@@ -80,7 +80,8 @@ router.get('/v1/patrimonies/:id',
 router.delete('/v1/patrimonies/:id', 
     async (req, res) => {
         try {
-            await container.patrimonyUseCase?.deletePatrimony.execute(req.params.id)
+            const id = req.params.id as string
+            await container.patrimonyUseCase?.deletePatrimony.execute(id)
             res.sendStatus(200)
         } catch(err) {
             console.log(err)
