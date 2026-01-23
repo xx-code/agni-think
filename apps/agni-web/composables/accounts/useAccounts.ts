@@ -41,6 +41,23 @@ export default function useAccounts(query: Reactive<QueryFilterRequest>): UseApi
     return { data, error, refresh };
 }
 
+export async function fetchAccounts(query: QueryFilterRequest): Promise<ListResponse<AccountType>> {
+    const res = await $fetch<ListResponse<GetAllAccountResponse>>('/api/accounts', {
+        method: 'GET',
+        query: query,
+    });
+
+    return {
+        items: res.items.map(i => ({
+            id: i.accountId,
+            title: i.title,
+            balance: i.balance,
+            type: i.type
+        } satisfies AccountType)),
+        totals: Number(res.totals) 
+    }
+} 
+
 export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promise<ListResponse<AccountWithDetailType>> {
     const res = await $fetch<ListResponse<GetallAccountWithDetailResponse>>('/api/accounts/getAllAccountWithDetail', {
         method: 'GET',

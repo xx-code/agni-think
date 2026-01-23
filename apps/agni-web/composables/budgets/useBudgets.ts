@@ -28,3 +28,25 @@ export default function useBudgets(query: Reactive<QueryFilterRequest>): UseApiF
 
     return { data, error, refresh }
 }
+
+export async function fetchBudgets(query: QueryFilterRequest): Promise<ListResponse<BudgetType>> {
+    const res = await $fetch<ListResponse<GetAllBudgetResponse>>('/api/budgets', {
+        method: 'GET',
+        query: query
+    });
+
+    return {
+        items: res.items.map(i => ({
+                id: i.id,
+                title: i.title,
+                saveGoalIds: i.saveGoalIds,
+                currentBalance: i.currentBalance,
+                target: i.target,
+                realTarget: i.realTarget,
+                saveGoalTarget: i.saveGoalTarget,
+                dueDate: new Date(i.dueDate),
+                repeater: i.repeater
+            } satisfies GetAllBudgetResponse)) ,
+        totals: res.totals
+    } 
+}
