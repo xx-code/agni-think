@@ -15,6 +15,12 @@ services:
         condition: service_started
     networks:
       - agni
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   api:
     container_name: api
     mem_limit: 1g
@@ -41,6 +47,11 @@ services:
     #     condition: service_healthy
     networks:
       - agni
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   agent:
     container_name: agent
     mem_limit: 2g
@@ -54,6 +65,11 @@ services:
       - "${AGENT_PORT}:8000"
     networks:
       - agni
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   db:
     container_name: db
     image: postgres:17-alpine
@@ -75,6 +91,11 @@ services:
       - agni_data:/var/lib/postgresql/data
     networks:
       - agni
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   adminer:
     image: adminer
     restart: always
@@ -84,6 +105,11 @@ services:
       - ${ADMINER_PORT}:8080
     networks: 
       - agni
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 volumes:
   agni_data: 
 networks:
