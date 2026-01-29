@@ -6,9 +6,7 @@ services:
     environment:
       - NODE_ENV=production
       - NUXT_PUBLIC_API_BASE=http://api:${API_PORT}/v1
-    build:
-      context: .
-      dockerfile: ./apps/agni-web/dockerfile
+    image: ${WEB_REGISTRY}
     restart: always
     ports:
       - "${WEB_PORT}:80"
@@ -32,9 +30,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - API_AGENT_URL=http://agent:${AGENT_PORT}
     user: node
-    build:
-      context: .
-      dockerfile: ./apps/agni-server/dockerfile
+    image: ${API_REGISTRY}
     restart: always
     ports:
       - "${API_PORT}:${API_PORT}" # setup in variable
