@@ -97,59 +97,143 @@ const openModalTag = async (tagId?: string) => {
 </script>
 
 <template>
-    <div>
-        <div style="margin-top: 1rem;">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="font-semibold">Categories</h3>
-                <UButton label="Ajouter categorie" icon="i-lucide-plus" @click="openModalCategory()"/>
+    <div class="p-5 space-y-4">
+        <UCard>
+            <div>
+                <div>
+                    <p class="font-bold text-2xl">Général</p>
+                    <p class="text-xs text-gray-500">Configuration globale de l’application</p>
+                </div>
             </div>
-            <USeparator class="mb-3"/>
-            <div class="flex flex-wrap gap-3">
-                <div v-for="category of categories?.items" :key="category.id">
-                    <div 
-                        class="bg-white flex items-center gap-2 border-1 rounded-md p-1" 
-                        :style="'color:'+category.color+';'">
-                        <UIcon :name="category.icon" />
-                        {{ category.title }}
-                        <UButton 
-                            variant="outline" 
-                            color="neutral" 
-                            icon="i-lucide-pencil" 
-                            @click="openModalCategory(category.id)" />
-                        <UButton  
-                            variant="outline" 
-                            color="neutral" 
-                            icon="i-lucide-trash-2" />
+        </UCard>
+
+        <UCard>
+            <div>
+                <div>
+                    <p class="font-bold text-2xl">Deduction</p>
+                    <p class="text-xs text-gray-500">Gestion des decution et taxe</p>
+                </div>
+            </div>
+        </UCard>
+
+        <UCard>
+            <div class="space-y-6">
+                <div class="flex items-end justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Catégories</h2>
+                        <p class="text-sm text-gray-500">Gérez vos enveloppes budgétaires</p>
+                    </div>
+                    <UButton 
+                        label="Nouvelle catégorie" 
+                        icon="i-lucide-plus" 
+                        size="md"
+                        @click="openModalCategory()"
+                    />
+                </div>
+
+                <div class="max-w-md">
+                    <UInput 
+                        icon="i-lucide-search" 
+                        placeholder="Rechercher une catégorie..." 
+                        size="md"
+                    />
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    <div v-for="category of categories?.items" 
+                        :key="category.id"
+                        class="group relative flex flex-col p-4 bg-white border border-gray-100 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-1">
+                        <div class="absolute inset-0 opacity-[0.03] rounded-2xl pointer-events-none" 
+                            :style="{ backgroundColor: category.color }">
+                        </div>
+
+                        <div class="flex items-center justify-between mb-3">
+                            <div 
+                                class="flex items-center justify-center w-8 h-8 rounded-xl"
+                                :style="{ backgroundColor: category.color + '20' }" >
+                                <UIcon 
+                                    :name="category.icon" 
+                                    class="w-6 h-6"
+                                    :style="{ color: category.color }"
+                                />
+                            </div>
+
+                            <div class="flex gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                <UButton 
+                                    variant="ghost" 
+                                    color="neutral" 
+                                    icon="i-lucide-pencil" 
+                                    size="xs"
+                                    @click="openModalCategory(category.id)" />
+                                <UButton 
+                                    variant="ghost" 
+                                    color="error" 
+                                    icon="i-lucide-trash-2" 
+                                    size="xs" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="font-bold text-gray-800 capitalize">{{ category.title }}</h3>
+                            <div 
+                                class="mt-2 h-1.5 w-12 rounded-full"
+                                :style="{ backgroundColor: category.color }">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div style="margin-top: 1rem;">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="font-semibold">Tags</h3>
-                <UButton label="Ajouter tag" icon="i-lucide-plus" @click="openModalTag()"/>
-            </div>
-            <USeparator class="mb-3" />
-            <div class="flex flex-wrap gap-3">
-                <div v-for="tag of tags?.items" :key="tag.id">
-                    <div 
-                        class="bg-white flex items-center gap-2 border-1 rounded-md p-1" 
-                        :style="'color:'+tag.color+';'">
-                        {{ tag.value }}
-                        <UButton 
-                            variant="outline" 
-                            color="neutral" 
-                            icon="i-lucide-pencil" 
-                            @click="openModalTag(tag.id)" />
-                        <UButton  
-                            variant="outline" 
-                            color="neutral" 
-                            icon="i-lucide-trash-2" />
+        </UCard>
+
+        <UCard>
+            <div class="space-y-6">
+                <div class="flex items-end justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Tags</h2>
+                        <p class="text-sm text-gray-500">Classification secondaire</p>
+                    </div>
+                    <UButton 
+                        label="Ajouter tag" 
+                        icon="i-lucide-plus" 
+                        size="md"
+                        @click="openModalTag()"
+                    />
+                </div>
+
+                <div class="max-w-md">
+                    <UInput 
+                        icon="i-lucide-search" 
+                        placeholder="Rechercher un tag..." 
+                        size="md"
+                    />
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    <div v-for="tag of tags?.items" :key="tag.id">
+                        <div 
+                            class="bg-white flex items-center gap-2 border-1 rounded-full px-3 py-1" 
+                            :style="'color:'+tag.color+';'">
+                            <p class="text-sm text-gray-500">
+                                {{ tag.value }}
+                            </p>
+
+                            <div class="text-right">
+                                <UButton 
+                                    variant="ghost" 
+                                    color="info" 
+                                    size="sm"
+                                    icon="i-lucide-pencil" 
+                                    @click="openModalTag(tag.id)" />
+                                <UButton  
+                                    variant="ghost" 
+                                    color="error" 
+                                    size="sm"
+                                    icon="i-lucide-trash-2" />
+                            </div> 
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
+        </UCard>
     </div>    
 </template>
