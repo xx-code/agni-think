@@ -8,7 +8,7 @@ import { ListDto } from "@core/dto/base";
 import { TransactionDependencies } from "../facades";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { QueryFilterAllRepository, SortBy } from "@core/repositories/dto";
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 
 
@@ -44,17 +44,26 @@ export type GetAllTransactionTagDto = {
 }
 
 export type GetAllTransactionDto = {
-    transactionId: string
+    id: string
     accountId: string
-    amount: number
-    date: Date
-    description: string
-    recordType: string
-    type: string
     status: string
-    categoryId: string
-    tagRefs: string[]
-    budgets: string[]
+    type: string
+    subTotalAmount: number
+    totalAmount: number
+    records: {
+        id: string
+        type: string
+        description: string
+        categoryId: string
+        amount: number
+        tagRefs: string[]
+        budgetRefs: string[]
+    }[]
+    deductions: {
+        id: string
+        amount: number
+    }[]
+    date: Date
 }
 
 export class GetPaginationTransaction implements IUsecase<RequestGetPagination, ListDto<GetAllTransactionDto>> {
@@ -132,8 +141,8 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
             sortBy.sortBy = request.sortBy
 
         if (request.sortSense)
-            if (!['asc', 'desc'].includes(request.sortSense))
-                throw new ValidationError('SORT_SENSE_MUST_BE_ASC_DESC')
+                if (!['asc', 'desc'].includes(request.sortSense))
+                    throw new ValidationError('SORT_SENSE_MUST_BE_ASC_DESC')
 
         let filters: QueryFilterAllRepository = {
             offset: request.offset,
@@ -144,39 +153,51 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
 
         const extendTransactionFilter = new TransactionFilter()
         extendTransactionFilter.accounts = request.accountFilterIds
-        extendTransactionFilter.categories = request.categoryFilterIds
-        extendTransactionFilter.budgets = request.budgetFilterIds
-        extendTransactionFilter.tags = request.tagFilterIds
         extendTransactionFilter.startDate = request.dateStart
         extendTransactionFilter.endDate = request.dateEnd
         extendTransactionFilter.isFreeze = request.isFreeze
         extendTransactionFilter.status = status
         extendTransactionFilter.types = types
-        let response = await this.transactionRepository.getAll(filters, extendTransactionFilter);
+        let transactions = await this.transactionRepository.getAll(filters, extendTransactionFilter);
 
-        // TODO: BAD change 
-        let records = await this.transactionDependencies.recordRepository?.getManyByIds(response.items.map(i => i.getRecordRef())) 
+        const extendRecordFilter = new RecordFilter()
+        extendRecordFilter.transactionIds = transactions.items.map(i => i.getId())
+        extendRecordFilter.categories = request.categoryFilterIds
+        extendRecordFilter.budgets = request.budgetFilterIds
+        extendRecordFilter.tags = request.tagFilterIds
+        const records = await this.transactionDependencies.recordRepository?.getAll({offset: 0, limit: 0, queryAll: true}, extendRecordFilter)
 
-        let transactions: GetAllTransactionDto[] = []
-        for (let i = 0; i < response.items.length ; i++) {
-            const transaction = response.items[i]
-            const record = records?.find(i => i.getId() === transaction.getRecordRef());
-            if (record)
-                transactions.push({
+        let responses: GetAllTransactionDto[] = []
+        for (let i = 0; i < transactions.items.length ; i++) {
+            const transaction = transactions.items[i]
+            const transactionRecords = records?.items.filter(i => i.getTransactionId() === transaction.getId());
+
+            let subTotal = 0;
+            if (transactionRecords && transactionRecords?.length > 0) {
+                subTotal = transactionRecords?.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) ?? 0
+
+                responses.push({
+                    id: transaction.getId(), 
                     accountId: transaction.getAccountRef(),
-                    transactionId: transaction.getId(),
-                    amount: record.getMoney().getAmount(),
-                    categoryId: transaction.getCategoryRef(),
-                    date: transaction.getUTCDate(),
-                    tagRefs: transaction.getTags(),
-                    description: record.getDescription(),
+                    date: transaction.getDate(),
                     status: transaction.getStatus(),
-                    recordType: record.getType(),
                     type: transaction.getTransactionType(),
-                    budgets: transaction.getBudgetRefs()
+                    subTotalAmount: subTotal,
+                    totalAmount: subTotal,
+                    records: transactionRecords?.map(i => ({
+                        id: i.getId(), 
+                        amount: i.getMoney().getAmount(),
+                        budgetRefs: i.getBudgetRefs(),
+                        tagRefs: i.getTags(),
+                        categoryId: i.getCategoryRef(),
+                        description: i.getDescription(),
+                        type: i.getType()
+                    })) ?? [],
+                    deductions: []
                 })
+            } 
         }
 
-        return { items: transactions,  totals: response.total};
+        return { items: responses,  totals: transactions.total};
     }
 }

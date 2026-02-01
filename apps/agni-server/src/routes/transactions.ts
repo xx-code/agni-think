@@ -11,13 +11,20 @@ const router = Router();
 
 router.post("/v1/transactions", 
     body('accountId').notEmpty().isString(),
-    body('amount').notEmpty().isNumeric(),
-    body('budgetIds').isArray(),
-    body('categoryId').notEmpty().isString(),
-    body('date').notEmpty().isISO8601().toDate(),
-    body('description').notEmpty().isString(),
-    body('tagIds').isArray(),
+    body('status'),
     body('type').notEmpty().isString(),
+    body('currencyId').optional(),
+    body('date').notEmpty().isISO8601().toDate(),
+    body('records').exists().isArray(),
+    body('deductions').isArray(),
+    body('records.*.amount').exists().isNumeric(),
+    body('records.*.categoryId').exists().isString(),
+    body('records.*.description').optional().isString(),
+    body('records.*.tagIds').optional().isArray(),
+    body('records.*.budgetIds').optional().isArray(),
+    body('deductions').optional({ checkFalsy: true }).isArray(),
+    body('deductions.*.deductionId').notEmpty().isString(),
+    body('deductions.*.amount').notEmpty().isString(),
     async (req, res) => {
         try {
             const result = validationResult(req);
@@ -37,13 +44,22 @@ router.post("/v1/transactions",
 
 router.put("/v1/transactions/:id", 
     body('accountId').optional().isString(),
-    body('amount').optional().isNumeric(),
-    body('budgetIds').optional().isArray(),
-    body('categoryId').optional().isString(),
-    body('date').optional().isISO8601().toDate(),
-    body('description').optional(),
-    body('tagIds').optional().isArray(),
     body('type').optional().isString(),
+    body('currencyId').optional(),
+    body('date').optional().isISO8601().toDate(),
+    body('removeRecordIds').optional().isArray(),
+    body('addRecords').optional().isArray(),
+    body('deductions').optional().isArray(),
+
+    body('addRecords.*.amount').exists().isNumeric(),
+    body('addRecords.*.categoryId').exists().isString(),
+    body('addRecords.*.description').optional().isString(),
+    body('addRecords.*.tagIds').optional().isArray(),
+    body('addRecords.*.budgetIds').optional().isArray(),
+
+    body('deductions').optional({ checkFalsy: true }).isArray(),
+    body('deductions.*.deductionId').notEmpty().isString(),
+    body('deductions.*.amount').notEmpty().isString(),
     async (req: Request, res: Response) => {
         try {
             const result = validationResult(req);
@@ -180,6 +196,7 @@ router.post("/v1/transfert-transaction",
 
 router.post("/v1/freeze-transaction", 
     body('accountId').notEmpty(),
+    body('title').notEmpty().isString(),
     body('amount').notEmpty().isNumeric(),
     body('endDate').notEmpty().isDate(),
     async (req, res) => {

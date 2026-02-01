@@ -1,7 +1,7 @@
 import { IUsecase } from "../interfaces"
 import { MomentDateService } from "@core/domains/entities/libs"
 import { AccountType, RecordType, TransactionType } from "@core/domains/constants"
-import Repository, { TransactionFilter } from "@core/adapters/repository"
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository"
 import { Budget } from "@core/domains/entities/budget"
 import { Transaction } from "@core/domains/entities/transaction"
 import { Account } from "@core/domains/entities/account"
@@ -81,12 +81,10 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
         });
 
         // Compute estimation money
-        let amountFreezeTransction = 0
-        for(const freeze of freezeTransactions.items) {
-            const record  = await this.recordRepository.get(freeze.getRecordRef());
-            if (record)
-                amountFreezeTransction += record?.getMoney().getAmount()
-        }
+        const recordExtendFilter = new RecordFilter()
+        recordExtendFilter.transactionIds = freezeTransactions.items.map(i => i.getId())
+        let records = await this.recordRepository.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
+        const amountFreezeTransction = records.items.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) ?? 0
 
         let moneyToAllocate = 0
         let income = 0
@@ -127,7 +125,6 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
                 ); 
 
                 const extendFilter = new TransactionFilter()
-                extenFilter.budgets = [budget.getId()]
                 extenFilter.startDate = startBudgetUTCDate
                 extendFilter.endDate = budget.getSchedule().dueDate 
                 let transactions = await this.transactionRepo.getAll({
@@ -137,8 +134,12 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
                 });
 
                 let currentBalance = 0
-                let records = await this.recordRepository.getManyByIds(transactions.items.map(transaction => transaction.getRecordRef()))
-                for (let record of records) {
+                
+                const recordExtendFilter = new RecordFilter()
+                recordExtendFilter.transactionIds = transactions.items.map(transaction => transaction.getId())
+                recordExtendFilter.budgets = [budget.getId()]
+                let records = await this.recordRepository.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
+                for (let record of records.items) {
                     if (record.getType() === RecordType.DEBIT)
                         currentBalance += record.getMoney().getAmount()
                 }

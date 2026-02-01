@@ -1,6 +1,6 @@
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { IUsecase } from "../interfaces";
-import { RecordType } from "@core/domains/constants";
+import { RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { Budget } from "@core/domains/entities/budget";
 import { Transaction } from "@core/domains/entities/transaction";
@@ -56,9 +56,10 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
         ); 
 
         const extendFilter = new TransactionFilter()
-        extendFilter.budgets = [budget.getId()]
         extendFilter.startDate = startBudgetUTCDate
+        extendFilter.types = [TransactionType.FIXEDCOST, TransactionType.VARIABLECOST, TransactionType.OTHER]
         extendFilter.endDate = budget.getSchedule().dueDate
+        extendFilter.status = TransactionStatus.COMPLETE
         let transactions = await this.transactionRepository.getAll({
             limit: 0, 
             offset: 0,
@@ -66,10 +67,14 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
         }, extendFilter);
 
         let currentBalance = 0
-        let records = await this.recordRepository.getManyByIds(transactions.items.map(transaction => transaction.getRecordRef()))
-        for (let record of records) {
-            if (record.getType() === RecordType.DEBIT)
-                currentBalance += record.getMoney().getAmount()
+
+        for(const transaction of transactions.items) {
+            const recordExtendFilter = new RecordFilter()
+            recordExtendFilter.transactionIds = [transaction.getId()]
+            const records = await this.recordRepository.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
+            const subTotal = records.items.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) ?? 0
+
+            currentBalance += subTotal
         }
 
         let saveBalance = 0

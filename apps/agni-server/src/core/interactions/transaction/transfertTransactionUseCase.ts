@@ -36,9 +36,11 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
         this.unitOfWork = unitOfWork
     }
 
-    async execute(request: RequestTransfertTransactionUseCase): Promise<void> {
+    async execute(request: RequestTransfertTransactionUseCase, trx?: any): Promise<void> {
         try {
-            const trx = await this.unitOfWork.start()
+            let innerTrx = trx
+            if (!trx)
+                innerTrx = await this.unitOfWork.start()   
 
             let accountFrom = await this.accountRepository.get(request.accountIdFrom);
             if (accountFrom === null)
@@ -56,29 +58,32 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
             accountFrom.substractBalance(amount)
             accountTo.addOnBalance(amount)
 
-            await this.accountRepository.update(accountFrom, trx)
-            await this.accountRepository.update(accountTo, trx)
+            await this.accountRepository.update(accountFrom, innerTrx)
+            await this.accountRepository.update(accountTo, innerTrx)
+
+            let transFrom = new Transaction(GetUID(), accountFrom.getId(), request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
+            await this.transactionRepository.create(transFrom, innerTrx)
+
+            let transTo = new Transaction(GetUID(), accountTo.getId(), request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
+            await this.transactionRepository.create(transTo, innerTrx);
 
             
-            let fromRecord: Record = new Record(GetUID(), amount, request.date, RecordType.DEBIT)
+            let fromRecord: Record = new Record(GetUID(), transFrom.getId(), amount, TRANSFERT_CATEGORY_ID, RecordType.DEBIT)
             fromRecord.setDescription(`Transfert du compte ${accountFrom.getTitle()}`) 
 
-            let toRecord: Record = new Record(GetUID(), amount, request.date, RecordType.CREDIT)
+            let toRecord: Record = new Record(GetUID(), transTo.getId(), amount, TRANSFERT_CATEGORY_ID, RecordType.CREDIT)
             toRecord.setDescription(`Transfert au compte ${accountTo.getTitle()}`)
 
-            await this.recordRepository.create(fromRecord, trx);
+            await this.recordRepository.create(fromRecord, innerTrx);
+            await this.recordRepository.create(toRecord, innerTrx); 
 
-            await this.recordRepository.create(toRecord, trx);
+            if (!trx)
+                await this.unitOfWork.commit()
 
-            let transFrom = new Transaction(GetUID(), accountFrom.getId(), fromRecord.getId(), TRANSFERT_CATEGORY_ID, request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
-            await this.transactionRepository.create(transFrom, trx)
-
-            let transTo = new Transaction(GetUID(), accountTo.getId(), toRecord.getId(), TRANSFERT_CATEGORY_ID, request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
-            await this.transactionRepository.create(transTo, trx);
-
-            await this.unitOfWork.commit()
         } catch (err) {
-            await this.unitOfWork.rollback()
+            if (!trx)
+                await this.unitOfWork.rollback()
+
             throw err
         }
     }

@@ -4,6 +4,7 @@ import { Holding } from "@core/domains/entities/holding"
 import { HoldingTransaction } from "@core/domains/entities/holdingTransaction"
 import Notification from "@core/domains/entities/notification"
 import { PatrimonySnapshot } from "@core/domains/entities/patrimonySnapshot"
+import { Record } from "@core/domains/entities/record"
 import { SaveGoal } from "@core/domains/entities/saveGoal"
 import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction"
 import { Transaction } from "@core/domains/entities/transaction"
@@ -30,28 +31,37 @@ export type RepositoryDateComparator = {
 
 export class TransactionFilter implements QueryFilterExtend<Transaction> { 
     accounts?: Array<string>
-    categories?: Array<string>
-    budgets?: Array<string>
-    tags?: Array<string>
+    status?: TransactionStatus
+    types?: TransactionType[]
     startDate?: Date
     endDate?: Date
     strictEndDate?: boolean
     strictStartDate?: boolean
-    status?: TransactionStatus
-    types?: TransactionType[]
     isFreeze?: boolean
-    queryAll?: boolean
 
     isSatisty(entity: Transaction): boolean {
         if (this.accounts && !this.accounts.includes(entity.getAccountRef())) return false;
-        if (this.categories && !this.categories.includes(entity.getCategoryRef())) return false;
-        if (this.budgets && !entity.getBudgetRefs().some(b => this.budgets!.includes(b))) return false;
-        if (this.tags && !entity.getTags().some(t => this.tags!.includes(t))) return false;
-        if (this.startDate && entity.getUTCDate() < this.startDate) return false;
-        if (this.endDate && entity.getUTCDate() > this.endDate) return false;
         if (this.status && entity.getStatus() !== this.status) return false;
         if (this.types && !this.types.includes(entity.getTransactionType())) return false;
         if (this.isFreeze !== undefined && entity.getIsFreeze() !== this.isFreeze) return false;
+        if (this.startDate && entity.getDate() < this.startDate) return false;
+        if (this.endDate && entity.getDate() > this.endDate) return false;
+        // minPrice/maxPrice à adapter selon l'implémentation de Money
+        return true;
+    }
+}
+
+export class RecordFilter implements QueryFilterExtend<Record> { 
+    transactionIds?: Array<string>
+    categories?: Array<string>
+    budgets?: Array<string>
+    tags?: Array<string>
+
+    isSatisty(entity: Record): boolean {
+        if (this.transactionIds && !this.transactionIds.includes(entity.getTransactionId())) return false;
+        if (this.categories && !this.categories.includes(entity.getCategoryRef())) return false;
+        if (this.budgets && !entity.getBudgetRefs().some(b => this.budgets!.includes(b))) return false;
+        if (this.tags && !entity.getTags().some(t => this.tags!.includes(t))) return false;
         // minPrice/maxPrice à adapter selon l'implémentation de Money
         return true;
     }

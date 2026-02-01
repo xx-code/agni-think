@@ -74,7 +74,7 @@ import { CategoryModel, CategoryModelMapper, KnexCategoryTable } from '@infra/pe
 import { Category } from '@core/domains/entities/category';
 import { KnexTagTable, TagModel, TagModelMapper } from '@infra/persistences/models/tag';
 import { Tag } from '@core/domains/entities/tag';
-import { KnexRecordTable, RecordModel, RecordModelMapper } from '@infra/persistences/models/record';
+import { KnexRecordTable, RecordFilterExtends, RecordModel, RecordModelMapper } from '@infra/persistences/models/record';
 import { Record } from '@core/domains/entities/record';
 import { BudgetFilterExtends, BudgetModel, BudgetModelMapper, KnexBudgetTable } from '@infra/persistences/models/budget';
 import { Budget } from '@core/domains/entities/budget';
@@ -324,8 +324,9 @@ export class DiContenair {
         const recordTable = new KnexRecordTable() 
         await recordTable.createTable(connector)
         const recordModelMapper = new RecordModelMapper()
+        const recordFitlerAdapter = new RecordFilterExtends()
         const recordRepository = new KnexRepository<Record, RecordModel>(
-            connector, recordTable, recordModelMapper
+            connector, recordTable, recordModelMapper, recordFitlerAdapter
         )
         this.registerRepository('record', recordRepository)
 

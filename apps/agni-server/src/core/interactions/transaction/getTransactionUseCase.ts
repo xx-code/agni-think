@@ -1,21 +1,30 @@
-import Repository from "@core/adapters/repository";
+import Repository, { RecordFilter } from "@core/adapters/repository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
 
 export type GetTransactionDto = {
-    transactionId: string
+    id: string
     accountId: string
-    amount: number
-    date: Date
     status: string
-    description: string
-    recordType: string
     type: string
-    categoryId: string
-    tagRefs: string[]
-    budgets: string[]
+    subTotalAmount: number
+    totalAmount: number
+    records: {
+        id: string
+        type: string
+        description: string
+        categoryId: string
+        amount: number
+        tagRefs: string[]
+        budgetRefs: string[]
+    }[]
+    deductions: {
+        id: string
+        amount: number
+    }[]
+    date: Date
 }
 
 export class GetTransactionUseCase implements IUsecase<string, GetTransactionDto> {
@@ -35,22 +44,31 @@ export class GetTransactionUseCase implements IUsecase<string, GetTransactionDto
         if (!transaction)
             throw new ResourceNotFoundError("TRANSACTION_NOT_FOUND")
 
-        let record = await this.recordRepository.get(transaction.getRecordRef())
-        if (record === null)
-            throw new ResourceNotFoundError("RECORD_NOT_FOUND")
+        const extendRecordFilter = new RecordFilter()
+        extendRecordFilter.transactionIds = [transaction.getId()]
+        const records = await this.recordRepository.getAll({offset: 0, limit: 0, queryAll: true}, extendRecordFilter)
+
+        const subTotal = records.items.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) ?? 0
 
         let response: GetTransactionDto = {
+            id: transaction.getId(), 
             accountId: transaction.getAccountRef(),
-            transactionId: transaction.getId(),
-            amount: record.getMoney().getAmount(),
-            date: transaction.getUTCDate(),
-            description: record.getDescription(),
-            recordType: record.getType(),
-            categoryId: transaction.getCategoryRef(),
+            date: transaction.getDate(),
             status: transaction.getStatus(),
             type: transaction.getTransactionType(),
-            tagRefs: transaction.getTags(),
-            budgets: transaction.getBudgetRefs()
+            subTotalAmount: subTotal,
+            totalAmount: subTotal,
+            records: records.items.map(i => ({
+                id: i.getId(), 
+                amount: i.getMoney().getAmount(),
+                budgets: i.getBudgetRefs(),
+                tagRefs: i.getTags(),
+                categoryId: i.getCategoryRef(),
+                description: i.getDescription(),
+                budgetRefs: i.getBudgetRefs(),
+                type: i.getType()
+            })) ?? [],
+            deductions: []
         }
 
         return response

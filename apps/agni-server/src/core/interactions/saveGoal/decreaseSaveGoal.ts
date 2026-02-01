@@ -67,25 +67,23 @@ export class DecreaseSaveGoalUseCase implements IUsecase<RequestDecreaseSaveGoal
             // transfert between account check transfert usecase
             let date = MomentDateService.getTodayWithTime()
 
-            let idRecordSaving = GetUID()
-            let newRecordSaving = new Record(idRecordSaving, decreaseBalance, date, RecordType.CREDIT)
+            let newTransactionTo = new Transaction(GetUID(), request.accountId, date, TransactionType.OTHER, TransactionStatus.COMPLETE,)
+
+            let newRecordSaving = new Record(GetUID(), newTransactionTo.getId(), decreaseBalance, SAVING_CATEGORY_ID, RecordType.CREDIT)
             newRecordSaving.setDescription('Saving ' + savingGoal.getTitle())
             await this.recordRepository.create(newRecordSaving, trx)
-
-            let idTransTo = GetUID()
-            let newTransactionTo = new Transaction(idTransTo, request.accountId, idRecordSaving, 
-                SAVING_CATEGORY_ID, date, TransactionType.OTHER, TransactionStatus.COMPLETE,)
+            
             await this.transactionRepository.create(newTransactionTo, trx)
 
             await this.savingRepository.update(savingGoal, trx)
 
             await this.accountRepository.update(account, trx)
 
-            // await this.unitOfWork.commit()
+            await this.unitOfWork.commit()
         } 
         catch(err: any)
         {
-            // await this.unitOfWork.rollback()
+            await this.unitOfWork.rollback()
             throw err
         }
     }

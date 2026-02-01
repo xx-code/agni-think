@@ -14,6 +14,7 @@ import { Account } from "@core/domains/entities/account";
 export type RequestNewFreezeBalance = {
     accountId: string;
     endDate: Date;
+    title: string
     amount: number;
 }
 
@@ -42,19 +43,13 @@ export class AddFreezeBalanceUseCase implements IUsecase<RequestNewFreezeBalance
 
             let amount = new Money(request.amount)
 
-            let newRecord = new Record(GetUID(), amount, request.endDate, RecordType.DEBIT)
-            newRecord.setDescription("Freeze")
+            let newTransaction = new Transaction(GetUID(), request.accountId, request.endDate, TransactionType.OTHER, TransactionStatus.COMPLETE, true)
+            let newRecord = new Record(GetUID(), newTransaction.getId(), amount, FREEZE_CATEGORY_ID, RecordType.DEBIT, request.title)
 
             fetchedAccount.substractBalance(amount)          
 
             await this.recordRepository.create(newRecord, trx);
-
             await this.accountRepository.update(fetchedAccount, trx)
-
-            let newTransaction = new Transaction(GetUID(), request.accountId, newRecord.getId(), FREEZE_CATEGORY_ID, 
-            request.endDate, TransactionType.OTHER, TransactionStatus.COMPLETE)
-            newTransaction.setIsFreeze()
-            
             await this.transactionRepository.create(newTransaction, trx)
 
             await this.unitOfWork.commit()

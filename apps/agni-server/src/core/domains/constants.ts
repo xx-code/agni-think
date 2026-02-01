@@ -222,7 +222,7 @@ export function mapperTypeAccount(value: string): AccountType {
     }
 }
 
-export function mapperTransactionType(value: string): RecordType {
+export function mapperRecordType(value: string): RecordType {
     switch (value.toLowerCase()) {
         case RecordType.CREDIT.toLowerCase():
             return RecordType.CREDIT

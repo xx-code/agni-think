@@ -1,74 +1,27 @@
 import { TransactionType, TransactionStatus } from '@core/domains/constants';
 import Entity, { TrackableProperty } from "./entity";
-import { ValueObjectCollection } from "../valueObjects/collection";
-import { TransactionBudget, TransactionTag } from "../valueObjects/transactions";
+import { ValueObjectCollection } from '../valueObjects/collection';
+import { TransactionDeduction } from '../valueObjects/transactionDeduction';
 
 // Refactoring
 
 export class Transaction extends Entity {
     private accountRef: TrackableProperty<string>
-    private tagRefs: ValueObjectCollection<TransactionTag>
-    private budgetRefs: ValueObjectCollection<TransactionBudget>
-    private categoryRef: TrackableProperty<string>
-    private recordRef: TrackableProperty<string>
-    private date: TrackableProperty<Date>
     private type: TrackableProperty<TransactionType>
     private status: TrackableProperty<TransactionStatus>
-
+    private date: TrackableProperty<Date>
+    private deductions: ValueObjectCollection<TransactionDeduction>
     private isFreeze: boolean
 
-
-    constructor(id: string, accountRef: string, recordRef: string, categoryRef: string,  date: Date, 
-        type: TransactionType, status: TransactionStatus, tagRefs: string[]=[], budgetRefs: string[]=[], isFreeze:boolean=false) {
+    constructor(id: string, accountRef: string, date: Date, type: TransactionType, 
+        status: TransactionStatus, isFreeze:boolean=false, deductions: TransactionDeduction[] = [],) {
         super(id)
+        this.date = new TrackableProperty(date, this.markHasChange.bind(this))
         this.accountRef = new TrackableProperty<string>(accountRef, this.markHasChange.bind(this))
-        this.recordRef = new TrackableProperty<string>(recordRef, this.markHasChange.bind(this))
-        this.tagRefs = new ValueObjectCollection(tagRefs.map(tag => new TransactionTag(tag)), this.markHasChange.bind(this))
-        this.budgetRefs = new ValueObjectCollection(budgetRefs.map(budget => new TransactionBudget(budget)), this.markHasChange.bind(this))
-        this.categoryRef = new TrackableProperty<string>(categoryRef, this.markHasChange.bind(this))
         this.isFreeze = isFreeze;
-        this.date = new TrackableProperty<Date>(date, this.markHasChange.bind(this))
         this.type = new TrackableProperty<TransactionType>(type, this.markHasChange.bind(this))
         this.status = new TrackableProperty<TransactionStatus>(status, this.markHasChange.bind(this))
-    }
-
-    setTags(tagRefs: string[]) {
-        this.tagRefs.set(tagRefs.map(tag => new TransactionTag(tag)))  
-    }
-    
-    setBudgets(budgetRefs: string[]) {
-        this.budgetRefs.set(budgetRefs.map(budget => new TransactionBudget(budget))) 
-    }
-    
-    addTag(tag: string) {
-        this.tagRefs.add(new TransactionTag(tag)) 
-    }
-
-    addBudget(budget: string) {
-        this.budgetRefs.add(new TransactionBudget(budget))
-    }
-
-    deleteTag(tag: string) {
-        this.tagRefs.delete( new TransactionTag(tag))
-    }
-
-    deleteBudget(budget: string) {
-        this.budgetRefs.delete(new TransactionBudget(budget))
-    }
-
-    getBudgetRefs(): string[] {
-        return this.budgetRefs.get().map(budget => budget.budgetId)
-    }
-
-    getTags(): string[] {
-        return this.tagRefs.get().map(tag => tag.tagId)
-    }
-
-    getCollectionTags(): ValueObjectCollection<TransactionTag> {
-        return this.tagRefs
-    }
-    getCollectionBudgets(): ValueObjectCollection<TransactionBudget> {
-        return this.budgetRefs
+        this.deductions = new ValueObjectCollection<TransactionDeduction>(deductions, this.markHasChange.bind(this))
     }
 
     setAccountRef(accountRef: string) {
@@ -79,8 +32,12 @@ export class Transaction extends Entity {
         return this.accountRef.get()
     }
 
-    setCategoryRef(categoryRef: string) {
-        this.categoryRef.set(categoryRef)
+    setDate(date: Date) {
+        this.date.set(date)
+    }
+
+    getDate(): Date {
+        return this.date.get()
     }
 
     setIsFreeze() {
@@ -89,26 +46,6 @@ export class Transaction extends Entity {
 
     getIsFreeze(): boolean {
         return this.isFreeze
-    }
-
-    getCategoryRef(): string {
-        return this.categoryRef.get()
-    }
-
-    setRecordRef(recordRef: string) {
-        this.recordRef.set(recordRef)
-    }
-
-    getRecordRef(): string {
-        return this.recordRef.get()
-    }
-
-    setDate(date: Date) {
-        this.date.set(date)
-    }
-
-    getUTCDate(): Date {
-        return this.date.get()
     }
 
     setTransactionType(type: TransactionType) {
@@ -125,5 +62,17 @@ export class Transaction extends Entity {
 
     getStatus(): TransactionStatus {
         return this.status.get()
+    }
+
+    addDeduction(deduction: TransactionDeduction) {
+        this.deductions.add(deduction) 
+    }
+
+    deleteDeduction(deduction: TransactionDeduction) {
+        this.deductions.delete(deduction)
+    }
+
+    getCollectionDeductions(): TransactionDeduction[] {
+        return this.deductions.get()
     }
 }

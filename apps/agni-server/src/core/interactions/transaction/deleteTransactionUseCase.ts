@@ -1,12 +1,13 @@
-import { RecordType, SAVING_CATEGORY_ID, TransactionStatus } from "@core/domains/constants";
+import { SAVING_CATEGORY_ID, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { ValueError } from "@core/errors/valueError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { IUsecase } from "../interfaces";
-import Repository from "@core/adapters/repository";
+import Repository, { RecordFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Account } from "@core/domains/entities/account";
 import { Record } from "@core/domains/entities/record";
+import { Money } from "@core/domains/entities/money";
 
 export class DeleteTransactionUseCase implements IUsecase<string, void> {
     private transRepository: Repository<Transaction>;
@@ -25,37 +26,54 @@ export class DeleteTransactionUseCase implements IUsecase<string, void> {
         this.unitOfWork = unitOfWork
     }
     
-    async execute(id: string): Promise<void> {
+    async execute(id: string, trx?: any): Promise<void> {
         try {   
-            const trx = await this.unitOfWork.start()
+            let innerTrx = trx
+            if (!trx)
+                innerTrx = await this.unitOfWork.start() 
 
             let transaction = await this.transRepository.get(id);
             if (!transaction)
                 throw new ResourceNotFoundError('TRANSACTION_NOT_FOUND')
 
-            if ([SAVING_CATEGORY_ID].includes(transaction.getCategoryRef()))
-                throw new ValueError("CANT_UPDATE_TRANSACTION")
+            const extendRecordFilter = new RecordFilter()
+            extendRecordFilter.transactionIds = [id]
+            const records = await this.recordRepo.getAll({ offset: 0, limit: 0, queryAll: true}, extendRecordFilter)
 
-            let record = await this.recordRepo.get(transaction.getRecordRef())
-            if (record === null)
-                throw new ResourceNotFoundError("RECORD_NOT_FOUND")
+            if (records.items.map(i => i.getCategoryRef()).includes(SAVING_CATEGORY_ID))
+                throw new ValueError("DELETE_SAVING_TRANSACTION")
 
             let account = await this.accountRepo.get(transaction.getAccountRef())
             if (account === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
             if (transaction.getStatus() === TransactionStatus.COMPLETE) {
-                record.getType() === RecordType.CREDIT ? account.substractBalance(record.getMoney()) : account.addOnBalance(record.getMoney())
-                await this.accountRepo.update(account, trx);
-            }
-            
-            await this.recordRepo.delete(record.getId(), trx)
+                const recordFilter = new RecordFilter()
+                recordFilter.transactionIds = [transaction.getId()]
+                const records = await this.recordRepo.getAll({ offset: 0, limit: 0, queryAll: true}, recordFilter)
+                const totalAmount = records.items.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) 
 
-            await this.transRepository.delete(id, trx);
+                if (transaction.getTransactionType() === TransactionType.INCOME) {
+                    account.addOnBalance(new Money(totalAmount))
+                } else {
+                    account.substractBalance(new Money(totalAmount)) 
+                }
+
+                await this.accountRepo.update(account, innerTrx);   
+            }
+
+            for (let i = 0; i < records.items.length; i++)
+                await this.recordRepo.delete(records.items[i].getId(), innerTrx)
+
+            await this.transRepository.delete(id, innerTrx);
             
-            await this.unitOfWork.commit()
+            if (!trx)
+                await this.unitOfWork.commit()
+
         } catch(err) {
-            await this.unitOfWork.rollback()
+            if (!trx)
+                await this.unitOfWork.rollback()
+            
             throw err
         }
     }

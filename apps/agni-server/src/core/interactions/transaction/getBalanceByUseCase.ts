@@ -1,9 +1,9 @@
-import { mapperMainTransactionCategory, mapperTransactionType, RecordType, TransactionStatus } from "@core/domains/constants";
+import { mapperMainTransactionCategory, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import ValidationError from "@core/errors/validationError";
 import { IUsecase } from "../interfaces";
 import { MomentDateService } from "@core/domains/entities/libs";
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
 import { RequestGetPagination } from "./getPaginationTransactionUseCase";
@@ -61,27 +61,29 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetPagination, numbe
 
 
         const extendTransactionFilter = new TransactionFilter()
-        extendTransactionFilter.accounts = request.accountFilterIds
-        extendTransactionFilter.categories = request.categoryFilterIds
-        extendTransactionFilter.budgets = request.budgetFilterIds
-        extendTransactionFilter.tags = request.tagFilterIds
+        extendTransactionFilter.accounts = request.accountFilterIds 
         extendTransactionFilter.startDate = request.dateStart
         extendTransactionFilter.endDate = request.dateEnd
-        extendTransactionFilter.isFreeze = undefined
+        extendTransactionFilter.isFreeze = false
         extendTransactionFilter.types = types
 
         const transactions = await this.transactionRepository.getAll(filter, extendTransactionFilter);
 
-        let records = await this.recordRepository
-            .getManyByIds(transactions.items.filter(i => i.getStatus() == TransactionStatus.COMPLETE)
-            .map(transaction => transaction.getRecordRef()))
         let balance = 0
-        for (let record of records) {
-            if (record.getType() === RecordType.CREDIT)
-                balance += record.getMoney().getAmount()
-            else 
-                balance -= record.getMoney().getAmount()
+        for(const transaction of transactions.items) {
+            const extendRecordFilter = new RecordFilter()
+            extendRecordFilter.transactionIds = [transaction.getId()]
+            extendRecordFilter.categories = request.categoryFilterIds
+            extendRecordFilter.budgets = request.budgetFilterIds
+            extendRecordFilter.tags = request.tagFilterIds
+            const records = await this.recordRepository.getAll(filter, extendRecordFilter)
+            let subTotal = 0
+            if (records.items.length > 0)
+                subTotal = records.items.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) ?? 0
+
+            balance = transaction.getTransactionType() === TransactionType.INCOME ? balance + subTotal : balance - subTotal
         }
+
 
         return Number(balance.toFixed(2))
     }

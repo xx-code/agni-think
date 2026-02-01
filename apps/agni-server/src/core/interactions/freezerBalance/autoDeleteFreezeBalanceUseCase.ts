@@ -2,11 +2,12 @@ import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { MomentDateService } from "@core/domains/entities/libs";
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { Account } from "@core/domains/entities/account";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
 import { IEventRegister } from "@core/adapters/event";
+import { Money } from "@core/domains/entities/money";
 
 export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
     private accountRepository: Repository<Account>
@@ -41,23 +42,27 @@ export class AutoDeleteFreezeBalanceUseCase  implements IUsecase<void, void> {
             }, extendFilter);
 
             for (let i = 0; i < response.items.length ; i++) {
-                let account = await this.accountRepository.get(response.items[i].getAccountRef())
+                const transaction = response.items[i]
+                let account = await this.accountRepository.get(transaction.getAccountRef())
                 if (account === null) {
                     console.log((new ResourceNotFoundError("ACCOUNT_NOT_FOUND")))
                     continue
                 }
 
-                let record = await this.recordRepository.get(response.items[i].getRecordRef())
-                if (record === null) {
-                    console.log((new ResourceNotFoundError("RECORD_NOT_FOUND")))
-                    continue
-                }
+                const extendRecordFilter = new RecordFilter()
+                extendRecordFilter.transactionIds = [transaction.getId()]
+                const records = await this.recordRepository.getAll({offset: 0, limit: 0, queryAll: true}, extendRecordFilter)
+                const subTotal = records.items.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) ?? 0
+                // total 
 
-                account.addOnBalance(record.getMoney())
+                account.addOnBalance(new Money(subTotal))
 
-                if (MomentDateService.compareDate(MomentDateService.getToday(), record.getUTCDate()) >= 0) {
+                if (MomentDateService.compareDate(MomentDateService.getToday(), transaction.getDate()) >= 0) {
                     await this.accountRepository.update(account, /*trx*/)
-                    await this.recordRepository.delete(record.getId(), /*trx*/)
+
+                    for (let i = 0; i < records.items.length; i++)
+                        await this.recordRepository.delete(records.items[i].getId(), /*trx*/)
+
                     await this.transactionRepository.delete(response.items[i].getId(), /*trx*/)
                     this.eventManager.notify('notification', {
                         title: 'Transaction geler',

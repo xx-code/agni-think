@@ -8,7 +8,7 @@ import {
     TRANSFERT_CATEGORY_ID } from "@core/domains/constants"
 import UnExpectedError from "@core/errors/unExpectedError"
 import { MomentDateService } from "@core/domains/entities/libs"
-import Repository, { TransactionFilter } from "@core/adapters/repository"
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository"
 import { Transaction } from "@core/domains/entities/transaction"
 import { Record } from "@core/domains/entities/record"
 
@@ -65,17 +65,18 @@ export class CashFlowAnalyseUseCase implements IUsecase<RequestCashFlow, CashFlo
                 queryAll: true
             }, extendFilter);
 
-            let transactionItems = transactions.items 
-            transactionItems = transactions.items.filter(i => !categoriesToExludes.includes(i.getCategoryRef()))
+            const recordExtendFilter = new RecordFilter()
+            recordExtendFilter.transactionIds = transactions.items.map(i => i.getId()) 
+            recordExtendFilter.transactionIds = transactions.items.map(transaction => transaction.getId())
+            let records = await this.recordRepo.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
+            const recordsFilter = records.items.filter(i => !categoriesToExludes.includes(i.getCategoryRef()))
 
-            const records = await this.recordRepo.getManyByIds(transactionItems.map(i => i.getRecordRef()))
-
-            const spends = records.filter(i => i.getType() === RecordType.DEBIT)
+            const spends = recordsFilter.filter(i => i.getType() === RecordType.DEBIT)
             .reduce((acc: number, record) => {
                 return acc + record.getMoney().getAmount();
             }, 0)
 
-            const gains = records.filter(i => i.getType() === RecordType.CREDIT).reduce((acc: number, record) => {
+            const gains = recordsFilter.filter(i => i.getType() === RecordType.CREDIT).reduce((acc: number, record) => {
                 return acc + record.getMoney().getAmount();
             }, 0)
 

@@ -12,17 +12,26 @@ export default function useTransactionPagination(query: Reactive<FilterTransacti
         transform: (data: ListResponse<GetAllTransactionResponse>) => {
             return {
                 items: data.items.map(i => ({
-                    id: i.transactionId,
+                    id: i.id,
                     accountId: i.accountId,
-                    amount: i.amount,
                     date: new Date(i.date),
-                    description: i.description,
-                    recordType: i.recordType,
                     type: i.type,
                     status: i.status,
-                    categoryId: i.categoryId,
-                    tagIds: i.tagRefs,
-                    budgetIds: i.budgets
+                    total: i.totalAmount,
+                    subTotal: i.subTotalAmount,
+                    records: i.records.map(i => ({
+                        id: i.id,
+                        amount: i.amount,
+                        type: i.type,
+                        description: i.description, 
+                        budgetRefs: i.budgetRefs,
+                        categoryId: i.categoryId,
+                        tagRefs: i.tagRefs
+                    })),
+                    deductions: i.deductions.map(i => ({
+                        id: i.id,
+                        amount: i.amount
+                    })),
                 })),
                 totals: Number(data.totals) 
             } satisfies ListResponse<TransactionType>
@@ -39,17 +48,27 @@ export async function fetchTransactionPagination(query: MaybeRefOrGetter<FilterT
     });
 
     return {
-        items: res.items.map(i => ({ id: i.transactionId,
+        items: res.items.map(i => ({
+            id: i.id,
             accountId: i.accountId,
-            amount: i.amount,
             date: new Date(i.date),
-            description: i.description,
-            recordType: i.recordType,
             type: i.type,
             status: i.status,
-            categoryId: i.categoryId,
-            tagIds: i.tagRefs,
-            budgetIds: i.budgets
+            total: i.totalAmount,
+            subTotal: i.subTotalAmount,
+            records: i.records.map(i => ({
+                id: i.id,
+                amount: i.amount,
+                description: i.description,
+                type: i.type,
+                budgetRefs: i.budgetRefs,
+                categoryId: i.categoryId,
+                tagRefs: i.tagRefs
+            })),
+            deductions: i.deductions.map(i => ({
+                id: i.id,
+                amount: i.amount
+            })), 
         })),
         totals: Number(res.totals) 
     } satisfies ListResponse<TransactionType>

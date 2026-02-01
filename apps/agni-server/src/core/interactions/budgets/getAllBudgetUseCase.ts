@@ -1,8 +1,8 @@
 import { IUsecase } from "../interfaces";
 import { ListDto, QueryFilter } from "@core/dto/base";
-import { RecordType } from "@core/domains/constants";
+import { RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { Budget } from "@core/domains/entities/budget";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
@@ -69,9 +69,10 @@ export class GetAllBudgetUseCase implements IUsecase<QueryFilter, ListDto<GetAll
             ); 
 
             const extendFilter = new TransactionFilter()
-            extendFilter.budgets = [budget.getId()]
+            extendFilter.types = [TransactionType.FIXEDCOST, TransactionType.VARIABLECOST, TransactionType.OTHER]
             extendFilter.startDate = startBudgetUTCDate
             extendFilter.endDate = budget.getSchedule().dueDate
+            extendFilter.status = TransactionStatus.COMPLETE
             let transactions = await this.transactionRepository.getAll({
                 offset: 0,
                 limit: 0,
@@ -79,10 +80,14 @@ export class GetAllBudgetUseCase implements IUsecase<QueryFilter, ListDto<GetAll
             }, extendFilter);
 
             let currentBalance = 0
-            let records = await this.recordRepository.getManyByIds(transactions.items.map(transaction => transaction.getRecordRef()))
-            for (let record of records) {
-                if (record.getType() === RecordType.DEBIT)
-                    currentBalance += record.getMoney().getAmount()
+
+            for(const transaction of transactions.items) {
+                const recordExtendFilter = new RecordFilter()
+                recordExtendFilter.transactionIds = [transaction.getId()]
+                const records = await this.recordRepository.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
+                const subTotal = records.items.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) ?? 0
+
+                currentBalance += subTotal
             }
 
             let saveGoals = await this.saveGoalRepository.getManyByIds(budget.getSaveGoalIds())
@@ -100,8 +105,8 @@ export class GetAllBudgetUseCase implements IUsecase<QueryFilter, ListDto<GetAll
                 realTarget: budget.getTarget(),
                 dueDate: budget.getSchedule().dueDate,
                 repeater: budget.getSchedule(). repeater ? {
-                period: budget.getSchedule().repeater!.period,
-                interval: budget.getSchedule().repeater!.interval
+                    period: budget.getSchedule().repeater!.period,
+                    interval: budget.getSchedule().repeater!.interval
                 } : undefined 
             };
 

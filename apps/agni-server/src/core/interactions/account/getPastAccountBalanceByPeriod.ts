@@ -1,7 +1,7 @@
 import { IUsecase } from "../interfaces";
-import { mapperPeriod, Period, RecordType, TransactionStatus } from "@core/domains/constants";
+import { mapperPeriod, Period, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
 import { QueryFilterAllRepository } from "@core/repositories/dto";
@@ -48,20 +48,18 @@ export class GetPastAccountBalanceByPeriodUseCase implements IUsecase<RequestGet
             filterExtends.accounts = [accountId]
             filterExtends.startDate = startDate
             filterExtends.endDate = endDate
-
+            filterExtends.status = TransactionStatus.COMPLETE
             let transactions = await this.transactionRepository.getAll(filter, filterExtends);
-
-            let records = await this.recordRepository
-                .getManyByIds(transactions.items.filter(i => i.getStatus() == TransactionStatus.COMPLETE)
-                .map(transaction => transaction.getRecordRef()))
 
             let balance = 0
 
-            for (let record of records) {
-                if (record.getType() === RecordType.CREDIT)
-                    balance += record.getMoney().getAmount()
-                else 
-                    balance -= record.getMoney().getAmount()
+            for(const transaction of transactions.items) {
+                const recordExtendFilter = new RecordFilter()
+                recordExtendFilter.transactionIds = [transaction.getId()]
+                const records = await this.recordRepository.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
+                const subTotal = records.items.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) ?? 0
+
+                balance = transaction.getTransactionType() === TransactionType.INCOME ? balance + subTotal : balance - subTotal
             }
 
             response.push({

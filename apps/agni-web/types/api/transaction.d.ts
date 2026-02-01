@@ -2,32 +2,43 @@ export type GetBalanceResponse = {
     balance: number
 }
 
-export type GetTransactionResponse = {
-    transactionId: string
-    accountId: string
+export type RecordResponse = {
+    id: string
     amount: number
-    date: Date
-    description: string
-    recordType: string
     type: string
-    status: string
     categoryId: string
+    description: string
     tagRefs: string[]
-    budgets: string[]
+    budgetRefs: string[]
+}
+
+export type TransactionDeductionResponse = {
+    id: string
+    amount: number
+}
+
+export type GetTransactionResponse = {
+    id: string
+    accountId: string
+    status: string
+    type: string
+    subTotalAmount: number
+    totalAmount: number
+    date: Date
+    records: RecordResponse[]
+    deductions: TransactionDeductionResponse[]
 }
 
 export type GetAllTransactionResponse = {
-    transactionId: string
+    id: string
     accountId: string
-    amount: number
-    date: Date
-    description: string
-    recordType: string
-    type: string
     status: string
-    categoryId: string
-    tagRefs: string[]
-    budgets: string[]
+    type: string
+    subTotalAmount: number
+    totalAmount: number
+    date: Date
+    records: RecordResponse[]
+    deductions: TransactionDeductionResponse[]
 }
 
 export type FilterBalanceTransactionQuery = {
@@ -62,24 +73,41 @@ export type FilterTransactionQuery = {
 
 export type CreateTransactionRequest = {
     accountId: string
-    amount: number
-    categoryId: string
-    description: string
-    date: string,
-    tagIds: string[]
-    budgetIds: string[]
+    status: string
+    date: string
     type: string
+    currencyId?: string
+    records: {
+        amount: number
+        categoryId: string
+        description: string
+        tagIds: string[]
+        budgetIds: string[]
+    }[]
+    deductions: {
+        deductionId: string
+        amount: number
+    }[]
 }
 
 export type UpdateTransactionRequest = {
+    id: string;
     accountId?: string
-    tagIds?: string[]
-    budgetIds?: string[]
-    categoryId?: string
-    type?: string
-    description?: string
     date?: string
-    amount?: number
+    type?: string
+    currencyId?: string
+    removeRecordIds: string[]
+    addRecords: {
+        amount: number
+        categoryId: string
+        description: string
+        tagIds: string[]
+        budgetIds: string[]
+    }[]
+    deductions: {
+        deductionId: string
+        amount: number
+    }[]
 }
 
 export type TransfertTransactionRequest = {
@@ -91,6 +119,7 @@ export type TransfertTransactionRequest = {
 
 export type FreezeTransactionRequest = {
     accountId: string,
+    title: string
     amount: number,
     endDate: string
 }
