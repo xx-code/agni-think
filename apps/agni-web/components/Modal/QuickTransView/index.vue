@@ -4,6 +4,9 @@ import { fetchTransactionPagination } from '~/composables/transactions/useTransa
 import type { FilterTransactionQuery } from '~/types/api/transaction';
 import type { AccountWithDetailType } from '~/types/ui/account';
 import ListTransaction from './ListTransaction.vue';
+import { fetchBalance } from '~/composables/transactions/useBalance';
+import { fetchTags } from '~/composables/tags/useTags';
+import { fetchBudgets } from '~/composables/budgets/useBudgets';
 
 export type SlideQuickViewTransactionType = {
     id: string
@@ -80,15 +83,32 @@ const queryAllTrans = reactive<FilterTransactionQuery>({
 });
 const pageTrans = ref(1);
 
-const { data: categories } = useAsyncData('slide-categories', async () => {
+const { data: utils } = useAsyncData('slide-categories', async () => {
     const categories = await fetchCategories({ queryAll: true, offset: 0, limit: 100 });
-    return categories.items;
+    const tags = await fetchTags({ queryAll: true, offset: 0, limit: 100 });
+    const budgets = await fetchBudgets({ queryAll: true, offset: 0, limit: 100 });
+
+    return { categories: categories.items, tags: tags.items, budgets: budgets.items };
+});
+
+const { data: balances } = useAsyncData('slide-categories+balance', async () => {
+    const res = await fetchBalance(queryAllTrans);
+    return res;
 });
 
 const getCategory = (categoryId: string) => {
-    return categories.value?.find(i => i.id === categoryId);
+    return utils.value?.categories.find(i => i.id === categoryId);
 };
 
+const getTag = (tagId: string) => {
+    return utils.value?.tags.find(i => i.id === tagId);
+};
+
+const getBudget = (budgetId: string) => {
+    return utils.value?.budgets.find(i => i.id === budgetId);
+}
+
+// TODO: Duplicate
 const { data: freezeTransactions, refresh: refreshFreezeTransactions } = useAsyncData(
     "slide-freeze-transactions-data", 
     async () => {
@@ -116,17 +136,16 @@ const { data: freezeTransactions, refresh: refreshFreezeTransactions } = useAsyn
                             title: getCategory(record.categoryId)?.title || 'Sans catégorie'
                         },
                         tags: record.tagRefs?.map(tagId => {
-                            // Vous devrez récupérer les tags de la même manière que les catégories
                             return {
                                 id: tagId,
-                                value: tagId, // À remplacer par la vraie valeur
-                                color: '#808080' // À remplacer par la vraie couleur
+                                value: getTag(tagId)?.value || '',
+                                color: getTag(tagId)?.color || '#808080' 
                             };
                         }) || [],
                         budgets: record.budgetRefs?.map(budgetId => {
                             return {
                                 id: budgetId,
-                                title: budgetId // À remplacer par le vrai titre
+                                title: getBudget(budgetId)?.title || ''
                             };
                         }) || []
                     })),
@@ -136,7 +155,7 @@ const { data: freezeTransactions, refresh: refreshFreezeTransactions } = useAsyn
             total: transactions.totals
         };
     }, 
-    { watch: [categories, queryFreeze] }
+    { watch: [utils, queryFreeze] }
 );
 
 const { data: transactions, refresh: refreshTransactions } = useAsyncData(
@@ -166,15 +185,19 @@ const { data: transactions, refresh: refreshTransactions } = useAsyncData(
                             color: getCategory(record.categoryId)?.color || '#808080',
                             title: getCategory(record.categoryId)?.title || 'Sans catégorie'
                         },
-                        tags: record.tagRefs?.map(tagId => ({
-                            id: tagId,
-                            value: tagId,
-                            color: '#808080'
-                        })) || [],
-                        budgets: record.budgetRefs?.map(budgetId => ({
-                            id: budgetId,
-                            title: budgetId
-                        })) || []
+                        tags: record.tagRefs?.map(tagId => {
+                            return {
+                                id: tagId,
+                                value: getTag(tagId)?.value || '',
+                                color: getTag(tagId)?.color || '#808080' 
+                            };
+                        }) || [],
+                        budgets: record.budgetRefs?.map(budgetId => {
+                            return {
+                                id: budgetId,
+                                title: getBudget(budgetId)?.title || ''
+                            };
+                        }) || []
                     })),
                     deductions: i.deductions.map(i => ({ name: i.id, amount: i.amount}))
                 } satisfies SlideQuickViewTransactionType;
@@ -182,24 +205,8 @@ const { data: transactions, refresh: refreshTransactions } = useAsyncData(
             total: transactions.totals
         };
     }, 
-    { watch: [categories, queryAllTrans] }
+    { watch: [utils, queryAllTrans] }
 );
-
-// Statistiques calculées
-const stats = computed(() => {
-    const data = activeTab.value === 'freeze' ? freezeTransactions.value : transactions.value;
-    if (!data?.items) return null;
-
-    const income = data.items
-        .filter(t => t.type === 'Income')
-        .reduce((sum, t) => sum + t.total, 0);
-    
-    const expense = data.items
-        .filter(t => t.type === 'Expense')
-        .reduce((sum, t) => sum + t.total, 0);
-
-    return { income, expense, net: income - expense };
-});
 
 const emit = defineEmits<{
     close: [boolean]
@@ -264,28 +271,28 @@ function getAccountTypeIcon(type: string) {
 
                 <!-- Statistiques de la période affichée -->
                 <div 
-                    v-if="stats"
+                    v-if="balances"
                     class="grid grid-cols-3 gap-3"
                 >
                     <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
                         <p class="text-xs text-green-700 dark:text-green-400 font-medium">Revenus</p>
                         <p class="text-lg font-bold text-green-600 dark:text-green-500">
-                            {{ formatCurrency(stats.income) }}
+                            {{ formatCurrency(balances.income) }}
                         </p>
                     </div>
                     <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-3">
                         <p class="text-xs text-red-700 dark:text-red-400 font-medium">Dépenses</p>
                         <p class="text-lg font-bold text-red-600 dark:text-red-500">
-                            {{ formatCurrency(stats.expense) }}
+                            {{ formatCurrency(balances.spend) }}
                         </p>
                     </div>
                     <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
                         <p class="text-xs text-blue-700 dark:text-blue-400 font-medium">Net</p>
                         <p 
                             class="text-lg font-bold"
-                            :class="stats.net >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'"
+                            :class="(balances.income - balances.spend) >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'"
                         >
-                            {{ formatCurrency(stats.net) }}
+                            {{ formatCurrency((balances.income - balances.spend)) }}
                         </p>
                     </div>
                 </div>

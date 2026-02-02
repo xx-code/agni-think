@@ -179,7 +179,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
             await useUpdateTransaction(oldValue.id, {
                 addRecords: recordAdded, 
                 removeRecordIds: recordRemovedIds,
-                deductions: [],
+                deductions: value.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
                 id: oldValue.id,
                 accountId: value.accountId,
                 date: value.date.toDate(getLocalTimeZone()).toISOString(),
@@ -198,7 +198,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
                     description: i.description,
                     tagIds: i.tagIds
                 })),
-                deductions: []
+                deductions: value.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount}))
             });
         }
         refreshAccounts()

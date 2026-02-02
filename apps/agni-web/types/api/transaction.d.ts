@@ -1,5 +1,7 @@
 export type GetBalanceResponse = {
     balance: number
+    income: number
+    spend: number
 }
 
 export type RecordResponse = {

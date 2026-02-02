@@ -18,6 +18,7 @@ import PatrimonyRoute from './routes/patrimony';
 import NotificationRoute from './routes/notification';
 import CurrencyRoute from './routes/currency';
 import HoldingRoute from './routes/holding';
+import DeductionRoute from './routes/deductions';
 import { ApplyScheduleTransactionCronScheduler, AutoDeletreFreezeTransactionCronScheduler, AutoUpdateBudgetTransactionCronScheduler } from "@infra/adapters/cronScheduler";
 import path = require("path");
 import axios from "axios";
@@ -65,6 +66,7 @@ app.use(PatrimonyRoute)
 app.use(NotificationRoute)
 app.use(CurrencyRoute)
 app.use(HoldingRoute)
+app.use(DeductionRoute)
 
 app.listen(port, async () => {
   try {

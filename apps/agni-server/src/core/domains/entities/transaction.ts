@@ -72,6 +72,10 @@ export class Transaction extends Entity {
         this.deductions.delete(deduction)
     }
 
+    setDeductions(deductions: TransactionDeduction[]) {
+        this.deductions = new ValueObjectCollection<TransactionDeduction>(deductions, this.markHasChange.bind(this))
+    }
+
     getCollectionDeductions(): TransactionDeduction[] {
         return this.deductions.get()
     }

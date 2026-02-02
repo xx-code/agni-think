@@ -1,5 +1,15 @@
 import { ValueError } from "@core/errors/valueError"
 
+export enum DeductionMode {
+    RATE = 'Rate',
+    FLAT = 'Flat'
+}
+
+export enum DeductionBase {
+    SUBTOTAL = 'Subtotal',
+    TOTAL = 'Total'
+}
+
 export enum RecordType {
     CREDIT = 'credit',
     DEBIT = 'Debit'
@@ -256,6 +266,28 @@ export function mapperTransactionStatus(value: string): TransactionStatus {
             return TransactionStatus.PENDING
         default:
             throw new ValueError("TRANSACTION_STATUS_NOT_VALID")
+    }
+}
+
+export function mapperDeductionBase(value: string): DeductionBase {
+    switch(value.toLowerCase()) {
+        case DeductionBase.TOTAL.toLowerCase():
+            return DeductionBase.TOTAL
+        case DeductionBase.SUBTOTAL.toLowerCase():
+            return DeductionBase.SUBTOTAL
+        default:
+            throw new ValueError("DEDUCTION_BASE_NOT_VALID")
+    }
+}
+
+export function mapperDeductionMode(value: string): DeductionMode {
+    switch(value.toLowerCase()) {
+        case DeductionMode.FLAT.toLowerCase():
+            return DeductionMode.FLAT
+        case DeductionMode.RATE.toLowerCase():
+            return DeductionMode.RATE
+        default:
+            throw new ValueError("DEDUCTION_MODE_NOT_VALID")
     }
 }
 

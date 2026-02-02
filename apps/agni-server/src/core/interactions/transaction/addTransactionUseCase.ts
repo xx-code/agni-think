@@ -11,6 +11,7 @@ import { CreatedDto } from "@core/dto/base"
 import { IUsecase } from "../interfaces"
 import Repository from "@core/adapters/repository"
 import UnExpectedError from "@core/errors/unExpectedError"
+import { TransactionDeduction } from "@core/domains/valueObjects/transactionDeduction"
 
 export type RequestAddTransactionUseCase = {
     accountId: string
@@ -61,13 +62,23 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
             
             const status = mapperTransactionStatus(request.status)
 
+            if (request.deductions.length > 0) {
+                if (!request.deductions.every(i => i.amount >= 0))
+                    throw new ResourceNotFoundError("DEDUCTION_MUST_NOT_BE_NEGATIVE")
+
+                const foundDeductions = await this.transcationDependencies.deductionRepository?.getManyByIds(request.deductions.map(i => i.deductionId)) ?? [];
+                if (request.deductions.length !== foundDeductions.length)
+                    throw new ResourceNotFoundError("DEDUCTION_NOT_FOUND");
+            }
+
             let newTransaction = new Transaction(
                 GetUID(), 
                 request.accountId, 
                 request.date,
                 type, 
-                status 
+                status,
             )
+            newTransaction.setDeductions(request.deductions.map(i => new TransactionDeduction(newTransaction.getId(), i.deductionId, i.amount)))
             await this.transactionRepository.create(newTransaction, innerTrx);
 
             if (request.records.length  === 0)
@@ -125,6 +136,7 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
 
             return {newId: newTransaction.getId()}
         } catch (err) {
+            console.log(err)
             if (!trx)
                 await this.unitOfWork.rollback()
             throw err

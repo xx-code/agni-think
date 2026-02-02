@@ -26,17 +26,35 @@ export class TransactionDeduction extends ValueObject {
 
     static fromJson(value: any): TransactionDeduction {
         try {
-            const object: {
-                transactionId: string, 
-                deductionId: string
-                amount: number
-            } = value;
+            if (!value) {
+                throw new Error('Invalid deduction: empty value')
+            }
 
-            const transDeduc = new TransactionDeduction(object.transactionId, object.deductionId, object.amount)
+            // JSONB arrivé en string
+            if (typeof value === 'string') {
+                try {
+                value = JSON.parse(value)
+                } catch {
+                throw new Error(`Invalid deduction JSON string: ${value}`)
+                }
+            }
 
-            return transDeduc
+            if (typeof value !== 'object') {
+                throw new Error('Invalid deduction: not an object')
+            }
+
+            const transactionId = value.transactionId ?? value.transaction_id
+            const deductionId   = value.deductionId   ?? value.deduction_id
+            const amount        = Number(value.amount)
+
+            if (!deductionId || isNaN(amount)) {
+                throw new Error(`Invalid deduction payload: ${JSON.stringify(value)}`)
+            }
+
+            return new TransactionDeduction(transactionId, deductionId, amount)
         } catch(err) {
             throw err
         }
     }
 }
+

@@ -24,7 +24,7 @@ router.post("/v1/transactions",
     body('records.*.budgetIds').optional().isArray(),
     body('deductions').optional({ checkFalsy: true }).isArray(),
     body('deductions.*.deductionId').notEmpty().isString(),
-    body('deductions.*.amount').notEmpty().isString(),
+    body('deductions.*.amount').notEmpty().isNumeric(),
     async (req, res) => {
         try {
             const result = validationResult(req);
@@ -36,8 +36,10 @@ router.post("/v1/transactions",
                 return;
             } 
             
+            console.log(result.array())
             res.status(400).send({ errors: result.array() });
         } catch(err) {
+            console.log(err)
             res.status(400).send({ errors: [err] });
         }
     });
@@ -59,7 +61,7 @@ router.put("/v1/transactions/:id",
 
     body('deductions').optional({ checkFalsy: true }).isArray(),
     body('deductions.*.deductionId').notEmpty().isString(),
-    body('deductions.*.amount').notEmpty().isString(),
+    body('deductions.*.amount').notEmpty().isNumeric(),
     async (req: Request, res: Response) => {
         try {
             const result = validationResult(req);
@@ -71,6 +73,7 @@ router.put("/v1/transactions/:id",
                 res.sendStatus(200);
                 return;
             }
+            console.log(result.array())
             res.status(400).send({ errors: result.array() });
         } catch(err) {
             console.log(err)
@@ -116,7 +119,7 @@ router.get("/v1/transactions-balance",
                 const data: RequestGetPagination = matchedData(req);
                 const balance = await container.transactionUseCase?.getBalanceBy.execute(data);
 
-                res.status(200).json({balance: balance});
+                res.status(200).json(balance);
                 return;
             }
 

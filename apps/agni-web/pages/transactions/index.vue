@@ -35,23 +35,53 @@ const query = reactive<FilterTransactionQuery>({
     isFreeze: false
 });
 
-const { data, error, refresh, status } = useAsyncData(`transactions-${JSON.stringify(query)}`, async () => {
-
-    const [transactions, balance, accounts, categories, budgets, tags] = await Promise.all([
-        fetchTransactionPagination(query),
-        fetchBalance(query),
+const { data: utils, refresh: refreshUtils, error: errorUtils } = useAsyncData('utils-transactions', async () => {
+    const [ accounts, categories, deductions, budgets, tags] = await Promise.all([
         fetchAccounts({ offset: 0, limit: 0, queryAll: true }),
         fetchCategories({ offset: 0, limit: 0, queryAll: true }),
+        fetchDeductionTypes({ offset: 0, limit: 0, queryAll: true }),
         fetchBudgets({ offset: 0, limit: 0, queryAll: true }),
         fetchTags({ offset: 0, limit: 0, queryAll: true })
     ])
 
-    const getCategory = (id: string) => categories.items.find(i => id === i.id)
-    const getTag = (id: string) => tags.items.find(i => id === i.id)
-    const getBudget = (id: string) => budgets.items.find(i => id === i.id)
+    return {
+        accounts: accounts.items, 
+        categories: categories.items,
+        budgets: budgets.items,
+        deductions: deductions.items,
+        tags: tags.items
+    }
+
+})
+
+const getCategory = (id: string) => utils.value?.categories.find(i => id === i.id)
+const getTag = (id: string) => utils.value?.tags.find(i => id === i.id)
+const getBudget = (id: string) => utils.value?.budgets.find(i => id === i.id)
+const getDeduction = (id: string) => utils.value?.deductions.find(i => id === i.id)
+
+function calculateDeductionAmount(deduction: { deductionId: string; amount: number }) {
+    const deductionType = getDeduction(deduction.deductionId);
+    if (!deductionType) return 0;
+    
+    if (deductionType.mode === 'Flat') {
+        return deduction.amount || 0;
+    } else if (deductionType.mode === 'Rate') {
+        return  (deduction.amount || 0) / 100;
+    }
+    
+    return 0;
+}
+
+const { data, error, refresh, status } = useAsyncData(`transactions-${JSON.stringify(query)}`, async () => {
+
+    const [transactions, balance ] = await Promise.all([
+        fetchTransactionPagination(query),
+        fetchBalance(query),
+    ])
+
+    
 
     return {
-        accounts: accounts.items,
         transactions: transactions.items.map(i => ({
             id: i.id,
             accountId: i.accountId,
@@ -83,15 +113,17 @@ const { data, error, refresh, status } = useAsyncData(`transactions-${JSON.strin
                 }))
             } satisfies RecordTableType)),
             deductions: i.deductions.map(d => ({
-                name: d.id, // ou autre nom si disponible
-                amount: d.amount
+                name: getDeduction(d.id)?.description || '', // ou autre nom si disponible
+                amount: calculateDeductionAmount({deductionId: d.id, amount: d.amount}) 
             }))
         } satisfies TransactionTableType)),
 
         total: transactions.totals,
-        balance: balance.balance
+        balance: balance.balance,
+        income: balance.income,
+        spends: balance.spend
     }
-}, { watch: [query] });
+}, { watch: [utils, query] });
 
 
 const expandedState = ref<Record<string, boolean>>({})
@@ -127,7 +159,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
             await useUpdateTransaction(oldValue.id, {
                 addRecords: recordAdded, 
                 removeRecordIds: recordRemovedIds,
-                deductions: [],
+                deductions: value.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
                 id: oldValue.id,
                 accountId: value.accountId,
                 date: value.date.toDate(getLocalTimeZone()).toISOString(),
@@ -146,7 +178,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
                     description: i.description,
                     tagIds: i.tagIds
                 })),
-                deductions: []
+                deductions: value.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
             });
         }
         refresh()
@@ -354,21 +386,6 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
     return options;
 }
 
-// Stats calculées
-const stats = computed(() => {
-    if (!data.value) return null
-    
-    const income = data.value.transactions
-        .filter(t => t.type === 'Income')
-        .reduce((sum, t) => sum + t.total, 0)
-    
-    const expense = data.value.transactions
-        .filter(t => t.type === 'Expense')
-        .reduce((sum, t) => sum + t.total, 0)
-    
-    return { income, expense }
-})
-
 </script>
 
 <template>
@@ -384,17 +401,17 @@ const stats = computed(() => {
                         </p>
                     </div>
                     
-                    <div v-if="stats" class="flex gap-6">
+                    <div v-if="data" class="flex gap-6">
                         <div>
                             <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Revenus</p>
                             <p class="text-lg font-semibold text-green-600">
-                                {{ formatCurrency(stats.income) }}
+                                {{ formatCurrency(data.income) }}
                             </p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Dépenses</p>
                             <p class="text-lg font-semibold text-red-600">
-                                {{ formatCurrency(stats.expense) }}
+                                {{ formatCurrency(data.spends) }}
                             </p>
                         </div>
                     </div>
@@ -422,7 +439,7 @@ const stats = computed(() => {
             
             <div v-else class="flex flex-wrap gap-2">
                 <UBadge 
-                    v-for="account of data?.accounts.filter(i => query.accountFilterIds?.includes(i.id))"
+                    v-for="account of utils?.accounts.filter(i => query.accountFilterIds?.includes(i.id))"
                     :key="account.id"
                     :label="account.title"
                     color="primary"

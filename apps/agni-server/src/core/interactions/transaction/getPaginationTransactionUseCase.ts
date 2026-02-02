@@ -1,4 +1,4 @@
-import { mapperMainTransactionCategory, mapperTransactionStatus, TransactionStatus } from "@core/domains/constants";
+import { DeductionBase, DeductionMode, mapperMainTransactionCategory, mapperTransactionStatus, TransactionStatus } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { isEmpty } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
@@ -8,7 +8,7 @@ import { ListDto } from "@core/dto/base";
 import { TransactionDependencies } from "../facades";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { QueryFilterAllRepository, SortBy } from "@core/repositories/dto";
-import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter, TransactionRecordCountReader } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 
 
@@ -69,12 +69,16 @@ export type GetAllTransactionDto = {
 export class GetPaginationTransaction implements IUsecase<RequestGetPagination, ListDto<GetAllTransactionDto>> {
     private transactionRepository: Repository<Transaction>;
     private transactionDependencies: TransactionDependencies
+    private transactionRecordCountReader: TransactionRecordCountReader
 
     constructor(
         transactionRepository: Repository<Transaction>, 
-        transactionDependencies: TransactionDependencies) {
+        transactionDependencies: TransactionDependencies,
+        transactionRecordCountReader: TransactionRecordCountReader
+    ) {
         this.transactionRepository = transactionRepository;
         this.transactionDependencies = transactionDependencies
+        this.transactionRecordCountReader = transactionRecordCountReader
     }
 
     async execute(request: RequestGetPagination): Promise<ListDto<GetAllTransactionDto>> {
@@ -167,6 +171,15 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
         extendRecordFilter.tags = request.tagFilterIds
         const records = await this.transactionDependencies.recordRepository?.getAll({offset: 0, limit: 0, queryAll: true}, extendRecordFilter)
 
+        const deductionIds = [  ...new Set(
+            transactions.items
+            .flatMap(item => item.getCollectionDeductions())
+            .map(d => d.deductionId))
+        ]
+        const deductions = await this.transactionDependencies.deductionRepository?.getManyByIds(deductionIds) 
+
+        const total = await this.transactionRecordCountReader.count(extendTransactionFilter, extendRecordFilter)
+
         let responses: GetAllTransactionDto[] = []
         for (let i = 0; i < transactions.items.length ; i++) {
             const transaction = transactions.items[i]
@@ -176,6 +189,24 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
             if (transactionRecords && transactionRecords?.length > 0) {
                 subTotal = transactionRecords?.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) ?? 0
 
+                const transDeductions = deductions?.filter(i => transaction.getCollectionDeductions().map(i => i.deductionId).includes(i.getId()))
+
+                const deductionSubTotal = transDeductions?.filter(i => i.getBase() === DeductionBase.SUBTOTAL)
+                const deductionTotal = transDeductions?.filter(i => i.getBase() === DeductionBase.TOTAL)
+
+                deductionSubTotal?.forEach(i => {
+                    const deduc = transaction.getCollectionDeductions().find(trans => trans.deductionId === i.getId())
+                    if (deduc) 
+                        subTotal = i.getMode() === DeductionMode.FLAT ? subTotal + deduc.amount : subTotal + (subTotal * (deduc.amount/100) )
+                })
+
+                let total = subTotal
+                deductionTotal?.forEach(i => {
+                    const deduc = transaction.getCollectionDeductions().find(trans => trans.deductionId === i.getId())
+                    if (deduc) 
+                        total = i.getMode() === DeductionMode.FLAT ? total + deduc.amount : total + (total * (deduc.amount/100) )
+                })
+
                 responses.push({
                     id: transaction.getId(), 
                     accountId: transaction.getAccountRef(),
@@ -183,7 +214,7 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
                     status: transaction.getStatus(),
                     type: transaction.getTransactionType(),
                     subTotalAmount: subTotal,
-                    totalAmount: subTotal,
+                    totalAmount: total,
                     records: transactionRecords?.map(i => ({
                         id: i.getId(), 
                         amount: i.getMoney().getAmount(),
@@ -193,11 +224,14 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
                         description: i.getDescription(),
                         type: i.getType()
                     })) ?? [],
-                    deductions: []
+                    deductions: transaction.getCollectionDeductions().map(i => ({
+                        id: i.deductionId,
+                        amount: i.amount
+                    }))
                 })
             } 
         }
 
-        return { items: responses,  totals: transactions.total};
+        return { items: responses,  totals: total};
     }
 }

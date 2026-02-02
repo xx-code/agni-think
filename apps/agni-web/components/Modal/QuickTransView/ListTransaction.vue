@@ -29,7 +29,7 @@ function getStatusConfig(status: string) {
 }
 
 function getTypeColor(type: string) {
-    return type === 'Expense' ? '#ef4444' : '#10b981';
+    return type !== 'Income' ? '#ef4444' : '#10b981';
 }
 </script>
 

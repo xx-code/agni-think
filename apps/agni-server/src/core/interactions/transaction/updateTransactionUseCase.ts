@@ -1,14 +1,13 @@
-import { FREEZE_CATEGORY_ID, mapperMainTransactionCategory, RecordType, SAVING_CATEGORY_ID, TransactionType } from "@core/domains/constants";
-import { Money } from "@core/domains/entities/money";
+import { mapperMainTransactionCategory, } from "@core/domains/constants";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { RequestAddTransactionUseCase } from "./addTransactionUseCase";
-import { ValueError } from "@core/errors/valueError";
 import { IUsecase } from "../interfaces";
 import { TransactionDependencies } from "../facades";
 import { CreatedDto } from "@core/dto/base";
 import Repository, { RecordFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
+import { TransactionDeduction } from "@core/domains/valueObjects/transactionDeduction";
 
 
 export type RequestUpdateTransactionUseCase = {
@@ -76,23 +75,49 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
                 transaction.setDate(request.date)
             }
 
+            if (request.deductions) {
+                if (transaction.getCollectionDeductions().length !== request.deductions.length)
+                    transaction.setDeductions(request.deductions.map(i => new TransactionDeduction(transaction.getId(), i.deductionId, i.amount)))
+                else if (transaction.getCollectionDeductions().every(i => request.deductions.every(e => i.deductionId === e.deductionId && i.amount === e.amount)))
+                    transaction.setDeductions(request.deductions.map(i => new TransactionDeduction(transaction.getId(), i.deductionId, i.amount)))
+
+                if (!request.deductions.every(i => i.amount >= 0))
+                    throw new ResourceNotFoundError("DEDUCTION_MUST_NOT_BE_NEGATIVE")
+
+                const foundDeductions = await this.transationDependencies.deductionRepository?.getManyByIds(request.deductions.map(i => i.deductionId)) ?? [];
+                if (request.deductions.length !== foundDeductions.length)
+                    throw new ResourceNotFoundError("DEDUCTION_NOT_FOUND");
+            }
+
             const anyRecordChanged = request.addRecords.length > 0 || request.removeRecordIds.length > 0
 
             if (anyRecordChanged || transaction.hasChange())  {
-                console.log(request.addRecords)
+                const extendRecordFilter = new RecordFilter()
+                extendRecordFilter.transactionIds = [transaction.getId()]
+                const records = await this.transationDependencies.recordRepository?.getAll({offset: 0, limit: 0, queryAll: true}, extendRecordFilter)
+
+
+
                 await this.addTransactionUsecase.execute({
                     accountId: transaction.getAccountRef(),
                     type: transaction.getTransactionType(),
                     date: transaction.getDate(),
                     status: transaction.getStatus(),
-                    records: request.addRecords.map(i => ({
+                    records: (request.addRecords.length === 0 &&  request.removeRecordIds.length === 0) ? records!.items.map(i => ({
+                        amount: i.getMoney().getAmount(),
+                        budgetIds: i.getBudgetRefs(),
+                        categoryId: i.getCategoryRef(),
+                        description: i.getDescription(),
+                        tagIds: i.getTags()
+                    })) : 
+                    request.addRecords.map(i => ({
                         amount: i.amount,
                         categoryId: i.categoryId,
                         description: i.description,
                         tagIds: i.tagIds,
                         budgetIds: i.budgetIds,
                     })),
-                    deductions: []
+                    deductions: request.deductions
                 }, trx)
 
                 await this.deleteTransactionUsecase.execute(request.id, trx)

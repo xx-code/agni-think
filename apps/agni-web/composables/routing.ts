@@ -1,34 +1,57 @@
-export type RouteInfoType = {
-    url: string,
-    routeName: string
-    title: string,
-    subtitle: string
+import { useRoute } from 'nuxt/app'
+
+interface RouteInfo {
+  title: string
+  subtitle: string
 }
 
-export const routeInfos: Map<string, RouteInfoType> = new Map([
-    ['/', {url: '/', routeName: 'Dashboard', title: 'Bienvenu, Auguste!', subtitle: 'Il est temps de jeter un coup d\'oeil au portefeuil'}],
-    ['/transactions', {url: '/transactions', title: 'Transactions', routeName: 'Transactions', subtitle: 'Un angle de vue global sur votre flux d\'argent'}],
-    ['/scheduletransactions', {url: '/scheduletransactions', title: 'Schedule Transaction', routeName: 'ScheduleTransactions', subtitle: 'Voyons les depenses a venir'}],
-    ['/wallets', {url: '/wallets', title: 'Vos comptes', routeName: 'Wallets', subtitle: 'Rien ne fait plus mal qu’au portefeuille. Alors protège-le'}],
-    ['/budgets', {url: '/budgets', title: 'Budgets', routeName: 'Budgets', subtitle: 'Gere ton budget comme un pro'}],
-    ['/goals', {url: '/goals', title: 'But d\'epargne', routeName: 'Goals', subtitle: 'Prêt à mettre un peu d\'argent de côté pour le plaisir.'}],
-    ['/analystics', {url: '/analystics', title: 'Analytics', routeName: 'Analytics', subtitle: ''}],
-    ['/patrimonies', {url: '/patrimonies', title: 'Patrimoine', 
-        routeName: 'Patrimoine', subtitle: 'Toujours garder un oeil sur la construction de ton patrimoine. Ta vrai richesse!'}],
-    ['/settings', {url: '/settings', title: 'Parametres', routeName: 'Settings', subtitle: 'Gestion des constantes de l\'application'}],
-])
+const routeMap: Record<string, RouteInfo> = {
+  '/': {
+    title: 'Dashboard',
+    subtitle: 'Overview of your finances'
+  },
+  '/transactions': {
+    title: 'Transactions',
+    subtitle: 'Manage your income and expenses'
+  },
+  '/wallets': {
+    title: 'Wallets',
+    subtitle: 'View and manage your wallets'
+  },
+  '/scheduletransactions': {
+    title: 'Scheduled Transactions',
+    subtitle: 'Manage recurring payments'
+  },
+  '/budgets': {
+    title: 'Budgets',
+    subtitle: 'Track your spending limits'
+  },
+  '/goals': {
+    title: 'Goals',
+    subtitle: 'Monitor your savings goals'
+  },
+  '/analytics': {
+    title: 'Analytics',
+    subtitle: 'Insights into your financial data'
+  },
+  '/patrimonies': {
+    title: 'Patrimoine',
+    subtitle: 'Track your net worth'
+  },
+  '/settings': {
+    title: 'Settings',
+    subtitle: 'Customize your experience'
+  }
+}
 
-export const useCurrentRouteInfo = (): Ref<RouteInfoType|undefined> => {
-    const routeInfo:Ref<RouteInfoType|undefined> = ref(undefined) 
-    const route = useRoute()
-
-    const update = () => {
-        routeInfo.value = routeInfos.get(route.path);
+export const useCurrentRouteInfo = () => {
+  const route = useRoute()
+  
+  return computed(() => {
+    const path = route.path
+    return routeMap[path] || {
+      title: 'Page',
+      subtitle: 'Welcome'
     }
-
-    update()
-
-    watch(() => route.path, update)
-       
-    return routeInfo
+  })
 }

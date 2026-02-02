@@ -67,6 +67,9 @@ export class RecordFilter implements QueryFilterExtend<Record> {
     }
 }
 
+export interface TransactionRecordCountReader {
+    count(queryTransaction: QueryFilterExtend<Transaction>, queryRecord: QueryFilterExtend<Record>): Promise<number> 
+}
 
 export class ScheduleTransactionFilter implements QueryFilterExtend<ScheduleTransaction> {
     schedulerDueDate?: RepositoryDateComparator

@@ -8,12 +8,18 @@ export type EditRecordType = {
     budgetIds: string[]
 } 
 
+export type EditTransactionDeductionType = {
+    deductionId: string
+    amount: number
+}
+
 export type EditTransactionType = {
     accountId: string
     state: string
     type: string
     date: CalendarDate
     records: EditRecordType[] 
+    deductions: EditTransactionDeductionType[]
 }
 
 export type EditFreezeTransactionType = {
