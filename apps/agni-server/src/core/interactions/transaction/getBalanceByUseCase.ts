@@ -103,8 +103,17 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetPagination, GetBa
             for(const transaction of transactions.items) {
                 let subTotal = 0
                 const transRecords = records.items.filter(i => i.getTransactionId() === transaction.getId())
-                if (transRecords.length > 0)
-                    subTotal = transRecords.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) ?? 0
+                if (transRecords.length > 0)  {
+                    const recordCredit = transRecords.filter(i => i.getType() === RecordType.CREDIT).map(i => i.getMoney().getAmount())
+                    const recordDebit = transRecords.filter(i => i.getType() === RecordType.DEBIT).map(i => i.getMoney().getAmount())
+
+                    if (recordCredit.length > 0)
+                        subTotal += recordCredit.reduce((prev, curr) =>  curr += prev) ?? 0
+
+                    if (recordDebit.length > 0)
+                        subTotal -= recordDebit.reduce((prev, curr) =>  curr += prev) ?? 0
+                    
+                }
 
                 const transDeductions = deductions.filter(i => transaction.getCollectionDeductions().map(i => i.deductionId).includes(i.getId()))
 
@@ -124,13 +133,19 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetPagination, GetBa
                 })
 
                 if (transaction.getTransactionType() === TransactionType.INCOME)
-                    income += subTotal
-                else 
-                    spend -= subTotal
+                    income +=  subTotal
+                if (transaction.getTransactionType() === TransactionType.OTHER) {
+                    if (subTotal > 0)
+                        income += subTotal
+                    else 
+                        spend += Math.abs(subTotal) 
+                } else 
+                    spend += Math.abs(subTotal)
 
             }
 
-            const balance = income - Math.abs(spend) 
+
+            const balance = income - spend 
 
             return {
                 balance: Number(balance.toFixed(2)),
