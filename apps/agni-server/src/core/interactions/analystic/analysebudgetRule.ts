@@ -1,7 +1,7 @@
 import { IUsecase } from "../interfaces";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { AccountType, mapperPeriod, Period, RecordType, SAVING_CATEGORY_ID, TransactionType } from "@core/domains/constants";
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
 import { Account } from "@core/domains/entities/account";
@@ -61,7 +61,9 @@ export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRu
                 queryAll: true 
             }, extendFilter)
 
-            const records = await this.recordRepo.getManyByIds(transactions.items.map(i => i.getRecordRef()))
+            const recordExtendFilter = new RecordFilter()
+            recordExtendFilter.transactionIds = transactions.items.map(transaction => transaction.getId())
+            let records = await this.recordRepo.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
             const accounts = await this.accountRepo.getAll({
                 limit: 0, offset: 0, queryAll: true
             });
@@ -69,13 +71,13 @@ export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRu
             const transactionTypes = [TransactionType.FIXEDCOST, TransactionType.VARIABLECOST] 
             const results: BudgetRuleDto[] = []
             
-            const incomeTransactions = transactions.items.filter(i => i.getTransactionType() === TransactionType.INCOME).map(i => i.getRecordRef())
-            const recordByIncomes = records.filter(i => incomeTransactions.includes(i.getId()))
+            const incomeTransactions = transactions.items.filter(i => i.getTransactionType() === TransactionType.INCOME).map(i => i.getId())
+            const recordByIncomes = records.items.filter(i => incomeTransactions.includes(i.getTransactionId()))
             const incomeAmount = recordByIncomes.reduce((acc: number, record) => acc + record.getMoney().getAmount(), 0)
             
             transactionTypes.forEach(type => {
-                const transactionByTypes = transactions.items.filter(i => i.getTransactionType() === type).map(i => i.getRecordRef())
-                const recordByTypes = records.filter(i => transactionByTypes.includes(i.getId()) && i.getType() === RecordType.DEBIT)
+                const transactionByTypes = transactions.items.filter(i => i.getTransactionType() === type && i.getRecordType() == RecordType.CREDIT).map(i => i.getId())
+                const recordByTypes = records.items.filter(i => transactionByTypes.includes(i.getTransactionId()))
                 const amount = recordByTypes.reduce((acc: number, record) => acc + record.getMoney().getAmount(), 0)
                 results.push({
                     transactionType: type ,
@@ -87,8 +89,8 @@ export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRu
             const savingAccountIds = accounts.items.filter(i => i.getType() === AccountType.BROKING || i.getType() === AccountType.SAVING)
             .map(i => i.getId())
 
-            const savingTransactions = transactions.items.filter(i => savingAccountIds.includes(i.getAccountRef())).map(i => i.getRecordRef())
-            const recordBySaves = records.filter(i => savingTransactions.includes(i.getId()))
+            const savingTransactions = transactions.items.filter(i => savingAccountIds.includes(i.getAccountRef())).map(i => i.getId())
+            const recordBySaves = records.items.filter(i => savingTransactions.includes(i.getTransactionId()))
             const amountSave = recordBySaves.reduce((acc: number, record) => acc + record.getMoney().getAmount(), 0)
 
             results.push({
@@ -96,8 +98,8 @@ export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRu
                 value: amountSave // incomeAmount > 0 ? Number(((amountSave * 100) / incomeAmount).toFixed(2)) : 0
             })
 
-            const savingShortTermTrans = transactions.items.filter(i => i.getCategoryRef() === SAVING_CATEGORY_ID).map(i => i.getRecordRef())
-            const recordByShortSaves = records.filter(i => savingShortTermTrans.includes(i.getId()) && i.getType() === RecordType.DEBIT)
+            const savingShortTermTrans = records.items.filter(i => i.getCategoryRef() === SAVING_CATEGORY_ID).map(i => i.getId())
+            const recordByShortSaves = records.items.filter(i => savingShortTermTrans.includes(i.getTransactionId()))
             const amountShortSave = recordByShortSaves.reduce((acc: number, record) => acc + record.getMoney().getAmount(), 0)
 
             results.push({

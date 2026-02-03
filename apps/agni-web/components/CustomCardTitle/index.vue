@@ -1,30 +1,36 @@
 <script setup lang="ts">
-const props = defineProps({
-    title: String
-})
+defineProps<{
+  title: string
+}>()
 </script>
 
 <template>
-    <div class="custom-cart-title">
-        <div>
-            <h3>{{ title }}</h3>
-        </div>
-        <div>
-            <slot />
-        </div>
+  <div class="custom-card-title">
+    <h3 class="title">{{ title }}</h3>
+    <div class="actions">
+      <slot />
     </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
-.custom-cart-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.custom-card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f3f5;
+}
 
-    h3 {
-        color: #1E3050;
-        font-weight: bold;
-        font-size: larger;
-    }
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
 }
 </style>

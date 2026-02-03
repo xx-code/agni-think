@@ -8,9 +8,11 @@ import {
     TRANSFERT_CATEGORY_ID } from "@core/domains/constants"
 import UnExpectedError from "@core/errors/unExpectedError"
 import { MomentDateService } from "@core/domains/entities/libs"
-import Repository, { TransactionFilter } from "@core/adapters/repository"
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository"
 import { Transaction } from "@core/domains/entities/transaction"
 import { Record } from "@core/domains/entities/record"
+import { RequestGetPagination } from "../transaction/getPaginationTransactionUseCase"
+import { GetBalanceDto } from "../transaction/getBalanceByUseCase"
 
 export type RequestCashFlow = {
     period: string
@@ -26,13 +28,16 @@ export type CashFlowResponse = {
 export class CashFlowAnalyseUseCase implements IUsecase<RequestCashFlow, CashFlowResponse> {
     private transRepo: Repository<Transaction>
     private recordRepo: Repository<Record>
+    private getBalanceUc: IUsecase<RequestGetPagination, GetBalanceDto>
 
     constructor(
         transactionRepository: Repository<Transaction>,
-        recordRepo: Repository<Record>
+        recordRepo: Repository<Record>,
+        getBalanceUc: IUsecase<RequestGetPagination, GetBalanceDto>
     ) {
         this.transRepo = transactionRepository
         this.recordRepo = recordRepo
+        this.getBalanceUc = getBalanceUc
     }
     
     async execute(request: RequestCashFlow): Promise<CashFlowResponse> {
@@ -56,31 +61,15 @@ export class CashFlowAnalyseUseCase implements IUsecase<RequestCashFlow, CashFlo
                 (request.periodTime * (i - 1))) 
 
             const { startDate, endDate } = MomentDateService.getUTCDateByPeriod(beginDate, period, request.periodTime)
-            const extendFilter = new TransactionFilter()
-            extendFilter.startDate = startDate
-            extendFilter.endDate = endDate
-            const transactions = await this.transRepo.getAll({
-                offset: 0,
+            const res = await this.getBalanceUc.execute({
                 limit: 0,
-                queryAll: true
-            }, extendFilter);
-
-            let transactionItems = transactions.items 
-            transactionItems = transactions.items.filter(i => !categoriesToExludes.includes(i.getCategoryRef()))
-
-            const records = await this.recordRepo.getManyByIds(transactionItems.map(i => i.getRecordRef()))
-
-            const spends = records.filter(i => i.getType() === RecordType.DEBIT)
-            .reduce((acc: number, record) => {
-                return acc + record.getMoney().getAmount();
-            }, 0)
-
-            const gains = records.filter(i => i.getType() === RecordType.CREDIT).reduce((acc: number, record) => {
-                return acc + record.getMoney().getAmount();
-            }, 0)
-
-            gainsFlows.push(gains)
-            spendFlows.push(spends)
+                offset: 0,
+                dateStart: startDate,                
+                dateEnd: endDate
+            })
+            
+            gainsFlows.push(res.income)
+            spendFlows.push(res.spend)
         } 
 
         return {

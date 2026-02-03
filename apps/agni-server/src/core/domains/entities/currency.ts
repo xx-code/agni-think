@@ -1,3 +1,4 @@
+import { isStringDifferent } from "../helpers";
 import Entity, { TrackableProperty } from "./entity";
 
 export class Currency extends Entity {
@@ -18,7 +19,7 @@ export class Currency extends Entity {
     }
 
     setName(name: string) {
-        this.name.set(name)
+        this.name.set(name, isStringDifferent)
     }
 
     getName(): string {

@@ -1,4 +1,4 @@
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { IUsecase } from "../interfaces";
 import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
@@ -58,18 +58,20 @@ export class IncomeAnalysticUseCase implements IUsecase<RequestIncomAnalystic, I
             extendFilter.endDate = endDate
             extendFilter.types = [TransactionType.INCOME]
             const transactions = await this.transactionRepo.getAll({limit: 0, offset: 0, queryAll: true}, extendFilter)
-            const records = await this.recordRepo.getManyByIds(transactions.items.map(i => i.getRecordRef()))
-            const totalAmount = records.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
+            const recordExtendFilter = new RecordFilter()
+            recordExtendFilter.transactionIds = transactions.items.map(i => i.getId())
+            let records = await this.recordRepo.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
+            const totalAmount = records.items.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
 
             const labelIcomes: string[] = []
-            records.map(i => i.getDescription()).forEach(i => { 
+            records.items.map(i => i.getDescription()).forEach(i => { 
                 if (!labelIcomes.includes(i)) // Use string nearst algorithm
                     labelIcomes.push(i) 
             })
 
             const incomeByDescs: IncomeByDescription[] = []
             labelIcomes.forEach(label => {
-                const recordByLabels = records.filter(i => i.getDescription() === label)
+                const recordByLabels = records.items.filter(i => i.getDescription() === label)
                 const totalAmountBy = recordByLabels.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
 
                 incomeByDescs.push({

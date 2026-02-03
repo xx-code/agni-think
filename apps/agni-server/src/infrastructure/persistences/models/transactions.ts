@@ -1,9 +1,10 @@
 import { Transaction } from "@core/domains/entities/transaction"
 import Mapper, { KnexFilterExtendAdapter, KnexTable } from "./mapper"
-import { mapperMainTransactionCategory, mapperTransactionStatus } from "@core/domains/constants"
-import { TransactionFilter } from "@core/adapters/repository"
+import { mapperMainTransactionCategory, mapperRecordType, mapperTransactionStatus } from "@core/domains/constants"
+import { RecordFilter, TransactionFilter, TransactionRecordCountReader } from "@core/adapters/repository"
 import { Knex } from "knex"
 import { KnexModel } from "./model"
+import { TransactionDeduction } from "@core/domains/valueObjects/transactionDeduction"
 
 export class KnexTransactionTable implements KnexTable {
     getTableName(): string {
@@ -13,15 +14,13 @@ export class KnexTransactionTable implements KnexTable {
         if (!(await knex.schema.hasTable('transactions')))
             await knex.schema.createTable('transactions', (table) => {
                 table.uuid('transaction_id').primary()
-                table.uuid('account_id')
-                table.uuid('record_id')
-                table.uuid('category_id')
-                table.string('status')
+                table.uuid('account_id').index()
+                table.string('status').index()
                 table.string('type')
+                table.string('mouvement')
                 table.date('date')
                 table.boolean('is_freeze')
-                table.jsonb('tag_ids')
-                table.jsonb('budget_ids')
+                table.jsonb('deductions')
             });
     }
 }
@@ -29,43 +28,43 @@ export class KnexTransactionTable implements KnexTable {
 export type TransactionModel = KnexModel & {
     transaction_id: string 
     account_id: string
-    record_id: string
-    category_id: string
     status: string 
     type: string
+    mouvement: string
     date: Date
+    deductions: any
     is_freeze: boolean
-    budget_ids: any
-    tag_ids: any
 }
 
 export class TransactionModelMapper implements Mapper<Transaction, TransactionModel> {
     toDomain(model: TransactionModel): Transaction {
+        const deductions = normalizeJsonbArray<any>(model.deductions)
+
+        const transDeductions = deductions.map(d => {
+            return TransactionDeduction.fromJson(d)
+        })
+
         return new Transaction(
             model.transaction_id,
             model.account_id,
-            model.record_id,
-            model.category_id,
             model.date, 
             mapperMainTransactionCategory(model.type),
+            mapperRecordType(model.mouvement),
             mapperTransactionStatus(model.status),
-            model.tag_ids ? Array.from(model.tag_ids) : [],
-            model.budget_ids ? Array.from(model.budget_ids) : [],
-            model.is_freeze
+            model.is_freeze,
+            transDeductions
         )
     }
     fromDomain(entity: Transaction): TransactionModel {
         return {
             transaction_id: entity.getId(),
             account_id: entity.getAccountRef(),
-            record_id: entity.getRecordRef(),
-            category_id: entity.getCategoryRef(),
             status: entity.getStatus(),
+            mouvement: entity.getRecordType(),
             type: entity.getTransactionType(),
-            date: entity.getUTCDate(),
+            date: entity.getDate(),
             is_freeze: entity.getIsFreeze(),
-            budget_ids: JSON.stringify(entity.getBudgetRefs()),
-            tag_ids: JSON.stringify(entity.getTags()) 
+            deductions: JSON.stringify(entity.getCollectionDeductions().map(i => i.toJson()))
         }
     }
 
@@ -86,25 +85,7 @@ export class TransactionFilterExtends implements KnexFilterExtendAdapter<Transac
     filterQuery(query: Knex.QueryBuilder, filtersExtend: TransactionFilter): void {
         if (filtersExtend.accounts && filtersExtend.accounts?.length > 0) query.whereIn('account_id', filtersExtend.accounts);
 
-        if (filtersExtend.categories && filtersExtend.categories?.length > 0) query.whereIn('category_id', filtersExtend.categories);
-
         if ( filtersExtend.types && filtersExtend.types?.length > 0) query.whereIn('type', filtersExtend.types);
-
-        if (filtersExtend.tags && filtersExtend.tags?.length > 0)  {
-            // query.whereIn('transaction_id', function() {
-            //     this.select('transaction_id').from('transaction_tags').whereIn('tag_id', filtersExtend.tags!);
-            // });
-            // query.whereRaw('tag_ids ?| array[?]', filtersExtend.tags)
-            query.whereRaw("tag_ids @> ?::jsonb", [JSON.stringify(filtersExtend.tags)]);
-        }
-        if (filtersExtend.budgets && filtersExtend.budgets?.length > 0) {
-            // query.whereIn('transaction_id', function() {
-            //     this.select('transaction_id').from('transaction_budgets').whereIn('budget_id', filtersExtend.budgets!);
-            // });
-            // query.whereJsonSubsetOf('budget_ids', JSON.stringify(filtersExtend.budgets))
-            // query.whereRaw('budget_ids ?| array[?]',  filtersExtend.budgets)
-            query.whereRaw("budget_ids @> ?::jsonb", [JSON.stringify(filtersExtend.budgets)]);
-        }
 
         if (filtersExtend.types && filtersExtend.types?.length > 0) query.whereIn('type', filtersExtend.types);
 
@@ -120,4 +101,66 @@ export class TransactionFilterExtends implements KnexFilterExtendAdapter<Transac
         if (filtersExtend.endDate)  
             query.where('date', filtersExtend.strictEndDate ? '<' : '<=', filtersExtend.endDate);
     }
+}
+
+export class KnexTransactionRecordCountReader implements TransactionRecordCountReader {
+    private knex: Knex
+
+    constructor(knex: Knex) {
+        this.knex = knex
+    }
+
+    async count(transaction: TransactionFilter, record: RecordFilter): Promise<number> {
+        const query = 
+                this.knex('transactions')
+                    .join('records', 'transactions.transaction_id', '=', 'records.transaction_id')
+                    .countDistinct<{count: number}>('transactions.transaction_id')
+        
+        
+        if (transaction.accounts && transaction.accounts?.length > 0) query.whereIn('transactions.account_id', transaction.accounts);
+        if (transaction.types && transaction.types?.length > 0) query.whereIn('transactions.type', transaction.types);
+        if (transaction.types && transaction.types?.length > 0) query.whereIn('transactions.type', transaction.types);
+        if (transaction.status)
+            query.where('transactions.status', '=', transaction.status)
+        if (transaction.isFreeze !== undefined)
+            query.where('transactions.is_freeze', '=', transaction.isFreeze);
+        if (transaction.startDate) 
+            query.where('transactions.date', transaction.strictStartDate ? '>' : '>=', transaction.startDate);
+        if (transaction.endDate)  
+            query.where('transactions.date', transaction.strictEndDate ? '<' : '<=', transaction.endDate);
+
+        if (record.categories && record.categories?.length > 0) query.whereIn('records.category_id', record.categories);
+
+        if (record.tags && record.tags?.length > 0)  {
+            query.whereRaw("records.tag_ids @> ?::jsonb", [JSON.stringify(record.tags)]);
+        }
+        if (record.budgets && record.budgets?.length > 0) {
+            query.whereRaw("records.budget_ids @> ?::jsonb", [JSON.stringify(record.budgets)]);
+        }
+
+        const res = await query.first()
+
+        const totalCount = res?.count ?? 0
+
+        return totalCount 
+    }
+
+}
+
+function normalizeJsonbArray<T>(value: unknown): T[] {
+  if (!value) return []
+
+  // JSONB came as string
+  if (typeof value === 'string') {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed : [parsed]
+  }
+
+  // JSONB already parsed
+  if (Array.isArray(value)) return value
+
+  // Single object stored in JSONB
+  if (typeof value === 'object') return [value as T]
+
+  return []
 }

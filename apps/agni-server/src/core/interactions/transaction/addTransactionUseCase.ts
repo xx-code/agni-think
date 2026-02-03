@@ -1,5 +1,5 @@
 import { GetUID } from "@core/adapters/libs"
-import { mapperMainTransactionCategory, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants"
+import { mapperMainTransactionCategory, mapperRecordType, mapperTransactionStatus, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants"
 import { Money } from "@core/domains/entities/money"
 import { Record } from "@core/domains/entities/record"
 import { Transaction } from "@core/domains/entities/transaction"
@@ -10,16 +10,27 @@ import { TransactionDependencies } from "../facades"
 import { CreatedDto } from "@core/dto/base"
 import { IUsecase } from "../interfaces"
 import Repository from "@core/adapters/repository"
+import UnExpectedError from "@core/errors/unExpectedError"
+import { TransactionDeduction } from "@core/domains/valueObjects/transactionDeduction"
 
 export type RequestAddTransactionUseCase = {
     accountId: string
-    amount: number
-    categoryId: string
-    description: string
+    status: string
     date: Date
-    tagIds: string[]
-    budgetIds: string[]
     type: string
+    mouvement: string
+    currencyId?: string
+    records: {
+        amount: number
+        categoryId: string
+        description: string
+        tagIds: string[]
+        budgetIds: string[]
+    }[]
+    deductions: {
+        deductionId: string
+        amount: number
+    }[]
 }
 
 
@@ -38,63 +49,105 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
         this.unitOfWork = unitOfWork
     }
 
-    async execute(request: RequestAddTransactionUseCase): Promise<CreatedDto> {
+    async execute(request: RequestAddTransactionUseCase, trx?: any): Promise<CreatedDto> {
         try {
+            let innerTrx = trx
+            if (!trx)
+                innerTrx = await this.unitOfWork.start() 
+
             let account = await this.transcationDependencies.accountRepository?.get(request.accountId) 
             if (account === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
-
-            if (!(await this.transcationDependencies.categoryRepository?.get(request.categoryId)))
-                throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
-
-            if (request.tagIds.length > 0) {
-                const foundTags = await this.transcationDependencies.tagRepository?.getManyByIds(request.tagIds) ?? [];
-                if (foundTags.length !== request.tagIds.length)
-                    throw new ResourceNotFoundError("TAGS_NOT_FOUND");
-            }
-
-            if (request.budgetIds.length > 0) {
-                const foundBudgets = await this.transcationDependencies.budgetRepository?.getManyByIds(request.budgetIds) ?? [];
-                if (foundBudgets.length !== request.budgetIds.length)
-                    throw new ResourceNotFoundError("BUDGETS_NOT_FOUND");
-            }
-           
-            if (request.amount <= 0)
-                throw new ValueError("AMOUNT_MUST_GREATER_THANT_0")
-
-            const trx: any = await this.unitOfWork.start() 
-
-            let amount = new Money(request.amount)
-
-            const type = mapperMainTransactionCategory(request.type)
-
-            let newRecord = new Record(
-                GetUID(), 
-                amount, 
-                request.date, 
-                type === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT, 
-                request.description)
-            await this.transcationDependencies.recordRepository?.create(newRecord, trx)
-
-            newRecord.getType() === RecordType.CREDIT ? account!.addOnBalance(amount) : account!.substractBalance(amount)
-
-            await this.transcationDependencies.accountRepository?.update(account!, trx)
+        
+            const type = mapperMainTransactionCategory(request.type) 
             
+            const status = mapperTransactionStatus(request.status)
+
+            if (request.deductions.length > 0) {
+                if (!request.deductions.every(i => i.amount >= 0))
+                    throw new ResourceNotFoundError("DEDUCTION_MUST_NOT_BE_NEGATIVE")
+
+                const foundDeductions = await this.transcationDependencies.deductionRepository?.getManyByIds(request.deductions.map(i => i.deductionId)) ?? [];
+                if (request.deductions.length !== foundDeductions.length)
+                    throw new ResourceNotFoundError("DEDUCTION_NOT_FOUND");
+            }
+
+            const recordType = mapperRecordType(request.mouvement)
             let newTransaction = new Transaction(
                 GetUID(), 
                 request.accountId, 
-                newRecord.getId(), 
-                request.categoryId, 
-                request.date, type, TransactionStatus.COMPLETE, 
-                request.tagIds, request.budgetIds)    
+                request.date,
+                type, 
+                recordType,
+                status
+            )
+            newTransaction.setDeductions(request.deductions.map(i => new TransactionDeduction(newTransaction.getId(), i.deductionId, i.amount)))
+            await this.transactionRepository.create(newTransaction, innerTrx);
 
-            await this.transactionRepository.create(newTransaction, trx);
+            if (request.records.length  === 0)
+                throw new UnExpectedError("YOU_MUST_HAVE_RECORDS_FOR_TRANSACTION")
+
+            if (recordType === RecordType.CREDIT && (type !== TransactionType.INCOME && type !== TransactionType.OTHER))
+                throw new UnExpectedError("A CREDIT transaction must be Income or Other")
+
+            if (recordType === RecordType.DEBIT && type === TransactionType.INCOME)
+                throw new UnExpectedError("A DEBIT transaction Cant be Income")
+
+            let totalAmount = 0
+            for (let i = 0; i < request.records.length; i++) {
+                const record = request.records[i]
+
+                if (!(await this.transcationDependencies.categoryRepository?.get(record.categoryId)))
+                    throw new ResourceNotFoundError("CATEGORY_NOT_FOUND")
+
+                if (record.tagIds.length > 0) {
+                    const foundTags = await this.transcationDependencies.tagRepository?.getManyByIds(record.tagIds) ?? [];
+                    if (foundTags.length !== record.tagIds.length)
+                        throw new ResourceNotFoundError("TAGS_NOT_FOUND");
+                }
+
+                if (record.budgetIds.length > 0) {
+                    const foundBudgets = await this.transcationDependencies.budgetRepository?.getManyByIds(record.budgetIds) ?? [];
+                    if (foundBudgets.length !== record.budgetIds.length)
+                        throw new ResourceNotFoundError("BUDGETS_NOT_FOUND");
+                } 
+
+                if (record.amount <= 0)
+                    throw new ValueError("AMOUNT_MUST_GREATER_THANT_0")
+
+
+                let amount = new Money(record.amount)
+                totalAmount += record.amount
+                const newRecord = new Record(
+                    GetUID(),
+                    newTransaction.getId(),
+                    amount,
+                    record.categoryId,
+                    record.description,
+                    record.tagIds,
+                    record.budgetIds
+                )
+                await this.transcationDependencies.recordRepository?.create(newRecord, innerTrx)
+            } 
+
+            if (status === TransactionStatus.COMPLETE) {
+
+                if (recordType === RecordType.CREDIT)
+                    account!.addOnBalance(new Money(totalAmount)) 
+                else
+                    account!.substractBalance(new Money(totalAmount))
+
+                await this.transcationDependencies.accountRepository?.update(account!, innerTrx)
+            }     
             
-            await this.unitOfWork.commit()
+            if (!trx)
+                await this.unitOfWork.commit()
 
             return {newId: newTransaction.getId()}
         } catch (err) {
-            await this.unitOfWork.rollback()
+            console.log(err)
+            if (!trx)
+                await this.unitOfWork.rollback()
             throw err
         }
     }

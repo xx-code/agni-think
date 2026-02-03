@@ -1,36 +1,70 @@
 <script setup lang="ts">
-const { title, titleResponsive } = defineProps<{
-    title: string,
-    titleResponsive: string
-}>();
+const props = defineProps<{
+  title: string
+  titleResponsive: string
+  isCollapsed?: boolean
+}>()
 </script>
 
 <template>
-    <div>
-        <h3 class="title">{{ title }}</h3>
-        <h3 class="title-response">{{  titleResponsive }}</h3>
-    </div>
+  <div class="logo-container">
+    <transition name="logo-fade" mode="out-in">
+      <h1 v-if="!isCollapsed" key="full" class="logo-title">
+        {{ title }}
+      </h1>
+      <h1 v-else key="short" class="logo-title-responsive">
+        {{ titleResponsive }}
+      </h1>
+    </transition>
+  </div>
 </template>
 
 <style scoped lang="scss">
-.title {
-    color: #1E3050;
-    font-size: 2em;
-    font-weight: bold; 
-    @media (max-width: 975px) {
-        display: none;
-    }
+.logo-container {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
 }
-.title-response {
-    color: #1E3050;
-    font-size: 2em;
-    font-weight: bold;
+
+.logo-title,
+.logo-title-responsive {
+  color: #1e3050;
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #1e3050 0%, #6755d7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logo-title-responsive {
+  font-size: 2rem;
+}
+
+.logo-fade-enter-active,
+.logo-fade-leave-active {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logo-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.logo-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+@media (max-width: 975px) {
+  .logo-title {
     display: none;
-    position: relative;
-    left: -8px;
-    text-align: cente;
-    @media (max-width: 975px) {
-        display: block;
-    }
+  }
+  
+  .logo-title-responsive {
+    display: block;
+  }
 }
 </style>

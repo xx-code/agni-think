@@ -2,10 +2,11 @@ import { IUsecase } from "../interfaces";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { RecordType, TransactionStatus } from "@core/domains/constants";
-import Repository from "@core/adapters/repository";
+import Repository, { RecordFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Account } from "@core/domains/entities/account";
 import { Record } from "@core/domains/entities/record";
+import { Money } from "@core/domains/entities/money";
 
 export type RequestCompleteTransactionUsecase = {
     transactionId: string
@@ -41,11 +42,16 @@ export class CompteTransactionUsecase implements IUsecase<RequestCompleteTransac
             if (account === null)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
-            const record = await this.recordRepo.get(transaction.getRecordRef())
-            if (record === null)
-                throw new ResourceNotFoundError("RECORD_NOT_FOUND")
+            const recordFilter = new RecordFilter()
+            recordFilter.transactionIds = [request.transactionId]
+            const records = await this.recordRepo.getAll({ offset: 0, limit: 0, queryAll: true}, recordFilter)
+            const totalAmount = records.items.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) 
+            // set decution
 
-            record.getType() === RecordType.CREDIT ? account!.addOnBalance(record.getMoney()) : account!.substractBalance(record.getMoney())
+            if (transaction.getRecordType() === RecordType.CREDIT)
+                account!.addOnBalance(new Money(totalAmount))
+            else 
+                account!.substractBalance(new Money(totalAmount))
 
             await this.accountRepo.update(account, trx)
 

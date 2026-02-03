@@ -21,6 +21,8 @@ type CardInfo = {
     isPositif: boolean
 }
 
+type DetailModalType = 'income' | 'spend' | 'cashflow' | 'saving' | 'budget' | 'goals' | null
+
 const calendarSelection = reactive<{
     period: 'Year' | 'Month' | 'Week',
     periodTime: number,
@@ -30,6 +32,12 @@ const calendarSelection = reactive<{
     periodTime: 1,
     showNumber: 6  
 })
+
+// Modal state
+const isDetailModalOpen = ref(false)
+const currentDetailType = ref<DetailModalType>(null)
+const modalTitle = ref('')
+const modalData = ref<any>(null)
 
 const {data: categories } = useCategories({
     limit: 0, offset: 0, queryAll: true
@@ -104,7 +112,7 @@ const cashflowCardInfo = computed<CardInfo>(() => {
         }
     }
 
-    const mean = Number((lastCashFlows.reduce(((acc, i) => acc + i), 0)/3).toFixed(2))// Change mean mobile
+    const mean = Number((lastCashFlows.reduce(((acc, i) => acc + i), 0)/3).toFixed(2))
 
     return {
         amount: currentCashFlow,
@@ -122,14 +130,9 @@ const savingCardInfo = computed<CardInfo>(() => {
         currentSaving = analyticSaving.value.savings[analyticSaving.value.savings.length - 1]
     }
 
-    // let lastSavingRate = 0
-    // if (analyticSaving.value && analyticSaving.value.savingRates.length > 1) {
-    //     lastSavingRate = analyticSaving.value.savingRates[analyticSaving.value.savingRates.length - 2]
-    // }
-
     return {
         amount: currentSavingRate * 100,
-        description: `Epagne total se mois: ${formatCurrency(currentSaving)}`,
+        description: `Épargne totale ce mois: ${formatCurrency(currentSaving)}`,
         cardInfo: `Objectif ${(currentSavingRate * 100).toFixed(2)}% >= 10%`,
         isPositif: (currentSavingRate * 100) > 10
     }
@@ -147,18 +150,20 @@ const labels = computed(() => {
 
 const optionsChart = computed(() => ({
     responsive: true,
+    maintainAspectRatio: false,
 })) 
+
 const dataChart = computed(() => ({
     labels: labels.value, 
     datasets: [{
         label: 'Gains',
         data: cashflow.value?.incomes || [],
-        backgroundColor: '#6655d7',
+        backgroundColor: '#10b981',
         borderWidth: 1,
     }, {
-        label: 'Depense',
+        label: 'Dépense',
         data: cashflow.value?.spends || [],
-        backgroundColor: 'rgba(103, 85, 215, 0.1)',
+        backgroundColor: '#ef4444',
         borderWidth: 1
     }],
 }))
@@ -199,10 +204,11 @@ const spendLabels = computed<{label: string, color: string}[]>(() => {
 
     return []
 })
+
 const dataSpendChart = computed(() => ({
     labels: spendLabels.value.map(i => i.label),
     datasets: [{
-        label: '',
+        label: 'Dépenses',
         data: bestCategories.value.map(i => i.spend) || [],
         backgroundColor: spendLabels.value.map(i => i.color),
         borderWidth: 1,
@@ -214,7 +220,7 @@ const {data: budgets} = useBudgets({
 })
 
 const budgetChart = computed(() => {
-    return formatBudgetDataForChart(budgets.value?.items) // TODO: review
+    return formatBudgetDataForChart(budgets.value?.items)
 });
 
 const {data:accounts, error:accountError, refresh:accountRefresh} = useAccountsWitPastBalance({ 
@@ -222,7 +228,7 @@ const {data:accounts, error:accountError, refresh:accountRefresh} = useAccountsW
 });
 
 const transactionAccountSelected = ref(ALL_ACCOUNT_ID)
-const accountsChecked: Ref<{id: string, checked: boolean}[]> = ref([]) // TODO: Review
+const accountsChecked: Ref<{id: string, checked: boolean}[]> = ref([])
 const items = computed(() => {
     if (accounts.value)
         return accounts.value.items.map(acc => (
@@ -241,6 +247,7 @@ const items = computed(() => {
         }    )) 
     return []
 })
+
 const paramsTransaction = reactive<FilterTransactionQuery>({
     offset: 0, limit: 5, status: 'Pending'})
 const {data: transactions} = useTransactionPagination(paramsTransaction);
@@ -293,23 +300,83 @@ const listTypeDateDisplay =computed(() => (
         } 
     },
     {
-        label: 'Annee' as const,
+        label: 'Année' as const,
         type: "checkbox" as const,
         onSelect(e: Event) {
             e.preventDefault()
             calendarSelection.period = "Year"
             calendarSelection.periodTime = 1
-            dateDisplayed.value = "Annee"
+            dateDisplayed.value = "Année"
         } 
     }
 ]
 )) 
 
-/*const listAccount = computed(() => {
-    if (accounts.value)
-        return accounts.value
-    return []
-})*/
+// Modal functions
+function openDetailModal(type: DetailModalType) {
+    currentDetailType.value = type
+    
+    switch(type) {
+        case 'income':
+            modalTitle.value = 'Détails des Revenus'
+            modalData.value = {
+                current: incomeCardInfo.value.amount,
+                history: analyticIncomes.value?.incomes || [],
+                byDescription: analyticIncomes.value?.incomesByDescription || [],
+                labels: labels.value
+            }
+            break
+        case 'spend':
+            modalTitle.value = 'Détails des Dépenses'
+            modalData.value = {
+                current: spendCardInfo.value.amount,
+                history: analyticSpend.value?.totalSpends || [],
+                byCategory: analyticSpend.value?.spendByCategories || [],
+                distribution: analyticSpendAllocation.value?.distributionSpends || [],
+                labels: labels.value
+            }
+            break
+        case 'cashflow':
+            modalTitle.value = 'Détails du Cashflow'
+            modalData.value = {
+                current: cashflowCardInfo.value.amount,
+                incomes: cashflow.value?.incomes || [],
+                spends: cashflow.value?.spends || [],
+                labels: labels.value
+            }
+            break
+        case 'saving':
+            modalTitle.value = 'Détails de l\'Épargne'
+            modalData.value = {
+                currentRate: savingCardInfo.value.amount,
+                savings: analyticSaving.value?.savings || [],
+                savingRates: analyticSaving.value?.savingRates || [],
+                labels: labels.value
+            }
+            break
+        case 'budget':
+            modalTitle.value = 'Détails des Budgets'
+            modalData.value = {
+                budgets: budgets.value?.items || [],
+                chart: budgetChart.value
+            }
+            break
+        case 'goals':
+            modalTitle.value = 'Objectifs d\'Épargne'
+            modalData.value = {
+                goals: displayGoals.value || []
+            }
+            break
+    }
+    
+    isDetailModalOpen.value = true
+}
+
+function closeDetailModal() {
+    isDetailModalOpen.value = false
+    currentDetailType.value = null
+    modalData.value = null
+}
 
 watchEffect(() => {
     if (accounts.value)
@@ -319,115 +386,440 @@ watchEffect(() => {
 </script>
 
 <template>
-    <div>
-        <div class="option-diplay-container">
-            <div class="flex gap-2 ">
-                <UDropdownMenu :items="listTypeDateDisplay">
-                    <UButton size="xl" variant="outline" color="neutral">
-                        <UIcon name="i-lucide-calendar"  />
-                    </UButton>
-                </UDropdownMenu>
-                <UButton  size="xl" variant="outline" color="neutral">
-                    {{ dateDisplayed }}
-                </UButton>
-            </div>
-            <div>
-                <UDropdownMenu :items="items" :ui="{content: 'w-48'}">
-                    <UButton icon="i-lucide-plus" color="primary" size="xl" variant="solid">
-                        Ajoute carte
-                    </UButton>
-                </UDropdownMenu>
-            </div>
-        </div>
-        <div class="card-account-list grid sm:grid-cols-2 md:grid-cols-3 gap-2">
-            <CardResumeAnalytics 
-                title="Revenu net du mois"
-                :amount="incomeCardInfo.amount"
-                :chip-info="incomeCardInfo.cardInfo"
-                :is-percentage="false"
-                :description="incomeCardInfo.description"
-                :is-positive="incomeCardInfo.isPositif" />
-            <CardResumeAnalytics 
-                title="Depense totales"
-                :amount="spendCardInfo.amount"
-                :chip-info="spendCardInfo.cardInfo"
-                :is-percentage="false"
-                :description="spendCardInfo.description"
-                :is-positive="spendCardInfo.isPositif" />
-            <CardResumeAnalytics 
-                title="Cashflow net"
-                :amount="cashflowCardInfo.amount"
-                :chip-info="cashflowCardInfo.cardInfo"
-                :is-percentage="false"
-                :description="cashflowCardInfo.description"
-                :is-positive="cashflowCardInfo.isPositif" />
-            <CardResumeAnalytics 
-                title="Taux d'epargne"
-                :amount="savingCardInfo.amount"
-                :is-percentage="true"
-                :chip-info="savingCardInfo.cardInfo"
-                :description="savingCardInfo.description"
-                :is-positive="savingCardInfo.isPositif" />
-        </div> 
-        <div class="card-grid-list sm:grid-cols-1 md:grid-cols-3 grid gap-2">
-
-            <div class="card-grid rounded-md md:col-span-2 bg-white">
-                <CustomCardTitle title="Money flow" />
-                <div class="flex justify-center items-center" style="height: 280px;">
-                    <BarChart  :data="dataChart" :options="optionsChart" />
-                </div>
-            </div>
-            <div class="card-grid rounded-md bg-white">
-                <CustomCardTitle title="Budgets">
-                    <UButton icon="i-lucide-external-link" variant="outline" color="neutral" />
-                </CustomCardTitle>
-                <div class="flex justify-center" style="height: 280px;">
-                    <DoughnutChart :data="budgetChart" :options="optionsChart"/>
-                </div>
-            </div>
-            <div class="card-grid rounded-md md:col-span-2 flex flex-col gap-2 bg-white">
-                <CustomCardTitle title="Depenses par categories">
-                </CustomCardTitle>
-                <div class="flex justify-center items-center" style="height: 280px;">
-                    <BarChart  :data="dataSpendChart" :options="optionsChart" />
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+            <!-- Header Section -->
+            <div class="mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                            Tableau de Bord
+                        </h1>
+                        <p class="text-gray-600 text-sm">
+                            Vue d'ensemble de vos finances
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <UDropdownMenu :items="listTypeDateDisplay">
+                            <UButton size="lg" variant="outline" color="neutral" class="shadow-sm">
+                                <UIcon name="i-lucide-calendar" class="mr-2" />
+                                {{ dateDisplayed }}
+                            </UButton>
+                        </UDropdownMenu>
+                        <UDropdownMenu :items="items" :ui="{content: 'w-48'}">
+                            <UButton icon="i-lucide-plus" color="primary" size="lg" variant="solid" class="shadow-lg">
+                                Ajouter carte
+                            </UButton>
+                        </UDropdownMenu>
+                    </div>
                 </div>
             </div>
 
-            <div class="card-grid rounded-md bg-white">
-                <CustomCardTitle title="But d'epargne">
-                    <UButton icon="i-lucide-external-link" variant="outline" color="neutral" />
-                </CustomCardTitle>
-                <div class="flex flex-col gap-1">
-                    <div v-for="goal in displayGoals" :key="goal.id">
-                        <BarBudgetInfo :id="goal.id" :title="goal.title" 
-                        :target-amount="goal.target" :amount="goal.balance" />
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="cursor-pointer transform transition-all hover:scale-105" @click="openDetailModal('income')">
+                    <CardResumeAnalytics 
+                        title="Revenu net du mois"
+                        :amount="incomeCardInfo.amount"
+                        :chip-info="incomeCardInfo.cardInfo"
+                        :is-percentage="false"
+                        :description="incomeCardInfo.description"
+                        :is-positive="incomeCardInfo.isPositif"
+                        class="h-full shadow-lg hover:shadow-xl transition-shadow" />
+                </div>
+                
+                <div class="cursor-pointer transform transition-all hover:scale-105" @click="openDetailModal('spend')">
+                    <CardResumeAnalytics 
+                        title="Dépenses totales"
+                        :amount="spendCardInfo.amount"
+                        :chip-info="spendCardInfo.cardInfo"
+                        :is-percentage="false"
+                        :description="spendCardInfo.description"
+                        :is-positive="spendCardInfo.isPositif"
+                        class="h-full shadow-lg hover:shadow-xl transition-shadow" />
+                </div>
+                
+                <div class="cursor-pointer transform transition-all hover:scale-105" @click="openDetailModal('cashflow')">
+                    <CardResumeAnalytics 
+                        title="Cashflow net"
+                        :amount="cashflowCardInfo.amount"
+                        :chip-info="cashflowCardInfo.cardInfo"
+                        :is-percentage="false"
+                        :description="cashflowCardInfo.description"
+                        :is-positive="cashflowCardInfo.isPositif"
+                        class="h-full shadow-lg hover:shadow-xl transition-shadow" />
+                </div>
+                
+                <div class="cursor-pointer transform transition-all hover:scale-105" @click="openDetailModal('saving')">
+                    <CardResumeAnalytics 
+                        title="Taux d'épargne"
+                        :amount="savingCardInfo.amount"
+                        :is-percentage="true"
+                        :chip-info="savingCardInfo.cardInfo"
+                        :description="savingCardInfo.description"
+                        :is-positive="savingCardInfo.isPositif"
+                        class="h-full shadow-lg hover:shadow-xl transition-shadow" />
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                <!-- Money Flow Chart -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                        <CustomCardTitle title="Money Flow" />
+                        <UButton 
+                            icon="i-lucide-maximize-2" 
+                            variant="ghost" 
+                            color="neutral" 
+                            size="sm"
+                            @click="openDetailModal('cashflow')" />
+                    </div>
+                    <div class="p-4">
+                        <div class="h-72">
+                            <BarChart :data="dataChart" :options="optionsChart" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Budgets Chart -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden cursor-pointer hover:shadow-xl transition-shadow" @click="openDetailModal('budget')">
+                    <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                        <CustomCardTitle title="Budgets" />
+                        <UButton 
+                            icon="i-lucide-external-link" 
+                            variant="ghost" 
+                            color="neutral" 
+                            size="sm" />
+                    </div>
+                    <div class="p-4">
+                        <div class="h-72 flex justify-center items-center">
+                            <DoughnutChart :data="budgetChart" :options="optionsChart"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spending by Category -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                        <CustomCardTitle title="Dépenses par catégories" />
+                        <UButton 
+                            icon="i-lucide-maximize-2" 
+                            variant="ghost" 
+                            color="neutral" 
+                            size="sm"
+                            @click="openDetailModal('spend')" />
+                    </div>
+                    <div class="p-4">
+                        <div class="h-72">
+                            <BarChart :data="dataSpendChart" :options="optionsChart" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Savings Goals -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden cursor-pointer hover:shadow-xl transition-shadow" @click="openDetailModal('goals')">
+                    <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                        <CustomCardTitle title="Buts d'épargne" />
+                        <UButton 
+                            icon="i-lucide-external-link" 
+                            variant="ghost" 
+                            color="neutral" 
+                            size="sm" />
+                    </div>
+                    <div class="p-4">
+                        <div class="flex flex-col gap-3">
+                            <div v-for="goal in displayGoals" :key="goal.id">
+                                <BarBudgetInfo 
+                                    :id="goal.id" 
+                                    :title="goal.title" 
+                                    :target-amount="goal.target" 
+                                    :amount="goal.balance" />
+                            </div>
+                            <div v-if="!displayGoals || displayGoals.length === 0" class="text-center py-8">
+                                <UIcon name="i-lucide-target" class="text-gray-300 text-4xl mb-2" />
+                                <p class="text-gray-500 text-sm">Aucun objectif d'épargne</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Detail Modal -->
+        <UModal v-model="isDetailModalOpen" :ui="{ wrapper: 'max-w-4xl' }">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">{{ modalTitle }}</h2>
+                    <UButton 
+                        icon="i-lucide-x" 
+                        color="neutral" 
+                        variant="ghost" 
+                        @click="closeDetailModal" />
+                </div>
+
+                <!-- Income Details -->
+                <div v-if="currentDetailType === 'income' && modalData" class="space-y-6">
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-green-700 mb-1">Revenu Actuel</p>
+                                <p class="text-4xl font-bold text-green-900">{{ formatCurrency(modalData.current) }}</p>
+                            </div>
+                            <div class="p-4 bg-green-200 rounded-full">
+                                <UIcon name="i-lucide-trending-up" class="text-green-700 text-3xl" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Historique des revenus</h3>
+                        <div class="h-64">
+                            <BarChart 
+                                :data="{
+                                    labels: modalData.labels,
+                                    datasets: [{
+                                        label: 'Revenus',
+                                        data: modalData.history,
+                                        backgroundColor: '#10b981',
+                                        borderWidth: 1
+                                    }]
+                                }" 
+                                :options="{ responsive: true, maintainAspectRatio: false }" />
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Sources de revenus</h3>
+                        <div class="space-y-3">
+                            <div v-for="(sources, index) in modalData.byDescription" :key="index" class="space-y-2">
+                                <p class="text-sm font-medium text-gray-600">Période {{ (index as number) + 1 }}</p>
+                                <div v-for="source in sources" :key="source.label" class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-gray-700">{{ source.label }}</span>
+                                    <span class="font-semibold text-green-600">{{ formatCurrency(source.income) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spend Details -->
+                <div v-if="currentDetailType === 'spend' && modalData" class="space-y-6">
+                    <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6 border border-red-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-red-700 mb-1">Dépenses Actuelles</p>
+                                <p class="text-4xl font-bold text-red-900">{{ formatCurrency(modalData.current) }}</p>
+                            </div>
+                            <div class="p-4 bg-red-200 rounded-full">
+                                <UIcon name="i-lucide-trending-down" class="text-red-700 text-3xl" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Historique des dépenses</h3>
+                        <div class="h-64">
+                            <BarChart 
+                                :data="{
+                                    labels: modalData.labels,
+                                    datasets: [{
+                                        label: 'Dépenses',
+                                        data: modalData.history,
+                                        backgroundColor: '#ef4444',
+                                        borderWidth: 1
+                                    }]
+                                }" 
+                                :options="{ responsive: true, maintainAspectRatio: false }" />
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Top 5 catégories</h3>
+                        <div class="space-y-3">
+                            <div v-for="(category, index) in bestCategories" :key="index" class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div 
+                                        class="w-10 h-10 rounded-full flex items-center justify-center"
+                                        :style="{ backgroundColor: `${getCategory(category.categoryId)?.color}22`, border: `2px solid ${getCategory(category.categoryId)?.color}` }">
+                                        <UIcon 
+                                            :name="getCategory(category.categoryId)?.icon || 'i-lucide-circle'" 
+                                            :style="{ color: getCategory(category.categoryId)?.color }" />
+                                    </div>
+                                    <span class="font-medium text-gray-800">{{ getCategory(category.categoryId)?.title }}</span>
+                                </div>
+                                <span class="font-bold text-red-600">{{ formatCurrency(category.spend) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cashflow Details -->
+                <div v-if="currentDetailType === 'cashflow' && modalData" class="space-y-6">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-blue-700 mb-1">Cashflow Actuel</p>
+                                <p class="text-4xl font-bold" :class="modalData.current >= 0 ? 'text-green-900' : 'text-red-900'">
+                                    {{ formatCurrency(modalData.current) }}
+                                </p>
+                            </div>
+                            <div class="p-4 bg-blue-200 rounded-full">
+                                <UIcon name="i-lucide-arrow-right-left" class="text-blue-700 text-3xl" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Évolution Revenus vs Dépenses</h3>
+                        <div class="h-80">
+                            <BarChart 
+                                :data="{
+                                    labels: modalData.labels,
+                                    datasets: [
+                                        {
+                                            label: 'Revenus',
+                                            data: modalData.incomes,
+                                            backgroundColor: '#10b981',
+                                            borderWidth: 1
+                                        },
+                                        {
+                                            label: 'Dépenses',
+                                            data: modalData.spends,
+                                            backgroundColor: '#ef4444',
+                                            borderWidth: 1
+                                        }
+                                    ]
+                                }" 
+                                :options="{ responsive: true, maintainAspectRatio: false }" />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-green-50 rounded-xl p-4 border border-green-200">
+                            <p class="text-sm text-green-700 mb-1">Total Revenus</p>
+                            <p class="text-2xl font-bold text-green-900">
+                                {{ formatCurrency(modalData.incomes.reduce((a: number, b: number) => a + b, 0)) }}
+                            </p>
+                        </div>
+                        <div class="bg-red-50 rounded-xl p-4 border border-red-200">
+                            <p class="text-sm text-red-700 mb-1">Total Dépenses</p>
+                            <p class="text-2xl font-bold text-red-900">
+                                {{ formatCurrency(modalData.spends.reduce((a: number, b: number) => a + b, 0)) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Saving Details -->
+                <div v-if="currentDetailType === 'saving' && modalData" class="space-y-6">
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-purple-700 mb-1">Taux d'Épargne Actuel</p>
+                                <p class="text-4xl font-bold text-purple-900">{{ modalData.currentRate.toFixed(2) }}%</p>
+                            </div>
+                            <div class="p-4 bg-purple-200 rounded-full">
+                                <UIcon name="i-lucide-piggy-bank" class="text-purple-700 text-3xl" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Évolution de l'épargne</h3>
+                        <div class="h-64">
+                            <BarChart 
+                                :data="{
+                                    labels: modalData.labels,
+                                    datasets: [{
+                                        label: 'Épargne',
+                                        data: modalData.savings,
+                                        backgroundColor: '#8b5cf6',
+                                        borderWidth: 1
+                                    }]
+                                }" 
+                                :options="{ responsive: true, maintainAspectRatio: false }" />
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Taux d'épargne par période</h3>
+                        <div class="space-y-2">
+                            <div v-for="(rate, index) in modalData.savingRates" :key="index" class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <span class="text-gray-700">{{ modalData.labels[index] }}</span>
+                                <span class="font-semibold" :class="rate >= 0.1 ? 'text-green-600' : 'text-red-600'">
+                                    {{ (rate * 100).toFixed(2) }}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Budget Details -->
+                <div v-if="currentDetailType === 'budget' && modalData" class="space-y-6">
+                    <div class="bg-white rounded-xl p-6 border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Répartition des budgets</h3>
+                        <div class="h-80 flex justify-center items-center">
+                            <DoughnutChart 
+                                :data="modalData.chart" 
+                                :options="{ responsive: true, maintainAspectRatio: false }" />
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Liste des budgets</h3>
+                        <div class="space-y-3">
+                            <div v-for="budget in modalData.budgets" :key="budget.id" class="p-4 bg-gray-50 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-medium text-gray-800">{{ budget.title }}</span>
+                                    <span class="font-semibold text-blue-600">{{ formatCurrency(budget.amount) }}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div 
+                                        class="bg-blue-600 h-2 rounded-full transition-all"
+                                        :style="{ width: `${Math.min((budget.spent / budget.amount) * 100, 100)}%` }">
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    {{ formatCurrency(budget.spent) }} / {{ formatCurrency(budget.amount) }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Goals Details -->
+                <div v-if="currentDetailType === 'goals' && modalData" class="space-y-6">
+                    <div class="bg-white rounded-xl p-6 border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Vos objectifs d'épargne</h3>
+                        <div class="space-y-4">
+                            <div v-for="goal in modalData.goals" :key="goal.id" class="p-5 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h4 class="font-semibold text-gray-900 text-lg">{{ goal.title }}</h4>
+                                    <span class="text-sm font-medium text-gray-600">
+                                        {{ ((goal.balance / goal.target) * 100).toFixed(1) }}%
+                                    </span>
+                                </div>
+                                <div class="mb-3">
+                                    <BarBudgetInfo 
+                                        :id="goal.id" 
+                                        :title="goal.title" 
+                                        :target-amount="goal.target" 
+                                        :amount="goal.balance" />
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Actuel: <span class="font-semibold text-blue-600">{{ formatCurrency(goal.balance) }}</span></span>
+                                    <span class="text-gray-600">Objectif: <span class="font-semibold text-purple-600">{{ formatCurrency(goal.target) }}</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </UModal>
     </div>
 </template>
 
 <style lang="scss" scoped>
-.option-diplay-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1rem;
-}
-.card-grid-list {
-    margin-top: 1rem;
-}
-.card-grid {
-    border: solid 1px #E6E6E6;
-    padding: 0.5rem;
-}
-.card-account-list {
-    // display: flex;
-    // flex-direction: columns;
-    margin-top: 1rem;
-    // width: 100%;
-    // overflow: auto;
-    // flex-wrap: wrap;
-}
+// Keep any custom styles you need
 </style>

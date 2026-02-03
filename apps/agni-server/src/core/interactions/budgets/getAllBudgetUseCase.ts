@@ -1,12 +1,15 @@
 import { IUsecase } from "../interfaces";
 import { ListDto, QueryFilter } from "@core/dto/base";
-import { RecordType } from "@core/domains/constants";
+import { DeductionBase, DeductionMode, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { Budget } from "@core/domains/entities/budget";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
+import { DeductionType } from "@core/domains/entities/decution";
+import { RequestGetPagination } from "../transaction/getPaginationTransactionUseCase";
+import { GetBalanceDto } from "../transaction/getBalanceByUseCase";
 
 export type GetAllBudgetDto = {
     id: string,
@@ -24,21 +27,25 @@ export type GetAllBudgetDto = {
 }
 
 export class GetAllBudgetUseCase implements IUsecase<QueryFilter, ListDto<GetAllBudgetDto>> {
-   private budgetRepository: Repository<Budget>;
-   private transactionRepository: Repository<Transaction>;
-   private recordRepository: Repository<Record>
-   private saveGoalRepository: Repository<SaveGoal>
+    private budgetRepository: Repository<Budget>;
+    private transactionRepository: Repository<Transaction>;
+    private recordRepository: Repository<Record>
+    private saveGoalRepository: Repository<SaveGoal>
+    private getBalanceUc: IUsecase<RequestGetPagination, GetBalanceDto>
   
    constructor(
     budgetRepository: Repository<Budget>,
     transactionRepository: Repository<Transaction>,
     recordRepository: Repository<Record>,
-    saveGoalRepository: Repository<SaveGoal>
+    saveGoalRepository: Repository<SaveGoal>,
+    deductionRepo: Repository<DeductionType>,
+    getBalanceUc: IUsecase<RequestGetPagination, GetBalanceDto>
    ) {
        this.budgetRepository = budgetRepository
        this.transactionRepository = transactionRepository
        this.recordRepository = recordRepository
        this.saveGoalRepository = saveGoalRepository
+       this.getBalanceUc = getBalanceUc
    }
 
 
@@ -68,22 +75,16 @@ export class GetAllBudgetUseCase implements IUsecase<QueryFilter, ListDto<GetAll
                     budget.getSchedule().repeater!.interval
             ); 
 
-            const extendFilter = new TransactionFilter()
-            extendFilter.budgets = [budget.getId()]
-            extendFilter.startDate = startBudgetUTCDate
-            extendFilter.endDate = budget.getSchedule().dueDate
-            let transactions = await this.transactionRepository.getAll({
-                offset: 0,
-                limit: 0,
-                queryAll: true
-            }, extendFilter);
+            const res = await this.getBalanceUc.execute({ 
+                limit: 0, offset: 0, 
+                budgetFilterIds: [budget.getId()],
+                types: [TransactionType.FIXEDCOST, TransactionType.VARIABLECOST, TransactionType.OTHER],
+                status: TransactionStatus.COMPLETE,
+                dateStart: startBudgetUTCDate,
+                dateEnd: budget.getSchedule().dueDate ,
+            })
 
-            let currentBalance = 0
-            let records = await this.recordRepository.getManyByIds(transactions.items.map(transaction => transaction.getRecordRef()))
-            for (let record of records) {
-                if (record.getType() === RecordType.DEBIT)
-                    currentBalance += record.getMoney().getAmount()
-            }
+        let currentBalance = res.balance
 
             let saveGoals = await this.saveGoalRepository.getManyByIds(budget.getSaveGoalIds())
             let saveBalance = 0
@@ -93,15 +94,15 @@ export class GetAllBudgetUseCase implements IUsecase<QueryFilter, ListDto<GetAll
             let budgetDisplay: GetAllBudgetDto = {
                 id: budget.getId(),
                 title: budget.getTitle(),
-                currentBalance: currentBalance,
+                currentBalance: Math.abs(currentBalance),
                 target: budget.getTarget() + saveBalance,
                 saveGoalTarget: saveBalance,
                 saveGoalIds: budget.getSaveGoalIds(),
                 realTarget: budget.getTarget(),
                 dueDate: budget.getSchedule().dueDate,
                 repeater: budget.getSchedule(). repeater ? {
-                period: budget.getSchedule().repeater!.period,
-                interval: budget.getSchedule().repeater!.interval
+                    period: budget.getSchedule().repeater!.period,
+                    interval: budget.getSchedule().repeater!.interval
                 } : undefined 
             };
 

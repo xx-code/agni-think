@@ -1,4 +1,4 @@
-import { mapperMainTransactionCategory, mapperTransactionStatus, TransactionStatus } from "@core/domains/constants";
+import { DeductionBase, DeductionMode, mapperMainTransactionCategory, mapperTransactionStatus, TransactionStatus } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import { isEmpty } from "@core/domains/helpers";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
@@ -8,7 +8,7 @@ import { ListDto } from "@core/dto/base";
 import { TransactionDependencies } from "../facades";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { QueryFilterAllRepository, SortBy } from "@core/repositories/dto";
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter, TransactionRecordCountReader } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 
 
@@ -44,28 +44,41 @@ export type GetAllTransactionTagDto = {
 }
 
 export type GetAllTransactionDto = {
-    transactionId: string
+    id: string
     accountId: string
-    amount: number
-    date: Date
-    description: string
-    recordType: string
-    type: string
     status: string
-    categoryId: string
-    tagRefs: string[]
-    budgets: string[]
+    type: string
+    subTotalAmount: number
+    totalAmount: number
+    mouvement: string
+    records: {
+        id: string
+        description: string
+        categoryId: string
+        amount: number
+        tagRefs: string[]
+        budgetRefs: string[]
+    }[]
+    deductions: {
+        id: string
+        amount: number
+    }[]
+    date: Date
 }
 
 export class GetPaginationTransaction implements IUsecase<RequestGetPagination, ListDto<GetAllTransactionDto>> {
     private transactionRepository: Repository<Transaction>;
     private transactionDependencies: TransactionDependencies
+    private transactionRecordCountReader: TransactionRecordCountReader
 
     constructor(
         transactionRepository: Repository<Transaction>, 
-        transactionDependencies: TransactionDependencies) {
+        transactionDependencies: TransactionDependencies,
+        transactionRecordCountReader: TransactionRecordCountReader
+    ) {
         this.transactionRepository = transactionRepository;
         this.transactionDependencies = transactionDependencies
+        this.transactionRecordCountReader = transactionRecordCountReader
     }
 
     async execute(request: RequestGetPagination): Promise<ListDto<GetAllTransactionDto>> {
@@ -132,8 +145,8 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
             sortBy.sortBy = request.sortBy
 
         if (request.sortSense)
-            if (!['asc', 'desc'].includes(request.sortSense))
-                throw new ValidationError('SORT_SENSE_MUST_BE_ASC_DESC')
+                if (!['asc', 'desc'].includes(request.sortSense))
+                    throw new ValidationError('SORT_SENSE_MUST_BE_ASC_DESC')
 
         let filters: QueryFilterAllRepository = {
             offset: request.offset,
@@ -144,39 +157,82 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
 
         const extendTransactionFilter = new TransactionFilter()
         extendTransactionFilter.accounts = request.accountFilterIds
-        extendTransactionFilter.categories = request.categoryFilterIds
-        extendTransactionFilter.budgets = request.budgetFilterIds
-        extendTransactionFilter.tags = request.tagFilterIds
         extendTransactionFilter.startDate = request.dateStart
         extendTransactionFilter.endDate = request.dateEnd
         extendTransactionFilter.isFreeze = request.isFreeze
         extendTransactionFilter.status = status
         extendTransactionFilter.types = types
-        let response = await this.transactionRepository.getAll(filters, extendTransactionFilter);
+        let transactions = await this.transactionRepository.getAll(filters, extendTransactionFilter);
 
-        // TODO: BAD change 
-        let records = await this.transactionDependencies.recordRepository?.getManyByIds(response.items.map(i => i.getRecordRef())) 
+        const extendRecordFilter = new RecordFilter()
+        extendRecordFilter.transactionIds = transactions.items.map(i => i.getId())
+        extendRecordFilter.categories = request.categoryFilterIds
+        extendRecordFilter.budgets = request.budgetFilterIds
+        extendRecordFilter.tags = request.tagFilterIds
+        const records = await this.transactionDependencies.recordRepository?.getAll({offset: 0, limit: 0, queryAll: true}, extendRecordFilter)
 
-        let transactions: GetAllTransactionDto[] = []
-        for (let i = 0; i < response.items.length ; i++) {
-            const transaction = response.items[i]
-            const record = records?.find(i => i.getId() === transaction.getRecordRef());
-            if (record)
-                transactions.push({
-                    accountId: transaction.getAccountRef(),
-                    transactionId: transaction.getId(),
-                    amount: record.getMoney().getAmount(),
-                    categoryId: transaction.getCategoryRef(),
-                    date: transaction.getUTCDate(),
-                    tagRefs: transaction.getTags(),
-                    description: record.getDescription(),
-                    status: transaction.getStatus(),
-                    recordType: record.getType(),
-                    type: transaction.getTransactionType(),
-                    budgets: transaction.getBudgetRefs()
+        const deductionIds = [  ...new Set(
+            transactions.items
+            .flatMap(item => item.getCollectionDeductions())
+            .map(d => d.deductionId))
+        ]
+        const deductions = await this.transactionDependencies.deductionRepository?.getManyByIds(deductionIds) 
+
+        const total = await this.transactionRecordCountReader.count(extendTransactionFilter, extendRecordFilter)
+
+        let responses: GetAllTransactionDto[] = []
+        for (let i = 0; i < transactions.items.length ; i++) {
+            const transaction = transactions.items[i]
+            const transactionRecords = records?.items.filter(i => i.getTransactionId() === transaction.getId());
+
+            let subTotal = 0;
+            if (transactionRecords && transactionRecords?.length > 0) {
+                subTotal = transactionRecords?.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) ?? 0
+
+                const transDeductions = deductions?.filter(i => transaction.getCollectionDeductions().map(i => i.deductionId).includes(i.getId()))
+
+                const deductionSubTotal = transDeductions?.filter(i => i.getBase() === DeductionBase.SUBTOTAL)
+                const deductionTotal = transDeductions?.filter(i => i.getBase() === DeductionBase.TOTAL)
+
+                let totalBeforSub = subTotal
+                deductionSubTotal?.forEach(i => {
+                    const deduc = transaction.getCollectionDeductions().find(trans => trans.deductionId === i.getId())
+                    if (deduc) 
+                        totalBeforSub += i.getMode() === DeductionMode.FLAT ? deduc.amount : (subTotal * (deduc.amount/100) )
                 })
+
+                let total = totalBeforSub
+                deductionTotal?.forEach(i => {
+                    const deduc = transaction.getCollectionDeductions().find(trans => trans.deductionId === i.getId())
+                    if (deduc) 
+                        total += i.getMode() === DeductionMode.FLAT ?  deduc.amount : (total * (deduc.amount/100) )
+                })
+
+                responses.push({
+                    id: transaction.getId(), 
+                    accountId: transaction.getAccountRef(),
+                    date: transaction.getDate(),
+                    status: transaction.getStatus(),
+                    type: transaction.getTransactionType(),
+                    mouvement: transaction.getRecordType(),
+                    subTotalAmount: subTotal,
+                    totalAmount: total,
+                    records: transactionRecords?.map(i => ({
+                        id: i.getId(), 
+                        amount: i.getMoney().getAmount(),
+                        budgetRefs: i.getBudgetRefs(),
+                        tagRefs: i.getTags(),
+                        categoryId: i.getCategoryRef(),
+                        description: i.getDescription()
+                    })) ?? [],
+                    deductions: transaction.getCollectionDeductions().map(i => ({
+                        id: i.deductionId,
+                        amount: i.amount
+                    }))
+                })
+            } 
         }
 
-        return { items: transactions,  totals: response.total};
+        return { items: responses,  totals: total};
     }
 }
