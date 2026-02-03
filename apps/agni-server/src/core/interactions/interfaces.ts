@@ -1,3 +1,4 @@
+
 export interface IUsecase<TInput, TOutput> {
-    execute(request: TInput): Promise<TOutput> 
+    execute(request: TInput, trx?: any): Promise<TOutput> 
 }

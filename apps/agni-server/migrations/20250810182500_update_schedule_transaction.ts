@@ -2,7 +2,6 @@ import type { Knex } from "knex";
 
 
 export async function up(knex: Knex): Promise<void> {
-    console.log("up 3")
     if (!(await knex.schema.hasColumn('schedule_transactions', 'is_freeze'))) {
         await knex.schema.alterTable('schedule_transactions', (table) => {
             table.boolean('is_freeze').defaultTo(false)

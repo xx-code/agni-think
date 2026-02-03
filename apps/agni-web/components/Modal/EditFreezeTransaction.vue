@@ -16,6 +16,7 @@ const emit = defineEmits<{
 
 const schema = z.object({
     accountId: z.string().nonempty('Vous devez selection un compte'),
+    title: z.string().nonempty('Vous devez ajouter une description'),
     amount: z.number().min(1, 'Vous de avoir un prix superieux a zero')
 })
 
@@ -29,6 +30,7 @@ const {data: accounts} = useAccounts({
 
 const form = reactive({
     accountId: accountId || '',
+    title: '',
     amount: 0
 })
 
@@ -42,6 +44,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     const data = event.data;
     emit('submit', { 
         accountId: data.accountId,
+        title: data.title,
         amount: data.amount,
         endDate: date.value 
     });
@@ -66,6 +69,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                         :items="accounts?.items.map(acc => ({id: acc.id, title: acc.title}))" 
                         class="w-full"
                     />
+                </UFormField>
+
+                <UFormField label="Description" name="title">
+                    <UInput v-model="form.title" class="w-full" />
                 </UFormField>
 
                 <UFormField label="Prix" name="amount">

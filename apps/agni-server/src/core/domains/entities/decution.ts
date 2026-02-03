@@ -1,99 +1,73 @@
 import { ValueError } from "@core/errors/valueError"
+import { DeductionBase, DeductionMode } from "../constants"
+import Entity, { TrackableProperty } from "./entity"
+import { isStringDifferent } from "../helpers"
 
-export class DeductionType {
-    private id: string
-    private title: string
-    private description: string
-    private change: boolean = false
+export class DeductionType extends Entity {
+    private title: TrackableProperty<string>
+    private base:  DeductionBase
+    private mode: DeductionMode
+    private description: TrackableProperty<string>
 
-    constructor(id: string, title: string, description: string) {
-        this.id = id
-        this.title = title 
-        this.description = description
-    }
-
-    getId(): string {
-        return this.id 
-    }
-    
-    setId(id: string) {
-        this.id = id
+    constructor(id: string, title: string, description: string, base: DeductionBase, mode: DeductionMode,) {
+        super(id)
+        this.base = base
+        this.mode = mode
+        this.title = new TrackableProperty<string>(title, this.markHasChange.bind(this))  
+        this.description = new TrackableProperty<string>(description, this.markHasChange.bind(this))
     }
 
     setTitle(title: string) {
-        if (this.title !== title)
-            this.change = true
-        this.title = title
+        this.title.set(title, isStringDifferent)
     }
 
     getTitle(): string {
-        return this.title
+        return this.title.get()
     }
 
     setDescription(description: string) { 
-        if (this.description !== description)
-            this.change = true
-        this.description = description
+        this.title.set(description, isStringDifferent)
     }
 
     getDescription(): string {
-        return this.description
+        return this.description.get()
     }
 
-    hasChange(): boolean {
-        return this.change
+    getBase(): string {
+        return this.base
+    }
+
+    getMode(): string {
+        return this.mode
     }
 }
 
-export class Deduction { 
-    private id: string
-    private deductionType: DeductionType
-    private rate: number
-    private change: boolean = false
+export class Deduction extends Entity { 
+    private typeId: string 
+    private rate: TrackableProperty<number> 
 
-    constructor(id: string, deductionType: DeductionType, rate: number) {
-        this.id = id 
-        this.deductionType = deductionType
-        
-        if (rate <= 0)
-            throw new ValueError("Rate must be great than 0")
+    constructor(id: string, typeId: string,  rate: number) {
+        super(id)
+        this.typeId = typeId
 
-        this.rate = rate
+        if (rate < 0)
+            throw new ValueError("Rate must be great 0")
+
+        this.rate = new TrackableProperty<number>(rate, this.markHasChange.bind(this))
     }
 
-    setId(id: string) {
-        this.id = id
-    }
-
-    getId(): string {
-        return this.id
-    }
-
-    setDeductionType(deductionType: DeductionType) {
-        if (this.deductionType !== deductionType)
-            this.change = true
-        this.deductionType = deductionType
-    }
-
-    getDeductionType(): DeductionType {
-        return this.deductionType
+    getDeductionTypeId(): string {
+        return this.typeId
     }
 
     setRate(rate: number) {
-        if (rate <= 0)
+        if (rate < 0)
             throw new ValueError("Rate must be great than 0")
 
-        if (this.rate !== rate)
-            this.change = true
-        
-        this.rate = rate
+        this.rate.set(rate)
     }
 
     getRate(): number {
-        return this.rate
-    }
-
-    hasChange(): boolean {
-        return this.change
-    }
+        return this.rate.get()
+    } 
 }

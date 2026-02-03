@@ -79,11 +79,12 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
                         variant: 'ghost',
                         icon: 'i-lucide-chevron-down',
                         square: true,
+                        size: 'sm',
                         'aria-label': 'Expand',
                         ui: {
                             leadingIcon: [
-                                'transition-transform',
-                                row.getIsExpanded() ? 'duration-200 rotate-180': ''
+                                'transition-transform duration-300 ease-in-out',
+                                row.getIsExpanded() ? 'rotate-180': ''
                             ]
                         },
                         onClick: () => row.toggleExpanded()
@@ -99,73 +100,90 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
             const color = row.original.category.color
             return(
                 h('div', {
-                    class: 'flex items-center justify-center rounded-full',
+                    class: 'flex items-center justify-center rounded-xl shadow-sm transition-transform hover:scale-105',
                     style: {
-                        background: `${color}22`,
-                 
-                        width: '35px',
-                        height: '35px',
+                        background: `linear-gradient(135deg, ${color}22, ${color}11)`,
+                        width: '42px',
+                        height: '42px',
+                        border: `1.5px solid ${color}33`
                     }
                 }, [
-                    h(UIcon, { name: icon, class: 'text-white text-lg', style:{color: color}  }) // ou une autre couleur si tu veux
+                    h(UIcon, { 
+                        name: icon, 
+                        class: 'text-xl',
+                        style:{color: color}  
+                    })
                 ])
             )
         }
     },
     {
         accessorKey: 'dueDate',
-        header: 'Date d\'échéance',
+        header: () => h('div', { class: 'font-semibold text-gray-700' }, 'Date d\'échéance'),
         cell: ({ row }) => {
-            return formatDate(row.getValue('dueDate'))
+            return h('div', { class: 'text-sm text-gray-600 font-medium' }, formatDate(row.getValue('dueDate')))
         }
     },
     {
         accessorKey: 'category.title',
-        header: 'Categorie',
+        header: () => h('div', { class: 'font-semibold text-gray-700' }, 'Catégorie'),
+        cell: ({ row }) => {
+            return h('div', { class: 'text-sm font-medium text-gray-800' }, row.original.category.title)
+        }
     },
     {
         accessorKey: 'name',
-        header: 'Nom',
+        header: () => h('div', { class: 'font-semibold text-gray-700' }, 'Nom'),
+        cell: ({ row }) => {
+            return h('div', { class: 'text-sm font-medium text-gray-800' }, row.getValue('name'))
+        }
     }, 
     {
         accessorKey: 'isPause',
-        header: '',
+        header: () => h('div', { class: 'text-center font-semibold text-gray-700' }, 'Statut'),
         cell: ({ row }) => {
             if (!row.original.isPause)
-                return h(UButton, { 
-                    icon: 'i-lucide-pause', 
-                    size: 'md', 
-                    class: 'rounded-full',
-                    variant: 'outline',
-                    color: 'success',
-                    onClick: () => togglePauseSchedule(row.original.id, row.original.isPause)
-                 })
+                return h('div', { class: 'flex justify-center' }, 
+                    h(UButton, { 
+                        icon: 'i-lucide-pause', 
+                        size: 'sm', 
+                        class: 'rounded-full shadow-sm hover:shadow-md transition-all',
+                        variant: 'soft',
+                        color: 'success',
+                        'aria-label': 'Mettre en pause',
+                        onClick: () => togglePauseSchedule(row.original.id, row.original.isPause)
+                    })
+                )
 
-            return h(UButton, { 
+            return h('div', { class: 'flex justify-center' },
+                h(UButton, { 
                     icon: 'i-lucide-play', 
-                    size: 'md', 
-                    class: 'rounded-full',
-                    variant: 'outline',
+                    size: 'sm', 
+                    class: 'rounded-full shadow-sm hover:shadow-md transition-all',
+                    variant: 'soft',
                     color: 'error',
+                    'aria-label': 'Reprendre',
                     onClick: () => togglePauseSchedule(row.original.id, row.original.isPause)
-                 })
+                })
+            )
         }
     },
     {
         accessorKey: 'amount',
-        header: () => h('div', { class: 'text-right' }, 'Amount'),
+        header: () => h('div', { class: 'text-right font-semibold text-gray-700' }, 'Montant'),
         cell: ({ row }) => {
             const amount = Number.parseFloat(row.getValue('amount'))
             const type = row.original.type
             
-
             const formatted = new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'CAD'
             }).format(amount)
 
-            return h('div', {class: 'text-right font-medium', style: {color: type === 'Income' ? "#1abc9c" : ""}}, formatted)
-            
+            return h('div', {
+                class: 'text-right font-bold text-base',
+                style: {color: type === 'Income' ? "#10b981" : "#ef4444"}
+            }, formatted)
         }
     },
     {
@@ -181,7 +199,7 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
                             align: 'end'
                         },
                         items: getRowItems(row),
-                        'arial-label': 'Actions dropdown'
+                        'arial-label': 'Actions'
                     },
                     () => 
                         h(
@@ -189,8 +207,9 @@ const tableColumn: TableColumn<TableScheduleTransactionType>[] = [
                                 icon: 'i-lucide-ellipsis-vertical',
                                 color: 'neutral',
                                 variant: 'ghost',
-                                class: 'ml-auto',
-                                'aria-label': 'Actions dropdown'
+                                size: 'sm',
+                                class: 'ml-auto hover:bg-gray-100',
+                                'aria-label': 'Menu actions'
                             }
                         )
                 )
@@ -203,6 +222,7 @@ function getRowItems(rows: TableRow<TableScheduleTransactionType>) {
     return [
         {
             label: 'Modifier',
+            icon: 'i-lucide-pencil',
             disabled: rows.original.isFreeze,
             onSelect: () => {
                 const id = rows.original.id
@@ -211,9 +231,10 @@ function getRowItems(rows: TableRow<TableScheduleTransactionType>) {
         },
         {
             label: 'Supprimer',
+            icon: 'i-lucide-trash-2',
             onSelect: () => {
                 const id = rows.original.id
-                if (confirm("Voulez vous supprimer la transaction"))
+                if (confirm("Voulez-vous vraiment supprimer cette transaction ?"))
                     onDelete(id)
             }
         }
@@ -260,8 +281,8 @@ async function onSubmitTransaction(value: EditScheduleTransactionType, oldValue?
             
     } catch(err) {
         toast.add({
-            title: 'Error submit transaction',
-            description: 'Error while submit transaction ' + err,
+            title: 'Erreur lors de la soumission',
+            description: 'Une erreur est survenue: ' + err,
             color: 'error'
         })
     }
@@ -286,47 +307,162 @@ const onDelete = async (id: string) => {
 </script>
 
 <template>
-    <div>
-        <div style="margin-top: 1rem;">
-            <div class="flex justify-end">
-                <UButton
-                    label="Ajouter transaction"
-                    @click="openTransaction()"
-                 />
-            </div>
-
-            <div class="bg-white p-3 mt-2 rounded-lg">
-                <UTable 
-                    :data="displayScheluletransactionsTable" 
-                    :columns="tableColumn" 
-                    class="flex-1">
-                    <template #expanded="{ row }">
-                        <div class="flex flex-row flex-wrap">
-                            <div v-for="tag in row.original.tags" :key="tag.id">
-                                <UBadge 
-                                    :label="tag.value" 
-                                    :style="{color:tag.color, borderColor: tag.color}" 
-                                    variant="outline" color="neutral"/>  
-                            </div>
-                        </div>
-                    </template>
-                </UTable>
-                <div class="flex flex-row gap-2 items-baseline-last justify-between">
-                    <UPagination 
-                        class="mt-3" 
-                        v-model:page="page" 
-                        v-on:update:page="() => scheduleFilter.offset = (scheduleFilter.limit * (page - 1))"
-                        :items-per-page="scheduleFilter.limit"  
-                        :total="scheduleTransactions?.totals" 
-                        active-variant="subtle" />
-                    <UInputNumber 
-                        v-model="scheduleFilter.limit" 
-                        :min="1" 
-                        orientation="vertical" 
-                        style="width: 80px;"
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6 lg:p-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header Section -->
+            <div class="mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                            Transactions Planifiées
+                        </h1>
+                        <p class="text-gray-600 text-sm">
+                            Gérez vos transactions récurrentes et planifiées
+                        </p>
+                    </div>
+                    <UButton
+                        label="Nouvelle Transaction"
+                        icon="i-lucide-plus"
+                        size="lg"
+                        color="primary"
+                        class="shadow-lg hover:shadow-xl transition-shadow"
+                        @click="openTransaction()"
                     />
                 </div>
-            </div> 
+            </div>
+
+            <!-- Stats Cards (Optional Enhancement) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-blue-100 rounded-lg">
+                            <UIcon name="i-lucide-calendar-clock" class="text-blue-600 text-xl" />
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Total Planifié</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ scheduleTransactions?.totals || 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-green-100 rounded-lg">
+                            <UIcon name="i-lucide-play-circle" class="text-green-600 text-xl" />
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Actives</p>
+                            <p class="text-2xl font-bold text-gray-900">
+                                {{ displayScheluletransactionsTable?.filter(t => !t.isPause).length || 0 }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-orange-100 rounded-lg">
+                            <UIcon name="i-lucide-pause-circle" class="text-orange-600 text-xl" />
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">En Pause</p>
+                            <p class="text-2xl font-bold text-gray-900">
+                                {{ displayScheluletransactionsTable?.filter(t => t.isPause).length || 0 }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <UTable 
+                        :data="displayScheluletransactionsTable" 
+                        :columns="tableColumn"
+                        class="w-full"
+                        :ui="{
+                            tbody: 'divide-y divide-gray-100',
+                            tr: 'hover:bg-gray-50 transition-colors',
+                            th: 'bg-gray-50 py-4 px-6',
+                            td: 'py-4 px-6'
+                        }">
+                        <template #expanded="{ row }">
+                            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <UIcon name="i-lucide-tags" class="text-gray-500 text-sm" />
+                                    <span class="text-sm font-medium text-gray-700">Étiquettes:</span>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <UBadge 
+                                        v-for="tag in row.original.tags" 
+                                        :key="tag.id"
+                                        :label="tag.value" 
+                                        :style="{
+                                            color: tag.color, 
+                                            borderColor: tag.color,
+                                            backgroundColor: `${tag.color}15`
+                                        }" 
+                                        variant="outline" 
+                                        color="neutral"
+                                        class="px-3 py-1 font-medium"
+                                    />
+                                </div>
+                            </div>
+                        </template>
+                    </UTable>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="border-t border-gray-200 bg-gray-50 px-6 py-4">
+                    <div class="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-600">Lignes par page:</span>
+                            <UInputNumber 
+                                v-model="scheduleFilter.limit" 
+                                :min="1" 
+                                :max="50"
+                                orientation="vertical" 
+                                size="sm"
+                                class="w-20"
+                            />
+                        </div>
+                        <UPagination 
+                            v-model:page="page" 
+                            v-on:update:page="() => scheduleFilter.offset = (scheduleFilter.limit * (page - 1))"
+                            :items-per-page="scheduleFilter.limit"  
+                            :total="scheduleTransactions?.totals" 
+                            active-variant="solid"
+                            :ui="{
+                                list: 'gap-1',
+                                item:'rounded-lg'
+                            }"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div 
+                v-if="!displayScheluletransactionsTable || displayScheluletransactionsTable.length === 0"
+                class="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center mt-6"
+            >
+                <div class="max-w-md mx-auto">
+                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <UIcon name="i-lucide-calendar-x" class="text-gray-400 text-3xl" />
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                        Aucune transaction planifiée
+                    </h3>
+                    <p class="text-gray-600 mb-6">
+                        Commencez par créer votre première transaction récurrente
+                    </p>
+                    <UButton
+                        label="Créer une transaction"
+                        icon="i-lucide-plus"
+                        size="lg"
+                        @click="openTransaction()"
+                    />
+                </div>
+            </div>
         </div>
     </div>
 </template>

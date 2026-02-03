@@ -1,7 +1,7 @@
-import { AccountType, mapperPeriod, Period, RecordType, SAVING_CATEGORY_ID, TransactionType, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
+import { AccountType, mapperPeriod, Period, RecordType, TransactionType } from "@core/domains/constants";
 import { IUsecase } from "../interfaces";
 import UnExpectedError from "@core/errors/unExpectedError";
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Account } from "@core/domains/entities/account";
 import { Record } from "@core/domains/entities/record";
@@ -67,24 +67,27 @@ export class SavingAnalysticUseCase implements IUsecase<RequestSavingAnalystic, 
             const extendFilter = new TransactionFilter()
             extendFilter.startDate = startDate
             extendFilter.endDate = endDate
-            extendFilter.categories = [SAVING_CATEGORY_ID,  TRANSFERT_CATEGORY_ID]
             extendFilter.types = [TransactionType.INCOME, TransactionType.OTHER]
             const transactions = await this.transctionRepo.getAll({limit: 0, offset: 0, queryAll: true}, extendFilter)
             
 
             // const savegoalTransactions = transactions.items.filter(i => i.getCategoryRef() === SAVING_CATEGORY_ID)
-            const savingTransactions = transactions.items.filter(i => i.getCategoryRef() === SAVING_CATEGORY_ID || saveAccountIds.includes(i.getAccountRef()))
-            const investTransactions = transactions.items.filter(i => investAccountIds.includes(i.getAccountRef()))
-            const incomeTransactions = transactions.items.filter(i => i.getRecordRef())
+            // const savingTransactions = transactions.items.filter(i => i.getCategoryRef() === SAVING_CATEGORY_ID || saveAccountIds.includes(i.getAccountRef()))
+            // const investTransactions = transactions.items.filter(i => investAccountIds.includes(i.getAccountRef()))
+            // const incomeTransactions = transactions.items.filter(i => i.getRecordRef())
 
-            const incomeRecords = await this.recordRepo.getManyByIds(incomeTransactions.map(i => i.getRecordRef()))
+            const recordExtendFilter = new RecordFilter()
+            recordExtendFilter.transactionIds = transactions.items.map(i => i.getId())
+            let records = await this.recordRepo.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
+
+            const incomeRecords = await records.items.filter(i => i.getId())
             const incomeAmount = incomeRecords.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
 
-            const savingRecords = await this.recordRepo.getManyByIds(savingTransactions.map(i => i.getRecordRef()))
-            const savingAmount = savingRecords.filter(i => i.getType() == RecordType.CREDIT).reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
+            const savingRecords = await records.items //.filter(i => i.getCategoryRef() === SAVING_CATEGORY_ID || saveAccountIds.includes(i.getAccountRef()))
+            const savingAmount = savingRecords.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
 
-            const investRecords = await this.recordRepo.getManyByIds(investTransactions.map(i => i.getRecordRef()))
-            const investAmount = investRecords.filter(i => i.getType() == RecordType.CREDIT).reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
+            const investRecords = await records.items // .filter(i => investAccountIds.includes(i.getAccountRef()))
+            const investAmount = investRecords.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
             
             savings.push(savingAmount + investAmount)
             investements.push(investAmount)

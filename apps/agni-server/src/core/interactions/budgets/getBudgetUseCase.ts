@@ -1,12 +1,15 @@
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { IUsecase } from "../interfaces";
-import { RecordType } from "@core/domains/constants";
+import { DeductionBase, DeductionMode, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { Budget } from "@core/domains/entities/budget";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
+import { Deduction, DeductionType } from "@core/domains/entities/decution";
+import { RequestGetPagination } from "../transaction/getPaginationTransactionUseCase";
+import { GetBalanceDto } from "../transaction/getBalanceByUseCase";
 
 export type GetBudgetDto = {
     id: string,
@@ -24,21 +27,25 @@ export type GetBudgetDto = {
 }
 
 export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
-   private budgetRepository: Repository<Budget>;
-   private transactionRepository: Repository<Transaction>;
-   private recordRepository: Repository<Record>
-   private saveGoalRepository: Repository<SaveGoal>
+    private budgetRepository: Repository<Budget>;
+    private transactionRepository: Repository<Transaction>;
+    private recordRepository: Repository<Record>
+    private saveGoalRepository: Repository<SaveGoal>
+    private getBalanceUc: IUsecase<RequestGetPagination, GetBalanceDto>
 
    constructor(
     budgetRepository: Repository<Budget>,
     transactionRepository: Repository<Transaction>,
     recordRepository: Repository<Record>,
-    saveGoalRepository: Repository<SaveGoal>
+    saveGoalRepository: Repository<SaveGoal>,
+    decutionRepo: Repository<DeductionType>,
+    getBalanceUc: IUsecase<RequestGetPagination, GetBalanceDto>
    ) {
        this.budgetRepository = budgetRepository
        this.recordRepository = recordRepository
        this.transactionRepository = transactionRepository
        this.saveGoalRepository = saveGoalRepository
+       this.getBalanceUc = getBalanceUc
    }
 
 
@@ -55,22 +62,18 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
                 budget.getSchedule().repeater!.interval
         ); 
 
-        const extendFilter = new TransactionFilter()
-        extendFilter.budgets = [budget.getId()]
-        extendFilter.startDate = startBudgetUTCDate
-        extendFilter.endDate = budget.getSchedule().dueDate
-        let transactions = await this.transactionRepository.getAll({
-            limit: 0, 
-            offset: 0,
-            queryAll: true,
-        }, extendFilter);
 
-        let currentBalance = 0
-        let records = await this.recordRepository.getManyByIds(transactions.items.map(transaction => transaction.getRecordRef()))
-        for (let record of records) {
-            if (record.getType() === RecordType.DEBIT)
-                currentBalance += record.getMoney().getAmount()
-        }
+        const res = await this.getBalanceUc.execute({ 
+            limit: 0, offset: 0, 
+            budgetFilterIds: [budget.getId()],
+            types: [TransactionType.FIXEDCOST, TransactionType.VARIABLECOST, TransactionType.OTHER],
+            status: TransactionStatus.COMPLETE,
+            dateStart: startBudgetUTCDate,
+            dateEnd: budget.getSchedule().dueDate ,
+        })
+
+        let currentBalance = res.balance
+
 
         let saveBalance = 0
         let saveGoals = await this.saveGoalRepository.getManyByIds(budget.getSaveGoalIds())
@@ -80,7 +83,7 @@ export class GetBudgetUseCase implements IUsecase<string, GetBudgetDto> {
         let budgetDisplay: GetBudgetDto = {
             id: budget.getId(),
             title: budget.getTitle(),
-            currentBalance: currentBalance,
+            currentBalance: Math.abs(currentBalance),
             target: budget.getTarget() + saveBalance,
             realTarget: budget.getTarget(),
             saveGoalIds: budget.getSaveGoalIds(),

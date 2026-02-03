@@ -24,7 +24,7 @@ import { AddFreezeBalanceUseCase, RequestNewFreezeBalance } from '@core/interact
 import { TransactionDependencies } from '@core/interactions/facades';
 import { DeleteTransactionUseCase } from '@core/interactions/transaction/deleteTransactionUseCase';
 import { AutoDeleteFreezeBalanceUseCase } from '@core/interactions/freezerBalance/autoDeleteFreezeBalanceUseCase';
-import { GetBalanceByUseCase } from '@core/interactions/transaction/getBalanceByUseCase';
+import { GetBalanceByUseCase, GetBalanceDto } from '@core/interactions/transaction/getBalanceByUseCase';
 import { CreationBudgetUseCase, RequestCreationBudgetUseCase } from '@core/interactions/budgets/creationBudgetUseCase';
 import { RequestUpdateBudget, UpdateBudgetUseCase } from '@core/interactions/budgets/updateBudgetUseCase';
 import { GetBudgetDto, GetBudgetUseCase } from '@core/interactions/budgets/getBudgetUseCase';
@@ -66,7 +66,7 @@ import { CashFlowAnalyseUseCase, CashFlowResponse, RequestCashFlow } from '@core
 import { AnalyseBudgetResponse, AnalyseBudgetRuleUseCase, RequestAnalyseBudgetRule } from '@core/interactions/analystic/analysebudgetRule';
 import Entity, { IEntity } from '@core/domains/entities/entity';
 import KnexRepository from '@infra/persistences/knexRepository';
-import Repository, { HoldingTransactionExtendFilter } from '@core/adapters/repository';
+import Repository, { HoldingTransactionExtendFilter, TransactionRecordCountReader } from '@core/adapters/repository';
 import UnExpectedError from '@core/errors/unExpectedError';
 import { Account } from '@core/domains/entities/account';
 import { AccountModel, AccountModelMapper, KnexAccountTable } from '@infra/persistences/models/account';
@@ -74,13 +74,13 @@ import { CategoryModel, CategoryModelMapper, KnexCategoryTable } from '@infra/pe
 import { Category } from '@core/domains/entities/category';
 import { KnexTagTable, TagModel, TagModelMapper } from '@infra/persistences/models/tag';
 import { Tag } from '@core/domains/entities/tag';
-import { KnexRecordTable, RecordModel, RecordModelMapper } from '@infra/persistences/models/record';
+import { KnexRecordTable, RecordFilterExtends, RecordModel, RecordModelMapper } from '@infra/persistences/models/record';
 import { Record } from '@core/domains/entities/record';
 import { BudgetFilterExtends, BudgetModel, BudgetModelMapper, KnexBudgetTable } from '@infra/persistences/models/budget';
 import { Budget } from '@core/domains/entities/budget';
 import { KnexScheduleTransactionTable, ScheduleTransactionFilterExtends, ScheduleTransactionMapper, ScheduleTransactionModel } from '@infra/persistences/models/scheduleTransaction';
 import { ScheduleTransaction } from '@core/domains/entities/scheduleTransaction';
-import { KnexTransactionTable, TransactionFilterExtends, TransactionModel, TransactionModelMapper } from '@infra/persistences/models/transactions';
+import { KnexTransactionRecordCountReader, KnexTransactionTable, TransactionFilterExtends, TransactionModel, TransactionModelMapper } from '@infra/persistences/models/transactions';
 import { Transaction } from '@core/domains/entities/transaction';
 import { KnexSaveGoalTable, SaveGoalExtendFilterAdapter, SaveGoalModel, SaveGoalModelMapper } from '@infra/persistences/models/saveGoal';
 import { SaveGoal } from '@core/domains/entities/saveGoal';
@@ -125,12 +125,26 @@ import { DeleteHoldingTransactionUseCase } from '@core/interactions/holdingTrans
 import { RequestUpdateHoldingTransactionDto, UpdateHoldingTransactionUseCase } from '@core/interactions/holdingTransactions/updateHoldingTransaction';
 import { AutoUpdateBudgetUseCase } from '@core/interactions/budgets/autoUpdateBudgetUseCase';
 import { KnexUnitOfWork } from '@infra/persistences/knexUnitOfWork';
+import { GetAllDeductionDto, GetAllDeductionUseCase } from '@core/interactions/deduction/getAllDeductions';
+import { GetDeductionDto, GetDeductionUseCase } from '@core/interactions/deduction/getDeduction';
+import { CreateDeductionUseCase, RequestCreateDeductionDto } from '@core/interactions/deduction/createDeduction';
+import { RequestUpdateDeductionDto, UpdateDeductionUseCase } from '@core/interactions/deduction/updateDecution';
+import { CreateDeductionTypeUseCase, RequestCreateDeductionTypeDto } from '@core/interactions/deduction/createDeductionType';
+import { RequestUpdateDeductionTypeDto, UpdateDeductionTypeUseCase } from '@core/interactions/deduction/updateDeductionType';
+import { GetDeductionTypeDto, GetDeductionTypeUseCase } from '@core/interactions/deduction/getDeductionType';
+import { GetAllDeductionTypeDto, GetAllDeductionTypeUseCase } from '@core/interactions/deduction/getAllDeductionTypes';
+import { DeleteDeductionUseCase } from '@core/interactions/deduction/deleteDeduction';
+import { DeductionModel, DeductionModelMapper, KnexDeductionTable } from '@infra/persistences/models/deduction';
+import { Deduction, DeductionType } from '@core/domains/entities/decution';
+import { DeductionTypeModel, DeductionTypeModelMapper, KnexDeductionTypeTable } from '@infra/persistences/models/deductionType';
+import { DeleteDeductionTypeUseCase } from '@core/interactions/deduction/deleteDeductionType';
 
 
 export class DiContenair {
     private services: Map<any, unknown>;  
     private repositories: Map<string, Repository<any>>;
     private unitOfWork: UnitOfWorkRepository|undefined = undefined;
+    private transactionRecordCountReader?: TransactionRecordCountReader
     private checkers: Map<any, unknown>;
     private agents: Map<string, IAgent<unknown, unknown>> 
     private eventRegister: IEventRegister|undefined = undefined
@@ -169,7 +183,7 @@ export class DiContenair {
         completeTransaction: IUsecase<RequestCompleteTransactionUsecase, void>,
         getTransaction: IUsecase<string, GetTransactionDto>,
         getPaginition: IUsecase<RequestGetPagination, ListDto<GetAllTransactionDto>>,
-        getBalanceBy: IUsecase<RequestGetPagination, number>,
+        getBalanceBy: IUsecase<RequestGetPagination, GetBalanceDto>,
         deleteTransaction: IUsecase<string, void>,
         transfertTransaction: IUsecase<RequestTransfertTransactionUseCase, void>,
         freezeTransaction: IUsecase<RequestNewFreezeBalance, CreatedDto>
@@ -253,6 +267,14 @@ export class DiContenair {
         getAllNotification: IUsecase<NotificationQueryFilter, ListDto<GetAllNotificationDto>>
     }
 
+    public deductionTypeUseCase?: {
+        createDeductionType: IUsecase<RequestCreateDeductionTypeDto, CreatedDto>
+        updateDeductionType: IUsecase<RequestUpdateDeductionTypeDto, void>
+        getDeductionType: IUsecase<string, GetDeductionTypeDto>
+        getAllDeductionTypes: IUsecase<QueryFilter, ListDto<GetAllDeductionTypeDto>>
+        deleteDeductionType: IUsecase<string, void>
+    }
+
     constructor() {
         this.services = new Map();
         this.repositories = new Map();
@@ -324,8 +346,9 @@ export class DiContenair {
         const recordTable = new KnexRecordTable() 
         await recordTable.createTable(connector)
         const recordModelMapper = new RecordModelMapper()
+        const recordFitlerAdapter = new RecordFilterExtends()
         const recordRepository = new KnexRepository<Record, RecordModel>(
-            connector, recordTable, recordModelMapper
+            connector, recordTable, recordModelMapper, recordFitlerAdapter
         )
         this.registerRepository('record', recordRepository)
 
@@ -417,6 +440,16 @@ export class DiContenair {
         )
         this.registerRepository('currency', currencyRepository)
 
+        const deductionTypeTable = new KnexDeductionTypeTable()
+        await deductionTypeTable.createTable(connector)
+        const deductionTypeModelMapper = new DeductionTypeModelMapper()
+        const deductionTypeRepository = new KnexRepository<DeductionType, DeductionTypeModel>(
+            connector, deductionTypeTable, deductionTypeModelMapper 
+        )
+        this.registerRepository('deduction_type', deductionTypeRepository)
+
+        this.transactionRecordCountReader = new KnexTransactionRecordCountReader(connector)
+
         this.unitOfWork = new KnexUnitOfWork(connector)
     }
 
@@ -436,10 +469,11 @@ export class DiContenair {
 
         // usecases
         this.registerNotificationUseCases(this.eventRegister)
+        this.registerTransactionUsecases();
+
         this.registerAccountUsecases();
         this.registerCategoryUsecases();
         this.registerTagUsecases();
-        this.registerTransactionUsecases();
         this.registerBudgetUsecases();
         this.registerScheduleTransactionUsecases();
         this.registerSaveGoalUsecases();
@@ -447,12 +481,19 @@ export class DiContenair {
         this.registerPatrimonyUseCases(); 
         this.registerCurrencyUseCases();
         this.registerHoldingUseCases();
+        this.registerDeductionTypeUseCase();
     }  
 
     private registerAccountUsecases() {
+        
+        if (!this.transactionUseCase)
+            throw new UnExpectedError("NOT_GET_BALANCE_UC_NOT_SET")
+
         const getAccountBalanceByPeriodUc = new GetPastAccountBalanceByPeriodUseCase(
             this.getRepository('transaction'), 
-            this.getRepository('record'))
+            this.getRepository('record'),
+            this.transactionUseCase!.getBalanceBy
+        )
         this.accountUseCase = {
             createAccount: new CreationAccountUseCase(this.getRepository('account'), this.getRepository('currency')),
             updateAccount: new UpdateAccountUseCase(this.getRepository('account')),
@@ -497,12 +538,16 @@ export class DiContenair {
         if (!this.eventRegister)
             throw new UnExpectedError("EVENT_REGISTER_NOT_SETUP")
 
+        if (!this.transactionRecordCountReader)
+            throw new UnExpectedError("TRANSACTION_RECORD_COUNT_READER_NOT_SET")
+
         const transDept: TransactionDependencies = {
             accountRepository: this.getRepository('account'),
             budgetRepository: this.getRepository('budget'),
             categoryRepository: this.getRepository('category'),
             recordRepository: this.getRepository('record'),
-            tagRepository: this.getRepository('tag')
+            tagRepository: this.getRepository('tag'),
+            deductionRepository: this.getRepository('deduction_type') 
         }
         const addUseCase = new AddTransactionUseCase(
             this.unitOfWork, 
@@ -523,14 +568,17 @@ export class DiContenair {
                 this.getRepository('record'), 
                 this.unitOfWork, this.eventRegister),
             deleteTransaction: deleteUseCase,
-            getBalanceBy: new GetBalanceByUseCase(this.getRepository('transaction'), this.getRepository('record')),
+            getBalanceBy: new GetBalanceByUseCase(this.getRepository('transaction'), this.getRepository('record'), this.getRepository('deduction_type')),
             freezeTransaction: new AddFreezeBalanceUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record'), this.unitOfWork),
-            getPaginition: new GetPaginationTransaction(this.getRepository('transaction'), transDept),
-            getTransaction: new GetTransactionUseCase(this.getRepository('transaction'), this.getRepository('record'))
+            getPaginition: new GetPaginationTransaction(this.getRepository('transaction'), transDept, this.transactionRecordCountReader),
+            getTransaction: new GetTransactionUseCase(this.getRepository('transaction'), this.getRepository('record'), this.getRepository('deduction_type'))
         }
     }
 
     private registerBudgetUsecases() {
+        if (!this.transactionUseCase)
+            throw new UnExpectedError("NOT_GET_BALANCE_UC_NOT_SET")
+
         if (!this.eventRegister)
             throw new UnExpectedError("EVENT_REGISTER_NOT_SETUP")
 
@@ -538,9 +586,9 @@ export class DiContenair {
             createBudget: new CreationBudgetUseCase(this.getRepository('budget'), this.getRepository('save_goal')),
             deleteBudget: new DeleteBudgetUseCase(this.getRepository('budget')),
             getBudget: new GetBudgetUseCase(this.getRepository('budget'), 
-            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal')),
+            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal'), this.getRepository('deduction_type'), this.transactionUseCase!.getBalanceBy),
             getAllBudgets: new GetAllBudgetUseCase(this.getRepository('budget'), 
-            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal')),
+            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal'), this.getRepository('deduction_type'), this.transactionUseCase!.getBalanceBy),
             updateBudget: new UpdateBudgetUseCase(this.getRepository('budget'), this.getRepository('save_goal')),
             autoUpdateBudget: new AutoUpdateBudgetUseCase(this.getRepository('budget'), this.eventRegister)
         }
@@ -558,7 +606,8 @@ export class DiContenair {
             budgetRepository: this.getRepository('budget'),
             categoryRepository: this.getRepository('category'),
             recordRepository: this.getRepository('record'),
-            tagRepository: this.getRepository('tag')
+            tagRepository: this.getRepository('tag'),
+            deductionRepository: this.getRepository('deduction_type')
         }
         this.scheduleTransactionUseCase = {
             applyScheduleTransaction: new ApplyScheduleTransactionUsecase(
@@ -595,13 +644,16 @@ export class DiContenair {
     }
 
     private registerAnalyticUseCases() {
+        if (!this.transactionUseCase)
+            throw new UnExpectedError("NOT_GET_BALANCE_UC_NOT_SET")
+
         const estimateUseCase = new EstimationLeftAmountUseCase(this.getRepository('budget'), this.getRepository('transaction'),
             this.getRepository('account'), this.getRepository('record'), this.getRepository('schedule_transaction'))
         this.analyticUseCase = {
             estimateLeftAmount: estimateUseCase,
             planningSaveGoalAdvisor: new SuggestPlanningSaveGoalUseCase(estimateUseCase, this.getRepository('account'), this.getRepository('save_goal'), 
             this.getAgent('goal_ranking')! as IAgentScoringGoal, this.getAgent('planning')! as IAgentPlanningAdvisor),
-            cashflowAnalyse: new CashFlowAnalyseUseCase(this.getRepository('transaction'), this.getRepository('record')),
+            cashflowAnalyse: new CashFlowAnalyseUseCase(this.getRepository('transaction'), this.getRepository('record'), this.transactionUseCase!.getBalanceBy),
             analyseBudgetRule: new AnalyseBudgetRuleUseCase(this.getRepository('transaction'), this.getRepository('record'), this.getRepository('account')),
             incomeAnalystic: new IncomeAnalysticUseCase(this.getRepository('record'), this.getRepository('transaction')),
             savingAnalystic: new SavingAnalysticUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record')),
@@ -691,6 +743,16 @@ export class DiContenair {
             getHoldingTransaction: new GetHoldingTransactionUseCase(this.getRepository('holding_transaction')),
             updateHolding:  new UpdateHoldingUseCase(this.getRepository('holding'), this.getRepository('account')),
             updateHoldingTransaction: new UpdateHoldingTransactionUseCase(this.getRepository('holding_transaction'), addHoldingTransaction, deleteHoldingTransaction)
+        }
+    }
+
+    private registerDeductionTypeUseCase() {
+        this.deductionTypeUseCase = {
+            createDeductionType: new CreateDeductionTypeUseCase(this.getRepository('deduction_type')),
+            updateDeductionType: new UpdateDeductionTypeUseCase(this.getRepository('deduction_type')),
+            deleteDeductionType: new DeleteDeductionTypeUseCase(this.getRepository('deduction_type')),
+            getDeductionType: new GetDeductionTypeUseCase(this.getRepository('deduction_type')),
+            getAllDeductionTypes: new GetAllDeductionTypeUseCase(this.getRepository('deduction_type'))
         }
     }
 }

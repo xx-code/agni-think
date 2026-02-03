@@ -35,6 +35,7 @@ const emit = defineEmits<{
                     class="text-xl"
                     :amount="balance ?? 0"
                     :sign="'$'"
+                    :showDecimals="true"
                 />
                 <div className="text-[11px] text-gray-400 mt-1">Freezed: ${{ freezedBalance?.toFixed(2) }} · Locked: ${{lockedBalance?.toFixed(2)}}</div>
             </div>

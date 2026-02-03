@@ -1,13 +1,13 @@
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { IUsecase } from "../interfaces";
-import Repository, { SaveGoalExtendFilter, TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, SaveGoalExtendFilter, TransactionFilter } from "@core/adapters/repository";
 import { Account } from "@core/domains/entities/account";
 import { Transaction } from "@core/domains/entities/transaction";
 import { SaveGoal } from "@core/domains/entities/saveGoal";
 import { Record } from "@core/domains/entities/record";
 import { CreditCardAccountDetail } from "@core/domains/valueObjects/creditCardAccount";
 import { BrockageAccountDetail } from "@core/domains/valueObjects/brockageAccount";
-import { AccountType } from "@core/domains/constants";
+import { AccountType, TransactionStatus, TransactionType } from "@core/domains/constants";
 
 export type GetBrokingDetailDto = {
     managementType: string
@@ -53,9 +53,12 @@ export class GetAccountDetailUseCase implements IUsecase<string, GetAccountDetai
         const transactionExtendFilter = new TransactionFilter()
         transactionExtendFilter.isFreeze = true
         transactionExtendFilter.accounts = [account.getId()]
+        transactionExtendFilter.status = TransactionStatus.COMPLETE
         const freezeTransacions = await this.transactionRepo.getAll({ offset: 0, limit: 1, queryAll: true }, transactionExtendFilter)
-        const records = await this.recordRepo.getManyByIds(freezeTransacions.items.map(i => i.getRecordRef()))
-        const freezeAmount = records.reduce((acc, curr) => acc += curr.getMoney().getAmount(), 0)
+        const recordExtendFilter = new RecordFilter()
+        recordExtendFilter.transactionIds = freezeTransacions.items.map(i => i.getId())
+        let records = await this.recordRepo.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
+        const freezeAmount = records.items.reduce((acc, curr) => acc += curr.getMoney().getAmount(), 0)
 
         const savingGoalExtendFilter = new SaveGoalExtendFilter()
         savingGoalExtendFilter.accountId = id

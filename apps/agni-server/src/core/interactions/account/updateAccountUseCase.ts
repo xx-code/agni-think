@@ -1,5 +1,5 @@
 import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError";
-import { AccountType, mapperContributionAcccountType, mapperManagementAccountType, mapperTypeAccount } from "@core/domains/constants";
+import { AccountType, mapperContributionAcccountType, mapperManagementAccountType } from "@core/domains/constants";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import Repository from "@core/adapters/repository";

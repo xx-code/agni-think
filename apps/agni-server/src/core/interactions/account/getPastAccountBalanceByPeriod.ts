@@ -1,10 +1,12 @@
 import { IUsecase } from "../interfaces";
-import { mapperPeriod, Period, RecordType, TransactionStatus } from "@core/domains/constants";
+import { mapperPeriod, Period, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { MomentDateService } from "@core/domains/entities/libs";
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
 import { QueryFilterAllRepository } from "@core/repositories/dto";
+import { RequestGetPagination } from "../transaction/getPaginationTransactionUseCase";
+import { GetBalanceDto } from "../transaction/getBalanceByUseCase";
 
 
 export type GetAccountBalanceByPeriodDto = {
@@ -22,13 +24,16 @@ export type RequestGetAccountBalanceByPeriod = {
 export class GetPastAccountBalanceByPeriodUseCase implements IUsecase<RequestGetAccountBalanceByPeriod, GetAccountBalanceByPeriodDto[]>{
     private transactionRepository: Repository<Transaction>;
     private recordRepository: Repository<Record>
+    private getBalanceUc: IUsecase<RequestGetPagination, GetBalanceDto>
 
     constructor(
         transactionRepo: Repository<Transaction>,
-        recordRepository: Repository<Record>
+        recordRepository: Repository<Record>,
+        getBalanceUc: IUsecase<RequestGetPagination, GetBalanceDto>
     ) {
         this.transactionRepository = transactionRepo;
         this.recordRepository = recordRepository;
+        this.getBalanceUc = getBalanceUc
     }
 
     async execute(request: RequestGetAccountBalanceByPeriod): Promise<GetAccountBalanceByPeriodDto[]> {
@@ -39,34 +44,18 @@ export class GetPastAccountBalanceByPeriodUseCase implements IUsecase<RequestGet
         const response: GetAccountBalanceByPeriodDto[]= []
         for (let accountId of request.accountIds) {
 
-            const filter: QueryFilterAllRepository = {
+            const res = await this.getBalanceUc.execute({
                 offset: 0,
                 limit: 0,
-                queryAll: true,
-            }
-            const filterExtends = new TransactionFilter()
-            filterExtends.accounts = [accountId]
-            filterExtends.startDate = startDate
-            filterExtends.endDate = endDate
-
-            let transactions = await this.transactionRepository.getAll(filter, filterExtends);
-
-            let records = await this.recordRepository
-                .getManyByIds(transactions.items.filter(i => i.getStatus() == TransactionStatus.COMPLETE)
-                .map(transaction => transaction.getRecordRef()))
-
-            let balance = 0
-
-            for (let record of records) {
-                if (record.getType() === RecordType.CREDIT)
-                    balance += record.getMoney().getAmount()
-                else 
-                    balance -= record.getMoney().getAmount()
-            }
+                accountFilterIds: [accountId],
+                dateStart: startDate,
+                dateEnd: endDate,
+                status: TransactionStatus.COMPLETE
+            }) 
 
             response.push({
                 accountId: accountId, 
-                balance: Number(balance.toFixed(2)), 
+                balance: res.balance, 
             });
         }
 

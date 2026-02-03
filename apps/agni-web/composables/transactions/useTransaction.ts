@@ -7,17 +7,26 @@ export default function useTransaction(transactionId: string): UseApiFetchReturn
         method: 'GET',
         transform: (data: GetTransactionResponse) => {
             return {
-                id: data.transactionId,
+                id: data.id,
                 accountId: data.accountId,
-                amount: data.amount,
                 date: new Date(data.date),
-                description: data.description,
-                recordType: data.recordType,
                 type: data.type,
+                mouvement: data.mouvement,
                 status: data.status,
-                categoryId: data.categoryId,
-                tagIds: data.tagRefs,
-                budgetIds: data.budgets
+                total: data.totalAmount,
+                subTotal: data.subTotalAmount,
+                records: data.records.map(i => ({
+                    id: i.id,
+                    amount: i.amount,
+                    description: i.description,
+                    budgetRefs: i.budgetRefs,
+                    categoryId: i.categoryId,
+                    tagRefs: i.tagRefs
+                })),
+                deductions: data.deductions.map(i => ({
+                    id: i.id,
+                    amount: i.amount
+                })),
             } satisfies TransactionType
         }
     });
@@ -31,16 +40,25 @@ export async function fetchTransaction(transactionId: string): Promise<Transacti
     });
 
     return {
-        id: res.transactionId,
+        id: res.id,
         accountId: res.accountId,
-        amount: res.amount,
         date: new Date(res.date),
-        description: res.description,
-        recordType: res.recordType,
         type: res.type,
         status: res.status,
-        categoryId: res.categoryId,
-        tagIds: res.tagRefs,
-        budgetIds: res.budgets
+        mouvement: res.mouvement,
+        total: res.totalAmount,
+        subTotal: res.subTotalAmount,
+        records: res.records.map(i => ({
+            id: i.id,
+            amount: i.amount,
+            description: i.description,
+            budgetRefs: i.budgetRefs,
+            categoryId: i.categoryId,
+            tagRefs: i.tagRefs
+        })),
+        deductions: res.deductions.map(i => ({
+            id: i.id,
+            amount: i.amount
+        })),
     } satisfies TransactionType 
 } 

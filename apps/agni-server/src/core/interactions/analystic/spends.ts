@@ -1,4 +1,4 @@
-import Repository, { TransactionFilter } from "@core/adapters/repository";
+import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { IUsecase } from "../interfaces";
 import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
@@ -73,28 +73,26 @@ export class SpendAnalysticUseCase implements IUsecase<RequestSpendAnalystic, Sp
             extendFilter.endDate = endDate
             extendFilter.types = [TransactionType.VARIABLECOST, TransactionType.FIXEDCOST]
             const transactions = await this.transactionRepo.getAll({limit: 0, offset: 0, queryAll: true}, extendFilter)
-            const records = await this.recordRepo.getManyByIds(transactions.items.map(i => i.getRecordRef()))
-            const totalAmount = records.filter(i => i.getType() === RecordType.DEBIT)
-                .reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
+
+            const recordExtendFilter = new RecordFilter()
+            recordExtendFilter.transactionIds = transactions.items.map(i => i.getId()) 
+            let records = await this.recordRepo.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
+            const totalAmount = records.items.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
 
             // TODO: Heavy work
             let spendByCategories: SpendCategory[] = []
             categories.items.forEach(category => {
-                const transCats = transactions.items.filter(trans => trans.getCategoryRef() === category.getId())
-                const recordCats = records.filter(rec => transCats.map(i => i.getRecordRef()).includes(rec.getId()))
+                const recordCats = records.items.filter(rec => rec.getCategoryRef() === category.getId())
                 const totalAmountCat = recordCats.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
                 
                 const spendByTags: SpendTag[] = []
                 tags.items.forEach(tag => {
-                    const transTags = transCats.filter(tran => tran.getTags().includes(tag.getId()))
-                    if (transTags.length > 0) {
-                        const recordTags = recordCats.filter(rec => transTags.map(i => i.getRecordRef()).includes(rec.getId()))
-                        const totalAmountRecord = recordTags.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0) 
-                        spendByTags.push({
-                            tagId: tag.getId(),
-                            spend: totalAmountRecord
-                        }) 
-                    } 
+                    const recordTags = recordCats.filter(rec => rec.getTags().includes(tag.getId()))
+                    const totalAmountRecord = recordTags.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0) 
+                    spendByTags.push({
+                        tagId: tag.getId(),
+                        spend: totalAmountRecord
+                    }) 
                 })
 
                 spendByCategories.push({

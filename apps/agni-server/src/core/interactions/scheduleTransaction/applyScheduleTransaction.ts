@@ -9,6 +9,7 @@ import Repository, { ScheduleTransactionFilter } from "@core/adapters/repository
 import { ScheduleTransaction } from "@core/domains/entities/scheduleTransaction";
 import { IEventRegister } from "@core/adapters/event";
 import { Scheduler } from "@core/domains/valueObjects/scheduleInfo";
+import { Money } from "@core/domains/entities/money";
 
 export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
     private scheduleTransactionRepo: Repository<ScheduleTransaction> 
@@ -47,15 +48,6 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
             for(let i = 0; i < shedules.length; i++) {
                 let scheduleTrans = shedules[i]
 
-                const record = new Record(
-                    GetUID(),
-                    scheduleTrans.getAmount(),
-                    scheduleTrans.getSchedule().dueDate,
-                    scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
-                    scheduleTrans.getName()
-                )
-                await this.recordRepo.create(record)
-
                 let date = scheduleTrans.getSchedule().dueDate 
 
                 if (scheduleTrans.getIsFreeze() && scheduleTrans.getSchedule().repeater !== undefined)
@@ -67,15 +59,24 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                 const transaction = new Transaction(
                     GetUID(),
                     scheduleTrans.getAccountRef(),
-                    record.getId(),
-                    scheduleTrans.getCategoryRef(),
                     date,
                     scheduleTrans.getTransactionType(),
+                    scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
                     TransactionStatus.PENDING,
-                    scheduleTrans.getTags() 
+                    scheduleTrans.getIsFreeze()
                 )
-                if (scheduleTrans.getIsFreeze())
-                    transaction.setIsFreeze()
+
+                const record = new Record(
+                    GetUID(),
+                    transaction.getId(),
+                    new Money(scheduleTrans.getAmount().getAmount()),
+                    scheduleTrans.getCategoryRef(),
+                    scheduleTrans.getName(), 
+                    scheduleTrans.getTags()
+                )
+                await this.transactionRepo.create(transaction)
+                await this.recordRepo.create(record)
+
 
                 if (scheduleTrans.getSchedule().repeater === undefined) {
                     await this.scheduleTransactionRepo.delete(scheduleTrans.getId())
@@ -85,7 +86,6 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                     scheduleTrans.reSchedule(new Scheduler(dueDate, { period: scheduler.repeater!.period, interval: scheduler.repeater!.interval}))
                     await this.scheduleTransactionRepo.update(scheduleTrans);
                 }
-                await this.transactionRepo.create(transaction)
 
                 notifications.push(`la transaction ${scheduleTrans.getName()} de ${record.getMoney().getAmount()} est en pending`)
                 this.eventManager.notify('notification', {
