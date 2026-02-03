@@ -1,5 +1,5 @@
 import { GetUID } from "@core/adapters/libs"
-import { mapperMainTransactionCategory, mapperTransactionStatus, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants"
+import { mapperMainTransactionCategory, mapperRecordType, mapperTransactionStatus, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants"
 import { Money } from "@core/domains/entities/money"
 import { Record } from "@core/domains/entities/record"
 import { Transaction } from "@core/domains/entities/transaction"
@@ -18,6 +18,7 @@ export type RequestAddTransactionUseCase = {
     status: string
     date: Date
     type: string
+    mouvement: string
     currencyId?: string
     records: {
         amount: number
@@ -71,18 +72,26 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
                     throw new ResourceNotFoundError("DEDUCTION_NOT_FOUND");
             }
 
+            const recordType = mapperRecordType(request.mouvement)
             let newTransaction = new Transaction(
                 GetUID(), 
                 request.accountId, 
                 request.date,
                 type, 
-                status,
+                recordType,
+                status
             )
             newTransaction.setDeductions(request.deductions.map(i => new TransactionDeduction(newTransaction.getId(), i.deductionId, i.amount)))
             await this.transactionRepository.create(newTransaction, innerTrx);
 
             if (request.records.length  === 0)
                 throw new UnExpectedError("YOU_MUST_HAVE_RECORDS_FOR_TRANSACTION")
+
+            if (recordType === RecordType.CREDIT && (type !== TransactionType.INCOME && type !== TransactionType.OTHER))
+                throw new UnExpectedError("A CREDIT transaction must be Income or Other")
+
+            if (recordType === RecordType.DEBIT && type === TransactionType.INCOME)
+                throw new UnExpectedError("A DEBIT transaction Cant be Income")
 
             let totalAmount = 0
             for (let i = 0; i < request.records.length; i++) {
@@ -114,7 +123,6 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
                     newTransaction.getId(),
                     amount,
                     record.categoryId,
-                    type === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT, 
                     record.description,
                     record.tagIds,
                     record.budgetIds
@@ -123,7 +131,8 @@ export class AddTransactionUseCase implements IUsecase<RequestAddTransactionUseC
             } 
 
             if (status === TransactionStatus.COMPLETE) {
-                if (type === TransactionType.INCOME)
+
+                if (recordType === RecordType.CREDIT)
                     account!.addOnBalance(new Money(totalAmount)) 
                 else
                     account!.substractBalance(new Money(totalAmount))

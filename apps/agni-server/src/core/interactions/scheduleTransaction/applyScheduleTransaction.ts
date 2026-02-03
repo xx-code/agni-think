@@ -61,6 +61,7 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                     scheduleTrans.getAccountRef(),
                     date,
                     scheduleTrans.getTransactionType(),
+                    scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
                     TransactionStatus.PENDING,
                     scheduleTrans.getIsFreeze()
                 )
@@ -70,7 +71,6 @@ export class ApplyScheduleTransactionUsecase implements IUsecase<void, void> {
                     transaction.getId(),
                     new Money(scheduleTrans.getAmount().getAmount()),
                     scheduleTrans.getCategoryRef(),
-                    scheduleTrans.getTransactionType() === TransactionType.INCOME ? RecordType.CREDIT : RecordType.DEBIT,
                     scheduleTrans.getName(), 
                     scheduleTrans.getTags()
                 )

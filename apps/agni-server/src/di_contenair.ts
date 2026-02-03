@@ -469,10 +469,11 @@ export class DiContenair {
 
         // usecases
         this.registerNotificationUseCases(this.eventRegister)
+        this.registerTransactionUsecases();
+
         this.registerAccountUsecases();
         this.registerCategoryUsecases();
         this.registerTagUsecases();
-        this.registerTransactionUsecases();
         this.registerBudgetUsecases();
         this.registerScheduleTransactionUsecases();
         this.registerSaveGoalUsecases();
@@ -484,9 +485,15 @@ export class DiContenair {
     }  
 
     private registerAccountUsecases() {
+        
+        if (!this.transactionUseCase)
+            throw new UnExpectedError("NOT_GET_BALANCE_UC_NOT_SET")
+
         const getAccountBalanceByPeriodUc = new GetPastAccountBalanceByPeriodUseCase(
             this.getRepository('transaction'), 
-            this.getRepository('record'))
+            this.getRepository('record'),
+            this.transactionUseCase!.getBalanceBy
+        )
         this.accountUseCase = {
             createAccount: new CreationAccountUseCase(this.getRepository('account'), this.getRepository('currency')),
             updateAccount: new UpdateAccountUseCase(this.getRepository('account')),
@@ -569,6 +576,9 @@ export class DiContenair {
     }
 
     private registerBudgetUsecases() {
+        if (!this.transactionUseCase)
+            throw new UnExpectedError("NOT_GET_BALANCE_UC_NOT_SET")
+
         if (!this.eventRegister)
             throw new UnExpectedError("EVENT_REGISTER_NOT_SETUP")
 
@@ -576,9 +586,9 @@ export class DiContenair {
             createBudget: new CreationBudgetUseCase(this.getRepository('budget'), this.getRepository('save_goal')),
             deleteBudget: new DeleteBudgetUseCase(this.getRepository('budget')),
             getBudget: new GetBudgetUseCase(this.getRepository('budget'), 
-            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal')),
+            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal'), this.getRepository('deduction_type'), this.transactionUseCase!.getBalanceBy),
             getAllBudgets: new GetAllBudgetUseCase(this.getRepository('budget'), 
-            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal')),
+            this.getRepository('transaction'), this.getRepository('record'), this.getRepository('save_goal'), this.getRepository('deduction_type'), this.transactionUseCase!.getBalanceBy),
             updateBudget: new UpdateBudgetUseCase(this.getRepository('budget'), this.getRepository('save_goal')),
             autoUpdateBudget: new AutoUpdateBudgetUseCase(this.getRepository('budget'), this.eventRegister)
         }
@@ -634,13 +644,16 @@ export class DiContenair {
     }
 
     private registerAnalyticUseCases() {
+        if (!this.transactionUseCase)
+            throw new UnExpectedError("NOT_GET_BALANCE_UC_NOT_SET")
+
         const estimateUseCase = new EstimationLeftAmountUseCase(this.getRepository('budget'), this.getRepository('transaction'),
             this.getRepository('account'), this.getRepository('record'), this.getRepository('schedule_transaction'))
         this.analyticUseCase = {
             estimateLeftAmount: estimateUseCase,
             planningSaveGoalAdvisor: new SuggestPlanningSaveGoalUseCase(estimateUseCase, this.getRepository('account'), this.getRepository('save_goal'), 
             this.getAgent('goal_ranking')! as IAgentScoringGoal, this.getAgent('planning')! as IAgentPlanningAdvisor),
-            cashflowAnalyse: new CashFlowAnalyseUseCase(this.getRepository('transaction'), this.getRepository('record')),
+            cashflowAnalyse: new CashFlowAnalyseUseCase(this.getRepository('transaction'), this.getRepository('record'), this.transactionUseCase!.getBalanceBy),
             analyseBudgetRule: new AnalyseBudgetRuleUseCase(this.getRepository('transaction'), this.getRepository('record'), this.getRepository('account')),
             incomeAnalystic: new IncomeAnalysticUseCase(this.getRepository('record'), this.getRepository('transaction')),
             savingAnalystic: new SavingAnalysticUseCase(this.getRepository('transaction'), this.getRepository('account'), this.getRepository('record')),

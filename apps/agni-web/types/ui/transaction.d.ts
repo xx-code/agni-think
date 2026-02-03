@@ -17,6 +17,7 @@ export type EditTransactionType = {
     accountId: string
     state: string
     type: string
+    mouvement: string
     date: CalendarDate
     records: EditRecordType[] 
     deductions: EditTransactionDeductionType[]
@@ -40,7 +41,6 @@ export type RecordType = {
     id: string
     amount: number
     description: string
-    type: string
     categoryId: string
     tagRefs: string[]
     budgetRefs: string[]
@@ -56,6 +56,7 @@ export type TransactionType = {
     accountId: string
     date: Date
     type: string
+    mouvement: string
     status: string
     subTotal: number
     total: number
@@ -66,7 +67,6 @@ export type TransactionType = {
 export type RecordTableType = {
     id: string
     description: string
-    type: string
     amount: number
     category: {
         id: string
@@ -92,6 +92,7 @@ export type TransactionTableType = {
     accountId: string
     date: Date
     description: string
+    mouvement: string
     type: string
     status: string
     subTotal: number

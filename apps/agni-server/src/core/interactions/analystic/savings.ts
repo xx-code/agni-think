@@ -84,10 +84,10 @@ export class SavingAnalysticUseCase implements IUsecase<RequestSavingAnalystic, 
             const incomeAmount = incomeRecords.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
 
             const savingRecords = await records.items //.filter(i => i.getCategoryRef() === SAVING_CATEGORY_ID || saveAccountIds.includes(i.getAccountRef()))
-            const savingAmount = savingRecords.filter(i => i.getType() == RecordType.CREDIT).reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
+            const savingAmount = savingRecords.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
 
             const investRecords = await records.items // .filter(i => investAccountIds.includes(i.getAccountRef()))
-            const investAmount = investRecords.filter(i => i.getType() == RecordType.CREDIT).reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
+            const investAmount = investRecords.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
             
             savings.push(savingAmount + investAmount)
             investements.push(investAmount)

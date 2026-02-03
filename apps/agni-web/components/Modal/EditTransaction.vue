@@ -38,6 +38,7 @@ const deductionSchema = z.object({
 const schema = z.object({
     accountId: z.string().nonempty('Vous devez sélectionner un compte'),
     status: z.enum(['Complete', 'Pending']),
+    mouvement: z.string().nonempty("Vous devez selectionner un mouvement"),
     type: z.string().nonempty('Vous devez sélectionner un type'),
     records: z.array(recordSchema).min(1, 'Au moins un article est requis'),
     deductions: z.array(deductionSchema)
@@ -82,6 +83,7 @@ const { data: transactionTypes } = useTransactionTypes();
 const form = reactive<Partial<Schema>>({
     accountId: transaction?.accountId || (accountSelectedId === ALL_ACCOUNT_ID ? '' : accountSelectedId),
     status: (transaction?.status as 'Complete' | 'Pending') || 'Pending',
+    mouvement: transaction?.mouvement || 'Debit',
     type: transaction?.type || '',
     records: transaction?.records.map(r => ({
         amount: r.amount,
@@ -148,6 +150,15 @@ const deductionsTotal = computed(() => {
 const totalWithDeductions = computed(() => {
     return subTotal.value + deductionsTotal.value;
 });
+
+const displayTransactionType = computed(() => {
+    if (form.mouvement) {
+        if (form.mouvement === 'Credit')
+            return transactionTypes.value?.filter(i => ["income", "other"].includes(i.id.toLowerCase())).map(i => ({ label: i.value, value: i.id }))
+    }
+
+    return transactionTypes.value?.filter(i => i.id.toLowerCase() !== 'income').map(i => ({ label: i.value, value: i.id }))
+})
 
 // Gestion des records
 function addRecord() {
@@ -221,6 +232,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         accountId: data.accountId,
         state: data.status,
         type: data.type,
+        mouvement: data.mouvement,
         date: date.value,
         records: data.records,
         deductions: data.deductions
@@ -259,11 +271,21 @@ function getCategoryById(id: string) {
                 <!-- En-tête de la transaction -->
                 <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <UFormField label="Mouvement" name="mouvement" required>
+                            <USelect 
+                                v-model="form.mouvement"
+                                value-key="value" 
+                                class="w-full"
+                                :items="[{ label: 'Gains', value: 'Credit' }, {label: 'Depense', value: 'Debit' }]" 
+                                placeholder="Sélectionner un type"
+                                size="lg"
+                            />
+                        </UFormField>
                         <UFormField label="Type de transaction" name="type" required>
                             <USelect 
                                 v-model="form.type"
                                 value-key="value" 
-                                :items="transactionTypes?.map(i => ({ label: i.value, value: i.id }))" 
+                                :items="displayTransactionType" 
                                 placeholder="Sélectionner un type"
                                 size="lg"
                             />

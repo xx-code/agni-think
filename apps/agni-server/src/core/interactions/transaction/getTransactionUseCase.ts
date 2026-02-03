@@ -11,11 +11,11 @@ export type GetTransactionDto = {
     accountId: string
     status: string
     type: string
+    mouvement: string
     subTotalAmount: number
     totalAmount: number
     records: {
         id: string
-        type: string
         description: string
         categoryId: string
         amount: number
@@ -60,17 +60,18 @@ export class GetTransactionUseCase implements IUsecase<string, GetTransactionDto
         const deductionSubTotal = deductions.filter(i => i.getBase() === DeductionBase.SUBTOTAL)
         const deductionTotal = deductions.filter(i => i.getBase() === DeductionBase.TOTAL)
 
+        let totalBeforSub = subTotal
         deductionSubTotal?.forEach(i => {
             const deduc = transaction.getCollectionDeductions().find(trans => trans.deductionId === i.getId())
             if (deduc) 
-                subTotal = i.getMode() === DeductionMode.FLAT ? subTotal + deduc.amount : subTotal + (subTotal * (deduc.amount/100) )
+                totalBeforSub += i.getMode() === DeductionMode.FLAT ? deduc.amount : (subTotal * (deduc.amount/100) )
         })
 
-        let total = subTotal
+        let total = totalBeforSub
         deductionTotal?.forEach(i => {
             const deduc = transaction.getCollectionDeductions().find(trans => trans.deductionId === i.getId())
             if (deduc) 
-                total = i.getMode() === DeductionMode.FLAT ? total + deduc.amount : total + (total * (deduc.amount/100) )
+                total += i.getMode() === DeductionMode.FLAT ?  deduc.amount : (total * (deduc.amount/100) )
         })
 
         let response: GetTransactionDto = {
@@ -79,6 +80,7 @@ export class GetTransactionUseCase implements IUsecase<string, GetTransactionDto
             date: transaction.getDate(),
             status: transaction.getStatus(),
             type: transaction.getTransactionType(),
+            mouvement: transaction.getRecordType(),
             subTotalAmount: subTotal,
             totalAmount: total,
             records: records.items.map(i => ({
@@ -89,7 +91,6 @@ export class GetTransactionUseCase implements IUsecase<string, GetTransactionDto
                 categoryId: i.getCategoryRef(),
                 description: i.getDescription(),
                 budgetRefs: i.getBudgetRefs(),
-                type: i.getType()
             })) ?? [],
             deductions:  transaction.getCollectionDeductions().map(i => ({
                 id: i.deductionId,

@@ -2,16 +2,14 @@
 import { computed, ref } from "vue";
 import { ALL_ACCOUNT_ID } from "~/composables/accounts/useAccountsWithPastBalance";
 import useDeleteAccount from "~/composables/accounts/useDeleteAccount";
-import type { AccountBrokeDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
+import type { AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
 import useCreateAccount from "~/composables/accounts/useCreateAccount";
 import useUpdateAccount from "~/composables/accounts/useUpdateAccount";
-import useTransactionPagination from "~/composables/transactions/useTransactionPagination";
 import { ModalEditAccount, ModalEditFreezeTransaction, ModalEditTransaction, ModalEditTransfer, ModalQuickTransView } from "#components";
-import { fetchAccount, fetchAccountWithDetail } from "~/composables/accounts/useAccount";
+import { fetchAccountWithDetail } from "~/composables/accounts/useAccount";
 import type { EditFreezeTransactionType, EditTransactionType, EditTransfertType, TransactionTableType, TransactionType } from "~/types/ui/transaction";
 import useUpdateTransaction from "~/composables/transactions/useUpdateTransaction";
 import useCreateTransaction from "~/composables/transactions/useCreateTransaction";
-import { fetchTransaction } from "~/composables/transactions/useTransaction";
 import useFreezeTransaction from "~/composables/transactions/useFreezeTransaction";
 import useTransfertTransaction from "~/composables/transactions/useTransfertTransaction";
 import type { FilterTransactionQuery } from "~/types/api/transaction";
@@ -19,10 +17,8 @@ import useCategories from "~/composables/categories/useCategories";
 import useTags from "~/composables/tags/useTags";
 import { getLocalTimeZone } from "@internationalized/date";
 import useBudgets from "~/composables/budgets/useBudgets";
-import useAnalyseBudgetRules from "~/composables/analytics/useBudgetRules";
 import { fetchAccountsWithDetail } from "~/composables/accounts/useAccounts";
 import { fetchAccountTypes } from "~/composables/internals/useAccountTypes";
-import type { NuxtError } from "#app";
 
 type AccountByType = {
     id: string
@@ -190,6 +186,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
                 accountId: value.accountId,
                 date: value.date.toDate(getLocalTimeZone()).toISOString(),
                 type: value.type,
+                mouvement: value.mouvement,
                 status: value.state,
                 records: value.records.map(i => ({
                     amount: i.amount,

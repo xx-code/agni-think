@@ -16,7 +16,6 @@ export class KnexRecordTable implements KnexTable {
                 table.uuid('record_id').primary()
                 table.uuid('transaction_id').index()
                 table.float('money_amount')
-                table.string('type')
                 table.uuid('category_id')
                 table.string('description')
                 table.jsonb('tag_ids')
@@ -31,7 +30,6 @@ export async function createRecordTable(knex: Knex) {
             table.uuid('record_id').primary()
             table.uuid('transaction_id').index()
             table.float('money_amount')
-            table.string('type')
             table.uuid('category_id')
             table.string('description')
             table.jsonb('tag_ids')
@@ -41,7 +39,6 @@ export async function createRecordTable(knex: Knex) {
 
 export type RecordModel = KnexModel & {
     record_id: string
-    type: string
     transaction_id: string
     money_amount: number
     description: string
@@ -57,7 +54,6 @@ export class RecordModelMapper implements Mapper<Record, RecordModel> {
             model.transaction_id,
             new Money(model.money_amount),  
             model.category_id,
-            mapperRecordType(model.type) ,
             model.description,
             model.tag_ids ? Array.from(model.tag_ids) : [],
             model.budget_ids ? Array.from(model.budget_ids) : [],
@@ -68,7 +64,6 @@ export class RecordModelMapper implements Mapper<Record, RecordModel> {
             record_id: entity.getId(),
             transaction_id: entity.getTransactionId(),
             description: entity.getDescription(),
-            type: entity.getType(),
             category_id: entity.getCategoryRef(),
             money_amount: entity.getMoney().getAmount(),
             budget_ids: JSON.stringify(entity.getBudgetRefs()),

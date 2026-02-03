@@ -15,6 +15,7 @@ export type SlideQuickViewTransactionType = {
     category?: string
     description: string
     status: string
+    mouvement: string
     type: string
     date: Date
     subTotal: number
@@ -22,7 +23,6 @@ export type SlideQuickViewTransactionType = {
     records?: {
         id: string
         description: string
-        type: string
         amount: number
         category: {
             id: string
@@ -122,12 +122,12 @@ const { data: freezeTransactions, refresh: refreshFreezeTransactions } = useAsyn
                     date: i.date,
                     status: i.status,
                     type: i.type,
+                    mouvement: i.mouvement,
                     subTotal: i.subTotal,
                     total: i.total,
                     records: i.records?.map(record => ({
                         id: record.id,
                         description: record.description,
-                        type: record.type,
                         amount: record.amount,
                         category: {
                             id: record.categoryId,
@@ -174,10 +174,10 @@ const { data: transactions, refresh: refreshTransactions } = useAsyncData(
                     subTotal: i.subTotal,
                     description: `${i.records?.length || 0} article${(i.records?.length || 0) > 1 ? 's' : ''}`,
                     total: i.total,
+                    mouvement: i.mouvement,
                     records: i.records?.map(record => ({
                         id: record.id,
                         description: record.description,
-                        type: record.type,
                         amount: record.amount,
                         category: {
                             id: record.categoryId,

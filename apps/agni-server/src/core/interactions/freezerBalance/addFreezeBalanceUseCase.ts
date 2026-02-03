@@ -43,8 +43,8 @@ export class AddFreezeBalanceUseCase implements IUsecase<RequestNewFreezeBalance
 
             let amount = new Money(request.amount)
 
-            let newTransaction = new Transaction(GetUID(), request.accountId, request.endDate, TransactionType.OTHER, TransactionStatus.COMPLETE, true)
-            let newRecord = new Record(GetUID(), newTransaction.getId(), amount, FREEZE_CATEGORY_ID, RecordType.DEBIT, request.title)
+            let newTransaction = new Transaction(GetUID(), request.accountId, request.endDate, TransactionType.OTHER, RecordType.DEBIT, TransactionStatus.COMPLETE, true)
+            let newRecord = new Record(GetUID(), newTransaction.getId(), amount, FREEZE_CATEGORY_ID, request.title)
 
             fetchedAccount.substractBalance(amount)          
 

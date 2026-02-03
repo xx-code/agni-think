@@ -1,4 +1,4 @@
-import { SAVING_CATEGORY_ID, TransactionStatus, TransactionType } from "@core/domains/constants";
+import { RecordType, SAVING_CATEGORY_ID, TransactionStatus, TransactionType } from "@core/domains/constants";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { ValueError } from "@core/errors/valueError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
@@ -53,7 +53,7 @@ export class DeleteTransactionUseCase implements IUsecase<string, void> {
                 const records = await this.recordRepo.getAll({ offset: 0, limit: 0, queryAll: true}, recordFilter)
                 const totalAmount = records.items.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) 
 
-                if (transaction.getTransactionType() === TransactionType.INCOME) {
+                if (transaction.getRecordType() === RecordType.DEBIT) {
                     account.addOnBalance(new Money(totalAmount))
                 } else {
                     account.substractBalance(new Money(totalAmount)) 

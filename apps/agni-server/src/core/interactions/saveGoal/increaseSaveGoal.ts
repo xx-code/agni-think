@@ -73,10 +73,10 @@ export class IncreaseSaveGoalUseCase implements IUsecase<RequestIncreaseSaveGoal
             let date = MomentDateService.getTodayWithTime()
 
             let newTransactionFrom = new Transaction(GetUID(), request.accountId, date,
-                TransactionType.OTHER, TransactionStatus.COMPLETE,
+                TransactionType.OTHER, RecordType.DEBIT, TransactionStatus.COMPLETE,
             )
 
-            let newRecordFrom = new Record(GetUID(), newTransactionFrom.getId(), increaseAmount, SAVING_CATEGORY_ID, RecordType.DEBIT)
+            let newRecordFrom = new Record(GetUID(), newTransactionFrom.getId(), increaseAmount, SAVING_CATEGORY_ID)
             newRecordFrom.setDescription('Saving ' + savingGoal.getTitle()) 
             await this.recordRepository.create(newRecordFrom, trx)
        

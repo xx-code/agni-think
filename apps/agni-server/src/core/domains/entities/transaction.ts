@@ -1,4 +1,4 @@
-import { TransactionType, TransactionStatus } from '@core/domains/constants';
+import { TransactionType, TransactionStatus, RecordType } from '@core/domains/constants';
 import Entity, { TrackableProperty } from "./entity";
 import { ValueObjectCollection } from '../valueObjects/collection';
 import { TransactionDeduction } from '../valueObjects/transactionDeduction';
@@ -11,13 +11,16 @@ export class Transaction extends Entity {
     private status: TrackableProperty<TransactionStatus>
     private date: TrackableProperty<Date>
     private deductions: ValueObjectCollection<TransactionDeduction>
+    private recordType: TrackableProperty<RecordType> 
     private isFreeze: boolean
 
-    constructor(id: string, accountRef: string, date: Date, type: TransactionType, 
+    constructor(id: string, accountRef: string, date: Date, type: TransactionType, recordType: RecordType, 
         status: TransactionStatus, isFreeze:boolean=false, deductions: TransactionDeduction[] = [],) {
         super(id)
         this.date = new TrackableProperty(date, this.markHasChange.bind(this))
         this.accountRef = new TrackableProperty<string>(accountRef, this.markHasChange.bind(this))
+        this.type = new TrackableProperty(type, this.markHasChange.bind(this))
+        this.recordType = new TrackableProperty(recordType, this.markHasChange.bind(this))
         this.isFreeze = isFreeze;
         this.type = new TrackableProperty<TransactionType>(type, this.markHasChange.bind(this))
         this.status = new TrackableProperty<TransactionStatus>(status, this.markHasChange.bind(this))
@@ -78,5 +81,13 @@ export class Transaction extends Entity {
 
     getCollectionDeductions(): TransactionDeduction[] {
         return this.deductions.get()
+    }
+
+    setRecordType(type: RecordType) {
+        this.recordType.set(type)
+    }
+
+    getRecordType(): RecordType {
+        return this.recordType.get()
     }
 }

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { h, ref, resolveComponent, computed } from "vue";
 import type { TableColumn, TableRow } from "@nuxt/ui";
 import { fetchAccounts } from "~/composables/accounts/useAccounts";
 import { fetchBudgets } from "~/composables/budgets/useBudgets";
@@ -91,10 +90,10 @@ const { data, error, refresh, status } = useAsyncData(`transactions-${JSON.strin
             subTotal: i.subTotal,
             total: i.total,
             description: `${i.records.length} article${i.records.length > 1 ? 's' : ''}`,
+            mouvement: i.mouvement,
             records: i.records.map(record => ({
                 id: record.id,
                 description: record.description,
-                type: record.type,
                 amount: record.amount,
                 category: {
                     id: record.categoryId,
@@ -158,6 +157,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
 
             await useUpdateTransaction(oldValue.id, {
                 addRecords: recordAdded, 
+                mouvement: value.mouvement,
                 removeRecordIds: recordRemovedIds,
                 deductions: value.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
                 id: oldValue.id,
@@ -169,6 +169,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
             await useCreateTransaction({
                 accountId: value.accountId,
                 date: value.date.toDate(getLocalTimeZone()).toISOString(),
+                mouvement: value.mouvement,
                 type: value.type,
                 status: value.state,
                 records: value.records.map(i => ({
@@ -306,7 +307,7 @@ const tableColumn: TableColumn<TransactionTableType>[] = [
 
             return h('div', {
                 class: 'text-right font-medium',
-                style: { color: type !== 'Income' ? '#ef4444' : '#10b981' }
+                style: { color: getTypeColor(row.original.type) }
             }, formatted)
         }
     },
@@ -324,7 +325,7 @@ const tableColumn: TableColumn<TransactionTableType>[] = [
 
             return h('div', {
                 class: 'text-right font-semibold text-lg',
-                style: { color: type !== 'Income' ? '#ef4444' : '#10b981' }
+                style: { color: getTypeColor(row.original.type) }
             }, formatted)
         }
     },
@@ -384,6 +385,22 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
     }
 
     return options;
+}
+
+function getTypeColor(type: string) {
+    if (type && type.toLowerCase() === 'income')
+        return '#10b981'
+    else if (type && type.toLowerCase() === 'other')
+        return '#b2bac4'
+    else
+        return '#ef4444'
+}
+
+function getRecordTypeColor(type: string) {
+    if (type && type.toLowerCase() === 'credit')
+        return '#10b981'
+    else
+        return '#ef4444'
 }
 
 </script>
@@ -502,14 +519,11 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
                                             <p class="font-medium text-gray-900 dark:text-white">
                                                 {{ record.description }}
                                             </p>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400">
-                                                {{ record.type }}
-                                            </p>
                                         </div>
                                         
                                         <p 
                                             class="font-semibold text-lg whitespace-nowrap"
-                                            :style="{ color: record.type === 'Debit' ? '#ef4444' : '#10b981' }"
+                                            :style="{ color: getRecordTypeColor(row.original.mouvement) }"
                                         >
                                             {{ formatCurrency(record.amount) }}
                                         </p>
@@ -576,7 +590,7 @@ function getRowItems(rows: TableRow<TransactionTableType>) {
                                 </div>
                                 <div class="flex justify-between text-base font-bold pt-1 border-t">
                                     <span>Total:</span>
-                                    <span :style="{ color: row.original.type !== 'Income' ? '#ef4444' : '#10b981' }">
+                                    <span :style="{ color: getTypeColor(row.original.type)}">
                                         {{ formatCurrency(row.original.total) }}
                                     </span>
                                 </div>

@@ -50,9 +50,9 @@ export type GetAllTransactionDto = {
     type: string
     subTotalAmount: number
     totalAmount: number
+    mouvement: string
     records: {
         id: string
-        type: string
         description: string
         categoryId: string
         amount: number
@@ -194,17 +194,18 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
                 const deductionSubTotal = transDeductions?.filter(i => i.getBase() === DeductionBase.SUBTOTAL)
                 const deductionTotal = transDeductions?.filter(i => i.getBase() === DeductionBase.TOTAL)
 
+                let totalBeforSub = subTotal
                 deductionSubTotal?.forEach(i => {
                     const deduc = transaction.getCollectionDeductions().find(trans => trans.deductionId === i.getId())
                     if (deduc) 
-                        subTotal = i.getMode() === DeductionMode.FLAT ? subTotal + deduc.amount : subTotal + (subTotal * (deduc.amount/100) )
+                        totalBeforSub += i.getMode() === DeductionMode.FLAT ? deduc.amount : (subTotal * (deduc.amount/100) )
                 })
 
-                let total = subTotal
+                let total = totalBeforSub
                 deductionTotal?.forEach(i => {
                     const deduc = transaction.getCollectionDeductions().find(trans => trans.deductionId === i.getId())
                     if (deduc) 
-                        total = i.getMode() === DeductionMode.FLAT ? total + deduc.amount : total + (total * (deduc.amount/100) )
+                        total += i.getMode() === DeductionMode.FLAT ?  deduc.amount : (total * (deduc.amount/100) )
                 })
 
                 responses.push({
@@ -213,6 +214,7 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
                     date: transaction.getDate(),
                     status: transaction.getStatus(),
                     type: transaction.getTransactionType(),
+                    mouvement: transaction.getRecordType(),
                     subTotalAmount: subTotal,
                     totalAmount: total,
                     records: transactionRecords?.map(i => ({
@@ -221,8 +223,7 @@ export class GetPaginationTransaction implements IUsecase<RequestGetPagination, 
                         budgetRefs: i.getBudgetRefs(),
                         tagRefs: i.getTags(),
                         categoryId: i.getCategoryRef(),
-                        description: i.getDescription(),
-                        type: i.getType()
+                        description: i.getDescription()
                     })) ?? [],
                     deductions: transaction.getCollectionDeductions().map(i => ({
                         id: i.deductionId,

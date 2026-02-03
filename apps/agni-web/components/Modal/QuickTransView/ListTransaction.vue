@@ -29,7 +29,20 @@ function getStatusConfig(status: string) {
 }
 
 function getTypeColor(type: string) {
-    return type !== 'Income' ? '#ef4444' : '#10b981';
+    if (type.toLowerCase() === 'income')
+        return '#10b981'
+    else if (type.toLowerCase() === 'other')
+        return '#b2bac4'
+    else
+        return '#ef4444'
+}
+
+function getRecordTypeColor(type: string) {
+    console.log(type)
+    if (type.toLowerCase() === 'credit')
+        return '#10b981'
+    else
+        return '#ef4444'
 }
 </script>
 
@@ -212,7 +225,7 @@ function getTypeColor(type: string) {
                         <!-- Montant du record -->
                         <p 
                             class="text-sm font-semibold flex-shrink-0"
-                            :style="{ color: getTypeColor(record.type) }"
+                            :style="{ color: getRecordTypeColor(trans.mouvement) }"
                         >
                             {{ formatCurrency(record.amount) }}
                         </p>
@@ -259,7 +272,7 @@ function getTypeColor(type: string) {
                         </div>
                         <div class="flex justify-between gap-4 text-sm font-bold pt-0.5 border-t">
                             <span>Total:</span>
-                            <span :style="{ color: getTypeColor(trans.type) }">
+                            <span :style="{ color: getRecordTypeColor(trans.mouvement) }">
                                 {{ formatCurrency(trans.total) }}
                             </span>
                         </div>

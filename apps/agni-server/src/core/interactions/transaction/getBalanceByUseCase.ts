@@ -1,4 +1,4 @@
-import { DeductionBase, DeductionMode, mapperMainTransactionCategory, RecordType, TransactionStatus, TransactionType } from "@core/domains/constants";
+import { DeductionBase, DeductionMode, mapperMainTransactionCategory, RecordType, SAVING_CATEGORY_ID, TransactionStatus, TransactionType, TRANSFERT_CATEGORY_ID } from "@core/domains/constants";
 import { Money } from "@core/domains/entities/money";
 import ValidationError from "@core/errors/validationError";
 import { IUsecase } from "../interfaces";
@@ -100,50 +100,39 @@ export class GetBalanceByUseCase implements IUsecase<RequestGetPagination, GetBa
             let income = 0
             let spend = 0
 
+            // TODO: BAD
             for(const transaction of transactions.items) {
-                let subTotal = 0
                 const transRecords = records.items.filter(i => i.getTransactionId() === transaction.getId())
-                if (transRecords.length > 0)  {
-                    const recordCredit = transRecords.filter(i => i.getType() === RecordType.CREDIT).map(i => i.getMoney().getAmount())
-                    const recordDebit = transRecords.filter(i => i.getType() === RecordType.DEBIT).map(i => i.getMoney().getAmount())
-
-                    if (recordCredit.length > 0)
-                        subTotal += recordCredit.reduce((prev, curr) =>  curr += prev) ?? 0
-
-                    if (recordDebit.length > 0)
-                        subTotal -= recordDebit.reduce((prev, curr) =>  curr += prev) ?? 0
-                    
-                }
+                
+                let subTotal = 0
+                if (transRecords.length > 0)
+                    subTotal = transRecords.map(i => i.getMoney().getAmount()).reduce((prev, curr) =>  curr += prev) ?? 0
 
                 const transDeductions = deductions.filter(i => transaction.getCollectionDeductions().map(i => i.deductionId).includes(i.getId()))
 
                 const deductionSubTotal = transDeductions.filter(i => i.getBase() === DeductionBase.SUBTOTAL)
                 const deductionTotal = transDeductions.filter(i => i.getBase() === DeductionBase.TOTAL)
 
-                deductionSubTotal.forEach(i => {
+                let totalBeforSub = subTotal
+                deductionSubTotal?.forEach(i => {
                     const deduc = transaction.getCollectionDeductions().find(trans => trans.deductionId === i.getId())
                     if (deduc) 
-                        subTotal = i.getMode() === DeductionMode.FLAT ? subTotal + deduc.amount : subTotal + (subTotal * (deduc.amount/100) )
+                        totalBeforSub += i.getMode() === DeductionMode.FLAT ? deduc.amount : (subTotal * (deduc.amount/100) )
                 })
 
-                deductionTotal.forEach(i => {
+                let total = totalBeforSub
+                deductionTotal?.forEach(i => {
                     const deduc = transaction.getCollectionDeductions().find(trans => trans.deductionId === i.getId())
                     if (deduc) 
-                        subTotal = i.getMode() === DeductionMode.FLAT ? subTotal + deduc.amount : subTotal + (subTotal * (deduc.amount/100) )
+                        total += i.getMode() === DeductionMode.FLAT ?  deduc.amount : (total * (deduc.amount/100) )
                 })
 
-                if (transaction.getTransactionType() === TransactionType.INCOME)
+                if (transaction.getRecordType() === RecordType.CREDIT) {
                     income +=  subTotal
-                if (transaction.getTransactionType() === TransactionType.OTHER) {
-                    if (subTotal > 0)
-                        income += subTotal
-                    else 
-                        spend += Math.abs(subTotal) 
-                } else 
-                    spend += Math.abs(subTotal)
-
+                } else {
+                    spend += Math.abs(total) 
+                }
             }
-
 
             const balance = income - spend 
 

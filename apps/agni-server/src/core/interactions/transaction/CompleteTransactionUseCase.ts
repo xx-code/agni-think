@@ -1,7 +1,7 @@
 import { IUsecase } from "../interfaces";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
-import { TransactionStatus, TransactionType } from "@core/domains/constants";
+import { RecordType, TransactionStatus } from "@core/domains/constants";
 import Repository, { RecordFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Account } from "@core/domains/entities/account";
@@ -48,7 +48,7 @@ export class CompteTransactionUsecase implements IUsecase<RequestCompleteTransac
             const totalAmount = records.items.map(i => i.getMoney().getAmount()).reduce((prev, curr) => curr += prev) 
             // set decution
 
-            if (transaction.getTransactionType() === TransactionType.INCOME)
+            if (transaction.getRecordType() === RecordType.CREDIT)
                 account!.addOnBalance(new Money(totalAmount))
             else 
                 account!.substractBalance(new Money(totalAmount))

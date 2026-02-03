@@ -13,14 +13,12 @@ export class Record extends Entity {
     private categoryRef: TrackableProperty<string>
     private money: TrackableProperty<Money>   
     private description: TrackableProperty<string>
-    private type: TrackableProperty<RecordType> 
 
-    constructor(id: string, transactionId: string, money: Money, categoryRef: string, type: RecordType, 
+    constructor(id: string, transactionId: string, money: Money, categoryRef: string,  
         description: string = '', tagRefs: string[] = [], budgetRefs: string[] = []) {
         super(id)
         this.transactionId = transactionId
         this.money = new TrackableProperty(money, this.markHasChange.bind(this))
-        this.type = new TrackableProperty(type, this.markHasChange.bind(this))
         this.description = new TrackableProperty(description, this.markHasChange.bind(this))
 
         this.tagRefs = new ValueObjectCollection(tagRefs.map(tag => new TransactionTag(tag)), this.markHasChange.bind(this))
@@ -38,15 +36,7 @@ export class Record extends Entity {
 
     getMoney(): Money {
         return this.money.get()
-    } 
-
-    setType(type: RecordType) {
-        this.type.set(type)
-    }
-
-    getType(): RecordType {
-        return this.type.get()
-    }
+    }  
 
     setDescription(description: string) {
         this.description.set(description, isStringDifferent)

@@ -19,10 +19,10 @@ export default function useTransactionPagination(query: Reactive<FilterTransacti
                     status: i.status,
                     total: i.totalAmount,
                     subTotal: i.subTotalAmount,
+                    mouvement: i.mouvement,
                     records: i.records.map(i => ({
                         id: i.id,
                         amount: i.amount,
-                        type: i.type,
                         description: i.description, 
                         budgetRefs: i.budgetRefs,
                         categoryId: i.categoryId,
@@ -54,13 +54,13 @@ export async function fetchTransactionPagination(query: MaybeRefOrGetter<FilterT
             date: new Date(i.date),
             type: i.type,
             status: i.status,
+            mouvement: i.mouvement,
             total: i.totalAmount,
             subTotal: i.subTotalAmount,
             records: i.records.map(i => ({
                 id: i.id,
                 amount: i.amount,
                 description: i.description,
-                type: i.type,
                 budgetRefs: i.budgetRefs,
                 categoryId: i.categoryId,
                 tagRefs: i.tagRefs

@@ -7,7 +7,6 @@ export type GetBalanceResponse = {
 export type RecordResponse = {
     id: string
     amount: number
-    type: string
     categoryId: string
     description: string
     tagRefs: string[]
@@ -24,6 +23,7 @@ export type GetTransactionResponse = {
     accountId: string
     status: string
     type: string
+    mouvement: string
     subTotalAmount: number
     totalAmount: number
     date: Date
@@ -36,6 +36,7 @@ export type GetAllTransactionResponse = {
     accountId: string
     status: string
     type: string
+    mouvement: string
     subTotalAmount: number
     totalAmount: number
     date: Date
@@ -78,6 +79,7 @@ export type CreateTransactionRequest = {
     status: string
     date: string
     type: string
+    mouvement: string
     currencyId?: string
     records: {
         amount: number
@@ -95,6 +97,7 @@ export type CreateTransactionRequest = {
 export type UpdateTransactionRequest = {
     id: string;
     accountId?: string
+    mouvement?: string
     date?: string
     type?: string
     currencyId?: string

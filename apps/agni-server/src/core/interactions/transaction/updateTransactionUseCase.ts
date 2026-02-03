@@ -1,4 +1,4 @@
-import { mapperMainTransactionCategory, } from "@core/domains/constants";
+import { mapperMainTransactionCategory, mapperRecordType, RecordType, TransactionType, } from "@core/domains/constants";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { UnitOfWorkRepository } from "@core/repositories/unitOfWorkRepository";
 import { RequestAddTransactionUseCase } from "./addTransactionUseCase";
@@ -8,10 +8,12 @@ import { CreatedDto } from "@core/dto/base";
 import Repository, { RecordFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 import { TransactionDeduction } from "@core/domains/valueObjects/transactionDeduction";
+import UnExpectedError from "@core/errors/unExpectedError";
 
 
 export type RequestUpdateTransactionUseCase = {
     id: string;
+    mouvement: string,
     accountId?: string
     date?: Date
     type?: string
@@ -71,6 +73,15 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
                 transaction.setTransactionType(type)
             }
 
+            if (request.mouvement) {
+                let mouvement = mapperRecordType(request.mouvement)
+                if (mouvement === RecordType.CREDIT && (transaction.getTransactionType() !== TransactionType.INCOME && transaction.getTransactionType() !== TransactionType.OTHER))
+                    throw new UnExpectedError("A CREDIT transaction must be Income or Other")
+
+                if (mouvement === RecordType.DEBIT && transaction.getTransactionType() === TransactionType.INCOME)
+                    throw new UnExpectedError("A DEBIT transaction Cant be Income")
+            }
+
             if (request.date) {
                 transaction.setDate(request.date)
             }
@@ -103,6 +114,7 @@ export class UpdateTransactionUseCase implements IUsecase<RequestUpdateTransacti
                     type: transaction.getTransactionType(),
                     date: transaction.getDate(),
                     status: transaction.getStatus(),
+                    mouvement: transaction.getRecordType(),
                     records: (request.addRecords.length === 0 &&  request.removeRecordIds.length === 0) ? records!.items.map(i => ({
                         amount: i.getMoney().getAmount(),
                         budgetIds: i.getBudgetRefs(),

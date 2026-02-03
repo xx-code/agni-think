@@ -61,18 +61,18 @@ export class TransfertTransactionUseCase implements IUsecase<RequestTransfertTra
             await this.accountRepository.update(accountFrom, innerTrx)
             await this.accountRepository.update(accountTo, innerTrx)
 
-            let transFrom = new Transaction(GetUID(), accountFrom.getId(), request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
+            let transFrom = new Transaction(GetUID(), accountFrom.getId(), request.date, TransactionType.OTHER, RecordType.DEBIT, TransactionStatus.COMPLETE)
             await this.transactionRepository.create(transFrom, innerTrx)
 
-            let transTo = new Transaction(GetUID(), accountTo.getId(), request.date, TransactionType.OTHER, TransactionStatus.COMPLETE)
+            let transTo = new Transaction(GetUID(), accountTo.getId(), request.date, TransactionType.OTHER, RecordType.CREDIT, TransactionStatus.COMPLETE)
             await this.transactionRepository.create(transTo, innerTrx);
 
             
-            let fromRecord: Record = new Record(GetUID(), transFrom.getId(), amount, TRANSFERT_CATEGORY_ID, RecordType.DEBIT)
-            fromRecord.setDescription(`Transfert du compte ${accountFrom.getTitle()}`) 
+            let fromRecord: Record = new Record(GetUID(), transFrom.getId(), amount, TRANSFERT_CATEGORY_ID)
+            fromRecord.setDescription(`Transfert du compte ${accountFrom.getTitle()} a ${accountFrom.getTitle()}`) 
 
-            let toRecord: Record = new Record(GetUID(), transTo.getId(), amount, TRANSFERT_CATEGORY_ID, RecordType.CREDIT)
-            toRecord.setDescription(`Transfert au compte ${accountTo.getTitle()}`)
+            let toRecord: Record = new Record(GetUID(), transTo.getId(), amount, TRANSFERT_CATEGORY_ID)
+            toRecord.setDescription(`Transfert au compte ${accountTo.getTitle()} de ${accountTo.getTitle()}`)
 
             await this.recordRepository.create(fromRecord, innerTrx);
             await this.recordRepository.create(toRecord, innerTrx); 

@@ -76,8 +76,8 @@ export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRu
             const incomeAmount = recordByIncomes.reduce((acc: number, record) => acc + record.getMoney().getAmount(), 0)
             
             transactionTypes.forEach(type => {
-                const transactionByTypes = transactions.items.filter(i => i.getTransactionType() === type).map(i => i.getId())
-                const recordByTypes = records.items.filter(i => transactionByTypes.includes(i.getTransactionId()) && i.getType() === RecordType.DEBIT)
+                const transactionByTypes = transactions.items.filter(i => i.getTransactionType() === type && i.getRecordType() == RecordType.CREDIT).map(i => i.getId())
+                const recordByTypes = records.items.filter(i => transactionByTypes.includes(i.getTransactionId()))
                 const amount = recordByTypes.reduce((acc: number, record) => acc + record.getMoney().getAmount(), 0)
                 results.push({
                     transactionType: type ,
@@ -99,7 +99,7 @@ export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRu
             })
 
             const savingShortTermTrans = records.items.filter(i => i.getCategoryRef() === SAVING_CATEGORY_ID).map(i => i.getId())
-            const recordByShortSaves = records.items.filter(i => savingShortTermTrans.includes(i.getTransactionId()) && i.getType() === RecordType.DEBIT)
+            const recordByShortSaves = records.items.filter(i => savingShortTermTrans.includes(i.getTransactionId()))
             const amountShortSave = recordByShortSaves.reduce((acc: number, record) => acc + record.getMoney().getAmount(), 0)
 
             results.push({

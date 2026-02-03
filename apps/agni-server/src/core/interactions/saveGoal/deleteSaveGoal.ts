@@ -56,8 +56,8 @@ export class DeleteSaveGoalUseCase implements IUsecase<RequestDeleteSaveGoal, vo
             if (savingGoal.getBalance().getAmount() > 0) {
                 let date = MomentDateService.getTodayWithTime()
 
-                let newTransaction = new Transaction(GetUID(),  accountTranfert.getId(), date, TransactionType.OTHER, TransactionStatus.COMPLETE)
-                let newRecord = new Record(GetUID(), newTransaction.getId(), savingGoal.getBalance(), SAVING_CATEGORY_ID, RecordType.CREDIT, "Deposit from " + savingGoal.getDescription())
+                let newTransaction = new Transaction(GetUID(),  accountTranfert.getId(), date, TransactionType.OTHER, RecordType.CREDIT, TransactionStatus.COMPLETE)
+                let newRecord = new Record(GetUID(), newTransaction.getId(), savingGoal.getBalance(), SAVING_CATEGORY_ID, "Deposit from " + savingGoal.getDescription())
 
                 accountTranfert.addOnBalance(savingGoal.getBalance())
 

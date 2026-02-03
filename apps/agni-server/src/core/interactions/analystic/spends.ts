@@ -77,8 +77,7 @@ export class SpendAnalysticUseCase implements IUsecase<RequestSpendAnalystic, Sp
             const recordExtendFilter = new RecordFilter()
             recordExtendFilter.transactionIds = transactions.items.map(i => i.getId()) 
             let records = await this.recordRepo.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
-            const totalAmount = records.items.filter(i => i.getType() === RecordType.DEBIT)
-                .reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
+            const totalAmount = records.items.reduce((acc: number, i) => acc + i.getMoney().getAmount(), 0)
 
             // TODO: Heavy work
             let spendByCategories: SpendCategory[] = []

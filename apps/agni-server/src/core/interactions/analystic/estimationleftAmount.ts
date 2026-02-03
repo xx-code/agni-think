@@ -140,7 +140,6 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
                 recordExtendFilter.budgets = [budget.getId()]
                 let records = await this.recordRepository.getAll({offset: 0, limit: 0, queryAll: true}, recordExtendFilter)
                 for (let record of records.items) {
-                    if (record.getType() === RecordType.DEBIT)
                         currentBalance += record.getMoney().getAmount()
                 }
                 const resteBudget = budget.getTarget() - currentBalance
