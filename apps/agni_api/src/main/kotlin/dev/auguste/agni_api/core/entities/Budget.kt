@@ -9,7 +9,7 @@ class Budget(
     id: UUID = UUID.randomUUID(),
     target: Double,
     scheduler: Scheduler,
-    targetSavingGoals: List<BudgetSavingGoal>
+    targetSavingGoals: MutableSet<BudgetSavingGoal>
     ): Entity(id=id) {
 
     var target: Double by Delegates.observable(target) { _, old, new ->
@@ -22,7 +22,7 @@ class Budget(
             this.markHasChanged()
     }
 
-    var targetSavingGoals: List<BudgetSavingGoal> by Delegates.observable(targetSavingGoals.toList()) { _, old, new ->
+    var targetSavingGoals: MutableSet<BudgetSavingGoal> by Delegates.observable(targetSavingGoals) { _, old, new ->
         if (old != new)
             this.markHasChanged()
     }

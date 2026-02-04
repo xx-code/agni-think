@@ -15,7 +15,7 @@ class Invoice(
     mouvementType: InvoiceMouvementType,
     amount: Double,
     type: InvoiceType,
-    deductions: List<InvoiceDeduction>,
+    deductions: MutableSet<InvoiceDeduction>,
     date: Date = Date(),
     isFreeze: Boolean = false,
 ): Entity(id = id) {

@@ -16,9 +16,19 @@ class SavingGoal(
     desired: IntensityEmotionalDesirType,
     importance: ImportanceGoalType,
     wishDueDate: Date,
-    itemsToTracks: List<SavingGoalItem>,
+    itemsToTracks: MutableSet<SavingGoalItem>,
     accountId: UUID?
 ): Entity(id = id) {
+
+    var accountId by Delegates.observable(accountId) { prop, old, new ->
+        if (old != new)
+            this.markHasChanged()
+    }
+
+    var itemsToTracks by Delegates.observable(itemsToTracks) { prop, old, new ->
+        if (old != new)
+            this.markHasChanged()
+    }
 
     var title: String by Delegates.observable(title) { prop, old, new ->
         if (old != new)
