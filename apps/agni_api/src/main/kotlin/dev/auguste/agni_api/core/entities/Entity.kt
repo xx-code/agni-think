@@ -1,15 +1,16 @@
 package dev.auguste.agni_api.core.entities
 
+import java.time.LocalDate
 import java.util.Date
 import java.util.UUID
 
 abstract class Entity {
     val id: UUID
-    val createdAt: Date
-    var updatedAt: Date private set
+    val createdAt: LocalDate
+    var updatedAt: LocalDate private set
     var change: Boolean private set
 
-    constructor(id: UUID, createdAt: Date = Date(), updatedAt: Date = Date(), change: Boolean = false) {
+    constructor(id: UUID, createdAt: LocalDate = LocalDate.now(), updatedAt: LocalDate = LocalDate.now(), change: Boolean = false) {
         this.id = id
         this.createdAt = createdAt
         this.updatedAt = updatedAt
@@ -26,7 +27,7 @@ abstract class Entity {
 
     fun markHasChanged() {
         this.change = true
-        this.updatedAt = Date()
+        this.updatedAt = LocalDate.now()
     }
 
 }

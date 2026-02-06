@@ -1,18 +1,19 @@
 package dev.auguste.agni_api.core.entities
 
 import dev.auguste.agni_api.core.entities.enums.PatrimonySnapshotStatusType
-import java.util.Date
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.properties.Delegates
 
 class PatrimonySnapshot(
     id: UUID = UUID.randomUUID(),
-    date: Date = Date(),
+    val patrimonyId: UUID,
+    date: LocalDate = LocalDate.now(),
     currentBalanceObserved: Double,
     status: PatrimonySnapshotStatusType
     ): Entity(id = id) {
 
-    var date: Date by Delegates.observable(date) { _, old, new ->
+    var date by Delegates.observable(date) { _, old, new ->
         if (old != new)
             this.markHasChanged()
     }

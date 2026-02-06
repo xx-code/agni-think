@@ -10,7 +10,7 @@ class Account(
     title: String,
     balance: Double,
     detail: IAccountDetail,
-    currencyId: UUID
+    currencyId: UUID?
     ): Entity(id = id) {
 
     var title: String by Delegates.observable(title) {
@@ -28,7 +28,7 @@ class Account(
             this.markHasChanged()
     })
 
-    var currencyId: UUID by Delegates.observable(currencyId, { _, old, new ->
+    var currencyId: UUID? by Delegates.observable(currencyId, { _, old, new ->
         if (old != new)
             this.markHasChanged()
     })

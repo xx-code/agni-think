@@ -7,7 +7,7 @@ class Category(
     id: UUID = UUID.randomUUID(),
     title: String,
     icon: String,
-    colo: String,
+    color: String,
     isSystem: Boolean = false
 ): Entity(id = id) {
     var title: String by Delegates.observable(title) { prop, old, new ->
@@ -20,7 +20,7 @@ class Category(
             this.markHasChanged()
     }
 
-    var colo: String by Delegates.observable(colo) { prop, old, new ->
+    var color: String by Delegates.observable(color) { prop, old, new ->
         if (old != new)
             this.markHasChanged()
     }

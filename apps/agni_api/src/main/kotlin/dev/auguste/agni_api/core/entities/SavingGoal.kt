@@ -3,6 +3,7 @@ package dev.auguste.agni_api.core.entities
 import dev.auguste.agni_api.core.entities.enums.ImportanceGoalType
 import dev.auguste.agni_api.core.entities.enums.IntensityEmotionalDesirType
 import dev.auguste.agni_api.core.value_objects.SavingGoalItem
+import java.time.LocalDate
 import java.util.Date
 import java.util.UUID
 import kotlin.properties.Delegates
@@ -15,7 +16,7 @@ class SavingGoal(
     balance: Double,
     desired: IntensityEmotionalDesirType,
     importance: ImportanceGoalType,
-    wishDueDate: Date,
+    wishDueDate: LocalDate?,
     itemsToTracks: MutableSet<SavingGoalItem>,
     accountId: UUID?
 ): Entity(id = id) {
@@ -60,7 +61,7 @@ class SavingGoal(
             this.markHasChanged()
     }
 
-    var wishDueDate: Date by Delegates.observable(wishDueDate) { prop, old, new ->
+    var wishDueDate by Delegates.observable(wishDueDate) { prop, old, new ->
         if (old != new)
             this.markHasChanged()
     }

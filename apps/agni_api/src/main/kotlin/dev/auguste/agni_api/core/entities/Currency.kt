@@ -9,7 +9,7 @@ class Currency(
     name: String,
     symbol: String,
     locale: String? = null,
-    rateToBase: String? = null,
+    rateToBase: Double? = null,
     isBase: Boolean = false
 ): Entity(id = id) {
     var name: String by Delegates.observable(name) { prop, old, new ->

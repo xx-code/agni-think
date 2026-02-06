@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.entities
 
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
+import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import java.util.UUID
 import kotlin.properties.Delegates
@@ -9,13 +10,13 @@ class ScheduleInvoice(
     id: UUID = UUID.randomUUID(),
     title: String,
     accountId: UUID,
-    type: InvoiceMouvementType,
+    type: InvoiceType,
     amount: Double,
     scheduler: Scheduler,
     categoryId: UUID,
     isPause: Boolean = false,
     isFreeze: Boolean = false,
-    tagIds: MutableSet<String> = mutableSetOf(),
+    tagIds: MutableSet<UUID> = mutableSetOf(),
 ): Entity(id = id) {
 
     var title: String by Delegates.observable(title) { prop, old, new ->
@@ -28,7 +29,7 @@ class ScheduleInvoice(
             this.markHasChanged()
     }
 
-    var type: InvoiceMouvementType by Delegates.observable(type) { prop, old, new ->
+    var type by Delegates.observable(type) { prop, old, new ->
         if (old != new)
             this.markHasChanged()
     }
@@ -58,7 +59,7 @@ class ScheduleInvoice(
             this.markHasChanged()
     }
 
-    var tagIds: MutableSet<String> by Delegates.observable(tagIds) { prop, old, new ->
+    var tagIds by Delegates.observable(tagIds) { prop, old, new ->
         if (old != new)
             this.markHasChanged()
     }
