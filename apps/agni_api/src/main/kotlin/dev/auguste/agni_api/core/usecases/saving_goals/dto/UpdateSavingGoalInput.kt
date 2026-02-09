@@ -1,9 +1,8 @@
-package dev.auguste.agni_api.core.usecases.savingGoals.dto
+package dev.auguste.agni_api.core.usecases.saving_goals.dto
 
 import dev.auguste.agni_api.core.entities.enums.ImportanceGoalType
 import dev.auguste.agni_api.core.entities.enums.IntensityEmotionalDesirType
 import java.time.LocalDate
-import java.util.Date
 import java.util.UUID
 
 data class UpdateSavingGoalInput(

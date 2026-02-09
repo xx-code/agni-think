@@ -8,8 +8,8 @@ import dev.auguste.agni_api.core.usecases.accounts.dto.CreateAccountInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
 class CreateAccount(
-    val accountRepository: IRepository<Account>,
-    val currencyRepository: IRepository<Currency>
+    private val accountRepository: IRepository<Account>,
+    private val currencyRepository: IRepository<Currency>
 ): IUseCase<CreateAccountInput, CreatedOutput> {
 
     override fun execAsync(input: CreateAccountInput): CreatedOutput {

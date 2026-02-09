@@ -9,7 +9,6 @@ import java.util.UUID
 data class UpdateInvoiceInput(
     val id: UUID,
     val accountId: UUID?,
-    val status: InvoiceStatusType?,
     val date: LocalDateTime?,
     val type: InvoiceType?,
     val mouvementType: InvoiceMouvementType?,

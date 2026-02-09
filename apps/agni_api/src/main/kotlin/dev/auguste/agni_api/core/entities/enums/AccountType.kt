@@ -5,5 +5,11 @@ enum class AccountType(val value: String) {
     CREDIT_CARD("CreditCard"),
     SAVING("Saving"),
     BUSINESS("Business"),
-    BROKING("Broking")
+    BROKING("Broking");
+
+    companion object {
+        fun fromString(value: String): AccountType {
+            return AccountType.entries.first { it.value.equals(value, ignoreCase = true) }
+        }
+    }
 }

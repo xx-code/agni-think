@@ -11,14 +11,14 @@ import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.dto.DeleteInvoiceInput
 import java.time.LocalDateTime
-import java.util.UUID
 
 class RemoveFreezeInvoice(
-    val invoiceRepo: IRepository<Invoice>,
-    val accountRepo: IRepository<Account>,
-    val deleteInvoice: IInnerUseCase<UUID, Unit>,
-    val eventRegister: IEventRegister
+    private val invoiceRepo: IRepository<Invoice>,
+    private val accountRepo: IRepository<Account>,
+    private val deleteInvoice: IInnerUseCase<DeleteInvoiceInput, Unit>,
+    private val eventRegister: IEventRegister
 ): IUseCase<Unit, BackgroundTaskOut> {
     override fun execAsync(input: Unit): BackgroundTaskOut {
         try {
@@ -28,7 +28,7 @@ class RemoveFreezeInvoice(
                     accountIds = null,
                     startDate = LocalDateTime.now() ,
                     endDate = null,
-                    type = null,
+                    types = null,
                     isFreeze = true,
                     status = InvoiceStatusType.COMPLETED,
                     mouvementType = null
@@ -36,7 +36,7 @@ class RemoveFreezeInvoice(
             )
 
             freezeInvoice.items.forEach { invoiceItem ->
-                deleteInvoice.execInnerAsync(invoiceItem.id)
+                deleteInvoice.execInnerAsync(DeleteInvoiceInput(invoiceItem.id))
                 val account = accountRepo.get(invoiceItem.accountId)
 
                 eventRegister.notify("notification", EventContent(

@@ -5,7 +5,7 @@ import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.tags.dto.UpdateTagInput
 
-class UpdateTag(val tagRepo: IRepository<Tag>): IUseCase<UpdateTagInput, Unit> {
+class UpdateTag(private val tagRepo: IRepository<Tag>): IUseCase<UpdateTagInput, Unit> {
 
     override fun execAsync(input: UpdateTagInput) {
         val tag = tagRepo.get(input.id) ?: throw Error("Tag with id $input.id not found.")

@@ -9,7 +9,7 @@ import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.GetScheduleInvoi
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.ScheduleInvoiceRepeaterOutput
 
 class GetAllScheduleInvoice(
-    val scheduleInvoiceRepo: IRepository<ScheduleInvoice>
+    private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>
 ): IUseCase<QueryFilter, ListOutput<GetScheduleInvoiceOutput>> {
     override fun execAsync(input: QueryFilter): ListOutput<GetScheduleInvoiceOutput> {
         val scheduleInvoices = scheduleInvoiceRepo.getAll(input)

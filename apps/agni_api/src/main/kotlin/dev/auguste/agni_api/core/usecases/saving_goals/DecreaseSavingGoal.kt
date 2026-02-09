@@ -13,20 +13,18 @@ import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.TransactionInput
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.UpgradeSavingGoalInput
+import dev.auguste.agni_api.core.usecases.saving_goals.dto.DecreaseSavingGoalInput
 import java.time.LocalDateTime
 import java.util.Date
 
 class DecreaseSavingGoal(
-    val savingGoalRepo: IRepository<SavingGoal>,
-    val accountRepo: IRepository<Account>,
-    val createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
-    val unitOfWork: IUnitOfWork
-): IUseCase<UpgradeSavingGoalInput, Unit> {
-    override fun execAsync(input: UpgradeSavingGoalInput) {
-        try {
-            unitOfWork.start()
-
+    private val savingGoalRepo: IRepository<SavingGoal>,
+    private val accountRepo: IRepository<Account>,
+    private val createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
+    private val unitOfWork: IUnitOfWork
+): IUseCase<DecreaseSavingGoalInput, Unit> {
+    override fun execAsync(input: DecreaseSavingGoalInput) {
+        unitOfWork.execute {
             val savingGoal = savingGoalRepo.get(input.savingGoalId) ?: throw Error("Could not find saving goal")
 
             if (input.amount <= 0)
@@ -69,11 +67,6 @@ class DecreaseSavingGoal(
 
             savingGoal.balance -= input.amount
             savingGoalRepo.update(savingGoal)
-
-            unitOfWork.commit()
-        } catch (error: Throwable) {
-            unitOfWork.rollback()
-            throw error
         }
     }
 }

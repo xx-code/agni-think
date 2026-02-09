@@ -8,6 +8,7 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
+import dev.auguste.agni_api.core.usecases.invoices.dto.DeleteInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.InvoiceDeductionInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.TransactionInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.UpdateInvoiceInput
@@ -17,18 +18,17 @@ import dev.auguste.agni_api.core.value_objects.InvoiceDeduction
 import java.util.UUID
 
 class UpdateInvoice(
-    val invoiceRepo: IRepository<Invoice>,
-    val invoiceDependencies: InvoiceDependencies,
-    val createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
-    val deleteInvoice: IInnerUseCase<UUID, Unit>,
-    val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
-    val unitOfWork: IUnitOfWork
+    private val invoiceRepo: IRepository<Invoice>,
+    private val invoiceDependencies: InvoiceDependencies,
+    private val createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
+    private val deleteInvoice: IInnerUseCase<DeleteInvoiceInput, Unit>,
+    private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+    private val unitOfWork: IUnitOfWork
 ): IUseCase<UpdateInvoiceInput, Unit> {
     override fun execAsync(
         input: UpdateInvoiceInput
     ) {
-        try {
-            unitOfWork.start()
+        unitOfWork.execute {
             val invoice = invoiceRepo.get(input.id) ?: throw Error("Invoice ${input.id} not found")
 
             if (input.accountId != null) {
@@ -84,13 +84,8 @@ class UpdateInvoice(
                     ) }.toSet()
                 ))
 
-                deleteInvoice.execInnerAsync(input.id)
+                deleteInvoice.execInnerAsync(DeleteInvoiceInput(invoice.id))
             }
-
-            unitOfWork.commit()
-        } catch (error: Throwable) {
-            unitOfWork.rollback()
-            throw error
         }
     }
 

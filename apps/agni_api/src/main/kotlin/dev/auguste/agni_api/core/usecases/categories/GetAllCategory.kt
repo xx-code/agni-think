@@ -7,7 +7,7 @@ import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.categories.dto.GetCategoryOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
-class GetAllCategory(val categoryRepo: IRepository<Category>): IUseCase<QueryFilter, ListOutput<GetCategoryOutput>> {
+class GetAllCategory(private val categoryRepo: IRepository<Category>): IUseCase<QueryFilter, ListOutput<GetCategoryOutput>> {
 
     override fun execAsync(input: QueryFilter): ListOutput<GetCategoryOutput> {
         val categories = categoryRepo.getAll(input)

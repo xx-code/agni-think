@@ -5,7 +5,7 @@ import dev.auguste.agni_api.core.entities.Deduction
 import dev.auguste.agni_api.core.usecases.deductions.dto.UpdateDeductionInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
-class UpdateDeduction(val deductionRepo: IRepository<Deduction>): IUseCase<UpdateDeductionInput, Unit> {
+class UpdateDeduction(private val deductionRepo: IRepository<Deduction>): IUseCase<UpdateDeductionInput, Unit> {
 
     override fun execAsync(input: UpdateDeductionInput) {
         val deduction = deductionRepo.get(input.id) ?: throw Error("deduction ${input.id} not found")

@@ -6,7 +6,7 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.tags.dto.CreateTagInput
 
-class CreateTag(val tagRepo: IRepository<Tag>): IUseCase<CreateTagInput, CreatedOutput> {
+class CreateTag(private val tagRepo: IRepository<Tag>): IUseCase<CreateTagInput, CreatedOutput> {
 
     override fun execAsync(input: CreateTagInput): CreatedOutput {
         if (tagRepo.existsByName(input.value))

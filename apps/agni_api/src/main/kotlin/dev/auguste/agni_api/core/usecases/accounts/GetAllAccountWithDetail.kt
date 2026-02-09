@@ -13,9 +13,9 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 
 class GetAllAccountWithDetail(
-    val accountRepo: IRepository<Account>,
-    val savingGoalRepo: IRepository<SavingGoal>,
-    val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
+    private val accountRepo: IRepository<Account>,
+    private val savingGoalRepo: IRepository<SavingGoal>,
+    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
 ) : IUseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>>{
 
     override fun execAsync(input: QueryFilter): ListOutput<GetAccountWithDetailOutput> {

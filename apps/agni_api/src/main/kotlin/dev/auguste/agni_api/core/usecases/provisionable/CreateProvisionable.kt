@@ -7,7 +7,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.provisionable.dto.CreateProvisionableInput
 
 class CreateProvisionable(
-    val provisionableRepo: IRepository<Provisionable>,
+    private val provisionableRepo: IRepository<Provisionable>,
 ) : IUseCase<CreateProvisionableInput, CreatedOutput> {
     override fun execAsync(input: CreateProvisionableInput): CreatedOutput {
         if (provisionableRepo.existsByName(input.title))

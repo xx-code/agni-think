@@ -9,31 +9,27 @@ import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.dto.DeleteInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 import java.util.UUID
 
 class DeleteInvoice(
-    val invoiceRepo: IRepository<Invoice>,
-    val transactionRepo: IRepository<Transaction>,
-    val accountRepo: IRepository<Account>,
-    val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
-    val unitOfWork: IUnitOfWork
-): IInnerUseCase<UUID, Unit> {
+    private val invoiceRepo: IRepository<Invoice>,
+    private val transactionRepo: IRepository<Transaction>,
+    private val accountRepo: IRepository<Account>,
+    private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+    private val unitOfWork: IUnitOfWork
+): IInnerUseCase<DeleteInvoiceInput, Unit> {
 
-    override fun execAsync(input: UUID): Unit {
-        try {
-            unitOfWork.start()
+    override fun execAsync(input: DeleteInvoiceInput): Unit {
+        unitOfWork.execute {
             this.execInnerAsync(input)
-            unitOfWork.commit()
-        } catch (error: Throwable) {
-            unitOfWork.rollback()
-            throw error
         }
     }
 
-    override fun execInnerAsync(input: UUID): Unit {
-        val invoice = invoiceRepo.get(input) ?: throw Exception("Invoice with id $input not found")
+    override fun execInnerAsync(input: DeleteInvoiceInput): Unit {
+        val invoice = invoiceRepo.get(input.invoiceId) ?: throw Exception("Invoice with id ${input.invoiceId} not found")
         val account = accountRepo.get(invoice.accountId) ?: throw Exception("Account with id ${invoice.accountId} not found")
 
         val invoiceTransactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
@@ -47,7 +43,7 @@ class DeleteInvoice(
 
         transactionRepo.deleteManyByIds(invoiceTransactions.flatMap { it.transactions }.map { it.id }.toSet())
 
-        invoiceRepo.delete(input)
+        invoiceRepo.delete(input.invoiceId)
 
         if (invoice.statusType == InvoiceStatusType.COMPLETED) {
             if (invoice.mouvementType == InvoiceMouvementType.CREDIT)

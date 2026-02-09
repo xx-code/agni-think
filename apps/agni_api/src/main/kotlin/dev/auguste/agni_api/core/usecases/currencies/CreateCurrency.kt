@@ -6,7 +6,7 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.currencies.dto.CreateCurrencyInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
-class CreateCurrency(val currencyRepo: IRepository<Currency>): IUseCase<CreateCurrencyInput, CreatedOutput> {
+class CreateCurrency(private val currencyRepo: IRepository<Currency>): IUseCase<CreateCurrencyInput, CreatedOutput> {
 
     override fun execAsync(input: CreateCurrencyInput): CreatedOutput {
         if (currencyRepo.existsByName(input.name))

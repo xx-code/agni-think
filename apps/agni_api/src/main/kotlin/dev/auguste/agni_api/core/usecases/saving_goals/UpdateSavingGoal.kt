@@ -4,12 +4,12 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.savingGoals.dto.UpdateSavingGoalInput
+import dev.auguste.agni_api.core.usecases.saving_goals.dto.UpdateSavingGoalInput
 import dev.auguste.agni_api.core.value_objects.SavingGoalItem
 
 class UpdateSavingGoal(
-    val savingGoalRepo: IRepository<SavingGoal>,
-    val accountRepo: IRepository<Account>
+    private val savingGoalRepo: IRepository<SavingGoal>,
+    private val accountRepo: IRepository<Account>
 ): IUseCase<UpdateSavingGoalInput, Unit> {
 
     override fun execAsync(input: UpdateSavingGoalInput) {

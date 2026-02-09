@@ -8,7 +8,7 @@ import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.ScheduleInvoiceR
 import java.util.UUID
 
 class GetScheduleInvoice(
-    val scheduleInvoiceRepo: IRepository<ScheduleInvoice>
+    private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>
 ): IUseCase<UUID, GetScheduleInvoiceOutput> {
 
     override fun execAsync(input: UUID): GetScheduleInvoiceOutput {

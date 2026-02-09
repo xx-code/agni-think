@@ -14,7 +14,7 @@ data class GetBalanceInput(
     val status: InvoiceStatusType? = null,
     val startDate: LocalDateTime? = null,
     val endDate: LocalDateTime? = null,
-    val type: InvoiceType? = null,
+    val types: Set<InvoiceType>? = null,
     val isFreeze: Boolean? = null,
     val mouvement: InvoiceMouvementType? = null,
     val categoryIds: Set<UUID>? = null,

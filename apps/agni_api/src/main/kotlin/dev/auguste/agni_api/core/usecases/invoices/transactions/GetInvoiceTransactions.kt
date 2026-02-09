@@ -14,11 +14,11 @@ import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTr
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.TransactionOutput
 
 class GetInvoiceTransactions(
-    val invoiceRepo: IRepository<Invoice>,
-    val deductionRepo: IRepository<Deduction>,
-    val transactionRepo: IRepository<Transaction>
+    private val invoiceRepo: IRepository<Invoice>,
+    private val deductionRepo: IRepository<Deduction>,
+    private val transactionRepo: IRepository<Transaction>
 ): IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>> {
-    override fun execAsync(input: GetInvoiceTransactionsInput): List<GetInvoiceTransactionsOutput> {
+     override fun execAsync(input: GetInvoiceTransactionsInput): List<GetInvoiceTransactionsOutput> {
         val extends = QueryTransactionExtend(
             invoiceIds = input.invoiceIds,
             tagIds = input.tagIds,
@@ -35,7 +35,7 @@ class GetInvoiceTransactions(
 
         val results = mutableListOf<GetInvoiceTransactionsOutput>()
 
-        invoices.forEach { invoice ->
+        for(invoice in invoices) {
             val transactions = transactions.items.filter { it.invoiceId == invoice.id }
             if (transactions.isNotEmpty()) {
                 val subTotal = transactions.sumOf { transaction -> transaction.amount }

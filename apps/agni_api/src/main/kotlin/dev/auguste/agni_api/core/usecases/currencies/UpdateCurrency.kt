@@ -5,7 +5,7 @@ import dev.auguste.agni_api.core.entities.Currency
 import dev.auguste.agni_api.core.usecases.currencies.dto.UpdateCurrencyInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
-class UpdateCurrency(val currencyRepo: IRepository<Currency>): IUseCase<UpdateCurrencyInput, Unit> {
+class UpdateCurrency(private val currencyRepo: IRepository<Currency>): IUseCase<UpdateCurrencyInput, Unit> {
 
     override fun execAsync(input: UpdateCurrencyInput) {
         val currency = currencyRepo.get(input.id) ?: throw Error("Currency ${input.id} not found")

@@ -15,15 +15,15 @@ import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTr
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 
 class GetBalance(
-    val invoiceRepo: IRepository<Invoice>,
-    val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, ListOutput<GetInvoiceTransactionsOutput>>
+    private val invoiceRepo: IRepository<Invoice>,
+    private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>
 ): IUseCase<GetBalanceInput, GetBalanceOutput> {
     override fun execAsync(input: GetBalanceInput): GetBalanceOutput {
         val invoices = invoiceRepo.getAll(QueryFilter(0, 0, true), QueryInvoiceExtend(
             accountIds = input.accountIds,
             startDate = input.startDate,
             endDate = input.endDate,
-            type = input.type,
+            types = input.types,
             status = input.status,
             isFreeze = input.isFreeze,
             mouvementType = input.mouvement
@@ -41,8 +41,8 @@ class GetBalance(
         val creditInvoiceIds = invoices.items.filter { it.mouvementType == InvoiceMouvementType.CREDIT }.map { it.id }
         val debitInvoiceIds = invoices.items.filter { it.mouvementType == InvoiceMouvementType.DEBIT }.map { it.id }
 
-        val income = invoiceTransactions.items.filter { creditInvoiceIds.contains(it.invoiceId) }.sumOf { it.total }
-        val spend = invoiceTransactions.items.filter { debitInvoiceIds.contains(it.invoiceId) }.sumOf { it.subTotal }
+        val income = invoiceTransactions.filter { creditInvoiceIds.contains(it.invoiceId) }.sumOf { it.total }
+        val spend = invoiceTransactions.filter { debitInvoiceIds.contains(it.invoiceId) }.sumOf { it.subTotal }
 
         val balance = income - spend
 

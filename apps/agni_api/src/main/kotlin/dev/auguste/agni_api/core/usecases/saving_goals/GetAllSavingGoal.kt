@@ -5,10 +5,10 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.savingGoals.dto.GetSavingGoalItemOutput
-import dev.auguste.agni_api.core.usecases.savingGoals.dto.GetSavingGoalOutput
+import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetSavingGoalItemOutput
+import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetSavingGoalOutput
 
-class GetAllSavingGoal(val savingGoalRepo: IRepository<SavingGoal>): IUseCase<QueryFilter, ListOutput<GetSavingGoalOutput>> {
+class GetAllSavingGoal(private val savingGoalRepo: IRepository<SavingGoal>): IUseCase<QueryFilter, ListOutput<GetSavingGoalOutput>> {
     override fun execAsync(input: QueryFilter): ListOutput<GetSavingGoalOutput> {
         val savingGoals = savingGoalRepo.getAll(input)
 
@@ -24,11 +24,11 @@ class GetAllSavingGoal(val savingGoalRepo: IRepository<SavingGoal>): IUseCase<Qu
                     wishDueDate = it.wishDueDate,
                     desireValue = it.desired,
                     accountId = it.accountId,
-                    items = it.itemsToTracks.map {
+                    items = it.itemsToTracks.map { item ->
                         GetSavingGoalItemOutput(
-                            title = it.title,
-                            url = it.url,
-                            price = it.price
+                            title = item.title,
+                            url = item.url,
+                            price = item.price
                         )
                     }
                 )

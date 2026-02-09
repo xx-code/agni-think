@@ -12,8 +12,8 @@ import dev.auguste.agni_api.core.value_objects.Scheduler
 import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
 
 class CreateScheduleInvoice(
-    val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-    val invoiceDependencies: InvoiceDependencies
+    private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+    private val invoiceDependencies: InvoiceDependencies
 ): IUseCase<CreateScheduleInvoiceInput, CreatedOutput> {
     override fun execAsync(input: CreateScheduleInvoiceInput): CreatedOutput {
         if (scheduleInvoiceRepo.existsByName(input.name))

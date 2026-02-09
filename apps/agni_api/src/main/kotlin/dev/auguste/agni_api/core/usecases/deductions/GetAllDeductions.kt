@@ -7,7 +7,7 @@ import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.deductions.dto.GetDeductionOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
-class GetAllDeductions(val deductionRepo: IRepository<Deduction>): IUseCase<QueryFilter, ListOutput<GetDeductionOutput>> {
+class GetAllDeductions(private val deductionRepo: IRepository<Deduction>): IUseCase<QueryFilter, ListOutput<GetDeductionOutput>> {
 
     override fun execAsync(input: QueryFilter): ListOutput<GetDeductionOutput> {
         val deductions = deductionRepo.getAll(input)

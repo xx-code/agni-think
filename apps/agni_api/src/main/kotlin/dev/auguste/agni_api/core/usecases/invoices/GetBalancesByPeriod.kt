@@ -8,7 +8,7 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
 import java.time.LocalDateTime
 
 class GetBalancesByPeriod(
-    val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
+    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
 ): IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>> {
     override fun execAsync(input: GetBalancesByPeriodInput): List<GetBalanceOutput> {
         val results = mutableListOf<GetBalanceOutput>()
@@ -32,7 +32,7 @@ class GetBalancesByPeriod(
                     startDate = current,
                     endDate = next,
                     categoryIds = input.categoryIds,
-                    type = input.type,
+                    types = input.types,
                     status = input.status,
                     accountIds = input.accountIds,
                     tagIds = input.tagIds,

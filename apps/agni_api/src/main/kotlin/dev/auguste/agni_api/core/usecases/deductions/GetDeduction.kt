@@ -6,7 +6,7 @@ import dev.auguste.agni_api.core.usecases.deductions.dto.GetDeductionOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import java.util.UUID
 
-class GetDeduction(val deductionRepo: IRepository<Deduction>): IUseCase<UUID, GetDeductionOutput> {
+class GetDeduction(private val deductionRepo: IRepository<Deduction>): IUseCase<UUID, GetDeductionOutput> {
     override fun execAsync(input: UUID): GetDeductionOutput {
         val deduction = deductionRepo.get(input) ?: throw Error("deduction id $input not found")
 

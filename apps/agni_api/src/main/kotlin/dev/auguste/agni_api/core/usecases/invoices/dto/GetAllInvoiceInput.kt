@@ -15,7 +15,7 @@ data class GetAllInvoiceInput(
     val startDate: LocalDateTime? = null,
     val endDate: LocalDateTime? = null,
     val status: InvoiceStatusType? = null,
-    val type: InvoiceType? = null,
+    val types: Set<InvoiceType>? = null,
     val isFreeze: Boolean? = null,
     val mouvementType: InvoiceMouvementType? = null,
     val categoryIds: Set<UUID>? = null,

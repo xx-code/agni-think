@@ -9,21 +9,24 @@ import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
+import dev.auguste.agni_api.core.usecases.invoices.dto.InvoiceDeductionOutput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 
 class GetAllInvoices(
-    val invoiceRepo: IRepository<Invoice>,
-    val invoiceTransactionCountReader: IInvoicetransactionCountReader,
-    val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, ListOutput<GetInvoiceTransactionsOutput>>
+    private val invoiceRepo: IRepository<Invoice>,
+    private val invoiceTransactionCountReader: IInvoicetransactionCountReader,
+    private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>
 ): IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>> {
 
     override fun execAsync(input: GetAllInvoiceInput ): ListOutput<GetInvoiceOutput> {
+        input.queryFilter.sortBy.by = "date"
+
         val queryInvoiceExtend = QueryInvoiceExtend(
             accountIds = input.accountIds,
             startDate = input.startDate,
             endDate = input.endDate,
-            type = input.type,
+            types = input.types,
             isFreeze = input.isFreeze,
             status = input.status,
             mouvementType = input.mouvementType
@@ -42,7 +45,7 @@ class GetAllInvoices(
 
         val results = mutableListOf<GetInvoiceOutput>()
 
-        getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
+        val transactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
             invoiceIds = queryTransactionExtend.invoiceIds!!,
             categoryIds = queryTransactionExtend.categoryIds,
             tagIds = queryTransactionExtend.tagIds,
@@ -50,6 +53,27 @@ class GetAllInvoices(
             minAmount = queryTransactionExtend.minAmount,
             maxAmount = queryTransactionExtend.maxAmount
         ))
+
+        for (invoice in invoices.items) {
+            val invoiceTransactions = transactions.find { it.invoiceId == invoice.id }
+            if (invoiceTransactions != null) {
+                results.add(
+                    GetInvoiceOutput(
+                        id = invoice.id,
+                        accountId = invoice.accountId,
+                        status = invoice.statusType,
+                        subTotal = invoiceTransactions.subTotal,
+                        total = invoiceTransactions.total,
+                        mouvementType = invoice.mouvementType,
+                        date = invoice.date,
+                        transactions = invoiceTransactions.transactions,
+                        dedeductions = invoice.deductions.map { InvoiceDeductionOutput(
+                            it.deductionId, it.amount
+                        ) }
+                    )
+                )
+            }
+        }
 
         return ListOutput(
             items = results,

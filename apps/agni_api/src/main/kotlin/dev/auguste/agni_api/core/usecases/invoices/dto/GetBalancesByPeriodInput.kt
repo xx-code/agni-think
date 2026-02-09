@@ -16,7 +16,7 @@ data class GetBalancesByPeriodInput(
     val dateTo: LocalDateTime? = null,
     val accountIds: Set<UUID>? = null,
     val mouvement: InvoiceMouvementType? = null,
-    val type: InvoiceType? = null,
+    val types: Set<InvoiceType>? = null,
     val isFreeze: Boolean? = null,
     val categoryIds: Set<UUID>? = null,
     val tagIds: Set<UUID>? = null,

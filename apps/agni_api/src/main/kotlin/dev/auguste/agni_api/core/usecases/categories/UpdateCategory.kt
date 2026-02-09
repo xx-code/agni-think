@@ -5,7 +5,7 @@ import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.usecases.categories.dto.UpdateCategoryInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
-class UpdateCategory(val categoryRepo: IRepository<Category>): IUseCase<UpdateCategoryInput, Unit> {
+class UpdateCategory(private val categoryRepo: IRepository<Category>): IUseCase<UpdateCategoryInput, Unit> {
 
     override fun execAsync(input: UpdateCategoryInput) {
         val category = categoryRepo.get(input.id) ?: throw Error("Category ${input.id} not found")

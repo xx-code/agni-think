@@ -13,9 +13,9 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import java.util.UUID
 
 class GetAccountWithDetail(
-    val accountRepo: IRepository<Account>,
-    val savingGoalRepo: IRepository<SavingGoal>,
-    val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
+    private val accountRepo: IRepository<Account>,
+    private val savingGoalRepo: IRepository<SavingGoal>,
+    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
 ): IUseCase<UUID, GetAccountWithDetailOutput> {
     override fun execAsync(input: UUID): GetAccountWithDetailOutput {
         val account = accountRepo.get(input) ?: throw Error("Account not found")

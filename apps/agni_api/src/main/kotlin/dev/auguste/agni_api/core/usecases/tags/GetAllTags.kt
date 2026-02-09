@@ -8,7 +8,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.tags.dto.GetTagOutput
 import java.awt.print.Pageable
 
-class GetAllTags(val tagRepo: IRepository<Tag>): IUseCase<QueryFilter, ListOutput<GetTagOutput>> {
+class GetAllTags(private val tagRepo: IRepository<Tag>): IUseCase<QueryFilter, ListOutput<GetTagOutput>> {
     override fun execAsync(input: QueryFilter): ListOutput<GetTagOutput> {
         val tags = tagRepo.getAll(input)
 

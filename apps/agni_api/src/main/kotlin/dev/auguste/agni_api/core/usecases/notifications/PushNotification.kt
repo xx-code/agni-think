@@ -8,7 +8,7 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.notifications.dto.PushNotificationInput
 
-class PushNotification(val notificationRepo: IRepository<Notification>): IUseCase<PushNotificationInput, CreatedOutput>, IEventListener {
+class PushNotification(private val notificationRepo: IRepository<Notification>): IUseCase<PushNotificationInput, CreatedOutput>, IEventListener {
 
     override fun execAsync(input: PushNotificationInput): CreatedOutput {
         val newNotification = Notification(

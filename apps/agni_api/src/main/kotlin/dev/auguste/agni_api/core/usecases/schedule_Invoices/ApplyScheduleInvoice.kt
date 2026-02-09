@@ -21,10 +21,10 @@ import dev.auguste.agni_api.core.value_objects.Scheduler
 import java.time.LocalDateTime
 
 class ApplyScheduleInvoice(
-    val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-    val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
-    val createFreezeInvoice: IUseCase<CreateFreezeInvoiceInput, CreatedOutput>,
-    val eventManager: IEventRegister
+    private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+    private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
+    private val createFreezeInvoice: IUseCase<CreateFreezeInvoiceInput, CreatedOutput>,
+    private val eventManager: IEventRegister
 ): IUseCase<Unit, BackgroundTaskOut> {
     override fun execAsync(input: Unit): BackgroundTaskOut {
         try {

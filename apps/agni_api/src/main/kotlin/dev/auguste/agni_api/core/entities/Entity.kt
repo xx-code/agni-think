@@ -1,7 +1,6 @@
 package dev.auguste.agni_api.core.entities
 
 import java.time.LocalDate
-import java.util.Date
 import java.util.UUID
 
 abstract class Entity {

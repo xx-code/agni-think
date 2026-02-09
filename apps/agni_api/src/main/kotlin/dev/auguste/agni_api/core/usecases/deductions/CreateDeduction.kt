@@ -6,7 +6,7 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.deductions.dto.CreateDeductionInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
-class CreateDeduction(val deductionRepo: IRepository<Deduction>): IUseCase<CreateDeductionInput, CreatedOutput> {
+class CreateDeduction(private val deductionRepo: IRepository<Deduction>): IUseCase<CreateDeductionInput, CreatedOutput> {
 
     override fun execAsync(input: CreateDeductionInput): CreatedOutput {
         if (deductionRepo.existsByName(input.title))

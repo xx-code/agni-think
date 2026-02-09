@@ -13,15 +13,13 @@ import java.time.LocalDate
 import java.util.Date
 
 class CreatePatrimony(
-    val patrimonyRepo: IRepository<Patrimony>,
-    val accountRepo: IRepository<Account>,
-    val snapshotRepo: IRepository<PatrimonySnapshot>,
-    val unitOfWork: IUnitOfWork): IUseCase<CreatePatrimonyInput, CreatedOutput> {
+    private val patrimonyRepo: IRepository<Patrimony>,
+    private val accountRepo: IRepository<Account>,
+    private val snapshotRepo: IRepository<PatrimonySnapshot>,
+    private val unitOfWork: IUnitOfWork): IUseCase<CreatePatrimonyInput, CreatedOutput> {
 
     override fun execAsync(input: CreatePatrimonyInput): CreatedOutput {
-        try {
-            unitOfWork.start()
-
+        return unitOfWork.execute {
             if (patrimonyRepo.existsByName(input.title))
                 throw Error("Patrimony name already exists")
 
@@ -49,12 +47,7 @@ class CreatePatrimony(
                 snapshotRepo.create(firstSnapShot)
             }
 
-            unitOfWork.commit()
-
-            return CreatedOutput(newPatrimony.id)
-        } catch (error: Throwable) {
-            unitOfWork.rollback()
-            throw error
+            CreatedOutput(newPatrimony.id)
         }
     }
 }

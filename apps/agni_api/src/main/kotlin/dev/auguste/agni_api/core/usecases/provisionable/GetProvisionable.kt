@@ -7,7 +7,7 @@ import dev.auguste.agni_api.core.usecases.provisionable.dto.GetProvisionableOutp
 import java.util.UUID
 
 class GetProvisionable(
-    val provisionableRepo: IRepository<Provisionable>
+    private val provisionableRepo: IRepository<Provisionable>
 ): IUseCase<UUID, GetProvisionableOutput> {
     override fun execAsync(input: UUID): GetProvisionableOutput {
         val provisionable = provisionableRepo.get(input) ?: throw Error("Provisionable Not Found")

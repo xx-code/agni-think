@@ -17,20 +17,14 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.value_objects.InvoiceDeduction
 
 class CreateInvoice(
-    val invoiceRepo: IRepository<Invoice>,
-    val invoiceDependencies: InvoiceDependencies,
-    val unitOfWork: IUnitOfWork
+    private val invoiceRepo: IRepository<Invoice>,
+    private val invoiceDependencies: InvoiceDependencies,
+    private val unitOfWork: IUnitOfWork
 ): IInnerUseCase<CreateInvoiceInput, CreatedOutput> {
 
     override fun execAsync(input: CreateInvoiceInput): CreatedOutput {
-        try {
-            unitOfWork.start()
-            val result = this.execInnerAsync(input)
-            unitOfWork.commit()
-            return result
-        } catch (error: Throwable) {
-            unitOfWork.rollback()
-            throw error
+        return unitOfWork.execute {
+            this.execInnerAsync(input)
         }
     }
 

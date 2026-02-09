@@ -13,7 +13,7 @@ class QueryInvoiceExtend(
     val accountIds: Set<UUID>?,
     val startDate: LocalDateTime?,
     val endDate: LocalDateTime?,
-    val type: InvoiceType?,
+    val types: Set<InvoiceType>?,
     val status: InvoiceStatusType?,
     val isFreeze: Boolean?,
     val mouvementType: InvoiceMouvementType?
@@ -21,6 +21,9 @@ class QueryInvoiceExtend(
 
     override fun isStatisfy(entity: Invoice): Boolean {
         if (accountIds != null && !accountIds.contains(entity.accountId))
+            return false
+
+        if (types != null && !types.contains(entity.type))
             return false
 
         if (startDate != null &&  startDate <= entity.date)

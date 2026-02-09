@@ -5,7 +5,7 @@ import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.usecases.accounts.dto.UpdateAccountInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
-class UpdateAccount(val accountRepo: IRepository<Account>): IUseCase<UpdateAccountInput, Unit> {
+class UpdateAccount(private val accountRepo: IRepository<Account>): IUseCase<UpdateAccountInput, Unit> {
 
     override fun execAsync(input: UpdateAccountInput) {
         val account = accountRepo.get(input.id) ?: throw Error("Account ${input.id} not found")

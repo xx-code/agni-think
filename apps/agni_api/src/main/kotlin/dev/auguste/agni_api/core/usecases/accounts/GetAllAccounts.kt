@@ -7,7 +7,7 @@ import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.accounts.dto.GetAccountOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
-class GetAllAccounts(val accountRepo: IRepository<Account>): IUseCase<QueryFilter, ListOutput<GetAccountOutput>> {
+class GetAllAccounts(private val accountRepo: IRepository<Account>): IUseCase<QueryFilter, ListOutput<GetAccountOutput>> {
 
     override fun execAsync(input: QueryFilter): ListOutput<GetAccountOutput> {
         val accounts = accountRepo.getAll(query = input)

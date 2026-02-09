@@ -3,31 +3,25 @@ package dev.auguste.agni_api.core.usecases.patrimonies
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QuerySnapshotPatrimonyExtend
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryPatrimonySnapshotExtend
 import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.patrimonies.dto.DeletePatrimonyInput
 import java.util.UUID
 
 class DeletePatrimony(
-    val patrimonyRepo: IRepository<Patrimony>,
-    val patrimonySnapshotRepo: IRepository<PatrimonySnapshot>,
-    val unitOfWork: IUnitOfWork): IUseCase<UUID, Unit> {
+    private val patrimonyRepo: IRepository<Patrimony>,
+    private val patrimonySnapshotRepo: IRepository<PatrimonySnapshot>,
+    private val unitOfWork: IUnitOfWork): IUseCase<DeletePatrimonyInput, Unit> {
 
-    override fun execAsync(input: UUID) {
-        try {
-            unitOfWork.start()
+    override fun execAsync(input: DeletePatrimonyInput) {
+        unitOfWork.execute {
+            patrimonyRepo.get(input.patrimonyId) ?: throw Error("Patrimony not found")
 
-            patrimonyRepo.get(input) ?: throw Error("Patrimony not found")
+            patrimonySnapshotRepo.getAll(query = QueryFilter(0, 0, true), QueryPatrimonySnapshotExtend(setOf(input.patrimonyId)))
 
-            patrimonySnapshotRepo.getAll(query = QueryFilter(0, 0, true), QuerySnapshotPatrimonyExtend(setOf(input)))
-
-            patrimonyRepo.delete(input)
-
-            unitOfWork.commit()
-        } catch (error: Throwable) {
-            unitOfWork.rollback()
-            throw error
+            patrimonyRepo.delete(input.patrimonyId)
         }
     }
 }

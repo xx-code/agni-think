@@ -6,7 +6,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.tags.dto.GetTagOutput
 import java.util.UUID
 
-class GetTag(val tagRepo: IRepository<Tag>): IUseCase<UUID, GetTagOutput> {
+class GetTag(private val tagRepo: IRepository<Tag>): IUseCase<UUID, GetTagOutput> {
 
     override fun execAsync(input: UUID): GetTagOutput {
         val tag = tagRepo.get(input) ?: throw Error("Tag with name $input not found.")

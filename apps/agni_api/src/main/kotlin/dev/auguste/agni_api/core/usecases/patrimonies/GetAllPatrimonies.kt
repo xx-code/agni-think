@@ -2,7 +2,7 @@ package dev.auguste.agni_api.core.usecases.patrimonies
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QuerySnapshotPatrimonyExtend
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryPatrimonySnapshotExtend
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
@@ -20,18 +20,18 @@ import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
 class GetAllPatrimonies(
-    val patrimonyRepo: IRepository<Patrimony>,
-    val accountRepo: IRepository<Account>,
-    val patrimonySnapshotRepo: IRepository<PatrimonySnapshot>,
-    val savingGoalRepo: IRepository<SavingGoal>,
-    val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>): IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>> {
+    private val patrimonyRepo: IRepository<Patrimony>,
+    private val accountRepo: IRepository<Account>,
+    private val patrimonySnapshotRepo: IRepository<PatrimonySnapshot>,
+    private val savingGoalRepo: IRepository<SavingGoal>,
+    private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>): IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>> {
 
     override fun execAsync(input: QueryFilter): ListOutput<GetPatrimonyOutput> {
         val patrimonies = patrimonyRepo.getAll(input)
 
         val snapshots = patrimonySnapshotRepo.getAll(
             QueryFilter(0,0,true),
-            QuerySnapshotPatrimonyExtend(patrimonies.items.map { it.id }.toSet()))
+            QueryPatrimonySnapshotExtend(patrimonies.items.map { it.id }.toSet()))
 
         val results = mutableListOf<GetPatrimonyOutput>()
 

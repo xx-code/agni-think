@@ -6,7 +6,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.provisionable.dto.UpdateProvisionableInput
 
 class UpdateProvisionable(
-    val provisionableRepo: IRepository<Provisionable>
+    private val provisionableRepo: IRepository<Provisionable>
 ): IUseCase<UpdateProvisionableInput, Unit> {
     override fun execAsync(input: UpdateProvisionableInput) {
         val provisionable = provisionableRepo.get(input.id) ?: throw Error("Provisionable not found")

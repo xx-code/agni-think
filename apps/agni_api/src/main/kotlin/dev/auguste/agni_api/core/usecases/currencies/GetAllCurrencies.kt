@@ -7,7 +7,7 @@ import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.currencies.dto.GetCurrencyOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
-class GetAllCurrencies(val currencyRepo: IRepository<Currency>): IUseCase<QueryFilter, ListOutput<GetCurrencyOutput>> {
+class GetAllCurrencies(private val currencyRepo: IRepository<Currency>): IUseCase<QueryFilter, ListOutput<GetCurrencyOutput>> {
 
     override fun execAsync(input: QueryFilter): ListOutput<GetCurrencyOutput> {
         val currencies = currencyRepo.getAll(input)

@@ -10,18 +10,16 @@ import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.dto.TransfertInvoiceInput
+import dev.auguste.agni_api.core.usecases.invoices.dto.TransferInvoiceInput
 
-class TransfertInvoice(
-    val invoiceRepo: IRepository<Invoice>,
-    val accountRepo: IRepository<Account>,
-    val transactionRepo: IRepository<Transaction>,
-    val unitOfWork: IUnitOfWork
-): IUseCase<TransfertInvoiceInput, Unit> {
-    override fun execAsync(input: TransfertInvoiceInput) {
-        try {
-            unitOfWork.start()
-
+class TransferInvoice(
+    private val invoiceRepo: IRepository<Invoice>,
+    private val accountRepo: IRepository<Account>,
+    private val transactionRepo: IRepository<Transaction>,
+    private val unitOfWork: IUnitOfWork
+): IUseCase<TransferInvoiceInput, Unit> {
+    override fun execAsync(input: TransferInvoiceInput) {
+        unitOfWork.execute {
             val accountFrom = accountRepo.get(input.accountIdFrom) ?: throw Error("Account From not found")
             val accountTo = accountRepo.get(input.accountIdTo) ?: throw Error("Account To not found")
 
@@ -69,11 +67,6 @@ class TransfertInvoice(
 
             accountTo.balance += input.amount
             accountRepo.update(accountTo)
-
-            unitOfWork.commit()
-        } catch (error: Throwable) {
-            unitOfWork.rollback()
-            throw error
         }
     }
 }

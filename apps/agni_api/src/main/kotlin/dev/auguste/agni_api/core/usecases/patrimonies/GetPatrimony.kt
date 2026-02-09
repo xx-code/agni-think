@@ -2,7 +2,7 @@ package dev.auguste.agni_api.core.usecases.patrimonies
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QuerySnapshotPatrimonyExtend
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryPatrimonySnapshotExtend
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
@@ -17,10 +17,10 @@ import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
 class GetPatrimony(
-    val patrimonyRepo: IRepository<Patrimony>,
-    val accountRepo: IRepository<Account>,
-    val patrimonySnapshotRepo: IRepository<PatrimonySnapshot>,
-    val getBalancesByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>
+    private val patrimonyRepo: IRepository<Patrimony>,
+    private val accountRepo: IRepository<Account>,
+    private val patrimonySnapshotRepo: IRepository<PatrimonySnapshot>,
+    private val getBalancesByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>
 ) : IUseCase<UUID, GetPatrimonyOutput> {
 
     override fun execAsync(input: UUID): GetPatrimonyOutput {
@@ -28,7 +28,7 @@ class GetPatrimony(
 
         val snapshots = patrimonySnapshotRepo.getAll(
             QueryFilter(0, 0, true),
-            QuerySnapshotPatrimonyExtend(setOf(input))
+            QueryPatrimonySnapshotExtend(setOf(input))
         )
 
         val accounts = accountRepo.getManyByIds(patrimony.accountIds)

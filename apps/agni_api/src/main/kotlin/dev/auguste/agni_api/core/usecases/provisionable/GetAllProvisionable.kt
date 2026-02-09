@@ -8,7 +8,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.provisionable.dto.GetProvisionableOutput
 
 class GetAllProvisionable(
-    val provisionableRepo: IRepository<Provisionable>
+    private val provisionableRepo: IRepository<Provisionable>
 ): IUseCase<QueryFilter, ListOutput<GetProvisionableOutput>> {
     override fun execAsync(input: QueryFilter): ListOutput<GetProvisionableOutput> {
         val provisionables =  provisionableRepo.getAll(input)

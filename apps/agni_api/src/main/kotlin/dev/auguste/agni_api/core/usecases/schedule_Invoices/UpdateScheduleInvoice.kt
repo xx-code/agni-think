@@ -9,8 +9,8 @@ import dev.auguste.agni_api.core.value_objects.Scheduler
 import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
 
 class UpdateScheduleInvoice(
-    val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-    val invoiceDependencies: InvoiceDependencies
+    private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+    private val invoiceDependencies: InvoiceDependencies
 ): IUseCase<UpdateScheduleInvoiceInput, Unit> {
 
     override fun execAsync(input: UpdateScheduleInvoiceInput) {

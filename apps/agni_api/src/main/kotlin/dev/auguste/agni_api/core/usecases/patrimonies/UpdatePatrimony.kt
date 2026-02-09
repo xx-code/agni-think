@@ -7,8 +7,8 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.UpdatePatrimonyInput
 
 class UpdatePatrimony(
-    val patrimonyRepo: IRepository<Patrimony>,
-    val accountRepo: IRepository<Account>): IUseCase<UpdatePatrimonyInput, Unit> {
+    private val patrimonyRepo: IRepository<Patrimony>,
+    private val accountRepo: IRepository<Account>): IUseCase<UpdatePatrimonyInput, Unit> {
     override fun execAsync(input: UpdatePatrimonyInput) {
         val patrimony = patrimonyRepo.get(input.id) ?: throw Error("Patrimony ${input.id} not found")
 

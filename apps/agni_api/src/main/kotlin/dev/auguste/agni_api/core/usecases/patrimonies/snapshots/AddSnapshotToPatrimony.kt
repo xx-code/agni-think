@@ -8,8 +8,8 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.AddSnapshotToPatrimonyInput
 
 class AddSnapshotToPatrimony(
-    val patrimonyRepo: IRepository<Patrimony>,
-    val snapshotPatrimonyRepo: IRepository<PatrimonySnapshot>
+    private val patrimonyRepo: IRepository<Patrimony>,
+    private val snapshotPatrimonyRepo: IRepository<PatrimonySnapshot>
 ): IUseCase<AddSnapshotToPatrimonyInput, CreatedOutput> {
 
     override fun execAsync(input: AddSnapshotToPatrimonyInput): CreatedOutput {

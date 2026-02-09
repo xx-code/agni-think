@@ -5,7 +5,7 @@ import dev.auguste.agni_api.core.entities.Notification
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import java.util.UUID
 
-class ToggleReadNotification(val notificationRepo: IRepository<Notification>): IUseCase<UUID, Unit> {
+class ToggleReadNotification(private val notificationRepo: IRepository<Notification>): IUseCase<UUID, Unit> {
 
     override fun execAsync(input: UUID) {
         val notification = notificationRepo.get(input)

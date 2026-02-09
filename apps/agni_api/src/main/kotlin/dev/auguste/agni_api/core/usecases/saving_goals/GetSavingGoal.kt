@@ -3,11 +3,11 @@ package dev.auguste.agni_api.core.usecases.saving_goals
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.savingGoals.dto.GetSavingGoalItemOutput
-import dev.auguste.agni_api.core.usecases.savingGoals.dto.GetSavingGoalOutput
+import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetSavingGoalItemOutput
+import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetSavingGoalOutput
 import java.util.UUID
 
-class GetSavingGoal(val savingGoalRepo: IRepository<SavingGoal>): IUseCase<UUID, GetSavingGoalOutput> {
+class GetSavingGoal(private val savingGoalRepo: IRepository<SavingGoal>): IUseCase<UUID, GetSavingGoalOutput> {
 
     override fun execAsync(input: UUID): GetSavingGoalOutput {
         val savingGoal = savingGoalRepo.get(input) ?: throw Error("Saving goal not found")

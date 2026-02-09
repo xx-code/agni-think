@@ -6,7 +6,7 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.categories.dto.CreateCategoryInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
-class CreateCategory(val categoryRepo: IRepository<Category>): IUseCase<CreateCategoryInput, CreatedOutput> {
+class CreateCategory(private val categoryRepo: IRepository<Category>): IUseCase<CreateCategoryInput, CreatedOutput> {
 
     override fun execAsync(input: CreateCategoryInput): CreatedOutput {
         if (categoryRepo.existsByName(input.title))

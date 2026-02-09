@@ -6,7 +6,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.UpdateSnapshotFromPatrimonyInput
 
 class UpdateSnapshotFromPatrimony(
-    val snapshotRepo: IRepository<PatrimonySnapshot>
+    private val snapshotRepo: IRepository<PatrimonySnapshot>
 ): IUseCase<UpdateSnapshotFromPatrimonyInput, Unit> {
 
     override fun execAsync(input: UpdateSnapshotFromPatrimonyInput) {
