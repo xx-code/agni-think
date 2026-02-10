@@ -4,7 +4,7 @@ export default defineEventHandler(async event => {
     try {
         const api = useApiLink(); 
         const request = await readBody(event);
-        await $fetch(`${api}/transfert-transaction`, {
+        await $fetch(`${api}/invoices/transfert`, {
             method: 'POST',
             body: request
         });

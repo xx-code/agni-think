@@ -35,10 +35,10 @@ data class ApiCreateScheduleInvoiceModel(
 )
 
 data class ApiUpdateScheduleInvoiceModel(
-    val name: String,
-    val amount: Double,
-    val accountId: UUID,
-    val description: String,
+    val name: String?,
+    val amount: Double?,
+    val accountId: UUID?,
+    val description: String?,
     val categoryId: UUID?,
     val tagIds: Set<UUID>,
     val type: InvoiceType?,

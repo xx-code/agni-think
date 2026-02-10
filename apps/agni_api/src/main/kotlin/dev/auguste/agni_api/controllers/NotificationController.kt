@@ -10,11 +10,15 @@ import dev.auguste.agni_api.core.usecases.notifications.PushNotification
 import dev.auguste.agni_api.core.usecases.notifications.dto.GetNotificationOutput
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/v2/notifications")
@@ -35,5 +39,15 @@ class NotificationController(
         return ResponseEntity.ok(getAllNotificationsUseCase.execAsync(
             query
         ))
+    }
+
+    @PutMapping("/{id}/toggle-read")
+    fun toggleReadNotification(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok()
+    }
+
+    @DeleteMapping("/{id}")
+    fun deleteNotification(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok()
     }
 }

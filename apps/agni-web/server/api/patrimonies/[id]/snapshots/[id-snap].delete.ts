@@ -5,7 +5,7 @@ export default defineEventHandler(async event => {
         const api = useApiLink(); 
         const id = getRouterParam(event, 'id-snap')
 
-        await $fetch(`${api}/patrimony-remove-snapshot/${id}`, {
+        await $fetch(`${api}/patrimonies/remove-snapshot/${id}`, {
             method: 'DELETE'
         });
     } catch(err) {

@@ -64,10 +64,10 @@ class GetAllInvoices(
                         status = invoice.statusType,
                         subTotal = invoiceTransactions.subTotal,
                         total = invoiceTransactions.total,
-                        mouvementType = invoice.mouvementType,
+                        mouvement = invoice.mouvementType,
                         date = invoice.date,
                         transactions = invoiceTransactions.transactions,
-                        dedeductions = invoice.deductions.map { InvoiceDeductionOutput(
+                        deductions = invoice.deductions.map { InvoiceDeductionOutput(
                             it.deductionId, it.amount
                         ) }
                     )

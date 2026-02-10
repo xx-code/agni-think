@@ -5,18 +5,17 @@ import type { GetAllDeductionTypeResponse } from "~/types/api/deduction";
 export default defineEventHandler(async event => {
     try {
         const api = useApiLink(); 
-        const query = getQuery(event)
-        const res = await $fetch(`${api}/deductions`, {
+        const id = getRouterParam(event, "id")
+        const res = await $fetch(`${api}/currencies/${id}`, {
             method: "GET",
-            query: query
         });
-        const data = (res as ListResponse<GetAllDeductionTypeResponse>);
-        return data;
+
+        return res;
     } catch(err) {
-        console.log('Get all deductions: ' + err);
+        console.log('Get currencies: ' + err);
         return createError({
             status: 500,
-            message: 'Get All deductions error',
+            message: 'Get currencies error',
             data: err
         });
     }

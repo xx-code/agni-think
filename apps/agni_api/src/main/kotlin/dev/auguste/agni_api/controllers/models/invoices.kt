@@ -23,7 +23,7 @@ data class ApiQueryInvoice(
     val status: InvoiceStatusType? = null,
     val types: Set<InvoiceType>? = null,
     val isFreeze: Boolean? = null,
-    val mouvementType: InvoiceMouvementType? = null,
+    val mouvement: InvoiceMouvementType? = null,
     val categoryIds: Set<UUID>? = null,
     val tagIds: Set<UUID>? = null,
     val budgetIds: Set<UUID>? = null,
@@ -163,7 +163,7 @@ fun mapApiUpdateInvoice(id: UUID, model: ApiUpdateInvoiceModel): UpdateInvoiceIn
     )
 }
 
-fun mapApiTransfert(model: ApiTransferInvoiceModel): TransferInvoiceInput {
+fun mapApiTransfer(model: ApiTransferInvoiceModel): TransferInvoiceInput {
     return TransferInvoiceInput(
         accountIdFrom = model.accountIdFrom,
         accountIdTo = model.accountIdTo,

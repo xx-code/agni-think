@@ -19,8 +19,8 @@ data class GetInvoiceOutput(
     val status: InvoiceStatusType,
     val subTotal: Double,
     val total: Double,
-    val mouvementType: InvoiceMouvementType,
+    val mouvement: InvoiceMouvementType,
     val date: LocalDateTime,
     val transactions: List<TransactionOutput>,
-    val dedeductions: List<InvoiceDeductionOutput>
+    val deductions: List<InvoiceDeductionOutput>
 )

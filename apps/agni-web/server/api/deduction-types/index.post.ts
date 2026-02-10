@@ -5,7 +5,7 @@ export default defineEventHandler(async event => {
     try {
         const api = useApiLink(); 
         const request = await readBody(event);
-        const res = await $fetch(`${api}/deduction-types`, {
+        const res = await $fetch(`${api}/deductions`, {
             method: 'POST',
             body: request 
         });
@@ -13,10 +13,10 @@ export default defineEventHandler(async event => {
         
         return data;
     } catch(err) {
-        console.log('Delete Deduction Types: ' + err);
+        console.log('Delete Deductions: ' + err);
         return createError({
             status: 500,
-            message: 'Delete Deduction Types',
+            message: 'Delete Deductions',
             data: err
         });
     }

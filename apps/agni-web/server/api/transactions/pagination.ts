@@ -7,7 +7,7 @@ export default defineEventHandler(async event => {
         const api = useApiLink(); 
         const query = await readBody(event);
 
-        const response = await $fetch(`${api}/transactions`, {
+        const response = await $fetch(`${api}/invoices`, {
             query: query
         });
 
@@ -15,10 +15,10 @@ export default defineEventHandler(async event => {
 
         return data;
     } catch(err) {
-        console.log('Pagination transaction: ' + err);
+        console.log('Pagination invoices: ' + err);
         return createError({
             status: 500,
-            message: 'Pagination transaction error',
+            message: 'Pagination invoices error',
             data: err
         });
     }

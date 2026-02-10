@@ -5,7 +5,7 @@ export default defineEventHandler(async event => {
     try {
         const api = useApiLink(); 
         const id = getRouterParam(event, 'id');
-        const res = await $fetch(`${api}/schedule-transactions/${id}`, {
+        const res = await $fetch(`${api}/schedule-invoices/${id}`, {
             method: 'GET'
         });
 
@@ -13,10 +13,10 @@ export default defineEventHandler(async event => {
 
         return data;
     } catch(err) {
-        console.log('Delete budget: ' + err);
+        console.log('Schedule Invoice: ' + err);
         return createError({
             status: 500,
-            message: 'Delete budget error',
+            message: 'Schedule Invoice error',
             data: err
         });
     }

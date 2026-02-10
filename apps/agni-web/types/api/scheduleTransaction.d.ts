@@ -1,4 +1,4 @@
-export type GetScheduleTransactionResponse = {
+export type GetScheduleInvoiceResponse = {
     id: string
     name: string
     accountId: string
@@ -10,24 +10,7 @@ export type GetScheduleTransactionResponse = {
     isFreeze: boolean
     dueDate: Date
     repeater?: {
-        period: string
-        interval: number
-    }
-}
-
-export type GetAllScheduleTransactionsResponse = {
-    id: string
-    name: string
-    accountId: string
-    categoryId: string
-    tagIds: string[]
-    type: string
-    amount: number,
-    isPause: boolean
-    isFreeze: boolean
-    dueDate: Date
-    repeater?: {
-        period: string
+        periodType: string
         interval: number
     }
 }
@@ -44,7 +27,7 @@ export type CreateScheduleTransactionRequest = {
     schedule: {
         repeater?: {
             period: string
-            interval: numbrer
+            interval: number
         }
         dueDate: string
     } 
@@ -61,7 +44,7 @@ export type UpdateScheduleTransactionRequest = {
     schedule?: {
         repeater?: {
             period: string
-            interval: numbrer
+            interval: number
         }
         dueDate: string
     }

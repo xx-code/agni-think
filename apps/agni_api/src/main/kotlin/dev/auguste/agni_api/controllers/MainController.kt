@@ -9,4 +9,9 @@ class MainController {
     @GetMapping("/")
     fun index() = "Agni Spirit";
 
+    @GetMapping("/internal/types")
+    fun internalTypes() {
+
+    }
+
 }

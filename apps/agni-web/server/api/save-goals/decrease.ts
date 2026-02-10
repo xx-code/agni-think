@@ -5,7 +5,7 @@ export default defineEventHandler(async event => {
     try {
         const api = useApiLink(); 
         const request: DecreaseSaveGoalRequest = await readBody(event); 
-        await $fetch(`${api}/save-goals/${request.id}/decrease-balance`, {
+        await $fetch(`${api}/saving-goals/${request.id}/decrease`, {
             method: 'PATCH',
             body: request
         });

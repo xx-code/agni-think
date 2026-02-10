@@ -36,10 +36,10 @@ class GetInvoice(
             status = invoice.statusType,
             subTotal = invoiceTransactions.first().subTotal,
             total = invoiceTransactions.first().total,
-            mouvementType = invoice.mouvementType,
+            mouvement = invoice.mouvementType,
             date = invoice.date,
             transactions = invoiceTransactions.first().transactions,
-            dedeductions = invoice.deductions.map { InvoiceDeductionOutput(
+            deductions = invoice.deductions.map { InvoiceDeductionOutput(
                 it.deductionId, it.amount
             ) }
         )

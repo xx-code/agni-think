@@ -5,7 +5,7 @@ export default defineEventHandler(async event => {
         const api = useApiLink(); 
         const id = getRouterParam(event, 'id');
         const request = await readBody(event);
-        await $fetch(`${api}/schedule-transactions/${id}`, {
+        await $fetch(`${api}/schedule-invoices/${id}`, {
             method: 'PUT',
             body: request
         });

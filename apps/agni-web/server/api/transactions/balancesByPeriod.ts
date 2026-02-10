@@ -6,7 +6,7 @@ export default defineEventHandler(async event => {
         const api = useApiLink(); 
         const query = getQuery(event);
 
-        const res = await $fetch(`${api}/invoices/balances`, {
+        const res = await $fetch(`${api}/invoices/balances-by-period`, {
             method: 'GET',
             query: query 
         });
@@ -14,10 +14,10 @@ export default defineEventHandler(async event => {
         const data = (res as GetBalanceResponse);
         return data;
     } catch(err) {
-        console.log('Get balance transaction: ' + err);
+        console.log('Get balance by period: ' + err);
         return createError({
             status: 500,
-            message: 'Balance transaction error',
+            message: 'Balance by period error',
             data: err
         });
     }

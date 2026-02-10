@@ -1,6 +1,6 @@
 import type { QueryFilterRequest } from "."
 
-export type GetSaveGoalResponse = {
+export type GetSavingGoalResponse = {
     id: string,
     title: string,
     description: string,
@@ -12,28 +12,9 @@ export type GetSaveGoalResponse = {
     accountId?: string
     items: {
         title: string
-        link: string
+        url: string
         price: number
-        htmlToTrack: string
     }[] 
-}
-
-export type GetAllSaveGoalResponse = {
-    id: string,
-    title: string,
-    description: string,
-    target: number,
-    balance: number,
-    desirValue: number
-    importance: number
-    wishDueDate?: Date
-    accountId?: string
-    items: {
-        title: string
-        price: number
-        link: string
-        htmlToTrack: string
-    }[]
 }
 
 export type CreateSaveGoalRequest = {
@@ -47,8 +28,7 @@ export type CreateSaveGoalRequest = {
     items: {
         title: string
         price: number
-        link: string
-        htmlToTrack: string
+        url: string
     }[]
 }
 
@@ -61,31 +41,20 @@ export type UpdateSaveGoalRequest = {
     importance?: number
     wishDueDate?: string
     items?: {
-        id: string,
         title: string,
-        link: string,
-        htmlToTrack: string
+        url: string,
         price: number
     }[]
 }
 
-export type IncreaseSaveGoalRequest = {
-    id: string
+export type UpgradeSaveGoalRequest = {
     accountId: string
-    increaseAmount: number
-}
-
-export type DecreaseSaveGoalRequest = {
-    id: string
-    accountId: string
-    decreaseAmount: number
+    amount: number
 }
 
 export type DeleteSaveGoalRequest = {
-    accountDepositId: string
+    accountId: string
 }
 
 export type queryFilterSaveGoalRequest = QueryFilterRequest & {
-    orderBy?: 'target' | 'balance'
-    sortSense?: 'asc' | 'desc'
 }

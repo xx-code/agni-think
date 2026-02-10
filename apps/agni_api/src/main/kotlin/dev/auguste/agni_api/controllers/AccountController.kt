@@ -44,7 +44,7 @@ class AccountController(
     }
 
     @GetMapping("/with-detail")
-    fun getAccountsWithDetail(@RequestParam queryFilter: QueryFilter): ResponseEntity<ListOutput<GetAccountWithDetailOutput>>  {
+    fun getAccountsWithDetail(queryFilter: QueryFilter): ResponseEntity<ListOutput<GetAccountWithDetailOutput>>  {
         val res = getAllAccountWithDetailUseCase.execAsync(queryFilter)
         return ResponseEntity.ok(res)
     }

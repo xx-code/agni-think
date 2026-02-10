@@ -11,6 +11,8 @@ export type QueryFilterRequest = {
     offset: number
     limit: number
     queryAll?: boolean
-    sortBy?: string
-    sortSense?: string
+    sortBy?: {
+        by: string,
+        ascending: boolean
+    }
 }

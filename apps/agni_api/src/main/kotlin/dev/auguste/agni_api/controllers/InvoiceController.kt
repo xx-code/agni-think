@@ -7,7 +7,7 @@ import dev.auguste.agni_api.controllers.models.ApiTransferInvoiceModel
 import dev.auguste.agni_api.controllers.models.ApiUpdateInvoiceModel
 import dev.auguste.agni_api.controllers.models.mapApiCreateFreezeInvoice
 import dev.auguste.agni_api.controllers.models.mapApiCreateInvoice
-import dev.auguste.agni_api.controllers.models.mapApiTransfert
+import dev.auguste.agni_api.controllers.models.mapApiTransfer
 import dev.auguste.agni_api.controllers.models.mapApiUpdateInvoice
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.usecases.CreatedOutput
@@ -91,7 +91,7 @@ class InvoiceController(
                 status = extend.status,
                 types = extend.types,
                 isFreeze = extend.isFreeze,
-                mouvementType = extend.mouvementType,
+                mouvementType = extend.mouvement,
                 categoryIds = extend.categoryIds,
                 tagIds = extend.tagIds,
                 budgetIds = extend.budgetIds,
@@ -101,7 +101,7 @@ class InvoiceController(
         ))
     }
 
-    @GetMapping("/{id}/completed")
+    @PutMapping("/{id}/completed")
     fun completeInvoice(@PathVariable id: UUID) : ResponseEntity<Unit> {
         return ResponseEntity.ok(completeInvoiceUseCase.execAsync(
             CompleteInvoiceInput(id)
@@ -132,7 +132,7 @@ class InvoiceController(
     @PostMapping("transfer")
     fun transferInvoice(@RequestBody request: ApiTransferInvoiceModel) : ResponseEntity<Unit> {
         return ResponseEntity.ok(transferInvoiceUseCase.execAsync(
-            mapApiTransfert(request)
+            mapApiTransfer(request)
         ))
     }
 }

@@ -5,7 +5,7 @@ export default defineEventHandler(async event => {
     try {
         const api = useApiLink(); 
         const id = getRouterParam(event, 'id');
-        const res = await $fetch(`${api}/save-goals/${id}`, {
+        const res = await $fetch(`${api}/saving-goals/${id}`, {
             method: 'GET'
         });
 
