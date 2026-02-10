@@ -8,6 +8,6 @@ export type CategoryType = {
     id: string
     title: string
     icon: string
-    color?: string 
+    color: string 
     isSystem: boolean
 }

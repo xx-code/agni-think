@@ -1,15 +1,15 @@
 import type { Reactive } from "vue";
 import type { ListResponse } from "~/types/api";
-import type { FilterTransactionQuery, GetAllTransactionResponse } from "~/types/api/transaction";
-import type { TransactionType } from "~/types/ui/transaction";
+import type { GetInvoiceResponse, QueryInvoice } from "~/types/api/transaction";
+import type { InvoiceType } from "~/types/ui/transaction";
 import type { UseApiFetchReturn } from "~/types/utils";
 
-export default function useTransactionPagination(query: Reactive<FilterTransactionQuery>): UseApiFetchReturn<ListResponse<TransactionType>> {
+export default function useInvoicePagination(query: Reactive<QueryInvoice>): UseApiFetchReturn<ListResponse<InvoiceType>> {
 
-    const { data, error, refresh } = useFetch('/api/transactions/pagination', {
+    const { data, error, refresh } = useFetch('/api/invoices/pagination', {
         method: 'POST',
         body: query,
-        transform: (data: ListResponse<GetAllTransactionResponse>) => {
+        transform: (data: ListResponse<GetInvoiceResponse>) => {
             return {
                 items: data.items.map(i => ({
                     id: i.id,
@@ -17,16 +17,16 @@ export default function useTransactionPagination(query: Reactive<FilterTransacti
                     date: new Date(i.date),
                     type: i.type,
                     status: i.status,
-                    total: i.totalAmount,
-                    subTotal: i.subTotalAmount,
+                    total: i.total,
+                    subTotal: i.subTotal,
                     mouvement: i.mouvement,
-                    records: i.records.map(i => ({
+                    records: i.transactions.map(i => ({
                         id: i.id,
                         amount: i.amount,
                         description: i.description, 
-                        budgetRefs: i.budgetRefs,
+                        budgetRefs: i.budgetIds,
                         categoryId: i.categoryId,
-                        tagRefs: i.tagRefs
+                        tagRefs: i.tagIds
                     })),
                     deductions: i.deductions.map(i => ({
                         id: i.id,
@@ -34,15 +34,15 @@ export default function useTransactionPagination(query: Reactive<FilterTransacti
                     })),
                 })),
                 totals: Number(data.totals) 
-            } satisfies ListResponse<TransactionType>
+            } satisfies ListResponse<InvoiceType>
         }
     });
 
     return { data, error, refresh };
 }
 
-export async function fetchTransactionPagination(query: MaybeRefOrGetter<FilterTransactionQuery>): Promise<ListResponse<TransactionType>> {
-    const res = await $fetch<ListResponse<GetAllTransactionResponse>>('/api/transactions/pagination', {
+export async function fetchInvoicePagination(query: MaybeRefOrGetter<QueryInvoice>): Promise<ListResponse<InvoiceType>> {
+    const res = await $fetch<ListResponse<GetInvoiceResponse>>('/api/invoices/pagination', {
         method: 'POST',
         body: query
     });
@@ -55,15 +55,15 @@ export async function fetchTransactionPagination(query: MaybeRefOrGetter<FilterT
             type: i.type,
             status: i.status,
             mouvement: i.mouvement,
-            total: i.totalAmount,
-            subTotal: i.subTotalAmount,
-            records: i.records.map(i => ({
+            total: i.total,
+            subTotal: i.subTotal,
+            records: i.transactions.map(i => ({
                 id: i.id,
                 amount: i.amount,
                 description: i.description,
-                budgetRefs: i.budgetRefs,
+                budgetRefs: i.budgetIds,
                 categoryId: i.categoryId,
-                tagRefs: i.tagRefs
+                tagRefs: i.tagIds
             })),
             deductions: i.deductions.map(i => ({
                 id: i.id,
@@ -71,5 +71,5 @@ export async function fetchTransactionPagination(query: MaybeRefOrGetter<FilterT
             })), 
         })),
         totals: Number(res.totals) 
-    } satisfies ListResponse<TransactionType>
+    } satisfies ListResponse<InvoiceType>
 }

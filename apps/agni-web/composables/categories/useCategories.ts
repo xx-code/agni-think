@@ -1,6 +1,6 @@
 import type { Reactive } from "vue";
 import type { ListResponse, QueryFilterRequest } from "~/types/api";
-import type { GetAllCategoriesResponse } from "~/types/api/category";
+import type { GetCategoryResponse } from "~/types/api/category";
 import type { CategoryType } from "~/types/ui/category";
 import type { UseApiFetchReturn } from "~/types/utils";
 
@@ -8,13 +8,13 @@ export default function useCategories(query: Reactive<QueryFilterRequest>): UseA
     const { data, error, refresh } = useFetch('/api/categories', {
         method: 'GET',
         query: query,
-        transform: (data: ListResponse<GetAllCategoriesResponse>) => {
+        transform: (data: ListResponse<GetCategoryResponse>) => {
             return {
                items: data.items.map(i => ({
-                    id: i.categoryId,
+                    id: i.id,
                     title: i.title,
                     icon: i.icon,
-                    isSystem: i.isSystem,
+                    isSystem: i.isSystem ?? false,
                     color: i.color
                })),
                totals: Number(data.totals) 
@@ -41,16 +41,16 @@ export function useCategoriesNonSys(query: Reactive<QueryFilterRequest>) {
 }
 
 export async function fetchCategories(query: Reactive<QueryFilterRequest>): Promise<ListResponse<CategoryType>> {
-    const res = await $fetch<ListResponse<GetAllCategoriesResponse>>('/api/categories', {
+    const res = await $fetch<ListResponse<GetCategoryResponse>>('/api/categories', {
         query: query
     })
 
     return {
         items: res.items.map(i => ({
-            id: i.categoryId,
+            id: i.id,
             title: i.title,
             icon: i.icon,
-            isSystem: i.isSystem,
+            isSystem: i.isSystem ?? false,
             color: i.color
         })),
         totals: Number(res.totals) 

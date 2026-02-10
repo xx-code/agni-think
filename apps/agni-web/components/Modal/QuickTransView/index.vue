@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { fetchCategories } from '~/composables/categories/useCategories';
-import { fetchTransactionPagination } from '~/composables/transactions/useTransactionPagination';
+import { fetchTransactionPagination } from '~/composables/invoices/useTransactionPagination';
 import type { FilterTransactionQuery } from '~/types/api/transaction';
 import type { AccountWithDetailType } from '~/types/ui/account';
 import ListTransaction from './ListTransaction.vue';
-import { fetchBalance } from '~/composables/transactions/useBalance';
+import { fetchBalance } from '~/composables/invoices/useBalance';
 import { fetchTags } from '~/composables/tags/useTags';
 import { fetchBudgets } from '~/composables/budgets/useBudgets';
 

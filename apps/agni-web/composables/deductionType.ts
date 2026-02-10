@@ -1,9 +1,9 @@
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
-import type { GetDeductionTypeResponse, RequestCreateDeductionType, RequestUpdateDeductionType } from "~/types/api/deduction";
-import type { DeductionTypeType } from "~/types/ui/deduction";
+import type { GetDeductionResponse, RequestCreateDeduction, RequestUpdateDeduction } from "~/types/api/deduction";
+import type { DeductionType } from "~/types/ui/deduction";
 
-export async function fetchDeductionType(id: string): Promise<DeductionTypeType> {
-    const res = await $fetch<GetDeductionTypeResponse>(`/api/deduction-types/${id}`, {
+export async function fetchDeduction(id: string): Promise<DeductionType> {
+    const res = await $fetch<GetDeductionResponse>(`/api/deduction-types/${id}`, {
         method: 'GET'
     });
 
@@ -16,8 +16,8 @@ export async function fetchDeductionType(id: string): Promise<DeductionTypeType>
     } 
 }
 
-export async function fetchDeductionTypes(query: QueryFilterRequest): Promise<ListResponse<DeductionTypeType>> {
-    const res = await $fetch<ListResponse<DeductionTypeType>>(`/api/deduction-types`, {
+export async function fetchDeductions(query: QueryFilterRequest): Promise<ListResponse<DeductionType>> {
+    const res = await $fetch<ListResponse<GetDeductionResponse>>(`/api/deduction-types`, {
         method: 'GET',
         query: query
     });
@@ -34,7 +34,7 @@ export async function fetchDeductionTypes(query: QueryFilterRequest): Promise<Li
     }
 }
 
-export async function createDeductionType(request: RequestCreateDeductionType): Promise<CreatedRequest> {
+export async function createDeduction(request: RequestCreateDeduction): Promise<CreatedRequest> {
     const res = await $fetch<CreatedRequest>('/api/deduction-types', {
         method: 'POST',
         body: request
@@ -43,14 +43,14 @@ export async function createDeductionType(request: RequestCreateDeductionType): 
     return res
 }
 
-export async function updateDeductionType(id: string, request: RequestUpdateDeductionType): Promise<void> {
+export async function updateDeduction(id: string, request: RequestUpdateDeduction): Promise<void> {
     await $fetch<CreatedRequest>(`/api/deduction-types/${id}`, {
         method: 'PUT',
         body: request
     })
 }
 
-export async function deleteDeductionType(id: string): Promise<void> {
+export async function deleteDeduction(id: string): Promise<void> {
     await $fetch(`/api/deduction-types/${id}`, {
         method: 'DELETE'
     })

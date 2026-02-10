@@ -23,17 +23,9 @@ export type PatrimonyType = {
     amount: number
     lastSnapshotBalance: number
     currentBalance: number 
+    accountIds: string[]
     type: TypePatrimony
 }
-
-export type PatrimonyDetailType = PatrimonyType & {
-    accounts: {
-        accountId: string
-        title: string
-        balance: number
-        pastBalance: number
-    }[]
-} 
 
 export type SnapshotPatrimonyType = {
     id: string

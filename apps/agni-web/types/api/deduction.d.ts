@@ -2,8 +2,8 @@ export type GetDeductionResponse = {
     id: string
     title: string
     description: string
-    base: number
-    mode: number
+    base: string
+    mode: string
 } 
 
 

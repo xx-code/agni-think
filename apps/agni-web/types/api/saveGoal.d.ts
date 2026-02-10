@@ -17,7 +17,7 @@ export type GetSavingGoalResponse = {
     }[] 
 }
 
-export type CreateSaveGoalRequest = {
+export type CreateSavingGoalRequest = {
     target: number;
     title: string;
     accountId?: string
@@ -32,7 +32,7 @@ export type CreateSaveGoalRequest = {
     }[]
 }
 
-export type UpdateSaveGoalRequest = {
+export type UpdateSavingGoalRequest = {
     target?: number
     title?: string
     accountId?: string
@@ -47,14 +47,14 @@ export type UpdateSaveGoalRequest = {
     }[]
 }
 
-export type UpgradeSaveGoalRequest = {
+export type UpgradeSavingGoalRequest = {
     accountId: string
     amount: number
 }
 
-export type DeleteSaveGoalRequest = {
+export type DeleteSavingGoalRequest = {
     accountId: string
 }
 
-export type queryFilterSaveGoalRequest = QueryFilterRequest & {
+export type QueryFilterSavingGoalRequest = QueryFilterRequest & {
 }

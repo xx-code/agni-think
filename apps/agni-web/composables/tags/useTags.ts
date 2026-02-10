@@ -1,6 +1,6 @@
 import type { Reactive } from "vue";
 import type { ListResponse, QueryFilterRequest } from "~/types/api";
-import type { GetAllTagsResponse } from "~/types/api/tag";
+import type { GetTagResponse } from "~/types/api/tag";
 import type { TagType } from "~/types/ui/tag";
 import type { UseApiFetchReturn } from "~/types/utils";
 
@@ -9,7 +9,7 @@ export default function useTags(query: Reactive<QueryFilterRequest>): UseApiFetc
     const { data, error, refresh } = useFetch('/api/tags', {
         method: 'GET',
         query: query,
-        transform: (data: ListResponse<GetAllTagsResponse>) => {
+        transform: (data: ListResponse<GetTagResponse>) => {
             return {
                 items: data.items.map(i => ({
                     id: i.id,
@@ -26,7 +26,7 @@ export default function useTags(query: Reactive<QueryFilterRequest>): UseApiFetc
 
 export async function fetchTags(query: QueryFilterRequest): Promise<ListResponse<TagType>> {
 
-    const res = await $fetch<ListResponse<GetAllTagsResponse>>('/api/tags', {
+    const res = await $fetch<ListResponse<GetTagResponse>>('/api/tags', {
         method: 'GET',
         query: query
     });

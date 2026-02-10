@@ -1,5 +1,5 @@
 import type { GetAccountResponse, GetAccountWithDetailResponse } from "~/types/api/account";
-import type { AccountBrokeDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType } from "~/types/ui/account";
+import type { AccountBrokeDetailType, AccountCheckingDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType } from "~/types/ui/account";
 import type { UseApiFetchReturn } from "~/types/utils";
 
 export default function useAccount(accountId: string): UseApiFetchReturn<AccountType> {
@@ -7,7 +7,7 @@ export default function useAccount(accountId: string): UseApiFetchReturn<Account
         method: 'GET',
         transform: (data: GetAccountResponse) => {
             return {
-                id: data.accountId,
+                id: data.id,
                 title: data.title,
                 balance: data.balance,
                 type: data.type
@@ -24,7 +24,7 @@ export async function fetchAccount(accountId: string): Promise<AccountType> {
         method: 'GET'
     });
     return {
-        id: res.accountId,
+        id: res.id,
         title: res.title,
         balance: res.balance,
         type: res.type
@@ -35,24 +35,29 @@ export async function fetchAccountWithDetail(accountId: string): Promise<Account
     const res = await $fetch<GetAccountWithDetailResponse>(`/api/accounts/${accountId}/getAccountWithDetail`, {
         method: 'GET'
     });
+
     const detailAccount = (type: string) => {
         switch(type) {
             case 'Broking':
                 return {
-                    managementType: res.detailForBroking?.contributionType ?? "",
-                    type: res.detailForBroking?.managementType ?? ""
+                    managementType: res.detail.detailForBroking?.contributionType ?? "",
+                    type: res.detail.detailForBroking?.managementType ?? ""
                 } satisfies AccountBrokeDetailType 
             case 'CreditCard':    
                 return {
-                    creditUtilisation: res.detailForCreditCard?.creditUtilisation ?? 0,
-                    creditLimit: res.detailForCreditCard?.creditCardLimit ?? 0
+                    creditUtilisation: res.detail.detailForCreditCard?.creditUtilisation ?? 0,
+                    creditLimit: res.detail.detailForCreditCard?.creditCardLimit ?? 0
                 } satisfies AccountCreditDetailType
+            case 'Checking':
+                return {
+                    buffer: res.detail.detailForChecking?.buffer ?? 0
+                } satisfies AccountCheckingDetailType
             default:
                 return undefined
         }
     }
     return {
-        id: res.accountId,
+        id: res.id,
         title: res.title,
         balance: res.balance,
         type: res.type,

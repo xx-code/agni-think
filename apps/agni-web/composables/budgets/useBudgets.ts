@@ -1,6 +1,6 @@
 import type { Reactive } from "vue";
 import type { ListResponse, QueryFilterRequest } from "~/types/api";
-import type { GetAllBudgetResponse } from "~/types/api/budget";
+import type { GetBudgetResponse } from "~/types/api/budget";
 import type { BudgetType } from "~/types/ui/budget";
 import type { UseApiFetchReturn } from "~/types/utils";
 
@@ -8,21 +8,21 @@ export default function useBudgets(query: Reactive<QueryFilterRequest>): UseApiF
     const { data, error, refresh } = useFetch('/api/budgets', {
         method: 'GET',
         query: query,
-        transform: (data: ListResponse<GetAllBudgetResponse>) => {
+        transform: (data: ListResponse<GetBudgetResponse>) => {
             return {
                 items: data.items.map(i => ({
                     id: i.id,
                     title: i.title,
-                    saveGoalIds: i.saveGoalIds,
+                    saveGoalIds: i.savingGoalIds,
                     currentBalance: i.currentBalance,
                     target: i.target,
                     realTarget: i.realTarget,
-                    saveGoalTarget: i.saveGoalTarget,
+                    saveGoalTarget: i.savingGoalTarget,
                     dueDate: new Date(i.dueDate),
                     repeater: i.repeater
                 })),
                totals: Number(data.totals) 
-            } satisfies ListResponse<GetAllBudgetResponse>
+            } satisfies ListResponse<BudgetType>
         }
     });
 
@@ -30,7 +30,7 @@ export default function useBudgets(query: Reactive<QueryFilterRequest>): UseApiF
 }
 
 export async function fetchBudgets(query: QueryFilterRequest): Promise<ListResponse<BudgetType>> {
-    const res = await $fetch<ListResponse<GetAllBudgetResponse>>('/api/budgets', {
+    const res = await $fetch<ListResponse<GetBudgetResponse>>('/api/budgets', {
         method: 'GET',
         query: query
     });
@@ -39,14 +39,14 @@ export async function fetchBudgets(query: QueryFilterRequest): Promise<ListRespo
         items: res.items.map(i => ({
                 id: i.id,
                 title: i.title,
-                saveGoalIds: i.saveGoalIds,
+                saveGoalIds: i.savingGoalIds,
                 currentBalance: i.currentBalance,
                 target: i.target,
                 realTarget: i.realTarget,
-                saveGoalTarget: i.saveGoalTarget,
+                saveGoalTarget: i.savingGoalTarget,
                 dueDate: new Date(i.dueDate),
                 repeater: i.repeater
-            } satisfies GetAllBudgetResponse)) ,
+            } satisfies BudgetType)) ,
         totals: res.totals
     } 
 }

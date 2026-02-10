@@ -1,11 +1,11 @@
-import type { GetTransactionResponse } from "~/types/api/transaction";
-import type { TransactionType } from "~/types/ui/transaction";
+import type { GetInvoiceResponse } from "~/types/api/transaction";
+import type { InvoiceType } from "~/types/ui/transaction";
 import type { UseApiFetchReturn } from "~/types/utils";
 
-export default function useTransaction(transactionId: string): UseApiFetchReturn<TransactionType> {
-    const { data, error, refresh } = useFetch(`/api/transactions/${transactionId}`, {
+export default function useInvoice(transactionId: string): UseApiFetchReturn<InvoiceType> {
+    const { data, error, refresh } = useFetch(`/api/invoices/${transactionId}`, {
         method: 'GET',
-        transform: (data: GetTransactionResponse) => {
+        transform: (data: GetInvoiceResponse) => {
             return {
                 id: data.id,
                 accountId: data.accountId,
@@ -13,29 +13,29 @@ export default function useTransaction(transactionId: string): UseApiFetchReturn
                 type: data.type,
                 mouvement: data.mouvement,
                 status: data.status,
-                total: data.totalAmount,
-                subTotal: data.subTotalAmount,
-                records: data.records.map(i => ({
+                total: data.total,
+                subTotal: data.subTotal,
+                records: data.transactions.map(i => ({
                     id: i.id,
                     amount: i.amount,
                     description: i.description,
-                    budgetRefs: i.budgetRefs,
+                    budgetRefs: i.budgetIds,
                     categoryId: i.categoryId,
-                    tagRefs: i.tagRefs
+                    tagRefs: i.tagIds
                 })),
                 deductions: data.deductions.map(i => ({
                     id: i.id,
                     amount: i.amount
                 })),
-            } satisfies TransactionType
+            } satisfies InvoiceType
         }
     });
 
     return { data, error, refresh };
 }
 
-export async function fetchTransaction(transactionId: string): Promise<TransactionType> {
-    const res = await $fetch<GetTransactionResponse>(`/api/transactions/${transactionId}`, {
+export async function fetchInvoice(transactionId: string): Promise<InvoiceType> {
+    const res = await $fetch<GetInvoiceResponse>(`/api/invoices/${transactionId}`, {
         method: 'GET'
     });
 
@@ -46,19 +46,19 @@ export async function fetchTransaction(transactionId: string): Promise<Transacti
         type: res.type,
         status: res.status,
         mouvement: res.mouvement,
-        total: res.totalAmount,
-        subTotal: res.subTotalAmount,
-        records: res.records.map(i => ({
+        total: res.total,
+        subTotal: res.subTotal,
+        records: res.transactions.map(i => ({
             id: i.id,
             amount: i.amount,
             description: i.description,
-            budgetRefs: i.budgetRefs,
+            budgetRefs: i.budgetIds,
             categoryId: i.categoryId,
-            tagRefs: i.tagRefs
+            tagRefs: i.tagIds
         })),
         deductions: res.deductions.map(i => ({
             id: i.id,
             amount: i.amount
         })),
-    } satisfies TransactionType 
+    } satisfies InvoiceType 
 } 

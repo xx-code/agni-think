@@ -1,4 +1,4 @@
-import type { UpdatePatrimonyRequest, UpdateSnapshotPatrimonyRequest } from "~/types/api/patrimony";
+import type { UpdatePatrimonyRequest } from "~/types/api/patrimony";
 
 export async function useUpdatePatrimony(patrimonyId: string, 
     request: UpdatePatrimonyRequest): Promise<void> {

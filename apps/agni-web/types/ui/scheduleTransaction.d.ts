@@ -1,6 +1,6 @@
 import type { CalendarDate } from "@internationalized/date"
 
-export type EditScheduleTransactionType = {
+export type EditScheduleInvoiceType = {
     name: string
     accountId: string
     categoryId?: string
@@ -15,7 +15,7 @@ export type EditScheduleTransactionType = {
     dueDate: CalendarDate
 }
 
-export type TableScheduleTransactionType = {
+export type TableScheduleInvoiceType = {
     id: string
     name: string
     category: {
@@ -40,7 +40,7 @@ export type TableScheduleTransactionType = {
     dueDate: Date
 }
 
-export type ScheduleTransactionType = {
+export type ScheduleInvoiceType = {
     id: string
     name: string
     accountId: string

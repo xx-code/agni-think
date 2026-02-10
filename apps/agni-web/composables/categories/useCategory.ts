@@ -7,11 +7,11 @@ export default function useCategory(categoryId: string): UseApiFetchReturn<Categ
         method: "GET",
         transform: (data: GetCategoryResponse) => {
             return {
-                id: data.categoryId,
+                id: data.id,
                 title: data.title,
                 color: data.color,
                 icon: data.icon,
-                isSystem: data.isSystem
+                isSystem: data.isSystem ?? false
             } satisfies CategoryType
         } 
     });
@@ -23,10 +23,10 @@ export async function fetchCategory(categoryId: string): Promise<CategoryType> {
     const res = await $fetch<GetCategoryResponse>(`/api/categories/${categoryId}`);
 
     return {
-        id: res.categoryId,
+        id: res.id,
         title: res.title,
         color: res.color,
         icon: res.icon,
-        isSystem: res.isSystem
+        isSystem: res.isSystem ?? false
     };
 };
