@@ -13,7 +13,7 @@ export type GetAccountWithDetailResponse = {
     balance: number
     type: string   
     lockedBalance: number
-    freezedBalance: number
+    freezeBalance: number
     detail: {
         detailForCreditCard?: GetCreditCardDetailResponse 
         detailForBroking?: GetBrokingDetailResponse
@@ -46,7 +46,7 @@ export type UpdateAccountRequest = {
     title?: string
     type?: string
     currencyId?: string
-    detail: AccountDetailRequest?
+    detail?: AccountDetailRequest
 }
 
 export type AccountDetailRequest = {

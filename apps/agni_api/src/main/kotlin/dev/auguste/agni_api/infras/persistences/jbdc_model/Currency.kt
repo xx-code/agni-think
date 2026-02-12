@@ -11,6 +11,7 @@ import java.util.UUID
 @Table("currencies")
 data class JdbcCurrencyModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("currency_id")
     val id: UUID,
     val name: String,
@@ -22,7 +23,11 @@ data class JdbcCurrencyModel(
 
     @Column("is_base")
     val isBase: Boolean = false
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcCurrencyModelMapper: IMapper<JdbcCurrencyModel, Currency> {

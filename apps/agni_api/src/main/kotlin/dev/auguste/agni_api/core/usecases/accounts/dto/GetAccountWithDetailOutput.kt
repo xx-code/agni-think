@@ -7,7 +7,7 @@ data class GetAccountWithDetailOutput(
     val id: UUID,
     val title: String,
     val balance: Double,
-    val type: AccountType,
+    val type: String,
     val lockedBalance: Double,
     val freezeBalance: Double,
     val detail: AccountDetailOutput

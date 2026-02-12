@@ -10,5 +10,5 @@ data class GetSnapshotPatrimonyOutput(
     val patrimonyId: UUID,
     val balance: Double,
     val date: LocalDate,
-    val status: PatrimonySnapshotStatusType
+    val status: String
 )

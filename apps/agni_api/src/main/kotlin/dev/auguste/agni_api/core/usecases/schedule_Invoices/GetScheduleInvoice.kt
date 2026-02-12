@@ -22,12 +22,12 @@ class GetScheduleInvoice(
             isFreeze = scheduleInvoice.isFreeze,
             isPause = scheduleInvoice.isPause,
             tagIds = scheduleInvoice.tagIds,
-            type = scheduleInvoice.type,
+            type = scheduleInvoice.type.value,
             amount = scheduleInvoice.amount,
             dueDate = scheduleInvoice.scheduler.date,
             repeater = scheduleInvoice.scheduler.repeater?.let { repeater ->
                 ScheduleInvoiceRepeaterOutput(
-                    periodType = repeater.period,
+                    periodType = repeater.period.value,
                     interval =  repeater.interval
                 )
             }

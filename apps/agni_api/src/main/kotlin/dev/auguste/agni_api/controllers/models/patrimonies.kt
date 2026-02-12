@@ -21,14 +21,14 @@ data class ApiCreatePatrimonyModel(
     val amount: Double,
     val accountIds: Set<UUID>,
     @field:NotNull("type patrimony not be null")
-    val type: PatrimonyType
+    val type: String
 )
 
 data class ApiAddSnapshotToPatrimonyModel(
-    @field:NotEmpty("balance must not be empty")
+    @field:Min(0,"amount be positive or zero")
     val balance: Double,
     @field:NotNull("status must not be null")
-    val status: PatrimonySnapshotStatusType,
+    val status: String,
     @field:NotNull("date status must not be null")
     val date: LocalDate
 )
@@ -37,12 +37,12 @@ data class ApiUpdatePatrimonyModel(
     val title: String?,
     val amount: Double?,
     val accountIds: Set<UUID>?,
-    val type: PatrimonyType?
+    val type: String?
 )
 
 data class ApiUpdateSnapshotFromPatrimonyModel(
     val balance: Double?,
-    val status: PatrimonySnapshotStatusType?,
+    val status: String?,
     val date: LocalDate?
 )
 
@@ -51,7 +51,7 @@ fun mapApiCreatePatrimony(model: ApiCreatePatrimonyModel): CreatePatrimonyInput 
         title = model.title,
         amount = model.amount,
         accountIds = model.accountIds,
-        type = model.type
+        type = PatrimonyType.fromString(model.type)
     )
 }
 
@@ -61,7 +61,7 @@ fun mapApiUpdatePatrimony(id: UUID, model: ApiUpdatePatrimonyModel): UpdatePatri
         title = model.title,
         amount = model.amount,
         accountIds = model.accountIds,
-        type = model.type
+        type = model.type?.let { PatrimonyType.fromString(model.type) }
     )
 }
 
@@ -69,7 +69,7 @@ fun mapApiAddSnapshotToPatrimony(id: UUID, model: ApiAddSnapshotToPatrimonyModel
     return AddSnapshotToPatrimonyInput(
         patrimonyId = id,
         balance = model.balance,
-        status = model.status,
+        status = PatrimonySnapshotStatusType.fromString(model.status) ,
         date = model.date
     )
 }
@@ -78,7 +78,7 @@ fun mapApiUpdateSnapshotToPatrimony(snapShotId: UUID, model: ApiUpdateSnapshotFr
     return UpdateSnapshotFromPatrimonyInput(
         id = snapShotId,
         balance = model.balance,
-        status = model.status,
+        status = model.status?.let { PatrimonySnapshotStatusType.fromString(it) },
         date = model.date
     )
 }

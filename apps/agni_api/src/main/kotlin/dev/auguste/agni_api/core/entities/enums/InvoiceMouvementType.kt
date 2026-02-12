@@ -6,7 +6,8 @@ enum class InvoiceMouvementType(val value: String) {
 
     companion object {
         fun fromString(value: String): InvoiceMouvementType {
-            return InvoiceMouvementType.entries.first { it.value.equals(value, ignoreCase = true) }
+            return InvoiceMouvementType.entries.find { it.value.equals(value, ignoreCase = true) }
+                ?: throw IllegalArgumentException("Invoice Mouvement Type $value not found in enums")
         }
     }
 }

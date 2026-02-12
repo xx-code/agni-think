@@ -50,7 +50,7 @@ class GetAllBudgets(
                     dueDate = budget.scheduler.date,
                     repeater = budget.scheduler.repeater?.let {
                         ScheduleRepeaterOutput(
-                            it.period,
+                            it.period.value,
                             it.interval,
                         )
                     }

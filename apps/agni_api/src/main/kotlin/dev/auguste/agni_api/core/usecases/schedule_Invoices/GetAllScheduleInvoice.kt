@@ -24,12 +24,12 @@ class GetAllScheduleInvoice(
                     isFreeze = it.isFreeze,
                     isPause = it.isPause,
                     tagIds = it.tagIds,
-                    type = it.type,
+                    type = it.type.value,
                     amount = it.amount,
                     dueDate = it.scheduler.date,
                     repeater = it.scheduler.repeater?.let { repeater ->
                         ScheduleInvoiceRepeaterOutput(
-                            periodType = repeater.period,
+                            periodType = repeater.period.value,
                             interval =  repeater.interval
                         )
                     }

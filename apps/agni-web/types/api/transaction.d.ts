@@ -34,11 +34,11 @@ export type GetInvoiceResponse = {
 export type QueryBalanceByPeriod = {
     period: string
     interval: number
-    dateFrom: Date,
-    dateTo?: Date,
+    dateFrom: string,
+    dateTo?: string,
     accountIds?: string[],
     categoryIds?: string[],
-    mouvement: string?,
+    mouvement?: string,
     budgetIds?: string[],
     tagIds?: string[],
     types?: string[],
@@ -53,9 +53,9 @@ export type QueryInvoice = {
     categoryIds?: string[],
     budgetIds?: string[],
     tagIds?: string[],
-    mouvement: string?,
-    dateStart?: Date,
-    dateEnd?: Date,
+    mouvement?: string,
+    startDate?: string,
+    endDate?: string,
     types?: string[],
     minAmount?: number,
     maxAmount?: number,

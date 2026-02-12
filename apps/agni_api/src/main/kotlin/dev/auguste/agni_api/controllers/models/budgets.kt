@@ -1,9 +1,11 @@
 package dev.auguste.agni_api.controllers.models
 
 import dev.auguste.agni_api.core.adapters.dto.ScheduleRepeaterInput
+import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.budgets.dto.BudgetScheduleInput
 import dev.auguste.agni_api.core.usecases.budgets.dto.CreateBudgetInput
 import dev.auguste.agni_api.core.usecases.budgets.dto.UpdateBudgetInput
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import java.time.LocalDateTime
@@ -19,7 +21,7 @@ data class ApiCreateBudgetModel(
     @field:NotEmpty("Name must not be empty")
     val title: String,
 
-    @field:NotEmpty("Description must not be empty")
+    @field:Min(value = 0, message = "The Budget target cannot be more than 0")
     val target: Double,
 
     val schedule: ApiBudgeScheduleInput,
@@ -28,7 +30,10 @@ data class ApiCreateBudgetModel(
 
 data class ApiUpdateBudgetModel(
     val title: String?,
+
+    @field:Min(value = 0, message = "The Budget target cannot be more than 0")
     val target: Double?,
+
     val schedule: ApiBudgeScheduleInput?,
     val savingGoalIds: Set<UUID>?
 )
@@ -41,7 +46,7 @@ fun mapApiCreateBudgetModel(model: ApiCreateBudgetModel): CreateBudgetInput {
             dueDate = model.schedule.dueDate,
             repeater = model.schedule.repeater?.let {
                 ScheduleRepeaterInput(
-                    it.period,
+                    PeriodType.fromString(it.period),
                     it.interval,
                 )
             }
@@ -60,7 +65,7 @@ fun mapApiUpdateBudgetModel(id: UUID, model: ApiUpdateBudgetModel): UpdateBudget
                 dueDate = it.dueDate,
                 repeater = it.repeater?.let { repeater ->
                     ScheduleRepeaterInput(
-                        repeater.period,
+                        PeriodType.fromString(repeater.period),
                         repeater.interval,
                     )
                 }

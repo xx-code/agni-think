@@ -111,7 +111,7 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
             await useCreateBudget({
                 title: value.title,
                 target: value.target,
-                saveGoalIds: value.saveGoalIds,
+                savingGoalIds: value.saveGoalIds,
                 schedule: {
                     repeater: value.repeater,
                     dueDate: value.dueDate.toDate(getLocalTimeZone()).toISOString(),

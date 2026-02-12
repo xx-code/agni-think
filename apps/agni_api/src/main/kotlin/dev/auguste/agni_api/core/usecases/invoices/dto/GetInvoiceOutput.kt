@@ -16,10 +16,11 @@ data class InvoiceDeductionOutput(
 data class GetInvoiceOutput(
     val id: UUID,
     val accountId: UUID,
-    val status: InvoiceStatusType,
+    val status: String,
     val subTotal: Double,
     val total: Double,
-    val mouvement: InvoiceMouvementType,
+    val type: String,
+    val mouvement: String,
     val date: LocalDateTime,
     val transactions: List<TransactionOutput>,
     val deductions: List<InvoiceDeductionOutput>

@@ -12,6 +12,7 @@ import java.util.UUID
 @Table("provisionables")
 data class JdbcProvisionableModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("provisionable_id")
     val id: UUID,
 
@@ -27,7 +28,11 @@ data class JdbcProvisionableModel(
     val expectedLifespanMonth: Int,
 
     val residualValue: Double,
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcProvisionableMapper: IMapper<JdbcProvisionableModel, Provisionable> {

@@ -15,14 +15,14 @@ export type GetScheduleInvoiceResponse = {
     }
 }
 
-export type CreateScheduleTransactionRequest = {
+export type CreateScheduleInvoiceRequest = {
     name: string
     accountId: string
     amount: number
     categoryId?: string
     description: string 
     tagIds: string[]
-    type: string
+    type?: string
     isFreeze: boolean
     schedule: {
         repeater?: {
@@ -33,7 +33,7 @@ export type CreateScheduleTransactionRequest = {
     } 
 }
 
-export type UpdateScheduleTransactionRequest = {
+export type UpdateScheduleInvoiceRequest = {
     name?: string
     accountId?: string
     amount?: number

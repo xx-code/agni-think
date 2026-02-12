@@ -24,8 +24,8 @@ data class ApiCreateSavingGoalModel(
     val target: Double,
     val description: String,
     val accountId: UUID?,
-    val desirValue: IntensityEmotionalDesirType,
-    val importance: ImportanceGoalType,
+    val desirValue: Int,
+    val importance: Int,
     val wishDueDate: LocalDate?,
     val items: Set<ApiItemSavingGoalModel>
 )
@@ -35,8 +35,8 @@ data class ApiUpdateSavingGoalModel(
     val target: Double?,
     val description: String?,
     val accountId: UUID?,
-    val desirValue: IntensityEmotionalDesirType?,
-    val importance: ImportanceGoalType?,
+    val desirValue: Int?,
+    val importance: Int?,
     val wishDueDate: LocalDate?,
     val items: Set<ApiItemSavingGoalModel>?
 )
@@ -52,8 +52,8 @@ fun mapApiCreateSavingGoal(model: ApiCreateSavingGoalModel): CreateSavingGoalInp
         title = model.title,
         description = model.description,
         accountId = model.accountId,
-        desirValue = model.desirValue,
-        importance = model.importance,
+        desirValue = IntensityEmotionalDesirType.fromInt(model.desirValue),
+        importance = ImportanceGoalType.fromInt(model.importance),
         wishDueDate = model.wishDueDate,
         items = model.items.map {
             ItemSavingGoalInput(
@@ -72,8 +72,8 @@ fun mapApiUpdateSavingGoal(id: UUID, model: ApiUpdateSavingGoalModel): UpdateSav
         title = model.title,
         description = model.description,
         accountId = model.accountId,
-        desirValue = model.desirValue,
-        importance = model.importance,
+        desirValue = model.desirValue?.let { IntensityEmotionalDesirType.fromInt(model.desirValue) } ,
+        importance = model.importance?.let { ImportanceGoalType.fromInt(model.importance) } ,
         wishDueDate = model.wishDueDate,
         items = model.items?.map {
             ItemSavingGoalInput(

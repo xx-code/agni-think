@@ -15,6 +15,7 @@ import java.util.UUID
 @Table("save_goals")
 data class JdbcSavingGoalModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("save_goal_id")
     val id: UUID,
 
@@ -40,7 +41,11 @@ data class JdbcSavingGoalModel(
 
 //    @Column("items")
 //    val items: String
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcSavingGoalMapper(
@@ -70,7 +75,7 @@ class JdbcSavingGoalMapper(
             target = entity.target,
             balance = entity.balance,
             desirValue = entity.desired.ordinal,
-            importance = entity.importance.ordinal,
+            importance = entity.importance.type,
             wishDueDate = entity.wishDueDate,
             description = entity.description,
             accountId = entity.accountId,

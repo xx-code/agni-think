@@ -6,16 +6,16 @@ import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Entity
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcModel
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
 import org.springframework.transaction.support.TransactionTemplate
 import java.util.UUID
 
-abstract class JdbcRepository<TModel: Any, TEntity: Entity>(
+abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
     protected val storage: GenericStorage<TModel, UUID>,
     protected val modelMapper: IMapper<TModel, TEntity>,
     protected val queryExtendAdapter: IQueryExtendJdbcAdapter<TModel, TEntity>? = null,
@@ -30,19 +30,20 @@ abstract class JdbcRepository<TModel: Any, TEntity: Entity>(
         query: QueryFilter,
         queryExtend: IQueryExtend<TEntity>?
     ): RepoList<TEntity> {
-        val sort = Sort.unsorted()
+        var sort = Sort.unsorted()
         if (modelMapper.getSortField().isNotEmpty()) {
             if (query.sortBy.by.isNotBlank() && modelMapper.getSortField().contains(query.sortBy.by)) {
                 val direction = if (query.sortBy.ascending) Sort.Direction.ASC else Sort.Direction.DESC
-                Sort.by(direction, query.sortBy.by)
+                sort = Sort.by(direction, query.sortBy.by)
             }
-
         }
 
-        val pageable = if (query.queryAll) Pageable.unpaged()
-            else PageRequest.of(
-            query.offset,
-            query.limit, sort)
+
+        var pageable = Pageable.unpaged()
+        if (!query.queryAll) {
+            val pageIndex = query.offset / query.limit
+            pageable = PageRequest.of(pageIndex, query.limit, sort)
+        }
 
         if (queryExtend != null) {
             if (queryExtendAdapter == null)
@@ -91,6 +92,7 @@ abstract class JdbcRepository<TModel: Any, TEntity: Entity>(
 
     override fun update(entity: TEntity) {
         val model = modelMapper.toModel(entity)
+        model.setAsExisting()
         storage.save(model)
     }
 

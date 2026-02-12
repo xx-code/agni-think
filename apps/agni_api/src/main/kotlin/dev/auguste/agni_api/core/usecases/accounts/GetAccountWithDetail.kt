@@ -35,7 +35,7 @@ class GetAccountWithDetail(
             id = account.id,
             title = account.title,
             balance = account.balance,
-            type = account.detail.getType(),
+            type = account.detail.getType().value,
             lockedBalance = lockedBalance,
             freezeBalance = freezeBalance,
             detail = mapperAccountDetailOutput(account.detail, account.balance),

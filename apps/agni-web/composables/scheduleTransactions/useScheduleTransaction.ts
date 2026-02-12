@@ -2,8 +2,8 @@ import type { GetScheduleInvoiceResponse } from "~/types/api/scheduleTransaction
 import type { ScheduleInvoiceType } from "~/types/ui/scheduleTransaction";
 import type { UseApiFetchReturn } from "~/types/utils";
 
-export default function useScheduleTransaction(scheduleTransactionId: string): UseApiFetchReturn<ScheduleInvoiceType> {
-    const { data, error, refresh } = useFetch(`/api/schedule-transactions/${scheduleTransactionId}`, {
+export default function useScheduleInvoice(scheduleTransactionId: string): UseApiFetchReturn<ScheduleInvoiceType> {
+    const { data, error, refresh } = useFetch(`/api/schedule-invoices/${scheduleTransactionId}`, {
         method: 'GET',
         transform: (data: GetScheduleInvoiceResponse) => {
             return {
@@ -28,7 +28,7 @@ export default function useScheduleTransaction(scheduleTransactionId: string): U
     return { data, error, refresh };
 }
 
-export async function fetchScheduleTransaction(scheduleTransactionId: string): Promise<ScheduleInvoiceType> {
+export async function fetchScheduleInvoice(scheduleTransactionId: string): Promise<ScheduleInvoiceType> {
     const res = await $fetch<GetScheduleInvoiceResponse>(`/api/schedule-transactions/${scheduleTransactionId}`, {
         method: 'GET'
     });

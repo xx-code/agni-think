@@ -29,5 +29,6 @@ data class CreateInvoiceInput(
     val mouvementType: InvoiceMouvementType,
     val currency: UUID?,
     val transactions: Set<TransactionInput>,
-    val deductions: Set<InvoiceDeductionInput>
+    val deductions: Set<InvoiceDeductionInput>,
+    val isFreeze: Boolean = false,
     )

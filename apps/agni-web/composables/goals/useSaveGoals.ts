@@ -5,7 +5,7 @@ import type { SaveGoalType } from "~/types/ui/saveGoal";
 import type { UseApiFetchReturn } from "~/types/utils";
 
 export default function useSaveGoals(query: Reactive<QueryFilterSavingGoalRequest>): UseApiFetchReturn<ListResponse<SaveGoalType>> {
-    const { data, error, refresh } = useFetch('/api/save-goals', {
+    const { data, error, refresh } = useFetch('/api/saving-goals', {
         method: 'GET',
         query: query,
         transform: (data: ListResponse<GetSavingGoalResponse>) => {
@@ -22,7 +22,7 @@ export default function useSaveGoals(query: Reactive<QueryFilterSavingGoalReques
                     importance: i.importance,
                     wishDueDate: i.wishDueDate ? new Date(i.wishDueDate) : undefined 
                 })),
-                totals: Number(data.totals)
+                total: Number(data.total)
             } satisfies ListResponse<SaveGoalType> 
         }
     });

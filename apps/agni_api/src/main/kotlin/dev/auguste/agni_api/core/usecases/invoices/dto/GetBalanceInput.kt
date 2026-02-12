@@ -11,7 +11,7 @@ import java.util.UUID
 
 data class GetBalanceInput(
     val accountIds: Set<UUID>? = null,
-    val status: InvoiceStatusType? = null,
+    val status: InvoiceStatusType? = InvoiceStatusType.COMPLETED,
     val startDate: LocalDateTime? = null,
     val endDate: LocalDateTime? = null,
     val types: Set<InvoiceType>? = null,

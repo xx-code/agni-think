@@ -1,23 +1,23 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '#ui/types';
-import type { DeductionTypeType, EditDeductionType } from '~/types/ui/deduction';
+import type { DeductionType, EditDeduction } from '~/types/ui/deduction';
 
 const { deductionType } = defineProps<{
-    deductionType?: DeductionTypeType
+    deductionType?: DeductionType
 }>();
 const emit = defineEmits<{
-    (e: 'submit', value: EditDeductionType, oldValue?: DeductionTypeType): void    
+    (e: 'submit', value: EditDeduction, oldValue?: DeductionType): void    
     (e: 'close', close: boolean): void
 }>();
 
-const form = reactive<Partial<EditDeductionType>>({
+const form = reactive<Partial<EditDeduction>>({
     title: deductionType?.title || undefined,
     description: deductionType?.description || undefined,
     base: deductionType?.base || undefined,
     mode: deductionType?.mode || undefined
 })
 
-function validation(state: Partial<EditDeductionType>): FormError[]  {
+function validation(state: Partial<EditDeduction>): FormError[]  {
     const errors: FormError[] = []
     if (!state.title)
         errors.push({ name: 'title', message: 'Vous devez mettre un titre'})
@@ -32,7 +32,7 @@ function validation(state: Partial<EditDeductionType>): FormError[]  {
     return errors
 }
 
-async function onSubmit(event: FormSubmitEvent<EditDeductionType>) {
+async function onSubmit(event: FormSubmitEvent<EditDeduction>) {
     const data = event.data;
 
     emit('submit', { 

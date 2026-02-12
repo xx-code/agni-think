@@ -3,7 +3,6 @@ package dev.auguste.agni_api.controllers.models
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
-import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateFreezeInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.InvoiceDeductionInput
@@ -13,17 +12,22 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.UpdateInvoiceInput
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
+import org.springframework.format.annotation.DateTimeFormat
+import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
 
 data class ApiQueryInvoice(
     val accountIds: Set<UUID>? = null,
+    @field:DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     val startDate: LocalDateTime? = null,
+
+    @field:DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     val endDate: LocalDateTime? = null,
-    val status: InvoiceStatusType? = null,
-    val types: Set<InvoiceType>? = null,
+    val status: String? = null,
+    val types: Set<String>? = null,
     val isFreeze: Boolean? = null,
-    val mouvement: InvoiceMouvementType? = null,
+    val mouvement: String? = null,
     val categoryIds: Set<UUID>? = null,
     val tagIds: Set<UUID>? = null,
     val budgetIds: Set<UUID>? = null,
@@ -32,14 +36,20 @@ data class ApiQueryInvoice(
 )
 
 data class ApiQueryBalanceByPeriod(
-    val period: PeriodType = PeriodType.DAY,
+    val period: String = "Day",
     val interval: Int = 1,
+
+    @field:DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     val dateFrom: LocalDateTime = LocalDateTime.now(),
-    val status: InvoiceStatusType? = null,
+
+    val status: String? = null,
+
+    @field:DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     val dateTo: LocalDateTime? = null,
+
     val accountIds: Set<UUID>? = null,
-    val mouvement: InvoiceMouvementType? = null,
-    val types: Set<InvoiceType>? = null,
+    val mouvement: String? = null,
+    val types: Set<String>? = null,
     val isFreeze: Boolean? = null,
     val categoryIds: Set<UUID>? = null,
     val tagIds: Set<UUID>? = null,
@@ -50,7 +60,6 @@ data class ApiQueryBalanceByPeriod(
 )
 
 data class ApiTransactionModel(
-    @field:NotNull(message = "The transaction amount cannot be null")
     @field:Min(value = 0, message = "The transaction amount cannot be more than 0")
     val amount: Double,
     @field:NotNull(message = "The categoryId value cannot be null")
@@ -72,13 +81,13 @@ data class ApiCreateInvoiceModel(
     @field:NotNull(message = "The accountId cannot be null")
     val accountId: UUID,
     @field:NotNull(message = "The invoice status cannot be null")
-    val status: InvoiceStatusType,
+    val status: String,
     @field:NotNull(message = "The date cannot be null")
     val date: LocalDateTime,
     @field:NotNull(message = "The invoice type cannot be null")
-    val type: InvoiceType,
+    val type: String,
     @field:NotNull(message = "The invoice mouvement cannot be null")
-    val mouvement: InvoiceMouvementType,
+    val mouvement: String,
     val currencyId: UUID?,
     val transactions: Set<ApiTransactionModel>,
     val deductions: Set<ApiDeductionModel>
@@ -87,8 +96,8 @@ data class ApiCreateInvoiceModel(
 data class ApiUpdateInvoiceModel(
     val accountId: UUID?,
     val date: LocalDateTime?,
-    val type: InvoiceType,
-    val mouvement: InvoiceMouvementType?,
+    val type: String,
+    val mouvement: String?,
     val currencyId: UUID?,
     val addTransactions: Set<ApiTransactionModel>,
     val removeTransactionIds: Set<UUID>,
@@ -107,16 +116,16 @@ data class ApiCreateFreezeInvoiceModel(
     val endDate: LocalDateTime,
     val title: String,
     val amount: Double,
-    val status: InvoiceStatusType
+    val status: String
 )
 
 fun mapApiCreateInvoice(model: ApiCreateInvoiceModel): CreateInvoiceInput {
     return CreateInvoiceInput(
         accountId = model.accountId,
-        status = model.status ,
+        status = InvoiceStatusType.fromString(model.status)  ,
         date = model.date,
-        type = model.type,
-        mouvementType = model.mouvement,
+        type = InvoiceType.fromString(model.type),
+        mouvementType = InvoiceMouvementType.fromString(model.mouvement) ,
         currency = model.currencyId,
         transactions = model.transactions.map {
             TransactionInput(
@@ -141,8 +150,8 @@ fun mapApiUpdateInvoice(id: UUID, model: ApiUpdateInvoiceModel): UpdateInvoiceIn
         id = id,
         accountId = model.accountId,
         date = model.date,
-        type = model.type,
-        mouvementType = model.mouvement,
+        type = InvoiceType.fromString(model.type),
+        mouvementType = model.mouvement?.let { InvoiceMouvementType.fromString(model.mouvement) } ,
         currency = model.currencyId,
         removeTransactionIds = model.removeTransactionIds,
         addTransactions = model.addTransactions.map {
@@ -178,6 +187,6 @@ fun mapApiCreateFreezeInvoice(model: ApiCreateFreezeInvoiceModel) : CreateFreeze
         endDate = model.endDate,
         title = model.title,
         amount = model.amount,
-        status = model.status
+        status = InvoiceStatusType.fromString(model.status)
     )
 }

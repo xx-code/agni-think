@@ -20,9 +20,9 @@ class GetAllSavingGoal(private val savingGoalRepo: IRepository<SavingGoal>): IUs
                     description = it.description,
                     target = it.target,
                     balance = it.balance,
-                    importance = it.importance,
+                    importance = it.importance.type,
                     wishDueDate = it.wishDueDate,
-                    desireValue = it.desired,
+                    desirValue = it.desired.ordinal,
                     accountId = it.accountId,
                     items = it.itemsToTracks.map { item ->
                         GetSavingGoalItemOutput(

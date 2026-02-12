@@ -62,7 +62,7 @@ export async function fetchAccountWithDetail(accountId: string): Promise<Account
         balance: res.balance,
         type: res.type,
         lockedBalance: res.lockedBalance,
-        freezedBalance: res.freezedBalance,
+        freezedBalance: res.freezeBalance,
         detail: detailAccount(res.type) 
     };
 }

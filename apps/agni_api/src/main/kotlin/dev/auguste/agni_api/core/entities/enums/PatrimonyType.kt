@@ -6,7 +6,8 @@ enum class PatrimonyType(val value: String) {
 
     companion object {
         fun fromString(value: String): PatrimonyType {
-            return PatrimonyType.entries.first { it.value.equals(value, ignoreCase = true) }
+            return PatrimonyType.entries.find { it.value.equals(value, ignoreCase = true) }
+                ?: throw IllegalArgumentException("Patrimony Type $value not found in enums")
         }
     }
 }

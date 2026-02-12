@@ -1,5 +1,7 @@
 package dev.auguste.agni_api.core.usecases.invoices.transactions
 
+import dev.auguste.agni_api.core.SAVING_CATEGORY_ID
+import dev.auguste.agni_api.core.TRANSFERT_CATEGORY_ID
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryTransactionExtend
@@ -31,12 +33,16 @@ class GetInvoiceTransactions(
         val invoices = invoiceRepo.getManyByIds(input.invoiceIds)
         val deductionIds = invoices.flatMap { invoice -> invoice.deductions }.map { it.deductionId }.toSet()
         val deductions = deductionRepo.getManyByIds(deductionIds)
-        val transactions = transactionRepo.getAll(QueryFilter(0, 0, true), extends)
+        var transactions = transactionRepo.getAll(QueryFilter(0, 0, true), extends).items
+
+         if (input.doRemoveSpecialCategory == true) {
+             transactions = transactions.filter { !setOf(SAVING_CATEGORY_ID, TRANSFERT_CATEGORY_ID).contains(it.categoryId) }
+         }
 
         val results = mutableListOf<GetInvoiceTransactionsOutput>()
 
         for(invoice in invoices) {
-            val transactions = transactions.items.filter { it.invoiceId == invoice.id }
+            val transactions = transactions.filter { it.invoiceId == invoice.id }
             if (transactions.isNotEmpty()) {
                 val subTotal = transactions.sumOf { transaction -> transaction.amount }
                 val invoiceDeductions = deductions.filter { deduction -> invoice.deductions.map { it.deductionId }.contains(deduction.id) }

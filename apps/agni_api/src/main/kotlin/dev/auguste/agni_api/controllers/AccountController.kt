@@ -8,6 +8,7 @@ import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.accounts.dto.CreateAccountInput
+import dev.auguste.agni_api.core.usecases.accounts.dto.DeleteAccountInput
 import dev.auguste.agni_api.core.usecases.accounts.dto.GetAccountOutput
 import dev.auguste.agni_api.core.usecases.accounts.dto.GetAccountWithDetailOutput
 import dev.auguste.agni_api.core.usecases.accounts.dto.UpdateAccountInput
@@ -34,7 +35,7 @@ class AccountController(
     private val getAllAccountUseCase: IUseCase<QueryFilter, ListOutput<GetAccountOutput>>,
     private val getAccountWithDetailUseCase: IUseCase<UUID, GetAccountWithDetailOutput>,
     private val getAllAccountWithDetailUseCase: IUseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>>,
-    private val deleteAccountUseCase: IUseCase<UUID, Unit>,
+    private val deleteAccountUseCase: IUseCase<DeleteAccountInput, Unit>,
 ) {
 
     @GetMapping
@@ -71,6 +72,8 @@ class AccountController(
 
     @DeleteMapping("/{id}")
     fun deleteAccount(@PathVariable id: UUID) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteAccountUseCase.execAsync(id))
+        return ResponseEntity.ok(deleteAccountUseCase.execAsync(
+            DeleteAccountInput(id)
+        ))
     }
 }

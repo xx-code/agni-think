@@ -4,9 +4,9 @@ import type { GetScheduleInvoiceResponse } from "~/types/api/scheduleTransaction
 import type { ScheduleInvoiceType } from "~/types/ui/scheduleTransaction";
 import type { UseApiFetchReturn } from "~/types/utils";
 
-export default function useScheduleTransactions(query: Reactive<QueryFilterRequest>): UseApiFetchReturn<ListResponse<ScheduleInvoiceType>> {
+export default function useScheduleInvoices(query: Reactive<QueryFilterRequest>): UseApiFetchReturn<ListResponse<ScheduleInvoiceType>> {
 
-    const { data, error, refresh } = useFetch('/api/schedule-transactions', {
+    const { data, error, refresh } = useFetch('/api/schedule-invoices', {
         method: 'GET',
         query:query,
         transform: (data: ListResponse<GetScheduleInvoiceResponse>) => {
@@ -27,7 +27,7 @@ export default function useScheduleTransactions(query: Reactive<QueryFilterReque
                     } : undefined,
                     dueDate: new Date(i.dueDate) 
                 })),
-                totals: Number(data.totals)  
+                total: Number(data.total)  
             }  satisfies ListResponse<ScheduleInvoiceType> 
         }
     })

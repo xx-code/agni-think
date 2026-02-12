@@ -20,6 +20,7 @@ import java.util.UUID
 @Table("accounts")
 data class JbdcAccountModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("account_id")
     val id: UUID,
     @Column("title")
@@ -29,7 +30,11 @@ data class JbdcAccountModel(
     @Column("currency_id")
     val currencyId: UUID?,
     val detail: String?
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcAccountModelMapper(
@@ -43,7 +48,6 @@ class JdbcAccountModelMapper(
                 objectMapper.readValue<Map<String, Any>?>(it)
             } ?: emptyMap()
 
-            println(detailMap)
 
             detail = when(AccountType.fromString(model.type)) {
                 AccountType.SAVING -> SavingAccountDetail.fromMap(detailMap)

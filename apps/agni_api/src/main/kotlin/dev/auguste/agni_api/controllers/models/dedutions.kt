@@ -12,9 +12,9 @@ data class ApiCreateDeductionModel(
     val title: String,
     val description: String,
     @field:NotEmpty("Base must not be empty")
-    val base: DeductionBaseType,
+    val base: String,
     @field:NotEmpty("Mode must not be empty")
-    val mode: DeductionModeType
+    val mode: String,
 )
 
 data class ApiUpdateDeductionModel(
@@ -26,8 +26,8 @@ fun mapApiCreateDeduction(model: ApiCreateDeductionModel): CreateDeductionInput 
    return CreateDeductionInput(
        title = model.title,
        description = model.description,
-       base = model.base,
-       mode = model.mode
+       base = DeductionBaseType.fromString(model.base),
+       mode = DeductionModeType.fromString(model.mode)
    )
 }
 

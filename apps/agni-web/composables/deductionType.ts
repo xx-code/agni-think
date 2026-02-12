@@ -3,7 +3,7 @@ import type { GetDeductionResponse, RequestCreateDeduction, RequestUpdateDeducti
 import type { DeductionType } from "~/types/ui/deduction";
 
 export async function fetchDeduction(id: string): Promise<DeductionType> {
-    const res = await $fetch<GetDeductionResponse>(`/api/deduction-types/${id}`, {
+    const res = await $fetch<GetDeductionResponse>(`/api/deductions/${id}`, {
         method: 'GET'
     });
 
@@ -17,7 +17,7 @@ export async function fetchDeduction(id: string): Promise<DeductionType> {
 }
 
 export async function fetchDeductions(query: QueryFilterRequest): Promise<ListResponse<DeductionType>> {
-    const res = await $fetch<ListResponse<GetDeductionResponse>>(`/api/deduction-types`, {
+    const res = await $fetch<ListResponse<GetDeductionResponse>>(`/api/deductions`, {
         method: 'GET',
         query: query
     });
@@ -30,12 +30,12 @@ export async function fetchDeductions(query: QueryFilterRequest): Promise<ListRe
             base: i.base,
             mode: i.mode
         })),
-        totals: res.totals
+        total: res.total
     }
 }
 
 export async function createDeduction(request: RequestCreateDeduction): Promise<CreatedRequest> {
-    const res = await $fetch<CreatedRequest>('/api/deduction-types', {
+    const res = await $fetch<CreatedRequest>('/api/deductions', {
         method: 'POST',
         body: request
     })
@@ -44,14 +44,14 @@ export async function createDeduction(request: RequestCreateDeduction): Promise<
 }
 
 export async function updateDeduction(id: string, request: RequestUpdateDeduction): Promise<void> {
-    await $fetch<CreatedRequest>(`/api/deduction-types/${id}`, {
+    await $fetch<CreatedRequest>(`/api/deductions/${id}`, {
         method: 'PUT',
         body: request
     })
 }
 
 export async function deleteDeduction(id: string): Promise<void> {
-    await $fetch(`/api/deduction-types/${id}`, {
+    await $fetch(`/api/deductions/${id}`, {
         method: 'DELETE'
     })
 }

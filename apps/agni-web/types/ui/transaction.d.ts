@@ -19,7 +19,7 @@ export type EditInvoiceType = {
     type: string
     mouvement: string
     date: CalendarDate
-    records: EditRecordType[] 
+    transactions: EditTransactionType[] 
     deductions: EditTransactionDeductionType[]
 }
 
@@ -61,27 +61,27 @@ export type InvoiceType = {
     status: string
     subTotal: number
     total: number
-    records: TransactionType[]
+    transactions: TransactionType[]
     deductions: TransactionDeductionType[]
 }
 
-// export type InvoiceTableType = {
-//     id: string
-//     description: string
-//     amount: number
-//     category: {
-//         id: string
-//         icon: string
-//         color: string
-//         title: string
-//     } 
-//     tags: {
-//         id: string
-//         value: string
-//         color: string
-//     }[]
-//     budgets: {id: string, title: string}[]
-// }
+export type TransactionTableType = {
+    id: string
+    description: string
+    amount: number
+    category: {
+        id: string
+        icon: string
+        color: string
+        title: string
+    } 
+    tags: {
+        id: string
+        value: string
+        color: string
+    }[]
+    budgets: {id: string, title: string}[]
+}
 
 export type InvoiceDeductionTableType = {
     name: string

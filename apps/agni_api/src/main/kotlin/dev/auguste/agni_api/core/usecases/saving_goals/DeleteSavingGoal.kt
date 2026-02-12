@@ -31,8 +31,8 @@ class DeleteSavingGoal(
                     throw Error("Account ID must be non-null.")
                 input.accountId
             } else {
-                if (savingGoal.accountId == null)
-                    throw Error("Account ID Link to saving is null.")
+                if (input.accountId != null && input.accountId != savingGoal.accountId)
+                    throw Error("Account ID Must be same as saving accountId.")
                 savingGoal.accountId!!
             }
 

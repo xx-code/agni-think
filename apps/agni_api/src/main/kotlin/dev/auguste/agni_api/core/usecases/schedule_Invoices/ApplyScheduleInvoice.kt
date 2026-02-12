@@ -36,7 +36,7 @@ class ApplyScheduleInvoice(
                 ))
             )
 
-            for(scheduleInvoice in scheduleInvoices.items) {
+            for(scheduleInvoice in scheduleInvoices.items.filter { !it.isPause }) {
                 var date = scheduleInvoice.scheduler.date
                 if (scheduleInvoice.isFreeze && scheduleInvoice.scheduler.repeater != null)
                     date = scheduleInvoice.scheduler.upgradeDate()!!
@@ -78,6 +78,7 @@ class ApplyScheduleInvoice(
                 if (scheduleInvoice.scheduler.repeater == null)
                     scheduleInvoiceRepo.delete(scheduleInvoice.id)
                 else {
+                    val date = scheduleInvoice.scheduler.upgradeDate()!!
                     scheduleInvoice.scheduler = Scheduler(
                         date = date,
                         scheduleInvoice.scheduler.repeater,

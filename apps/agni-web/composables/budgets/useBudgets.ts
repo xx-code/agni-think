@@ -21,7 +21,7 @@ export default function useBudgets(query: Reactive<QueryFilterRequest>): UseApiF
                     dueDate: new Date(i.dueDate),
                     repeater: i.repeater
                 })),
-               totals: Number(data.totals) 
+               total: Number(data.total) 
             } satisfies ListResponse<BudgetType>
         }
     });
@@ -47,6 +47,6 @@ export async function fetchBudgets(query: QueryFilterRequest): Promise<ListRespo
                 dueDate: new Date(i.dueDate),
                 repeater: i.repeater
             } satisfies BudgetType)) ,
-        totals: res.totals
+        total: res.total
     } 
 }

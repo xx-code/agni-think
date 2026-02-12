@@ -15,6 +15,7 @@ import java.util.UUID
 @Table("budgets")
 data class JdbcBudgetModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("budget_id")
     val id: UUID,
 
@@ -26,7 +27,11 @@ data class JdbcBudgetModel(
 
     @Column("save_goal_ids")
     val goalIds: Set<UUID>
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcBudgetModelMapper(

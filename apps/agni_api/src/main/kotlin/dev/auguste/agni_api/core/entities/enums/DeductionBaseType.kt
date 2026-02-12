@@ -6,7 +6,8 @@ enum class DeductionBaseType(val value: String) {
 
     companion object {
         fun fromString(value: String): DeductionBaseType {
-            return DeductionBaseType.entries.first { it.value.equals(value, ignoreCase = true) }
+            return DeductionBaseType.entries.find { it.value.equals(value, ignoreCase = true) }
+                ?: throw IllegalArgumentException("Deduction Base Type $value not found in enums")
         }
     }
 }

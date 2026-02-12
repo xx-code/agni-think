@@ -29,9 +29,6 @@ class IncreaseSavingGoal(
             if (input.amount <= 0)
                 throw Error("Amount must be greater than zero")
 
-            if (input.amount >= savingGoal.balance)
-                throw Error("Balance must be lesser than amount.")
-
             val accountId = if (savingGoal.accountId == null) {
                 if (input.accountId == null)
                     throw Error("Account ID must be non-null.")
@@ -42,7 +39,10 @@ class IncreaseSavingGoal(
                 savingGoal.accountId!!
             }
 
-            accountRepo.get(accountId) ?: throw Error("Account not found.")
+            val account = accountRepo.get(accountId) ?: throw Error("Account not found.")
+
+            if (input.amount > account.balance)
+                throw Error("Balance must be lesser than amount.")
 
             createInvoice.execInnerAsync(CreateInvoiceInput(
                 accountId = accountId,

@@ -1,6 +1,6 @@
 import useApiLink from "~/composables/useApiLink";
 import type { ListResponse } from "~/types/api";
-import type { GetAllAccountResponse, GetAllAccountWithPastBalanceResponse } from "~/types/api/account";
+import type { GetAccountResponse, GetAccountWithDetailResponse } from "~/types/api/account";
 
 export default defineEventHandler(async event => {
     try {
@@ -10,7 +10,7 @@ export default defineEventHandler(async event => {
             method: 'GET',
             query: query
         });
-        const data = (res as ListResponse<GetAllAccountWithPastBalanceResponse>);
+        const data = (res as ListResponse<GetAccountWithDetailResponse>);
 
         return data;
     } catch(err) {

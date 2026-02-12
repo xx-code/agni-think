@@ -16,7 +16,7 @@ export default function useTags(query: Reactive<QueryFilterRequest>): UseApiFetc
                     value: i.value,
                     color: i.color  
                 })),
-                totals: Number(data.totals) 
+                total: Number(data.total) 
             } satisfies ListResponse<TagType>
         }
     });
@@ -37,6 +37,6 @@ export async function fetchTags(query: QueryFilterRequest): Promise<ListResponse
             value: i.value,
             color: i.color  
         } satisfies TagType)),
-        totals: Number(res.totals)
+        total: Number(res.total)
      };
 }

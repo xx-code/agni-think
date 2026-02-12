@@ -26,7 +26,7 @@ class UpdateDueBudget(
                 ComparatorType.LesserOrEquals
             )))
 
-        for (budget in budgets.items) {
+        for (budget in budgets.items.filter { !it.isArchived }) {
             if (budget.scheduler.repeater == null) {
                 budget.isArchived = true
             } else {

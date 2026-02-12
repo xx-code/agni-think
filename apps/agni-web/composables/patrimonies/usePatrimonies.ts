@@ -25,7 +25,7 @@ export function usePatrimonies(): UseApiFetchReturn<ListResponse<PatrimonyType>>
                     type: i.type as TypePatrimony, 
                     accountIds: i.accountIds
                 })),
-                totals: Number(data.totals) 
+                total: Number(data.total) 
             } satisfies ListResponse<PatrimonyType> 
         }
     })
@@ -56,6 +56,6 @@ export async function fetchPatrimonies(): Promise<ListResponse<PatrimonyType>> {
             type: i.type as TypePatrimony,
             accountIds: i.accountIds
         })),
-        totals: Number(res.totals) 
+        total: Number(res.total) 
     } 
 }

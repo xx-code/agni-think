@@ -9,7 +9,8 @@ enum class AccountType(val value: String) {
 
     companion object {
         fun fromString(value: String): AccountType {
-            return AccountType.entries.first { it.value.equals(value, ignoreCase = true) }
+            return AccountType.entries.find { it.value.equals(value, ignoreCase = true) }
+                ?: throw IllegalArgumentException("Account Type $value not found in enums")
         }
     }
 }

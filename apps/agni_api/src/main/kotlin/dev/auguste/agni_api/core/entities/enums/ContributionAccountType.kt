@@ -6,7 +6,8 @@ enum class ContributionAccountType(val value: String) {
 
     companion object {
         fun fromString(value: String): ContributionAccountType {
-            return ContributionAccountType.entries.first { it.value.equals(value, ignoreCase = true) }
+            return ContributionAccountType.entries.find { it.value.equals(value, ignoreCase = true) }
+                ?: throw IllegalArgumentException("Contribution Account Type $value not found in enums")
         }
     }
 }

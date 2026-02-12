@@ -82,7 +82,7 @@ class QueryInvoiceExtendJdbcAdapter(
 
         if (!extend.types.isNullOrEmpty()) {
             sql.append(" AND LOWER(type) IN (:types)")
-            params.addValue("types", extend.types.map { it.value.lowercase() }.toSet())
+            params.addValue("types", extend.types.map { it.value }.toSet())
         }
 
         extend.status?.let {
@@ -206,29 +206,17 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
 
         sql.append(" AND jsonb_exists(scheduler, 'due_date')")
         val dateToVerify =extend.comparatorDueDate.date.atOffset(ZoneOffset.UTC).toString()
-        when(extend.comparatorDueDate.comparator) {
-            ComparatorType.Greater -> {
-                sql.append(" AND (scheduler->>'due_date')::timestamptz > :dueDate::timestamptz")
-                sql.append(" AND (scheduler->>'due_date')::timestamptz > :dueDate::timestamptz")
-                params.addValue("dueDate", dateToVerify)
-            }
-            ComparatorType.GreaterOrEquals -> {
-                sql.append(" AND (scheduler->>'due_date')::timestampz >= :dueDate::timestamptz")
-                params.addValue("dueDate", dateToVerify)
-            }
-            ComparatorType.Lesser -> {
-                sql.append(" AND (scheduler->>'due_date')::timestampz < :dueDate::timestamptz")
-                params.addValue("dueDate", dateToVerify)
-            }
-            ComparatorType.LesserOrEquals -> {
-                sql.append(" AND (scheduler->>'due_date')::timestampz <= :dueDate::timestamptz")
-                params.addValue("dueDate", dateToVerify)
-            }
-            ComparatorType.Equal -> {
-                sql.append(" AND (scheduler->>'due_date')::timestampz = :dueDate::timestamptz")
-                params.addValue("dueDate", dateToVerify)
-            }
+
+        val operator = when(extend.comparatorDueDate.comparator) {
+            ComparatorType.Greater -> ">"
+            ComparatorType.GreaterOrEquals -> ">="
+            ComparatorType.Lesser -> "<"
+            ComparatorType.LesserOrEquals -> "<="
+            ComparatorType.Equal -> "="
         }
+
+        sql.append(" AND (scheduler->>'due_date')::timestamptz $operator :dueDate::timestamptz")
+        params.addValue("dueDate", dateToVerify)
 
         return SqlQueryBuilder(sql, params)
     }
@@ -236,7 +224,7 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
     override fun getRawMapper(): RowMapper<JdbcScheduleInvoiceModel> {
         return  RowMapper { rs, _ ->
             JdbcScheduleInvoiceModel(
-                id = rs.getObject("transaction_id", UUID::class.java),
+                id = rs.getObject("schedule_transaction_id", UUID::class.java),
                 accountId = rs.getObject("account_id", UUID::class.java),
                 categoryId = rs.getObject("category_id", UUID::class.java),
                 amount = rs.getDouble("amount"),
@@ -278,8 +266,8 @@ class QueryPatrimonySnapshotExtendJdbcAdapter(
         val sql = StringBuilder("SELECT * FROM patrimony_snapshots WHERE 1=1")
         val params = MapSqlParameterSource()
 
-        if (!extend.patrimonyIds.isNotEmpty()) {
-            sql.append(" AND patrimony_id IN :patrimonies")
+        if (extend.patrimonyIds.isNotEmpty()) {
+            sql.append(" AND patrimony_id IN (:patrimonies)")
             params.addValue("patrimonies", extend.patrimonyIds)
         }
 
@@ -407,29 +395,17 @@ class QueryBudgetExtendJdbcAdapter(
 
         sql.append(" AND jsonb_exists(scheduler, 'due_date')")
         val dateToVerify =extend.scheduleDueDateComparator.date.atOffset(ZoneOffset.UTC).toString()
-        when(extend.scheduleDueDateComparator.comparator) {
-            ComparatorType.Greater -> {
-                sql.append(" AND (scheduler->>'due_date')::timestamptz > :dueDate::timestamptz")
-                params.addValue("dueDate", dateToVerify)
-            }
-            ComparatorType.GreaterOrEquals -> {
-                sql.append(" AND (scheduler->>'due_date')::timestamptz >= :dueDate::timestamptz")
-                params.addValue("dueDate", dateToVerify)
-            }
-            ComparatorType.Lesser -> {
-                sql.append(" AND (scheduler->>'due_date')::timestamptz < :dueDate::timestamptz")
-                params.addValue("dueDate", dateToVerify)
-            }
-            ComparatorType.LesserOrEquals -> {
-                sql.append(" AND (scheduler->>'due_date')::timestamptz <= :dueDate::timestamptz")
 
-                params.addValue("dueDate", dateToVerify)
-            }
-            ComparatorType.Equal -> {
-                sql.append(" AND (scheduler->>'due_date')::timestamptz = :dueDate::timestamptz")
-                params.addValue("dueDate", dateToVerify)
-            }
+        val operator = when(extend.scheduleDueDateComparator.comparator) {
+            ComparatorType.Greater -> ">"
+            ComparatorType.GreaterOrEquals -> ">="
+            ComparatorType.Lesser -> "<"
+            ComparatorType.LesserOrEquals -> "<="
+            ComparatorType.Equal -> "="
         }
+
+        sql.append(" AND (scheduler->>'due_date')::timestamptz $operator :dueDate::timestamptz")
+        params.addValue("dueDate", dateToVerify)
 
         return SqlQueryBuilder(sql, params)
     }

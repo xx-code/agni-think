@@ -32,7 +32,7 @@ class CreateScheduleInvoice(
             throw Error("Category not found")
 
         if (input.isFreeze == false && input.tagIds.isNotEmpty()) {
-            if (invoiceDependencies.tagRepo.getManyByIds(input.tagIds) != input.tagIds)
+            if (invoiceDependencies.tagRepo.getManyByIds(input.tagIds).size != input.tagIds.size)
                 throw Error("Tags not found")
         }
 
@@ -52,7 +52,7 @@ class CreateScheduleInvoice(
             accountId = input.accountId,
             amount = input.amount,
             title = input.description,
-            isFreeze = true,
+            isFreeze = input.isFreeze?.let { input.isFreeze } ?: false,
             isPause = false,
             categoryId = categoryId,
             type = type,

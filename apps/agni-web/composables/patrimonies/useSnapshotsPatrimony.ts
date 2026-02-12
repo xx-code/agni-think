@@ -15,7 +15,7 @@ export function useSnapshotsPatrimony(patrimonyId: string): UseApiFetchReturn<Li
         transform: (data: ListResponse<GetSnapshotPatrimonyResponse>) => {
             return {
                 items: data.items.map(i => ({ id: i.id, patrimonyId: i.patrimonyId, balance: i.balance, date: new Date(i.date), status: i.status})),
-                totals: data.totals
+                total: data.total
             } satisfies ListResponse<SnapshotPatrimonyType>  
         }
     })
@@ -36,6 +36,6 @@ export async function fetchSnapshotsPatrimony(patrimonyId: string, startDate?: D
 
     return {
         items: res.items.map(i => ({ id: i.id, patrimonyId: i.patrimonyId, balance: i.balance, date: new Date(i.date), status: i.status})),
-        totals: res.totals
+        total: res.total
     } satisfies ListResponse<SnapshotPatrimonyType>
 }

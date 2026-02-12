@@ -7,8 +7,8 @@ import type { UseApiFetchReturn } from "~/types/utils";
 export default function useInvoicePagination(query: Reactive<QueryInvoice>): UseApiFetchReturn<ListResponse<InvoiceType>> {
 
     const { data, error, refresh } = useFetch('/api/invoices/pagination', {
-        method: 'POST',
-        body: query,
+        method: 'GET',
+        query: query,
         transform: (data: ListResponse<GetInvoiceResponse>) => {
             return {
                 items: data.items.map(i => ({
@@ -20,7 +20,7 @@ export default function useInvoicePagination(query: Reactive<QueryInvoice>): Use
                     total: i.total,
                     subTotal: i.subTotal,
                     mouvement: i.mouvement,
-                    records: i.transactions.map(i => ({
+                    transactions: i.transactions.map(i => ({
                         id: i.id,
                         amount: i.amount,
                         description: i.description, 
@@ -33,7 +33,7 @@ export default function useInvoicePagination(query: Reactive<QueryInvoice>): Use
                         amount: i.amount
                     })),
                 })),
-                totals: Number(data.totals) 
+                total: Number(data.total) 
             } satisfies ListResponse<InvoiceType>
         }
     });
@@ -43,8 +43,8 @@ export default function useInvoicePagination(query: Reactive<QueryInvoice>): Use
 
 export async function fetchInvoicePagination(query: MaybeRefOrGetter<QueryInvoice>): Promise<ListResponse<InvoiceType>> {
     const res = await $fetch<ListResponse<GetInvoiceResponse>>('/api/invoices/pagination', {
-        method: 'POST',
-        body: query
+        method: 'GET',
+        query: query
     });
 
     return {
@@ -57,7 +57,7 @@ export async function fetchInvoicePagination(query: MaybeRefOrGetter<QueryInvoic
             mouvement: i.mouvement,
             total: i.total,
             subTotal: i.subTotal,
-            records: i.transactions.map(i => ({
+            transactions: i.transactions.map(i => ({
                 id: i.id,
                 amount: i.amount,
                 description: i.description,
@@ -70,6 +70,6 @@ export async function fetchInvoicePagination(query: MaybeRefOrGetter<QueryInvoic
                 amount: i.amount
             })), 
         })),
-        totals: Number(res.totals) 
+        total: Number(res.total) 
     } satisfies ListResponse<InvoiceType>
 }

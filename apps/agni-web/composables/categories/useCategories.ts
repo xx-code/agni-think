@@ -17,7 +17,7 @@ export default function useCategories(query: Reactive<QueryFilterRequest>): UseA
                     isSystem: i.isSystem ?? false,
                     color: i.color
                })),
-               totals: Number(data.totals) 
+               total: Number(data.total) 
             } satisfies ListResponse<CategoryType>
         } 
     });
@@ -53,6 +53,6 @@ export async function fetchCategories(query: Reactive<QueryFilterRequest>): Prom
             isSystem: i.isSystem ?? false,
             color: i.color
         })),
-        totals: Number(res.totals) 
+        total: Number(res.total) 
     } satisfies ListResponse<CategoryType>
 }

@@ -66,7 +66,7 @@ class GetAllPatrimonies(
                 accountIds = patrimony.accountIds.toList(),
                 currentBalance = currentSnapshot,
                 pastBalance = pastSnapshot,
-                type = patrimony.type
+                type = patrimony.type.value
             ))
         }
 
@@ -79,7 +79,7 @@ class GetAllPatrimonies(
             amount = savingGoalAmount,
             currentBalance = savingGoalAmount,
             pastBalance = savingGoalAmount,
-            type = PatrimonyType.ASSET,
+            type = PatrimonyType.ASSET.value,
             accountIds = listOf()
         ))
 

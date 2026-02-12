@@ -9,7 +9,7 @@ import { fetchTag } from "~/composables/tags/useTag";
 import { fetchTags } from "~/composables/tags/useTags";
 import useUpdateTag from "~/composables/tags/useUpdateTag";
 import type { CategoryType, EditCategoryType } from "~/types/ui/category";
-import type { DeductionTypeType, EditDeductionType } from "~/types/ui/deduction";
+import type { DeductionType, EditDeduction } from "~/types/ui/deduction";
 import type { EditTagType, TagType } from "~/types/ui/tag";
 
 const { data: tags, error: errorTag, refresh: refreshTags } = useAsyncData('settings+tags', async () => {
@@ -23,7 +23,7 @@ const { data: categories, error: errorCategory, refresh: refreshCategories } = u
     return res.items
 })
 const { data: deductionTypes, error: errorDeductionType, refresh: refreshDeductionTypes } = useAsyncData('settings+deduction-types', async () => {
-    const res = await fetchDeductionTypes({ queryAll: true, limit: 0, offset: 0})
+    const res = await fetchDeductions({ queryAll: true, limit: 0, offset: 0})
 
     return res.items
 })
@@ -83,16 +83,15 @@ async function onSubmitTag(value: EditTagType, oldValue?: TagType) {
     }
 }
 
-async function onSubmitDeductionType(value: EditDeductionType, oldValue?: DeductionTypeType) {
+async function onSubmitDeductionType(value: EditDeduction, oldValue?: DeductionType) {
     try {
         if(oldValue) {
-            await updateDeductionType(oldValue.id, {
-                id: oldValue.id, 
+            await updateDeduction(oldValue.id, {
                 description: value.description,
                 title: value.title
             });
         } else {
-            await createDeductionType({
+            await createDeduction({
                 title: value.title,
                 description: value.description,
                 mode: value.mode,
@@ -133,9 +132,9 @@ const openModalTag = async (tagId?: string) => {
 }
 
 const openModalDeductionType = async (id?: string) => {  
-    let type:DeductionTypeType|undefined=undefined;
+    let type:DeductionType|undefined=undefined;
     if (id) {
-        type = await fetchDeductionType(id); 
+        type = await fetchDeduction(id); 
     }
 
     modalEditDeductionType.open({
@@ -147,7 +146,7 @@ const openModalDeductionType = async (id?: string) => {
 
 const onDeleteDeductionType = async (id: string) => {
     try {
-        await deleteDeductionType(id) 
+        await deleteDeduction(id) 
         refreshDeductionTypes()
     } catch(err) {
         toast.add({

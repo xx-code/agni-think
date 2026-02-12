@@ -14,8 +14,8 @@ class GetDeduction(private val deductionRepo: IRepository<Deduction>): IUseCase<
             id = deduction.id,
             title = deduction.title,
             description = deduction.description,
-            base = deduction.base,
-            mode = deduction.mode
+            base = deduction.base.value,
+            mode = deduction.mode.value
         )
     }
 }

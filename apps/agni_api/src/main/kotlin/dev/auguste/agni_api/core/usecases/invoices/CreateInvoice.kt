@@ -52,7 +52,7 @@ class CreateInvoice(
             type = input.type,
             deductions = input.deductions.map { InvoiceDeduction(it.deductionId, it.amount) }.toMutableSet(),
             date = input.date,
-            isFreeze = false
+            isFreeze = input.isFreeze
         )
 
         var totalBeforeDeduction = 0.0

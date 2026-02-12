@@ -40,12 +40,12 @@ class JdbcInvoiceTransactionCountReader(
 
         if (!queryInvoiceExtend.types.isNullOrEmpty()) {
             sql.append(" AND t.type IN (:types)")
-            params.addValue("types", queryInvoiceExtend.types)
+            params.addValue("types", queryInvoiceExtend.types.map { it.value })
         }
 
         queryInvoiceExtend.status?.let {
             sql.append(" AND t.status = :status")
-            params.addValue("status", it)
+            params.addValue("status", it.value)
         }
 
         queryInvoiceExtend.isFreeze?.let {

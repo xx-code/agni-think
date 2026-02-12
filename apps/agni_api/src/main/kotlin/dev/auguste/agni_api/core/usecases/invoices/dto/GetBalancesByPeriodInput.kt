@@ -12,7 +12,7 @@ data class GetBalancesByPeriodInput(
     val period: PeriodType,
     val interval: Int,
     val dateFrom: LocalDateTime,
-    val status: InvoiceStatusType? = null,
+    val status: InvoiceStatusType? = InvoiceStatusType.COMPLETED,
     val dateTo: LocalDateTime? = null,
     val accountIds: Set<UUID>? = null,
     val mouvement: InvoiceMouvementType? = null,

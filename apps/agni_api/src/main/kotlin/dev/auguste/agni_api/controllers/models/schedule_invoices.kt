@@ -2,6 +2,7 @@ package dev.auguste.agni_api.controllers.models
 
 import dev.auguste.agni_api.core.adapters.dto.ScheduleRepeaterInput
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.SchedulerInvoiceInput
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
@@ -29,7 +30,7 @@ data class ApiCreateScheduleInvoiceModel(
     val isFreeze: Boolean?,
     val categoryId: UUID?,
     val tagIds: Set<UUID>,
-    val type: InvoiceType?,
+    val type: String?,
     @field:NotNull("schedule must be defined")
     val schedule: ApiScheduleInvoiceModel
 )
@@ -41,7 +42,7 @@ data class ApiUpdateScheduleInvoiceModel(
     val description: String?,
     val categoryId: UUID?,
     val tagIds: Set<UUID>,
-    val type: InvoiceType?,
+    val type: String?,
     val isPause: Boolean?,
     val schedule: ApiScheduleInvoiceModel?
 )
@@ -55,12 +56,14 @@ fun mapApiCreateScheduleInvoice(model: ApiCreateScheduleInvoiceModel): CreateSch
         isFreeze = model.isFreeze,
         categoryId = model.categoryId,
         tagIds = model.tagIds,
-        type = model.type,
+        type = model.type?.let {
+            InvoiceType.fromString(model.type)
+       },
         schedule = SchedulerInvoiceInput(
             dueDate = model.schedule.dueDate,
             repeater = model.schedule.repeater?.let {
                 ScheduleRepeaterInput(
-                    period = model.schedule.repeater.period,
+                    period = PeriodType.fromString(model.schedule.repeater.period),
                     interval = model.schedule.repeater.interval
                 )
             }
@@ -76,14 +79,14 @@ fun mapApiUpdateScheduleInvoice(id: UUID, model: ApiUpdateScheduleInvoiceModel):
         amount = model.amount,
         categoryId = model.categoryId,
         tagIds = model.tagIds,
-        type = model.type,
+        type = model.type?.let { InvoiceType.fromString(model.type) },
         isPause = model.isPause,
         schedule = model.schedule?.let {
             SchedulerInvoiceInput(
                 dueDate = model.schedule.dueDate,
                 repeater = model.schedule.repeater?.let {
                     ScheduleRepeaterInput(
-                        period = model.schedule.repeater.period,
+                        period = PeriodType.fromString(model.schedule.repeater.period) ,
                         interval = model.schedule.repeater.interval
                     )
                 }

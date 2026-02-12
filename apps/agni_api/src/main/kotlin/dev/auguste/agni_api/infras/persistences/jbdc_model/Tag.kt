@@ -11,6 +11,7 @@ import java.util.UUID
 @Table("tags")
 data class JdbcTagModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("tag_id")
     val id: UUID,
 
@@ -19,7 +20,11 @@ data class JdbcTagModel(
 
     @Column("is_system")
     val isSystem: Boolean
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcTagModelMapper: IMapper<JdbcTagModel, Tag> {

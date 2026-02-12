@@ -18,9 +18,9 @@ class GetSavingGoal(private val savingGoalRepo: IRepository<SavingGoal>): IUseCa
             description = savingGoal.description,
             target = savingGoal.target,
             balance = savingGoal.balance,
-            importance = savingGoal.importance,
+            importance = savingGoal.importance.type,
             wishDueDate = savingGoal.wishDueDate,
-            desireValue = savingGoal.desired,
+            desirValue = savingGoal.desired.ordinal,
             accountId = savingGoal.accountId,
             items = savingGoal.itemsToTracks.map {
                 GetSavingGoalItemOutput(

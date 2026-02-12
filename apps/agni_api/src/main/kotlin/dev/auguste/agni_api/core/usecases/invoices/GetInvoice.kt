@@ -33,10 +33,11 @@ class GetInvoice(
         return GetInvoiceOutput(
             id = invoice.id,
             accountId = invoice.accountId,
-            status = invoice.statusType,
+            status = invoice.statusType.value,
+            type = invoice.type.value,
             subTotal = invoiceTransactions.first().subTotal,
             total = invoiceTransactions.first().total,
-            mouvement = invoice.mouvementType,
+            mouvement = invoice.mouvementType.value,
             date = invoice.date,
             transactions = invoiceTransactions.first().transactions,
             deductions = invoice.deductions.map { InvoiceDeductionOutput(

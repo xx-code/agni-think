@@ -23,7 +23,7 @@ export async function fetchBalance(query: QueryInvoice): Promise<GetBalanceRespo
 }
 
 export async function fetchBalanceByPeriod(query: QueryBalanceByPeriod): Promise<GetBalanceResponse[]> {
-    const res = $fetch<GetBalanceResponse[]>(`/api/invoices/balance-by-period`, {
+    const res = $fetch<GetBalanceResponse[]>(`/api/invoices/balances-by-period`, {
         method: 'GET',
         query: query
     })

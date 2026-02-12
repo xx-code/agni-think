@@ -11,6 +11,7 @@ import java.util.UUID
 @Table("categories")
 data class JdbcCategoryModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("category_id")
     val id: UUID,
 
@@ -24,7 +25,11 @@ data class JdbcCategoryModel(
 
     @Column("is_system")
     val isSystem: Boolean
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcCategoryModelMapper: IMapper<JdbcCategoryModel, Category> {

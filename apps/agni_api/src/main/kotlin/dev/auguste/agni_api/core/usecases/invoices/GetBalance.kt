@@ -1,11 +1,14 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
+import dev.auguste.agni_api.core.SAVING_CATEGORY_ID
+import dev.auguste.agni_api.core.TRANSFERT_CATEGORY_ID
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInvoiceExtend
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Transaction
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
+import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.facades.InvoiceDependencies
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -24,7 +27,7 @@ class GetBalance(
             startDate = input.startDate,
             endDate = input.endDate,
             types = input.types,
-            status = input.status,
+            status = input.status.let { InvoiceStatusType.COMPLETED },
             isFreeze = input.isFreeze,
             mouvementType = input.mouvement
         ))
@@ -35,7 +38,8 @@ class GetBalance(
             tagIds = input.tagIds,
             budgetIds = input.budgetIds,
             minAmount = input.minAmount,
-            maxAmount = input.maxAmount
+            maxAmount = input.maxAmount,
+            doRemoveSpecialCategory = input.categoryIds == null
         ))
 
         val creditInvoiceIds = invoices.items.filter { it.mouvementType == InvoiceMouvementType.CREDIT }.map { it.id }

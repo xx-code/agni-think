@@ -17,6 +17,7 @@ import java.util.UUID
 @Table("schedule_transactions")
 data class JdbcScheduleInvoiceModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("schedule_transaction_id")
     val id: UUID,
 
@@ -40,10 +41,16 @@ data class JdbcScheduleInvoiceModel(
 
     @Column("tag_ids")
     val tagIds: Set<UUID>
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
-class JdbcScheduleInvoiceMapper: IMapper<JdbcScheduleInvoiceModel, ScheduleInvoice> {
+class JdbcScheduleInvoiceMapper(
+    private val objectMapper: com.fasterxml.jackson.databind.ObjectMapper
+): IMapper<JdbcScheduleInvoiceModel, ScheduleInvoice> {
     override fun toDomain(model: JdbcScheduleInvoiceModel): ScheduleInvoice {
         val schedulerJson = jacksonObjectMapper().readValue<Map<String, Any>>(model.scheduler)
 
@@ -71,7 +78,7 @@ class JdbcScheduleInvoiceMapper: IMapper<JdbcScheduleInvoiceModel, ScheduleInvoi
             type = entity.type.value,
             isPause = entity.isPause,
             isFreeze = entity.isFreeze,
-            scheduler = jacksonObjectMapper().writeValueAsString(entity.scheduler.toMap()),
+            scheduler = objectMapper.writeValueAsString(entity.scheduler.toMap()),
             tagIds = entity.tagIds
         )
     }

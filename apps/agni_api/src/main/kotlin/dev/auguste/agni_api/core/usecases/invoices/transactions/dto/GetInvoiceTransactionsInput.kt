@@ -8,5 +8,6 @@ data class GetInvoiceTransactionsInput(
     val tagIds: Set<UUID>?,
     val budgetIds: Set<UUID>?,
     val minAmount: Double?,
-    val maxAmount: Double?
+    val maxAmount: Double?,
+    val doRemoveSpecialCategory: Boolean? = false,
 )

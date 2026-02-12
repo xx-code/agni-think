@@ -15,7 +15,7 @@ export default function useInvoice(transactionId: string): UseApiFetchReturn<Inv
                 status: data.status,
                 total: data.total,
                 subTotal: data.subTotal,
-                records: data.transactions.map(i => ({
+                transactions: data.transactions.map(i => ({
                     id: i.id,
                     amount: i.amount,
                     description: i.description,
@@ -48,7 +48,7 @@ export async function fetchInvoice(transactionId: string): Promise<InvoiceType> 
         mouvement: res.mouvement,
         total: res.total,
         subTotal: res.subTotal,
-        records: res.transactions.map(i => ({
+        transactions: res.transactions.map(i => ({
             id: i.id,
             amount: i.amount,
             description: i.description,

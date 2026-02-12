@@ -1,6 +1,4 @@
 import useApiLink from "~/composables/useApiLink";
-import type { ListResponse } from "~/types/api";
-import type { GetAllDeductionTypeResponse } from "~/types/api/deduction";
 
 export default defineEventHandler(async event => {
     try {

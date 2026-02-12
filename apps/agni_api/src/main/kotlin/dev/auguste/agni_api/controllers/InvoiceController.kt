@@ -2,6 +2,7 @@ package dev.auguste.agni_api.controllers
 
 import dev.auguste.agni_api.controllers.models.ApiCreateFreezeInvoiceModel
 import dev.auguste.agni_api.controllers.models.ApiCreateInvoiceModel
+import dev.auguste.agni_api.controllers.models.ApiQueryBalanceByPeriod
 import dev.auguste.agni_api.controllers.models.ApiQueryInvoice
 import dev.auguste.agni_api.controllers.models.ApiTransferInvoiceModel
 import dev.auguste.agni_api.controllers.models.ApiUpdateInvoiceModel
@@ -10,6 +11,10 @@ import dev.auguste.agni_api.controllers.models.mapApiCreateInvoice
 import dev.auguste.agni_api.controllers.models.mapApiTransfer
 import dev.auguste.agni_api.controllers.models.mapApiUpdateInvoice
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
+import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
+import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
+import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
@@ -25,15 +30,16 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.TransferInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.UpdateInvoiceInput
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -53,14 +59,14 @@ class InvoiceController(
 ) {
 
     @PostMapping
-    fun createInvoice(@RequestBody request: ApiCreateInvoiceModel) : ResponseEntity<CreatedOutput> {
+    fun createInvoice(@Valid @RequestBody request: ApiCreateInvoiceModel) : ResponseEntity<CreatedOutput> {
         return ResponseEntity.ok(createInvoiceUseCase.execAsync(
             mapApiCreateInvoice(request)
         ))
     }
 
     @PutMapping("/{id}")
-    fun updateInvoice(@PathVariable id: UUID, @RequestBody request: ApiUpdateInvoiceModel) : ResponseEntity<Unit> {
+    fun updateInvoice(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateInvoiceModel) : ResponseEntity<Unit> {
         return ResponseEntity.ok(updateInvoiceUseCase.execAsync(
             mapApiUpdateInvoice(id, request)
         ))
@@ -81,17 +87,17 @@ class InvoiceController(
     }
 
     @GetMapping
-    fun getAllInvoices(query: QueryFilter, extend: ApiQueryInvoice) : ResponseEntity<ListOutput<GetInvoiceOutput>> {
+    fun getAllInvoices(@ModelAttribute query: QueryFilter, @ModelAttribute extend: ApiQueryInvoice) : ResponseEntity<ListOutput<GetInvoiceOutput>> {
         return ResponseEntity.ok(getAllInvoiceUseCase.execAsync(
             GetAllInvoiceInput(
                 query,
                 accountIds = extend.accountIds,
                 startDate = extend.startDate,
                 endDate = extend.endDate,
-                status = extend.status,
-                types = extend.types,
+                status = extend.status?.let { InvoiceStatusType.fromString(extend.status) }  ,
+                types = extend.types?.let {  extend.types.map { InvoiceType.fromString(it) }.toSet() },
                 isFreeze = extend.isFreeze,
-                mouvementType = extend.mouvement,
+                mouvementType = extend.mouvement?.let { InvoiceMouvementType.fromString(extend.mouvement) },
                 categoryIds = extend.categoryIds,
                 tagIds = extend.tagIds,
                 budgetIds = extend.budgetIds,
@@ -109,28 +115,56 @@ class InvoiceController(
     }
 
     @GetMapping("/balances")
-    fun getBalance(query: GetBalanceInput) : ResponseEntity<GetBalanceOutput> {
+    fun getBalance(query: ApiQueryInvoice) : ResponseEntity<GetBalanceOutput> {
         return ResponseEntity.ok(getBalanceUseCase.execAsync(
-            query
+            GetBalanceInput(
+                startDate = query.startDate,
+                endDate = query.endDate,
+                accountIds = query.accountIds,
+                status = query.status?.let { InvoiceStatusType.fromString(query.status) }  ,
+                types = query.types?.let {  query.types.map { InvoiceType.fromString(it) }.toSet() },
+                isFreeze = query.isFreeze,
+                mouvement = query.mouvement?.let { InvoiceMouvementType.fromString(query.mouvement) },
+                categoryIds = query.categoryIds,
+                tagIds = query.tagIds,
+                budgetIds = query.budgetIds,
+                minAmount = query.minAmount,
+                maxAmount = query.maxAmount
+            )
         ))
     }
 
     @GetMapping("/balances-by-period")
-    fun getBalancesByPeriod(query: GetBalancesByPeriodInput) : ResponseEntity<List<GetBalanceOutput>> {
+    fun getBalancesByPeriod(query: ApiQueryBalanceByPeriod) : ResponseEntity<List<GetBalanceOutput>> {
         return ResponseEntity.ok(getBalanceByPeriodUseCase.execAsync(
-            query
+            GetBalancesByPeriodInput(
+                period = PeriodType.fromString(query.period),
+                interval = query.interval,
+                dateFrom = query.dateFrom,
+                dateTo = query.dateTo,
+                accountIds = query.accountIds,
+                status = query.status?.let { InvoiceStatusType.fromString(query.status) }  ,
+                types = query.types?.let {  query.types.map { InvoiceType.fromString(it) }.toSet() },
+                isFreeze = query.isFreeze,
+                mouvement = query.mouvement?.let { InvoiceMouvementType.fromString(query.mouvement) },
+                categoryIds = query.categoryIds,
+                tagIds = query.tagIds,
+                budgetIds = query.budgetIds,
+                minAmount = query.minAmount,
+                maxAmount = query.maxAmount
+            )
         ))
     }
 
     @PostMapping("create-freeze")
-    fun createFreezeInvoice(@RequestBody request: ApiCreateFreezeInvoiceModel) : ResponseEntity<CreatedOutput> {
+    fun createFreezeInvoice(@Valid @RequestBody request: ApiCreateFreezeInvoiceModel) : ResponseEntity<CreatedOutput> {
         return ResponseEntity.ok(createFreezeInvoiceUseCase.execAsync(
             mapApiCreateFreezeInvoice(request)
         ))
     }
 
     @PostMapping("transfer")
-    fun transferInvoice(@RequestBody request: ApiTransferInvoiceModel) : ResponseEntity<Unit> {
+    fun transferInvoice(@Valid @RequestBody request: ApiTransferInvoiceModel) : ResponseEntity<Unit> {
         return ResponseEntity.ok(transferInvoiceUseCase.execAsync(
             mapApiTransfer(request)
         ))

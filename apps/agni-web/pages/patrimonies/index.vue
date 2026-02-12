@@ -12,10 +12,11 @@ import { useRemoveSnapshotPatrimony } from '~/composables/patrimonies/useRemoveS
 import { fetchSnapshotsPatrimony } from '~/composables/patrimonies/useSnapshotsPatrimony';
 import { useUpdatePatrimony } from '~/composables/patrimonies/useUpdatePatrimony';
 import { useUpdateSnapshotPatrimony } from '~/composables/patrimonies/useUpdateSnapshotPatrimony';
-import type { EditePatrimony, EditSnapshotPatrimony, PatrimonyDetailType, SnapshotPatrimonyType, TypePatrimony } from '~/types/ui/patrimony';
+import type { EditePatrimony, EditSnapshotPatrimony, PatrimonyType, SnapshotPatrimonyType, TypePatrimony } from '~/types/ui/patrimony';
 import AssetCard from './AssetCard.vue';
 
 const {data:patrimonies, refresh} = usePatrimonies()
+console.log(patrimonies)
 
 
 const overlay = useOverlay()
@@ -25,8 +26,8 @@ const modalEditSnapshotPatrimony = overlay.create(ModalEditSnapshotPatrimony)
 const snapshots = ref<SnapshotPatrimonyType[]>([])
 
 const totalPatrimony = computed(() => {
-    const assets = patrimonies.value?.items.filter(i => i.type === 'Asset')
-    const liablities = patrimonies.value?.items.filter(i => i.type === 'Liability')
+    const assets = patrimonies.value?.items.filter(i => i.type.toLowerCase() === 'asset')
+    const liablities = patrimonies.value?.items.filter(i => i.type.toLowerCase() === 'liability')
 
     const currentAmountAsset = assets?.reduce((acc: number, asset) => acc + asset.currentBalance, 0)
     const lastAmountAsset = assets?.reduce((acc: number, asset) => acc + asset.lastSnapshotBalance, 0)
@@ -45,7 +46,7 @@ const totalPatrimony = computed(() => {
     } 
 })
 
-const selectedPatrimony = ref<PatrimonyDetailType>()
+const selectedPatrimony = ref<PatrimonyType>()
 
 const optionsChart = computed(() => ({responsive: true, plugins: {colors: { forceOverride: true}}})) 
 const patriomiesDonutChart = computed(() => {
@@ -83,7 +84,7 @@ async function onClickPatrimony(id: string) {
     }
 }
 
-async function onSubmitPatrimony(patrimony: EditePatrimony, oldPatrimony?: PatrimonyDetailType) {
+async function onSubmitPatrimony(patrimony: EditePatrimony, oldPatrimony?: PatrimonyType) {
     try {
         if (oldPatrimony)
             await useUpdatePatrimony(oldPatrimony.id, {
@@ -116,7 +117,6 @@ async function onSubmitSnapshot(snapshot: EditSnapshotPatrimony, oldSnapshot?: S
             })
         else
             await useAddSnapshotPatrimony(selectedPatrimony.value?.id || '', {
-                patrimonyId: selectedPatrimony.value?.id || '',
                 balance: snapshot.balance,
                 status: snapshot.status,
                 date: snapshot.date.toDate(getLocalTimeZone()).toISOString()
@@ -134,7 +134,7 @@ async function openPatrimony(id?: string) {
     if (id === 'SAVE_GOAL')
         return
 
-    let patrimony: PatrimonyDetailType|undefined 
+    let patrimony: PatrimonyType|undefined 
     if (id)
         patrimony = await fetchPatrimony(id)
     modalEditPatrimony.open({
@@ -286,7 +286,7 @@ function computerPercentagePatrimony(totalAmount: number, assetAmount: number) {
 
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <div 
-        v-for="patrimony in patrimonies?.items.filter(i => i.type == 'Asset')" 
+        v-for="patrimony in patrimonies?.items.filter(i => i.type.toLowerCase() == 'asset')" 
         :key="patrimony.id">
         <AssetCard 
             :patrimony="patrimony"
@@ -299,7 +299,7 @@ function computerPercentagePatrimony(totalAmount: number, assetAmount: number) {
 
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <div 
-        v-for="patrimony in patrimonies?.items.filter(i => i.type == 'Liability')" 
+        v-for="patrimony in patrimonies?.items.filter(i => i.type.toLocaleLowerCase() == 'liability')" 
             :key="patrimony.id">
             <AssetCard 
                 :patrimony="patrimony"

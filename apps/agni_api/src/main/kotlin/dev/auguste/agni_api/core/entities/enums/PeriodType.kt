@@ -8,7 +8,8 @@ enum class PeriodType(val value: String) {
 
     companion object {
         fun fromString(value: String): PeriodType {
-            return PeriodType.entries.first { it.value.equals(value, ignoreCase = true) }
+            return PeriodType.entries.find { it.value.equals(value, ignoreCase = true) }
+                ?: throw IllegalArgumentException("Period Type $value not found in enums")
         }
     }
 }

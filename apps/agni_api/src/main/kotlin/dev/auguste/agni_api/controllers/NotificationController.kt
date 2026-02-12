@@ -7,8 +7,10 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.notifications.PushNotification
+import dev.auguste.agni_api.core.usecases.notifications.dto.DeleteNotificationInput
 import dev.auguste.agni_api.core.usecases.notifications.dto.GetNotificationOutput
 import jakarta.validation.Valid
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -24,7 +26,9 @@ import java.util.UUID
 @RequestMapping("/v2/notifications")
 class NotificationController(
     private val pushNotificationUseCase: PushNotification,
-    private val getAllNotificationsUseCase: IUseCase<QueryFilter, ListOutput<GetNotificationOutput>>
+    private val getAllNotificationsUseCase: IUseCase<QueryFilter, ListOutput<GetNotificationOutput>>,
+    @Qualifier("togglePushNotification") private val toggleReadNotification: IUseCase<UUID, Unit>,
+    private val deleteNotification: IUseCase<DeleteNotificationInput, Unit>
 ) {
 
     @PostMapping
@@ -43,11 +47,13 @@ class NotificationController(
 
     @PutMapping("/{id}/toggle-read")
     fun toggleReadNotification(@PathVariable id: UUID) : ResponseEntity<Unit> {
-        return ResponseEntity.ok()
+        return ResponseEntity.ok(toggleReadNotification.execAsync(id))
     }
 
     @DeleteMapping("/{id}")
     fun deleteNotification(@PathVariable id: UUID) : ResponseEntity<Unit> {
-        return ResponseEntity.ok()
+        return ResponseEntity.ok(deleteNotification.execAsync(
+            DeleteNotificationInput(id)
+        ))
     }
 }

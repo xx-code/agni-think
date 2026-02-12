@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDate, DateFormatter } from '@internationalized/date';
+import { CalendarDate } from '@internationalized/date';
 import useAccounts from '~/composables/accounts/useAccounts';
 import useBudgets from '~/composables/budgets/useBudgets';
 import useCategories from '~/composables/categories/useCategories';
@@ -66,8 +66,8 @@ function submit() {
         types:  selectedTypeTransaction.value,
         status: filters.value.filterStatus ? selectedStatus.value : undefined, 
         tagIds: selectedTagIds.value,
-        dateEnd:  filters.value.filterDate ? date.value.end.toString() : undefined,
-        dateStart: filters.value.filterDate ? date.value.start.toString() : undefined,
+        dateEnd:  filters.value.filterDate ? date.value.end : undefined,
+        dateStart: filters.value.filterDate ? date.value.start : undefined,
         minPrice: filters.value.filterPrice ? minAmount.value : undefined,
         maxPrice: filters.value.filterPrice ? maxAmount.value : undefined
     });

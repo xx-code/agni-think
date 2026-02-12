@@ -21,7 +21,7 @@ class GetAllSnapshotFromPatrimony(
                     id = it.id,
                     patrimonyId = it.patrimonyId,
                     date = it.date,
-                    status = it.status,
+                    status = it.status.value,
                     balance = it.currentBalanceObserved
                 )
             },

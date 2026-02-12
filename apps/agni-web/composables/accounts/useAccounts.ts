@@ -33,7 +33,7 @@ export default function useAccounts(query: Reactive<QueryFilterRequest>): UseApi
                     balance: i.balance,
                     type: i.type
                 })),
-                totals: Number(data.totals) 
+                total: Number(data.total) 
             } satisfies ListResponse<AccountType>;
         }
     });
@@ -54,7 +54,7 @@ export async function fetchAccounts(query: QueryFilterRequest): Promise<ListResp
             balance: i.balance,
             type: i.type
         } satisfies AccountType)),
-        totals: Number(res.totals) 
+        total: Number(res.total) 
     }
 } 
 
@@ -94,7 +94,7 @@ export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promis
             balance: account.balance,
             type: account.type,
             lockedBalance: account.lockedBalance, 
-            freezedBalance: account.freezedBalance,
+            freezedBalance: account.freezeBalance,
             detail: detailAccount(account.type)
         });            
     }
@@ -112,5 +112,5 @@ export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promis
 
     accountsWithPastBalances.unshift(totalAccount)
 
-    return { items: accountsWithPastBalances, totals: res.totals}; 
+    return { items: accountsWithPastBalances, total: res.total}; 
 } 

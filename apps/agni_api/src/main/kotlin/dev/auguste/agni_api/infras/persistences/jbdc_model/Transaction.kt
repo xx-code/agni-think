@@ -11,6 +11,7 @@ import java.util.UUID
 @Table("records")
 data class JdbcTransactionModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("record_id")
     val id: UUID,
 
@@ -30,7 +31,11 @@ data class JdbcTransactionModel(
 
     @Column("budget_ids")
     val budgetIds: Set<UUID>
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcTransactionModelMapper: IMapper<JdbcTransactionModel, Transaction> {

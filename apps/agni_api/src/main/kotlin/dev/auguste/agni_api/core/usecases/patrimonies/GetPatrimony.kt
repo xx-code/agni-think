@@ -63,7 +63,7 @@ class GetPatrimony(
             accountIds = patrimony.accountIds.toList(),
             currentBalance = currentSnapshot,
             pastBalance = pastSnapshot,
-            type = patrimony.type
+            type = patrimony.type.value
         )
     }
 }

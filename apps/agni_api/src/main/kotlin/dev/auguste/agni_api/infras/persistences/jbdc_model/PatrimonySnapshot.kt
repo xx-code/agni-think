@@ -13,6 +13,7 @@ import java.util.UUID
 @Table("patrimony_snapshots")
 data class JdbcPatrimonySnapshotModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("patrimony_snapshot_id")
     val id: UUID,
 
@@ -22,7 +23,11 @@ data class JdbcPatrimonySnapshotModel(
     val balance: Double,
     val date: LocalDate,
     val status: String
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcPatrimonySnapshotMapper: IMapper<JdbcPatrimonySnapshotModel, PatrimonySnapshot> {

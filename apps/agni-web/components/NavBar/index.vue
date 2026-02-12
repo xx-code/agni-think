@@ -4,9 +4,9 @@ const isMobile = ref(false)
 
 const navItems = [
   { title: 'Dashboard', link: '/', icon: 'i-lucide-circle-gauge' },
-  { title: 'Transactions', link: '/transactions', icon: 'i-lucide-banknote' },
+  { title: 'Transactions', link: '/invoices', icon: 'i-lucide-banknote' },
   { title: 'Wallets', link: '/wallets', icon: 'i-lucide-wallet-minimal' },
-  { title: 'Schedule Transactions', link: '/scheduletransactions', icon: 'i-lucide-calendar-clock' },
+  { title: 'Schedule Transactions', link: '/schedule-invoices', icon: 'i-lucide-calendar-clock' },
   { title: 'Budgets', link: '/budgets', icon: 'i-lucide-wallet-cards' },
   { title: 'Goals', link: '/goals', icon: 'i-lucide-piggy-bank' },
   { title: 'Analytics', link: '/analytics', icon: 'i-lucide-chart-network' },

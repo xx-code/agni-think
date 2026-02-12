@@ -7,5 +7,5 @@ data class GetAccountOutput(
     val id: UUID,
     val title: String,
     val balance: Double,
-    val type: AccountType
+    val type: String
 )

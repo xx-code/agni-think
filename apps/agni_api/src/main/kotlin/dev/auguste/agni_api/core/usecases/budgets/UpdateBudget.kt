@@ -22,6 +22,10 @@ class UpdateBudget(
             budget.title = input.title
         }
 
+        if (input.target != null) {
+            budget.target = input.target
+        }
+
         if (!input.savingGoalIds.isNullOrEmpty()) {
             if (input.savingGoalIds != savingGoalRepo.getManyByIds(input.savingGoalIds))
                 throw Error("Saving goal ids ${input.savingGoalIds} not found")
@@ -41,6 +45,7 @@ class UpdateBudget(
             )
         }
 
-        budgetRepo.create(budget)
+        if (budget.hasChanged())
+            budgetRepo.update(budget)
     }
 }

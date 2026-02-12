@@ -26,8 +26,8 @@ class RemoveFreezeInvoice(
                 query = QueryFilter(0, 0, true),
                 queryExtend = QueryInvoiceExtend(
                     accountIds = null,
-                    startDate = LocalDateTime.now() ,
-                    endDate = null,
+                    endDate = LocalDateTime.now() ,
+                    startDate = null,
                     types = null,
                     isFreeze = true,
                     status = InvoiceStatusType.COMPLETED,
@@ -35,8 +35,8 @@ class RemoveFreezeInvoice(
                 )
             )
 
-            freezeInvoice.items.forEach { invoiceItem ->
-                deleteInvoice.execInnerAsync(DeleteInvoiceInput(invoiceItem.id))
+            for(invoiceItem in freezeInvoice.items) {
+                deleteInvoice.execAsync(DeleteInvoiceInput(invoiceItem.id))
                 val account = accountRepo.get(invoiceItem.accountId)
 
                 eventRegister.notify("notification", EventContent(

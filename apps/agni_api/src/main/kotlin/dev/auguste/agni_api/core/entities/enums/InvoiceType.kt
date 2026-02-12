@@ -8,7 +8,8 @@ enum class InvoiceType(val value: String) {
 
     companion object {
         fun fromString(value: String): InvoiceType {
-            return InvoiceType.entries.first { it.value.equals(value, ignoreCase = true) }
+            return InvoiceType.entries.find { it.value.equals(value, ignoreCase = true) }
+                ?: throw IllegalArgumentException("Invoice Type $value not found in enums")
         }
     }
 }

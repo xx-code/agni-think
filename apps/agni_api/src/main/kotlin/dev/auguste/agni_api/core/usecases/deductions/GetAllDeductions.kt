@@ -18,8 +18,8 @@ class GetAllDeductions(private val deductionRepo: IRepository<Deduction>): IUseC
                     id = it.id,
                     title = it.title,
                     description = it.description,
-                    base = it.base,
-                    mode = it.mode
+                    base = it.base.value,
+                    mode = it.mode.value
                 )
             },
             total = deductions.total

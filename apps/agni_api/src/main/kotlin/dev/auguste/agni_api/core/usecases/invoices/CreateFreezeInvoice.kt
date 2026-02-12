@@ -21,6 +21,7 @@ class CreateFreezeInvoice(
             type = InvoiceType.OTHER,
             mouvementType = InvoiceMouvementType.DEBIT,
             currency = null,
+            isFreeze = true,
             transactions = setOf(
                 TransactionInput(
                     amount = input.amount,

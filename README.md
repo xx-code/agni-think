@@ -16,45 +16,21 @@ In my culture, the Agni ethnic group is often stereotyped as stingy. However, I 
 - Vue.js with Nuxt (migrating from React)
 
 **Backend**  
-- Node.js with Express  
-- Database handled using Knex
+- Koltin with springboot
 
 **Mobile**  
 - Swift with SwiftUI (coming soon)
+- Kotlin for android (coming soon)
 
-**Monorepo**  
-- Turborepo (not yet implemented)
 
 ## 🏗️ Architecture
 
-The backend (Node.js + Express) follows **Clean Architecture** principles combined with a **Domain-Driven Design (DDD)** approach for modeling business logic.
-
-### 📂 Folder Structure
-```
-apps/
-    agni-server/ # Backend server
-    config/             # Configuration files and dependency injection container # Includes environment setup, constants, and app-wide settings
-    controllers/        # HTTP controllers or interfaces to execute use cases # Responsible for parsing requests, calling use cases, and formatting responses
-    core/               # The heart of the application (domain and use cases)
-      adapters/         # Interface adapters to connect the domain with external systems or frameworks# Example: data mappers, serializers, or gateways
-      domains/          # Pure domain logic — no framework or DB logic here # Includes: # - Entities (business objects with identity) # - Value Objects (immutable, behavior-driven types) # - Domain services (pure logic with no side-effects)
-      interactions/     # Application-level use cases # Defines how the outside world interacts with domain logic # Example: "CreateTransaction", "GenerateSpendingReport"
-      repositories/     # Interfaces that define how to interact with data sources # These are implemented later in the infrastructure layer
-    infra/              # Infrastructure implementations for external services
-                        # Includes:
-                        # - Database adapters (e.g., PostgreSQL, SQLite)
-                        # - External APIs
-                        # - Repository implementations that fulfill `core/repositories` interfaces
-    agni-web/ # Frontend web application (Nuxt.js), Handles all user interface and client-side logic
-    
-    agni-mobile/ # Mobile app (Swift + SwiftUI, coming soon); # Will share logic where possible with agni-web
-```
+The backend (Kotlin with springboot) follows **Clean Architecture** principles combined with a **Domain-Driven Design (DDD)** approach for modeling business logic.
 
 ## ✨ Features
 <!--TODO list feature, future features-->
 
-
-## 🚀 Installation
+## 🚀 Installation (Quick Star)
 
 ```bash
 # Clone the repository
@@ -100,10 +76,3 @@ npm run dev # pour le développement
   ```bash
   docker-compose up -d --build
   ```
-
-### Access
-After deployment, the backend server is available on the configured port (default 5002), and the frontend on port 3000.
-
-### Update
-To update, pull the repository and rerun the build/start commands.
-

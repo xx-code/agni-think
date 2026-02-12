@@ -8,6 +8,6 @@ data class GetDeductionOutput(
     val id: UUID,
     val title: String,
     val description: String,
-    val base: DeductionBaseType,
-    val mode: DeductionModeType
+    val base: String,
+    val mode: String
 )

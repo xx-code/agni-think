@@ -17,8 +17,8 @@ data class GetSavingGoalOutput(
     val description: String,
     val target: Double,
     val balance: Double,
-    val desireValue: IntensityEmotionalDesirType,
-    val importance: ImportanceGoalType,
+    val desirValue: Int,
+    val importance: Int,
     val wishDueDate: LocalDate?,
     val accountId: UUID?,
     val items: List<GetSavingGoalItemOutput>

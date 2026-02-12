@@ -4,7 +4,7 @@ export type CreatedRequest =  {
 
 export type ListResponse<T> = {
     items: T[]
-    totals: number
+    total: number
 }
 
 export type QueryFilterRequest = {

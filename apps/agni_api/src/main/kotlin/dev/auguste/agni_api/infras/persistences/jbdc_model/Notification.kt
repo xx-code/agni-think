@@ -12,6 +12,7 @@ import java.util.UUID
 @Table("notifications")
 data class JdbcNotificationModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("notification_id")
     val id: UUID,
 
@@ -24,7 +25,11 @@ data class JdbcNotificationModel(
     val isRead: Boolean,
 
     val date: LocalDateTime
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcNotificationModelMapper: IMapper<JdbcNotificationModel, Notification> {

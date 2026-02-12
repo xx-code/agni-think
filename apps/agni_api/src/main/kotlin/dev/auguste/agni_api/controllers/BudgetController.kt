@@ -12,11 +12,14 @@ import dev.auguste.agni_api.core.usecases.budgets.dto.DeleteBudgetInput
 import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
 import dev.auguste.agni_api.core.usecases.budgets.dto.UpdateBudgetInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
@@ -32,28 +35,28 @@ class BudgetController(
 ) {
 
     @PostMapping
-    fun createBudget(request: ApiCreateBudgetModel): ResponseEntity<CreatedOutput>  {
+    fun createBudget(@Valid @RequestBody request: ApiCreateBudgetModel): ResponseEntity<CreatedOutput>  {
         return ResponseEntity.ok(createBudget.execAsync(
             mapApiCreateBudgetModel(request)
         ))
     }
 
     @PutMapping("/{id}")
-    fun updateBudget(id: UUID, request: ApiUpdateBudgetModel): ResponseEntity<Unit> {
+    fun updateBudget(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateBudgetModel): ResponseEntity<Unit> {
         return ResponseEntity.ok(updateBudget.execAsync(
             mapApiUpdateBudgetModel(id, request)
         ))
     }
 
     @DeleteMapping("/{id}")
-    fun deleteBudget(id: UUID): ResponseEntity<Unit> {
+    fun deleteBudget(@PathVariable id: UUID): ResponseEntity<Unit> {
         return ResponseEntity.ok(deleteBudget.execAsync(
             DeleteBudgetInput(id)
         ))
     }
 
     @GetMapping("/{id}")
-    fun getBudget(id: UUID): ResponseEntity<GetBudgetOutput> {
+    fun getBudget(@PathVariable id: UUID): ResponseEntity<GetBudgetOutput> {
         return ResponseEntity.ok(getBudget.execAsync(
             id
         ))

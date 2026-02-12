@@ -12,6 +12,7 @@ import java.util.UUID
 @Table("patrimonies")
 data class JdbcPatrimonyModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("patrimony_id")
     val id: UUID,
 
@@ -23,7 +24,11 @@ data class JdbcPatrimonyModel(
 
     @Column("account_ids")
     val accountIds: Set<UUID>
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcPatrimonyModelMapper: IMapper<JdbcPatrimonyModel, Patrimony> {

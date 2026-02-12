@@ -5,7 +5,7 @@ export type EditScheduleInvoiceType = {
     accountId: string
     categoryId?: string
     tagIds: string[]
-    type: string
+    type?: string
     amount: number
     isFreeze: boolean
     repeater?: {

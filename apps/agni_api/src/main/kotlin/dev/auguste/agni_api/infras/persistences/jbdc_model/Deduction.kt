@@ -13,6 +13,7 @@ import java.util.UUID
 @Table("deduction_types")
 data class JdbcDeductionModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("deduction_type_id")
     val id: UUID,
 
@@ -22,7 +23,11 @@ data class JdbcDeductionModel(
     val description: String,
     val base: String,
     val mode: String
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcDeductionModelMapper: IMapper<JdbcDeductionModel, Deduction> {

@@ -2,7 +2,7 @@ import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repo
 import { IUsecase } from "../interfaces";
 import { Record } from "@core/domains/entities/record";
 import { Transaction } from "@core/domains/entities/transaction";
-import { mapperPeriod, Period, RecordType, TransactionType } from "@core/domains/constants";
+import { mapperPeriod, Period, TransactionType } from "@core/domains/constants";
 import UnExpectedError from "@core/errors/unExpectedError";
 import { MomentDateService } from "@core/domains/entities/libs";
 import { Category } from "@core/domains/entities/category";

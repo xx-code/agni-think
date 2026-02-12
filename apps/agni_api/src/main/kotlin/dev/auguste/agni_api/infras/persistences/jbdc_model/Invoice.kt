@@ -18,6 +18,7 @@ import java.util.UUID
 @Table("transactions")
 data class JdbcInvoiceModel(
     @Id
+    @get:JvmName("getIdentifier")
     @Column("transaction_id")
     val id: UUID,
 
@@ -33,7 +34,11 @@ data class JdbcInvoiceModel(
     val isFreeze: Boolean,
 
     val deductions: String
-)
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return id
+    }
+}
 
 @Component
 class JdbcInvoiceModelMapper(

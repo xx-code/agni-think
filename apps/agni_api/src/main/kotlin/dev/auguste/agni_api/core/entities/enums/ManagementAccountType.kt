@@ -7,7 +7,8 @@ enum class ManagementAccountType(val value: String) {
 
     companion object {
         fun fromString(value: String): ManagementAccountType {
-            return ManagementAccountType.entries.first { it.value.equals(value, ignoreCase = true) }
+            return ManagementAccountType.entries.find { it.value.equals(value, ignoreCase = true) }
+                ?: throw IllegalArgumentException("Managment Account Type $value not found in enums")
         }
     }
 }

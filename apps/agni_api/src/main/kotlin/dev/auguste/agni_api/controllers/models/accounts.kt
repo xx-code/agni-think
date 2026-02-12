@@ -19,8 +19,8 @@ data class ApiAccountDetailModel(
     @field:Min(0, message = "Credit limit must be positive")
     val creditLimit: Double?,
 
-    val contributionType: ContributionAccountType?,
-    val managementAccountType: ManagementAccountType?,
+    val contributionType: String?,
+    val managementAccountType: String?,
 
     @field:Min(value = 0, message = "Buffer must be positive")
     val buffer: Double?,
@@ -31,44 +31,44 @@ data class ApiAccountDetailModel(
 
 data class ApiCreateAccountModel(
     val title: String,
-    val type: AccountType,
+    val type: String,
     val currencyId: UUID?,
     val detail: ApiAccountDetailModel
 )
 
 data class ApiUpdateAccountModel(
     val title: String? = null,
-    val type: AccountType? = null,
+    val type: String? = null,
     val currencyId: UUID? = null,
     val detail: ApiAccountDetailModel? = null,
 )
 
-fun mapAccountDetail(type: AccountType, model: ApiAccountDetailModel) : IAccountDetail {
-    return when(type) {
+fun mapAccountDetail(type: String, model: ApiAccountDetailModel) : IAccountDetail {
+    return when(AccountType.fromString(type)) {
         AccountType.CHECKING -> {
-            if (model.buffer == null || model.buffer < 0)
-                throw BadRequestException("Buffer must define. or not negative")
-            CheckingAccountDetail(model.buffer)
+            val buffer = model.buffer.let { 0.0 }
+
+            CheckingAccountDetail(buffer)
         }
 
         AccountType.CREDIT_CARD -> {
-            if (model.creditLimit == null)
-                throw BadRequestException("Buffer must define. or not negative")
+            val creditLimit  = model.creditLimit.let { 0.0 }
 
-            CreditCardAccountDetail(creditLimit = model.creditLimit)
+            CreditCardAccountDetail(creditLimit = creditLimit)
         }
 
         AccountType.SAVING -> {
-            if (model.secureAmount == null)
-                throw BadRequestException("Buffer must define. or not negative")
+            val secureAmount  = model.secureAmount.let { 0.0 }
 
-            SavingAccountDetail(secureAmount = model.secureAmount)
+            SavingAccountDetail(secureAmount = secureAmount)
         }
 
         AccountType.BROKING -> {
             if (model.managementAccountType == null || model.contributionType == null)
                 throw BadRequestException("Management account et contribution type type must define.")
-            BrokingAccountDetail(model.managementAccountType, model.contributionType)
+            BrokingAccountDetail(
+                ManagementAccountType.fromString(model.managementAccountType),
+                ContributionAccountType.fromString(model.contributionType) )
         }
         else -> CheckingAccountDetail(0.0)
     }

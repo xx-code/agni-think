@@ -21,7 +21,7 @@ const schema = z.object({
 })
 
 const form = reactive({
-    accountId: "",
+    accountId: saveGoal?.accountId,
     isIncrease: isIncrease ? '0' : '1',
     amount: 0
 })
@@ -58,6 +58,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                 </UFormField>
                 <UFormField label="Compte" name="accountId">
                     <USelect 
+                        :disabled="saveGoal?.accountId ? true : false"
                         v-model="form.accountId" 
                         value-key="id" 
                         label-key="title" 
