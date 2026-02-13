@@ -56,14 +56,14 @@ function getRecordTypeColor(type: string) {
             <!-- Transaction principale -->
             <div 
                 class="flex items-start justify-between p-3 cursor-pointer"
-                @click="trans.records && trans.records.length > 0 ? toggleExpand(trans.id) : null"
+                @click="trans.transactions && trans.transactions.length > 0 ? toggleExpand(trans.id) : null"
             >
                 <!-- Gauche: Icône + Info -->
                 <div class="flex gap-3 flex-1 min-w-0">
                     <!-- Chevron d'expansion -->
                     <div class="flex items-center">
                         <UButton
-                            v-if="trans.records && trans.records.length > 0"
+                            v-if="trans.transactions && trans.transactions.length > 0"
                             color="neutral"
                             variant="ghost"
                             icon="i-lucide-chevron-down"
@@ -83,15 +83,15 @@ function getRecordTypeColor(type: string) {
                     <div 
                         class="flex items-center justify-center rounded-full flex-shrink-0"
                         :style="{ 
-                            background: `${trans.color || trans.records?.[0]?.category.color}22`, 
+                            background: `${trans.color || trans.transactions?.[0]?.category.color}22`, 
                             width: '40px',
                             height: '40px'
                         }"
                     >
                         <UIcon 
-                            :name="trans.icon || trans.records?.[0]?.category.icon || 'i-lucide-circle'" 
+                            :name="trans.icon || trans.transactions?.[0]?.category.icon || 'i-lucide-circle'" 
                             class="text-lg"
-                            :style="{ color: trans.color || trans.records?.[0]?.category.color }"
+                            :style="{ color: trans.color || trans.transactions?.[0]?.category.color }"
                         />  
                     </div>
 
@@ -99,11 +99,11 @@ function getRecordTypeColor(type: string) {
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <h4 class="font-medium text-gray-900 dark:text-white truncate">
-                                {{ trans.category || `${trans.records?.length || 0} article${(trans.records?.length || 0) > 1 ? 's' : ''}` }}
+                                {{ trans.category || `${trans.transactions?.length || 0} article${(trans.transactions?.length || 0) > 1 ? 's' : ''}` }}
                             </h4>
                             <UBadge 
-                                v-if="trans.records && trans.records.length > 1"
-                                :label="`${trans.records.length}`"
+                                v-if="trans.transactions && trans.transactions.length > 1"
+                                :label="`${trans.transactions.length}`"
                                 color="info"
                                 variant="subtle"
                                 size="xs"
@@ -115,11 +115,11 @@ function getRecordTypeColor(type: string) {
                         
                         <!-- Tags et budgets en preview -->
                         <div 
-                            v-if="!isExpanded(trans.id) && trans.records && trans.records.length > 0"
+                            v-if="!isExpanded(trans.id) && trans.transactions && trans.transactions.length > 0"
                             class="flex flex-wrap gap-1 mt-1.5"
                         >
                             <UBadge
-                                v-for="tag in trans.records[0]?.tags?.slice(0, 2)"
+                                v-for="tag in trans.transactions[0]?.tags?.slice(0, 2)"
                                 :key="tag.id"
                                 :label="tag.value"
                                 :style="{ borderColor: tag.color, color: tag.color }"
@@ -127,8 +127,8 @@ function getRecordTypeColor(type: string) {
                                 size="xs"
                             />
                             <UBadge
-                                v-if="trans.records[0]?.tags && trans.records[0].tags.length > 2"
-                                :label="`+${trans.records[0].tags.length - 2}`"
+                                v-if="trans.transactions[0]?.tags && trans.transactions[0].tags.length > 2"
+                                :label="`+${trans.transactions[0].tags.length - 2}`"
                                 color="info"
                                 variant="subtle"
                                 size="xs"
@@ -164,12 +164,12 @@ function getRecordTypeColor(type: string) {
 
             <!-- Section expandée avec les records -->
             <div 
-                v-if="isExpanded(trans.id) && trans.records && trans.records.length > 0"
+                v-if="isExpanded(trans.id) && trans.transactions && trans.transactions.length > 0"
                 class="px-3 pb-3 space-y-2"
             >
                 <!-- Chaque record -->
                 <div 
-                    v-for="record in trans.records"
+                    v-for="record in trans.transactions"
                     :key="record.id"
                     class="ml-9 pl-4 py-2 border-l-2 border-gray-200 dark:border-gray-700 space-y-2"
                 >

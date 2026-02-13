@@ -1,16 +1,22 @@
 package dev.auguste.agni_api.core.entities
 
-import dev.auguste.agni_api.core.value_objects.BudgetSavingGoal
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import java.util.UUID
 import kotlin.properties.Delegates
 
 class Budget(
     id: UUID = UUID.randomUUID(),
+    title: String,
     target: Double,
     scheduler: Scheduler,
-    targetSavingGoals: List<BudgetSavingGoal>
+    targetSavingGoalIds: MutableSet<UUID>,
+    isArchived: Boolean = false,
     ): Entity(id=id) {
+
+    var title: String by Delegates.observable(title) { _, old, new ->
+        if (old != new)
+            this.markHasChanged()
+    }
 
     var target: Double by Delegates.observable(target) { _, old, new ->
         if (old != new)
@@ -22,7 +28,12 @@ class Budget(
             this.markHasChanged()
     }
 
-    var targetSavingGoals: List<BudgetSavingGoal> by Delegates.observable(targetSavingGoals.toList()) { _, old, new ->
+    var targetSavingGoalIds by Delegates.observable(targetSavingGoalIds) { _, old, new ->
+        if (old != new)
+            this.markHasChanged()
+    }
+
+    var isArchived: Boolean by Delegates.observable(isArchived) { _, old, new ->
         if (old != new)
             this.markHasChanged()
     }

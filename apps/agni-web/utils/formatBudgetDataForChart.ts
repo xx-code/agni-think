@@ -1,6 +1,7 @@
-import type { GetAllBudgetResponse } from "~/types/api/budget"
+import type { GetBudgetResponse } from "~/types/api/budget"
+import type { BudgetType } from "~/types/ui/budget"
 
-export const formatBudgetDataForChart = (budgets?: GetAllBudgetResponse[]) => {
+export const formatBudgetDataForChart = (budgets?: BudgetType[]) => {
 
     let labels: string[] = [] 
     const data: number[]= []

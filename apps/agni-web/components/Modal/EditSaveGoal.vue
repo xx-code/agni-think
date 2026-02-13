@@ -36,8 +36,8 @@ const form = reactive({
     accountId: saveGoal?.accountId || '',
     description: saveGoal?.description || '',
     targetAmount: saveGoal?.target || 0,
-    desirValue: saveGoal?.desirValue,
-    importance: saveGoal?.importance,
+    desirValue: saveGoal?.desirValue.toString(),
+    importance: saveGoal?.importance.toString(),
     hasWishDueDate: saveGoal?.wishDueDate ? true : false
 });
 

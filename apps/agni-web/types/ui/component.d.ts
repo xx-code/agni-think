@@ -1,3 +1,5 @@
+import type { CalendarDate } from "@internationalized/date"
+
 export type FormFilterTransaction = {
     accountIds: string[]
     categoryIds: string[]
@@ -7,6 +9,6 @@ export type FormFilterTransaction = {
     status?: string
     minPrice?: number
     maxPrice?: number
-    dateStart?: string
-    dateEnd?: string
+    dateStart?: CalendarDate
+    dateEnd?: CalendarDate
 }

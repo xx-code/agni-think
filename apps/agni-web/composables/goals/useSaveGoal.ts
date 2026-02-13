@@ -1,11 +1,11 @@
-import type { GetSaveGoalResponse } from "~/types/api/saveGoal";
+import type { GetSavingGoalResponse } from "~/types/api/saveGoal";
 import type { SaveGoalType } from "~/types/ui/saveGoal";
 import type { UseApiFetchReturn } from "~/types/utils";
 
 export default function useSaveGoal(saveGoalId: string): UseApiFetchReturn<SaveGoalType>{
-    const { data, error, refresh } = useFetch(`/api/save-goals/${saveGoalId}`, {
+    const { data, error, refresh } = useFetch(`/api/saving-goals/${saveGoalId}`, {
         method: 'GET',
-        transform: (data: GetSaveGoalResponse) => {
+        transform: (data: GetSavingGoalResponse) => {
             return {
                 id: data.id,
                 title: data.title,
@@ -25,7 +25,7 @@ export default function useSaveGoal(saveGoalId: string): UseApiFetchReturn<SaveG
 }
 
 export async function fetchSaveGoal(saveGoalId: string): Promise<SaveGoalType> {
-    const res = await $fetch<GetSaveGoalResponse>(`/api/save-goals/${saveGoalId}`, {
+    const res = await $fetch<GetSavingGoalResponse>(`/api/saving-goals/${saveGoalId}`, {
         method: 'GET'
     });
 

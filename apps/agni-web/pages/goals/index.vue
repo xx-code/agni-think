@@ -17,7 +17,7 @@ import useUpdateAmountSaveGoal from "~/composables/goals/useUpdateAmountSaveGoal
 import useUpdateSaveGaol from "~/composables/goals/useUpdateSaveGoal"
 import useImportanceTypes from "~/composables/internals/useImportanceTypes"
 import useIntensityDesirTypes from "~/composables/internals/useImportanceTypes"
-import type { queryFilterSaveGoalRequest } from "~/types/api/saveGoal"
+import type { QueryFilterSavingGoalRequest } from "~/types/api/saveGoal"
 import type { EditSaveGoalType, EditUpdateAmountSaveGoalType, SaveGoalType } from "~/types/ui/saveGoal"
 
 type ItemRow = {
@@ -32,7 +32,7 @@ type ItemRow = {
 }
 
 const page = ref(1)
-const filter = reactive<queryFilterSaveGoalRequest>({
+const filter = reactive<QueryFilterSavingGoalRequest>({
     offset: 0,
     limit: 8,
     queryAll: false
@@ -128,6 +128,7 @@ async function openSavingGoal(goalId?: string) {
         goal = await fetchSaveGoal(goalId) 
     }
 
+
     modalCreateSavingGoal.open({
         saveGoal: goal,
         onSubmit: onSubmitSaveGoal 
@@ -179,7 +180,7 @@ const deletePopOverGoalId = ref<string>()
 const onDeleteGoal = async (goalId: string) => {
     if (deleteAccountDepositId.value !== '') {
         try {
-            await useDeleteSaveGoal(goalId, { accountDepositId: deleteAccountDepositId.value })
+            await useDeleteSaveGoal(goalId, { accountId: deleteAccountDepositId.value })
             await refreshGoals()
             deletePopOverOpen.value = false
             deletePopOverGoalId.value = undefined
@@ -595,7 +596,7 @@ const columns: TableColumn<ItemRow>[] = [
                     v-model:page="page" 
                     @update:page="() => filter.offset = (filter.limit * (page - 1))"
                     :items-per-page="filter.limit"  
-                    :total="goals?.totals" 
+                    :total="goals?.total" 
                     active-variant="subtle"
                 />
                 <div class="pagination-controls">

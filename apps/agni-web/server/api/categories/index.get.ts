@@ -1,6 +1,6 @@
 import useApiLink from "~/composables/useApiLink";
 import type { ListResponse } from "~/types/api";
-import type { GetAllCategoriesResponse } from "~/types/api/category";
+import type { GetCategoryResponse } from "~/types/api/category";
 
 export default defineEventHandler(async event => {
     try {
@@ -10,7 +10,7 @@ export default defineEventHandler(async event => {
             method: "GET",
             query: query
         });
-        const data = (res as ListResponse<GetAllCategoriesResponse>);
+        const data = (res as ListResponse<GetCategoryResponse>);
         return data;
     } catch(err) {
         console.log('Get all Categories: ' + err);

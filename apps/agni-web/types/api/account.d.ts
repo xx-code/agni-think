@@ -1,73 +1,58 @@
 import type { QueryFilterRequest } from ".";
 
 export type GetAccountResponse = {
-    accountId: string
+    id: string
     title: string
     balance: number
     type: string   
 };
 
 export type GetAccountWithDetailResponse = {
-    accountId: string
+    id: string
     title: string
     balance: number
     type: string   
     lockedBalance: number
-    freezedBalance: number
-    detailForCreditCard?: GetAllCreditCardDetailResponse 
-    detailForBroking?: GetAllBrokingDetailResponse
+    freezeBalance: number
+    detail: {
+        detailForCreditCard?: GetCreditCardDetailResponse 
+        detailForBroking?: GetBrokingDetailResponse
+        detailForChecking?: GetCheckingDetailResponse
+    }
 };
 
-export type GetAllBrokingDetailResponse = {
+export type GetCheckingDetailResponse = {
+    buffer: number
+}
+
+export type GetBrokingDetailResponse = {
     managementType: string
     contributionType: string
 }
 
-export type GetAllCreditCardDetailResponse = {
+export type GetCreditCardDetailResponse = {
     creditCardLimit: number
     creditUtilisation: number
-}
-
-export type GetAllAccountResponse = {
-    accountId: string
-    title: string
-    balance: number
-    type: string
-}
-
-export type GetallAccountWithDetailResponse = {
-    accountId: string
-    title: string
-    balance: number
-    type: string   
-    lockedBalance: number
-    freezedBalance: number
-    detailForCreditCard?: GetAllCreditCardDetailResponse 
-    detailForBroking?: GetAllBrokingDetailResponse
-};
-
-export type GetAllAccountWithPastBalanceResponse = {
-    accountId: string
-    title: string
-    balance: number
-    pastBalance: number
-    type: string
-}
-
-export type GetAllAccountPastBalanceRequest = QueryFilterRequest & {
-    period: string 
-    periodTime: number
 }
 
 export type CreateAccountRequest = {
     title: string 
     type: string
+    currencyId?: string
+    detail: AccountDetailRequest
 }
 
 export type UpdateAccountRequest = {
     title?: string
     type?: string
+    currencyId?: string
+    detail?: AccountDetailRequest
+}
+
+export type AccountDetailRequest = {
     creditLimit?: number
     contributionType?: string
-    managementType?: string
+    managementAccountType?: string
+    buffer?: number
+    secureAmount?: number
 }

@@ -6,21 +6,21 @@ export type UpdateSaveGoalRequest = {
 }
 export default async function useUpdateAmountSaveGoal(request: UpdateSaveGoalRequest): Promise<void> {
     if (request.isIncrease)
-        await $fetch(`/api/save-goals/increase`, {
-            method: "POST",
+        await $fetch(`/api/saving-goals/${request.saveGoalId}/increase`, {
+            method: "PUT",
             body: {
                 id: request.saveGoalId, 
                 accountId: request.accountId,
-                increaseAmount: request.amount 
+                amount: request.amount 
             } 
         });    
     else 
-        await $fetch(`/api/save-goals/decrease`, {
-            method: "POST",
+        await $fetch(`/api/saving-goals/${request.saveGoalId}/decrease`, {
+            method: "PUT",
             body: {
                 id: request.saveGoalId,
                 accountId: request.accountId,
-                decreaseAmount: request.amount
+                amount: request.amount
             }
         });
 }

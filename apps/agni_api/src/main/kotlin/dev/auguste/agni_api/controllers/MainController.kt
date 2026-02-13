@@ -8,5 +8,4 @@ import org.springframework.web.bind.annotation.RestController
 class MainController {
     @GetMapping("/")
     fun index() = "Agni Spirit";
-
 }

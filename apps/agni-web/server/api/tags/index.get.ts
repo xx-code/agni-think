@@ -1,6 +1,6 @@
 import useApiLink from "~/composables/useApiLink";
 import type { ListResponse } from "~/types/api";
-import type { GetAllTagsResponse } from "~/types/api/tag";
+import type { GetTagResponse } from "~/types/api/tag";
 
 export default defineEventHandler(async event => {
     try {
@@ -11,7 +11,7 @@ export default defineEventHandler(async event => {
             query: query
         });
 
-        const data = (res as ListResponse<GetAllTagsResponse>);
+        const data = (res as ListResponse<GetTagResponse>);
 
         return data;
     } catch(err) {

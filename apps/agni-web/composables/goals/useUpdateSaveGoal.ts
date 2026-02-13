@@ -1,7 +1,7 @@
-import type { UpdateSaveGoalRequest } from "~/types/api/saveGoal";
+import type { UpdateSavingGoalRequest } from "~/types/api/saveGoal";
 
-export default async function useUpdateSaveGaol(saveGoalId: string, request: UpdateSaveGoalRequest): Promise<void> {
-    await $fetch(`/api/save-goals/${saveGoalId}`, {
+export default async function useUpdateSaveGaol(saveGoalId: string, request: UpdateSavingGoalRequest): Promise<void> {
+    await $fetch(`/api/saving-goals/${saveGoalId}`, {
         method: 'PUT',
         body: request
     }) 

@@ -7,7 +7,7 @@ export default defineEventHandler(async event => {
         const snapshotId = getRouterParam(event, 'id-snap')
 
         const request = await readBody(event)
-        await $fetch(`${api}/patrimonies/${id}/update-snapshot/${snapshotId}`, {
+        await $fetch(`${api}/patrimonies/update-snapshot/${snapshotId}`, {
             method: 'PUT',
             body: request 
         });

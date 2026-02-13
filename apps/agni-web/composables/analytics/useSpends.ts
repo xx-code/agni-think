@@ -9,7 +9,7 @@ export default function useAnalyticSpends(request: Reactive<GetSpendAnalysticReq
         query: request,
         transform: (data: GetSpendAnalysticResponse) => {
             return {
-                totalSpends: data.totalSpends,
+                totalSpends: data.totalSpend,
                 spendByCategories: data.spendByCategories
             } satisfies SpendAnalysticType
         }
@@ -25,7 +25,7 @@ export async function fetchAnalyticSpends(request: GetSpendAnalysticRequest): Pr
     });
 
     return { 
-        totalSpends: response.totalSpends,
+        totalSpends: response.totalSpend,
         spendByCategories: response.spendByCategories
     };
 }

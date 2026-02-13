@@ -49,14 +49,14 @@ export type GetIncomeAnalysticResponse = {
 
 export type GetSavingAnalysticRequest = {
     period: string
-    periodTime: number
-    showNumber: number
+    interval: number
+    startDate: string 
 }
 export type GetSavingAnalysticResponse = {
     savings: number[]
-    investements: number[]
+    investments: number[]
     savingRates: number[] 
-    investementRates: number[]
+    investmentRates: number[]
 }
 
 type GetSpendTag = {
@@ -67,15 +67,15 @@ type GetSpendTag = {
 type GetSpendCategory = {
     categoryId: string
     spend: number
-    spendBytag: GetSpendTag[]
+    spendBytags: GetSpendTag[]
 }
 
 export type GetSpendAnalysticRequest = {
     period: string
-    periodTime: number
-    showNumber: number 
+    interval: number
+    startDate: string 
 }
 export type GetSpendAnalysticResponse = {
-    totalSpends: number[] 
+    totalSpend: number[] 
     spendByCategories: GetSpendCategory[][] 
 }

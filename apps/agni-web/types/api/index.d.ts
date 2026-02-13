@@ -4,13 +4,15 @@ export type CreatedRequest =  {
 
 export type ListResponse<T> = {
     items: T[]
-    totals: number
+    total: number
 }
 
 export type QueryFilterRequest = {
     offset: number
     limit: number
     queryAll?: boolean
-    sortBy?: string
-    sortSense?: string
+    sortBy?: {
+        by: string,
+        ascending: boolean
+    }
 }
