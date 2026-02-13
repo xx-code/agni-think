@@ -7,6 +7,7 @@ import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.enums.AccountType
 import dev.auguste.agni_api.core.entities.interfaces.IAccountDetail
 import dev.auguste.agni_api.core.value_objects.BrokingAccountDetail
+import dev.auguste.agni_api.core.value_objects.BusinessAccountDetail
 import dev.auguste.agni_api.core.value_objects.CheckingAccountDetail
 import dev.auguste.agni_api.core.value_objects.CreditCardAccountDetail
 import dev.auguste.agni_api.core.value_objects.SavingAccountDetail
@@ -54,7 +55,7 @@ class JdbcAccountModelMapper(
                 AccountType.CREDIT_CARD-> CreditCardAccountDetail.fromMap(detailMap)
                 AccountType.CHECKING -> CheckingAccountDetail.fromMap(detailMap)
                 AccountType.BROKING-> BrokingAccountDetail.fromMap(detailMap)
-                AccountType.BUSINESS -> CheckingAccountDetail(0.0)
+                AccountType.BUSINESS -> BusinessAccountDetail(0.0)
             }
         }
 

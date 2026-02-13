@@ -7,6 +7,7 @@ import dev.auguste.agni_api.core.entities.interfaces.IAccountDetail
 import dev.auguste.agni_api.core.usecases.accounts.dto.CreateAccountInput
 import dev.auguste.agni_api.core.usecases.accounts.dto.UpdateAccountInput
 import dev.auguste.agni_api.core.value_objects.BrokingAccountDetail
+import dev.auguste.agni_api.core.value_objects.BusinessAccountDetail
 import dev.auguste.agni_api.core.value_objects.CheckingAccountDetail
 import dev.auguste.agni_api.core.value_objects.CreditCardAccountDetail
 import dev.auguste.agni_api.core.value_objects.SavingAccountDetail
@@ -70,7 +71,9 @@ fun mapAccountDetail(type: String, model: ApiAccountDetailModel) : IAccountDetai
                 ManagementAccountType.fromString(model.managementAccountType),
                 ContributionAccountType.fromString(model.contributionType) )
         }
-        else -> CheckingAccountDetail(0.0)
+        AccountType.BUSINESS -> {
+            BusinessAccountDetail(0.0)
+        }
     }
 }
 

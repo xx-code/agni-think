@@ -35,7 +35,7 @@ class GetAllBudgets(
                 status = InvoiceStatusType.COMPLETED
             ))
 
-            val currentBalance = resultBalance.balance
+            val currentBalance = resultBalance.spend
             val saveBalance = savingGoals.filter { budget.targetSavingGoalIds.contains(it.id) }.sumOf { it.balance }
 
             result.add(

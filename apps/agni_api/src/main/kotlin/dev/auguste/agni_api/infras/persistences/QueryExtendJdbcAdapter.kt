@@ -40,7 +40,7 @@ import kotlin.collections.toSet
 
 // TODO: Refactoring
 
-private fun <M, E>addPaginationSqlStringBuilder(
+internal fun <M, E>addPaginationSqlStringBuilder(
     sql: StringBuilder,
     params: MapSqlParameterSource,
     queryFilter: QueryFilter,
@@ -82,7 +82,7 @@ class QueryInvoiceExtendJdbcAdapter(
 
         if (!extend.types.isNullOrEmpty()) {
             sql.append(" AND LOWER(type) IN (:types)")
-            params.addValue("types", extend.types.map { it.value }.toSet())
+            params.addValue("types", extend.types.map { it.value.lowercase() }.toSet())
         }
 
         extend.status?.let {
