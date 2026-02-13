@@ -1,0 +1,36 @@
+FROM eclipse-temurin:21-jdk AS builder
+
+WORKDIR /app
+
+COPY apps/agni_api/gradlew .
+COPY apps/agni_api/gradle gradle
+COPY apps/agni_api/build.gradle.kts .
+COPY apps/agni_api/settings.gradle.kts .
+
+RUN chmod +x gradlew
+
+# cache
+RUN ./gradlew dependencies --no-daemon
+
+COPY apps/agni_api/src src
+
+# Build Jar without test
+RUN ./gradlew bootJar --no-daemon -x test
+
+FROM eclipse-temurin:21-jre-alpine AS runtime
+
+WORKDIR /app
+
+RUN addgroup -S spring && adduser -S spring -G spring
+
+COPY --from=builder --chown=spring:spring /app/build/libs/*.jar app.jar
+
+USER spring
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", \
+  "-XX:+UseContainerSupport", \
+  "-XX:MaxRAMPercentage=75.0", \
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-jar", "app.jar"]

@@ -12,7 +12,7 @@ class CreateTag(private val tagRepo: IRepository<Tag>): IUseCase<CreateTagInput,
         if (tagRepo.existsByName(input.value))
             throw Error("Tag with name ${input.value} already exists.")
 
-        val newTag = Tag(value = input.value, color = input.color, isSystem =  false)
+        val newTag = Tag(value = input.value, color = input.color, isSystem =  input.isSystem.let { input.isSystem } ?: false)
 
         tagRepo.create(newTag)
 

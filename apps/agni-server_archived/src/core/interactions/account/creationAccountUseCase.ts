@@ -1,6 +1,6 @@
-import { GetUID } from '../../../core/adapters/libs';
-import { Account } from '../../../core/domains/entities/account';
-import { ResourceAlreadyExist } from '../../../core/errors/resourceAlreadyExistError';
+import { GetUID } from '../../adapters/libs';
+import { Account } from '../../domains/entities/account';
+import { ResourceAlreadyExist } from '../../errors/resourceAlreadyExistError';
 import { AccountType, mapperContributionAcccountType, mapperManagementAccountType, mapperTypeAccount } from '@core/domains/constants';
 import { IUsecase } from '../interfaces';
 import { CreatedDto } from '@core/dto/base';

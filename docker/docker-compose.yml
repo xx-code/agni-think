@@ -1,18 +1,18 @@
 services:
   web:
+    image: ${WEB_REGISTRY}
     container_name: web
     mem_limit: 512m
     mem_reservation: 256m
     environment:
       - NODE_ENV=production
-      - NUXT_PUBLIC_API_BASE=http://api:${API_PORT}/v1
-    image: ${WEB_REGISTRY}
+      - NUXT_PUBLIC_API_BASE=http://api:8080/v2
     restart: always
     ports:
-      - "${WEB_PORT}:80"
-    depends_on:
-      api:
-        condition: service_started
+      - 8080
+    # depends_on:
+    #   api:
+    #     condition: service_started
     networks:
       - agni
     logging:
@@ -22,27 +22,17 @@ services:
         max-file: "3"
 
   api:
+    image: ${API_REGISTRY}
     container_name: api
     mem_limit: 1g
     mem_reservation: 512m
     environment:
-      - NODE_ENV=production
-      - DB_HOST=db
-      - PORT=${API_PORT}
-      - DB_CLIENT=pg #postgre
-      - DB_NAME=${DB_NAME}    
-      - RUN_MIGRATION=true
-      - DB_USER=${DB_USER}
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - API_AGENT_URL=http://agent:${AGENT_PORT}
-    user: node
-    image: ${API_REGISTRY}
+      - SPRING_PROFILES_ACTIVE=prod
     restart: always
-    ports:
-      - "${API_PORT}:${API_PORT}" # setup in variable
     depends_on:
-      agent:
-        condition: service_started
       db:
         condition: service_healthy
     networks:
@@ -52,24 +42,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-  agent:
-    container_name: agent
-    mem_limit: 2g
-    mem_reservation: 512m
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-    build:
-      context: ./apps/ia-agent
-    restart: always
-    ports:
-      - "${AGENT_PORT}:8000"
-    networks:
-      - agni
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+
   db:
     container_name: db
     image: postgres:17-alpine
@@ -82,7 +55,7 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h localhost"]
+      test: ["CMD-SHELL", "pg_isready -h localhost -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 30
@@ -96,6 +69,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
   adminer:
     image: adminer
     restart: always

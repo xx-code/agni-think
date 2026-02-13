@@ -1,0 +1,22 @@
+FROM node:25-alpine3.23 AS base
+
+WORKDIR /app
+
+COPY apps/agni-web/package.json apps/agni-web/yarn.lock ./
+
+RUN yarn install
+
+# Copie le reste du code source
+COPY apps/agni-web/ .
+
+# Configuration pour Docker
+ENV PORT=3000
+ENV HOST=0.0.0.0
+# Optionnel mais recommandé pour Nuxt 3
+ENV NITRO_PORT=3000
+ENV NITRO_HOST=0.0.0.0
+
+EXPOSE 3000
+
+# Pas besoin de "-o" (open) dans Docker, il n'y a pas de navigateur interne
+CMD ["yarn", "dev", "--host"]

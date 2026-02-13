@@ -1,1 +1,64 @@
-node_modules
+**/node_modules
+**/.nuxt
+**/.output
+**/dist
+.git
+
+### JetBrains IDE (IntelliJ IDEA) ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/resources/archetype-resources/google-services.json
+
+### Eclipse ###
+.settings/
+bin/
+.metadata/
+.classpath
+.project
+.factorypath
+
+### Visual Studio Code ###
+.vscode/
+.factorypath
+.history/
+
+### Build Tools (Maven) ###
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.nextSnapshot
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+# Si vous utilisez le wrapper Maven
+!.mvn/wrapper/maven-wrapper.jar
+
+### Build Tools (Gradle) ###
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+### Spring Boot Spécifique ###
+*.log
+logs/
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+### Docker & Local Env ###
+.env
+.env.local
+docker-compose.override.yml
+
+### OS Files ###
+.DS_Store
+Thumbs.db

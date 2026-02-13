@@ -1,0 +1,111 @@
+name: "agni-app-dev"
+services:
+  web:
+    container_name: agni-frontend-dev
+    environment:
+      - NODE_ENV=development
+      - NUXT_PUBLIC_API_BASE=http://api:8080/v2
+    build:
+      context: ..
+      dockerfile: ./config/frontend/dockerfile.development
+    restart: "no"
+    ports:
+      - 3000
+      - "24678:24678"
+    volumes:
+      - ../apps/agni-web:/app
+      - /app/node_modules
+    networks:
+      - agni
+    depends_on:
+      api:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  api:
+    container_name: agni-backend-dev
+    environment:
+      - DB_URL=jdbc:postgresql://db:5432/agni_dev
+      - DB_USERNAME=dev
+      - DB_PASSWORD=dev
+    build:
+      context: ..
+      dockerfile: ./config/api/dockerfile.development
+    restart: "no"
+    ports:
+      - "8080:8080"
+      - "9229:9229"
+    volumes:
+      - ../apps/agni_api:/app
+      - /app/build
+      - /app/.gradle
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - agni
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"] # Update to your actual health path
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  db:
+    container_name: agni-db-dev
+    image: postgres:17-alpine
+    restart: "no"
+    shm_size: 128mb
+    mem_limit: 512m
+    mem_reservation: 256m
+    environment:
+      - POSTGRES_USER=dev
+      - POSTGRES_PASSWORD=dev
+      - POSTGRES_DB=agni_dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    ports:
+      - "5432:5432"
+    volumes:
+      - agni_data_dev:/var/lib/postgresql/data
+    networks:
+      - agni
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  adminer:
+    image: adminer
+    restart: "no"
+    mem_limit: 256m
+    mem_reservation: 128m
+    ports:
+      - "8888:8080"
+    networks:
+      - agni
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  agni_data_dev:
+
+networks:
+  agni:
+    driver: bridge

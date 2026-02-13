@@ -1,4 +1,4 @@
-import { ValueError } from "../../../core/errors/valueError";
+import { ValueError } from "../../errors/valueError";
 import { isStringDifferent } from "../helpers";
 import { BudgetSaveGoal } from "../valueObjects/budgetSaveGoal";
 import { ValueObjectCollection } from "../valueObjects/collection";

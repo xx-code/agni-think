@@ -1,0 +1,23 @@
+FROM eclipse-temurin:21-jdk
+
+WORKDIR /app
+
+# Copie les fichiers de build
+COPY apps/agni_api/gradlew ./
+COPY apps/agni_api/gradle ./gradle
+COPY apps/agni_api/build.gradle.kts ./
+COPY apps/agni_api/settings.gradle.kts ./
+
+# Donne les droits d'exécution au wrapper
+RUN chmod +x gradlew
+
+# Pré-télécharge les dépendances (cache Docker)
+RUN ./gradlew dependencies --no-daemon
+
+# Copie le source
+COPY apps/agni_api/src ./src
+
+EXPOSE 8080
+
+# Lance avec Spring DevTools activé et rechargement automatique
+CMD ["./gradlew", "bootRun", "--no-daemon", "-Dspring.devtools.restart.enabled=true"]
