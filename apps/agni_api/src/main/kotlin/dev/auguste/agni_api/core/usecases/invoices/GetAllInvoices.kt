@@ -1,10 +1,14 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
+import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.readers.IInvoicetransactionCountReader
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInvoiceExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryTransactionExtend
+import dev.auguste.agni_api.core.entities.Deduction
 import dev.auguste.agni_api.core.entities.Invoice
+import dev.auguste.agni_api.core.entities.enums.DeductionBaseType
+import dev.auguste.agni_api.core.entities.enums.DeductionModeType
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllInvoiceInput
@@ -14,7 +18,7 @@ import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTr
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 
 class GetAllInvoices(
-    private val invoiceRepo: IRepository<Invoice>,
+    private val deductionRepo: IRepository<Deduction>,
     private val invoiceTransactionCountReader: IInvoicetransactionCountReader,
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>
 ): IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>> {
@@ -41,6 +45,8 @@ class GetAllInvoices(
             maxAmount = input.maxAmount
         )
 
+        val deductions = deductionRepo.getAll(QueryFilter(0, 0, true))
+
         val invoices = invoiceTransactionCountReader.pagination(input.queryFilter, queryInvoiceExtend, queryTransactionExtend)
 
         val results = mutableListOf<GetInvoiceOutput>()
@@ -57,6 +63,30 @@ class GetAllInvoices(
         for (invoice in invoices.items) {
             val invoiceTransactions = transactions.find { it.invoiceId == invoice.id }
             if (invoiceTransactions != null) {
+                val invoiceDeductions = mutableListOf<InvoiceDeductionOutput>()
+
+                for (invoiceDeduction in invoice.deductions) {
+                    val deduction = deductions.items.find { it.id ==  invoiceDeduction.deductionId }
+                    if (deduction != null) {
+                        val amount = if (deduction.base == DeductionBaseType.SUBTOTAL) {
+                            invoiceTransactions.subTotal
+                        } else{
+                            invoiceTransactions.total
+                        }
+
+                        val res = if (deduction.mode == DeductionModeType.FLAT) {
+                            invoiceDeduction.amount
+                        } else {
+                            amount * (invoiceDeduction.amount / 100)
+                        }
+
+                        invoiceDeductions.add(InvoiceDeductionOutput(
+                            id = invoiceDeduction.deductionId,
+                            amount = res
+                        ))
+                    }
+                }
+
                 results.add(
                     GetInvoiceOutput(
                         id = invoice.id,
@@ -68,9 +98,7 @@ class GetAllInvoices(
                         date = invoice.date,
                         type = invoice.type.value,
                         transactions = invoiceTransactions.transactions,
-                        deductions = invoice.deductions.map { InvoiceDeductionOutput(
-                            it.deductionId, it.amount
-                        ) }
+                        deductions = invoiceDeductions
                     )
                 )
             }

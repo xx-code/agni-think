@@ -40,22 +40,31 @@ import kotlin.collections.toSet
 
 // TODO: Refactoring
 
-internal fun <M, E>addPaginationSqlStringBuilder(
+
+internal fun <M, E> addPaginationSqlStringBuilder(
     sql: StringBuilder,
     params: MapSqlParameterSource,
     queryFilter: QueryFilter,
-    mapper: IMapper<M, E>): StringBuilder {
+    mapper: IMapper<M, E>,
+    isDistinctTransaction: Boolean = false
+): StringBuilder {
 
-    if (queryFilter.queryAll)
-        return sql
+    if (queryFilter.queryAll) return sql
 
     val allowedSortFields = mapper.getSortField()
+
     if (queryFilter.sortBy.by in allowedSortFields) {
         val sortField = queryFilter.sortBy.by
         val direction = if (queryFilter.sortBy.ascending) "ASC" else "DESC"
-        sql.append(" ORDER BY $sortField $direction")
-    }
 
+        if (isDistinctTransaction) {
+            sql.append(" ORDER BY t.transaction_id, $sortField $direction")
+        } else {
+            sql.append(" ORDER BY $sortField $direction")
+        }
+    } else if (isDistinctTransaction) {
+        sql.append(" ORDER BY t.transaction_id")
+    }
 
     sql.append(" LIMIT :limit OFFSET :offset")
     params.addValue("limit", queryFilter.limit)

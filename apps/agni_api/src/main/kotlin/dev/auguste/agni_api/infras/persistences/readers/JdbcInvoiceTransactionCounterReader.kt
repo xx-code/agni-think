@@ -82,7 +82,7 @@ class JdbcInvoiceTransactionCountReader(
             params.addValue("budgets", objectMapper.writeValueAsString(queryTransactionExtend.budgetIds))
         }
 
-        return addPaginationSqlStringBuilder(sql, params, queryFilter, mapper)
+        return addPaginationSqlStringBuilder(sql, params, queryFilter, mapper, true)
     }
 
     override fun count(
@@ -106,16 +106,26 @@ class JdbcInvoiceTransactionCountReader(
         queryInvoiceExtend: IQueryExtend<Invoice>,
         queryTransactionExtend: IQueryExtend<Transaction>
     ): ListOutput<Invoice> {
-        // Can be heavy
         val total = count(queryInvoiceExtend, queryTransactionExtend)
 
         var sql = StringBuilder("""
-            SELECT * FROM transactions t
+            SELECT DISTINCT ON (t.transaction_id) 
+                t.transaction_id, 
+                t.account_id,
+                t.is_freeze,
+                t.status,
+                t.type,
+                t.mouvement,
+                t.date,
+                t.deductions
+            FROM transactions t
             JOIN records r ON t.transaction_id = r.transaction_id
             WHERE 1=1
         """.trimIndent())
+
         val params = MapSqlParameterSource()
         sql = buildStringSql(query, queryInvoiceExtend, queryTransactionExtend, sql, params)
+
 
         val row = RowMapper { rs, _ ->
             JdbcInvoiceModel(

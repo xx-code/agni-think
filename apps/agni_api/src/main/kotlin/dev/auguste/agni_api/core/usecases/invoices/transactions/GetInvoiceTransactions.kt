@@ -36,7 +36,6 @@ class GetInvoiceTransactions(
         var transactions = transactionRepo.getAll(QueryFilter(0, 0, true), extends).items
 
          if (input.doRemoveSpecialCategory == true) {
-             transactions = transactions.filter { !setOf(SAVING_CATEGORY_ID, TRANSFERT_CATEGORY_ID).contains(it.categoryId) }
          }
 
         val results = mutableListOf<GetInvoiceTransactionsOutput>()
@@ -57,8 +56,7 @@ class GetInvoiceTransactions(
                             it.amount
                         else
                             subTotal * (it.amount / 100)
-                    }
-                    0
+                    } ?: 0.0
                 }
 
                 val total = totalBeforeSubTotal + deductionTotal.sumOf { deduction ->
@@ -67,9 +65,8 @@ class GetInvoiceTransactions(
                         if (deduction.mode == DeductionModeType.FLAT)
                             it.amount
                         else
-                            subTotal * (it.amount / 100)
-                    }
-                    0
+                            totalBeforeSubTotal * (it.amount / 100)
+                    } ?: 0.0
                 }
 
                 results.add(GetInvoiceTransactionsOutput(
