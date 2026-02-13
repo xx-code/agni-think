@@ -1,5 +1,5 @@
 import type { ListResponse, QueryFilterRequest } from "~/types/api";
-import type { GetAllSnapshotPatrimonyResponse } from "~/types/api/patrimony";
+import type { GetSnapshotPatrimonyResponse } from "~/types/api/patrimony";
 import type { SnapshotPatrimonyType } from "~/types/ui/patrimony";
 import type { UseApiFetchReturn } from "~/types/utils";
 
@@ -12,10 +12,10 @@ export function useSnapshotsPatrimony(patrimonyId: string): UseApiFetchReturn<Li
     const { data, error, refresh } = useFetch(`/api/patrimonies/${patrimonyId}/get-snapshots`, {
         method: 'GET',
         query: query,
-        transform: (data: ListResponse<GetAllSnapshotPatrimonyResponse>) => {
+        transform: (data: ListResponse<GetSnapshotPatrimonyResponse>) => {
             return {
                 items: data.items.map(i => ({ id: i.id, patrimonyId: i.patrimonyId, balance: i.balance, date: new Date(i.date), status: i.status})),
-                totals: data.totals
+                total: data.total
             } satisfies ListResponse<SnapshotPatrimonyType>  
         }
     })
@@ -29,13 +29,13 @@ export async function fetchSnapshotsPatrimony(patrimonyId: string, startDate?: D
         offset: 0,
         queryAll: true
     }
-    const res = await $fetch<ListResponse<GetAllSnapshotPatrimonyResponse>>(`/api/patrimonies/${patrimonyId}/get-snapshots`, {
+    const res = await $fetch<ListResponse<GetSnapshotPatrimonyResponse>>(`/api/patrimonies/${patrimonyId}/get-snapshots`, {
         method: "GET",
         query: query 
     })
 
     return {
         items: res.items.map(i => ({ id: i.id, patrimonyId: i.patrimonyId, balance: i.balance, date: new Date(i.date), status: i.status})),
-        totals: res.totals
+        total: res.total
     } satisfies ListResponse<SnapshotPatrimonyType>
 }

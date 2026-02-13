@@ -1,7 +1,7 @@
 import type { Reactive } from "vue";
 import type { ListResponse, QueryFilterRequest } from "~/types/api";
-import type { GetAllAccountResponse, GetallAccountWithDetailResponse } from "~/types/api/account";
-import type { AccountBrokeDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType } from "~/types/ui/account";
+import type { GetAccountResponse, GetAccountWithDetailResponse } from "~/types/api/account";
+import type { AccountBrokeDetailType, AccountCheckingDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType } from "~/types/ui/account";
 import type { UseApiFetchReturn } from "~/types/utils";
 
 export const ALL_ACCOUNT_ID = "all"
@@ -25,15 +25,15 @@ export default function useAccounts(query: Reactive<QueryFilterRequest>): UseApi
     const { data, error, refresh } = useFetch('/api/accounts', {
         method: 'GET',
         query: query,
-        transform: (data: ListResponse<GetAllAccountResponse>) => {
+        transform: (data: ListResponse<GetAccountResponse>) => {
             return {
                 items: data.items.map(i => ({
-                    id: i.accountId,
+                    id: i.id,
                     title: i.title,
                     balance: i.balance,
                     type: i.type
                 })),
-                totals: Number(data.totals) 
+                total: Number(data.total) 
             } satisfies ListResponse<AccountType>;
         }
     });
@@ -42,24 +42,24 @@ export default function useAccounts(query: Reactive<QueryFilterRequest>): UseApi
 }
 
 export async function fetchAccounts(query: QueryFilterRequest): Promise<ListResponse<AccountType>> {
-    const res = await $fetch<ListResponse<GetAllAccountResponse>>('/api/accounts', {
+    const res = await $fetch<ListResponse<GetAccountResponse>>('/api/accounts', {
         method: 'GET',
         query: query,
     });
 
     return {
         items: res.items.map(i => ({
-            id: i.accountId,
+            id: i.id,
             title: i.title,
             balance: i.balance,
             type: i.type
         } satisfies AccountType)),
-        totals: Number(res.totals) 
+        total: Number(res.total) 
     }
 } 
 
 export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promise<ListResponse<AccountWithDetailType>> {
-    const res = await $fetch<ListResponse<GetallAccountWithDetailResponse>>('/api/accounts/getAllAccountWithDetail', {
+    const res = await $fetch<ListResponse<GetAccountWithDetailResponse>>('/api/accounts/getAllAccountWithDetail', {
         method: 'GET',
         query: query
     })
@@ -71,26 +71,30 @@ export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promis
             switch(type) {
                 case 'Broking':
                     return {
-                        managementType: account.detailForBroking?.contributionType ?? "",
-                        type: account.detailForBroking?.managementType ?? ""
+                        managementType: account.detail.detailForBroking?.contributionType ?? "",
+                        type: account.detail.detailForBroking?.managementType ?? ""
                     } satisfies AccountBrokeDetailType 
                 case 'CreditCard':    
                     return {
-                        creditUtilisation: account.detailForCreditCard?.creditUtilisation ?? 0,
-                        creditLimit: account.detailForCreditCard?.creditCardLimit ?? 0
+                        creditUtilisation: account.detail.detailForCreditCard?.creditUtilisation ?? 0,
+                        creditLimit: account.detail.detailForCreditCard?.creditCardLimit ?? 0
                     } satisfies AccountCreditDetailType
+                case 'Checking':
+                    return {
+                        buffer: account.detail.detailForChecking?.buffer ?? 0
+                    } satisfies AccountCheckingDetailType
                 default:
                     return undefined
             }
         }
 
         accountsWithPastBalances.push({
-            id: account.accountId,
+            id: account.id,
             title: account.title,
             balance: account.balance,
             type: account.type,
             lockedBalance: account.lockedBalance, 
-            freezedBalance: account.freezedBalance,
+            freezedBalance: account.freezeBalance,
             detail: detailAccount(account.type)
         });            
     }
@@ -108,5 +112,5 @@ export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promis
 
     accountsWithPastBalances.unshift(totalAccount)
 
-    return { items: accountsWithPastBalances, totals: res.totals}; 
+    return { items: accountsWithPastBalances, total: res.total}; 
 } 

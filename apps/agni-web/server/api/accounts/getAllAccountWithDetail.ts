@@ -6,7 +6,7 @@ export default defineEventHandler(async event => {
     try {
         const api = useApiLink(); 
         const query = getQuery(event);
-        const res = await $fetch(`${api}/accounts-with-detail`, {
+        const res = await $fetch(`${api}/accounts/with-detail`, {
             method: 'GET',
             query: query
         });

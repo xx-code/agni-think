@@ -17,7 +17,7 @@ export default function useNotification(query: Reactive<NotificationQueryFilterR
                     content: i.content,
                     dateTime: new Date(i.dateTime)
                 })),
-                totals: Number(data.totals) 
+                total: Number(data.total) 
             }
         }
     })
@@ -40,7 +40,7 @@ export async function fetchNotifications(query: NotificationQueryFilterRequest):
             content: i.content,
             dateTime: new Date(i.dateTime)
         })),
-        totals: Number(res.totals) 
+        total: Number(res.total) 
     }
 }
 
@@ -48,6 +48,7 @@ export async function checkNotifications(): Promise<boolean> {
     const query: NotificationQueryFilterRequest = {
         offset: 0,
         limit: 0,
+        queryAll: true,
         isRead: false
     }
     const res = await $fetch<ListResponse<GetAllNotification>>('/api/notifications', {

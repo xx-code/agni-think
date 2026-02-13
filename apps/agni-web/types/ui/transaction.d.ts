@@ -1,6 +1,6 @@
 import type { CalendarDate } from "@internationalized/date"
 
-export type EditRecordType = {
+export type EditTransactionType = {
     amount: number
     description: string
     categoryId: string
@@ -8,25 +8,26 @@ export type EditRecordType = {
     budgetIds: string[]
 } 
 
-export type EditTransactionDeductionType = {
+export type EditInvoiceDeductionType = {
     deductionId: string
     amount: number
 }
 
-export type EditTransactionType = {
+export type EditInvoiceType = {
     accountId: string
     state: string
     type: string
     mouvement: string
     date: CalendarDate
-    records: EditRecordType[] 
+    transactions: EditTransactionType[] 
     deductions: EditTransactionDeductionType[]
 }
 
-export type EditFreezeTransactionType = {
-    accountId: string,
+export type EditFreezeInvoiceType = {
+    accountId: string
     title: string
-    amount: number,
+    amount: number
+    status: string
     endDate: CalendarDate
 }
 
@@ -37,7 +38,7 @@ export type EditTransfertType = {
     amount: number;
 }
 
-export type RecordType = {
+export type TransactionType = {
     id: string
     amount: number
     description: string
@@ -51,7 +52,7 @@ export type TransactionDeductionType = {
     amount: number
 }
 
-export type TransactionType = {
+export type InvoiceType = {
     id: string
     accountId: string
     date: Date
@@ -60,11 +61,11 @@ export type TransactionType = {
     status: string
     subTotal: number
     total: number
-    records: RecordType[]
+    transactions: TransactionType[]
     deductions: TransactionDeductionType[]
 }
 
-export type RecordTableType = {
+export type TransactionTableType = {
     id: string
     description: string
     amount: number
@@ -82,12 +83,12 @@ export type RecordTableType = {
     budgets: {id: string, title: string}[]
 }
 
-export type TransactionDeductionTableType = {
+export type InvoiceDeductionTableType = {
     name: string
     amount: number
 }
 
-export type TransactionTableType = {
+export type InvoiceTableType = {
     id: string
     accountId: string
     date: Date
@@ -97,6 +98,6 @@ export type TransactionTableType = {
     status: string
     subTotal: number
     total: number
-    records: RecordTableType[]
-    deductions: TransactionDeductionTableType[]
+    transactions: TransactionTableType[]
+    deductions: InvoiceDeductionTableType[]
 }

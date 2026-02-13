@@ -1,5 +1,5 @@
 import type { AgentAdvisorRequest, AgentPlanningAdvisorResponse } from "~/types/api/agent";
-import type { AgentSavegoalAdviceType, PlanningAgentAdvisorType } from "~/types/ui/agent";
+import type { PlanningAgentAdvisorType } from "~/types/ui/agent";
 import type { UseApiFetchReturn } from "~/types/utils";
 
 export default function usePlanningAdvisorAgent(request: AgentAdvisorRequest): UseApiFetchReturn<PlanningAgentAdvisorType>{

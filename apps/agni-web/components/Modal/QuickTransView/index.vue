@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { fetchCategories } from '~/composables/categories/useCategories';
-import { fetchTransactionPagination } from '~/composables/transactions/useTransactionPagination';
-import type { FilterTransactionQuery } from '~/types/api/transaction';
+import { fetchInvoicePagination } from '~/composables/invoices/useTransactionPagination';
 import type { AccountWithDetailType } from '~/types/ui/account';
 import ListTransaction from './ListTransaction.vue';
-import { fetchBalance } from '~/composables/transactions/useBalance';
+import { fetchBalance } from '~/composables/invoices/useBalance';
 import { fetchTags } from '~/composables/tags/useTags';
 import { fetchBudgets } from '~/composables/budgets/useBudgets';
+import type { QueryFilterRequest } from '~/types/api';
+import type { QueryInvoice } from '~/types/api/transaction';
 
 export type SlideQuickViewTransactionType = {
     id: string
     icon?: string
-    color?: string
+     color?: string
     category?: string
     description: string
     status: string
@@ -20,7 +21,7 @@ export type SlideQuickViewTransactionType = {
     date: Date
     subTotal: number
     total: number
-    records?: {
+    transactions?: {
         id: string
         description: string
         amount: number
@@ -53,32 +54,32 @@ const { account } = defineProps<{
 // État actif (freeze ou all)
 const activeTab = ref<'freeze' | 'all'>('all');
 
-const queryFreeze = reactive<FilterTransactionQuery>({
+const queryFreeze = reactive<QueryFilterRequest & QueryInvoice>({
     offset: 0,
     limit: 5,
-    accountFilterIds: [account.id],
-    categoryFilterIds: [],
-    tagFilterIds: [],
-    budgetFilterIds: [],
-    minPrice: undefined,
-    maxPrice: undefined,
-    dateStart: undefined,
-    dateEnd: undefined,
+    accountIds: [account.id],
+    categoryIds: [],
+    tagIds: [],
+    budgetIds: [],
+    minAmount: undefined,
+    maxAmount: undefined,
+    endDate: undefined,
+    startDate: undefined,
     isFreeze: true
 });
 const pageFreeze = ref(1);
 
-const queryAllTrans = reactive<FilterTransactionQuery>({
+const queryAllTrans = reactive<QueryFilterRequest & QueryInvoice>({
     offset: 0,
     limit: 5,
-    accountFilterIds: [account.id],
-    categoryFilterIds: [],
-    tagFilterIds: [],
-    budgetFilterIds: [],
-    minPrice: undefined,
-    maxPrice: undefined,
-    dateStart: undefined,
-    dateEnd: undefined,
+    accountIds: [account.id],
+    categoryIds: [],
+    tagIds: [],
+    budgetIds: [],
+    minAmount: undefined,
+    maxAmount: undefined,
+    endDate: undefined,
+    startDate: undefined,
     isFreeze: false
 });
 const pageTrans = ref(1);
@@ -109,23 +110,23 @@ const getBudget = (budgetId: string) => {
 }
 
 // TODO: Duplicate
-const { data: freezeTransactions, refresh: refreshFreezeTransactions } = useAsyncData(
+const { data: freezeInvoices, refresh: refreshFreezeInvoices } = useAsyncData(
     "slide-freeze-transactions-data", 
     async () => {
-        const transactions = await fetchTransactionPagination(queryFreeze);
+        const transactions = await fetchInvoicePagination(queryFreeze);
 
         return {
             items: transactions.items.map(i => {
                 return {
                     id: i.id,
-                    description: `${i.records?.length || 0} article${(i.records?.length || 0) > 1 ? 's' : ''}`,
+                    description: `${i.transactions?.length || 0} article${(i.transactions?.length || 0) > 1 ? 's' : ''}`,
                     date: i.date,
                     status: i.status,
                     type: i.type,
                     mouvement: i.mouvement,
                     subTotal: i.subTotal,
                     total: i.total,
-                    records: i.records?.map(record => ({
+                    transactions: i.transactions?.map(record => ({
                         id: record.id,
                         description: record.description,
                         amount: record.amount,
@@ -152,16 +153,16 @@ const { data: freezeTransactions, refresh: refreshFreezeTransactions } = useAsyn
                     deductions: i.deductions.map(i => ({ name: i.id, amount: i.amount}))
                 } satisfies SlideQuickViewTransactionType;
             }),
-            total: transactions.totals
+            total: transactions.total
         };
     }, 
     { watch: [utils, queryFreeze] }
 );
 
-const { data: transactions, refresh: refreshTransactions } = useAsyncData(
+const { data: invoices, refresh: refreshInvoices } = useAsyncData(
     "slide-transactions-data", 
     async () => {
-        const transactions = await fetchTransactionPagination(queryAllTrans);
+        const transactions = await fetchInvoicePagination(queryAllTrans);
 
         return {
             items: transactions.items.map(i => {
@@ -172,10 +173,10 @@ const { data: transactions, refresh: refreshTransactions } = useAsyncData(
                     status: i.status,
                     type: i.type,
                     subTotal: i.subTotal,
-                    description: `${i.records?.length || 0} article${(i.records?.length || 0) > 1 ? 's' : ''}`,
+                    description: `${i.transactions?.length || 0} article${(i.transactions?.length || 0) > 1 ? 's' : ''}`,
                     total: i.total,
                     mouvement: i.mouvement,
-                    records: i.records?.map(record => ({
+                    transactions: i.transactions?.map(record => ({
                         id: record.id,
                         description: record.description,
                         amount: record.amount,
@@ -202,7 +203,7 @@ const { data: transactions, refresh: refreshTransactions } = useAsyncData(
                     deductions: i.deductions.map(i => ({ name: i.id, amount: i.amount}))
                 } satisfies SlideQuickViewTransactionType;
             }),
-            total: transactions.totals
+            total: transactions.total
         };
     }, 
     { watch: [utils, queryAllTrans] }
@@ -315,7 +316,7 @@ function getAccountTypeIcon(type: string) {
                         />
                     </button>
                     <button
-                        v-if="freezeTransactions?.items && freezeTransactions.items.length > 0"
+                        v-if="freezeInvoices?.items && freezeInvoices.items.length > 0"
                         @click="activeTab = 'freeze'"
                         :class="[
                             'px-4 py-2 font-medium text-sm transition-colors relative flex items-center gap-2',
@@ -326,7 +327,7 @@ function getAccountTypeIcon(type: string) {
                     >
                         <span>Transactions gelées</span>
                         <UBadge 
-                            :label="String(freezeTransactions.total)"
+                            :label="String(freezeInvoices.total)"
                             class="text-amber-600"
                             variant="subtle"
                             size="xs"
@@ -339,21 +340,21 @@ function getAccountTypeIcon(type: string) {
                 </div>
 
                 <!-- Liste des transactions gelées -->
-                <div v-if="activeTab === 'freeze' && freezeTransactions?.items && freezeTransactions.items.length > 0">
+                <div v-if="activeTab === 'freeze' && freezeInvoices?.items && freezeInvoices.items.length > 0">
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="font-semibold text-gray-900 dark:text-white">
-                            Transactions gelées ({{ freezeTransactions.total }})
+                            Transactions gelées ({{ freezeInvoices.total }})
                         </h4>
                     </div>
 
-                    <ListTransaction :transactions="freezeTransactions.items" />
+                    <ListTransaction :transactions="freezeInvoices.items" />
 
                     <div class="flex flex-row gap-2 items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <UPagination 
                             v-model:page="pageFreeze" 
                             @update:page="v => { queryFreeze.offset = (queryFreeze.limit * (Number(v) - 1)) }"
                             :items-per-page="queryFreeze.limit"  
-                            :total="freezeTransactions.total" 
+                            :total="freezeInvoices.total" 
                             active-variant="subtle" 
                         />
                         <div class="flex items-center gap-2">
@@ -371,21 +372,21 @@ function getAccountTypeIcon(type: string) {
                 </div>
 
                 <!-- Liste de toutes les transactions -->
-                <div v-if="activeTab === 'all' && transactions?.items && transactions.items.length > 0">
+                <div v-if="activeTab === 'all' && invoices?.items && invoices.items.length > 0">
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="font-semibold text-gray-900 dark:text-white">
-                            Toutes les transactions ({{ transactions.total }})
+                            Toutes les transactions ({{ invoices.total }})
                         </h4>
                     </div>
 
-                    <ListTransaction :transactions="transactions.items" />
+                    <ListTransaction :transactions="invoices.items" />
 
                     <div class="flex flex-row gap-2 items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <UPagination 
                             v-model:page="pageTrans" 
                             @update:page="v => { queryAllTrans.offset = (queryAllTrans.limit * (Number(v) - 1)) }"
                             :items-per-page="queryAllTrans.limit"  
-                            :total="transactions.total" 
+                            :total="invoices.total" 
                             active-variant="subtle" 
                         />
                         <div class="flex items-center gap-2">
@@ -404,8 +405,8 @@ function getAccountTypeIcon(type: string) {
 
                 <!-- État vide -->
                 <div 
-                    v-if="(activeTab === 'all' && (!transactions?.items || transactions.items.length === 0)) ||
-                          (activeTab === 'freeze' && (!freezeTransactions?.items || freezeTransactions.items.length === 0))"
+                    v-if="(activeTab === 'all' && (!invoices?.items || invoices.items.length === 0)) ||
+                          (activeTab === 'freeze' && (!freezeInvoices?.items || freezeInvoices.items.length === 0))"
                     class="text-center py-12"
                 >
                     <UIcon 

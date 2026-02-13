@@ -4,23 +4,9 @@ export type GetPatrimonyResponse = {
     id: string
     title: string
     amount: number
-    accounts: {
-        accountId: string
-        title: string
-        balance: number
-        pastBalance: number
-    }[],
-    currentSnapshotBalance: number
-    pastSnapshotBalance: number
-    type: string
-}
-
-export type GetAllPatrimoniesResponse = {
-    id: string
-    title: string
-    amount: number
-    currentSnapshotBalance: number
-    lastSnapshotBalance: number
+    accountIds: string[]
+    currentBalance: number
+    pastBalance: number
     type: string
 }
 
@@ -39,25 +25,19 @@ export type UpdatePatrimonyRequest = {
 }
 
 export type AddSnapshotPatrimonyRequest = {
-    patrimonyId: string
     balance: number
     status: string
     date: string
 }
 
 export type UpdateSnapshotPatrimonyRequest = {
-    patrimonyId?: string
     balance?: number
     status?: string
     date?: string
 }
 
-export type GetPatrimonyRequest = {
-    period: string
-    periodTime: number
-}
 
-export type GetAllSnapshotPatrimonyResponse = {
+export type GetSnapshotPatrimonyResponse = {
     id: string,
     patrimonyId: string
     balance: number

@@ -1,7 +1,7 @@
-import type { DeleteSaveGoalRequest } from "~/types/api/saveGoal";
+import type { DeleteSavingGoalRequest } from "~/types/api/saveGoal";
 
-export default async function useDeleteSaveGoal(saveGoalId: string, request: DeleteSaveGoalRequest): Promise<void> {
-    await $fetch(`/api/save-goals/${saveGoalId}`, {
+export default async function useDeleteSaveGoal(saveGoalId: string, request: DeleteSavingGoalRequest): Promise<void> {
+    await $fetch(`/api/saving-goals/${saveGoalId}`, {
         method: 'DELETE',
         body: request
     });

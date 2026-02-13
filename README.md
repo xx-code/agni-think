@@ -1,109 +1,160 @@
-# 📦 Agni
-
+# Agni
 > A personal finance tracking app to visualize your spending habits and raise awareness about your financial behavior.
 
 This project is an application designed to help you track your expenses, analyze your financial behavior through graphs, and develop better money habits. It offers semi-automated features, and future versions will include AI and workflow automation.
 
-To get the most out of this tool, treat it like a financial notebook consistent usage is key to long-term insight and improvement.
+To get the most out of this tool, treat it like a financial notebook. Consistent usage is key to long-term insight and improvement.
 
-## 🔥 Why the Name "Agni"?
+## Why the Name "Agni"?
+In my culture, the Agni ethnic group is often stereotyped as stingy. However, I believe that being "stingy" isn't necessarily a bad trait, as long as it doesn't lead to a miserable lifestyle. Instead, it can be a mindset focused on financial health and responsibility. I see it as being economical and intentional with money.
 
-In my culture, the Agni ethnic group is often stereotyped as stingy. However, I believe that being "stingy" isn't necessarily a bad trait as long as it doesn't lead to a miserable lifestyle. Instead, it can be a mindset focused on financial health and responsibility. I see it as being economical and intentional with money.
+## Stack
 
-## 📐 Stack
+**Frontend**
+- Vue.js with Nuxt
 
-**Frontend**  
-- Vue.js with Nuxt (migrating from React)
+**Backend**
+- Kotlin with Spring Boot
 
-**Backend**  
-- Node.js with Express  
-- Database handled using Knex
+**Database**
+- PostgreSQL 17
 
-**Mobile**  
-- Swift with SwiftUI (coming soon)
+**Mobile**
+- Swift with SwiftUI *(coming soon)*
+- Kotlin for Android *(coming soon)*
 
-**Monorepo**  
-- Turborepo (not yet implemented)
+## Architecture
 
-## 🏗️ Architecture
+The backend (Kotlin with Spring Boot) follows **Clean Architecture** principles combined with a **Domain-Driven Design (DDD)** approach for modeling business logic.
 
-The backend (Node.js + Express) follows **Clean Architecture** principles combined with a **Domain-Driven Design (DDD)** approach for modeling business logic.
+## Features
+<!--TODO: list features and future features-->
 
-### 📂 Folder Structure
-```
-apps/
-    agni-server/ # Backend server
-    config/             # Configuration files and dependency injection container # Includes environment setup, constants, and app-wide settings
-    controllers/        # HTTP controllers or interfaces to execute use cases # Responsible for parsing requests, calling use cases, and formatting responses
-    core/               # The heart of the application (domain and use cases)
-      adapters/         # Interface adapters to connect the domain with external systems or frameworks# Example: data mappers, serializers, or gateways
-      domains/          # Pure domain logic — no framework or DB logic here # Includes: # - Entities (business objects with identity) # - Value Objects (immutable, behavior-driven types) # - Domain services (pure logic with no side-effects)
-      interactions/     # Application-level use cases # Defines how the outside world interacts with domain logic # Example: "CreateTransaction", "GenerateSpendingReport"
-      repositories/     # Interfaces that define how to interact with data sources # These are implemented later in the infrastructure layer
-    infra/              # Infrastructure implementations for external services
-                        # Includes:
-                        # - Database adapters (e.g., PostgreSQL, SQLite)
-                        # - External APIs
-                        # - Repository implementations that fulfill `core/repositories` interfaces
-    agni-web/ # Frontend web application (Nuxt.js), Handles all user interface and client-side logic
-    
-    agni-mobile/ # Mobile app (Swift + SwiftUI, coming soon); # Will share logic where possible with agni-web
+---
+
+## Quick Start
+
+### Prerequisites
+- [Docker](https://www.docker.com/) & Docker Compose
+
+That's it — no local JDK or Node.js required for development.
+
+### Clone the repository
+```bash
+git clone https://github.com/xx-code/agni-think.git
+cd agni-think/
 ```
 
-## ✨ Features
-<!--TODO list feature, future features-->
+---
 
+##  Development
 
-## 🚀 Installation
+The dev environment is fully Dockerized. It includes:
+- **Frontend** (Nuxt, with HMR on port `3000` + `24678`)
+- **Backend** (Spring Boot with DevTools auto-reload, port `8080`)
+- **PostgreSQL 17** (port `5432`)
+- **Adminer** — database UI at [http://localhost:8888](http://localhost:8888)
+
+### Start the dev environment
+```bash
+docker compose -f docker/docker-compose.development.yml up --build
+```
+
+| Service   | URL                          |
+|-----------|------------------------------|
+| Frontend  | http://localhost:3000        |
+| Backend   | http://localhost:8080        |
+| Adminer   | http://localhost:8888        |
+| DB        | localhost:5432               |
+
+Default dev DB credentials (pre-configured, no `.env` needed):
+- **User:** `dev`
+- **Password:** `dev`
+- **Database:** `agni_dev`
+
+### Stop the dev environment
+```bash
+docker compose -f docker/docker-compose.development.yml down
+```
+
+To also remove the dev database volume:
+```bash
+docker compose -f docker/docker-compose.development.yml down -v
+```
+
+---
+
+## Deployment
+
+### 1. Configure environment variables
+
+Copy the example file and fill in your values:
+```bash
+cp .env.example .env
+```
+
+See [`.env.example`](.env.example) for all required variables.
+
+### 2. Build & push Docker images
+
+Use the release scripts to build and push versioned images to your registry:
 
 ```bash
-# Clone the repository
-git clone https://github.com/xx-code/agin-think.git
-
-# Navigate into le dossier principal
-cd agni-think/
-
-# Installer les dépendances
-npm install
-
 # Backend
-cd apps/agni-server
-npm run dev # pour le développement
+VERSION=1.0.0 REGISTRY=your-registry.io ./bin/build_push_release_backend.sh
 
 # Frontend
-cd ../agni-web
-npm run dev # pour le développement
+VERSION=1.0.0 REGISTRY=your-registry.io ./bin/build_push_release_frontend.sh
 ```
 
-## 📦 Deployment
+This will tag and push:
+- `your-registry.io/agni-api-spring-boot:1.0.0`
+- `your-registry.io/agni-web:1.0.0`
 
-### Backend (agni-server)
-1. Set your environment variables in a `.env` file (see `.env.example`).
-2. For production deployment, use:
-  ```bash
-  npm run build
-  npm run start
-  ```
-3. You can also use Docker:
-  ```bash
-  docker-compose up -d --build
-  ```
+### 3. Deploy with Docker Compose
 
-### Frontend (agni-web)
-1. Set your environment variables in `.env` or `.env.production`.
-2. To build for production:
-  ```bash
-  npm run build
-  npm run start
-  ```
-3. For Docker:
-  ```bash
-  docker-compose up -d --build
-  ```
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
 
-### Access
-After deployment, the backend server is available on the configured port (default 5002), and the frontend on port 3000.
+The production stack includes:
+- **Frontend** (Nuxt, served from registry image)
+- **Backend** (Spring Boot with `prod` profile, served from registry image)
+- **PostgreSQL 17** (persistent volume `agni_data`)
+- **Adminer** — accessible on the port defined by `ADMINER_PORT`
 
-### Update
-To update, pull the repository and rerun the build/start commands.
+### Production image details
 
+The backend uses a **multi-stage build**:
+- Build stage: `eclipse-temurin:21-jdk` — compiles the Spring Boot fat JAR via Gradle
+- Runtime stage: `eclipse-temurin:21-jre-alpine` — minimal JRE image, runs as a non-root `spring` user
+
+### Stop production
+```bash
+docker compose -f docker/docker-compose.yml down
+```
+
+---
+
+## Project Structure
+
+```
+agni-think/
+├── apps/
+│   ├── agni-web/          # Nuxt frontend
+│   └── agni_api/          # Spring Boot backend
+├── bin/
+│   ├── build_push_release_backend.sh
+│   └── build_push_release_frontend.sh
+├── config/
+│   ├── api/
+│   │   ├── Dockerfile
+│   │   └── Dockerfile.development
+│   └── frontend/
+│       ├── Dockerfile
+│       └── Dockerfile.development
+├── docker/
+│   ├── docker-compose.yml
+│   └── docker-compose.development.yml
+└── .env.example
+```

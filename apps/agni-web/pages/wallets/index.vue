@@ -1,24 +1,26 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ALL_ACCOUNT_ID } from "~/composables/accounts/useAccountsWithPastBalance";
 import useDeleteAccount from "~/composables/accounts/useDeleteAccount";
 import type { AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
 import useCreateAccount from "~/composables/accounts/useCreateAccount";
 import useUpdateAccount from "~/composables/accounts/useUpdateAccount";
-import { ModalEditAccount, ModalEditFreezeTransaction, ModalEditTransaction, ModalEditTransfer, ModalQuickTransView } from "#components";
 import { fetchAccountWithDetail } from "~/composables/accounts/useAccount";
-import type { EditFreezeTransactionType, EditTransactionType, EditTransfertType, TransactionTableType, TransactionType } from "~/types/ui/transaction";
-import useUpdateTransaction from "~/composables/transactions/useUpdateTransaction";
-import useCreateTransaction from "~/composables/transactions/useCreateTransaction";
-import useFreezeTransaction from "~/composables/transactions/useFreezeTransaction";
-import useTransfertTransaction from "~/composables/transactions/useTransfertTransaction";
-import type { FilterTransactionQuery } from "~/types/api/transaction";
+import type { EditFreezeInvoiceType, EditInvoiceType, EditTransactionType, EditTransfertType, InvoiceTableType, InvoiceType, TransactionType } from "~/types/ui/transaction";
+import useUpdateTransaction from "~/composables/invoices/useUpdateTransaction";
+import useCreateInvoice from "~/composables/invoices/useCreateTransaction";
+import useFreezeInvoice from "~/composables/invoices/useFreezeTransaction";
+import useTransfertTransaction from "~/composables/invoices/useTransfertTransaction";
 import useCategories from "~/composables/categories/useCategories";
 import useTags from "~/composables/tags/useTags";
 import { getLocalTimeZone } from "@internationalized/date";
 import useBudgets from "~/composables/budgets/useBudgets";
 import { fetchAccountsWithDetail } from "~/composables/accounts/useAccounts";
 import { fetchAccountTypes } from "~/composables/internals/useAccountTypes";
+import type { QueryFilterRequest } from "~/types/api";
+import type { QueryInvoice } from "~/types/api/transaction";
+import { ModalEditAccount, ModalEditFreezeInvoice, ModalEditInvoice, ModalEditTransfer, ModalQuickTransView } from "#components";
+
+const ALL_ACCOUNT_ID = "ALL_ACCOUNT_ID"
 
 type AccountByType = {
     id: string
@@ -33,7 +35,7 @@ const { data: accounts, refresh: refreshAccounts } = await useAsyncData('account
     const accountsByType = []
     for(const type of accountTypes) {
 
-        const accounts = res.items.filter(i => i.type === type.id)
+        const accounts = res.items.filter(i => i.type.toLowerCase() === type.id.toLowerCase())
         accountsByType.push({
             id: type.id,
             title: type.value,
@@ -61,32 +63,21 @@ const totalAccountBalance = computed(() => {
     return { totalBalance: total, totalFreezedBalance: totalFreezed, totalLockedBalance: totalLocked }
 })
 
-const {data: categories, error: errorCategories, refresh: refreshCategories} = useCategories({
-    limit: 0, offset: 0, queryAll: true
-});
-const {data: tags, error: errorTags, refresh: refreshTag} = useTags({
-    limit: 0, offset: 0, queryAll: true
-});
-const {data: budgets, error: errorBudgets, refresh: refreshBudget } = useBudgets({
-    limit: 0, offset: 0, queryAll: true
-});
-
 const selectedAccountId = ref(ALL_ACCOUNT_ID);
 
-
-const paramsTransaction = reactive<FilterTransactionQuery>({offset: 0, limit: 4, isFreeze: false});
+const paramsTransaction = reactive<QueryFilterRequest & QueryInvoice>({offset: 0, limit: 4, isFreeze: false});
 
 const overlay = useOverlay();
 const modalAccount = overlay.create(ModalEditAccount);
 const modalTransfer = overlay.create(ModalEditTransfer);
-const modalTransaction = overlay.create(ModalEditTransaction);
-const modalFreezeTransaction = overlay.create(ModalEditFreezeTransaction);
+const modalInvoice = overlay.create(ModalEditInvoice);
+const modalFreezeInvoice = overlay.create(ModalEditFreezeInvoice);
 const slideTransactions = overlay.create(ModalQuickTransView)
 
 const onSelectAccount = (id: string) => {
     selectedAccountId.value = id
     if (id !== ALL_ACCOUNT_ID) {
-        paramsTransaction.accountFilterIds = [id]
+        paramsTransaction.accountIds = [id]
     }
 
     onUpateAccount(id)
@@ -96,9 +87,25 @@ const toast = useToast();
 const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => {
     try {
         if (oldValue)
-            await useUpdateAccount(oldValue.id, value);
+            await useUpdateAccount(oldValue.id, {
+                title: value.title,
+                type : value.type,
+                detail: {
+                    contributionType: value.contributionType,
+                    managementAccountType: value.managementType,
+                    creditLimit: value.creditLimit
+                }
+            });
         else 
-            await useCreateAccount(value);
+            await useCreateAccount({
+                title: value.title,
+                type : value.type,
+                detail: {
+                    contributionType: value.contributionType,
+                    managementAccountType: value.managementType,
+                    creditLimit: value.creditLimit
+                }
+            });
         
         refreshAccounts();
     } catch(err) {
@@ -128,7 +135,7 @@ async function onTransfertAccount(value: EditTransfertType) {
             accountIdFrom: value.accountIdFrom,
             accountIdTo: value.accountIdTo,
             amount: value.amount,
-            date: value.date.toString()
+            date: value.date.toDate(getLocalTimeZone()).toISOString()
         })
         refreshAccounts()
     } catch(err) {
@@ -151,10 +158,10 @@ async function openModalTransferAccount (accountId?: string){
     const shouldRefresh = await instance.result; 
 }
 
-async function onSubmitTransaction(value: EditTransactionType, oldValue?: TransactionType) {
+async function onSubmitInvoice(value: EditInvoiceType, oldValue?: InvoiceType) {
     try {
          if (oldValue) {
-            const recordRemovedIds = oldValue.records.filter(i => value.records.find(
+            const transactionRemovedIds = oldValue.transactions.filter(i => value.transactions.find(
                 v => 
                     v.amount === i.amount && 
                     v.categoryId === i.categoryId &&
@@ -163,7 +170,7 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
                     v.description === i.description
             ) !== undefined).map(i => i.id)
 
-            const recordAdded = value.records.filter(i => oldValue.records.find(
+            const transactionAdded = value.transactions.filter(i => oldValue.transactions.find(
                 v => 
                     v.amount === i.amount && 
                     v.categoryId === i.categoryId &&
@@ -173,22 +180,21 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
             ) !== undefined)
 
             await useUpdateTransaction(oldValue.id, {
-                addRecords: recordAdded, 
-                removeRecordIds: recordRemovedIds,
+                addTransactions: transactionAdded, 
+                removeTransactionIds: transactionRemovedIds,
                 deductions: value.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
-                id: oldValue.id,
                 accountId: value.accountId,
                 date: value.date.toDate(getLocalTimeZone()).toISOString(),
                 type: value.type
             });
         } else {
-            await useCreateTransaction({
+            await useCreateInvoice({
                 accountId: value.accountId,
                 date: value.date.toDate(getLocalTimeZone()).toISOString(),
                 type: value.type,
                 mouvement: value.mouvement,
                 status: value.state,
-                records: value.records.map(i => ({
+                transactions: value.transactions.map(i => ({
                     amount: i.amount,
                     categoryId: i.categoryId,
                     budgetIds: i.budgetIds,
@@ -208,23 +214,24 @@ async function onSubmitTransaction(value: EditTransactionType, oldValue?: Transa
     }
 }
 
-async function openModalEditTransaction(accountId?: string) {
-    const instant = modalTransaction.open({
-        transaction: undefined,
+async function openModalEditInvoice(accountId?: string) {
+    const instant = modalInvoice.open({
+        invoice: undefined,
         accountSelectedId: accountId,
-        onSubmit: onSubmitTransaction 
+        onSubmit: onSubmitInvoice 
     });
 
     const shouldRefresh = await instant.result
 }
 
-async function onFreezeTransaction(value: EditFreezeTransactionType) {
+async function onFreezeInvoice(value: EditFreezeInvoiceType) {
     try {
-        await useFreezeTransaction({
+        await useFreezeInvoice({
             accountId: value.accountId,
             title: value.title,
             amount: value.amount,
-            endDate: value.endDate.toString()
+            endDate: value.endDate.toDate(getLocalTimeZone()).toISOString(),
+            status: value.status
         })
         refreshAccounts()
     } catch(err) {
@@ -237,8 +244,8 @@ async function onFreezeTransaction(value: EditFreezeTransactionType) {
 }
 
 async function openModalEditFreezeTransaction(accountId: string = '') {
-    const instance = modalFreezeTransaction.open({
-        onSubmit: onFreezeTransaction
+    const instance = modalFreezeInvoice.open({
+        onSubmit: onFreezeInvoice
     });
 
     await instance.result; 
@@ -351,7 +358,7 @@ const lockedPercentage = computed(() => {
                         size="sm" 
                         variant="soft"
                         color="success"
-                        @click="openModalEditTransaction()">
+                        @click="openModalEditInvoice()">
                         Transaction
                     </UButton>
                     <UButton 
@@ -491,7 +498,7 @@ const lockedPercentage = computed(() => {
                             :locked-balance="account.lockedBalance"
                             :allow-edit="account.id !== ALL_ACCOUNT_ID"
                             :allow-delete="account.id !== ALL_ACCOUNT_ID" 
-                            @add="openModalEditTransaction(account.id)"
+                            @add="openModalEditInvoice(account.id)"
                             @edit="openAccountModal(account.id)"
                             @delete="onDeleteAccount(account.id)"> 
 

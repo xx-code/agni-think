@@ -12,8 +12,8 @@ export default function useBudget(budgetId: string): UseApiFetchReturn<BudgetTyp
                 currentBalance: data.currentBalance,
                 target: data.target,
                 realTarget: data.realTarget,
-                saveGoalIds: data.saveGoalIds,
-                saveGoalTarget: data.saveGoalTarget,
+                saveGoalIds: data.savingGoalIds,
+                saveGoalTarget: data.savingGoalTarget,
                 dueDate: new Date(data.dueDate),
                 repeater: data.repeater
             } satisfies BudgetType
@@ -34,8 +34,8 @@ export async function fetchBudget(budgetId: string): Promise<BudgetType> {
         currentBalance: res.currentBalance,
         target: res.target,
         realTarget: res.realTarget,
-        saveGoalIds: res.saveGoalIds,
-        saveGoalTarget: res.saveGoalTarget,
+        saveGoalIds: res.savingGoalIds,
+        saveGoalTarget: res.savingGoalTarget,
         dueDate: new Date(res.dueDate),
         repeater: res.repeater
     }

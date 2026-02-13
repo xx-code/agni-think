@@ -19,9 +19,9 @@ export type BudgetType = {
     saveGoalTarget: number
     saveGoalIds: string[]
     currentBalance: number
+    dueDate: Date
     repeater?: {
         period: string
         interval: number
     }
-    dueDate: Date
 }

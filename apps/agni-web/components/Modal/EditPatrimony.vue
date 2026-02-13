@@ -2,14 +2,14 @@
 import type { FormSubmitEvent } from '#ui/types';
 import * as z from 'zod';
 import useAccounts from '~/composables/accounts/useAccounts';
-import type { EditePatrimony, PatrimonyDetailType, PatrimonyType, TypePatrimony } from '~/types/ui/patrimony';
+import type { EditePatrimony, PatrimonyType, TypePatrimony } from '~/types/ui/patrimony';
 
 const { patrimony } = defineProps<{
-    patrimony?: PatrimonyDetailType
+    patrimony?: PatrimonyType
 }>()
 
 const emit = defineEmits<{
-    (e: 'submit', value: EditePatrimony, oldValue?: PatrimonyDetailType): void    
+    (e: 'submit', value: EditePatrimony, oldValue?: PatrimonyType): void    
     (e: 'close', close: boolean): void
 }>();
 
@@ -32,13 +32,13 @@ type Schema = z.output<typeof schema>;
 const form = reactive({
     title: patrimony?.title || '',
     amount: patrimony?.amount || 0,
-    accounts: patrimony?.accounts.map(i => i.accountId) || [],
+    accounts: patrimony?.accountIds || [],
     // description: patrimony?.description || '',
     type: patrimony?.type,
     // categoryId: patrimony?.id
 });
 
-const selectedAccountId = ref<string[]>(patrimony?.accounts.map(i => i.accountId) ?? [])
+const selectedAccountId = ref<string[]>(patrimony?.accountIds ?? [])
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
     const data = event.data;
