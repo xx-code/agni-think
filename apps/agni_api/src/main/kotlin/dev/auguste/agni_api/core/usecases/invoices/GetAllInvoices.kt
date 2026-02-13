@@ -32,21 +32,21 @@ class GetAllInvoices(
             mouvementType = input.mouvementType
         )
 
-        val invoices = invoiceRepo.getAll(input.queryFilter, queryInvoiceExtend )
         val queryTransactionExtend = QueryTransactionExtend(
-            invoiceIds = invoices.items.map { it.id }.toSet(),
+            invoiceIds = null,
             categoryIds = input.categoryIds,
             tagIds = input.tagIds,
             budgetIds = input.budgetIds,
             minAmount = input.minAmount,
             maxAmount = input.maxAmount
         )
-        val totalItems = invoiceTransactionCountReader.count(queryInvoiceExtend, queryTransactionExtend)
+
+        val invoices = invoiceTransactionCountReader.pagination(input.queryFilter, queryInvoiceExtend, queryTransactionExtend)
 
         val results = mutableListOf<GetInvoiceOutput>()
 
         val transactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
-            invoiceIds = queryTransactionExtend.invoiceIds!!,
+            invoiceIds = invoices.items.map { it.id }.toSet(),
             categoryIds = queryTransactionExtend.categoryIds,
             tagIds = queryTransactionExtend.tagIds,
             budgetIds = queryTransactionExtend.budgetIds,
@@ -78,7 +78,7 @@ class GetAllInvoices(
 
         return ListOutput(
             items = results,
-            total = totalItems
+            total = invoices.total,
         )
     }
 }

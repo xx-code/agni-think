@@ -1,37 +1,41 @@
 package dev.auguste.agni_api.infras.persistences.readers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.readers.IInvoicetransactionCountReader
 import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInvoiceExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryTransactionExtend
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Transaction
+import dev.auguste.agni_api.core.usecases.ListOutput
+import dev.auguste.agni_api.infras.persistences.IMapper
+import dev.auguste.agni_api.infras.persistences.addPaginationSqlStringBuilder
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInvoiceModel
+import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
+import java.time.OffsetDateTime
+import java.util.UUID
 
 @Component
 class JdbcInvoiceTransactionCountReader(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val mapper: IMapper<JdbcInvoiceModel, Invoice>
 ) : IInvoicetransactionCountReader {
 
-    override fun count(
+    private fun buildStringSql(
+        queryFilter: QueryFilter,
         queryInvoiceExtend: IQueryExtend<Invoice>,
-        queryTransactionExtend: IQueryExtend<Transaction>): Long {
+        queryTransactionExtend: IQueryExtend<Transaction>,
+        sql: StringBuilder,
+        params: MapSqlParameterSource) : StringBuilder {
 
         val queryInvoiceExtend = queryInvoiceExtend as QueryInvoiceExtend
         val queryTransactionExtend = queryTransactionExtend as QueryTransactionExtend
 
-        val sql = StringBuilder("""
-            SELECT COUNT(DISTINCT t.transaction_id) 
-            FROM transactions t
-            JOIN records r ON t.transaction_id = r.transaction_id
-            WHERE 1=1
-        """.trimIndent())
-
-        val params = MapSqlParameterSource()
 
         if (!queryInvoiceExtend.accountIds.isNullOrEmpty()) {
             sql.append(" AND t.account_id IN (:accounts)")
@@ -78,7 +82,59 @@ class JdbcInvoiceTransactionCountReader(
             params.addValue("budgets", objectMapper.writeValueAsString(queryTransactionExtend.budgetIds))
         }
 
+        return addPaginationSqlStringBuilder(sql, params, queryFilter, mapper)
+    }
+
+    override fun count(
+        queryInvoiceExtend: IQueryExtend<Invoice>,
+        queryTransactionExtend: IQueryExtend<Transaction>): Long {
+        var sql = StringBuilder("""
+            SELECT COUNT(DISTINCT t.transaction_id) 
+            FROM transactions t
+            JOIN records r ON t.transaction_id = r.transaction_id
+            WHERE 1=1
+        """.trimIndent())
+        val params = MapSqlParameterSource()
+
+        sql = buildStringSql(QueryFilter(queryAll = true), queryInvoiceExtend, queryTransactionExtend, sql, params)
+
         return jdbcTemplate.queryForObject(sql.toString(), params, Long::class.java) ?: 0
     }
 
+    override fun pagination(
+        query: QueryFilter,
+        queryInvoiceExtend: IQueryExtend<Invoice>,
+        queryTransactionExtend: IQueryExtend<Transaction>
+    ): ListOutput<Invoice> {
+        // Can be heavy
+        val total = count(queryInvoiceExtend, queryTransactionExtend)
+
+        var sql = StringBuilder("""
+            SELECT * FROM transactions t
+            JOIN records r ON t.transaction_id = r.transaction_id
+            WHERE 1=1
+        """.trimIndent())
+        val params = MapSqlParameterSource()
+        sql = buildStringSql(query, queryInvoiceExtend, queryTransactionExtend, sql, params)
+
+        val row = RowMapper { rs, _ ->
+            JdbcInvoiceModel(
+                id = rs.getObject("transaction_id", UUID::class.java),
+                accountId = rs.getObject("account_id", UUID::class.java),
+                isFreeze = rs.getBoolean("is_freeze"),
+                status = rs.getString("status"),
+                type = rs.getString("type"),
+                mouvement = rs.getString("mouvement"),
+                date = rs.getObject("date", OffsetDateTime::class.java).toLocalDateTime(),
+                deductions = rs.getString("deductions"),
+            )
+        }
+
+        val results = jdbcTemplate.query(sql.toString(), params, row)
+
+        return ListOutput(
+            items = results.map { mapper.toDomain(it) },
+            total = total
+        )
+    }
 }
