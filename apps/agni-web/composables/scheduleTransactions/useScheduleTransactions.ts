@@ -1,15 +1,15 @@
 import type { Reactive } from "vue";
 import type { ListResponse, QueryFilterRequest } from "~/types/api";
-import type { GetAllScheduleTransactionsResponse } from "~/types/api/scheduleTransaction";
-import type { ScheduleTransactionType } from "~/types/ui/scheduleTransaction";
+import type { GetScheduleInvoiceResponse } from "~/types/api/scheduleTransaction";
+import type { ScheduleInvoiceType } from "~/types/ui/scheduleTransaction";
 import type { UseApiFetchReturn } from "~/types/utils";
 
-export default function useScheduleTransactions(query: Reactive<QueryFilterRequest>): UseApiFetchReturn<ListResponse<ScheduleTransactionType>> {
+export default function useScheduleInvoices(query: Reactive<QueryFilterRequest>): UseApiFetchReturn<ListResponse<ScheduleInvoiceType>> {
 
-    const { data, error, refresh } = useFetch('/api/schedule-transactions', {
+    const { data, error, refresh } = useFetch('/api/schedule-invoices', {
         method: 'GET',
         query:query,
-        transform: (data: ListResponse<GetAllScheduleTransactionsResponse>) => {
+        transform: (data: ListResponse<GetScheduleInvoiceResponse>) => {
             return {
                 items: data.items.map(i => ({
                     id: i.id,
@@ -21,11 +21,14 @@ export default function useScheduleTransactions(query: Reactive<QueryFilterReque
                     isFreeze: i.isFreeze,
                     tagIds: i.tagIds,
                     type: i.type,
-                    repeater: i.repeater,
+                    repeater: i.repeater ? {
+                        interval: i.repeater.interval,
+                        period: i.repeater.periodType
+                    } : undefined,
                     dueDate: new Date(i.dueDate) 
                 })),
-                totals: Number(data.totals)  
-            }  satisfies ListResponse<ScheduleTransactionType> 
+                total: Number(data.total)  
+            }  satisfies ListResponse<ScheduleInvoiceType> 
         }
     })
 

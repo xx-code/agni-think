@@ -31,8 +31,12 @@ export type AccountBrokeDetailType = {
     type: string
 }
 
+export type AccountCheckingDetailType = {
+    buffer: number
+}
+
 export type AccountWithDetailType = AccountType & {
     lockedBalance: number
     freezedBalance: number
-    detail: AccountCreditDetailType | AccountBrokeDetailType | undefined
+    detail?: AccountCreditDetailType | AccountBrokeDetailType | AccountCheckingDetailType
 }

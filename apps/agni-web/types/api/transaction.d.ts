@@ -4,84 +4,73 @@ export type GetBalanceResponse = {
     spend: number
 }
 
-export type RecordResponse = {
+export type TransactionResponse = {
     id: string
     amount: number
     categoryId: string
     description: string
-    tagRefs: string[]
-    budgetRefs: string[]
+    tagIds: string[]
+    budgetIds: string[]
 }
 
-export type TransactionDeductionResponse = {
+export type InvoiceDeductionResponse = {
     id: string
     amount: number
 }
 
-export type GetTransactionResponse = {
+export type GetInvoiceResponse = {
     id: string
     accountId: string
     status: string
     type: string
     mouvement: string
-    subTotalAmount: number
-    totalAmount: number
+    subTotal: number
+    total: number
     date: Date
-    records: RecordResponse[]
-    deductions: TransactionDeductionResponse[]
+    transactions: TransactionResponse[]
+    deductions: InvoiceDeductionResponse[]
 }
 
-export type GetAllTransactionResponse = {
-    id: string
-    accountId: string
-    status: string
-    type: string
-    mouvement: string
-    subTotalAmount: number
-    totalAmount: number
-    date: Date
-    records: RecordResponse[]
-    deductions: TransactionDeductionResponse[]
-}
-
-export type FilterBalanceTransactionQuery = {
-    accountFilterIds?: string[],
-    tagFilterIds?: string[],
-    categoryFilterIds?: string[],
-    budgetFilterIds?: string[],
-    dateStart?: Date,
-    dateEnd?: Date,
-    types?: string,
-    minPrice?: number,
-    maxPrice?: number
-}
-
-export type FilterTransactionQuery = {
-    offset: number,
-    limit: number,
-    sortBy?: string,
-    sortSense?: string,
-    accountFilterIds?: string[],
-    categoryFilterIds?: string[],
-    budgetFilterIds?: string[],
-    tagFilterIds?: string[],
-    dateStart?: Date,
-    dateEnd?: Date,
+export type QueryBalanceByPeriod = {
+    period: string
+    interval: number
+    dateFrom: string,
+    dateTo?: string,
+    accountIds?: string[],
+    categoryIds?: string[],
+    mouvement?: string,
+    budgetIds?: string[],
+    tagIds?: string[],
     types?: string[],
-    minPrice?: number,
-    maxPrice?: number,
+    minAmount?: number,
+    maxAmount?: number,
     status?: string,
     isFreeze?: boolean
 }
 
-export type CreateTransactionRequest = {
+export type QueryInvoice = {
+    accountIds?: string[],
+    categoryIds?: string[],
+    budgetIds?: string[],
+    tagIds?: string[],
+    mouvement?: string,
+    startDate?: string,
+    endDate?: string,
+    types?: string[],
+    minAmount?: number,
+    maxAmount?: number,
+    status?: string,
+    isFreeze?: boolean
+}
+
+export type CreateInvoiceRequest = {
     accountId: string
     status: string
     date: string
     type: string
     mouvement: string
     currencyId?: string
-    records: {
+    transactions: {
         amount: number
         categoryId: string
         description: string
@@ -94,15 +83,14 @@ export type CreateTransactionRequest = {
     }[]
 }
 
-export type UpdateTransactionRequest = {
-    id: string;
+export type UpdateInvoiceRequest = {
     accountId?: string
     mouvement?: string
     date?: string
     type?: string
     currencyId?: string
-    removeRecordIds: string[]
-    addRecords: {
+    removeTransactionIds: string[]
+    addTransactions: {
         amount: number
         categoryId: string
         description: string
@@ -115,16 +103,17 @@ export type UpdateTransactionRequest = {
     }[]
 }
 
-export type TransfertTransactionRequest = {
+export type TransferInvoiceRequest = {
     accountIdFrom: string;
     accountIdTo: string;
     date: string;
     amount: number;
 }
 
-export type FreezeTransactionRequest = {
+export type FreezeInvoiceRequest = {
     accountId: string,
     title: string
-    amount: number,
+    amount: number
     endDate: string
+    status: string
 }

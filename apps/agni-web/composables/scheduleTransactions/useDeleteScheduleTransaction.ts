@@ -1,5 +1,5 @@
-export default async function useDeleteScheduleTransaction(scheduleTransactionId: string): Promise<void> {
-    await $fetch(`/api/schedule-transactions/${scheduleTransactionId}`, {
+export default async function useDeleteScheduleInvoice(scheduleTransactionId: string): Promise<void> {
+    await $fetch(`/api/schedule-invoices/${scheduleTransactionId}`, {
         method: 'DELETE'
     });
 }

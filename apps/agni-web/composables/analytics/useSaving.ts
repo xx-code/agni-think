@@ -1,5 +1,5 @@
 import type { Reactive } from "vue";
-import type { GetIncomeAnalysticResponse, GetSavingAnalysticRequest, GetSavingAnalysticResponse } from "~/types/api/analytics";
+import type { GetSavingAnalysticRequest, GetSavingAnalysticResponse } from "~/types/api/analytics";
 import type { SavingAnalysticType } from "~/types/ui/analytics";
 import type { UseApiFetchReturn } from "~/types/utils";
 
@@ -10,9 +10,9 @@ export default function useAnalyticSavings(request: Reactive<GetSavingAnalysticR
         transform: (data: GetSavingAnalysticResponse) => {
             return {
                 savings: data.savings,
-                investements: data.investements,
+                investments: data.investments,
                 savingRates: data.savingRates,
-                investementRates: data.investementRates
+                investementRates: data.investmentRates
             } satisfies SavingAnalysticType
         }
     });
@@ -28,8 +28,8 @@ export async function fetchAnalyticSavings(request: GetSavingAnalysticRequest): 
 
     return { 
         savings: response.savings,
-        investements: response.investements,
+        investments: response.investments,
         savingRates: response.savingRates,
-        investementRates: response.investementRates
+        investementRates: response.investmentRates
     };
 }

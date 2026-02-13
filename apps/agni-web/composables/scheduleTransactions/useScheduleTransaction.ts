@@ -1,11 +1,11 @@
-import type { GetScheduleTransactionResponse } from "~/types/api/scheduleTransaction";
-import type { ScheduleTransactionType } from "~/types/ui/scheduleTransaction";
+import type { GetScheduleInvoiceResponse } from "~/types/api/scheduleTransaction";
+import type { ScheduleInvoiceType } from "~/types/ui/scheduleTransaction";
 import type { UseApiFetchReturn } from "~/types/utils";
 
-export default function useScheduleTransaction(scheduleTransactionId: string): UseApiFetchReturn<ScheduleTransactionType> {
-    const { data, error, refresh } = useFetch(`/api/schedule-transactions/${scheduleTransactionId}`, {
+export default function useScheduleInvoice(scheduleTransactionId: string): UseApiFetchReturn<ScheduleInvoiceType> {
+    const { data, error, refresh } = useFetch(`/api/schedule-invoices/${scheduleTransactionId}`, {
         method: 'GET',
-        transform: (data: GetScheduleTransactionResponse) => {
+        transform: (data: GetScheduleInvoiceResponse) => {
             return {
                 id: data.id,
                 accountId: data.accountId,
@@ -16,17 +16,20 @@ export default function useScheduleTransaction(scheduleTransactionId: string): U
                 isFreeze: data.isFreeze,
                 tagIds: data.tagIds,
                 type: data.type,
-                repeater: data.repeater,
+                repeater: data.repeater ? {
+                    interval: data.repeater.interval,
+                    period: data.repeater.periodType
+                } : undefined,
                 dueDate: new Date(data.dueDate) 
-            } satisfies ScheduleTransactionType
+            } satisfies ScheduleInvoiceType
         }
     });
 
     return { data, error, refresh };
 }
 
-export async function fetchScheduleTransaction(scheduleTransactionId: string): Promise<ScheduleTransactionType> {
-    const res = await $fetch<GetScheduleTransactionResponse>(`/api/schedule-transactions/${scheduleTransactionId}`, {
+export async function fetchScheduleInvoice(scheduleTransactionId: string): Promise<ScheduleInvoiceType> {
+    const res = await $fetch<GetScheduleInvoiceResponse>(`/api/schedule-transactions/${scheduleTransactionId}`, {
         method: 'GET'
     });
 
@@ -40,7 +43,10 @@ export async function fetchScheduleTransaction(scheduleTransactionId: string): P
             name: res.name,
             tagIds: res.tagIds,
             type: res.type,
-            repeater: res.repeater,
+            repeater: res.repeater ? {
+                interval: res.repeater.interval,
+                period: res.repeater.periodType
+            } : undefined,
             dueDate: new Date(res.dueDate)
         } 
 }

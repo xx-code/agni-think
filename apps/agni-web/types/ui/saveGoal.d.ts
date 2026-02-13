@@ -22,9 +22,8 @@ export type SaveGoalType = {
     wishDueDate?: Date
     items: {
         title: string
-        link: string
+        url: string
         price: number
-        htmlToTrack: string
     }[] 
 }
 

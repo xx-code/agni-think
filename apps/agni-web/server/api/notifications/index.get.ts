@@ -14,7 +14,7 @@ export default defineEventHandler(async event => {
         console.log('Get Notification: ' + err);
         return createError({
             status: 500,
-            message: 'Get all Patrimony',
+            message: 'Get notifacations',
             data: err
         });
     }

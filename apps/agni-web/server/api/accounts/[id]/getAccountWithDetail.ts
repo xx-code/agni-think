@@ -5,7 +5,7 @@ export default defineEventHandler(async event => {
     try {
         const api = useApiLink(); 
         const id = getRouterParam(event, 'id');
-        const res = await $fetch(`${api}/accounts-with-detail/${id}`, {
+        const res = await $fetch(`${api}/accounts/with-detail/${id}`, {
             method: 'GET'
         });
         const data = (res as GetAccountWithDetailResponse);

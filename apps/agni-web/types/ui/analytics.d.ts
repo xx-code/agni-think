@@ -28,7 +28,7 @@ export type IncomeAnalysticType = {
 
 export type SavingAnalysticType = {
     savings: number[]
-    investements: number[]
+    investments: number[]
     savingRates: number[] 
     investementRates: number[]
 }
@@ -40,8 +40,7 @@ export type SpendTagType = {
 
 export type SpendCategoryType = {
     categoryId: string
-    spend: number
-    spendBytag: SpendTagType[]
+    spendBytags: SpendTagType[]
 }
 
 export type SpendAnalysticType = {
