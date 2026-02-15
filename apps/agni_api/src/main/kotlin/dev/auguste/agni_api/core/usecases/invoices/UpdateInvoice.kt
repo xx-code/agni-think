@@ -53,8 +53,7 @@ class UpdateInvoice(
             val anyTransactionChange = input.addTransactions.isNotEmpty() || input.removeTransactionIds.isNotEmpty()
 
             if (invoice.hasChanged() || anyTransactionChange) {
-                val transactions = mutableSetOf<TransactionInput>()
-                if (input.addTransactions.isNotEmpty())
+                val transactions = input.addTransactions.ifEmpty {
                     getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
                         invoiceIds = setOf(invoice.id),
                         categoryIds = null,
@@ -69,7 +68,7 @@ class UpdateInvoice(
                         tagIds = it.tagIds,
                         budgetIds = it.budgetIds,
                     ) }.toSet()
-                else input.addTransactions
+                }
 
                 createInvoice.execAsync(CreateInvoiceInput(
                     accountId = invoice.accountId,
@@ -78,6 +77,7 @@ class UpdateInvoice(
                     type = invoice.type,
                     mouvementType = invoice.mouvementType,
                     currency = null,
+                    isFreeze = invoice.isFreeze,
                     transactions = transactions,
                     deductions = invoice.deductions.map { InvoiceDeductionInput(
                         it.deductionId, it.amount

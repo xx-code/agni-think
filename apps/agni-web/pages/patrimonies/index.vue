@@ -16,7 +16,6 @@ import type { EditePatrimony, EditSnapshotPatrimony, PatrimonyType, SnapshotPatr
 import AssetCard from './AssetCard.vue';
 
 const {data:patrimonies, refresh} = usePatrimonies()
-console.log(patrimonies)
 
 
 const overlay = useOverlay()

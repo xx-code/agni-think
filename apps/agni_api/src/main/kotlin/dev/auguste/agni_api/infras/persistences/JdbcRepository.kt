@@ -7,6 +7,7 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Entity
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcModel
+import dev.auguste.agni_api.infras.persistences.query_adapters.IQueryExtendJdbcAdapter
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -38,7 +39,6 @@ abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
             }
         }
 
-
         var pageable = Pageable.unpaged()
         if (!query.queryAll) {
             val pageIndex = query.offset / query.limit
@@ -52,8 +52,8 @@ abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
             val results = queryExtendAdapter.filter(query, queryExtend)
 
             return RepoList(
-                items = results.map { modelMapper.toDomain(it) },
-                total = storage.count()
+                items = results.items.map { modelMapper.toDomain(it) },
+                total = results.total
             )
         }
 

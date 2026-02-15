@@ -27,7 +27,7 @@ class GetAllAccountWithDetail(
             QuerySavingGoalExtend(accounts.items.map { it.id }.toSet()))
 
         for(account in accounts.items) {
-            val lockedBalance = savingGoals.items.filter { it.id == account.id }.sumOf { it.balance }
+            val lockedBalance = savingGoals.items.filter { it.accountId == account.id }.sumOf { it.balance }
             val freezeBalance = getBalance.execAsync(GetBalanceInput(
                 accountIds = setOf(account.id),
                 isFreeze = true

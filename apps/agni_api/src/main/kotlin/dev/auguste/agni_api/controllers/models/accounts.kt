@@ -47,19 +47,19 @@ data class ApiUpdateAccountModel(
 fun mapAccountDetail(type: String, model: ApiAccountDetailModel) : IAccountDetail {
     return when(AccountType.fromString(type)) {
         AccountType.CHECKING -> {
-            val buffer = model.buffer.let { 0.0 }
+            val buffer = model.buffer ?: 0.0
 
             CheckingAccountDetail(buffer)
         }
 
         AccountType.CREDIT_CARD -> {
-            val creditLimit  = model.creditLimit.let { 0.0 }
+            val creditLimit  = model.creditLimit ?: 0.0
 
             CreditCardAccountDetail(creditLimit = creditLimit)
         }
 
         AccountType.SAVING -> {
-            val secureAmount  = model.secureAmount.let { 0.0 }
+            val secureAmount  = model.secureAmount ?: 0.0
 
             SavingAccountDetail(secureAmount = secureAmount)
         }

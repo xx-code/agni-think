@@ -9,6 +9,7 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.categories.dto.CreateCategoryInput
 import dev.auguste.agni_api.core.usecases.categories.dto.DeleteCategoryInput
+import dev.auguste.agni_api.core.usecases.categories.dto.GetAllCategoryInput
 import dev.auguste.agni_api.core.usecases.categories.dto.GetCategoryOutput
 import dev.auguste.agni_api.core.usecases.categories.dto.UpdateCategoryInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -31,7 +32,7 @@ class CategoryController(
     private val createCategoryUseCase: IUseCase<CreateCategoryInput, CreatedOutput>,
     private val updateCategoryUseCase: IUseCase<UpdateCategoryInput, Unit>,
     private val getCategoryUseCase: IUseCase<UUID, GetCategoryOutput>,
-    private val getAllCategoryUseCase: IUseCase<QueryFilter, ListOutput<GetCategoryOutput>>,
+    private val getAllCategoryUseCase: IUseCase<GetAllCategoryInput, ListOutput<GetCategoryOutput>>,
     private val deleteCategoryUseCase: IUseCase<DeleteCategoryInput, Unit>
 ) {
 
@@ -55,8 +56,11 @@ class CategoryController(
     }
 
     @GetMapping
-    fun getAllCategories(queryFilter: QueryFilter): ResponseEntity<ListOutput<GetCategoryOutput>> {
-        return ResponseEntity.ok(getAllCategoryUseCase.execAsync(queryFilter))
+    fun getAllCategories(queryFilter: QueryFilter, isSystem: Boolean? = null): ResponseEntity<ListOutput<GetCategoryOutput>> {
+        return ResponseEntity.ok(getAllCategoryUseCase.execAsync(GetAllCategoryInput(
+            queryFilter,
+            isSystem
+        )))
     }
 
     @DeleteMapping

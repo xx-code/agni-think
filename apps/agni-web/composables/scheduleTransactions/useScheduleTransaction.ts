@@ -29,7 +29,7 @@ export default function useScheduleInvoice(scheduleTransactionId: string): UseAp
 }
 
 export async function fetchScheduleInvoice(scheduleTransactionId: string): Promise<ScheduleInvoiceType> {
-    const res = await $fetch<GetScheduleInvoiceResponse>(`/api/schedule-transactions/${scheduleTransactionId}`, {
+    const res = await $fetch<GetScheduleInvoiceResponse>(`/api/schedule-invoices/${scheduleTransactionId}`, {
         method: 'GET'
     });
 

@@ -90,8 +90,7 @@ class CreateInvoice(
                     it.amount
                 else
                     totalBeforeDeduction * (it.amount / 100)
-            }
-            0
+            } ?: 0.0
         }
 
         val totalDeductions =  deductions.filter { it.base == DeductionBaseType.TOTAL }
@@ -102,8 +101,7 @@ class CreateInvoice(
                     it.amount
                 else
                     subTotal * (it.amount / 100)
-            }
-            0
+            } ?: 0.0
         }
 
         if (input.status == InvoiceStatusType.COMPLETED) {

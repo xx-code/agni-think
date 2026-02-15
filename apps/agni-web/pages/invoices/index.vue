@@ -117,7 +117,7 @@ const { data, error, refresh, status } = useAsyncData(`transactions-${JSON.strin
             } satisfies TransactionTableType)),
             deductions: i.deductions.map(d => ({
                 name: getDeduction(d.id)?.description || '', // ou autre nom si disponible
-                amount: calculateDeductionAmount({deductionId: d.id, amount: d.amount}) 
+                amount: d.amount 
             }))
         } satisfies InvoiceTableType)),
 

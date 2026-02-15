@@ -1,5 +1,4 @@
 import useApiLink from "~/composables/useApiLink";
-import type { GetEstimationLeftAmountResponse } from "~/types/api/analytics";
 
 export default defineEventHandler(async event => {
     try {
