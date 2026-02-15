@@ -3,7 +3,7 @@ package dev.auguste.agni_api.core.usecases.provisionable.dto
 import java.time.LocalDate
 import java.util.UUID
 
-data class UpdateProvisionableInput(
+data class UpdateProvisionInput(
     val id: UUID,
     val title: String?,
     val initialCost: Double?,

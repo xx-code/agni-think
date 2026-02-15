@@ -4,12 +4,12 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.provisionable.dto.CreateProvisionableInput
+import dev.auguste.agni_api.core.usecases.provisionable.dto.CreateProvisionInput
 
 class CreateProvisionable(
     private val provisionRepo: IRepository<Provision>,
-) : IUseCase<CreateProvisionableInput, CreatedOutput> {
-    override fun execAsync(input: CreateProvisionableInput): CreatedOutput {
+) : IUseCase<CreateProvisionInput, CreatedOutput> {
+    override fun execAsync(input: CreateProvisionInput): CreatedOutput {
         if (provisionRepo.existsByName(input.title))
             throw Error("Provisionable already exist")
 

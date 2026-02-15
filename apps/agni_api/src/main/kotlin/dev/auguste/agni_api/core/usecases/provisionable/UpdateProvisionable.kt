@@ -3,12 +3,12 @@ package dev.auguste.agni_api.core.usecases.provisionable
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.provisionable.dto.UpdateProvisionableInput
+import dev.auguste.agni_api.core.usecases.provisionable.dto.UpdateProvisionInput
 
 class UpdateProvisionable(
     private val provisionRepo: IRepository<Provision>
-): IUseCase<UpdateProvisionableInput, Unit> {
-    override fun execAsync(input: UpdateProvisionableInput) {
+): IUseCase<UpdateProvisionInput, Unit> {
+    override fun execAsync(input: UpdateProvisionInput) {
         val provisionable = provisionRepo.get(input.id) ?: throw Error("Provisionable not found")
 
 

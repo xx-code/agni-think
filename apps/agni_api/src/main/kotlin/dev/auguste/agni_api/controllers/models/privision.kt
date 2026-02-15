@@ -1,14 +1,14 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.usecases.provisionable.dto.CreateProvisionableInput
-import dev.auguste.agni_api.core.usecases.provisionable.dto.UpdateProvisionableInput
+import dev.auguste.agni_api.core.usecases.provisionable.dto.CreateProvisionInput
+import dev.auguste.agni_api.core.usecases.provisionable.dto.UpdateProvisionInput
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import java.time.LocalDate
 import java.util.UUID
 
-data class ApiCreateProvisionableModel(
+data class ApiCreateProvisionModel(
     @field:NotEmpty(message = "Title must not be empty")
     val title: String,
     @field:Min(0, message = "initial value must be positive")
@@ -21,7 +21,7 @@ data class ApiCreateProvisionableModel(
     val residualValue: Double
 )
 
-data class ApiUpdateProvisionableModel(
+data class ApiUpdateProvisionModel(
     val title: String?,
     val initialCost: Double?,
     val acquisitionDate: LocalDate?,
@@ -29,8 +29,8 @@ data class ApiUpdateProvisionableModel(
     val residualValue: Double?
 )
 
-fun mapApiCreateProvisionable(model: ApiCreateProvisionableModel): CreateProvisionableInput {
-    return CreateProvisionableInput(
+fun mapApiCreateProvision(model: ApiCreateProvisionModel): CreateProvisionInput {
+    return CreateProvisionInput(
         title = model.title,
         initialCost = model.initialCost,
         acquisitionDate = model.acquisitionDate,
@@ -39,8 +39,8 @@ fun mapApiCreateProvisionable(model: ApiCreateProvisionableModel): CreateProvisi
     )
 }
 
-fun mapApiUpdateProvisionable(id: UUID, model:ApiUpdateProvisionableModel): UpdateProvisionableInput {
-    return UpdateProvisionableInput(
+fun mapApiUpdateProvision(id: UUID, model:ApiUpdateProvisionModel): UpdateProvisionInput {
+    return UpdateProvisionInput(
         id = id,
         title = model.title,
         initialCost = model.initialCost,

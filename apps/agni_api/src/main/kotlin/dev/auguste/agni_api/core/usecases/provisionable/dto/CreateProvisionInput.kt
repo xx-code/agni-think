@@ -1,10 +1,9 @@
 package dev.auguste.agni_api.core.usecases.provisionable.dto
 
 import java.time.LocalDate
-import java.util.UUID
 
-data class GetProvisionableOutput(
-    val id: UUID,
+
+data class CreateProvisionInput (
     val title: String,
     val initialCost: Double,
     val acquisitionDate: LocalDate,

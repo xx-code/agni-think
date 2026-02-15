@@ -5,17 +5,17 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.provisionable.dto.GetProvisionableOutput
+import dev.auguste.agni_api.core.usecases.provisionable.dto.GetProvisionOutput
 
 class GetAllProvisionable(
     private val provisionRepo: IRepository<Provision>
-): IUseCase<QueryFilter, ListOutput<GetProvisionableOutput>> {
-    override fun execAsync(input: QueryFilter): ListOutput<GetProvisionableOutput> {
+): IUseCase<QueryFilter, ListOutput<GetProvisionOutput>> {
+    override fun execAsync(input: QueryFilter): ListOutput<GetProvisionOutput> {
         val provisionables =  provisionRepo.getAll(input)
 
         return ListOutput(
             items = provisionables.items.map {
-                GetProvisionableOutput(
+                GetProvisionOutput(
                     id = it.id,
                     title = it.title,
                     initialCost = it.initialCost,
