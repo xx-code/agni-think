@@ -14,7 +14,7 @@ import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Notification
 import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
-import dev.auguste.agni_api.core.entities.Provisionable
+import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.Tag
@@ -33,7 +33,6 @@ import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcSavingGoalModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcScheduleInvoiceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTagModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTransactionModel
-import dev.auguste.agni_api.infras.persistences.query_adapters.BaseQueryExtendJdbcAdapter
 import dev.auguste.agni_api.infras.persistences.query_adapters.IQueryExtendJdbcAdapter
 import dev.auguste.agni_api.infras.persistences.query_adapters.QueryCategoryExtendJdbcAdapter
 import dev.auguste.agni_api.infras.persistences.query_adapters.QueryTagExtendJdbcAdapter
@@ -144,8 +143,8 @@ interface ProvisionableStorage: GenericStorage<JdbcProvisionableModel, UUID>
 @Component
 class ProvisionableRepository(
     storage: ProvisionableStorage,
-    provisionableModlModelMapper: IMapper<JdbcProvisionableModel, Provisionable>
-): JdbcRepository<JdbcProvisionableModel, Provisionable>(storage = storage, provisionableModlModelMapper)
+    provisionModlModelMapper: IMapper<JdbcProvisionableModel, Provision>
+): JdbcRepository<JdbcProvisionableModel, Provision>(storage = storage, provisionModlModelMapper)
 
 //Saving Goal
 @Repository
