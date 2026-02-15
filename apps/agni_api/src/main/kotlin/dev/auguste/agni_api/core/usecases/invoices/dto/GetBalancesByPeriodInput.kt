@@ -22,5 +22,6 @@ data class GetBalancesByPeriodInput(
     val tagIds: Set<UUID>? = null,
     val budgetIds: Set<UUID>? = null,
     val minAmount: Double? = null,
-    val maxAmount: Double? = null
+    val maxAmount: Double? = null,
+    val removeSystemCategory: Boolean? = true,
 )

@@ -40,7 +40,8 @@ class GetBalancesByPeriod(
                     minAmount = input.minAmount,
                     maxAmount = input.maxAmount,
                     budgetIds = input.budgetIds,
-                    mouvement = input.mouvement
+                    mouvement = input.mouvement,
+                    removeSystemCategory = input.removeSystemCategory
                 ))
             )
 

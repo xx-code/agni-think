@@ -4,9 +4,12 @@ import dev.auguste.agni_api.core.entities.enums.AccountType
 import dev.auguste.agni_api.core.entities.enums.ContributionAccountType
 import dev.auguste.agni_api.core.entities.enums.ManagementAccountType
 import dev.auguste.agni_api.core.entities.interfaces.IAccountDetail
+import dev.auguste.agni_api.core.entities.roundTo
 import dev.auguste.agni_api.core.value_objects.BrokingAccountDetail
 import dev.auguste.agni_api.core.value_objects.CheckingAccountDetail
 import dev.auguste.agni_api.core.value_objects.CreditCardAccountDetail
+import kotlin.math.abs
+import kotlin.math.round
 
 data class GetBrokingDetailOutput(
     val managementType: ManagementAccountType,
@@ -46,10 +49,11 @@ fun mapperAccountDetailOutput(accountDetail: IAccountDetail, balance: Double = 0
                 )
             )
         }
+
         AccountType.CREDIT_CARD -> {
             val detail = (accountDetail as CreditCardAccountDetail)
             AccountDetailOutput(detailForCreditCard = GetCreditCardAccountOutput(
-                creditUtilisation = if (balance >= 0) (detail.creditLimit/balance) else 0.0,
+                creditUtilisation = if (balance < 0) (detail.creditLimit/ abs(balance)).roundTo(2) else 0.0,
                 creditCardLimit = detail.creditLimit,
             ))
         }

@@ -7,9 +7,11 @@ import dev.auguste.agni_api.controllers.models.mapApiUpdateTag
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
+import dev.auguste.agni_api.core.usecases.categories.dto.GetAllCategoryInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.tags.dto.CreateTagInput
 import dev.auguste.agni_api.core.usecases.tags.dto.DeleteTagInput
+import dev.auguste.agni_api.core.usecases.tags.dto.GetAllTagInput
 import dev.auguste.agni_api.core.usecases.tags.dto.GetTagOutput
 import dev.auguste.agni_api.core.usecases.tags.dto.UpdateTagInput
 import jakarta.validation.Valid
@@ -32,7 +34,7 @@ class TagController(
     private val updateTagUseCase: IUseCase<UpdateTagInput, Unit>,
     private val deleteTagUseCase: IUseCase<DeleteTagInput, Unit>,
     private val getTagUseCase: IUseCase<UUID, GetTagOutput>,
-    private val getAllTagUseCase: IUseCase<QueryFilter, ListOutput<GetTagOutput>>
+    private val getAllTagUseCase: IUseCase<GetAllTagInput, ListOutput<GetTagOutput>>
 ) {
 
     @PostMapping
@@ -64,9 +66,9 @@ class TagController(
     }
 
     @GetMapping
-    fun getAllTags(query: QueryFilter): ResponseEntity<ListOutput<GetTagOutput>> {
+    fun getAllTags(query: QueryFilter, isSystem: Boolean? = null): ResponseEntity<ListOutput<GetTagOutput>> {
         return ResponseEntity.ok(getAllTagUseCase.execAsync(
-            query
+            GetAllTagInput(query, isSystem)
         ))
     }
 }

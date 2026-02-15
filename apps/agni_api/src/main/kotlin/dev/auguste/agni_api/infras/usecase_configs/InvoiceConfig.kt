@@ -119,11 +119,13 @@ class InvoiceConfig {
     @Bean
     fun getAllInvoice(
         invoiceRepo: IRepository<Invoice>,
+        deductionRepo: IRepository<Deduction>,
         invoiceTransactionCountReader: IInvoicetransactionCountReader,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
     ): IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>> {
         return GetAllInvoices(
             invoiceRepo = invoiceRepo,
+            deductionRepo = deductionRepo,
             invoiceTransactionCountReader = invoiceTransactionCountReader,
             getInvoiceTransactions = getInvoiceTransactions
         )
