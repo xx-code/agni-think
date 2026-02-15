@@ -2,14 +2,14 @@ package dev.auguste.agni_api.infras.usecase_configs
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.entities.Provisionable
+import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.provisionable.CreateProvisionable
 import dev.auguste.agni_api.core.usecases.provisionable.DeleteProvisionable
 import dev.auguste.agni_api.core.usecases.provisionable.GetAllProvisionable
-import dev.auguste.agni_api.core.usecases.provisionable.GetProvisionable
+import dev.auguste.agni_api.core.usecases.provisionable.GetProvision
 import dev.auguste.agni_api.core.usecases.provisionable.UpdateProvisionable
 import dev.auguste.agni_api.core.usecases.provisionable.dto.CreateProvisionableInput
 import dev.auguste.agni_api.core.usecases.provisionable.dto.DeleteProvisionableInput
@@ -24,46 +24,46 @@ class ProvisionableConfig {
 
     @Bean
     fun createProvisionable(
-        provisionableRepo: IRepository<Provisionable>
+        provisionRepo: IRepository<Provision>
     ): IUseCase<CreateProvisionableInput, CreatedOutput> {
         return CreateProvisionable(
-            provisionableRepo = provisionableRepo
+            provisionRepo = provisionRepo
         )
     }
 
     @Bean
     fun updateProvisionable(
-        provisionableRepo: IRepository<Provisionable>
+        provisionRepo: IRepository<Provision>
     ): IUseCase<UpdateProvisionableInput, Unit> {
         return UpdateProvisionable(
-            provisionableRepo = provisionableRepo
+            provisionRepo = provisionRepo
         )
     }
 
     @Bean
     fun deleteProvisionable(
-        provisionableRepo: IRepository<Provisionable>
+        provisionRepo: IRepository<Provision>
     ): IUseCase<DeleteProvisionableInput, Unit> {
         return DeleteProvisionable(
-            provisionableRepo = provisionableRepo
+            provisionRepo = provisionRepo
         )
     }
 
     @Bean
     fun getProvisionable(
-        provisionableRepo: IRepository<Provisionable>
+        provisionRepo: IRepository<Provision>
     ): IUseCase<UUID, GetProvisionableOutput> {
-        return GetProvisionable(
-            provisionableRepo = provisionableRepo
+        return GetProvision(
+            provisionRepo = provisionRepo
         )
     }
 
     @Bean
     fun getAllProvisionables(
-        provisionableRepo: IRepository<Provisionable>
+        provisionRepo: IRepository<Provision>
     ): IUseCase<QueryFilter, ListOutput<GetProvisionableOutput>> {
        return GetAllProvisionable(
-           provisionableRepo = provisionableRepo
+           provisionRepo = provisionRepo
        )
     }
 }

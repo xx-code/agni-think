@@ -1,6 +1,6 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
-import dev.auguste.agni_api.core.entities.Provisionable
+import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
@@ -35,9 +35,9 @@ data class JdbcProvisionableModel(
 }
 
 @Component
-class JdbcProvisionableMapper: IMapper<JdbcProvisionableModel, Provisionable> {
-    override fun toDomain(model: JdbcProvisionableModel): Provisionable {
-        return Provisionable(
+class JdbcProvisionableMapper: IMapper<JdbcProvisionableModel, Provision> {
+    override fun toDomain(model: JdbcProvisionableModel): Provision {
+        return Provision(
             id = model.id,
             title = model.name,
             initialCost = model.initialCost,
@@ -47,7 +47,7 @@ class JdbcProvisionableMapper: IMapper<JdbcProvisionableModel, Provisionable> {
         )
     }
 
-    override fun toModel(entity: Provisionable): JdbcProvisionableModel {
+    override fun toModel(entity: Provision): JdbcProvisionableModel {
         return JdbcProvisionableModel(
             id = entity.id,
             name = entity.title,

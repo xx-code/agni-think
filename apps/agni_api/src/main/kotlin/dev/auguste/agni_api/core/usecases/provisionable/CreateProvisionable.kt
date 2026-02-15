@@ -1,16 +1,16 @@
 package dev.auguste.agni_api.core.usecases.provisionable
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.entities.Provisionable
+import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.provisionable.dto.CreateProvisionableInput
 
 class CreateProvisionable(
-    private val provisionableRepo: IRepository<Provisionable>,
+    private val provisionRepo: IRepository<Provision>,
 ) : IUseCase<CreateProvisionableInput, CreatedOutput> {
     override fun execAsync(input: CreateProvisionableInput): CreatedOutput {
-        if (provisionableRepo.existsByName(input.title))
+        if (provisionRepo.existsByName(input.title))
             throw Error("Provisionable already exist")
 
         if (input.initialCost <= 0)
@@ -22,7 +22,7 @@ class CreateProvisionable(
         if (input.residualValue < 0)
             throw Error("Provisionable residualValue must be greater than 0")
 
-        val provisionable = Provisionable(
+        val provision = Provision(
             title = input.title,
             initialCost = input.initialCost,
             acquisitionDate = input.acquisitionDate,
@@ -30,8 +30,8 @@ class CreateProvisionable(
             residualValue = input.residualValue
         )
 
-        provisionableRepo.create(provisionable)
+        provisionRepo.create(provision)
 
-        return CreatedOutput(provisionable.id)
+        return CreatedOutput(provision.id)
     }
 }

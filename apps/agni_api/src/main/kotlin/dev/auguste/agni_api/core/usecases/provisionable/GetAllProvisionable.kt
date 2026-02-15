@@ -2,16 +2,16 @@ package dev.auguste.agni_api.core.usecases.provisionable
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.entities.Provisionable
+import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.provisionable.dto.GetProvisionableOutput
 
 class GetAllProvisionable(
-    private val provisionableRepo: IRepository<Provisionable>
+    private val provisionRepo: IRepository<Provision>
 ): IUseCase<QueryFilter, ListOutput<GetProvisionableOutput>> {
     override fun execAsync(input: QueryFilter): ListOutput<GetProvisionableOutput> {
-        val provisionables =  provisionableRepo.getAll(input)
+        val provisionables =  provisionRepo.getAll(input)
 
         return ListOutput(
             items = provisionables.items.map {

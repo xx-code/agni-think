@@ -5,7 +5,7 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.properties.Delegates
 
-class Provisionable(
+class Provision(
     id: UUID = UUID.randomUUID(),
     title: String,
     initialCost: Double,
