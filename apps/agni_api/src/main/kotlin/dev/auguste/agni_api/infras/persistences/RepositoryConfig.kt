@@ -3,7 +3,6 @@ package dev.auguste.agni_api.infras.persistences
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.util.StdDateFormat
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dev.auguste.agni_api.core.entities.Account
@@ -34,11 +33,14 @@ import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcSavingGoalModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcScheduleInvoiceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTagModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTransactionModel
+import dev.auguste.agni_api.infras.persistences.query_adapters.BaseQueryExtendJdbcAdapter
+import dev.auguste.agni_api.infras.persistences.query_adapters.IQueryExtendJdbcAdapter
+import dev.auguste.agni_api.infras.persistences.query_adapters.QueryCategoryExtendJdbcAdapter
+import dev.auguste.agni_api.infras.persistences.query_adapters.QueryTagExtendJdbcAdapter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
-import java.text.SimpleDateFormat
 import java.util.UUID
 
 @Configuration
@@ -69,8 +71,9 @@ interface CategoryStorage: GenericStorage<JdbcCategoryModel, UUID>
 @Component
 class CategoryRepository(
     storage: CategoryStorage,
-    categoryModelMapper: IMapper<JdbcCategoryModel, Category>
-): JdbcRepository<JdbcCategoryModel, Category>(storage = storage, categoryModelMapper)
+    categoryModelMapper: IMapper<JdbcCategoryModel, Category>,
+    queryExtendJdbcAdapter: QueryCategoryExtendJdbcAdapter
+): JdbcRepository<JdbcCategoryModel, Category>(storage = storage, categoryModelMapper, queryExtendJdbcAdapter)
 
 // Currency
 @Repository
@@ -173,8 +176,9 @@ interface TagStorage: GenericStorage<JdbcTagModel, UUID>
 @Component
 class TagRepository(
     storage: TagStorage,
-    tagModelMapper: IMapper<JdbcTagModel, Tag>
-): JdbcRepository<JdbcTagModel, Tag>(storage = storage, tagModelMapper)
+    tagModelMapper: IMapper<JdbcTagModel, Tag>,
+    queryExtendAdapter: QueryTagExtendJdbcAdapter
+): JdbcRepository<JdbcTagModel, Tag>(storage = storage, tagModelMapper, queryExtendAdapter)
 
 // Transaction
 @Repository

@@ -12,41 +12,13 @@ export type GetEstimationLeftAmountRequest = {
     endDate: string
 }
 
-export type GetCashflowAnalyseResponse = {
-    spendFlow: number[]
-    gainsFlow: number[]
-}
-
-export type GetBudgetRule = {
-    type: string
-    value: number
-}
-
-export type GetAnalyseBudgeRuleResponse = {
-    distributionSpends: GetBudgetRule[][]
-}
-
-export type GetAnalyseBudgeRuleRequest = {
-    period: string
-    periodTime: number
-    showNumber: number
-}
-
 // export type GetIncomeByDescription = {
 //     label: string
 //     income: number
 // }
 
-export type GetIncomeAnalysticRequest = {
-    period: string
-    periodTime: number
-    showNumber: number
-}
-export type GetIncomeAnalysticResponse = {
-    incomes: number[]
-    incomesByDescription: {label: string, income: number}[][]
-}
 
+// Saving
 export type GetSavingAnalysticRequest = {
     period: string
     interval: number
@@ -59,23 +31,33 @@ export type GetSavingAnalysticResponse = {
     investmentRates: number[]
 }
 
-type GetSpendTag = {
-    tagId: string
-    spend: number
-}
-
-type GetSpendCategory = {
+// CATEGORY
+type GetSpendCategoryResponse = {
     categoryId: string
-    spend: number
-    spendBytags: GetSpendTag[]
+    spends: number[]
 }
 
-export type GetSpendAnalysticRequest = {
+export type GetSpendCategoryRequest = {
     period: string
     interval: number
     startDate: string 
+    offset: number
+    limit: number
+    queryAll: boolean
 }
-export type GetSpendAnalysticResponse = {
-    totalSpend: number[] 
-    spendByCategories: GetSpendCategory[][] 
+
+// TAG
+export type GetSpendTagRequest = {
+    period: string
+    interval: number
+    startDate: string 
+    offset: number
+    limit: number
+    queryAll: boolean
+    categoryId?: string
+}
+
+type GetSpendTagResponse = {
+    tagId: string
+    spends: number[]
 }

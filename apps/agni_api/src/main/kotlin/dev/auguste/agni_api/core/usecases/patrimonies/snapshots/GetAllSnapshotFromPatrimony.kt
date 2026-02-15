@@ -13,6 +13,7 @@ class GetAllSnapshotFromPatrimony(
 ): IUseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>> {
 
     override fun execAsync(input: GetAllSnapshotPatrimonyInput): ListOutput<GetSnapshotPatrimonyOutput> {
+        input.query.sortBy.by = "date"
         val snapshots = snapshotPatrimonyRepo.getAll(input.query, QueryPatrimonySnapshotExtend(setOf(input.patrimonyId)))
 
         return ListOutput(

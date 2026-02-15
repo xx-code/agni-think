@@ -10,13 +10,11 @@ import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Transaction
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.infras.persistences.IMapper
-import dev.auguste.agni_api.infras.persistences.addPaginationSqlStringBuilder
+import dev.auguste.agni_api.infras.persistences.query_adapters.addPaginationSqlStringBuilder
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInvoiceModel
-import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
-import java.time.OffsetDateTime
 import java.util.UUID
 
 @Component
@@ -101,11 +99,11 @@ class JdbcInvoiceTransactionCountReader(
         return jdbcTemplate.queryForObject(sql.toString(), params, Long::class.java) ?: 0
     }
 
-    override fun pagination(
+    override fun filteredInvoiceIds(
         query: QueryFilter,
         queryInvoiceExtend: IQueryExtend<Invoice>,
         queryTransactionExtend: IQueryExtend<Transaction>
-    ): ListOutput<Invoice> {
+    ): ListOutput<UUID> {
         val total = count(queryInvoiceExtend, queryTransactionExtend)
 
         var sql = StringBuilder("""
@@ -126,25 +124,13 @@ class JdbcInvoiceTransactionCountReader(
         val params = MapSqlParameterSource()
         sql = buildStringSql(query, queryInvoiceExtend, queryTransactionExtend, sql, params)
 
-
-        val row = RowMapper { rs, _ ->
-            JdbcInvoiceModel(
-                id = rs.getObject("transaction_id", UUID::class.java),
-                accountId = rs.getObject("account_id", UUID::class.java),
-                isFreeze = rs.getBoolean("is_freeze"),
-                status = rs.getString("status"),
-                type = rs.getString("type"),
-                mouvement = rs.getString("mouvement"),
-                date = rs.getObject("date", OffsetDateTime::class.java).toLocalDateTime(),
-                deductions = rs.getString("deductions"),
-            )
+        val results = jdbcTemplate.query(sql.toString(), params) { rs, _ ->
+            rs.getObject("transaction_id", UUID::class.java)
         }
 
-        val results = jdbcTemplate.query(sql.toString(), params, row)
-
         return ListOutput(
-            items = results.map { mapper.toDomain(it) },
-            total = total
+            results,
+            total
         )
     }
 }

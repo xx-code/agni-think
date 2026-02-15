@@ -39,14 +39,14 @@ class GetBalance(
             budgetIds = input.budgetIds,
             minAmount = input.minAmount,
             maxAmount = input.maxAmount,
-            doRemoveSpecialCategory = input.categoryIds == null
+            doRemoveSpecialCategory = input.removeSystemCategory == true && input.categoryIds.isNullOrEmpty(),
         ))
 
         val creditInvoiceIds = invoices.items.filter { it.mouvementType == InvoiceMouvementType.CREDIT }.map { it.id }
         val debitInvoiceIds = invoices.items.filter { it.mouvementType == InvoiceMouvementType.DEBIT }.map { it.id }
 
         val income = invoiceTransactions.filter { creditInvoiceIds.contains(it.invoiceId) }.sumOf { it.total }
-        val spend = invoiceTransactions.filter { debitInvoiceIds.contains(it.invoiceId) }.sumOf { it.subTotal }
+        val spend = invoiceTransactions.filter { debitInvoiceIds.contains(it.invoiceId) }.sumOf { it.total }
 
         val balance = income - spend
 

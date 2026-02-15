@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.usecases.patrimonies
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
+import dev.auguste.agni_api.core.adapters.dto.QuerySortBy
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryPatrimonySnapshotExtend
 import dev.auguste.agni_api.core.entities.Account
@@ -30,8 +31,9 @@ class GetAllPatrimonies(
         val patrimonies = patrimonyRepo.getAll(input)
 
         val snapshots = patrimonySnapshotRepo.getAll(
-            QueryFilter(0,0,true),
-            QueryPatrimonySnapshotExtend(patrimonies.items.map { it.id }.toSet()))
+            QueryFilter(0,0,true, QuerySortBy("date")),
+            QueryPatrimonySnapshotExtend(patrimonies.items.map { it.id }.toSet())
+        )
 
         val results = mutableListOf<GetPatrimonyOutput>()
 

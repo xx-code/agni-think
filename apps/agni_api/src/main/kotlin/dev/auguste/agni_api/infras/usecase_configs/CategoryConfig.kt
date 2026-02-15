@@ -12,6 +12,7 @@ import dev.auguste.agni_api.core.usecases.categories.GetCategory
 import dev.auguste.agni_api.core.usecases.categories.UpdateCategory
 import dev.auguste.agni_api.core.usecases.categories.dto.CreateCategoryInput
 import dev.auguste.agni_api.core.usecases.categories.dto.DeleteCategoryInput
+import dev.auguste.agni_api.core.usecases.categories.dto.GetAllCategoryInput
 import dev.auguste.agni_api.core.usecases.categories.dto.GetCategoryOutput
 import dev.auguste.agni_api.core.usecases.categories.dto.UpdateCategoryInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -43,7 +44,7 @@ class CategoryConfig {
     @Bean
     fun getAllCategories(
         categoryRepository: IRepository<Category>
-    ): IUseCase<QueryFilter, ListOutput<GetCategoryOutput>> {
+    ): IUseCase<GetAllCategoryInput, ListOutput<GetCategoryOutput>> {
        return GetAllCategory(
            categoryRepo = categoryRepository
        )

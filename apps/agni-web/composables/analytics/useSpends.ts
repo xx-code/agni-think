@@ -1,31 +1,21 @@
-import type { Reactive } from "vue";
-import type { GetSpendAnalysticRequest, GetSpendAnalysticResponse } from "~/types/api/analytics";
-import type { SpendAnalysticType } from "~/types/ui/analytics";
-import type { UseApiFetchReturn } from "~/types/utils";
+import type { ListResponse } from "~/types/api";
+import type { GetSpendCategoryRequest, GetSpendCategoryResponse, GetSpendTagRequest, GetSpendTagResponse } from "~/types/api/analytics";
 
-export default function useAnalyticSpends(request: Reactive<GetSpendAnalysticRequest>): UseApiFetchReturn<SpendAnalysticType>{
-    const { data, error, refresh } = useFetch('/api/analytics/spends', {
-        method: 'GET',
-        query: request,
-        transform: (data: GetSpendAnalysticResponse) => {
-            return {
-                totalSpends: data.totalSpend,
-                spendByCategories: data.spendByCategories
-            } satisfies SpendAnalysticType
-        }
-    });
 
-    return { data, error, refresh }
-}
-
-export async function fetchAnalyticSpends(request: GetSpendAnalysticRequest): Promise<SpendAnalysticType>{
-    const response = await $fetch<GetSpendAnalysticResponse>('/api/analytics/spends', {
+export async function fetchSpendByCategoriesAnalytic(request: GetSpendCategoryRequest): Promise<ListResponse<GetSpendCategoryResponse>> {
+    const response = await $fetch<ListResponse<GetSpendCategoryResponse>>('/api/analytics/spend-categories', {
         method: 'GET',
         query: request 
     });
 
-    return { 
-        totalSpends: response.totalSpend,
-        spendByCategories: response.spendByCategories
-    };
+    return response
+}
+
+export async function fetchSpendByTagAnalytic(request: GetSpendTagRequest): Promise<ListResponse<GetSpendTagResponse>> {
+    const response = await $fetch<ListResponse<GetSpendTagResponse>>('/api/analytics/spend-tags', {
+        method: 'GET',
+        query: request 
+    });
+
+    return response
 }

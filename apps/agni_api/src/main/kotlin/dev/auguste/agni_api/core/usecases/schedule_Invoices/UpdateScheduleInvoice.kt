@@ -42,7 +42,7 @@ class UpdateScheduleInvoice(
         }
 
         if (!scheduleInvoice.isFreeze && input.tagIds != null) {
-            if (invoiceDependencies.tagRepo.getManyByIds(input.tagIds) != input.tagIds)
+            if (invoiceDependencies.tagRepo.getManyByIds(input.tagIds).size != input.tagIds.size)
                 throw Error("Tags not found")
         }
 

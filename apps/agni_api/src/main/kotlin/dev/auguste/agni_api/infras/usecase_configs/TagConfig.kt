@@ -13,6 +13,7 @@ import dev.auguste.agni_api.core.usecases.tags.GetTag
 import dev.auguste.agni_api.core.usecases.tags.UpdateTag
 import dev.auguste.agni_api.core.usecases.tags.dto.CreateTagInput
 import dev.auguste.agni_api.core.usecases.tags.dto.DeleteTagInput
+import dev.auguste.agni_api.core.usecases.tags.dto.GetAllTagInput
 import dev.auguste.agni_api.core.usecases.tags.dto.GetTagOutput
 import dev.auguste.agni_api.core.usecases.tags.dto.UpdateTagInput
 import org.springframework.context.annotation.Bean
@@ -52,7 +53,7 @@ class TagConfig {
     @Bean
     fun getAllTags(
         tagRepository: IRepository<Tag>
-    ): IUseCase<QueryFilter, ListOutput<GetTagOutput>> {
+    ): IUseCase<GetAllTagInput, ListOutput<GetTagOutput>> {
         return GetAllTags(
             tagRepo = tagRepository
         )

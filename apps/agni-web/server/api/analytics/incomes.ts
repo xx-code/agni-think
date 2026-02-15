@@ -1,5 +1,4 @@
 import useApiLink from "~/composables/useApiLink";
-import type { GetIncomeAnalysticResponse } from "~/types/api/analytics";
 
 export default defineEventHandler(async event => {
     try {
