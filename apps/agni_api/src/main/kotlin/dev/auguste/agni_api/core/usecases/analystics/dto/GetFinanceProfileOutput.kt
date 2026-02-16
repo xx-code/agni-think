@@ -1,6 +1,5 @@
 package dev.auguste.agni_api.core.usecases.analystics.dto
 
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class AccountInfoOutput(
