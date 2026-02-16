@@ -1,8 +1,10 @@
 package dev.auguste.agni_api.core.usecases.schedule_Invoices
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.events.EventContent
+import dev.auguste.agni_api.core.adapters.events.IEventType
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
+import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventContent
+import dev.auguste.agni_api.core.adapters.events.contents.NotificationType
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateComparator
@@ -87,14 +89,21 @@ class ApplyScheduleInvoice(
                 }
 
 
-                this.eventManager.notify("notification", EventContent(
+                this.eventManager.notify(IEventType.NOTIFICATION, NotificationEventContent(
                     "Schedule Invoice",
                     "La transaction ${scheduleInvoice.isFreeze.let { "gele" }} ${scheduleInvoice.title} at ${scheduleInvoice.amount}",
+                    type = NotificationType.Success,
                 ))
             }
 
             return BackgroundTaskOut("Apply Schedule Success")
         } catch (error: Throwable) {
+            this.eventManager.notify(IEventType.NOTIFICATION, NotificationEventContent(
+                "Schedule Invoice !Error",
+                "Error while applying schedule in voice ${error.message}",
+                type = NotificationType.Error,
+            ))
+
             return BackgroundTaskOut(error.localizedMessage)
         }
     }

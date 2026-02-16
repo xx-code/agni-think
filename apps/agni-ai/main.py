@@ -63,3 +63,10 @@ def test_tool(tool: str):
             return get_finance_profile()
         case _:
             return "Unknow tool in the system"
+        
+@app.get("/health")
+def health():
+    # Check connection to ollama
+    # Check connection to cloud ai
+    # Check connection to vector db
+    return "In services!!"
