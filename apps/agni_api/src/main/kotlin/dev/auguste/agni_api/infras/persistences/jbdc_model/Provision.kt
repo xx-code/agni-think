@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.util.UUID
 
-@Table("provisionables")
-data class JdbcProvisionableModel(
+@Table("provisions")
+data class JdbcProvisionModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("provisionable_id")
+    @Column("provision_id")
     val id: UUID,
 
     @Column("title")
@@ -35,8 +35,8 @@ data class JdbcProvisionableModel(
 }
 
 @Component
-class JdbcProvisionableMapper: IMapper<JdbcProvisionableModel, Provision> {
-    override fun toDomain(model: JdbcProvisionableModel): Provision {
+class JdbcProvisionMapper: IMapper<JdbcProvisionModel, Provision> {
+    override fun toDomain(model: JdbcProvisionModel): Provision {
         return Provision(
             id = model.id,
             title = model.name,
@@ -47,8 +47,8 @@ class JdbcProvisionableMapper: IMapper<JdbcProvisionableModel, Provision> {
         )
     }
 
-    override fun toModel(entity: Provision): JdbcProvisionableModel {
-        return JdbcProvisionableModel(
+    override fun toModel(entity: Provision): JdbcProvisionModel {
+        return JdbcProvisionModel(
             id = entity.id,
             name = entity.title,
             initialCost = entity.initialCost,

@@ -11,6 +11,7 @@ import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.Currency
 import dev.auguste.agni_api.core.entities.Deduction
 import dev.auguste.agni_api.core.entities.FinancePrinciple
+import dev.auguste.agni_api.core.entities.IncomeSource
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Notification
 import dev.auguste.agni_api.core.entities.Patrimony
@@ -26,11 +27,12 @@ import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcCategoryModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcCurrencyModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcDeductionModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcFinancePrincipleModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcIncomeSourceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInvoiceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcNotificationModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcPatrimonyModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcPatrimonySnapshotModel
-import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcProvisionableModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcProvisionModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcSavingGoalModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcScheduleInvoiceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTagModel
@@ -140,13 +142,13 @@ class PatrimonySnapshotRepository(
 
 // Proisionable
 @Repository
-interface ProvisionableStorage: GenericStorage<JdbcProvisionableModel, UUID>
+interface ProvisionableStorage: GenericStorage<JdbcProvisionModel, UUID>
 
 @Component
 class ProvisionableRepository(
     storage: ProvisionableStorage,
-    provisionModlModelMapper: IMapper<JdbcProvisionableModel, Provision>
-): JdbcRepository<JdbcProvisionableModel, Provision>(storage = storage, provisionModlModelMapper)
+    provisionModlModelMapper: IMapper<JdbcProvisionModel, Provision>
+): JdbcRepository<JdbcProvisionModel, Provision>(storage = storage, provisionModlModelMapper)
 
 //Saving Goal
 @Repository
@@ -211,3 +213,12 @@ class FinancePrincipleRepository(
     storage: FinancePrincipleStorage,
     financePrincipleMapper: IMapper<JdbcFinancePrincipleModel, FinancePrinciple>
 ) : JdbcRepository<JdbcFinancePrincipleModel, FinancePrinciple>(storage, financePrincipleMapper)
+
+@Repository
+interface IncomeSourceStorage: GenericStorage<JdbcIncomeSourceModel, UUID>
+
+@Component
+class IncomeSourceRepository(
+    storage: IncomeSourceStorage,
+    incomeSourceMapper: IMapper<JdbcIncomeSourceModel, IncomeSource>
+) : JdbcRepository<JdbcIncomeSourceModel, IncomeSource>(storage, incomeSourceMapper)
