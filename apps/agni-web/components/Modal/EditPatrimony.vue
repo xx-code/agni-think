@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { FormSubmitEvent } from '#ui/types';
 import * as z from 'zod';
-import useAccounts from '~/composables/accounts/useAccounts';
+import { fetchAccounts } from '~/composables/accounts/useAccounts';
 import type { EditePatrimony, PatrimonyType, TypePatrimony } from '~/types/ui/patrimony';
 
 const { patrimony } = defineProps<{
@@ -21,10 +21,9 @@ const schema = z.object({
     type: z.string(),
 })
 
-const {data: accounts} = useAccounts({
-    limit: 0,
-    offset: 0,
-    queryAll: true
+const {data: accounts} = useAsyncData('editAmountSaving+accounts', async () => {
+    const res = fetchAccounts({ offset: 0, limit:0, queryAll: true})
+    return res
 })
 
 type Schema = z.output<typeof schema>;

@@ -7,7 +7,7 @@ import java.util.UUID
 
 @Component
 class EmbeddingService(
-    @Value("\${ai.agent.api.url}") private val apiAgniUrl: String
+    @Value("\${ai.agent.api.url:http://localhost:8000}") private val apiAgniUrl: String
 ) : IEmbeddingService {
 
     private val restTemplate = org.springframework.web.client.RestTemplate()

@@ -2,8 +2,8 @@
 import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { UFormField } from '#components';
-import useAccounts from '~/composables/accounts/useAccounts';
 import type { EditUpdateAmountSaveGoalType, SaveGoalType } from '~/types/ui/saveGoal';
+import { fetchAccounts } from '~/composables/accounts/useAccounts';
 
 const { saveGoal, isIncrease } = defineProps<{
     saveGoal?: SaveGoalType
@@ -26,10 +26,9 @@ const form = reactive({
     amount: 0
 })
 
-const {data: accounts} = useAccounts({
-    offset: 0,
-    limit: 0,
-    queryAll: true
+const {data: accounts} = useAsyncData('editAmountSaving+accounts', async () => {
+    const res = fetchAccounts({ offset: 0, limit:0, queryAll: true})
+    return res
 })
 
 type Schema = z.output<typeof schema>

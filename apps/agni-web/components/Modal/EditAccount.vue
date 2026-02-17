@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
-import useAccountTypes from '~/composables/internals/useAccountTypes';
 import type { AccountBrokeDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from '~/types/ui/account';
-import useManagementAccountTypes from '~/composables/internals/useContributionTypes copy';
-import useContributionTypes from '~/composables/internals/useManagementAccountTypes';
+import { fetchAccountTypes } from '~/composables/internals/useAccountTypes';
+import { fetchManagementAccountTypes } from '~/composables/internals/useManagementAccountTypes';
+import { fetchContributionTypes } from '~/composables/internals/useContributionTypes';
 
 const { account } = defineProps<{
     account?: AccountWithDetailType
@@ -15,9 +15,21 @@ const emit = defineEmits<{
     (e: 'close', close: boolean): void
 }>(); 
 
-const {data: types} = useAccountTypes();
-const {data: managementTypes} = useManagementAccountTypes()
-const {data: contributionTypes} = useContributionTypes()
+const { data: utils } = useAsyncData('utils+edit-account', async () => {
+    const [accountTypes, managementTypes, contributionTypes] = await Promise.all(
+        [ 
+            fetchAccountTypes(), 
+            fetchManagementAccountTypes(),
+            fetchContributionTypes()
+        ]
+    )
+
+    return {
+        accountTypes,
+        managementTypes,
+        contributionTypes
+    } 
+})
 
 const schema = z.object({
     accountName: z.string().nonempty('Le nom du compte est vide'),
@@ -34,7 +46,6 @@ const form = reactive({
     creditLimit: account?.detail ?(account?.detail as AccountCreditDetailType).creditLimit ?? 0 : undefined
 })
 
-console.log(managementTypes)
 
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
@@ -68,7 +79,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                 <USelect 
                     v-model="form.accountType" 
                     value-key="value" 
-                    :items="types?.map(i => ({ label: i.value, value: i.id}))" class="w-full">
+                    :items="utils?.accountTypes.map(i => ({ label: i.value, value: i.id}))" class="w-full">
                 </USelect>
             </UFormField>
 
@@ -81,7 +92,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     <USelect 
                         v-model="form.contributionType" 
                         value-key="value" 
-                        :items="contributionTypes?.map(i => ({ label: i.value, value: i.id}))" class="w-full">
+                        :items="utils?.contributionTypes.map(i => ({ label: i.value, value: i.id}))" class="w-full">
                     </USelect>
                 </UFormField>
 
@@ -89,7 +100,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     <USelect 
                         v-model="form.managementType" 
                         value-key="value" 
-                        :items="managementTypes?.map(i => ({ label: i.value, value: i.id}))" class="w-full">
+                        :items="utils?.managementTypes.map(i => ({ label: i.value, value: i.id}))" class="w-full">
                     </USelect>
                 </UFormField> 
             </div>

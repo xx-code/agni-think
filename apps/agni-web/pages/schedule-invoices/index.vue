@@ -2,26 +2,33 @@
 import { ModalEditScheduleInvoice } from '#components';
 import type { TableColumn, TableRow } from '#ui/types';
 import { getLocalTimeZone } from '@internationalized/date';
-import useCategories from '~/composables/categories/useCategories';
+import { fetchCategories } from '~/composables/categories/useCategories';
 import useCreateScheduleInvoice from '~/composables/scheduleTransactions/useCreateScheduleTransaction';
 import useDeleteScheduleInvoice from '~/composables/scheduleTransactions/useDeleteScheduleTransaction';
 import { fetchScheduleInvoice } from '~/composables/scheduleTransactions/useScheduleTransaction';
-import useScheduleInvoice from '~/composables/scheduleTransactions/useScheduleTransactions';
+import { fetchScheduleInvoices } from '~/composables/scheduleTransactions/useScheduleTransactions';
 import useUpdateScheduleInvoice from '~/composables/scheduleTransactions/useUpdateScheduleTransaction';
-import useTags from '~/composables/tags/useTags';
+import { fetchTags } from '~/composables/tags/useTags';
 import type { QueryFilterRequest } from '~/types/api';
 import type { EditScheduleInvoiceType, ScheduleInvoiceType, TableScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
 
-const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories({
-    queryAll: true, offset: 0, limit: 0
-});
-const {data: tags, error: errorTag, refresh: refreshTag } = useTags({
-    queryAll: true, offset: 0, limit: 0
-});
+const { data: utils } = useAsyncData('utils+schedule-invoices', async () => {
+    const query = { offset: 0, limit: 0, queryAll: true}
+    const [categories, tags] = await Promise.all([
+        fetchCategories(query),
+        fetchTags(query)
+    ])
+
+    return {
+        categories,
+        tags
+    }
+})
+
 const toast = useToast();
 
-const getCategory = (id: string) => categories.value?.items.find(i => id === i.id)
-const getTag = (id: string) => tags.value?.items.find(i => id === i.id)
+const getCategory = (id: string) => utils.value?.categories.items.find(i => id === i.id)
+const getTag = (id: string) => utils.value?.tags.items.find(i => id === i.id)
 const page = ref(1)
 const scheduleFilter = reactive<QueryFilterRequest>({
     limit: 8,
@@ -31,7 +38,12 @@ const scheduleFilter = reactive<QueryFilterRequest>({
 const {
     data: scheduleInvoices, 
     error: errorTransactions, 
-    refresh: refreshScheduleInvoices } = useScheduleInvoice(scheduleFilter);
+    refresh: refreshScheduleInvoices 
+} = useAsyncData('schedule-invoice-page', async () => {
+    const res = await fetchScheduleInvoices(scheduleFilter)
+    return res
+}, { watch: [ scheduleFilter ]})
+
 const displayScheluletransactionsTable = computed(() => {
     return scheduleInvoices.value?.items.map(i => ({
         id: i.id,

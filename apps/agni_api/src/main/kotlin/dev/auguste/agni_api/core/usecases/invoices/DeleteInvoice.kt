@@ -1,7 +1,6 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
-import dev.auguste.agni_api.core.adapters.events.contents.CreateEmbeddingInvoiceEventContent
-import dev.auguste.agni_api.core.adapters.events.IEventType
+import dev.auguste.agni_api.core.adapters.events.EventType
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.DeleteEmbeddingInvoiceEventContent
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
@@ -58,6 +57,6 @@ class DeleteInvoice(
             accountRepo.update(account)
         }
 
-        eventRegister.notify(IEventType.DELETE_EMBEDDING_SERVICE, DeleteEmbeddingInvoiceEventContent(input.invoiceId))
+        eventRegister.notify(EventType.DELETE_EMBEDDING_SERVICE, DeleteEmbeddingInvoiceEventContent(input.invoiceId))
     }
 }

@@ -21,26 +21,6 @@ function sumTotalBalance(accounts: AccountWithDetailType[]): [number, number, nu
     return [Number(total.toFixed(2)), Number(totalLocked.toFixed(2)), Number(totalFreezed.toFixed(2))];
 }
 
-export default function useAccounts(query: Reactive<QueryFilterRequest>): UseApiFetchReturn<ListResponse<AccountType>> {
-    const { data, error, refresh } = useFetch('/api/accounts', {
-        method: 'GET',
-        query: query,
-        transform: (data: ListResponse<GetAccountResponse>) => {
-            return {
-                items: data.items.map(i => ({
-                    id: i.id,
-                    title: i.title,
-                    balance: i.balance,
-                    type: i.type
-                })),
-                total: Number(data.total) 
-            } satisfies ListResponse<AccountType>;
-        }
-    });
-
-    return { data, error, refresh };
-}
-
 export async function fetchAccounts(query: QueryFilterRequest): Promise<ListResponse<AccountType>> {
     const res = await $fetch<ListResponse<GetAccountResponse>>('/api/accounts', {
         method: 'GET',

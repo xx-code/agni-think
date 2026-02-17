@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.core.usecases.budgets
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.events.IEventType
+import dev.auguste.agni_api.core.adapters.events.EventType
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventContent
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationType
@@ -42,13 +42,13 @@ class UpdateDueBudget(
 
                 if (budget.isArchived) {
                     eventRegister.notify(
-                        IEventType.NOTIFICATION, NotificationEventContent(
+                        EventType.NOTIFICATION, NotificationEventContent(
                         "Budget archived",
                         "Budget ${budget.title} a ete archive",
                             type = NotificationType.Success
                     ))
                 } else {
-                    eventRegister.notify(IEventType.NOTIFICATION, NotificationEventContent(
+                    eventRegister.notify(EventType.NOTIFICATION, NotificationEventContent(
                         "Mise a jour budget",
                         "Budget ${budget.title} a ete mis a jour",
                         NotificationType.Success
@@ -59,7 +59,7 @@ class UpdateDueBudget(
 
             return BackgroundTaskOut("All due Budget updated")
         } catch (error: Throwable) {
-            eventRegister.notify(IEventType.NOTIFICATION, NotificationEventContent(
+            eventRegister.notify(EventType.NOTIFICATION, NotificationEventContent(
                 "Error While update budget",
                 "Error: ${error.message}",
                 NotificationType.Error

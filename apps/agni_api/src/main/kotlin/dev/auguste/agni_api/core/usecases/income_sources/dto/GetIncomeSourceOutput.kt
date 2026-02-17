@@ -5,7 +5,9 @@ import java.util.UUID
 
 data class GetIncomeSourceOutput(
     val id: UUID,
+    val title: String,
     val type: String,
+    val payFrequencyType: String,
     val reliabilityLevel: Int,
     val taxRate: Double,
     val otherRate: Double,

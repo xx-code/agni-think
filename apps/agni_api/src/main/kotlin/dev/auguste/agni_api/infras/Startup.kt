@@ -4,16 +4,14 @@ import dev.auguste.agni_api.core.DOLLAR_CURRENT_ID
 import dev.auguste.agni_api.core.FREEZE_CATEGORY_ID
 import dev.auguste.agni_api.core.SAVING_CATEGORY_ID
 import dev.auguste.agni_api.core.TRANSFERT_CATEGORY_ID
-import dev.auguste.agni_api.core.adapters.events.IEventListener
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
+import dev.auguste.agni_api.core.adapters.events.EventType
 import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.Currency
 import dev.auguste.agni_api.core.usecases.notifications.PushNotification
 import dev.auguste.agni_api.infras.persistences.CategoryRepository
 import dev.auguste.agni_api.infras.persistences.CurrencyRepository
-import dev.auguste.agni_api.infras.persistences.TagRepository
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
@@ -31,7 +29,7 @@ class Startup (
     private fun registerEventLister() {
         try {
             logger.info("[*] Registering event listener")
-            evenRegister.subscribe("notification",pushNotification)
+            evenRegister.subscribe(EventType.NOTIFICATION,pushNotification)
         } catch (e: Exception) {
             logger.info("[!] Error while registering event listener: ${e.message}")
         }

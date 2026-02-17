@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.core.usecases.schedule_Invoices
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.events.IEventType
+import dev.auguste.agni_api.core.adapters.events.EventType
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventContent
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationType
@@ -89,7 +89,7 @@ class ApplyScheduleInvoice(
                 }
 
 
-                this.eventManager.notify(IEventType.NOTIFICATION, NotificationEventContent(
+                this.eventManager.notify(EventType.NOTIFICATION, NotificationEventContent(
                     "Schedule Invoice",
                     "La transaction ${scheduleInvoice.isFreeze.let { "gele" }} ${scheduleInvoice.title} at ${scheduleInvoice.amount}",
                     type = NotificationType.Success,
@@ -98,7 +98,7 @@ class ApplyScheduleInvoice(
 
             return BackgroundTaskOut("Apply Schedule Success")
         } catch (error: Throwable) {
-            this.eventManager.notify(IEventType.NOTIFICATION, NotificationEventContent(
+            this.eventManager.notify(EventType.NOTIFICATION, NotificationEventContent(
                 "Schedule Invoice !Error",
                 "Error while applying schedule in voice ${error.message}",
                 type = NotificationType.Error,

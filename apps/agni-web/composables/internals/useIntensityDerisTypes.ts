@@ -1,10 +1,8 @@
-import type { GetIntensityDesirTypeResponse } from "~/types/api/internal";
-import type { UseApiFetchReturn } from "~/types/utils";
+import type { GetInternalTypeResponse } from "~/types/api/internal"
 
-export default function useIntensityDesirTypes(): UseApiFetchReturn<GetIntensityDesirTypeResponse[]> {
-    const { data, error, refresh } = useFetch<GetIntensityDesirTypeResponse[]>(`/api/internals/intensity-desir-types`, {
+export async function fetcheIntensityDesirTypes(): Promise<GetInternalTypeResponse[]> {
+    const res = await $fetch<GetInternalTypeResponse[]>('/api/internals/intensity-desir-types', {
         method: 'GET'
-    });
-
-    return { data, error, refresh };
+    })
+    return res
 }

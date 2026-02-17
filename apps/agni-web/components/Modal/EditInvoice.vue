@@ -2,13 +2,13 @@
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import * as z from 'zod';
 import { reactive, shallowRef, computed } from "vue";
-import type { EditInvoiceType, EditTransactionType, InvoiceType } from '~/types/ui/transaction';
-import useAccounts from '~/composables/accounts/useAccounts';
-import { useCategoriesNonSys } from '~/composables/categories/useCategories';
-import useTags from '~/composables/tags/useTags';
-import useBudgets from '~/composables/budgets/useBudgets';
-import useTransactionTypes from '~/composables/internals/useTransactionTypes';
+import type { EditInvoiceType, InvoiceType } from '~/types/ui/transaction';
 import type { FormSubmitEvent } from '#ui/types';
+import { fetchCategories } from '~/composables/categories/useCategories';
+import { fetchTags } from '~/composables/tags/useTags';
+import { fetchBudgets } from '~/composables/budgets/useBudgets';
+import { fetchAccounts } from '~/composables/accounts/useAccounts';
+import { fetchTransactionTypes } from '~/composables/internals/useTransactionTypes';
 
 const { invoice, accountSelectedId } = defineProps<{
     invoice?: InvoiceType
@@ -51,32 +51,24 @@ const { data: deductions } = useAsyncData('deductions+transactions', async () =>
 
 type Schema = z.output<typeof schema>;
 
-// Données
-const { data: accounts } = useAccounts({
-    queryAll: true,
-    limit: 0,
-    offset: 0
-});
+const { data: utils } = useAsyncData('utils+edit-invoices', async () => {
+    const query = {offset: 0, limit: 0, queryAll: true, isSystem: false}
+    const [ categories, tags, budgets, accounts, transactionTypes ] = await Promise.all([
+        fetchCategories(query),
+        fetchTags(query),
+        fetchBudgets(query),
+        fetchAccounts(query),
+        fetchTransactionTypes()
+    ])
 
-const categories = useCategoriesNonSys({
-    queryAll: true,
-    limit: 0,
-    offset: 0
-});
-
-const { data: tags } = useTags({
-    queryAll: true,
-    limit: 0,
-    offset: 0
-});
-
-const { data: budgets } = useBudgets({
-    queryAll: true,
-    limit: 0,
-    offset: 0
-});
-
-const { data: transactionTypes } = useTransactionTypes();
+    return {
+        categories,
+        tags,
+        budgets,
+        accounts,
+        transactionTypes
+    }
+})
 
 // État du formulaire
 const form = reactive<Partial<Schema>>({
@@ -153,10 +145,10 @@ const totalWithDeductions = computed(() => {
 const displayTransactionType = computed(() => {
     if (form.mouvement) {
         if (form.mouvement === 'Credit')
-            return transactionTypes.value?.filter(i => ["income", "other"].includes(i.id.toLowerCase())).map(i => ({ label: i.value, value: i.id }))
+            return utils.value?.transactionTypes.filter(i => ["income", "other"].includes(i.id.toLowerCase())).map(i => ({ label: i.value, value: i.id }))
     }
 
-    return transactionTypes.value?.filter(i => i.id.toLowerCase() !== 'income').map(i => ({ label: i.value, value: i.id }))
+    return utils.value?.transactionTypes.filter(i => i.id.toLowerCase() !== 'income').map(i => ({ label: i.value, value: i.id }))
 })
 
 // Gestion des records
@@ -178,11 +170,14 @@ function removeTransaction(index: number) {
 }
 
 function duplicateTransaction(index: number) {
-    if (form.transactions) {
+    if (form.transactions && form.transactions[index]) {
         const transactionToDuplicate = form.transactions[index];
         form.transactions.push({
-            ...transactionToDuplicate,
-            description: `${transactionToDuplicate.description} (copie)`
+            amount: transactionToDuplicate.amount || 0,
+            description: `${transactionToDuplicate.description} (copie)`,
+            categoryId: transactionToDuplicate.categoryId || '',
+            tagIds: transactionToDuplicate.tagIds || [],
+            budgetIds: transactionToDuplicate.budgetIds || []
         });
     }
 }
@@ -255,7 +250,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 // Helper pour obtenir la catégorie
 function getCategoryById(id: string) {
-    return categories.value.find(c => c.id === id);
+    return utils.value?.categories.items.find(c => c.id === id);
 }
 
 </script>
@@ -307,7 +302,7 @@ function getCategoryById(id: string) {
                             <USelect 
                                 v-model="form.accountId" 
                                 value-key="value" 
-                                :items="accounts?.items.map(i => ({ value: i.id, label: i.title }))" 
+                                :items="utils?.accounts.items.map(i => ({ value: i.id, label: i.title }))" 
                                 placeholder="Sélectionner un compte"
                                 size="lg"
                             />
@@ -422,7 +417,7 @@ function getCategoryById(id: string) {
                                     <USelectMenu 
                                         v-model="record.categoryId" 
                                         value-key="value"
-                                        :items="categories.map(i => ({ 
+                                        :items="utils?.categories.items.map(i => ({ 
                                             value: i.id, 
                                             label: i.title,
                                             icon: i.icon,
@@ -470,7 +465,7 @@ function getCategoryById(id: string) {
                                         v-model="record.tagIds" 
                                         multiple 
                                         value-key="value"
-                                        :items="tags?.items.map(i => ({ 
+                                        :items="utils?.tags.items.map(i => ({ 
                                             value: i.id, 
                                             label: i.value,
                                             color: i.color 
@@ -493,7 +488,7 @@ function getCategoryById(id: string) {
                                         v-model="record.budgetIds" 
                                         multiple 
                                         value-key="value" 
-                                        :items="budgets?.items.map(i => ({ value: i.id, label: i.title }))"
+                                        :items="utils?.budgets.items.map(i => ({ value: i.id, label: i.title }))"
                                         placeholder="Sélectionner des budgets"
                                     >
                                         <template #item="{ item }">

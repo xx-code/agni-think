@@ -14,11 +14,13 @@ class GetIncomeSource(
 
         return GetIncomeSourceOutput(
             id = incomeSource.id,
+            title = incomeSource.title,
             type = incomeSource.type.value,
             reliabilityLevel = incomeSource.reliabilityLevel,
             taxRate = incomeSource.taxRate,
             otherRate = incomeSource.otherRate,
             startDate = incomeSource.startDate,
+            payFrequencyType = incomeSource.payFrequency.value,
             estimatedFutureOccurrences = incomeSource.getEstimateFutureOccurrence(),
             estimateNextNetAmount = incomeSource.getEstimateNextNetAmount(),
             linkedAccountId = incomeSource.linkedAccountId,

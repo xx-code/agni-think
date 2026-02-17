@@ -100,14 +100,22 @@ class IncomeSource(
     }
 
     fun getEstimateNextNetAmount() : Double {
-        if (payFrequency == IncomeSourceFrequencyType.IRRELEVANTLY || annualGrossAmount == null)
+        val gross = annualGrossAmount
+        if (payFrequency == IncomeSourceFrequencyType.IRRELEVANTLY || gross == null)
             return 0.0
 
-        val tax = annualGrossAmount!! * (taxRate/100)
-        val other = annualGrossAmount!! * (otherRate/100)
 
-        val netAmount = annualGrossAmount!! - (tax + other)
+        val payOccurrences = when (payFrequency) {
+            IncomeSourceFrequencyType.WEEKLY -> 52.0 // Number of week in year
+            IncomeSourceFrequencyType.BIWEEKLY -> 26.0 // Number of biweek in a year
+            IncomeSourceFrequencyType.MONTHLY -> 12.0 // Number of month in a year
+            IncomeSourceFrequencyType.YEARLY -> 1.0
+            IncomeSourceFrequencyType.IRRELEVANTLY -> return 0.0
+        }
 
-        return netAmount / getEstimateNextNetAmount()
+        val totalDeductionRate = (taxRate + otherRate) / 100.0
+        val netAnnualAmount = gross * (1.0 - totalDeductionRate)
+
+        return netAnnualAmount / payOccurrences
     }
 }

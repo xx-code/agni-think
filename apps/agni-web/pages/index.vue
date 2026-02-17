@@ -1,9 +1,5 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
-import useBudgets from '~/composables/budgets/useBudgets'
-import useCategories from '~/composables/categories/useCategories'
-import useSaveGoals from '~/composables/goals/useSaveGoals'
-import useTransactionPagination from '~/composables/invoices/useTransactionPagination'
 import { formatBudgetDataForChart } from '~/utils/formatBudgetDataForChart'
 import { getListTime } from '~/utils/getListTime'
 import { fetchAnalyticSavings } from '~/composables/analytics/useSaving'
@@ -13,6 +9,10 @@ import type { QueryFilterRequest } from '~/types/api'
 import type { GetSavingAnalysticRequest, GetSpendCategoryRequest } from '~/types/api/analytics'
 import type { GetBalanceResponse, QueryBalanceByPeriod, QueryInvoice } from '~/types/api/transaction'
 import type { SavingAnalysticType } from '~/types/ui/analytics'
+import { fetchCategories } from '~/composables/categories/useCategories'
+import { fetchBudgets } from '~/composables/budgets/useBudgets'
+import { fetchSavingGoals } from '~/composables/goals/useSaveGoals'
+import { fetchInvoicePagination } from '~/composables/invoices/useTransactionPagination'
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
 const calendarSelection = reactive<{
@@ -108,13 +108,28 @@ async function fetchSpendCategories() {
 watch(() => calendarSelection.startDate, () => { fetchBalance(); fetchSavings(); fetchSpendCategories() }, { immediate: true })
 
 // ─── Supporting data ──────────────────────────────────────────────────────────
-const { data: categories } = useCategories({ limit: 0, offset: 0, queryAll: true })
-const { data: budgets } = useBudgets({ limit: 0, offset: 0, queryAll: true })
-const { data: goals } = useSaveGoals({ limit: 6, offset: 0, queryAll: false })
-const paramsTransaction = reactive<QueryFilterRequest & QueryInvoice>({ offset: 0, limit: 5, status: 'Pending' })
-const { data: transactions } = useTransactionPagination(paramsTransaction)
+const { data: utils } = useAsyncData('utils+all+dashboard', async () => {
+  const query = { limit: 0, offset: 0, queryAll: true}
+  const [categories, budgets, goals] = await Promise.all([
+    fetchCategories(query),
+    fetchBudgets(query),
+    fetchSavingGoals(query)
+  ])
+  return {
+    categories,
+    budgets,
+    goals
+  }
+})
 
-const getCategory = (id: string) => categories.value?.items.find(i => i.id === id)
+const paramsTransaction = reactive<QueryFilterRequest & QueryInvoice>({ offset: 0, limit: 5, status: 'Pending' })
+const { data: transactions } = useAsyncData('pagination+dashboard', async () => {
+  const res = await fetchInvoicePagination(paramsTransaction)
+
+  return res  
+}) 
+
+const getCategory = (id: string) => utils.value?.categories.items.find(i => i.id === id)
 function pct(prev: number, curr: number) { return prev === 0 ? 0 : ((curr - prev) / Math.abs(prev)) * 100 }
 
 // ─── Labels ───────────────────────────────────────────────────────────────────
@@ -194,7 +209,7 @@ const savingsChartData = computed(() => ({
   ],
 }))
 
-const budgetChartData = computed(() => formatBudgetDataForChart(budgets.value?.items))
+const budgetChartData = computed(() => formatBudgetDataForChart(utils.value?.budgets.items))
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 type ModalType = 'spend' | 'saving' | 'budget' | 'goals' | null
@@ -407,7 +422,7 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
                     <div
                       class="h-full rounded-full transition-all duration-500"
                       :style="{
-                        width: topCategories[0].spend ? `${(item.spend / topCategories[0].spend) * 100}%` : '0%',
+                        width: topCategories[0]?.spend ? `${(item.spend / topCategories[0].spend) * 100}%` : '0%',
                         background: getCategory(item.categoryId)?.color ?? '#6366f1',
                       }" />
                   </div>
@@ -426,12 +441,12 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
               <UIcon name="i-lucide-external-link" class="text-slate-400 text-sm" />
             </div>
             <div class="p-5">
-              <div v-if="!goals?.items?.length" class="flex flex-col items-center gap-2 py-8 text-slate-300 text-sm">
+              <div v-if="utils?.goals.items?.length" class="flex flex-col items-center gap-2 py-8 text-slate-300 text-sm">
                 <UIcon name="i-lucide-target" class="text-3xl" />
                 <span>Aucun objectif</span>
               </div>
               <ul v-else class="flex flex-col gap-4">
-                <li v-for="goal in goals.items" :key="goal.id" class="flex flex-col gap-1.5">
+                <li v-for="goal in utils?.goals.items" :key="goal.id" class="flex flex-col gap-1.5">
                   <div class="flex items-baseline justify-between">
                     <span class="text-sm font-medium text-slate-800 truncate">{{ goal.title }}</span>
                     <span class="text-[11px] font-bold text-violet-500 flex-shrink-0 ml-2">
@@ -469,7 +484,7 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-slate-800 truncate">
-                      {{ (tx.transactions?.length > 0 && tx.transactions[0].description) ?? '—' }}
+                      {{ (tx.transactions?.length > 0 && tx.transactions[0]?.description) ?? '—' }}
                     </p>
                     <p class="text-[10px] text-slate-400">{{ new Date(tx.date).toLocaleDateString('fr-FR') }}</p>
                   </div>
@@ -510,7 +525,7 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
               <span class="flex-1 text-xs text-slate-500 truncate">{{ getCategory(item.categoryId)?.title ?? '—' }}</span>
               <div class="w-28 h-1.5 rounded-full bg-slate-100 overflow-hidden">
                 <div class="h-full rounded-full transition-all duration-500"
-                  :style="{ width: topCategories[0].spend ? `${(item.spend / topCategories[0].spend) * 100}%` : '0%', background: getCategory(item.categoryId)?.color ?? '#6366f1' }" />
+                  :style="{ width: topCategories[0]?.spend ? `${(item.spend / topCategories[0].spend) * 100}%` : '0%', background: getCategory(item.categoryId)?.color ?? '#6366f1' }" />
               </div>
               <span class="text-sm font-semibold flex-shrink-0 text-slate-800">{{ formatCurrency(item.spend) }}</span>
             </li>
@@ -537,7 +552,7 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
             <DoughnutChart :data="budgetChartData" :options="{ ...donutOpts, plugins: { legend: { display: true, position: 'right', labels: { color: '#64748b', boxWidth: 10, font: { size: 11 } } } } }" />
           </div>
           <ul class="flex flex-col gap-3">
-            <li v-for="b in (budgets?.items ?? [])" :key="b.id" class="flex flex-col gap-1.5">
+            <li v-for="b in (utils?.budgets.items ?? [])" :key="b.id" class="flex flex-col gap-1.5">
               <div class="flex justify-between text-sm">
                 <span class="font-medium text-slate-800">{{ b.title }}</span>
                 <span class="text-xs text-slate-400">{{ formatCurrency(b.currentBalance) }} / {{ formatCurrency(b.target) }}</span>
@@ -553,7 +568,7 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
         <!-- Goals -->
         <div v-if="modal === 'goals'">
           <ul class="flex flex-col gap-4">
-            <li v-for="goal in (goals?.items ?? [])" :key="goal.id"
+            <li v-for="goal in (utils?.goals.items ?? [])" :key="goal.id"
               class="p-4 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-2">
               <div class="flex justify-between items-baseline">
                 <span class="font-semibold text-slate-900">{{ goal.title }}</span>

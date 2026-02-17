@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
 import dev.auguste.agni_api.core.adapters.IEmbeddingService
-import dev.auguste.agni_api.core.adapters.events.IEventType
+import dev.auguste.agni_api.core.adapters.events.EventType
 import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteEmbeddingInvoiceEventListener
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.DeleteEmbeddingInvoiceEventContent
@@ -22,7 +22,7 @@ class DeleteInvoiceEmbedding(
             embeddingService.deleteEmbeddingDocument(input)
 
             eventRegister.notify(
-                IEventType.NOTIFICATION,
+                EventType.NOTIFICATION,
                 NotificationEventContent(
                     title = "Transaction Embedding Deleted",
                     message = "Invoice was created: $input",
@@ -33,7 +33,7 @@ class DeleteInvoiceEmbedding(
             return BackgroundTaskOut("Embedding invoice created")
         } catch (err: Exception) {
             eventRegister.notify(
-                IEventType.NOTIFICATION,
+                EventType.NOTIFICATION,
                 NotificationEventContent(
                     title = "Fail to delete embedding invoice",
                     message = "Invoice was failed to create embedding invoice: ${err.message}",

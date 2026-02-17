@@ -1,29 +1,35 @@
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date';
-import useAccounts from '~/composables/accounts/useAccounts';
-import useBudgets from '~/composables/budgets/useBudgets';
-import useCategories from '~/composables/categories/useCategories';
-import useTransactionTypes from '~/composables/internals/useTransactionTypes';
-import useTags from '~/composables/tags/useTags';
+import { fetchAccounts } from '~/composables/accounts/useAccounts';
+import { fetchBudgets } from '~/composables/budgets/useBudgets';
+import { fetchCategories } from '~/composables/categories/useCategories';
+import { fetchTransactionTypes } from '~/composables/internals/useTransactionTypes';
+import { fetchTags } from '~/composables/tags/useTags';
+
 import type { FormFilterTransaction } from '~/types/ui/component';
 
 const emit = defineEmits<{
     (e: 'submit', value: FormFilterTransaction): void
 }>();
 
-const { data:accounts } = useAccounts({
-    limit: 0, offset: 0, queryAll: true
-});
-const { data:categories } = useCategories({
-    limit: 0, offset: 0, queryAll: true
-});
-const { data:tags } = useTags({
-    limit: 0, offset: 0, queryAll: true
-});
-const { data:budgets } = useBudgets({
-    limit: 0, offset: 0, queryAll: true
-});
-const { data:typeTransactions } = useTransactionTypes()
+const { data: utils } = useAsyncData('utils+edit-invoices', async () => {
+    const query = {offset: 0, limit: 0, queryAll: true, isSystem: false}
+    const [ categories, tags, budgets, accounts, transactionTypes ] = await Promise.all([
+        fetchCategories(query),
+        fetchTags(query),
+        fetchBudgets(query),
+        fetchAccounts(query),
+        fetchTransactionTypes()
+    ])
+
+    return {
+        categories,
+        tags,
+        budgets,
+        accounts,
+        transactionTypes
+    }
+})
 
 // TODO: Refactor
 const selectedBudgetIds = ref<string[]>([]);
@@ -98,7 +104,7 @@ function clean() {
                         multiple 
                         v-model="selectedAccountIds" 
                         value-key="value"
-                        :items="accounts?.items.map(i => ({label: i.title, value: i.id}))"/>
+                        :items="utils?.accounts.items.map(i => ({label: i.title, value: i.id}))"/>
                 </div>
 
                 <div>
@@ -107,7 +113,7 @@ function clean() {
                         multiple 
                         v-model="selectedCategoryIds" 
                         value-key="value"
-                        :items="categories?.items.map(i => ({label: i.title, value: i.id}))"/>
+                        :items="utils?.categories.items.map(i => ({label: i.title, value: i.id}))"/>
                 </div>
 
                 <div>
@@ -116,7 +122,7 @@ function clean() {
                         multiple 
                         v-model="selectedTagIds" 
                         value-key="value" 
-                        :items="tags?.items.map(i => ({label: i.value, value: i.id}))"/>
+                        :items="utils?.tags.items.map(i => ({label: i.value, value: i.id}))"/>
                 </div> 
                 
                 <div >
@@ -125,7 +131,7 @@ function clean() {
                         multiple 
                         v-model="selectedBudgetIds" 
                         value-key="value" 
-                        :items="budgets?.items.map(i => ({ label: i.title, value: i.id }))"/>
+                        :items="utils?.budgets.items.map(i => ({ label: i.title, value: i.id }))"/>
                 </div> 
 
                 <div >
@@ -134,7 +140,7 @@ function clean() {
                         multiple 
                         v-model="selectedTypeTransaction" 
                         value-key="value" 
-                        :items="typeTransactions?.map(i => ({ label: i.value, value: i.id }))"/>
+                        :items="utils?.transactionTypes.map(i => ({ label: i.value, value: i.id }))"/>
                 </div>
                 
                 <div>

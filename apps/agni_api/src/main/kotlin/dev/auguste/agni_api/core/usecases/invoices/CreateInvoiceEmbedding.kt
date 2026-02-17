@@ -2,7 +2,7 @@ package dev.auguste.agni_api.core.usecases.invoices
 
 import dev.auguste.agni_api.core.adapters.IEmbeddingService
 import dev.auguste.agni_api.core.adapters.events.contents.CreateEmbeddingInvoiceEventContent
-import dev.auguste.agni_api.core.adapters.events.IEventType
+import dev.auguste.agni_api.core.adapters.events.EventType
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventContent
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationType
@@ -66,7 +66,7 @@ class CreateInvoiceEmbedding(
             embeddingService.addEmbeddingDocument(invoice.id, document)
 
             eventRegister.notify(
-                IEventType.NOTIFICATION,
+                EventType.NOTIFICATION,
                 NotificationEventContent(
                     title = "Transaction Embedding Created",
                     message = "Invoice was created: ${invoice.id}",
@@ -77,7 +77,7 @@ class CreateInvoiceEmbedding(
             return BackgroundTaskOut("Embedding invoice created")
         } catch (err: Exception) {
             eventRegister.notify(
-                IEventType.NOTIFICATION,
+                EventType.NOTIFICATION,
                 NotificationEventContent(
                     title = "Fail to create embedding invoice",
                     message = "Invoice was failed to create embedding invoice: ${err.message}",

@@ -1,6 +1,15 @@
 package dev.auguste.agni_api.controllers
 
 import dev.auguste.agni_api.controllers.models.InternalModelOutput
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
+import dev.auguste.agni_api.core.entities.enums.ContributionAccountType
+import dev.auguste.agni_api.core.entities.enums.FinancePolicyRiskLevelType
+import dev.auguste.agni_api.core.entities.enums.IncomeSourceFrequencyType
+import dev.auguste.agni_api.core.entities.enums.IncomeSourceType
+import dev.auguste.agni_api.core.entities.enums.ManagementAccountType
+import dev.auguste.agni_api.core.entities.enums.PeriodType
+import dev.auguste.agni_api.core.entities.enums.PrincipleType
+import dev.auguste.agni_api.core.entities.enums.PriorityRuleLevelType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -67,17 +76,68 @@ class InternalController {
     @GetMapping("/contribution-type")
     fun getContributionTypes(): ResponseEntity<List<InternalModelOutput>> {
         return ResponseEntity.ok(listOf(
-            InternalModelOutput("REGISTERED", "Enregisterer"),
-            InternalModelOutput("UNREGISTERED", "Unregister")
+            InternalModelOutput(ContributionAccountType.REGISTERED.value, "Enregisterer"),
+            InternalModelOutput(ContributionAccountType.UNREGISTERED.value, "Unregister")
         ))
     }
 
     @GetMapping("/management-account-type")
     fun getManagementAccountTypes(): ResponseEntity<List<InternalModelOutput>> {
         return ResponseEntity.ok(listOf(
-            InternalModelOutput("MANAGED", "Manager"),
-            InternalModelOutput("ROBOT", "Robot"),
-            InternalModelOutput("SELF_DIRECTED", "Gerer")
+            InternalModelOutput(ManagementAccountType.MANAGED.value, "Manager"),
+            InternalModelOutput(ManagementAccountType.ROBOT.value, "Robot"),
+            InternalModelOutput(ManagementAccountType.SELF_DIRECTED.value, "Gerer")
+        ))
+    }
+
+    @GetMapping("/priority-rule-level-type")
+    fun getPriorityRulesLevelTypes(): ResponseEntity<List<InternalModelOutput>> {
+        return ResponseEntity.ok(listOf(
+            InternalModelOutput(PriorityRuleLevelType.SAVING_FIRST.value, PriorityRuleLevelType.SAVING_FIRST.value),
+            InternalModelOutput(PriorityRuleLevelType.DEBT_ACCEPTABLE.value, PriorityRuleLevelType.DEBT_ACCEPTABLE.value),
+            InternalModelOutput(PriorityRuleLevelType.LIFE_STYLE_OPTIMIZED.value, PriorityRuleLevelType.LIFE_STYLE_OPTIMIZED.value),
+        ))
+    }
+
+    @GetMapping("/finance-policy-risk-type")
+    fun getFinancePolicyTypes(): ResponseEntity<List<InternalModelOutput>> {
+        return ResponseEntity.ok(listOf(
+            InternalModelOutput(FinancePolicyRiskLevelType.LOW.ordinal.toString(),
+                "Low"),
+            InternalModelOutput(FinancePolicyRiskLevelType.MEDIUM.ordinal.toString(),
+                "Medium"),
+            InternalModelOutput(FinancePolicyRiskLevelType.HIGH.ordinal.toString(),
+                "High")
+        ))
+    }
+
+    @GetMapping("/income-source-frequency-type")
+    fun getIncomeSourceFrequencyTypes(): ResponseEntity<List<InternalModelOutput>> {
+        return ResponseEntity.ok(listOf(
+            InternalModelOutput(IncomeSourceFrequencyType.WEEKLY.value, "Weekly"),
+            InternalModelOutput(IncomeSourceFrequencyType.BIWEEKLY.value, "Biweekly"),
+            InternalModelOutput(IncomeSourceFrequencyType.MONTHLY.value, "Monthly"),
+            InternalModelOutput(IncomeSourceFrequencyType.YEARLY.value, "Monthly"),
+            InternalModelOutput(IncomeSourceFrequencyType.IRRELEVANTLY.value, "Irrelevant"),
+        ))
+    }
+
+    @GetMapping("/income-source-type")
+    fun getIncomeSourceTypes(): ResponseEntity<List<InternalModelOutput>> {
+        return ResponseEntity.ok(listOf(
+            InternalModelOutput(IncomeSourceType.SALARY.value, "Salary"),
+            InternalModelOutput(IncomeSourceType.SALARY.value, "Contract"),
+            InternalModelOutput(IncomeSourceType.SALARY.value, "Gig"),
+            InternalModelOutput(IncomeSourceType.SALARY.value, "Passive"),
+        ))
+    }
+
+    @GetMapping("/principle-type")
+    fun getPrincipleTypes(): ResponseEntity<List<InternalModelOutput>> {
+        return ResponseEntity.ok(listOf(
+            InternalModelOutput(PrincipleType.EMERGENCY_FUND.value, "Epargne d'urgence"),
+            InternalModelOutput(PrincipleType.INVESTMENT.value, "Investissement"),
+            InternalModelOutput(PrincipleType.UPGRADE.value, "Upgrade"),
         ))
     }
 }

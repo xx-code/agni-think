@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.events.IEventType
+import dev.auguste.agni_api.core.adapters.events.EventType
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventContent
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationType
@@ -41,7 +41,7 @@ class RemoveFreezeInvoice(
                 deleteInvoice.execAsync(DeleteInvoiceInput(invoiceItem.id))
                 val account = accountRepo.get(invoiceItem.accountId)
 
-                eventRegister.notify(IEventType.NOTIFICATION, NotificationEventContent(
+                eventRegister.notify(EventType.NOTIFICATION, NotificationEventContent(
                     "Transaction degeler",
                     "Transaction ${account?.title} a une transaction geler",
                     NotificationType.Success
@@ -51,7 +51,7 @@ class RemoveFreezeInvoice(
             return BackgroundTaskOut("Remove Freeze transaction successfully")
 
         } catch (error: Throwable) {
-            eventRegister.notify(IEventType.NOTIFICATION, NotificationEventContent(
+            eventRegister.notify(EventType.NOTIFICATION, NotificationEventContent(
                 "Error While degele invoice",
                 "Error: ${error.message}",
                 NotificationType.Error

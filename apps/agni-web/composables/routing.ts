@@ -34,6 +34,14 @@ const routeMap: Record<string, RouteInfo> = {
     title: 'Analytics',
     subtitle: 'Insights into your financial data'
   },
+  '/chat-agent': {
+    title: 'Personnal finance advisor',
+    subtitle: 'Chat with you money guy'
+  },
+  '/provisions': {
+    title: 'Provision',
+    subtitle: 'Track provision stuff I want to upgrade'
+  },
   '/patrimonies': {
     title: 'Patrimoine',
     subtitle: 'Track your net worth'

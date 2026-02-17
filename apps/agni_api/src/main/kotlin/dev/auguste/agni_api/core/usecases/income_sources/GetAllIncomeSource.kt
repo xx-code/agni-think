@@ -18,11 +18,13 @@ class GetAllIncomeSource(
             items = incomeSources.items.map {
                 GetIncomeSourceOutput(
                     id = it.id,
+                    title = it.title,
                     type = it.type.value,
                     reliabilityLevel = it.reliabilityLevel,
                     taxRate = it.taxRate,
                     otherRate = it.otherRate,
                     startDate = it.startDate,
+                    payFrequencyType = it.payFrequency.value,
                     estimatedFutureOccurrences = it.getEstimateFutureOccurrence(),
                     estimateNextNetAmount = it.getEstimateNextNetAmount(),
                     linkedAccountId = it.linkedAccountId,

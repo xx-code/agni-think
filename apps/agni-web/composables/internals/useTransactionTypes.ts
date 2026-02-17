@@ -1,10 +1,8 @@
-import type { GetTransactionTypeResponse } from "~/types/api/internal";
-import type { UseApiFetchReturn } from "~/types/utils";
+import type { GetInternalTypeResponse } from "~/types/api/internal"
 
-export default function useTransactionTypes(): UseApiFetchReturn<GetTransactionTypeResponse[]> {
-    const { data, error, refresh } = useFetch<GetTransactionTypeResponse[]>('/api/internals/transaction-types', {
+export async function fetchTransactionTypes(): Promise<GetInternalTypeResponse[]> {
+    const res = await $fetch<GetInternalTypeResponse[]>('/api/internals/transaction-types', {
         method: 'GET'
-    });
-
-    return { data, error, refresh };
+    })
+    return res
 }

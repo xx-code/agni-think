@@ -3,7 +3,7 @@ import { ModalEditBudget } from "#components"
 import { getLocalTimeZone } from "@internationalized/date"
 import { computed, ref } from "vue"
 import { fetchBudget } from "~/composables/budgets/useBudget"
-import useBudgets from "~/composables/budgets/useBudgets"
+import { fetchBudgets } from "~/composables/budgets/useBudgets"
 import useCreateBudget from "~/composables/budgets/useCreateBudget"
 import useDeleteBudget from "~/composables/budgets/useDeleteBudget"
 import useUpdateBudget from "~/composables/budgets/useUpdateBudget"
@@ -20,14 +20,15 @@ type BudgetItem = {
     dueDate: Date
 }
 
-const { data: budgets, error, refresh } = useBudgets({
-    limit: 0,
-    offset: 0,
-    queryAll: true
-})
 
-const displayBudgets = computed(() => {
-    return budgets.value?.items.map(i => ({
+const { data: displayBudgets, error, refresh } = useAsyncData('budgets+all', async () => {
+    const res = await fetchBudgets({
+        limit: 0,
+        offset: 0,
+        queryAll: true
+    }) 
+
+    return res.items.map(i => ({
         id: i.id,
         title: i.title,
         percentageSpend: roundNumber(computePercentage(i.target, i.currentBalance)),
