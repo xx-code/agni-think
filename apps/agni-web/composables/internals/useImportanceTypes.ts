@@ -1,10 +1,8 @@
-import type { GetImportanceGoalTypeResponse } from "~/types/api/internal";
-import type { UseApiFetchReturn } from "~/types/utils";
+import type { GetImportanceGoalTypeResponse, GetInternalTypeResponse } from "~/types/api/internal";
 
-export default function useImportanceTypes(): UseApiFetchReturn<GetImportanceGoalTypeResponse[]> {
-    const { data, error, refresh } = useFetch<GetImportanceGoalTypeResponse[]>(`/api/internals/importance-types`, {
+export async function fetchImportanceTypes(): Promise<GetInternalTypeResponse[]> {
+    const res = await $fetch<GetInternalTypeResponse[]>('/api/internals/importance-types', {
         method: 'GET'
-    });
-
-    return { data, error, refresh };
+    })
+    return res
 }

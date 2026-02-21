@@ -4,14 +4,16 @@ import dev.auguste.agni_api.core.DOLLAR_CURRENT_ID
 import dev.auguste.agni_api.core.FREEZE_CATEGORY_ID
 import dev.auguste.agni_api.core.SAVING_CATEGORY_ID
 import dev.auguste.agni_api.core.TRANSFERT_CATEGORY_ID
-import dev.auguste.agni_api.core.adapters.events.IEventListener
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
+import dev.auguste.agni_api.core.adapters.events.EventType
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteEmbeddingInvoiceEventListener
 import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.Currency
+import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.notifications.PushNotification
 import dev.auguste.agni_api.infras.persistences.CategoryRepository
 import dev.auguste.agni_api.infras.persistences.CurrencyRepository
-import dev.auguste.agni_api.infras.persistences.TagRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.ApplicationArguments
@@ -23,7 +25,9 @@ class Startup (
     private val evenRegister: IEventRegister,
     private val pushNotification: PushNotification,
     private val categoryRepo: CategoryRepository,
-    private val currencyRepo: CurrencyRepository
+    private val currencyRepo: CurrencyRepository,
+    private val createEmbedding: ICreateEmbeddingInvoiceEventListener,
+    private val updateEmbedding: IDeleteEmbeddingInvoiceEventListener
 ): ApplicationRunner {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -31,7 +35,9 @@ class Startup (
     private fun registerEventLister() {
         try {
             logger.info("[*] Registering event listener")
-            evenRegister.subscribe("notification",pushNotification)
+            evenRegister.subscribe(EventType.NOTIFICATION,pushNotification)
+            evenRegister.subscribe(EventType.CREATE_EMBEDDING_SERVICE, createEmbedding)
+            evenRegister.subscribe(EventType.DELETE_EMBEDDING_SERVICE, updateEmbedding)
         } catch (e: Exception) {
             logger.info("[!] Error while registering event listener: ${e.message}")
         }

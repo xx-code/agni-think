@@ -1,10 +1,8 @@
-import type { GetPeriodTypeResponse } from "~/types/api/internal";
-import type { UseApiFetchReturn } from "~/types/utils";
+import type { GetInternalTypeResponse } from "~/types/api/internal"
 
-export default function usePeriodTypes(): UseApiFetchReturn<GetPeriodTypeResponse[]> {
-    const { data, error, refresh } = useFetch<GetPeriodTypeResponse[]>(`/api/internals/period-types`, {
+export async function fetchPeriodTypes(): Promise<GetInternalTypeResponse[]> {
+    const res = await $fetch<GetInternalTypeResponse[]>('/api/internals/period-types', {
         method: 'GET'
-    });
-
-    return { data, error, refresh };
+    })
+    return res
 }

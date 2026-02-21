@@ -2,26 +2,33 @@
 import { ModalEditScheduleInvoice } from '#components';
 import type { TableColumn, TableRow } from '#ui/types';
 import { getLocalTimeZone } from '@internationalized/date';
-import useCategories from '~/composables/categories/useCategories';
+import { fetchCategories } from '~/composables/categories/useCategories';
 import useCreateScheduleInvoice from '~/composables/scheduleTransactions/useCreateScheduleTransaction';
 import useDeleteScheduleInvoice from '~/composables/scheduleTransactions/useDeleteScheduleTransaction';
 import { fetchScheduleInvoice } from '~/composables/scheduleTransactions/useScheduleTransaction';
-import useScheduleInvoice from '~/composables/scheduleTransactions/useScheduleTransactions';
+import { fetchScheduleInvoices } from '~/composables/scheduleTransactions/useScheduleTransactions';
 import useUpdateScheduleInvoice from '~/composables/scheduleTransactions/useUpdateScheduleTransaction';
-import useTags from '~/composables/tags/useTags';
+import { fetchTags } from '~/composables/tags/useTags';
 import type { QueryFilterRequest } from '~/types/api';
 import type { EditScheduleInvoiceType, ScheduleInvoiceType, TableScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
 
-const {data: categories, error: errorCategory, refresh: refreshCategory } = useCategories({
-    queryAll: true, offset: 0, limit: 0
-});
-const {data: tags, error: errorTag, refresh: refreshTag } = useTags({
-    queryAll: true, offset: 0, limit: 0
-});
+const { data: utils } = useAsyncData('utils+schedule-invoices', async () => {
+    const query = { offset: 0, limit: 0, queryAll: true}
+    const [categories, tags] = await Promise.all([
+        fetchCategories(query),
+        fetchTags(query)
+    ])
+
+    return {
+        categories,
+        tags
+    }
+})
+
 const toast = useToast();
 
-const getCategory = (id: string) => categories.value?.items.find(i => id === i.id)
-const getTag = (id: string) => tags.value?.items.find(i => id === i.id)
+const getCategory = (id: string) => utils.value?.categories.items.find(i => id === i.id)
+const getTag = (id: string) => utils.value?.tags.items.find(i => id === i.id)
 const page = ref(1)
 const scheduleFilter = reactive<QueryFilterRequest>({
     limit: 8,
@@ -31,29 +38,34 @@ const scheduleFilter = reactive<QueryFilterRequest>({
 const {
     data: scheduleInvoices, 
     error: errorTransactions, 
-    refresh: refreshScheduleInvoices } = useScheduleInvoice(scheduleFilter);
-const displayScheluletransactionsTable = computed(() => {
-    return scheduleInvoices.value?.items.map(i => ({
-        id: i.id,
-        amount: i.amount,
-        name: i.name,
-        type: i.type,
-        isPause: i.isPause,
-        isFreeze: i.isFreeze,
-        dueDate: i.dueDate, 
-        category: {
-            id: i.categoryId,
-            icon: getCategory(i.categoryId)?.icon || '',
-            color: getCategory(i.categoryId)?.color || '',
-            title: getCategory(i.categoryId)?.title || '',
-        },
-        tags: i.tagIds.map(i => ({
-            id: i,
-            value: getTag(i)?.value || '',
-            color: getTag(i)?.color || ''
-        })) 
-    } satisfies TableScheduleInvoiceType))    
-})
+    refresh: refreshScheduleInvoices 
+} = useAsyncData('schedule-invoice-page', async () => {
+    const res = await fetchScheduleInvoices(scheduleFilter)
+    return {
+        items: res.items.map(i => ({
+            id: i.id,
+            amount: i.amount,
+            name: i.name,
+            type: i.type,
+            isPause: i.isPause,
+            isFreeze: i.isFreeze,
+            dueDate: i.dueDate, 
+            category: {
+                id: i.categoryId,
+                icon: getCategory(i.categoryId)?.icon || '',
+                color: getCategory(i.categoryId)?.color || '',
+                title: getCategory(i.categoryId)?.title || '',
+            },
+            tags: i.tagIds.map(i => ({
+                id: i,
+                value: getTag(i)?.value || '',
+                color: getTag(i)?.color || ''
+            })) 
+        } satisfies TableScheduleInvoiceType)),
+        total: res.total 
+    }
+}, { watch: [ scheduleFilter ]})
+
 
 async function togglePauseSchedule(id:string, isPause: boolean) {
     await useUpdateScheduleInvoice(id, {
@@ -352,7 +364,7 @@ const onDelete = async (id: string) => {
                         <div>
                             <p class="text-sm text-gray-600">Actives</p>
                             <p class="text-2xl font-bold text-gray-900">
-                                {{ displayScheluletransactionsTable?.filter(t => !t.isPause).length || 0 }}
+                                {{ scheduleInvoices?.items?.filter(t => !t.isPause).length || 0 }}
                             </p>
                         </div>
                     </div>
@@ -365,7 +377,7 @@ const onDelete = async (id: string) => {
                         <div>
                             <p class="text-sm text-gray-600">En Pause</p>
                             <p class="text-2xl font-bold text-gray-900">
-                                {{ displayScheluletransactionsTable?.filter(t => t.isPause).length || 0 }}
+                                {{ scheduleInvoices?.items?.filter(t => t.isPause).length || 0 }}
                             </p>
                         </div>
                     </div>
@@ -376,7 +388,7 @@ const onDelete = async (id: string) => {
             <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <UTable 
-                        :data="displayScheluletransactionsTable" 
+                        :data="scheduleInvoices?.items" 
                         :columns="tableColumn"
                         class="w-full"
                         :ui="{
@@ -442,7 +454,7 @@ const onDelete = async (id: string) => {
 
             <!-- Empty State -->
             <div 
-                v-if="!displayScheluletransactionsTable || displayScheluletransactionsTable.length === 0"
+                v-if="!scheduleInvoices?.items || scheduleInvoices.items.length === 0"
                 class="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center mt-6"
             >
                 <div class="max-w-md mx-auto">

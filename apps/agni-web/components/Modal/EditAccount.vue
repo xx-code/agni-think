@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
-import useAccountTypes from '~/composables/internals/useAccountTypes';
 import type { AccountBrokeDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from '~/types/ui/account';
-import useManagementAccountTypes from '~/composables/internals/useContributionTypes copy';
-import useContributionTypes from '~/composables/internals/useManagementAccountTypes';
+import { fetchAccountTypes } from '~/composables/internals/useAccountTypes';
+import { fetchManagementAccountTypes } from '~/composables/internals/useManagementAccountTypes';
+import { fetchContributionTypes } from '~/composables/internals/useContributionTypes';
+import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
 
 const { account } = defineProps<{
     account?: AccountWithDetailType
@@ -15,9 +16,21 @@ const emit = defineEmits<{
     (e: 'close', close: boolean): void
 }>(); 
 
-const {data: types} = useAccountTypes();
-const {data: managementTypes} = useManagementAccountTypes()
-const {data: contributionTypes} = useContributionTypes()
+const { data: utils } = useAsyncData('utils+edit-account', async () => {
+    const [accountTypes, managementTypes, contributionTypes] = await Promise.all(
+        [ 
+            fetchAccountTypes(), 
+            fetchManagementAccountTypes(),
+            fetchContributionTypes()
+        ]
+    )
+
+    return {
+        accountTypes,
+        managementTypes,
+        contributionTypes
+    } 
+})
 
 const schema = z.object({
     accountName: z.string().nonempty('Le nom du compte est vide'),
@@ -31,10 +44,14 @@ const form = reactive({
     accountType: account?.type || '',
     managementType: account?.detail ? (account?.detail as AccountBrokeDetailType).managementType ?? undefined : undefined,
     contributionType: account?.detail ? (account?.detail as AccountBrokeDetailType).type ?? undefined : undefined,
-    creditLimit: account?.detail ?(account?.detail as AccountCreditDetailType).creditLimit ?? 0 : undefined
+    creditLimit: account?.detail ?(account?.detail as AccountCreditDetailType).creditLimit ?? 0 : undefined,
 })
 
-console.log(managementTypes)
+const df = new DateFormatter('en-Us', {
+    dateStyle: 'medium'
+});
+let invoiceRawDate: Date|undefined = account?.detail ? (account?.detail as AccountCreditDetailType).nextInvoicePaymentDate : new Date()
+const invoiceDate = shallowRef(invoiceRawDate ? new CalendarDate(invoiceRawDate.getFullYear(), invoiceRawDate.getMonth() + 1, invoiceRawDate.getDate()) : undefined)
 
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
@@ -43,11 +60,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         type: form.accountType,
         creditLimit: form.creditLimit,
         contributionType: form.contributionType,
-        managementType: form.managementType
+        managementType: form.managementType,
+        invoiceDate: invoiceDate.value 
     }, account);
         
     form.accountName = ""
     form.accountType = ""
+    form.contributionType = ""
+    invoiceDate.value = undefined
 
     emit('close', true)
 };
@@ -68,20 +88,32 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                 <USelect 
                     v-model="form.accountType" 
                     value-key="value" 
-                    :items="types?.map(i => ({ label: i.value, value: i.id}))" class="w-full">
+                    :items="utils?.accountTypes.map(i => ({ label: i.value, value: i.id}))" class="w-full">
                 </USelect>
             </UFormField>
 
-            <UFormField label="Limite de credit" v-if="form.accountType === 'CreditCard'">
-                <UInput v-model="form.creditLimit" class="w-full"/>
-            </UFormField>
+            <div v-if="form.accountType === 'CreditCard'">
+                <UFormField label="Limite de credit" v-if="form.accountType === 'CreditCard'">
+                    <UInput v-model="form.creditLimit" class="w-full"/>
+                </UFormField>
+                <UFormField label="" name="wishDueDate">
+                    <UPopover>
+                        <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
+                            {{ invoiceDate ? df.format(invoiceDate.toDate(getLocalTimeZone())) : 'Selectionnez date de facture' }}
+                        </UButton>
+                        <template #content>
+                            <UCalendar v-model="invoiceDate" />
+                        </template>
+                    </UPopover>
+                </UFormField>
+            </div> 
 
             <div v-else-if="form.accountType === 'Broking'">
                 <UFormField label="Type de compte de contribution">
                     <USelect 
                         v-model="form.contributionType" 
                         value-key="value" 
-                        :items="contributionTypes?.map(i => ({ label: i.value, value: i.id}))" class="w-full">
+                        :items="utils?.contributionTypes.map(i => ({ label: i.value, value: i.id}))" class="w-full">
                     </USelect>
                 </UFormField>
 
@@ -89,7 +121,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     <USelect 
                         v-model="form.managementType" 
                         value-key="value" 
-                        :items="managementTypes?.map(i => ({ label: i.value, value: i.id}))" class="w-full">
+                        :items="utils?.managementTypes.map(i => ({ label: i.value, value: i.id}))" class="w-full">
                     </USelect>
                 </UFormField> 
             </div>

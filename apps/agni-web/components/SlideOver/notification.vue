@@ -1,16 +1,20 @@
 <script lang="ts" setup>
 import useDeleteNotification from '~/composables/notifications/useDeleteNotificaiton';
-import useNotifications from '~/composables/notifications/useNotifications'
+import { fetchNotifications } from '~/composables/notifications/useNotifications';
 import useToggleNotification from '~/composables/notifications/useToggleNotification'
 
 const toast = useToast()
 const emit = defineEmits<{ close: [boolean] }>()
 
 // récupère toutes les notifications
-const { data: notifications, refresh } = useNotifications({ 
-  limit: 0, 
-  offset: 0, 
-  queryAll: true
+const { data: notifications, refresh } = useAsyncData('notifications', async () => {
+  const res = await fetchNotifications({
+    limit: 0,
+    offset: 0,
+    queryAll: true
+  })
+
+  return res
 })
 
 async function toggleReadState(notification: any) {

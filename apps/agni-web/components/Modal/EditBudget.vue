@@ -2,9 +2,9 @@
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import { reactive, shallowRef, ref } from "vue";
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
-import usePeriodTypes from '~/composables/internals/usePeriodTypes';
 import type { BudgetType, EditBudgetType } from '~/types/ui/budget';
-import useSaveGoals from '~/composables/goals/useSaveGoals';
+import { fetchSavingGoals } from '~/composables/goals/useSaveGoals';
+import { fetchPeriodTypes } from '~/composables/internals/usePeriodTypes';
 
 const { budget } = defineProps<{
     budget?: BudgetType
@@ -15,10 +15,17 @@ const emit = defineEmits<{
     (e: 'close', close: boolean): void
 }>();
 
+const { data: utils } = useAsyncData('saving+goals+utils', async () => {
+    const [ savingGoals, periodTypes ] = await Promise.all([
+        fetchSavingGoals({ offset: 0, limit: 0, queryAll: true }),
+        fetchPeriodTypes()
+    ])
 
-const { data:saveGoals } = useSaveGoals({ offset: 0, limit: 0, queryAll: true})
-
-const {data: listPeriods, error, refresh} = usePeriodTypes();
+    return {
+        savingGoals,
+        periodTypes
+    }
+})
 
 const form = reactive<Partial<EditBudgetType>>({
     title: budget?.title || '',
@@ -102,7 +109,7 @@ async function onSubmit(event: FormSubmitEvent<EditBudgetType>) {
                     <USelect 
                         v-model="form.repeater.period" 
                         value-key="value" 
-                        :items="listPeriods?.map(i => ({ label: i.value, value: i.id}))"/>
+                        :items="utils?.periodTypes.map(i => ({ label: i.value, value: i.id}))"/>
                 </UFormField>
 
                 <UFormField label="Nombre de temps" name="interval" v-if="form.repeater">
@@ -111,7 +118,7 @@ async function onSubmit(event: FormSubmitEvent<EditBudgetType>) {
 
                 <UFormField label="But d'epargne relie" >
                     <UInputMenu multiple v-model="saveGoalIds" value-key="value" 
-                        :items="saveGoals?.items.map(i => ({ label: i.title, value: i.id }))" />
+                        :items="utils?.savingGoals.items.map(i => ({ label: i.title, value: i.id }))" />
                 </UFormField>
 
                 <UFormField >

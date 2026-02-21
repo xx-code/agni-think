@@ -1,5 +1,8 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
+import dev.auguste.agni_api.core.adapters.events.EventType
+import dev.auguste.agni_api.core.adapters.events.IEventRegister
+import dev.auguste.agni_api.core.adapters.events.contents.DeleteEmbeddingInvoiceEventContent
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Account
@@ -12,14 +15,14 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.DeleteInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
-import java.util.UUID
 
 class DeleteInvoice(
     private val invoiceRepo: IRepository<Invoice>,
     private val transactionRepo: IRepository<Transaction>,
     private val accountRepo: IRepository<Account>,
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
-    private val unitOfWork: IUnitOfWork
+    private val unitOfWork: IUnitOfWork,
+    private val eventRegister: IEventRegister
 ): IInnerUseCase<DeleteInvoiceInput, Unit> {
 
     override fun execAsync(input: DeleteInvoiceInput): Unit {
@@ -53,5 +56,8 @@ class DeleteInvoice(
 
             accountRepo.update(account)
         }
+
+        if (invoice.statusType == InvoiceStatusType.COMPLETED)
+            eventRegister.notify(EventType.DELETE_EMBEDDING_SERVICE, DeleteEmbeddingInvoiceEventContent(input.invoiceId))
     }
 }

@@ -20,7 +20,8 @@ function getListMonthTime(value: Space): string[] {
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     for(let i = 0; i < value.count; i++) {
         const d = new Date(today.getFullYear(), today.getMonth() - ((i + 1) * value.spacing), 1);
-        months.push(monthNames[d.getMonth()]);
+        const monthIndex = d.getMonth()
+        months.push(monthNames.at(monthIndex)?? "??");
     }
     return months.reverse();
 }

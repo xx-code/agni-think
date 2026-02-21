@@ -1,6 +1,9 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
+import dev.auguste.agni_api.core.adapters.IEmbeddingService
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteEmbeddingInvoiceEventListener
 import dev.auguste.agni_api.core.adapters.readers.IInvoicetransactionCountReader
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
@@ -20,7 +23,9 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.CompleteInvoice
 import dev.auguste.agni_api.core.usecases.invoices.CreateFreezeInvoice
 import dev.auguste.agni_api.core.usecases.invoices.CreateInvoice
+import dev.auguste.agni_api.core.usecases.invoices.CreateInvoiceEmbedding
 import dev.auguste.agni_api.core.usecases.invoices.DeleteInvoice
+import dev.auguste.agni_api.core.usecases.invoices.DeleteInvoiceEmbedding
 import dev.auguste.agni_api.core.usecases.invoices.GetAllInvoices
 import dev.auguste.agni_api.core.usecases.invoices.GetBalance
 import dev.auguste.agni_api.core.usecases.invoices.GetBalancesByPeriod
@@ -68,12 +73,14 @@ class InvoiceConfig {
         accountRepo: IRepository<Account>,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
         unitOfWork: IUnitOfWork,
+        eventRegister: IEventRegister,
         ): IUseCase<CompleteInvoiceInput, Unit> {
         return CompleteInvoice(
             invoiceRepo = invoiceRepo,
             getInvoiceTransactions = getInvoiceTransactions,
             accountRepo = accountRepo,
-            unitOfWork = unitOfWork
+            unitOfWork = unitOfWork,
+            eventRegister = eventRegister
         )
     }
 
@@ -90,12 +97,14 @@ class InvoiceConfig {
     fun createInvoice(
         invoiceRepo: IRepository<Invoice>,
         invoiceDependencies: InvoiceDependencies,
-        unitOfWork: IUnitOfWork
+        unitOfWork: IUnitOfWork,
+        eventRegister: IEventRegister
     ): IInnerUseCase<CreateInvoiceInput, CreatedOutput> {
         return CreateInvoice(
             invoiceRepo = invoiceRepo,
             invoiceDependencies = invoiceDependencies,
-            unitOfWork = unitOfWork
+            unitOfWork = unitOfWork,
+            eventRegister = eventRegister
         )
     }
 
@@ -105,14 +114,16 @@ class InvoiceConfig {
         transactionRepo: IRepository<Transaction>,
         accountRepo: IRepository<Account>,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
-        unitOfWork: IUnitOfWork
+        unitOfWork: IUnitOfWork,
+        eventRegister: IEventRegister
     ): IInnerUseCase<DeleteInvoiceInput, Unit> {
         return DeleteInvoice(
             invoiceRepo = invoiceRepo,
             transactionRepo = transactionRepo,
             accountRepo = accountRepo,
             getInvoiceTransactions = getInvoiceTransactions,
-            unitOfWork = unitOfWork
+            unitOfWork = unitOfWork,
+            eventRegister = eventRegister
         )
     }
 
@@ -208,6 +219,36 @@ class InvoiceConfig {
             deleteInvoice = deleteInvoice,
             getInvoiceTransactions = getInvoiceTransactions,
             unitOfWork = unitOfWork
+        )
+    }
+
+    @Bean
+    fun createEmbeddingInvoice(
+        eventRegister: IEventRegister,
+        categoryRepo: IRepository<Category>,
+        budgetRepo: IRepository<Budget>,
+        tagRepo: IRepository<Tag>,
+        getInvoice: IUseCase<UUID, GetInvoiceOutput>,
+        embeddingService: IEmbeddingService
+    ) : ICreateEmbeddingInvoiceEventListener {
+        return CreateInvoiceEmbedding(
+            eventRegister = eventRegister,
+            categoryRepo = categoryRepo,
+            budgetRepo = budgetRepo,
+            tagsRepo = tagRepo,
+            getInvoice = getInvoice,
+            embeddingService = embeddingService
+        )
+    }
+
+    @Bean
+    fun deleteEmbeddingInvoice(
+        eventRegister: IEventRegister,
+        embeddingService: IEmbeddingService
+    ) : IDeleteEmbeddingInvoiceEventListener {
+        return DeleteInvoiceEmbedding(
+            eventRegister = eventRegister,
+            embeddingService = embeddingService
         )
     }
 

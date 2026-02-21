@@ -6,7 +6,6 @@ import { getLocalTimeZone } from '@internationalized/date';
 import { useAddSnapshotPatrimony } from '~/composables/patrimonies/useAddSnapshotPatrimony';
 import { useCreatePatrimony } from '~/composables/patrimonies/useCreatePatrimony';
 import { useDeletePatrimony } from '~/composables/patrimonies/useDeletePatrimony';
-import { usePatrimonies } from '~/composables/patrimonies/usePatrimonies';
 import { fetchPatrimony } from '~/composables/patrimonies/usePatrimony';
 import { useRemoveSnapshotPatrimony } from '~/composables/patrimonies/useRemoveSnapshotPatrimony';
 import { fetchSnapshotsPatrimony } from '~/composables/patrimonies/useSnapshotsPatrimony';
@@ -14,8 +13,13 @@ import { useUpdatePatrimony } from '~/composables/patrimonies/useUpdatePatrimony
 import { useUpdateSnapshotPatrimony } from '~/composables/patrimonies/useUpdateSnapshotPatrimony';
 import type { EditePatrimony, EditSnapshotPatrimony, PatrimonyType, SnapshotPatrimonyType, TypePatrimony } from '~/types/ui/patrimony';
 import AssetCard from './AssetCard.vue';
+import { fetchPatrimonies } from '~/composables/patrimonies/usePatrimonies';
 
-const {data:patrimonies, refresh} = usePatrimonies()
+const {data:patrimonies, refresh} = useAsyncData('patrimonies+page+all', async () => {
+    const res = await fetchPatrimonies()
+
+    return res
+})
 
 
 const overlay = useOverlay()

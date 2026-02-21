@@ -33,6 +33,7 @@ export type GetBrokingDetailResponse = {
 export type GetCreditCardDetailResponse = {
     creditCardLimit: number
     creditUtilisation: number
+    nextInvoicePayment: string
 }
 
 export type CreateAccountRequest = {
@@ -55,4 +56,5 @@ export type AccountDetailRequest = {
     managementAccountType?: string
     buffer?: number
     secureAmount?: number
+    invoiceDate?: string
 }

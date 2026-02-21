@@ -10,11 +10,13 @@ import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.Currency
 import dev.auguste.agni_api.core.entities.Deduction
+import dev.auguste.agni_api.core.entities.FinancePrinciple
+import dev.auguste.agni_api.core.entities.IncomeSource
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Notification
 import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
-import dev.auguste.agni_api.core.entities.Provisionable
+import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.Tag
@@ -24,16 +26,17 @@ import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcBudgetModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcCategoryModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcCurrencyModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcDeductionModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcFinancePrincipleModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcIncomeSourceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInvoiceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcNotificationModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcPatrimonyModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcPatrimonySnapshotModel
-import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcProvisionableModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcProvisionModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcSavingGoalModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcScheduleInvoiceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTagModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTransactionModel
-import dev.auguste.agni_api.infras.persistences.query_adapters.BaseQueryExtendJdbcAdapter
 import dev.auguste.agni_api.infras.persistences.query_adapters.IQueryExtendJdbcAdapter
 import dev.auguste.agni_api.infras.persistences.query_adapters.QueryCategoryExtendJdbcAdapter
 import dev.auguste.agni_api.infras.persistences.query_adapters.QueryTagExtendJdbcAdapter
@@ -139,13 +142,13 @@ class PatrimonySnapshotRepository(
 
 // Proisionable
 @Repository
-interface ProvisionableStorage: GenericStorage<JdbcProvisionableModel, UUID>
+interface ProvisionableStorage: GenericStorage<JdbcProvisionModel, UUID>
 
 @Component
 class ProvisionableRepository(
     storage: ProvisionableStorage,
-    provisionableModlModelMapper: IMapper<JdbcProvisionableModel, Provisionable>
-): JdbcRepository<JdbcProvisionableModel, Provisionable>(storage = storage, provisionableModlModelMapper)
+    provisionModlModelMapper: IMapper<JdbcProvisionModel, Provision>
+): JdbcRepository<JdbcProvisionModel, Provision>(storage = storage, provisionModlModelMapper)
 
 //Saving Goal
 @Repository
@@ -201,3 +204,21 @@ class BudgetRepository(
     budgetModelMapper: IMapper<JdbcBudgetModel, Budget>,
     queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcBudgetModel, Budget>
 ): JdbcRepository<JdbcBudgetModel, Budget>(storage, budgetModelMapper, queryExtendAdapter)
+
+@Repository
+interface FinancePrincipleStorage: GenericStorage<JdbcFinancePrincipleModel, UUID>
+
+@Component
+class FinancePrincipleRepository(
+    storage: FinancePrincipleStorage,
+    financePrincipleMapper: IMapper<JdbcFinancePrincipleModel, FinancePrinciple>
+) : JdbcRepository<JdbcFinancePrincipleModel, FinancePrinciple>(storage, financePrincipleMapper)
+
+@Repository
+interface IncomeSourceStorage: GenericStorage<JdbcIncomeSourceModel, UUID>
+
+@Component
+class IncomeSourceRepository(
+    storage: IncomeSourceStorage,
+    incomeSourceMapper: IMapper<JdbcIncomeSourceModel, IncomeSource>
+) : JdbcRepository<JdbcIncomeSourceModel, IncomeSource>(storage, incomeSourceMapper)

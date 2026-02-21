@@ -6,6 +6,7 @@ import dev.auguste.agni_api.controllers.models.ApiGetTagAnalyticModel
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.ListOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryInput
@@ -23,7 +24,8 @@ import org.springframework.web.bind.annotation.RestController
 class AnalyticController(
     private val getSpendTagAnalytic: IUseCase<GetSpendByTagInput, ListOutput<GetSpendByTagOutput>>,
     private val getSpendCategoryAnalytic: IUseCase<GetSpendByCategoryInput, ListOutput<GetSpendByCategoryOutput>>,
-    private val getSavingAnalytic: IUseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput>
+    private val getSavingAnalytic: IUseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput>,
+    private val getFinanceProfile: IUseCase<Unit, GetFinanceProfileOutput>
 ) {
     @GetMapping("/spend-categories")
     fun getSpendCategoriesAnalytic(query: ApiGetCategoryAnalyticModel) : ResponseEntity<ListOutput<GetSpendByCategoryOutput>> {
@@ -67,5 +69,10 @@ class AnalyticController(
                 startDate = query.startDate
             )
         ))
+    }
+
+    @GetMapping("/finance-profile")
+    fun getFinanceProfile() : ResponseEntity<GetFinanceProfileOutput> {
+        return ResponseEntity.ok(getFinanceProfile.execAsync(Unit))
     }
 }

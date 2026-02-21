@@ -1,5 +1,8 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
+import dev.auguste.agni_api.core.adapters.events.contents.CreateEmbeddingInvoiceEventContent
+import dev.auguste.agni_api.core.adapters.events.EventType
+import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Deduction
@@ -12,14 +15,15 @@ import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.facades.InvoiceDependencies
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.value_objects.InvoiceDeduction
 
+// TODO: Refactoring
 class CreateInvoice(
     private val invoiceRepo: IRepository<Invoice>,
     private val invoiceDependencies: InvoiceDependencies,
-    private val unitOfWork: IUnitOfWork
+    private val unitOfWork: IUnitOfWork,
+    private val eventRegister: IEventRegister
 ): IInnerUseCase<CreateInvoiceInput, CreatedOutput> {
 
     override fun execAsync(input: CreateInvoiceInput): CreatedOutput {
@@ -112,6 +116,8 @@ class CreateInvoice(
         }
 
         invoiceRepo.create(newInvoice)
+        if (newInvoice.statusType == InvoiceStatusType.COMPLETED)
+            eventRegister.notify(EventType.CREATE_EMBEDDING_SERVICE, CreateEmbeddingInvoiceEventContent(newInvoice))
 
         return CreatedOutput(newInvoice.id)
     }

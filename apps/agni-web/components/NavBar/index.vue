@@ -10,6 +10,8 @@ const navItems = [
   { title: 'Budgets', link: '/budgets', icon: 'i-lucide-wallet-cards' },
   { title: 'Goals', link: '/goals', icon: 'i-lucide-piggy-bank' },
   { title: 'Analytics', link: '/analytics', icon: 'i-lucide-chart-network' },
+  { title: 'Provisions', link: '/provisions', icon: 'i-lucide-gpu' },
+  { title: 'Agent Advisor', link: '/chat-agent', icon: 'i-lucide-bot' },
   { title: 'Patrimoine', link: '/patrimonies', icon: 'i-lucide-castle' },
   { title: 'Settings', link: '/settings', icon: 'i-lucide-settings' },
 ]

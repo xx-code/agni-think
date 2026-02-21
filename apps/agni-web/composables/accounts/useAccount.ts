@@ -2,23 +2,6 @@ import type { GetAccountResponse, GetAccountWithDetailResponse } from "~/types/a
 import type { AccountBrokeDetailType, AccountCheckingDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType } from "~/types/ui/account";
 import type { UseApiFetchReturn } from "~/types/utils";
 
-export default function useAccount(accountId: string): UseApiFetchReturn<AccountType> {
-    const { data, error, refresh } = useFetch(`/api/accounts/${accountId}`, {
-        method: 'GET',
-        transform: (data: GetAccountResponse) => {
-            return {
-                id: data.id,
-                title: data.title,
-                balance: data.balance,
-                type: data.type
-            } satisfies AccountType
-        }
-    });
-
-    return {data, error, refresh};
-}
-
-
 export async function fetchAccount(accountId: string): Promise<AccountType> {
     const res = await $fetch<GetAccountResponse>(`/api/accounts/${accountId}`, {
         method: 'GET'
@@ -46,7 +29,8 @@ export async function fetchAccountWithDetail(accountId: string): Promise<Account
             case 'CreditCard':    
                 return {
                     creditUtilisation: res.detail.detailForCreditCard?.creditUtilisation ?? 0,
-                    creditLimit: res.detail.detailForCreditCard?.creditCardLimit ?? 0
+                    creditLimit: res.detail.detailForCreditCard?.creditCardLimit ?? 0,
+                    nextInvoicePaymentDate: new Date(res.detail.detailForCreditCard?.nextInvoicePayment ?? Date.now().toString())
                 } satisfies AccountCreditDetailType
             case 'Checking':
                 return {

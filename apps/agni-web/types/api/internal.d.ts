@@ -32,3 +32,8 @@ export type GetContributionTypeResponse = {
     id: string
     value: string
 }
+
+export type GetInternalTypeResponse = {
+    id: string
+    value: string
+}
