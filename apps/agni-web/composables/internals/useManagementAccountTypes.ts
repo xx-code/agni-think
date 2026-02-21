@@ -1,16 +1,7 @@
-import type { GetAccountTypeResponse, GetContributionTypeResponse } from "~/types/api/internal";
-import type { UseApiFetchReturn } from "~/types/utils";
+import type { GetManagementTypeResponse } from "~/types/api/internal";
 
-export default function useContributionTypes(): UseApiFetchReturn<GetContributionTypeResponse[]> {
-    const { data, error, refresh } = useFetch<GetContributionTypeResponse[]>('/api/internals/contribution-type', {
-        method: 'GET'
-    });
-
-    return { data, error, refresh };
-}
-
-export async function fetchContributionTypes(): Promise<GetContributionTypeResponse[]> {
-    const res = await $fetch<GetContributionTypeResponse[]>('/api/internals/contribution-type', {
+export async function fetchManagementAccountTypes(): Promise<GetManagementTypeResponse[]> {
+    const res = await $fetch<GetManagementTypeResponse[]>('/api/internals/management-account-type', {
         method: 'GET'
     })
 

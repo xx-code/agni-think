@@ -3,7 +3,7 @@ import * as z from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import type {  EditTransfertType } from '~/types/ui/transaction';
-import useAccounts from '~/composables/accounts/useAccounts';
+import { fetchAccounts } from '~/composables/accounts/useAccounts';
 
 const schema = z.object({
     accountIdFrom: z.string().nonempty('Vous devez selectionner un compte d\'origne'),
@@ -26,11 +26,11 @@ const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
 })
 
-const {data: accounts} = useAccounts({
-    queryAll: true,
-    limit: 0,
-    offset: 0
+const {data: accounts} = useAsyncData('editAmountSaving+accounts', async () => {
+    const res = fetchAccounts({ offset: 0, limit:0, queryAll: true})
+    return res
 })
+
 const form = reactive({
     accountIdFrom: accountId || '',
     accountIdTo: '',

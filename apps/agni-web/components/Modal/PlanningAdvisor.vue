@@ -2,7 +2,6 @@
 import type { NuxtError } from '#app'
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import { fetchPlanningAdvisorAgent } from '~/composables/agents/usePlanningAdvisorAgent'
-import useGetEstimationLeftAmount from '~/composables/analytics/useGetEstimationLeftAmount'
 import type { PlanningAgentAdvisorType } from '~/types/ui/agent'
 
 export type TargetGoal = {
@@ -55,12 +54,12 @@ function removeWishSpend(id: number) {
 
 async function getAvaliableAmount() {
     try {
-        const res = await useGetEstimationLeftAmount({
-            endDate: endDate.value.toDate(getLocalTimeZone()).toISOString(),
-            startDate: startDate.value.toDate(getLocalTimeZone()).toISOString()
-        })
+        // const res = await useGetEstimationLeftAmount({
+        //     endDate: endDate.value.toDate(getLocalTimeZone()).toISOString(),
+        //     startDate: startDate.value.toDate(getLocalTimeZone()).toISOString()
+        // })
 
-        avaliableMoney.value = res.data.value?.estimateAmount
+        // avaliableMoney.value = res.data.value?.estimateAmount
     } catch(err) {
         avaliableMoney.value = undefined
         isAsked.value = false;

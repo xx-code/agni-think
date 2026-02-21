@@ -3,11 +3,16 @@ package dev.auguste.agni_api.infras.usecase_configs
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.Category
+import dev.auguste.agni_api.core.entities.FinancePrinciple
+import dev.auguste.agni_api.core.entities.IncomeSource
+import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.usecases.ListOutput
+import dev.auguste.agni_api.core.usecases.analystics.GetFinanceProfile
 import dev.auguste.agni_api.core.usecases.analystics.GetSavingAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetSpendByCategoryAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetSpendByTagAnalytic
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryInput
@@ -54,6 +59,20 @@ class AnalyticConfig {
         return GetSavingAnalytic(
             accountRepo = accountRepo,
             getBalanceByPeriod = getBalanceByPeriod
+        )
+    }
+
+    @Bean fun getFinancialProfile(
+        accountRepo: IRepository<Account>,
+        principleRepo: IRepository<FinancePrinciple>,
+        incomeSourceRepo: IRepository<IncomeSource>,
+        scheduleInvoice: IRepository<ScheduleInvoice>
+    ) : IUseCase<Unit, GetFinanceProfileOutput> {
+        return GetFinanceProfile(
+            accountRepo = accountRepo,
+            principleRepo = principleRepo,
+            incomeSourceRepo = incomeSourceRepo,
+            scheduleInvoice = scheduleInvoice
         )
     }
 }

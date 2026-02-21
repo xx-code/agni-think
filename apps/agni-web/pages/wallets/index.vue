@@ -10,10 +10,7 @@ import useUpdateTransaction from "~/composables/invoices/useUpdateTransaction";
 import useCreateInvoice from "~/composables/invoices/useCreateTransaction";
 import useFreezeInvoice from "~/composables/invoices/useFreezeTransaction";
 import useTransfertTransaction from "~/composables/invoices/useTransfertTransaction";
-import useCategories from "~/composables/categories/useCategories";
-import useTags from "~/composables/tags/useTags";
 import { getLocalTimeZone } from "@internationalized/date";
-import useBudgets from "~/composables/budgets/useBudgets";
 import { fetchAccountsWithDetail } from "~/composables/accounts/useAccounts";
 import { fetchAccountTypes } from "~/composables/internals/useAccountTypes";
 import type { QueryFilterRequest } from "~/types/api";
@@ -93,7 +90,8 @@ const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => 
                 detail: {
                     contributionType: value.contributionType,
                     managementAccountType: value.managementType,
-                    creditLimit: value.creditLimit
+                    creditLimit: value.creditLimit,
+                    invoiceDate: value.invoiceDate?.toDate(getLocalTimeZone()).toISOString()
                 }
             });
         else 
@@ -103,7 +101,8 @@ const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => 
                 detail: {
                     contributionType: value.contributionType,
                     managementAccountType: value.managementType,
-                    creditLimit: value.creditLimit
+                    creditLimit: value.creditLimit,
+                    invoiceDate: value.invoiceDate?.toDate(getLocalTimeZone()).toISOString()
                 }
             });
         
@@ -503,6 +502,9 @@ const lockedPercentage = computed(() => {
                             @delete="onDeleteAccount(account.id)"> 
 
                             <div v-if="account.type === 'CreditCard'" class="credit-card-details">
+                                <p class="text-sm text-gray-400">
+                                    Prochaine facture: {{ formatDate((account.detail as AccountCreditDetailType).nextInvoicePaymentDate) }}
+                                </p>
                                 <p class="credit-limit">
                                     <Icon name="i-lucide-landmark" class="inline mr-1" />
                                     Limite: ${{ (account.detail as AccountCreditDetailType).creditLimit }}

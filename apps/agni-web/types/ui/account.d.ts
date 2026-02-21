@@ -1,9 +1,12 @@
+import type { CalendarDate } from "@internationalized/date"
+
 export type EditAccountType = {
     title: string
     type: string
     creditLimit?: number
     contributionType?: string
     managementType?: string
+    invoiceDate?: CalendarDate
 }
 
 export type AccountType = {
@@ -24,6 +27,7 @@ export type AccountWithPastBalanceType = AccountType & {
 export type AccountCreditDetailType = {
     creditUtilisation: number
     creditLimit: number
+    nextInvoicePaymentDate: Date
 }
 
 export type AccountBrokeDetailType = {

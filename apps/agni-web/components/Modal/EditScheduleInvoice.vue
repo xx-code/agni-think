@@ -2,13 +2,13 @@
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 
 import { reactive, shallowRef } from "vue";
-import useAccounts from '~/composables/accounts/useAccounts';
-import useCategories from '~/composables/categories/useCategories';
-import useTags from '~/composables/tags/useTags';
-import useTransactionTypes from '~/composables/internals/useTransactionTypes';
 import type { FormError, FormSubmitEvent } from '#ui/types';
 import type { EditScheduleInvoiceType, ScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
-import usePeriodTypes from '~/composables/internals/usePeriodTypes';
+import { fetchAccounts } from '~/composables/accounts/useAccounts';
+import { fetchCategories } from '~/composables/categories/useCategories';
+import { fetchTags } from '~/composables/tags/useTags';
+import { fetchTransactionTypes } from '~/composables/internals/useTransactionTypes';
+import { fetchPeriodTypes } from '~/composables/internals/usePeriodTypes';
 
 const { scheduleInvoice } = defineProps<{
     scheduleInvoice?: ScheduleInvoiceType
@@ -18,24 +18,24 @@ const emit = defineEmits<{
     (e: 'close', close: boolean): void
 }>();
 
-const {data: accounts} = useAccounts({
-  queryAll: true,
-  offset: 0,
-  limit: 0
-})
-const {data: categories} = useCategories({
-  queryAll: true,
-  offset: 0,
-  limit: 0
-})
-const {data: tags } = useTags({
-  limit: 0,
-  offset: 0,
-  queryAll: true
-})
-const {data: transationTypes } = useTransactionTypes()
-const {data: listPeriods, error, refresh} = usePeriodTypes();
+const { data: utils } = useAsyncData('utils+edit-invoices', async () => {
+    const query = {offset: 0, limit: 0, queryAll: true, isSystem: false}
+    const [ categories, tags, accounts, transactionTypes, periodTypes ] = await Promise.all([
+        fetchCategories(query),
+        fetchTags(query),
+        fetchAccounts(query),
+        fetchTransactionTypes(),
+        fetchPeriodTypes()
+    ])
 
+    return {
+        categories,
+        tags,
+        accounts,
+        transactionTypes,
+        periodTypes
+    }
+})
 
 const form = reactive<Partial<EditScheduleInvoiceType>>({
     accountId: scheduleInvoice?.accountId || '',
@@ -115,7 +115,7 @@ async function onSubmit(event: FormSubmitEvent<EditScheduleInvoiceType>) {
                         :disabled="form.isFreeze"
                         v-model="form.type"
                         value-key="value" 
-                        :items="transationTypes?.map(i => ({ label: i.value, value: i.id}))" 
+                        :items="utils?.transactionTypes.map(i => ({ label: i.value, value: i.id}))" 
                         class="w-full"/>
                 </UFormField>
 
@@ -123,7 +123,7 @@ async function onSubmit(event: FormSubmitEvent<EditScheduleInvoiceType>) {
                     <USelect 
                         v-model="form.accountId" 
                         value-key="value" 
-                        :items="accounts?.items.map(i => ({value: i.id, label: i.title}))" 
+                        :items="utils?.accounts.items.map(i => ({value: i.id, label: i.title}))" 
                         class="w-full" />
                 </UFormField>
 
@@ -140,7 +140,7 @@ async function onSubmit(event: FormSubmitEvent<EditScheduleInvoiceType>) {
                         :disabled="form.isFreeze"
                         v-model="form.categoryId" 
                         value-key="value" 
-                        :items="categories?.items.map(i => ({value: i.id, label: i.title}))" 
+                        :items="utils?.categories.items.map(i => ({value: i.id, label: i.title}))" 
                         class="w-full" />
                 </UFormField> 
 
@@ -150,7 +150,7 @@ async function onSubmit(event: FormSubmitEvent<EditScheduleInvoiceType>) {
                         v-model="form.tagIds" 
                         multiple 
                         value-key="value"
-                        :items="tags?.items.map(i => ({value: i.id, label: i.value}))" />
+                        :items="utils?.tags.items.map(i => ({value: i.id, label: i.value}))" />
                 </UFormField> 
 
                 <UFormField label="Date d'echeance" name="dueDate">
@@ -172,7 +172,7 @@ async function onSubmit(event: FormSubmitEvent<EditScheduleInvoiceType>) {
                     <USelect 
                         v-model="form.repeater.period" 
                         value-key="value" 
-                        :items="listPeriods?.map(i => ({ label: i.value, value: i.id}))"/>
+                        :items="utils?.periodTypes.map(i => ({ label: i.value, value: i.id}))"/>
                 </UFormField>
 
                 <UFormField label="Nombre de temps" name="periodTime" v-if="form.repeater">

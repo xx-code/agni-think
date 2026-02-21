@@ -3,8 +3,8 @@ import * as z from 'zod'
 import { reactive, shallowRef } from "vue";
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
-import useAccounts from '~/composables/accounts/useAccounts';
 import type { EditFreezeInvoiceType, InvoiceType } from '~/types/ui/transaction';
+import { fetchAccounts } from '~/composables/accounts/useAccounts';
 
 const { accountId } = defineProps<{
     accountId?: string
@@ -23,10 +23,9 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>
 
-const {data: accounts} = useAccounts({
-    limit: 0,
-    offset: 0,
-    queryAll: true
+const {data: accounts} = useAsyncData('editAmountSaving+accounts', async () => {
+    const res = fetchAccounts({ offset: 0, limit:0, queryAll: true})
+    return res
 })
 
 const form = reactive({

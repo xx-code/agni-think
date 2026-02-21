@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.core.adapters.events
 
 interface IEventRegister {
-    fun subscribe(event: String, listener: IEventListener)
-    fun unsubscribe(event: String, listener: IEventListener)
-    fun notify(event: String, content: EventContent)
+    fun subscribe(event: EventType, listener: IEventListener)
+    fun unsubscribe(event: EventType, listener: IEventListener)
+    fun notify(event: EventType, content: IEventContent)
 }

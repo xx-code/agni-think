@@ -4,9 +4,9 @@ import { reactive } from "vue";
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { EditSaveGoalType, SaveGoalType } from '~/types/ui/saveGoal';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
-import useIntensityDesirTypes from '~/composables/internals/useIntensityDerisTypes';
-import useImportanceTypes from '~/composables/internals/useImportanceTypes';
-import useAccounts from '~/composables/accounts/useAccounts';
+import { fetchAccounts } from '~/composables/accounts/useAccounts';
+import { fetchImportanceTypes } from '~/composables/internals/useImportanceTypes';
+import { fetcheIntensityDesirTypes } from '~/composables/internals/useIntensityDerisTypes';
 
 const { saveGoal } = defineProps<{
     saveGoal?: SaveGoalType
@@ -27,9 +27,20 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>;
 
-const { data:intensityDesir } = useIntensityDesirTypes();
-const { data:importances } = useImportanceTypes();
-const { data:accounts } = useAccounts({ queryAll: true, offset: 0, limit: 10});
+const { data: utils } = useAsyncData('utils+accounts', async () => {
+    const query = { offset: 0, limit: 0, queryAll: true }
+    const [ accounts, importances, intensityDesirs ] = await Promise.all([
+        fetchAccounts(query),
+        fetchImportanceTypes(),
+        fetcheIntensityDesirTypes()
+    ])
+
+    return {
+        accounts,
+        importances,
+        intensityDesirs
+    }
+})
 
 const form = reactive({
     title: saveGoal?.title || '',
@@ -89,7 +100,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     <URadioGroup 
                         orientation="horizontal" 
                         variant="list" 
-                        :items="intensityDesir || []" 
+                        :items="utils?.intensityDesirs || []" 
                         value-key="id"
                         label-key="value"
                         v-model="form.desirValue" />
@@ -102,14 +113,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                         value-key="id"
                         label-key="value"
                         v-model="form.importance"
-                        :items="importances || []" />
+                        :items="utils?.importances || []" />
                 </UFormField> 
 
                 <UFormField label="Compte" name="accountId" >
                     <USelect 
                         v-model="form.accountId" 
                         value-key="value" 
-                        :items="accounts?.items.map(i => ({value: i.id, label: i.title}))" 
+                        :items="utils?.accounts.items.map(i => ({value: i.id, label: i.title}))" 
                         class="w-full" />
                 </UFormField>
 

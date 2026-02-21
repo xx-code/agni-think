@@ -24,3 +24,12 @@ export type CashflowRequest = {
     periodTime: number
     showNumber: number
 }
+
+export type ChatPersonnalFinanceAdvisorRequest = {
+    model: string
+    question: string
+}
+
+export type ChatPersonnalFinanceAdvisorResponse = {
+    message: string
+}

@@ -8,9 +8,11 @@ USER nuxt:nuxt
 WORKDIR /app
 
 ARG NUXT_PUBLIC_API_BASE
+ARG NUXT_PUBLIC_API_AGENT
 
 ENV NODE_ENV=production
 ENV NUXT_PUBLIC_API_BASE=$NUXT_PUBLIC_API_BASE
+ENV NUXT_PUBLIC_API_AGENT=$NUXT_PUBLIC_API_AGENT
 
 COPY apps/agni-web/package.json apps/agni-web/yarn.lock ./ 
 RUN yarn install

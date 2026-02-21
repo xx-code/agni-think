@@ -8,19 +8,19 @@ import type { TableColumn, TableRow } from "#ui/types"
 import { DateFormatter, getLocalTimeZone } from "@internationalized/date"
 import { ref } from "vue"
 import type { TargetGoal } from "~/components/Modal/PlanningAdvisor.vue"
-import useAccounts from "~/composables/accounts/useAccounts"
+import { fetchAccounts } from "~/composables/accounts/useAccounts"
 import useCreateSaveGoal from "~/composables/goals/useCreateSaveGoal"
 import useDeleteSaveGoal from "~/composables/goals/useDeleteSaveGoal"
 import { fetchSaveGoal } from "~/composables/goals/useSaveGoal"
-import useSaveGoals from "~/composables/goals/useSaveGoals"
+import { fetchSavingGoals } from "~/composables/goals/useSaveGoals"
 import useUpdateAmountSaveGoal from "~/composables/goals/useUpdateAmountSaveGoal"
 import useUpdateSaveGaol from "~/composables/goals/useUpdateSaveGoal"
-import useImportanceTypes from "~/composables/internals/useImportanceTypes"
-import useIntensityDesirTypes from "~/composables/internals/useImportanceTypes"
+import { fetchImportanceTypes } from "~/composables/internals/useImportanceTypes"
+import { fetcheIntensityDesirTypes } from "~/composables/internals/useIntensityDerisTypes"
 import type { QueryFilterSavingGoalRequest } from "~/types/api/saveGoal"
 import type { EditSaveGoalType, EditUpdateAmountSaveGoalType, SaveGoalType } from "~/types/ui/saveGoal"
 
-type ItemRow = {
+interface ItemRow  {
     id: string
     title: string
     description: string
@@ -38,14 +38,30 @@ const filter = reactive<QueryFilterSavingGoalRequest>({
     queryAll: false
 })
 
-const { data: goals, error: errorGoals, refresh: refreshGoals } = useSaveGoals(filter)
-const { data: accounts, error: errorAccount, refresh: refreshAccounts } = useAccounts({
-    limit: 0,
-    offset: 0,
-    queryAll: true
+const { data: utils } = useAsyncData('utils+accounts', async () => {
+    const query = { offset: 0, limit: 0, queryAll: true }
+    const [ accounts, importances, intensityDesirs ] = await Promise.all([
+        fetchAccounts(query),
+        fetchImportanceTypes(),
+        fetcheIntensityDesirTypes()
+    ])
+
+    return {
+        accounts,
+        importances,
+        intensityDesirs
+    }
 })
-const { data: intensityDesirs } = useIntensityDesirTypes()
-const { data: importances } = useImportanceTypes()
+
+const { data: goals, error, refresh } = useAsyncData('goal+page', async () => {
+    const res = await fetchSavingGoals(filter)
+
+    return res
+}, {
+    watch: [filter]
+})  
+
+
 
 const tableData = computed(() => {
     return goals.value?.items.map(i => ({
@@ -107,7 +123,7 @@ async function onSubmitSaveGoal(value: EditSaveGoalType, oldValue?: SaveGoalType
                 items: []
             })
         }
-        await refreshGoals()
+        await refresh()
         toast.add({
             title: 'Succès',
             description: oldValue ? 'Objectif mis à jour' : 'Objectif créé',
@@ -144,7 +160,7 @@ async function onUpdateAmountSaveGoal(value: EditUpdateAmountSaveGoalType, isInc
                 accountId: value.accountId,
                 saveGoalId: oldValue?.id
             })
-            await refreshGoals()
+            await refresh()
             toast.add({
                 title: 'Succès',
                 description: isIncrease ? 'Montant ajouté' : 'Montant retiré',
@@ -181,7 +197,7 @@ const onDeleteGoal = async (goalId: string) => {
     if (deleteAccountDepositId.value !== '') {
         try {
             await useDeleteSaveGoal(goalId, { accountId: deleteAccountDepositId.value })
-            await refreshGoals()
+            await refresh()
             deletePopOverOpen.value = false
             deletePopOverGoalId.value = undefined
             toast.add({
@@ -208,7 +224,7 @@ const onDeleteGoal = async (goalId: string) => {
 const rowSelection = ref<Record<string, boolean>>({})
 const table = useTemplateRef('table')
 
-function onSelect(row: TableRow<ItemRow>, e?: Event) {
+function onSelectItem(row: TableRow<ItemRow>) {
   row.toggleSelected(!row.getIsSelected())
 }
 
@@ -298,7 +314,7 @@ const columns: TableColumn<ItemRow>[] = [
         header: "Désir",
         cell: ({ row }) => {
             const desires = []
-            const maxDesires = intensityDesirs.value?.length || row.original.desir
+            const maxDesires = utils.value?.intensityDesirs.length || row.original.desir
             for (let i = 0; i < maxDesires; i++)
                 desires.push(h(UButton, { 
                     icon: 'i-lucide-sparkles', 
@@ -314,7 +330,7 @@ const columns: TableColumn<ItemRow>[] = [
         header: "Importance",
         cell: ({ row }) => {
             const desires = []
-            const maxDesires = importances.value?.length || row.original.importance
+            const maxDesires = utils.value?.importances.length || row.original.importance
             for (let i = 0; i < maxDesires; i++)
                 desires.push(h(UButton, { 
                     icon: 'i-lucide-shield-alert', 
@@ -518,7 +534,7 @@ const columns: TableColumn<ItemRow>[] = [
                                 <span>Désir</span>
                                 <div class="rating-dots">
                                     <span 
-                                        v-for="i in (intensityDesirs?.length || 5)"
+                                        v-for="i in (utils?.intensityDesirs.length || 5)"
                                         :key="i"
                                         class="dot"
                                         :class="{ active: i <= goal.desir }"
@@ -531,7 +547,7 @@ const columns: TableColumn<ItemRow>[] = [
                                 <span>Importance</span>
                                 <div class="rating-dots">
                                     <span 
-                                        v-for="i in (importances?.length || 5)"
+                                        v-for="i in (utils?.importances.length || 5)"
                                         :key="i"
                                         class="dot importance"
                                         :class="{ active: i <= goal.importance }"
@@ -589,7 +605,7 @@ const columns: TableColumn<ItemRow>[] = [
                 v-model:row-selection="rowSelection"
                 :columns="columns"
                 :data="tableData" 
-                @select="onSelect"
+                @select="(row, e) => onSelectItem(row as any)"
             />
             <div class="table-footer">
                 <UPagination 
@@ -628,7 +644,7 @@ const columns: TableColumn<ItemRow>[] = [
                         value-key="value" 
                         label-key="label" 
                         placeholder="Sélectionner un compte"
-                        :items="accounts?.items.map(i => ({ label: i.title, value: i.id }))" 
+                        :items="utils?.accounts.items.map(i => ({ label: i.title, value: i.id }))" 
                         size="xl"
                     />
                     <div class="modal-actions">

@@ -1,0 +1,46 @@
+# --- Stage 1: Builder ---
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+# Install system dependencies needed for venv and building certain python packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create the virtual environment
+RUN python -m venv /opt/venv
+
+# Ensure we use the virtual environment for subsequent commands
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY apps/agni-ai/requirements-linux-part1.txt .
+RUN pip install --no-cache-dir -r requirements-linux-part1.txt
+
+COPY apps/agni-ai/requirements-linux-part2.txt .
+RUN pip install --no-cache-dir -r requirements-linux-part2.txt
+
+
+# --- Stage 2: Runtime ---
+FROM python:3.12-slim AS runtime
+
+WORKDIR /app
+
+RUN groupadd -r agni && useradd -r -g agni agni
+
+# Copy the venv from the builder
+COPY --from=builder /opt/venv /opt/venv
+
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1
+
+COPY --chown=agni:agni apps/agni-ai .
+
+# Setup perm before go to non root user
+RUN mkdir -p /home/agni/.cache/huggingface/xet/logs && \
+    chown -R agni:agni /home/agni/.cache
+
+USER agni
+EXPOSE 8000
+
+ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

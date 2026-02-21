@@ -108,5 +108,4 @@ class JdbcUnitOfWork(
     override fun <T> execute(block: () -> T): T {
         return transactionTemplate.execute { block() } ?: throw IllegalStateException("Transaction yielded no result")
     }
-
 }
