@@ -8,6 +8,7 @@ import dev.auguste.agni_api.core.entities.IncomeSource
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.enums.AccountType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.entities.roundTo
 import dev.auguste.agni_api.core.usecases.analystics.dto.AccountInfoOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.ComingRevenueOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.ComingSpendingOutput
@@ -20,6 +21,8 @@ import dev.auguste.agni_api.core.value_objects.BusinessAccountDetail
 import dev.auguste.agni_api.core.value_objects.CheckingAccountDetail
 import dev.auguste.agni_api.core.value_objects.CreditCardAccountDetail
 import dev.auguste.agni_api.core.value_objects.SavingAccountDetail
+import java.time.LocalDate
+import kotlin.math.abs
 
 class GetFinanceProfile(
     private val accountRepo: IRepository<Account>,
@@ -34,6 +37,8 @@ class GetFinanceProfile(
         val scheduleInvoices = scheduleInvoice.getAll(QueryFilter(0, 0, true))
 
         return GetFinanceProfileOutput(
+            currentBalanceTotalWithFreeze = accounts.items.sumOf { it.balance },
+            currentCreditUtilization = "${computeTotalCreditUtilization(accounts.items)}%"  ,
             accountInfos = formatAccounts(accounts.items),
             principles = formatFinancePrinciple(principles.items),
             comingSpending = formatComingSpend(scheduleInvoices.items),
@@ -43,6 +48,22 @@ class GetFinanceProfile(
 
     }
 
+
+    private fun computeTotalCreditUtilization(accounts: List<Account>): Double {
+        var total = 0.0
+
+        accounts.filter { it.detail.getType() == AccountType.CREDIT_CARD }.forEach {
+            val detail = it.detail as CreditCardAccountDetail
+            val utilization = if (detail.creditLimit > 0) {
+                ((abs(it.balance) / detail.creditLimit).roundTo(2)) * 100
+            } else {
+                0.0
+            }
+            total += utilization
+        }
+
+        return total
+    }
 
     private fun formaIncomeSource(incomeSource: List<IncomeSource>): List<IncomeSourceOutput> {
         val incomeSourceOutputs = mutableListOf<IncomeSourceOutput>()
@@ -120,7 +141,14 @@ class GetFinanceProfile(
                 balance = account.balance,
                 accountDetailRule = when(account.detail.getType()) {
                     AccountType.CHECKING -> "I desir to have a buffer a ${(account.detail as CheckingAccountDetail).buffer}"
-                    AccountType.CREDIT_CARD -> "The Credit Card Limit is a ${(account.detail as CreditCardAccountDetail).creditLimit}"
+                    AccountType.CREDIT_CARD -> {
+                        val now = LocalDate.now()
+                        var nextPaymentDate = (account.detail as CreditCardAccountDetail).invoiceDate
+                        while (nextPaymentDate.isBefore(now)) {
+                            nextPaymentDate = nextPaymentDate.plusMonths(1)
+                        }
+                        "The Credit Card Limit is a ${(account.detail as CreditCardAccountDetail).creditLimit} the next Payment Invoice is $nextPaymentDate"
+                    }
                     AccountType.SAVING -> "I desir to have holy threshold of ${(account.detail as SavingAccountDetail).secureAmount}"
                     AccountType.BUSINESS -> "I desir to have a buffer a ${(account.detail as BusinessAccountDetail).buffer}"
                     AccountType.BROKING -> "type management ${(account.detail as BrokingAccountDetail).managementType} contribution type ${(account.detail as BrokingAccountDetail).contributionType}"

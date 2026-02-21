@@ -13,6 +13,7 @@ import dev.auguste.agni_api.core.value_objects.CreditCardAccountDetail
 import dev.auguste.agni_api.core.value_objects.SavingAccountDetail
 import jakarta.validation.constraints.Min
 import org.apache.coyote.BadRequestException
+import java.time.LocalDate
 import java.util.UUID
 
 
@@ -27,7 +28,8 @@ data class ApiAccountDetailModel(
     val buffer: Double?,
 
     @field:Min(value = 0, message = "Secure amount must be positive")
-    val secureAmount: Double?
+    val secureAmount: Double?,
+    val invoiceDate: LocalDate?
 )
 
 data class ApiCreateAccountModel(
@@ -54,8 +56,9 @@ fun mapAccountDetail(type: String, model: ApiAccountDetailModel) : IAccountDetai
 
         AccountType.CREDIT_CARD -> {
             val creditLimit  = model.creditLimit ?: 0.0
+            val invoiceDate  = model.invoiceDate ?: LocalDate.now()
 
-            CreditCardAccountDetail(creditLimit = creditLimit)
+            CreditCardAccountDetail(creditLimit = creditLimit, invoiceDate = invoiceDate)
         }
 
         AccountType.SAVING -> {

@@ -37,6 +37,8 @@ data class IncomeSourceOutput(
 )
 
 data class GetFinanceProfileOutput (
+    val currentBalanceTotalWithFreeze: Double,
+    val currentCreditUtilization: String,
     val accountInfos: List<AccountInfoOutput>,
     val principles: List<PrincipeToFollowOutput>,
     val comingSpending: List<ComingSpendingOutput>,

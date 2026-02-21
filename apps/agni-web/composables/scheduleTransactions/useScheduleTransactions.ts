@@ -4,9 +4,10 @@ import type { ScheduleInvoiceType } from "~/types/ui/scheduleTransaction";
 
 export async function fetchScheduleInvoices(query: QueryFilterRequest) : Promise<ListResponse<ScheduleInvoiceType>> {
     const data = await $fetch<ListResponse<GetScheduleInvoiceResponse>>('/api/schedule-invoices', {
-        body: 'GET',
+        method: 'GET',
         query: query
     })
+
 
     return {
         items: data.items.map(i => ({

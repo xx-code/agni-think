@@ -57,7 +57,8 @@ export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promis
                 case 'CreditCard':    
                     return {
                         creditUtilisation: account.detail.detailForCreditCard?.creditUtilisation ?? 0,
-                        creditLimit: account.detail.detailForCreditCard?.creditCardLimit ?? 0
+                        creditLimit: account.detail.detailForCreditCard?.creditCardLimit ?? 0,
+                        nextInvoicePaymentDate: new Date(account.detail.detailForCreditCard?.nextInvoicePayment ?? Date.now().toString()) 
                     } satisfies AccountCreditDetailType
                 case 'Checking':
                     return {

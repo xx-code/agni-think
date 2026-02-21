@@ -90,7 +90,8 @@ const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => 
                 detail: {
                     contributionType: value.contributionType,
                     managementAccountType: value.managementType,
-                    creditLimit: value.creditLimit
+                    creditLimit: value.creditLimit,
+                    invoiceDate: value.invoiceDate?.toDate(getLocalTimeZone()).toISOString()
                 }
             });
         else 
@@ -100,7 +101,8 @@ const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => 
                 detail: {
                     contributionType: value.contributionType,
                     managementAccountType: value.managementType,
-                    creditLimit: value.creditLimit
+                    creditLimit: value.creditLimit,
+                    invoiceDate: value.invoiceDate?.toDate(getLocalTimeZone()).toISOString()
                 }
             });
         
@@ -500,6 +502,9 @@ const lockedPercentage = computed(() => {
                             @delete="onDeleteAccount(account.id)"> 
 
                             <div v-if="account.type === 'CreditCard'" class="credit-card-details">
+                                <p class="text-sm text-gray-400">
+                                    Prochaine facture: {{ formatDate((account.detail as AccountCreditDetailType).nextInvoicePaymentDate) }}
+                                </p>
                                 <p class="credit-limit">
                                     <Icon name="i-lucide-landmark" class="inline mr-1" />
                                     Limite: ${{ (account.detail as AccountCreditDetailType).creditLimit }}

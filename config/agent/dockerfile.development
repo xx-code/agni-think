@@ -1,0 +1,24 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install development dependencies
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copy requirements
+COPY apps/agni-ai/requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Copy application code
+COPY apps/agni-ai .
+
+EXPOSE 8000
+
+# Run with hot reload for development
+CMD ["fastapi", "dev", "main.py", "--host", "0.0.0.0", "--port", "8000"]

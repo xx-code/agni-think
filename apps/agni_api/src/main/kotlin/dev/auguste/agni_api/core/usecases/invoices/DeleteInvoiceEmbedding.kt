@@ -21,15 +21,6 @@ class DeleteInvoiceEmbedding(
         try {
             embeddingService.deleteEmbeddingDocument(input)
 
-            eventRegister.notify(
-                EventType.NOTIFICATION,
-                NotificationEventContent(
-                    title = "Transaction Embedding Deleted",
-                    message = "Invoice was created: $input",
-                    type = NotificationType.Success
-                )
-            )
-
             return BackgroundTaskOut("Embedding invoice created")
         } catch (err: Exception) {
             eventRegister.notify(

@@ -2,6 +2,8 @@ package dev.auguste.agni_api.infras.usecase_configs
 
 import dev.auguste.agni_api.core.adapters.IEmbeddingService
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteEmbeddingInvoiceEventListener
 import dev.auguste.agni_api.core.adapters.readers.IInvoicetransactionCountReader
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
@@ -71,12 +73,14 @@ class InvoiceConfig {
         accountRepo: IRepository<Account>,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
         unitOfWork: IUnitOfWork,
+        eventRegister: IEventRegister,
         ): IUseCase<CompleteInvoiceInput, Unit> {
         return CompleteInvoice(
             invoiceRepo = invoiceRepo,
             getInvoiceTransactions = getInvoiceTransactions,
             accountRepo = accountRepo,
-            unitOfWork = unitOfWork
+            unitOfWork = unitOfWork,
+            eventRegister = eventRegister
         )
     }
 
@@ -226,7 +230,7 @@ class InvoiceConfig {
         tagRepo: IRepository<Tag>,
         getInvoice: IUseCase<UUID, GetInvoiceOutput>,
         embeddingService: IEmbeddingService
-    ) : IUseCase<UUID, BackgroundTaskOut> {
+    ) : ICreateEmbeddingInvoiceEventListener {
         return CreateInvoiceEmbedding(
             eventRegister = eventRegister,
             categoryRepo = categoryRepo,
@@ -241,7 +245,7 @@ class InvoiceConfig {
     fun deleteEmbeddingInvoice(
         eventRegister: IEventRegister,
         embeddingService: IEmbeddingService
-    ) : IUseCase<UUID, BackgroundTaskOut> {
+    ) : IDeleteEmbeddingInvoiceEventListener {
         return DeleteInvoiceEmbedding(
             eventRegister = eventRegister,
             embeddingService = embeddingService

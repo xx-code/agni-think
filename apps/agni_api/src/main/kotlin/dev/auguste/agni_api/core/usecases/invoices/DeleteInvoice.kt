@@ -57,6 +57,7 @@ class DeleteInvoice(
             accountRepo.update(account)
         }
 
-        eventRegister.notify(EventType.DELETE_EMBEDDING_SERVICE, DeleteEmbeddingInvoiceEventContent(input.invoiceId))
+        if (invoice.statusType == InvoiceStatusType.COMPLETED)
+            eventRegister.notify(EventType.DELETE_EMBEDDING_SERVICE, DeleteEmbeddingInvoiceEventContent(input.invoiceId))
     }
 }

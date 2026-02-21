@@ -41,31 +41,31 @@ const {
     refresh: refreshScheduleInvoices 
 } = useAsyncData('schedule-invoice-page', async () => {
     const res = await fetchScheduleInvoices(scheduleFilter)
-    return res
+    return {
+        items: res.items.map(i => ({
+            id: i.id,
+            amount: i.amount,
+            name: i.name,
+            type: i.type,
+            isPause: i.isPause,
+            isFreeze: i.isFreeze,
+            dueDate: i.dueDate, 
+            category: {
+                id: i.categoryId,
+                icon: getCategory(i.categoryId)?.icon || '',
+                color: getCategory(i.categoryId)?.color || '',
+                title: getCategory(i.categoryId)?.title || '',
+            },
+            tags: i.tagIds.map(i => ({
+                id: i,
+                value: getTag(i)?.value || '',
+                color: getTag(i)?.color || ''
+            })) 
+        } satisfies TableScheduleInvoiceType)),
+        total: res.total 
+    }
 }, { watch: [ scheduleFilter ]})
 
-const displayScheluletransactionsTable = computed(() => {
-    return scheduleInvoices.value?.items.map(i => ({
-        id: i.id,
-        amount: i.amount,
-        name: i.name,
-        type: i.type,
-        isPause: i.isPause,
-        isFreeze: i.isFreeze,
-        dueDate: i.dueDate, 
-        category: {
-            id: i.categoryId,
-            icon: getCategory(i.categoryId)?.icon || '',
-            color: getCategory(i.categoryId)?.color || '',
-            title: getCategory(i.categoryId)?.title || '',
-        },
-        tags: i.tagIds.map(i => ({
-            id: i,
-            value: getTag(i)?.value || '',
-            color: getTag(i)?.color || ''
-        })) 
-    } satisfies TableScheduleInvoiceType))    
-})
 
 async function togglePauseSchedule(id:string, isPause: boolean) {
     await useUpdateScheduleInvoice(id, {
@@ -364,7 +364,7 @@ const onDelete = async (id: string) => {
                         <div>
                             <p class="text-sm text-gray-600">Actives</p>
                             <p class="text-2xl font-bold text-gray-900">
-                                {{ displayScheluletransactionsTable?.filter(t => !t.isPause).length || 0 }}
+                                {{ scheduleInvoices?.items?.filter(t => !t.isPause).length || 0 }}
                             </p>
                         </div>
                     </div>
@@ -377,7 +377,7 @@ const onDelete = async (id: string) => {
                         <div>
                             <p class="text-sm text-gray-600">En Pause</p>
                             <p class="text-2xl font-bold text-gray-900">
-                                {{ displayScheluletransactionsTable?.filter(t => t.isPause).length || 0 }}
+                                {{ scheduleInvoices?.items?.filter(t => t.isPause).length || 0 }}
                             </p>
                         </div>
                     </div>
@@ -388,7 +388,7 @@ const onDelete = async (id: string) => {
             <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <UTable 
-                        :data="displayScheluletransactionsTable" 
+                        :data="scheduleInvoices?.items" 
                         :columns="tableColumn"
                         class="w-full"
                         :ui="{
@@ -454,7 +454,7 @@ const onDelete = async (id: string) => {
 
             <!-- Empty State -->
             <div 
-                v-if="!displayScheluletransactionsTable || displayScheluletransactionsTable.length === 0"
+                v-if="!scheduleInvoices?.items || scheduleInvoices.items.length === 0"
                 class="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center mt-6"
             >
                 <div class="max-w-md mx-auto">

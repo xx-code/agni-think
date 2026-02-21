@@ -46,6 +46,8 @@ class IncomeSource(BaseModel):
     confidence: int
 
 class FinanceProfileResponse(BaseModel):
+    currentBalanceTotalWithFreeze: float
+    currentCreditUtilization: str
     accountInfos: List[AccountInfo]
     principles: List[PrincipleToFollow]
     comingSpending: List[ComingTransaction]

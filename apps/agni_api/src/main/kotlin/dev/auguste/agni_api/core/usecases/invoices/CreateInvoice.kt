@@ -116,8 +116,8 @@ class CreateInvoice(
         }
 
         invoiceRepo.create(newInvoice)
-
-        eventRegister.notify(EventType.CREATE_EMBEDDING_SERVICE, CreateEmbeddingInvoiceEventContent(newInvoice))
+        if (newInvoice.statusType == InvoiceStatusType.COMPLETED)
+            eventRegister.notify(EventType.CREATE_EMBEDDING_SERVICE, CreateEmbeddingInvoiceEventContent(newInvoice))
 
         return CreatedOutput(newInvoice.id)
     }

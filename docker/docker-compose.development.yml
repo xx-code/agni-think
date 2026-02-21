@@ -5,6 +5,7 @@ services:
     environment:
       - NODE_ENV=development
       - NUXT_PUBLIC_API_BASE=http://api:8080/v2
+      - NUXT_PUBLIC_API_AGENT=http://agent:8000
     build:
       context: ..
       dockerfile: ./config/frontend/dockerfile.development
@@ -53,6 +54,40 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  agent:
+    container_name: agni-agent-dev
+    environment:
+      - AGNI_API_LINK=http://api:8080/v2
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OLLAMA_LINK=${OLLAMA_LINK}
+      - QDRANT_LINK=${QDRANT_LINK}
+      - QDRANT_COLLECTION_NAME=${QDRANT_COLLECTION_NAME}
+    build:
+      context: ..
+      dockerfile: ./config/agent/dockerfile.development
+    restart: "no"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../apps/agni-ai:/app
+      - /app/__pycache__
+    networks:
+      - agni
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
     logging:
       driver: "json-file"
       options:

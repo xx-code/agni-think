@@ -65,15 +65,6 @@ class CreateInvoiceEmbedding(
 
             embeddingService.addEmbeddingDocument(invoice.id, document)
 
-            eventRegister.notify(
-                EventType.NOTIFICATION,
-                NotificationEventContent(
-                    title = "Transaction Embedding Created",
-                    message = "Invoice was created: ${invoice.id}",
-                    type = NotificationType.Success
-                )
-            )
-
             return BackgroundTaskOut("Embedding invoice created")
         } catch (err: Exception) {
             eventRegister.notify(

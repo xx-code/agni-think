@@ -1,4 +1,5 @@
 from qdrant_client import QdrantClient
+from qdrant_client import models
 from storages.dto import QdrantAddDocumentInput
 
 class QdrantClientService:
@@ -17,7 +18,8 @@ class QdrantClientService:
     
     def remove_embedding_text(self, id: str):
         client = QdrantClient(url=self.url)
-        client.delete_payload(
+        client.delete(
             collection_name=self.collection_name,
-            keys=[id]
+            points_selector=models.PointIdsList(points=[id]),
+            wait=True # Optional: wait for the operation to complete
         )

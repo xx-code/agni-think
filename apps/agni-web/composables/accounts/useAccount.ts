@@ -29,7 +29,8 @@ export async function fetchAccountWithDetail(accountId: string): Promise<Account
             case 'CreditCard':    
                 return {
                     creditUtilisation: res.detail.detailForCreditCard?.creditUtilisation ?? 0,
-                    creditLimit: res.detail.detailForCreditCard?.creditCardLimit ?? 0
+                    creditLimit: res.detail.detailForCreditCard?.creditCardLimit ?? 0,
+                    nextInvoicePaymentDate: new Date(res.detail.detailForCreditCard?.nextInvoicePayment ?? Date.now().toString())
                 } satisfies AccountCreditDetailType
             case 'Checking':
                 return {
