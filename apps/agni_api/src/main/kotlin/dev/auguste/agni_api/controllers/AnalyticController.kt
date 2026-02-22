@@ -1,11 +1,15 @@
 package dev.auguste.agni_api.controllers
 
+import dev.auguste.agni_api.controllers.models.ApiGetBudgetingRuleModel
 import dev.auguste.agni_api.controllers.models.ApiGetCategoryAnalyticModel
 import dev.auguste.agni_api.controllers.models.ApiGetSavingAnalyticModel
 import dev.auguste.agni_api.controllers.models.ApiGetTagAnalyticModel
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.ListOutput
+import dev.auguste.agni_api.core.usecases.analystics.GetBudgetingRuleAnalytic
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticInput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
@@ -14,6 +18,7 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryOutpu
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import org.springframework.data.relational.core.query.Query.query
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -25,7 +30,8 @@ class AnalyticController(
     private val getSpendTagAnalytic: IUseCase<GetSpendByTagInput, ListOutput<GetSpendByTagOutput>>,
     private val getSpendCategoryAnalytic: IUseCase<GetSpendByCategoryInput, ListOutput<GetSpendByCategoryOutput>>,
     private val getSavingAnalytic: IUseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput>,
-    private val getFinanceProfile: IUseCase<Unit, GetFinanceProfileOutput>
+    private val getFinanceProfile: IUseCase<Unit, GetFinanceProfileOutput>,
+    private val getBudgetingRuleAnalytic: IUseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput>
 ) {
     @GetMapping("/spend-categories")
     fun getSpendCategoriesAnalytic(query: ApiGetCategoryAnalyticModel) : ResponseEntity<ListOutput<GetSpendByCategoryOutput>> {
@@ -74,5 +80,17 @@ class AnalyticController(
     @GetMapping("/finance-profile")
     fun getFinanceProfile() : ResponseEntity<GetFinanceProfileOutput> {
         return ResponseEntity.ok(getFinanceProfile.execAsync(Unit))
+    }
+
+    @GetMapping("/budgeting-rule")
+    fun getBudgetingRuleAnalyse(query: ApiGetBudgetingRuleModel) : ResponseEntity<GetBudgetingRuleAnalyticOutput> {
+        return ResponseEntity.ok(getBudgetingRuleAnalytic.execAsync(
+            GetBudgetingRuleAnalyticInput(
+                period = query.period?.let { PeriodType.fromString(it) },
+                interval = query.interval,
+                startDate = query.startDate,
+                endDate = query.endDate
+            )
+        ))
     }
 }
