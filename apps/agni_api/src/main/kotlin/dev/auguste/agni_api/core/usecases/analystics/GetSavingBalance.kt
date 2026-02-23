@@ -32,7 +32,7 @@ class GetSavingBalance(
             removeSystemCategory = false
         ))
 
-        val total = savingGoalBalance.spend + savingAccountBalance.balance
+        val total = savingGoalBalance.spend + savingAccountBalance.income
 
         return if (total < 0) 0.0 else total
     }
