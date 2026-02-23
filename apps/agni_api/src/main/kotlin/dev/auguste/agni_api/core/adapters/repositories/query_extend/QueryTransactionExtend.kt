@@ -20,10 +20,10 @@ class QueryTransactionExtend(
         if (categoryIds != null && !categoryIds.contains(entity.categoryId))
             return false
 
-        if (tagIds != null && !tagIds.all { it in entity.tagIds })
+        if (tagIds != null && !tagIds.any { it in entity.tagIds })
             return false
 
-        if (budgetIds != null && !budgetIds.all { it in entity.budgetIds })
+        if (budgetIds != null && !budgetIds.any { it in entity.budgetIds })
             return false
 
         if (minAmount != null && minAmount < entity.amount)

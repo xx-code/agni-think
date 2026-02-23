@@ -61,3 +61,39 @@ type GetSpendTagResponse = {
     tagId: string
     spends: number[]
 }
+
+// annual outlook
+type GetSpendByCategoryOutlook = {
+    categoryId: string
+    spend: number
+}
+type GetAnnualOutlookResponse = {
+    incomeOutlook: number,
+    spendOutlook: number,
+    budgetOutlook: number,
+    savingMargin: number,
+    currentIncomeOutlook: number,
+    currentSpendOutlook: number,
+    currentBudgetOutlook: number,
+    currentSaving: number,
+    spendByCategoriesOutlook: GetSpendByCategoryOutlook[],
+    currentSpendByCategoryOutlook: GetSpendByCategoryOutlook[]
+}
+
+// budgeting rule
+type GetBudgetingRuleRequest = {
+    period?: string // Year, Month, Week, Day
+    interval?: number = 0
+    startDate?: string
+    endDate?: string
+}
+
+type GetBudgetingRuleResponse = {
+    ratioSaving: number
+    ratioFixCost: number
+    ratioVariableCost: number
+    savingAmount: number
+    fixCost: number
+    variableCost: number
+    income: number
+}

@@ -1,11 +1,15 @@
 package dev.auguste.agni_api.controllers
 
+import dev.auguste.agni_api.controllers.models.ApiGetBudgetingRuleModel
 import dev.auguste.agni_api.controllers.models.ApiGetCategoryAnalyticModel
 import dev.auguste.agni_api.controllers.models.ApiGetSavingAnalyticModel
 import dev.auguste.agni_api.controllers.models.ApiGetTagAnalyticModel
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.ListOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetAnnualOutlookOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticInput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
@@ -25,7 +29,9 @@ class AnalyticController(
     private val getSpendTagAnalytic: IUseCase<GetSpendByTagInput, ListOutput<GetSpendByTagOutput>>,
     private val getSpendCategoryAnalytic: IUseCase<GetSpendByCategoryInput, ListOutput<GetSpendByCategoryOutput>>,
     private val getSavingAnalytic: IUseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput>,
-    private val getFinanceProfile: IUseCase<Unit, GetFinanceProfileOutput>
+    private val getFinanceProfile: IUseCase<Unit, GetFinanceProfileOutput>,
+    private val getBudgetingRuleAnalytic: IUseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput>,
+    private val getAnnualOutlook: IUseCase<Unit, GetAnnualOutlookOutput>
 ) {
     @GetMapping("/spend-categories")
     fun getSpendCategoriesAnalytic(query: ApiGetCategoryAnalyticModel) : ResponseEntity<ListOutput<GetSpendByCategoryOutput>> {
@@ -74,5 +80,22 @@ class AnalyticController(
     @GetMapping("/finance-profile")
     fun getFinanceProfile() : ResponseEntity<GetFinanceProfileOutput> {
         return ResponseEntity.ok(getFinanceProfile.execAsync(Unit))
+    }
+
+    @GetMapping("/budgeting-rule")
+    fun getBudgetingRuleAnalyse(query: ApiGetBudgetingRuleModel) : ResponseEntity<GetBudgetingRuleAnalyticOutput> {
+        return ResponseEntity.ok(getBudgetingRuleAnalytic.execAsync(
+            GetBudgetingRuleAnalyticInput(
+                period = query.period?.let { PeriodType.fromString(it) },
+                interval = query.interval,
+                startDate = query.startDate,
+                endDate = query.endDate
+            )
+        ))
+    }
+
+    @GetMapping("/annual-outlook")
+    fun getAnnualOutlook() : ResponseEntity<GetAnnualOutlookOutput> {
+        return ResponseEntity.ok(getAnnualOutlook.execAsync(Unit))
     }
 }
