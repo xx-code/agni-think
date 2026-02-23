@@ -7,7 +7,7 @@ import dev.auguste.agni_api.controllers.models.ApiGetTagAnalyticModel
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.analystics.GetBudgetingRuleAnalytic
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetAnnualOutlookOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
@@ -18,7 +18,6 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryOutpu
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import org.springframework.data.relational.core.query.Query.query
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,7 +30,8 @@ class AnalyticController(
     private val getSpendCategoryAnalytic: IUseCase<GetSpendByCategoryInput, ListOutput<GetSpendByCategoryOutput>>,
     private val getSavingAnalytic: IUseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput>,
     private val getFinanceProfile: IUseCase<Unit, GetFinanceProfileOutput>,
-    private val getBudgetingRuleAnalytic: IUseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput>
+    private val getBudgetingRuleAnalytic: IUseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput>,
+    private val getAnnualOutlook: IUseCase<Unit, GetAnnualOutlookOutput>
 ) {
     @GetMapping("/spend-categories")
     fun getSpendCategoriesAnalytic(query: ApiGetCategoryAnalyticModel) : ResponseEntity<ListOutput<GetSpendByCategoryOutput>> {
@@ -92,5 +92,10 @@ class AnalyticController(
                 endDate = query.endDate
             )
         ))
+    }
+
+    @GetMapping("/annual-outlook")
+    fun getAnnualOutlook() : ResponseEntity<GetAnnualOutlookOutput> {
+        return ResponseEntity.ok(getAnnualOutlook.execAsync(Unit))
     }
 }
