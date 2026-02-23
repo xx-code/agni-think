@@ -4,6 +4,16 @@ import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDateTime
 import java.util.UUID
 
+data class ApiGetBudgetingRuleModel(
+    val period: String?,
+    val interval: Int = 0,
+
+    @field:DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    val startDate: LocalDateTime?,
+    @field:DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    val endDate: LocalDateTime?
+)
+
 data class ApiGetSavingAnalyticModel(
     val period: String,
     val interval: Int,

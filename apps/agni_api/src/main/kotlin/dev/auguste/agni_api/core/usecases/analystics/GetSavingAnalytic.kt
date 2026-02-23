@@ -50,6 +50,7 @@ class GetSavingAnalytic(
             period = input.period,
             interval = input.interval,
             dateFrom = input.startDate,
+            removeSystemCategory = false
         ))
 
         val totalSavings = mutableListOf<Double>()
