@@ -98,11 +98,11 @@ class AnalyticConfig {
     }
 
     @Bean fun getBudgetingRule(
-        accountRepo: IRepository<Account>,
+        getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     ) : IUseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput> {
         return GetBudgetingRuleAnalytic(
-            accountRepo = accountRepo,
+            getSavingBalance = getSavingBalance,
             getBalance = getBalance
         )
     }
