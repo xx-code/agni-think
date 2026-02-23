@@ -53,9 +53,9 @@ class GetBudgetingRuleAnalytic(
             )
         }
 
-        val ratioFixedCost = (fixedCostBalance.spend / periodBalance.income) * 100
-        val ratioVariableCost = (variableCostBalance.spend / periodBalance.income) * 100
-        val ratioSaving = (savingBalance / periodBalance.income) * 100
+        val ratioFixedCost = (fixedCostBalance.spend / periodBalance.income)
+        val ratioVariableCost = (variableCostBalance.spend / periodBalance.income)
+        val ratioSaving = (savingBalance / periodBalance.income)
 
         return GetBudgetingRuleAnalyticOutput(
             ratioSaving = ratioSaving,
