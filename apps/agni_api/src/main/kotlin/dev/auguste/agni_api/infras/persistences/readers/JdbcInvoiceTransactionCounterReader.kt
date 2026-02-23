@@ -71,13 +71,13 @@ class JdbcInvoiceTransactionCountReader(
         }
 
         if (!queryTransactionExtend.tagIds.isNullOrEmpty()) {
-            sql.append(" AND r.tag_ids @> CAST(:tags AS jsonb)")
-            params.addValue("tags", objectMapper.writeValueAsString(queryTransactionExtend.tagIds))
+            sql.append(" AND r.tag_ids ??| CAST(:tagIds AS text[])")
+            params.addValue("tagIds", queryTransactionExtend.tagIds.toTypedArray())
         }
 
         if (!queryTransactionExtend.budgetIds.isNullOrEmpty()) {
-            sql.append(" AND r.budget_ids @> CAST(:budgets AS jsonb)")
-            params.addValue("budgets", objectMapper.writeValueAsString(queryTransactionExtend.budgetIds))
+            sql.append(" AND r.budget_ids ??| CAST(:budgetIds AS text[])")
+            params.addValue("budgetIds", queryTransactionExtend.budgetIds.toTypedArray())
         }
 
         return addPaginationSqlStringBuilder(sql, params, queryFilter, mapper, true)

@@ -32,15 +32,13 @@ class QueryTransactionExtendJdbcAdapter(
         val params = MapSqlParameterSource()
 
         if (!extend.budgetIds.isNullOrEmpty()) {
-
-            sqlBuilder.append(" AND budget_ids @> CAST(:budgetIds AS jsonb)")
-            params.addValue("budgetIds", objectMapper.writeValueAsString(extend.budgetIds))
+            sqlBuilder.append(" AND r.tag_ids ??| CAST(:tagIds AS text[])")
+            params.addValue("budgetIds", extend.budgetIds.toTypedArray())
         }
 
-
         if (!extend.tagIds.isNullOrEmpty()) {
-            sqlBuilder.append(" AND tag_ids @> CAST(:tagIds AS jsonb)")
-            params.addValue("tagIds", objectMapper.writeValueAsString(extend.tagIds))
+            sqlBuilder.append(" AND r.tag_ids ??| CAST(:tagIds AS text[])")
+            params.addValue("tagIds", extend.tagIds.toTypedArray())
         }
 
         if (!extend.invoiceIds.isNullOrEmpty()) {
