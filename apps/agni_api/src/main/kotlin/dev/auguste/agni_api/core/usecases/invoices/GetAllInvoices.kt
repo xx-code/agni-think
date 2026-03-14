@@ -12,12 +12,10 @@ import dev.auguste.agni_api.core.entities.enums.DeductionModeType
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.InvoiceDeductionOutput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
-import dev.auguste.agni_api.core.value_objects.InvoiceDeduction
 
 class GetAllInvoices(
     private val invoiceRepo: IRepository<Invoice>,

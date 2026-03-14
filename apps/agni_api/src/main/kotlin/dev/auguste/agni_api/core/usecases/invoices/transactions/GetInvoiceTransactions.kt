@@ -126,7 +126,7 @@ class GetInvoiceTransactions(
 
     private fun adjustFlatDeductionAmountAfterFiltered(deductionAmount: Double, parentTotalAmount: Double?=null) : Double {
         return parentTotalAmount?.let {
-            parentTotalAmount + (deductionAmount * 100 / parentTotalAmount)
+            parentTotalAmount * (deductionAmount / parentTotalAmount)
         } ?: deductionAmount
     }
 
