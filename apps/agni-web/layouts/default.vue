@@ -11,6 +11,7 @@
         </UContainer>
       </main>
     </div>
+    <ModalLoading />
   </UApp>
 </template>
 

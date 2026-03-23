@@ -4,9 +4,12 @@ import dev.auguste.agni_api.core.DOLLAR_CURRENT_ID
 import dev.auguste.agni_api.core.FREEZE_CATEGORY_ID
 import dev.auguste.agni_api.core.SAVING_CATEGORY_ID
 import dev.auguste.agni_api.core.TRANSFERT_CATEGORY_ID
+import dev.auguste.agni_api.core.UNKNOWN_CATEGORY_ID
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.EventType
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingExternalTransListener
 import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateManyEmbeddingExternalTransListener
 import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteEmbeddingInvoiceEventListener
 import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.Currency
@@ -27,7 +30,9 @@ class Startup (
     private val categoryRepo: CategoryRepository,
     private val currencyRepo: CurrencyRepository,
     private val createEmbedding: ICreateEmbeddingInvoiceEventListener,
-    private val updateEmbedding: IDeleteEmbeddingInvoiceEventListener
+    private val updateEmbedding: IDeleteEmbeddingInvoiceEventListener,
+    private val createEmbeddingExternalTrans: ICreateEmbeddingExternalTransListener,
+    private val createManyEmbeddingExternalTrans: ICreateManyEmbeddingExternalTransListener
 ): ApplicationRunner {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -38,6 +43,8 @@ class Startup (
             evenRegister.subscribe(EventType.NOTIFICATION,pushNotification)
             evenRegister.subscribe(EventType.CREATE_EMBEDDING_SERVICE, createEmbedding)
             evenRegister.subscribe(EventType.DELETE_EMBEDDING_SERVICE, updateEmbedding)
+            evenRegister.subscribe(EventType.CREATE_EMBEDDING_EXTERNAL_TRANSACTION, createEmbeddingExternalTrans)
+            evenRegister.subscribe(EventType.CREATE_MANY_EMBEDDING_EXTERNAL_TRANSACTION, createManyEmbeddingExternalTrans)
         } catch (e: Exception) {
             logger.info("[!] Error while registering event listener: ${e.message}")
         }
@@ -76,6 +83,17 @@ class Startup (
                         icon = "i-lucide-snowflake",
                         color = "#455A64",
                         isSystem = true,
+                    )
+                )
+
+            if (categoryRepo.get(UNKNOWN_CATEGORY_ID) == null)
+                categoryRepo.create(
+                    Category(
+                        UNKNOWN_CATEGORY_ID,
+                        title = "Unknown",
+                        icon = "i-lucide-circle-question-mark",
+                        color = "#313131",
+                        isSystem = true
                     )
                 )
         } catch (e: Exception) {

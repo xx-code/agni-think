@@ -256,7 +256,7 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
 
           <!-- Income — green tint -->
           <div class="flex items-center gap-4 p-5 rounded-2xl bg-emerald-50 border border-emerald-100 hover:shadow-md hover:shadow-emerald-100 transition-all duration-200">
-            <div class="w-11 h-11 rounded-xl flex items-center justify-center bg-emerald-500 text-white flex-shrink-0 shadow-sm">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center bg-emerald-500 text-white shrink-0 shadow-sm">
               <UIcon name="i-lucide-arrow-down-to-line" class="text-lg" />
             </div>
             <div class="min-w-0 flex flex-col gap-0.5">
@@ -575,7 +575,7 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
                 <span class="text-sm font-bold text-violet-500">{{ ((goal.balance / goal.target) * 100).toFixed(1) }}%</span>
               </div>
               <div class="h-2 rounded-full bg-slate-200 overflow-hidden">
-                <div class="h-full rounded-full bg-gradient-to-r from-violet-500 to-pink-500 transition-all duration-500"
+                <div class="h-full rounded-full bg-linear-to-r from-violet-500 to-pink-500 transition-all duration-500"
                   :style="{ width: `${Math.min((goal.balance / goal.target) * 100, 100)}%` }" />
               </div>
               <div class="flex gap-1.5 text-xs">

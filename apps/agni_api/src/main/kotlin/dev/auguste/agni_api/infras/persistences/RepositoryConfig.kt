@@ -6,11 +6,15 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.AgentSuggestion
+import dev.auguste.agni_api.core.entities.BankRegister
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.Currency
 import dev.auguste.agni_api.core.entities.Deduction
+import dev.auguste.agni_api.core.entities.ExternalTransaction
 import dev.auguste.agni_api.core.entities.FinancePrinciple
+import dev.auguste.agni_api.core.entities.FinanceReport
 import dev.auguste.agni_api.core.entities.IncomeSource
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Notification
@@ -22,11 +26,15 @@ import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.entities.Transaction
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JbdcAccountModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcAgentSuggestionModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcBankRegisterModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcBudgetModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcCategoryModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcCurrencyModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcDeductionModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcExternalTransactionModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcFinancePrincipleModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcFinanceReportModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcIncomeSourceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInvoiceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcNotificationModel
@@ -222,3 +230,41 @@ class IncomeSourceRepository(
     storage: IncomeSourceStorage,
     incomeSourceMapper: IMapper<JdbcIncomeSourceModel, IncomeSource>
 ) : JdbcRepository<JdbcIncomeSourceModel, IncomeSource>(storage, incomeSourceMapper)
+
+@Repository
+interface AgentSuggestionStorage: GenericStorage<JdbcAgentSuggestionModel, UUID>
+
+@Component
+class AgentSuggestionRepository(
+    storage: AgentSuggestionStorage,
+    agentSuggestionMapper: IMapper<JdbcAgentSuggestionModel, AgentSuggestion>,
+    queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcAgentSuggestionModel, AgentSuggestion>
+): JdbcRepository<JdbcAgentSuggestionModel, AgentSuggestion>(storage, agentSuggestionMapper, queryExtendAdapter)
+
+@Repository
+interface BankRegisterStorage: GenericStorage<JdbcBankRegisterModel, UUID>
+
+@Component
+class BankRegisterRepository(
+    storage: BankRegisterStorage,
+    bankRegisterMapper: IMapper<JdbcBankRegisterModel, BankRegister>
+): JdbcRepository<JdbcBankRegisterModel, BankRegister>(storage, bankRegisterMapper)
+
+@Repository
+interface ExternalTransactionStorage: GenericStorage<JdbcExternalTransactionModel, UUID>
+
+@Component
+class ExternalBankRegisterRepository(
+    storage: ExternalTransactionStorage,
+    externalTransactionModelMapper: IMapper<JdbcExternalTransactionModel, ExternalTransaction>,
+    queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcExternalTransactionModel, ExternalTransaction>
+): JdbcRepository<JdbcExternalTransactionModel, ExternalTransaction>(storage, externalTransactionModelMapper, queryExtendAdapter)
+
+@Repository
+interface FinanceReportStorage: GenericStorage<JdbcFinanceReportModel, UUID>
+
+@Component
+class FinanceReportRepository(
+    storage: FinanceReportStorage,
+    financeReportModelMapper: IMapper<JdbcFinanceReportModel, FinanceReport>
+): JdbcRepository<JdbcFinanceReportModel, FinanceReport>(storage, financeReportModelMapper)

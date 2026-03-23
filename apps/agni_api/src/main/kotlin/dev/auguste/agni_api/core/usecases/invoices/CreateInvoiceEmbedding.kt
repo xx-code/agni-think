@@ -1,5 +1,6 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
+import dev.auguste.agni_api.core.adapters.EmbeddingDocument
 import dev.auguste.agni_api.core.adapters.IEmbeddingService
 import dev.auguste.agni_api.core.adapters.events.contents.CreateEmbeddingInvoiceEventContent
 import dev.auguste.agni_api.core.adapters.events.EventType
@@ -22,7 +23,8 @@ class CreateInvoiceEmbedding(
     private val budgetRepo: IRepository<Budget>,
     private val tagsRepo: IRepository<Tag>,
     private val getInvoice: IUseCase<UUID, GetInvoiceOutput>,
-    private val embeddingService: IEmbeddingService
+    private val embeddingService: IEmbeddingService,
+    private val invoiceCollectionName: String
 ): IUseCase<UUID, BackgroundTaskOut>, ICreateEmbeddingInvoiceEventListener {
     private var event: CreateEmbeddingInvoiceEventContent? = null
 
@@ -63,7 +65,7 @@ class CreateInvoiceEmbedding(
                     "Total: ${"%.2f".format(invoice.total)}, Subtotal: ${"%.2f".format(invoice.subTotal)}. " +
                     "Lines: \n$transactionStr"
 
-            embeddingService.addEmbeddingDocument(invoice.id, document)
+            embeddingService.addEmbeddingDocument(invoiceCollectionName,listOf(EmbeddingDocument(invoice.id, document)))
 
             return BackgroundTaskOut("Embedding invoice created")
         } catch (err: Exception) {

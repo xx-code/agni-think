@@ -19,6 +19,7 @@ import type { QueryFilterRequest } from "~/types/api";
 import { ModalEditInvoice } from "#components";
 
 const toast = useToast();
+const { start, stop } = useLoading()
 
 const page = ref(1);
 const query = reactive<QueryFilterRequest & QueryInvoice>({
@@ -81,8 +82,6 @@ const { data, error, refresh, status } = useAsyncData(`transactions-${JSON.strin
         fetchBalance(query),
     ])
 
-
-    
 
     return {
         transactions: transactions.items.map(i => ({
@@ -205,6 +204,22 @@ async function openInvoice(transactionId?: string) {
         onSubmit: onSubmitInvoice
     });
 };
+
+async function syncBank() {
+    try {
+        start()
+        await $fetch("/api/bank/sync-transaction")
+        query.status = "Pending"
+        query.offset = 0
+        page.value = 1
+    } catch(err) {
+        stop()
+        console.log(err)
+        alert(err)
+    } finally {
+        stop()
+    }
+}
 
 const onDelete = async (id: string) => {
     await useDeleteTransaction(id)
@@ -444,6 +459,13 @@ function getRecordTypeColor(type: string) {
                         label="Nouvelle transaction" 
                         size="lg"
                         @click="openInvoice()" 
+                    />
+                    <UButton 
+                        icon="i-lucide-arrow-down-to-line" 
+                        label="Force Sync Bancaire" 
+                        color="info"
+                        size="lg"
+                        @click="syncBank" 
                     />
                 </div>
             </div>

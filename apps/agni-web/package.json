@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@internationalized/date": "^3.8.2",
+    "@jcss/vue-plaid-link": "^1.1.3",
     "@nuxt/ui": "^4.4.0",
     "@nuxtjs/dotenv": "^1.4.2",
     "@vueuse/core": "^13.3.0",

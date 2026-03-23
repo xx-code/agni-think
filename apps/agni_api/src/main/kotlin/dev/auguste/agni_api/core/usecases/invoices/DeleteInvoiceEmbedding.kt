@@ -13,13 +13,14 @@ import java.util.UUID
 
 class DeleteInvoiceEmbedding(
     private val eventRegister: IEventRegister,
-    private val embeddingService: IEmbeddingService
+    private val embeddingService: IEmbeddingService,
+    private val invoiceCollectionName: String
 ) : IUseCase<UUID, BackgroundTaskOut>, IDeleteEmbeddingInvoiceEventListener {
     private var event: DeleteEmbeddingInvoiceEventContent? = null
 
     override fun execAsync(input: UUID): BackgroundTaskOut {
         try {
-            embeddingService.deleteEmbeddingDocument(input)
+            embeddingService.deleteEmbeddingDocument(invoiceCollectionName, input)
 
             return BackgroundTaskOut("Embedding invoice created")
         } catch (err: Exception) {
