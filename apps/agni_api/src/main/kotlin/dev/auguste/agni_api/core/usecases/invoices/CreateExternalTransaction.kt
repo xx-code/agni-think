@@ -7,19 +7,19 @@ import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.CreateEmbeddingExternalTransEventContent
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventContent
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationType
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingExternalTransListener
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateExternalTransactionListener
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.ExternalTransaction
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import java.util.UUID
 
-class CreateExternalTransactionEmbedding(
+class CreateExternalTransaction(
     private val externalTransactionRepo: IRepository<ExternalTransaction>,
     private val embeddingService: IEmbeddingService,
     private val eventRegister: IEventRegister,
     private val collectionExternalTransactionName: String,
-) : IUseCase<UUID, BackgroundTaskOut>, ICreateEmbeddingExternalTransListener  {
+) : IUseCase<UUID, BackgroundTaskOut>, ICreateExternalTransactionListener  {
     private var event: CreateEmbeddingExternalTransEventContent? = null
 
     override fun execAsync(input: UUID): BackgroundTaskOut {

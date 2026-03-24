@@ -112,7 +112,7 @@ def get_tags() -> list[TagResponse]:
     return res
 
 def get_annual_outlook() -> AnnualOutlookResponse:
-    res = requests.get(f"{api_link}/deductions?limit=0&offset=0&queryAll=true")
+    res = requests.get(f"{api_link}/annual-outlook")
     res.raise_for_status()
     result = res.json()
 

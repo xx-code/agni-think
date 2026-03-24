@@ -2,8 +2,10 @@ package dev.auguste.agni_api.core.usecases.accounts
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInternalLoanExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QuerySavingGoalExtend
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.accounts.dto.GetAccountWithDetailOutput
@@ -11,11 +13,15 @@ import dev.auguste.agni_api.core.usecases.accounts.dto.mapperAccountDetailOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
+import java.util.UUID
 
 class GetAllAccountWithDetail(
     private val accountRepo: IRepository<Account>,
     private val savingGoalRepo: IRepository<SavingGoal>,
-    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
+    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
+    private val internalLoanRepo: IRepository<InternalLoan>,
+    private val getInvoice: IUseCase<UUID, GetInvoiceOutput>
 ) : IUseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>>{
 
     override fun execAsync(input: QueryFilter): ListOutput<GetAccountWithDetailOutput> {
@@ -27,6 +33,13 @@ class GetAllAccountWithDetail(
             QuerySavingGoalExtend(accounts.items.map { it.id }.toSet()))
 
         for(account in accounts.items) {
+            val internalLoans = internalLoanRepo.getAll(QueryFilter(queryAll = true), QueryInternalLoanExtend(fundSourceId = account.id))
+            var currentLoanBalance = 0.0
+            if (internalLoans.items.isNotEmpty()) {
+                internalLoans.items.forEach { internalLoanItem ->
+                    currentLoanBalance += getInvoice.execAsync(internalLoanItem.invoiceId).total
+                }
+            }
             val lockedBalance = savingGoals.items.filter { it.accountId == account.id }.sumOf { it.balance }
             val freezeBalance = getBalance.execAsync(GetBalanceInput(
                 accountIds = setOf(account.id),

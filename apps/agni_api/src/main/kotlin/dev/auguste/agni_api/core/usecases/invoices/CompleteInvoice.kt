@@ -1,11 +1,14 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
+import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.events.EventType
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.CreateEmbeddingInvoiceEventContent
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInternalLoanExtend
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
@@ -13,12 +16,12 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.CompleteInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
-import java.util.UUID
 
 class CompleteInvoice(
     private val invoiceRepo: IRepository<Invoice>,
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
     private val accountRepo: IRepository<Account>,
+    private val internalLoanRepo: IRepository<InternalLoan>,
     private val unitOfWork: IUnitOfWork,
     private val eventRegister: IEventRegister
 ): IUseCase<CompleteInvoiceInput, Unit> {
@@ -46,7 +49,11 @@ class CompleteInvoice(
             invoiceRepo.update(invoice)
             accountRepo.update(account)
 
-            eventRegister.notify(EventType.CREATE_EMBEDDING_SERVICE, CreateEmbeddingInvoiceEventContent(invoice))
+            val internalLoans = internalLoanRepo.getAll(QueryFilter(queryAll = true), QueryInternalLoanExtend(invoiceId = input.invoiceId))
+            if (internalLoans.items.isNotEmpty())
+                internalLoanRepo.delete(internalLoans.items.first().invoiceId)
+
+            eventRegister.notify(EventType.CREATE_INVOICE, CreateEmbeddingInvoiceEventContent(invoice))
         }
     }
 }

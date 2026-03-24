@@ -1,6 +1,6 @@
 package dev.auguste.agni_api.core.adapters.events.contents
 
-import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteEmbeddingInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteInvoiceEventListener
 import dev.auguste.agni_api.core.adapters.events.IEventContent
 import dev.auguste.agni_api.core.adapters.events.IEventListener
 import java.util.UUID
@@ -10,7 +10,7 @@ class DeleteEmbeddingInvoiceEventContent(
 ) : IEventContent {
 
     override fun dispatch(listener: IEventListener) {
-        if (listener is IDeleteEmbeddingInvoiceEventListener) {
+        if (listener is IDeleteInvoiceEventListener) {
             listener.serve(this)
             listener.update()
         }

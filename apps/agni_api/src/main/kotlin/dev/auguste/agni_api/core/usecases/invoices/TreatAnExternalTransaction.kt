@@ -5,8 +5,6 @@ import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.CreateEmbeddingExternalTransEventContent
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.ExternalTransaction
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.GetSuggestionOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.TreatAnExternalTransactionInput
 
@@ -21,7 +19,7 @@ class TreatAnExternalTransaction(
 
         externalTransaction.isTreated = true
         externalTransactionRepo.update(externalTransaction)
-        eventRegister.notify(EventType.CREATE_EMBEDDING_EXTERNAL_TRANSACTION,
+        eventRegister.notify(EventType.CREATE_EXTERNAL_TRANSACTION,
             CreateEmbeddingExternalTransEventContent(externalTransaction)
         )
     }

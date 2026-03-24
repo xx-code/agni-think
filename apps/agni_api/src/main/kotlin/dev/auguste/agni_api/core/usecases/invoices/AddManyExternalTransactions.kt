@@ -28,7 +28,7 @@ class AddManyExternalTransactions(
 
         externalTransRepo.createMany(newExternalTransactions)
 
-        eventRegister.notify(EventType.CREATE_MANY_EMBEDDING_EXTERNAL_TRANSACTION,
+        eventRegister.notify(EventType.CREATE_MANY_EXTERNAL_TRANSACTION,
             CreateManyEmbeddingExternalTransEventContent(newExternalTransactions.filter { it.isTreated }))
 
         return newExternalTransactions.map { CreatedOutput(it.id) }.toList()

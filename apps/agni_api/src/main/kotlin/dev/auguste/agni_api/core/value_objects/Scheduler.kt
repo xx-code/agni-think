@@ -1,17 +1,20 @@
 package dev.auguste.agni_api.core.value_objects
 
+import dev.auguste.agni_api.core.entities.enums.IncomeSourceFrequencyType
 import dev.auguste.agni_api.core.entities.enums.PeriodType
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 
 
 data class Scheduler(val date: LocalDateTime, val repeater: SchedulerRecurrence? = null) {
     fun isDueDate(): Boolean = date.isBefore(LocalDateTime.now())
 
-    fun upgradeDate(): LocalDateTime? {
+    fun upgradeDate(): LocalDateTime {
         if (repeater == null)
-            return null
+            return date
 
         val now = LocalDateTime.now()
         var next = date

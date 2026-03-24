@@ -27,7 +27,7 @@ class AddExternalTransaction(
         externalTransactionRepo.create(newExternalTransaction)
 
         if (newExternalTransaction.isTreated)
-            eventRegister.notify(EventType.CREATE_EMBEDDING_EXTERNAL_TRANSACTION,
+            eventRegister.notify(EventType.CREATE_EXTERNAL_TRANSACTION,
                 CreateEmbeddingExternalTransEventContent(newExternalTransaction)
             )
 

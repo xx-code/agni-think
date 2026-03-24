@@ -7,7 +7,7 @@ import dev.auguste.agni_api.core.adapters.events.EventType
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventContent
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationType
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateInvoiceEventListener
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.Category
@@ -25,7 +25,7 @@ class CreateInvoiceEmbedding(
     private val getInvoice: IUseCase<UUID, GetInvoiceOutput>,
     private val embeddingService: IEmbeddingService,
     private val invoiceCollectionName: String
-): IUseCase<UUID, BackgroundTaskOut>, ICreateEmbeddingInvoiceEventListener {
+): IUseCase<UUID, BackgroundTaskOut>, ICreateInvoiceEventListener {
     private var event: CreateEmbeddingInvoiceEventContent? = null
 
     fun getCat(id: UUID?, categories: List<Category>): String {

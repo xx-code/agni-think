@@ -2,10 +2,10 @@ package dev.auguste.agni_api.infras.usecase_configs
 
 import dev.auguste.agni_api.core.adapters.IEmbeddingService
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingExternalTransListener
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingInvoiceEventListener
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateManyEmbeddingExternalTransListener
-import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteEmbeddingInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateExternalTransactionListener
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateManyExternalTransactionListener
+import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteInvoiceEventListener
 import dev.auguste.agni_api.core.adapters.readers.IInvoicetransactionCountReader
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
@@ -14,6 +14,7 @@ import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.Deduction
 import dev.auguste.agni_api.core.entities.ExternalTransaction
+import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.entities.Transaction
@@ -26,7 +27,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.AddExternalTransaction
 import dev.auguste.agni_api.core.usecases.invoices.AddManyExternalTransactions
 import dev.auguste.agni_api.core.usecases.invoices.CompleteInvoice
-import dev.auguste.agni_api.core.usecases.invoices.CreateExternalTransactionEmbedding
+import dev.auguste.agni_api.core.usecases.invoices.CreateExternalTransaction
 import dev.auguste.agni_api.core.usecases.invoices.CreateFreezeInvoice
 import dev.auguste.agni_api.core.usecases.invoices.CreateInvoice
 import dev.auguste.agni_api.core.usecases.invoices.CreateInvoiceEmbedding
@@ -86,6 +87,7 @@ class InvoiceConfig {
         invoiceRepo: IRepository<Invoice>,
         accountRepo: IRepository<Account>,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+        internalLoanRepo: IRepository<InternalLoan>,
         unitOfWork: IUnitOfWork,
         eventRegister: IEventRegister,
         ): IUseCase<CompleteInvoiceInput, Unit> {
@@ -94,6 +96,7 @@ class InvoiceConfig {
             getInvoiceTransactions = getInvoiceTransactions,
             accountRepo = accountRepo,
             unitOfWork = unitOfWork,
+            internalLoanRepo = internalLoanRepo,
             eventRegister = eventRegister
         )
     }
@@ -128,6 +131,7 @@ class InvoiceConfig {
         transactionRepo: IRepository<Transaction>,
         accountRepo: IRepository<Account>,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+        internalLoanRepo: IRepository<InternalLoan>,
         unitOfWork: IUnitOfWork,
         eventRegister: IEventRegister
     ): IInnerUseCase<DeleteInvoiceInput, Unit> {
@@ -137,6 +141,7 @@ class InvoiceConfig {
             accountRepo = accountRepo,
             getInvoiceTransactions = getInvoiceTransactions,
             unitOfWork = unitOfWork,
+            internalLoanRepo = internalLoanRepo,
             eventRegister = eventRegister
         )
     }
@@ -245,7 +250,7 @@ class InvoiceConfig {
         getInvoice: IUseCase<UUID, GetInvoiceOutput>,
         embeddingService: IEmbeddingService,
         @Value("\${embedding.collection.invoice}") collectionName: String
-    ) : ICreateEmbeddingInvoiceEventListener {
+    ) : ICreateInvoiceEventListener {
         return CreateInvoiceEmbedding(
             eventRegister = eventRegister,
             categoryRepo = categoryRepo,
@@ -262,7 +267,7 @@ class InvoiceConfig {
         eventRegister: IEventRegister,
         embeddingService: IEmbeddingService,
         @Value("\${embedding.collection.invoice}") collectionName: String
-    ) : IDeleteEmbeddingInvoiceEventListener {
+    ) : IDeleteInvoiceEventListener {
         return DeleteInvoiceEmbedding(
             eventRegister = eventRegister,
             embeddingService = embeddingService,
@@ -315,7 +320,8 @@ class InvoiceConfig {
         deductionRepo: IRepository<Deduction>,
         tagRepo: IRepository<Tag>,
         categoryRepo: IRepository<Category>,
-        budgetRepo: IRepository<Budget>
+        budgetRepo: IRepository<Budget>,
+        internalLoaRepository: IRepository<InternalLoan>,
     ): InvoiceDependencies {
         return InvoiceDependencies(
             transactionRepo = transactionRepo,
@@ -324,6 +330,7 @@ class InvoiceConfig {
             tagRepo = tagRepo,
             accountRepo = accountRepo,
             deductionRepo = deductionRepo,
+            internalLoanRepo =  internalLoaRepository
         )
     }
 
@@ -333,8 +340,8 @@ class InvoiceConfig {
         externalTransRepo: IRepository<ExternalTransaction>,
         embeddingService: IEmbeddingService,
         @Value("\${embedding.collection.external-transaction}") collectionName: String
-    ) : ICreateEmbeddingExternalTransListener {
-        return CreateExternalTransactionEmbedding(
+    ) : ICreateExternalTransactionListener {
+        return CreateExternalTransaction(
             externalTransRepo,
             embeddingService,
             eventRegister,
@@ -348,7 +355,7 @@ class InvoiceConfig {
         externalTransRepo: IRepository<ExternalTransaction>,
         embeddingService: IEmbeddingService,
         @Value("\${embedding.collection.external-transaction}") collectionName: String
-    ) : ICreateManyEmbeddingExternalTransListener {
+    ) : ICreateManyExternalTransactionListener {
         return CreateManyExternalTransactionEmbedding(
             eventRegister = eventRegister,
             externalTransactionRepo = externalTransRepo,

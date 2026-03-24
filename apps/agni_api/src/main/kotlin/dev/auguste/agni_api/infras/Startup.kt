@@ -7,18 +7,16 @@ import dev.auguste.agni_api.core.TRANSFERT_CATEGORY_ID
 import dev.auguste.agni_api.core.UNKNOWN_CATEGORY_ID
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.EventType
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingExternalTransListener
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingInvoiceEventListener
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateManyEmbeddingExternalTransListener
-import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteEmbeddingInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateExternalTransactionListener
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateManyExternalTransactionListener
+import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteInvoiceEventListener
 import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.Currency
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.notifications.PushNotification
 import dev.auguste.agni_api.infras.persistences.CategoryRepository
 import dev.auguste.agni_api.infras.persistences.CurrencyRepository
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
@@ -29,10 +27,10 @@ class Startup (
     private val pushNotification: PushNotification,
     private val categoryRepo: CategoryRepository,
     private val currencyRepo: CurrencyRepository,
-    private val createEmbedding: ICreateEmbeddingInvoiceEventListener,
-    private val updateEmbedding: IDeleteEmbeddingInvoiceEventListener,
-    private val createEmbeddingExternalTrans: ICreateEmbeddingExternalTransListener,
-    private val createManyEmbeddingExternalTrans: ICreateManyEmbeddingExternalTransListener
+    private val createEmbedding: ICreateInvoiceEventListener,
+    private val updateEmbedding: IDeleteInvoiceEventListener,
+    private val createEmbeddingExternalTrans: ICreateExternalTransactionListener,
+    private val createManyEmbeddingExternalTrans: ICreateManyExternalTransactionListener
 ): ApplicationRunner {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -41,10 +39,10 @@ class Startup (
         try {
             logger.info("[*] Registering event listener")
             evenRegister.subscribe(EventType.NOTIFICATION,pushNotification)
-            evenRegister.subscribe(EventType.CREATE_EMBEDDING_SERVICE, createEmbedding)
-            evenRegister.subscribe(EventType.DELETE_EMBEDDING_SERVICE, updateEmbedding)
-            evenRegister.subscribe(EventType.CREATE_EMBEDDING_EXTERNAL_TRANSACTION, createEmbeddingExternalTrans)
-            evenRegister.subscribe(EventType.CREATE_MANY_EMBEDDING_EXTERNAL_TRANSACTION, createManyEmbeddingExternalTrans)
+            evenRegister.subscribe(EventType.CREATE_INVOICE, createEmbedding)
+            evenRegister.subscribe(EventType.DELETE_INVOICE, updateEmbedding)
+            evenRegister.subscribe(EventType.CREATE_EXTERNAL_TRANSACTION, createEmbeddingExternalTrans)
+            evenRegister.subscribe(EventType.CREATE_MANY_EXTERNAL_TRANSACTION, createManyEmbeddingExternalTrans)
         } catch (e: Exception) {
             logger.info("[!] Error while registering event listener: ${e.message}")
         }

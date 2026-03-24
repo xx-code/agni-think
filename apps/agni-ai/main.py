@@ -155,7 +155,7 @@ def test_tool(tool: str):
 @app.post("/create-bank-link")
 def create_link_token():
     request = LinkTokenCreateRequest(
-        products=[Products("auth"), Products("transactions")],
+        products=[Products("transactions")],
         client_name="Plaid Test App",
         country_codes=[CountryCode('US')],
         redirect_uri="http://localhost:3000",
