@@ -1,5 +1,4 @@
-import type { NuxtError } from "nuxt/app";
-
+import type { H3Error } from "#imports";
 export async function handlePostRequest(event: any, url: string) {
    try {
         const request = await readBody(event);
@@ -9,8 +8,7 @@ export async function handlePostRequest(event: any, url: string) {
         });
         return res;
     } catch(err) {
-        const nuxtError =  err as NuxtError;
-        return createError(nuxtError);
+        throw createError(err as H3Error);
     }
 }
 
@@ -23,8 +21,7 @@ export async function handleGetRequest(event:any, url: string) {
         });
         return res;
     } catch(err) {
-        const nuxtError =  err as NuxtError;
-        return createError(nuxtError);
+        throw createError(err as H3Error);
     }
 } 
 
@@ -37,8 +34,7 @@ export async function handleDeleteRequest(event:any, url: string) {
         });
         return res;
     } catch(err) {
-        const nuxtError =  err as NuxtError;
-        return createError(nuxtError);
+        throw createError(err as H3Error);
     }
 }
 
@@ -53,7 +49,6 @@ export async function handlePutRequest(event:any, url: string) {
         });
         return res;
     } catch(err) {
-        const nuxtError =  err as NuxtError;
-        return createError(nuxtError);
+        throw createError(err as H3Error);
     }
 }

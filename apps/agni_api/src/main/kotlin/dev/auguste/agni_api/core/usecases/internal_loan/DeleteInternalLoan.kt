@@ -16,8 +16,8 @@ class DeleteInternalLoan(
     override fun execAsync(input: UUID) {
         unitOfWork.execute {
             val internalLoan = internalLoanRepo.get(input) ?: throw Exception("Internal loan $input not found")
-            deleteInternalLoan.execInnerAsync(DeleteInvoiceInput(internalLoan.invoiceId))
             internalLoanRepo.delete(input)
+            deleteInternalLoan.execInnerAsync(DeleteInvoiceInput(internalLoan.invoiceId))
         }
     }
 }

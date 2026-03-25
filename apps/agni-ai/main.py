@@ -45,6 +45,7 @@ invoice_collections=os.getenv("QDRANT_INVOICE_COLLECTION_NAME")
 env = os.getenv("ENV")
 plaid_client_id = os.getenv("PLAID_API_CLIENT_ID")
 plaid_secret = os.getenv("PLAID_API_SECRET")
+plaid_rediction_url = os.getenv("PLAID_REDIRECT_URL")
 
 plaid_host = plaid.Environment.Sandbox
 if env.lower() == "production":
@@ -158,7 +159,7 @@ def create_link_token():
         products=[Products("transactions")],
         client_name="Plaid Test App",
         country_codes=[CountryCode('US')],
-        redirect_uri="http://localhost:3000",
+        redirect_uri=plaid_rediction_url,
         language="en",
         user=LinkTokenCreateRequestUser(
             client_user_id=str(time.time())

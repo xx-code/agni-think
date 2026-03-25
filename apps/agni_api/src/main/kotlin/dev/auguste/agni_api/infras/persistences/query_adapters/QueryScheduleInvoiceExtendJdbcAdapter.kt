@@ -50,7 +50,7 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
 
         if (extend.type != null) {
             sqlBuilder.append(" AND LOWER(type) = :type")
-            params.addValue("types", extend.type.value.lowercase())
+            params.addValue("type", extend.type.value.lowercase())
         }
 
 

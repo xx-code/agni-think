@@ -4,7 +4,8 @@ import requests
 from qdrant_client import QdrantClient
 from backend_dto import FinanceProfileResponse, BudgetResponse, SavingGoalResponse, \
     BankRegisterResponse, TagResponse, CategoryResponse, CreateInvoiceRequest, \
-    ExternalTransactionRequest, CreatedResponse, ExternalTransactionResponse, DeductionResponse, NotificationRequest, AnnualOutlookResponse
+    ExternalTransactionRequest, CreatedResponse, ExternalTransactionResponse, DeductionResponse, \
+    NotificationRequest, AnnualOutlookResponse, AccountResponse
 from dotenv import load_dotenv
  
 load_dotenv()
@@ -60,6 +61,14 @@ def get_saving_goals() -> list[SavingGoalResponse]:
         res.append(SavingGoalResponse(**item))
     
     return res 
+
+def get_account_with_detail(id: str) -> list[AccountResponse]:
+    response = requests.get(f"{api_link}/accounts/with-detail/{id}")
+    response.raise_for_status()
+
+    data = response.json()
+    
+    return AccountResponse(**data) 
 
 def get_bank_registers() -> list[BankRegisterResponse]:
     response = requests.get(f"{api_link}/bank-registers/agent-level?limit=0&offset=0&queryAll=true")

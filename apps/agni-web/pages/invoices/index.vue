@@ -54,7 +54,6 @@ const { data: utils, refresh: refreshUtils, error: errorUtils } = useAsyncData('
         deductions: deductions.items,
         tags: tags.items
     }
-
 })
 
 const getCategory = (id: string) => utils.value?.categories.find(i => id === i.id)

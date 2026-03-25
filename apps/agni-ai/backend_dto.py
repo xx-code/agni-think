@@ -167,3 +167,32 @@ class AnnualOutlookResponse(BaseModel):
     currentSaving: float
     spendByCategoriesOutlook: List[SpendByCategoryResponse]
     currentSpendByCategoryOutlook: List[SpendByCategoryResponse]
+
+class BrokingDetailResponse(BaseModel):
+    managementType: str
+    contributionType: str
+
+class CreditCardAccountResponse(BaseModel):
+    creditCardLimit: float
+    creditUtilisation: float
+    nextInvoicePayment: date
+
+class CheckingDetailResponse(BaseModel):
+    buffer: float
+
+class AccountDetailResponse(BaseModel):
+    detailForCreditCard: Optional[CreditCardAccountResponse] 
+    detailForBroking: Optional[BrokingDetailResponse] 
+    detailForChecking: Optional[CheckingDetailResponse] 
+
+class AccountResponse(BaseModel):
+    id: str
+    title: str
+    balance: float
+    type: str
+    lockedBalance: float
+    freezeBalance: float
+    detail: AccountDetailResponse
+
+
+

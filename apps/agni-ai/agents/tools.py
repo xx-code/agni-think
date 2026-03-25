@@ -3,8 +3,8 @@ import os
 from dotenv import load_dotenv
 from langchain.tools import tool
 from typing import List  
-from backend_dto import FinanceProfileResponse, BudgetResponse, SavingGoalResponse, AnnualOutlookResponse
-from backend import get_finance_profile, query_rag, get_budgets, get_saving_goals, get_annual_outlook
+from backend_dto import FinanceProfileResponse, BudgetResponse, SavingGoalResponse, AnnualOutlookResponse, AccountResponse
+from backend import get_finance_profile, query_rag, get_budgets, get_saving_goals, get_annual_outlook, get_account_with_detail
 
 load_dotenv()
 
@@ -67,4 +67,11 @@ def wrap_tool_annual_outlook() -> AnnualOutlookResponse:
     """
     return get_annual_outlook()
 
+
+@tool
+def wrap_tool_get_account_by_id(id: str) -> AccountResponse:
+    """
+    Recupere les information sur un compte avec son ID (UUID)
+    """
+    return get_account_with_detail(id)
 

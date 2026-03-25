@@ -15,7 +15,6 @@ import java.util.UUID
 data class ApiCreateInternalLoanModel(
     val fundAccountId: UUID,
     val creditAccountId: UUID,
-    val createAccountId: UUID,
     val transactions: List<ApiTransactionModel>,
     val deductions: List<ApiDeductionModel>,
     @field:DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")

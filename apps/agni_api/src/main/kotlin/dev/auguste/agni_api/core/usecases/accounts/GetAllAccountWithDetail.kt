@@ -40,7 +40,7 @@ class GetAllAccountWithDetail(
                     currentLoanBalance += getInvoice.execAsync(internalLoanItem.invoiceId).total
                 }
             }
-            val lockedBalance = savingGoals.items.filter { it.accountId == account.id }.sumOf { it.balance }
+            val lockedBalance = savingGoals.items.filter { it.accountId == account.id }.sumOf { it.balance } + currentLoanBalance
             val freezeBalance = getBalance.execAsync(GetBalanceInput(
                 accountIds = setOf(account.id),
                 isFreeze = true
