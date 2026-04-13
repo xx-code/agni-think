@@ -32,19 +32,27 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
         val extend = query as QueryScheduleInvoiceExtend
         val params = MapSqlParameterSource()
 
-        sqlBuilder.append(" AND jsonb_exists(scheduler, 'due_date')")
-        val dateToVerify =extend.comparatorDueDate.date.atOffset(ZoneOffset.UTC).toString()
+        if (extend.comparatorDueDate != null) {
+            sqlBuilder.append(" AND jsonb_exists(scheduler, 'due_date')")
+            val dateToVerify = extend.comparatorDueDate.date.atOffset(ZoneOffset.UTC).toString()
 
-        val operator = when(extend.comparatorDueDate.comparator) {
-            ComparatorType.Greater -> ">"
-            ComparatorType.GreaterOrEquals -> ">="
-            ComparatorType.Lesser -> "<"
-            ComparatorType.LesserOrEquals -> "<="
-            ComparatorType.Equal -> "="
+            val operator = when(extend.comparatorDueDate.comparator) {
+                ComparatorType.Greater -> ">"
+                ComparatorType.GreaterOrEquals -> ">="
+                ComparatorType.Lesser -> "<"
+                ComparatorType.LesserOrEquals -> "<="
+                ComparatorType.Equal -> "="
+            }
+
+            sqlBuilder.append(" AND (scheduler->>'due_date')::timestamptz $operator :dueDate::timestamptz")
+            params.addValue("dueDate", dateToVerify)
         }
 
-        sqlBuilder.append(" AND (scheduler->>'due_date')::timestamptz $operator :dueDate::timestamptz")
-        params.addValue("dueDate", dateToVerify)
+        if (extend.type != null) {
+            sqlBuilder.append(" AND LOWER(type) = :type")
+            params.addValue("type", extend.type.value.lowercase())
+        }
+
 
         return SqlQueryBuilder(sqlBuilder, params)
     }

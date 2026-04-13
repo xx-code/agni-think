@@ -1,12 +1,13 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
+import dev.auguste.agni_api.core.adapters.EmbeddingDocument
 import dev.auguste.agni_api.core.adapters.IEmbeddingService
 import dev.auguste.agni_api.core.adapters.events.contents.CreateEmbeddingInvoiceEventContent
 import dev.auguste.agni_api.core.adapters.events.EventType
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventContent
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationType
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateInvoiceEventListener
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.Category
@@ -22,8 +23,9 @@ class CreateInvoiceEmbedding(
     private val budgetRepo: IRepository<Budget>,
     private val tagsRepo: IRepository<Tag>,
     private val getInvoice: IUseCase<UUID, GetInvoiceOutput>,
-    private val embeddingService: IEmbeddingService
-): IUseCase<UUID, BackgroundTaskOut>, ICreateEmbeddingInvoiceEventListener {
+    private val embeddingService: IEmbeddingService,
+    private val invoiceCollectionName: String
+): IUseCase<UUID, BackgroundTaskOut>, ICreateInvoiceEventListener {
     private var event: CreateEmbeddingInvoiceEventContent? = null
 
     fun getCat(id: UUID?, categories: List<Category>): String {
@@ -63,7 +65,7 @@ class CreateInvoiceEmbedding(
                     "Total: ${"%.2f".format(invoice.total)}, Subtotal: ${"%.2f".format(invoice.subTotal)}. " +
                     "Lines: \n$transactionStr"
 
-            embeddingService.addEmbeddingDocument(invoice.id, document)
+            embeddingService.addEmbeddingDocument(invoiceCollectionName,listOf(EmbeddingDocument(invoice.id, document)))
 
             return BackgroundTaskOut("Embedding invoice created")
         } catch (err: Exception) {

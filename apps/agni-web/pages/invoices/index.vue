@@ -17,8 +17,10 @@ import { getLocalTimeZone } from "@internationalized/date";
 import type { QueryInvoice } from "~/types/api/transaction";
 import type { QueryFilterRequest } from "~/types/api";
 import { ModalEditInvoice } from "#components";
+import { useTreatInvoiceText } from "~/composables/agents/chat";
 
 const toast = useToast();
+const { start, stop } = useLoading()
 
 const page = ref(1);
 const query = reactive<QueryFilterRequest & QueryInvoice>({
@@ -53,7 +55,6 @@ const { data: utils, refresh: refreshUtils, error: errorUtils } = useAsyncData('
         deductions: deductions.items,
         tags: tags.items
     }
-
 })
 
 const getCategory = (id: string) => utils.value?.categories.find(i => id === i.id)
@@ -81,8 +82,6 @@ const { data, error, refresh, status } = useAsyncData(`transactions-${JSON.strin
         fetchBalance(query),
     ])
 
-
-    
 
     return {
         transactions: transactions.items.map(i => ({
@@ -205,6 +204,44 @@ async function openInvoice(transactionId?: string) {
         onSubmit: onSubmitInvoice
     });
 };
+
+async function syncBank() {
+    try {
+        start()
+        await $fetch("/api/bank/sync-transaction")
+        query.status = "Pending"
+        query.offset = 0
+        page.value = 1
+    } catch(err) {
+        stop()
+        console.log(err)
+        alert(err)
+    } finally {
+        stop()
+    }
+}
+
+const textTransaction = ref("") 
+const openScanTransaction = ref(false)
+async function scanNewTransaction() {
+    if (textTransaction.value.trim() !== "") {
+        try {
+            start()
+            await useTreatInvoiceText(textTransaction.value)
+            query.status = "Pending"
+            query.offset = 0
+            page.value = 1
+        } catch(err) {
+            stop()
+            console.log(err)
+            alert(err)
+        } finally {
+            openScanTransaction.value = false
+            stop()
+        }
+    } 
+}
+
 
 const onDelete = async (id: string) => {
     await useDeleteTransaction(id)
@@ -445,6 +482,31 @@ function getRecordTypeColor(type: string) {
                         size="lg"
                         @click="openInvoice()" 
                     />
+                    <UButton 
+                        icon="i-lucide-arrow-down-to-line" 
+                        label="Force Sync Bancaire" 
+                        color="info"
+                        size="lg"
+                        @click="syncBank" 
+                    />
+                    <UModal v-model:open="openScanTransaction">
+                        <UButton 
+                            icon="i-lucide-scan-text" 
+                            label="Scanner un transaction" 
+                            color="info"
+                            size="lg"
+                        />
+                        <template #body>
+                            <div class="flex flex-col">
+                                <UTextarea 
+                                    v-model="textTransaction" 
+                                    :rows="6" /> 
+                                <div class="mt-3">
+                                    <UButton label="Traiter" @click="scanNewTransaction" />
+                                </div>
+                            </div>
+                        </template>
+                    </UModal>
                 </div>
             </div>
         </div>

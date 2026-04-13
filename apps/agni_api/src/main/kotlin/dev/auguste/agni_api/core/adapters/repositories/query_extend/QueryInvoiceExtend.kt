@@ -10,13 +10,13 @@ import java.util.Date
 import java.util.UUID
 
 class QueryInvoiceExtend(
-    val accountIds: Set<UUID>?,
-    val startDate: LocalDateTime?,
-    val endDate: LocalDateTime?,
-    val types: Set<InvoiceType>?,
-    val status: InvoiceStatusType?,
-    val isFreeze: Boolean?,
-    val mouvementType: InvoiceMouvementType?
+    val accountIds: Set<UUID>? = null,
+    val startDate: LocalDateTime? = null,
+    val endDate: LocalDateTime? = null,
+    val types: Set<InvoiceType>? = null,
+    val status: InvoiceStatusType? = null,
+    val isFreeze: Boolean? = null,
+    val mouvementType: InvoiceMouvementType? = null,
 ): IQueryExtend<Invoice> {
 
     override fun isStatisfy(entity: Invoice): Boolean {

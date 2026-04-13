@@ -3,7 +3,7 @@ import type { CreateIncomeSourceRequest, GetIncomeSourceResponse, UpdateIncomeSo
 import type { IncomeSourceType } from "~/types/ui/incomeSource";
 
 export async function createIncomeSource(request: CreateIncomeSourceRequest) : Promise<CreatedRequest> {
-    return await $fetch('/api/income-sources', {
+    return await $fetch<CreatedRequest>('/api/income-sources', {
         method: 'POST',
         body: request
     })

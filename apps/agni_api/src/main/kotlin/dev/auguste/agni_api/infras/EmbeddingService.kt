@@ -1,5 +1,6 @@
 package dev.auguste.agni_api.infras
 
+import dev.auguste.agni_api.core.adapters.EmbeddingDocument
 import dev.auguste.agni_api.core.adapters.IEmbeddingService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -12,12 +13,14 @@ class EmbeddingService(
 
     private val restTemplate = org.springframework.web.client.RestTemplate()
 
-    override fun addEmbeddingDocument(id: UUID, document: String) {
-        val payload = mapOf("id" to id.toString(), "document" to document)
+    override fun addEmbeddingDocument(collectionName: String, embeddings: List<EmbeddingDocument>) {
+        val payloads = mapOf( "collection_name" to collectionName,
+                 "documents" to embeddings.map { doc ->  mapOf("id" to doc.id.toString(), "document" to doc.document)})
+
         try {
             val response = restTemplate.postForEntity(
                 "$apiAgniUrl/embedding-document",
-                payload,
+                payloads,
                 String::class.java
             )
 
@@ -31,7 +34,7 @@ class EmbeddingService(
         }
     }
 
-    override fun deleteEmbeddingDocument(id: UUID) {
-        restTemplate.delete("$apiAgniUrl/embedding-document/$id")
+    override fun deleteEmbeddingDocument(collectionName: String, id: UUID) {
+        restTemplate.delete("$apiAgniUrl/embedding-documents/$collectionName/$id")
     }
 }

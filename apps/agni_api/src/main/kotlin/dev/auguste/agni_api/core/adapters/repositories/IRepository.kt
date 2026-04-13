@@ -7,6 +7,7 @@ import java.util.UUID
 
 interface IRepository<T: Entity> {
     fun create(entity: T)
+    fun createMany(entities: List<T>)
     fun getAll(query: QueryFilter, queryExtend: IQueryExtend<T>? = null): RepoList<T>
     fun getManyByIds(ids: Set<UUID>): List<T>
     fun get(id: UUID): T?

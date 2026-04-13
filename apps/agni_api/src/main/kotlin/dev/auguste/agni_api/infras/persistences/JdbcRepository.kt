@@ -27,6 +27,11 @@ abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
         storage.save(model)
     }
 
+    override fun createMany(entities: List<TEntity>) {
+        val models = entities.map { modelMapper.toModel(it) }
+        storage.saveAll(models)
+    }
+
     override fun getAll(
         query: QueryFilter,
         queryExtend: IQueryExtend<TEntity>?

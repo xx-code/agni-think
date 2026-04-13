@@ -46,6 +46,10 @@ const routeMap: Record<string, RouteInfo> = {
     title: 'Patrimoine',
     subtitle: 'Track your net worth'
   },
+  '/internal-loans': {
+    title: 'Pret Interne',
+    subtitle: 'Prend des pret sur tes fond liquide pour ne pas rater une opportunite'
+  },
   '/settings': {
     title: 'Settings',
     subtitle: 'Customize your experience'

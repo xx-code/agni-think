@@ -24,15 +24,14 @@ class GetAllBudgets(
 
         val result = mutableListOf<GetBudgetOutput>()
         for (budget in budgets.items) {
-            var startDate = budget.scheduler.date
-            if (budget.scheduler.repeater != null)
-                startDate = budget.scheduler.downgradeDate()!! // verification of repeater in function
+            val startDate = budget.scheduler.downgradeDate()
+            val endDate = budget.scheduler.upgradeDate()
 
             val resultBalance = getBalance.execAsync(GetBalanceInput(
                 budgetIds = setOf(budget.id),
                 types = setOf(InvoiceType.FIXEDCOST, InvoiceType.VARIABLECOST, InvoiceType.OTHER),
                 startDate = startDate,
-                status = InvoiceStatusType.COMPLETED
+                endDate = endDate
             ))
 
             val currentBalance = resultBalance.spend

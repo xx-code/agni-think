@@ -1,0 +1,48 @@
+package dev.auguste.agni_api.core.usecases.invoices
+
+import dev.auguste.agni_api.core.adapters.dto.QueryFilter
+import dev.auguste.agni_api.core.adapters.events.EventType
+import dev.auguste.agni_api.core.adapters.events.IEventRegister
+import dev.auguste.agni_api.core.adapters.events.contents.CreateEmbeddingExternalTransEventContent
+import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryExternalTransactionExtend
+import dev.auguste.agni_api.core.entities.ExternalTransaction
+import dev.auguste.agni_api.core.usecases.CreatedOutput
+import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.dto.AddExternalTransactionInput
+
+class AddExternalTransaction(
+    private val externalTransactionRepo: IRepository<ExternalTransaction>,
+    private val eventRegister: IEventRegister
+): IUseCase<AddExternalTransactionInput, CreatedOutput> {
+    override fun execAsync(input: AddExternalTransactionInput): CreatedOutput {
+
+        val externalTransactions = externalTransactionRepo.getAll(
+            query = QueryFilter(queryAll = true),
+            queryExtend = QueryExternalTransactionExtend(transactionIds = setOf(input.transactionId)
+        ))
+
+        if (externalTransactions.items.isNotEmpty())
+            throw Error("External transactions Already Exists")
+
+        val newExternalTransaction = ExternalTransaction(
+            accountId = input.accountId,
+            transactionId = input.transactionId,
+            amount = input.amount,
+            dateTransaction = input.dateTransaction,
+            merchantName = input.merchantName,
+            categoryPrimary = input.categoryPrimary,
+            categoryDetail = input.categoryDetail,
+            isTreated = input.isTreated
+        )
+
+        externalTransactionRepo.create(newExternalTransaction)
+
+        if (newExternalTransaction.isTreated)
+            eventRegister.notify(EventType.CREATE_EXTERNAL_TRANSACTION,
+                CreateEmbeddingExternalTransEventContent(newExternalTransaction)
+            )
+
+        return CreatedOutput(newExternalTransaction.id)
+    }
+}

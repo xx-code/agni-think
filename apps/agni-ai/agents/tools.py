@@ -1,60 +1,16 @@
 import os
-from backend_dto import FinanceProfileResponse, BudgetResponse, SavingGoalResponse
-from langchain.tools import tool
-from qdrant_client import QdrantClient
-import requests
-from typing import List
+
 from dotenv import load_dotenv
+from langchain.tools import tool
+from typing import List  
+from backend_dto import FinanceProfileResponse, BudgetResponse, SavingGoalResponse, AnnualOutlookResponse, AccountResponse,InternalLoanResponse
+from backend import get_finance_profile, query_rag, get_budgets, get_saving_goals, get_annual_outlook, \
+    get_account_with_detail, get_internal_loans
 
 load_dotenv()
 
-api_link = os.getenv("AGNI_API_LINK")
-vector_db_link = os.getenv("QDRANT_LINK")
-collection_name = os.getenv("QDRANT_COLLECTION_NAME")
-
-def get_finance_profile() -> FinanceProfileResponse:
-    response = requests.get(f"{api_link}/analytics/finance-profile")
-
-    response.raise_for_status()
-
-    data = response.json()
-    return FinanceProfileResponse(**data) 
-
-def query_invoices(question: str) -> str:
-    qdrant = QdrantClient(url=vector_db_link)
-    search_result = qdrant.query(collection_name="agni", query_text=question, limit=10)
-
-    return "\n".join([r.document for r in search_result])
-
-
-def get_budgets() -> List[BudgetResponse]:
-    response = requests.get(f"{api_link}/budgets?limit=0&offset=0&queryAll=true")
-
-    response.raise_for_status()
-
-    data = response.json()
-    items = data.get("items")
-
-    res = []
-    for item in items:
-        res.append(BudgetResponse(**item))
-    
-    return res
-
-def get_saving_goals() -> List[SavingGoalResponse]:
-    response = requests.get(f"{api_link}/saving-goals?limit=0&offset=0&queryAll=true")
-
-    response.raise_for_status()
-
-    data = response.json()
-    items = data.get("items")
-
-    res = []
-    for item in items:
-        res.append(SavingGoalResponse(**item))
-    
-    return res 
-    
+invoice_collections=os.getenv("QDRANT_INVOICE_COLLECTION_NAME")
+ext_transaction_collections=os.getenv("QDRANT_EXTERNAL_TRANSACTION_COLLECTION_NAME")
 
 @tool
 def wrap_tool_get_finance_profile() -> FinanceProfileResponse:
@@ -66,13 +22,22 @@ def wrap_tool_get_finance_profile() -> FinanceProfileResponse:
     return get_finance_profile()
 
 @tool
-def wrap_tool_query_invoices(question: str) -> str:
+def wrap_tool_query_rag_invoice(task: str, limit: int = 5) -> str:
     """
     Searches through stored invoice documents using a vector database. 
     Pass a specific natural language question to find details about past 
     transactions, vendors, or specific invoice items.
     """
-    return query_invoices(question=question)
+    return query_rag(question=task, collection_name=invoice_collections, limit=limit)
+
+@tool
+def wrap_tool_query_rag_external_trans(task: str, limit: int = 5) -> str:
+    """
+    Searches through stored external transaction documents using a vector database. 
+    Pass a specific natural language question to find details about past 
+    transactions already treated by the system.
+    """
+    return query_rag(question=task, collection_name=ext_transaction_collections, limit=limit)
 
 @tool
 def wrap_tool_get_budgets() -> List[BudgetResponse]:
@@ -91,4 +56,40 @@ def wrap_tool_get_saving_goals() -> List[SavingGoalResponse]:
     """
     return get_saving_goals()
 
+@tool
+def wrap_tool_annual_outlook() -> AnnualOutlookResponse:
+    """
+    Récupère les projections financières annuelles complètes. 
+    Fournit les revenus, dépenses et budgets prévisionnels vs actuels, 
+    ainsi que la marge d'épargne (savingMargin). 
+    Inclut également le détail des dépenses prévues et actuelles 
+    ventilées par catégorie (UUID). 
+    Utilise cet outil pour analyser la santé financière globale de l'année.
+    """
+    return get_annual_outlook()
 
+
+@tool
+def wrap_tool_get_account_by_id(id: str) -> AccountResponse:
+    """
+    Recupere les information sur un compte avec son ID (UUID)
+    """
+    return get_account_with_detail(id)
+
+
+@tool
+def wrap_tool_get_internal_loans() -> InternalLoanResponse:
+    """
+    Récupère la liste exhaustive des prêts internes (auto-endettement) actifs et passés.
+    
+    CE QUE CE TOOL PERMET À L'AGENT :
+    1. Calculer le 'Total Collateral Locked' : Somme des montants d'épargne rendus 
+       indisponibles par ces prêts.
+    2. Vérifier le 'Principle Compliance' : S'assurer que le total des prêts ne dépasse 
+       pas 10% de l'épargne liquide (Savings).
+    3. Analyser la 'Liquidity Gap' : Comparer les dates d'échéance (due_date) des prêts 
+       avec les revenus entrants (Coming Revenue).
+    
+    Indispensable pour Agni_Controller (Audit de risque) et Agni_Treasurer (Optimisation cash-flow).
+    """
+    return get_internal_loans()

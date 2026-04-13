@@ -2,7 +2,7 @@ package dev.auguste.agni_api.core.usecases.invoices
 
 import dev.auguste.agni_api.core.adapters.IEmbeddingService
 import dev.auguste.agni_api.core.adapters.events.EventType
-import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteEmbeddingInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteInvoiceEventListener
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.DeleteEmbeddingInvoiceEventContent
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventContent
@@ -13,13 +13,14 @@ import java.util.UUID
 
 class DeleteInvoiceEmbedding(
     private val eventRegister: IEventRegister,
-    private val embeddingService: IEmbeddingService
-) : IUseCase<UUID, BackgroundTaskOut>, IDeleteEmbeddingInvoiceEventListener {
+    private val embeddingService: IEmbeddingService,
+    private val invoiceCollectionName: String
+) : IUseCase<UUID, BackgroundTaskOut>, IDeleteInvoiceEventListener {
     private var event: DeleteEmbeddingInvoiceEventContent? = null
 
     override fun execAsync(input: UUID): BackgroundTaskOut {
         try {
-            embeddingService.deleteEmbeddingDocument(input)
+            embeddingService.deleteEmbeddingDocument(invoiceCollectionName, input)
 
             return BackgroundTaskOut("Embedding invoice created")
         } catch (err: Exception) {

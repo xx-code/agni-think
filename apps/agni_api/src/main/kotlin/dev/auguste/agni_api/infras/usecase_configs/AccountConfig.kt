@@ -4,6 +4,7 @@ import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.Currency
+import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
@@ -22,6 +23,7 @@ import dev.auguste.agni_api.core.usecases.accounts.dto.UpdateAccountInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID
@@ -71,11 +73,15 @@ class AccountConfig {
     fun getAccountWithDetail(
         accountRepo: IRepository<Account>,
         savingGoalRepo: IRepository<SavingGoal>,
+        internalLoanRepo: IRepository<InternalLoan>,
+        getInvoice: IUseCase<UUID, GetInvoiceOutput>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
     ): IUseCase<UUID, GetAccountWithDetailOutput> {
         return GetAccountWithDetail(
             accountRepo = accountRepo,
             savingGoalRepo = savingGoalRepo,
+            internalLoanRepo = internalLoanRepo,
+            getInvoice = getInvoice,
             getBalance = getBalance
         )
     }
@@ -84,11 +90,15 @@ class AccountConfig {
     fun getAllAccountsWithDetail(
         accountRepo: IRepository<Account>,
         savingGoalRepo: IRepository<SavingGoal>,
+        internalLoanRepo: IRepository<InternalLoan>,
+        getInvoice: IUseCase<UUID, GetInvoiceOutput>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
     ) : IUseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>> {
         return GetAllAccountWithDetail(
             accountRepo = accountRepo,
             savingGoalRepo = savingGoalRepo,
+            internalLoanRepo = internalLoanRepo,
+            getInvoice = getInvoice,
             getBalance = getBalance
         )
     }

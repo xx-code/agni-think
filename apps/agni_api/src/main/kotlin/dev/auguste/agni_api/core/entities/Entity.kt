@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.entities
 
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.properties.Delegates
 
 abstract class Entity {
     val id: UUID
@@ -28,5 +29,6 @@ abstract class Entity {
         this.change = true
         this.updatedAt = LocalDate.now()
     }
-
 }
+
+fun<T> cleanObservable(init: T, entity: Entity) = Delegates.observable<T>(init) { _, props, newValue -> if(props != newValue) entity.markHasChanged()}

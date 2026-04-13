@@ -18,6 +18,7 @@ import type { DeductionType, EditDeduction } from "~/types/ui/deduction";
 import type { EditFinancePrincipleType, FinancePrincipleType } from "~/types/ui/financePrinciple";
 import type { EditIncomeSourceType, IncomeSourceType } from "~/types/ui/incomeSource";
 import type { EditTagType, TagType } from "~/types/ui/tag";
+import Banking from "./components/Banking.vue";
 
 const { data: utils } = useAsyncData('', async () => {
     const [ incomeSourceTypes, incomeSourceFrequencyTypes, principleTypes ] = await Promise.all([
@@ -848,5 +849,7 @@ const onDeleteIncomeSource = async (id: string) => {
                 </div>
             </div>
         </UCard>
+
+        <Banking />
     </div>    
 </template>
