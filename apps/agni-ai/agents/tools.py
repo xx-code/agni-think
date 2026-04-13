@@ -3,8 +3,9 @@ import os
 from dotenv import load_dotenv
 from langchain.tools import tool
 from typing import List  
-from backend_dto import FinanceProfileResponse, BudgetResponse, SavingGoalResponse, AnnualOutlookResponse, AccountResponse
-from backend import get_finance_profile, query_rag, get_budgets, get_saving_goals, get_annual_outlook, get_account_with_detail
+from backend_dto import FinanceProfileResponse, BudgetResponse, SavingGoalResponse, AnnualOutlookResponse, AccountResponse,InternalLoanResponse
+from backend import get_finance_profile, query_rag, get_budgets, get_saving_goals, get_annual_outlook, \
+    get_account_with_detail, get_internal_loans
 
 load_dotenv()
 
@@ -75,3 +76,20 @@ def wrap_tool_get_account_by_id(id: str) -> AccountResponse:
     """
     return get_account_with_detail(id)
 
+
+@tool
+def wrap_tool_get_internal_loans() -> InternalLoanResponse:
+    """
+    Récupère la liste exhaustive des prêts internes (auto-endettement) actifs et passés.
+    
+    CE QUE CE TOOL PERMET À L'AGENT :
+    1. Calculer le 'Total Collateral Locked' : Somme des montants d'épargne rendus 
+       indisponibles par ces prêts.
+    2. Vérifier le 'Principle Compliance' : S'assurer que le total des prêts ne dépasse 
+       pas 10% de l'épargne liquide (Savings).
+    3. Analyser la 'Liquidity Gap' : Comparer les dates d'échéance (due_date) des prêts 
+       avec les revenus entrants (Coming Revenue).
+    
+    Indispensable pour Agni_Controller (Audit de risque) et Agni_Treasurer (Optimisation cash-flow).
+    """
+    return get_internal_loans()

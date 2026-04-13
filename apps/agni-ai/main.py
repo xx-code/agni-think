@@ -1,17 +1,21 @@
 import os
 import time
-from fastapi.concurrency import asynccontextmanager
 import requests
 import plaid
+import traceback
+
 
 from datetime import date
+from fastapi.concurrency import asynccontextmanager
 
 from fastapi import FastAPI
 from apscheduler.schedulers.background import BackgroundScheduler
-from backend import get_budgets, get_finance_profile, get_saving_goals, query_rag, get_bank_registers, get_bank_transaction_untreated
+from backend import get_budgets, get_finance_profile, get_saving_goals, query_rag, get_bank_registers, \
+    get_bank_transaction_untreated
 from agents.dto import ChatFinancialAdvisorAgentInput
 from agents.agent import Chat
-from agents.tools import wrap_tool_annual_outlook, wrap_tool_get_budgets, wrap_tool_get_finance_profile, wrap_tool_query_rag_invoice
+from agents.tools import wrap_tool_annual_outlook, wrap_tool_get_budgets,\
+    wrap_tool_get_finance_profile, wrap_tool_query_rag_invoice, wrap_tool_get_internal_loans, wrap_tool_get_account_by_id, wrap_tool_get_saving_goals
 
 from storages.dto import QdrantAddDocumentInput
 from storages.qdrant import QdrantClientService
@@ -19,7 +23,7 @@ from storages.qdrant import QdrantClientService
 from typing import Dict, List
 from dotenv import load_dotenv
 
-from frontend_dto import ExchangeTokenDto
+from frontend_dto import ExchangeTokenDto, TreatInvoiceDto
 
 from langchain_core.messages import BaseMessage
 
@@ -31,7 +35,7 @@ from plaid.model.products import Products
 from plaid.model.country_code import CountryCode
 
 from interactions.plaid import loop_transactions, batch_fetch_transactions
-from interactions.agent import treat_new_bank_transaction
+from interactions.agent import treat_new_bank_transaction, clerk_treat_transaction
 from cachetools import TTLCache
 
 load_dotenv()
@@ -64,20 +68,40 @@ client = plaid_api.PlaidApi(api_client)
 
 
 def sync_external_transaction() -> list[str]:
-    newTransactionIds = []
-    bank_registers = get_bank_registers()
-    for bank in bank_registers:
-        # TODO: Check if there are an error and desactive the register
-        # Give the possibility to reconnect bank account
-        newTransactionIds += loop_transactions(
-            bank_register_id=bank.id, access_code=bank.accessCode, 
-            init_cursor=bank.cursor, 
-            isAllTreated=False)
-    
-    if len(newTransactionIds) == 0:
-        return "No new Transaction"
+    print("[SYNC] Start sync external transaction")
 
-    return newTransactionIds
+    new_transaction_ids: list[str] = []
+
+    try:
+        bank_registers = get_bank_registers() or []
+
+        for bank in bank_registers:
+            try:
+                result = loop_transactions(
+                    bank_register_id=bank.id,
+                    access_code=bank.accessCode,
+                    init_cursor=bank.cursor,
+                    isAllTreated=False
+                )
+
+                if result:
+                    new_transaction_ids.extend(result)
+
+            except Exception as e:
+                print(f"[ERROR] Bank {bank.id} failed: {e}")
+                traceback.print_exc()
+
+        if not new_transaction_ids:
+            print("[SYNC] No new transactions")
+            return []
+
+        print(f"[SYNC] {len(new_transaction_ids)} transactions synced")
+        return new_transaction_ids
+
+    except Exception as e:
+        print(f"[FATAL] sync_external_transaction failed: {e}")
+        traceback.print_exc()
+        return []
 
 
 scheduler = BackgroundScheduler()
@@ -123,10 +147,18 @@ def chat_with_advisor(request: ChatFinancialAdvisorAgentInput) -> str:
         "./agents/knowledge/cfo.yaml", 
         model=model, 
         history=sessions_db[session_id], 
-        tools=[wrap_tool_query_rag_invoice, wrap_tool_annual_outlook, wrap_tool_get_finance_profile, wrap_tool_get_budgets])
+        tools=[wrap_tool_query_rag_invoice, wrap_tool_annual_outlook, 
+               wrap_tool_get_finance_profile, wrap_tool_get_budgets, 
+               wrap_tool_get_saving_goals, wrap_tool_get_account_by_id, wrap_tool_get_internal_loans])
     response = chat.ask(request.question)
 
     return response
+
+@app.post("/treat-unformat-transaction")
+def clerk_treat_trans(request: TreatInvoiceDto) -> str:
+    res = clerk_treat_transaction(request.text)
+    
+    return str(res.newId)
 
 @app.post("/embedding-document")
 def add_embedding_doc(request: QdrantAddDocumentInput):
@@ -158,9 +190,9 @@ def create_link_token():
     request = LinkTokenCreateRequest(
         products=[Products("transactions")],
         client_name="Plaid Test App",
-        country_codes=[CountryCode('US')],
+        country_codes=[CountryCode('CA')],
         redirect_uri=plaid_rediction_url,
-        language="en",
+        language="fr",
         user=LinkTokenCreateRequestUser(
             client_user_id=str(time.time())
         )
@@ -191,13 +223,14 @@ def init_transactions(start_date: date | None = None):
     if start_date is None:
         start_date = date(2023, 1, 1)
     for bank in bank_registers:
-        newTransactionIds += batch_fetch_transactions(
-            bank_register_id=bank.id, 
-            access_code=bank.accessCode, 
-            start_date=start_date, end_date=date.today())
+        if bank.cursor == "":
+            newTransactionIds += batch_fetch_transactions(
+                bank_register_id=bank.id, 
+                access_code=bank.accessCode, 
+                start_date=start_date, end_date=date.today())
     
     if len(newTransactionIds) == 0:
-        return "No new Transaction"
+        return []
 
     return newTransactionIds
 

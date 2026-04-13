@@ -5,6 +5,7 @@ import java.util.UUID
 
 class ExternalTransaction(
     id: UUID = UUID.randomUUID(),
+    val transactionId: String,
     accountId: String,
     amount: Double,
     dateTransaction: LocalDateTime,

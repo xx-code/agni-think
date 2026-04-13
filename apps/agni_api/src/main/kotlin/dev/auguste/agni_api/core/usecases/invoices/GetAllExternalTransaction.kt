@@ -13,7 +13,7 @@ class GetAllExternalTransaction(
     private val externalTransactionRepo: IRepository<ExternalTransaction>,
 ): IUseCase<GetAllExternalTransactionInput, ListOutput<GetExternalTransactionOutput>> {
     override fun execAsync(input: GetAllExternalTransactionInput): ListOutput<GetExternalTransactionOutput> {
-        val externalTransactions = externalTransactionRepo.getAll(input.query, queryExtend = QueryExternalTransactionExtend(input.isTreated))
+        val externalTransactions = externalTransactionRepo.getAll(input.query, queryExtend = QueryExternalTransactionExtend(isTreated = input.isTreated))
 
         return ListOutput(
             externalTransactions.items.map {

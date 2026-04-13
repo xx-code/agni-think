@@ -11,8 +11,8 @@
         </UContainer>
       </main>
     </div>
-    <ModalLoading />
   </UApp>
+  <ModalLoading />
 </template>
 
 <style scoped lang="scss">

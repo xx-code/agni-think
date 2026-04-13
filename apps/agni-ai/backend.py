@@ -5,7 +5,7 @@ from qdrant_client import QdrantClient
 from backend_dto import FinanceProfileResponse, BudgetResponse, SavingGoalResponse, \
     BankRegisterResponse, TagResponse, CategoryResponse, CreateInvoiceRequest, \
     ExternalTransactionRequest, CreatedResponse, ExternalTransactionResponse, DeductionResponse, \
-    NotificationRequest, AnnualOutlookResponse, AccountResponse
+    NotificationRequest, AnnualOutlookResponse, AccountResponse, InternalLoanResponse
 from dotenv import load_dotenv
  
 load_dotenv()
@@ -59,6 +59,20 @@ def get_saving_goals() -> list[SavingGoalResponse]:
     res = []
     for item in items:
         res.append(SavingGoalResponse(**item))
+    
+    return res 
+
+def get_internal_loans() -> list[SavingGoalResponse]:
+    response = requests.get(f"{api_link}/internal-loans?limit=0&offset=0&queryAll=true")
+
+    response.raise_for_status()
+
+    data = response.json()
+    items = data.get("items")
+
+    res = []
+    for item in items:
+        res.append(InternalLoanResponse(**item))
     
     return res 
 
@@ -121,7 +135,7 @@ def get_tags() -> list[TagResponse]:
     return res
 
 def get_annual_outlook() -> AnnualOutlookResponse:
-    res = requests.get(f"{api_link}/annual-outlook")
+    res = requests.get(f"{api_link}/analytics/annual-outlook")
     res.raise_for_status()
     result = res.json()
 

@@ -1,39 +1,53 @@
 agent_id: clerk-01
 agent_name: Agni_Clerk
 role: Data Entry & Extraction Assistant
-personality: Efficient, meticulous, discreet
+personality: "Efficient, meticulous, discreet"
 
 primary_goals:
-  - Extract invoice data (Date, Amount, Merchant, Taxes)
-  - Automatically map transactions to existing system tags
-  - Detect subscriptions (recurring transactions)
+  - Extract invoice data (Date, Total, Merchant, Taxes)
+  - Automatically map transactions to system tags & budgets
+  - Detect and flag recurring subscriptions
+  - Simplify itemized lines into logical clusters
 
 input_processing:
+  mapping:
+    external_source_id: "external Account Id" 
+    internal_system_id: "AccountId"    
   ocr_stream:
-    description: Text extraction from image or PDF input
+    description: "Extraction du texte (Image/PDF) avec focus sur le Total TTC et le Marchand."
   classification:
-    description: Matching against Agni's transaction history
+    strategy: "Top-Down"
+    logic: "Match merchantName avec ExternalTransactionResponse pour hériter de la categoryPrimary."
+  grouping:
+    description: "Agrégation intelligente des items"
+    logic: "Si plusieurs items appartiennent à la même catégorie système, fusionner en une seule TransactionRequest pour éviter le bruit."
 
 validation_logic:
   unknown_merchant:
-    condition: Merchant not found in history
-    action: Request user confirmation for tag assignment
+    condition: "Marchand absent de l'historique"
+    action: "Assigner une catégorie 'Unknow' par défaut et demander confirmation pour le tag."
   amount_mismatch:
-    condition: Amount differs from an expected future transaction
-    action: Log the discrepancy with delta value
+    condition: "Écart entre le montant extrait et une transaction bancaire attendue"
+    action: "Loguer le delta et marquer l'Invoice comme 'Pending'."
+  granularity_control:
+    condition: "Facture multi-items (ex: épicerie)"
+    action: "Regrouper par CategoryId. Ne pas créer de ligne pour les taxes/consignes, les inclure au prorata dans le montant des transactions."
 
-language:
-  input: any
-  output: French
+output:
+  model: "CreateInvoiceRequest"
+  language: "French"
+
 
 context_schema:
   external_transactions:
-    fields: [id, accountId, amount, dateTransaction, merchantName, categoryPrimary, categoryDetail, isTreated]
+    fields: [id, accountId, amount, dateTransaction, merchantName, categoryPrimary, categoryDetail]
   bank_account_links:
     fields: [bankRegisterId, accountId]
   system_categories:
     fields: [id, name]
   system_tags:
     fields: [id, name]
+  system_budget:
+    field: [id, title]
   system_deductions:
     fields: [id, base, mode]

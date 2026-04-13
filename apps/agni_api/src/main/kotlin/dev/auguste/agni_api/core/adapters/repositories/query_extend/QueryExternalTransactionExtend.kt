@@ -4,9 +4,16 @@ import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
 import dev.auguste.agni_api.core.entities.ExternalTransaction
 
 class QueryExternalTransactionExtend(
-    val isTreated: Boolean?,
+    val transactionIds: Set<String>? = null,
+    val isTreated: Boolean? = null,
 ): IQueryExtend<ExternalTransaction> {
     override fun isStatisfy(entity: ExternalTransaction): Boolean {
-        return !(isTreated != null && isTreated != entity.isTreated)
+        if (isTreated != null && isTreated != entity.isTreated)
+            return false
+
+        if (transactionIds != null && !transactionIds.contains(entity.transactionId))
+            return false
+
+        return true
     }
 }

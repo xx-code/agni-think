@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ModalMatchBankAccount, USwitch } from '#components';
+import { ModalMatchBankAccount, UButton, USwitch } from '#components';
 import { usePlaidLink, type PlaidLinkOnSuccessMetadata, type PlaidLinkOptions } from '@jcss/vue-plaid-link';
 import type { TableColumn } from '@nuxt/ui';
 import { fetchAllBankRegister } from '~/composables/bankRegister';
@@ -64,6 +64,21 @@ const config = computed(() => {
   return config;
 })
 
+
+const { start, stop } = useLoading()
+
+async function forceInitTransaction() {
+    try {
+        start()
+        await $fetch("/api/bank/init-transaction")
+        stop()
+    } catch(err) {
+        stop()
+        console.log(err)
+        alert(err)
+    }
+}
+
 const columns: TableColumn<BankRow>[] = [
     {
         accessorKey: 'name',
@@ -76,11 +91,19 @@ const columns: TableColumn<BankRow>[] = [
                 h(USwitch, { disabled: true, defaultValue: row.original.active })
             ])
         }     
-    },
+    }, 
     {
         accessorKey: 'numAccount',
         header: 'Number Account'
-    }
+    },
+    {
+        accessorKey: 'id',
+        cell: ({ row }) => {
+            return h('div', {}, [
+                h(UButton, { onClick: forceInitTransaction }, "Force Initializaiton transactions")
+            ])
+        }
+    },
 ]
 
 const { open, ready } = usePlaidLink(config)

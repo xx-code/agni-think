@@ -80,11 +80,12 @@ class BankRegisterResponse(BaseModel):
 
 class ExternalTransactionRequest(BaseModel):
     accountId: str
-    amount: float
+    transactionId: str
+    amount: float = 0
     dateTransaction: datetime
-    merchantName: str
-    categoryPrimary: str
-    categoryDetail: str
+    merchantName: Optional[str] = "" 
+    categoryPrimary: Optional[str] = ""
+    categoryDetail: Optional[str] = ""
     isTreated: bool
 
 class ExternalTransactionResponse(BaseModel): 
@@ -194,5 +195,9 @@ class AccountResponse(BaseModel):
     freezeBalance: float
     detail: AccountDetailResponse
 
-
-
+class InternalLoanResponse(BaseModel):
+    id: str
+    creditTargetId: str
+    invoiceId:str
+    fundSourceId: str
+    dueDate: date

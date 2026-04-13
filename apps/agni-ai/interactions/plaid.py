@@ -1,3 +1,6 @@
+import os
+
+from dotenv import load_dotenv
 import plaid
 import json
 
@@ -12,11 +15,21 @@ from plaid.model.transactions_get_request_options import TransactionsGetRequestO
 from backend import update_cursor, create_external_transaction, create_external_transactions 
 from backend_dto import ExternalTransactionRequest
 
+load_dotenv()
+
+env = os.getenv("ENV")
+plaid_client_id = os.getenv("PLAID_API_CLIENT_ID")
+plaid_secret = os.getenv("PLAID_API_SECRET")
+
+plaid_host = plaid.Environment.Sandbox
+if env.lower() == "production":
+    plaid_host = plaid.Environment.Production
+
 configuration = plaid.Configuration(
-    host=plaid.Environment.Sandbox,
+    host=plaid_host,
     api_key={
-        'clientId': "66b5e48df271e2001a12e769",
-        'secret': "de350503ed97d8da5f3224a85cc386",
+        'clientId': plaid_client_id,
+        'secret': plaid_secret,
     }
 )
 
@@ -92,40 +105,60 @@ def read_transaction(cursor: str, access_token: str, count:int=100) -> ReadTrans
     
 def loop_transactions(bank_register_id: str, access_code: str, init_cursor: str = '', isAllTreated: bool = False, iteration: int | None = None) -> list[str]:
     cursor = init_cursor
-
-    added = []
+    transactions = []
+    seen_ids = set()
     has_more = True
-    count = 1
+    iteration_count = 0
+    MAX_TRY = 10000
 
-    while has_more:
+    seen_ids = set()
+
+    while has_more and iteration_count < MAX_TRY:
         res = read_transaction(cursor=cursor, access_token=access_code)
 
-        added.extend(res.added)
-        cursor = res.next_cursor
-        if iteration is not None and count == iteration:
-            has_more = False
-        else:
-            has_more = res.has_more
-        
-        count += 1
-    
-    ids = []
+        for trans in res.added:
+            tid = trans.get("transaction_id")
+            if tid in seen_ids:
+                continue
+            seen_ids.add(tid)
+            transactions.append(trans)
 
-    update_cursor(bank_register_id=bank_register_id, cursor=cursor)
-    for trans in added:
-        res = create_external_transaction(ExternalTransactionRequest(
-            accountId=trans["account_id"],
-            amount=trans["amount"],
-            dateTransaction=trans["date"] ,
-            merchantName=trans["merchant_name"],
-            categoryPrimary=trans["personal_finance_category"]["primary"],
-            categoryDetail=trans["personal_finance_category"]["detailed"],
+        cursor = res.next_cursor
+        has_more = res.has_more
+        iteration_count += 1
+
+        print(f"[DEBUG] iteration={iteration_count}, cursor={cursor}, has_more={res.has_more}, added={len(res.added)}")
+
+    created_ids = []
+    ext_transactions = []
+    for trans in transactions:
+        category = trans.get("personal_finance_category") or {}
+        ext_transaction = ExternalTransactionRequest(
+            accountId=trans.get("account_id"),
+            transactionId=trans.get("transaction_id"),
+            amount=trans.get("amount", 0),
+            dateTransaction=trans.get("date"),
+            merchantName=trans.get("merchant_name", ""),
+            categoryPrimary=category.get("primary", ""),
+            categoryDetail=category.get("detailed", ""),
             isTreated=isAllTreated
-        ))
-        ids.append(res['newId'])
+        )
+        ext_transactions.append(ext_transaction)
+
+        
+
+    try:
+        res = create_external_transactions(ext_transactions)
+        created_ids = [x.newId for x in res]  
+        update_cursor(bank_register_id=bank_register_id, cursor=cursor)
+        return created_ids
+    except Exception as e:
+        print(f"Failed transaction: {e}")
     
+    return []
+
     
-    return ids
+ 
 
 
 def update_position_cursor(access_code: str, init_cursor: str = "") -> str: 
@@ -155,15 +188,20 @@ def batch_fetch_transactions(bank_register_id: str, access_code: str, start_date
     if len(transactions) > 0:
         next_cursor = update_position_cursor(access_code=access_code)
         update_cursor(bank_register_id=bank_register_id, cursor=next_cursor)
-        external_transaction_fmt = [ ExternalTransactionRequest(
-            accountId=trans["account_id"],
-            amount=trans["amount"],
-            dateTransaction=trans["date"] ,
-            merchantName=trans["merchant_name"],
-            categoryPrimary=trans["personal_finance_category"]["primary"],
-            categoryDetail=trans["personal_finance_category"]["detailed"],
-            isTreated=True
-        ) for trans in transactions] 
+        external_transaction_fmt = [
+            ExternalTransactionRequest(
+                accountId=trans.get("account_id"),
+                amount=trans.get("amount", 0),
+                dateTransaction=trans.get("date"),
+                # Fallback to "name" if "merchant_name" is null
+                merchantName=trans.get("merchant_name") or trans.get("name") or "Unknown",
+                # Safely access nested category fields
+                categoryPrimary=(trans.get("personal_finance_category") or {}).get("primary", "UNCATEGORIZED"),
+                categoryDetail=(trans.get("personal_finance_category") or {}).get("primary", "UNCATEGORIZED"),
+                isTreated=True
+            ) 
+            for trans in transactions
+        ]
 
         res = create_external_transactions(external_transaction_fmt)
         newIds = list(map(lambda x: x.newId, res)) 

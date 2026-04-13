@@ -38,6 +38,11 @@ class QueryExternalTransactionJdbcAdapter(
             params.addValue("isTreated", extend.isTreated)
         }
 
+        if (!extend.transactionIds.isNullOrEmpty()) {
+            sqlBuilder.append("  AND transaction_id IN (:transactionIds)")
+            params.addValue("transactionIds", extend.transactionIds)
+        }
+
         return SqlQueryBuilder(sqlBuilder, params)
     }
 
@@ -45,6 +50,7 @@ class QueryExternalTransactionJdbcAdapter(
         return RowMapper { rs, _ ->
             JdbcExternalTransactionModel(
                 id = rs.getObject("external_transaction_id", UUID::class.java),
+                transactionId = rs.getString("transaction_id"),
                 accountId = rs.getString("account_id"),
                 amount = rs.getDouble("amount"),
                 merchantName = rs.getString("merchant_name"),
