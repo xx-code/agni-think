@@ -26,6 +26,7 @@ export type CashflowRequest = {
 }
 
 export type ChatPersonnalFinanceAdvisorRequest = {
+    session_id: string
     model: string
     question: string
 }

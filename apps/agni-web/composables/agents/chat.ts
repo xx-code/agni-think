@@ -16,3 +16,10 @@ export async function fetchLlmModels(): Promise<string[]> {
         method: 'GET',
     })
 }
+
+export async function useTreatInvoiceText(text: string): Promise<string> {
+    return await $fetch('/api/agents/treat-invoice', {
+        method: 'POST',
+        body: { text: text}
+    })
+}

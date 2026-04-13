@@ -14,11 +14,9 @@ RUN python -m venv /opt/venv
 # Ensure we use the virtual environment for subsequent commands
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY apps/agni-ai/requirements-linux-part1.txt .
-RUN pip install --no-cache-dir -r requirements-linux-part1.txt
+COPY apps/agni-ai/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY apps/agni-ai/requirements-linux-part2.txt .
-RUN pip install --no-cache-dir -r requirements-linux-part2.txt
 
 
 # --- Stage 2: Runtime ---

@@ -5,6 +5,7 @@ import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.Deduction
+import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.entities.Transaction
 
@@ -14,5 +15,6 @@ class InvoiceDependencies(
     val budgetRepo: IRepository<Budget>,
     val tagRepo: IRepository<Tag>,
     val accountRepo: IRepository<Account>,
-    val deductionRepo: IRepository<Deduction>
+    val deductionRepo: IRepository<Deduction>,
+    val internalLoanRepo: IRepository<InternalLoan>
 )

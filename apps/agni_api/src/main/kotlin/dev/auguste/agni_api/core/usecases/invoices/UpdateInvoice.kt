@@ -1,7 +1,9 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
+import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInternalLoanExtend
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.facades.InvoiceDependencies
 import dev.auguste.agni_api.core.usecases.CreatedOutput
@@ -30,6 +32,12 @@ class UpdateInvoice(
     ) {
         unitOfWork.execute {
             val invoice = invoiceRepo.get(input.id) ?: throw Error("Invoice ${input.id} not found")
+
+            val internalLoans = invoiceDependencies.internalLoanRepo.getAll(QueryFilter(queryAll = true),
+                QueryInternalLoanExtend(invoiceId = invoice.id)
+            )
+            if (internalLoans.items.isNotEmpty())
+                throw Error("Invoice ${invoice.id} is Linked to loan this can be updated")
 
             if (input.accountId != null) {
                 if (invoiceDependencies.accountRepo.get(input.accountId) == null)

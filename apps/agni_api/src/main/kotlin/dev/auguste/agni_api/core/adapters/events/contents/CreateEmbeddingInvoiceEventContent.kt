@@ -1,6 +1,6 @@
 package dev.auguste.agni_api.core.adapters.events.contents
 
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateEmbeddingInvoiceEventListener
+import dev.auguste.agni_api.core.adapters.events.listeners.ICreateInvoiceEventListener
 import dev.auguste.agni_api.core.adapters.events.IEventContent
 import dev.auguste.agni_api.core.adapters.events.IEventListener
 import dev.auguste.agni_api.core.entities.Invoice
@@ -10,7 +10,7 @@ class CreateEmbeddingInvoiceEventContent(
 ) : IEventContent {
 
     override fun dispatch(listener: IEventListener) {
-        if (listener is ICreateEmbeddingInvoiceEventListener) {
+        if (listener is ICreateInvoiceEventListener) {
             listener.serve(this)
             listener.update()
         }

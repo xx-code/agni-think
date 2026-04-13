@@ -12,6 +12,7 @@
       </main>
     </div>
   </UApp>
+  <ModalLoading />
 </template>
 
 <style scoped lang="scss">

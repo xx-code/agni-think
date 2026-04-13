@@ -147,7 +147,7 @@ class GetAnnualOutlook(
         val futureSpends = mutableListOf<SpendByCategoryOutlook>()
 
         // TODO: Optimization multiple call here
-        spendByCategories.forEach { spentCategory ->
+        spendByCategories.filter { scheduleInvoice.map { sch -> sch.categoryId }.contains(it.categoryId) }.forEach { spentCategory ->
             val futureSpend = getFutureOutlook(scheduleInvoice.filter { it.categoryId == spentCategory.categoryId })
 
             futureSpends.add(SpendByCategoryOutlook(
