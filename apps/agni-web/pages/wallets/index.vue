@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import useDeleteAccount from "~/composables/accounts/useDeleteAccount";
-import type { AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
+import type { AccountCheckingDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
 import useCreateAccount from "~/composables/accounts/useCreateAccount";
 import useUpdateAccount from "~/composables/accounts/useUpdateAccount";
 import { fetchAccountWithDetail } from "~/composables/accounts/useAccount";
@@ -289,9 +289,17 @@ const availableBalance = computed(() => {
 })
 
 const lockedPercentage = computed(() => {
-    if (totalAccountBalance.value.totalBalance === 0) return 0
+    if (totalAccountBalance.value.totalBalance <= 0) return 0
     return ((totalAccountBalance.value.totalFreezedBalance + totalAccountBalance.value.totalLockedBalance) / totalAccountBalance.value.totalBalance) * 100
 })
+
+function formatAccountBuffer(detail: AccountCheckingDetailType): number {
+    return roundNumber(detail.buffer) 
+}
+
+function isBufferValid(buffer: number, balance: number): boolean {
+    return balance >= buffer 
+}
 
 </script>
 
@@ -326,7 +334,7 @@ const lockedPercentage = computed(() => {
 
                 <div class="balance-content">
                     <AmountTitle 
-                        :amount="totalAccountBalance.totalBalance"
+                        :amount="roundNumber(totalAccountBalance.totalBalance)"
                         :sign="'$'"
                         class="main-amount"
                     />
@@ -335,17 +343,17 @@ const lockedPercentage = computed(() => {
                         <div class="balance-item available">
                             <Icon name="i-lucide-circle-check" class="balance-item-icon" />
                             <span class="balance-item-label">Disponible:</span>
-                            <span class="balance-item-value">${{ availableBalance.toFixed(2) }}</span>
+                            <span class="balance-item-value">${{ roundNumber(availableBalance, 2) }}</span>
                         </div>
                         <div class="balance-item freezed">
                             <Icon name="i-lucide-snowflake" class="balance-item-icon" />
                             <span class="balance-item-label">Gelé:</span>
-                            <span class="balance-item-value">${{ totalAccountBalance.totalFreezedBalance.toFixed(2) }}</span>
+                            <span class="balance-item-value">${{ roundNumber(totalAccountBalance .totalFreezedBalance, 2) }}</span>
                         </div>
                         <div class="balance-item locked">
                             <Icon name="i-lucide-lock" class="balance-item-icon" />
                             <span class="balance-item-label">Verrouillé:</span>
-                            <span class="balance-item-value">${{ totalAccountBalance.totalLockedBalance.toFixed(2) }}</span>
+                            <span class="balance-item-value">${{ roundNumber(totalAccountBalance.totalLockedBalance, 2) }}</span>
                         </div>
                     </div>
                 </div>
@@ -391,11 +399,11 @@ const lockedPercentage = computed(() => {
                     <div class="progress-labels">
                         <span class="progress-label">
                             <span class="progress-dot available"></span>
-                            Disponible ({{ (100 - lockedPercentage).toFixed(1) }}%)
+                            Disponible ({{ roundNumber(100 - lockedPercentage) }}%)
                         </span>
                         <span class="progress-label">
                             <span class="progress-dot locked"></span>
-                            Bloqué ({{ lockedPercentage.toFixed(1) }}%)
+                            Bloqué ({{ roundNumber(lockedPercentage) }}%)
                         </span>
                     </div>
                 </div>
@@ -515,6 +523,26 @@ const lockedPercentage = computed(() => {
                                     <Icon name="i-lucide-percent" class="inline mr-1" />
                                     Utilisation: {{ (account.detail as AccountCreditDetailType).creditUtilisation }}%
                                 </p>
+                            </div>
+                            <div v-else-if="account.type == 'Checking'" class="credit-card-details text-sm">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <Icon name="i-lucide-circle-check" class="text-green-500" />
+                                        <span class="ml-1">Disponible:</span>
+                                    </div>
+
+                                    <span>${{ roundNumber(account.balance + account.freezedBalance, 2)  }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <Icon 
+                                            name="i-lucide-align-horizontal-space-around" 
+                                            :class="[isBufferValid(formatAccountBuffer(account.detail as AccountCheckingDetailType), account.balance + account.freezedBalance) ? 'text-green-500' : 'text-red-500']" />
+                                        <span class="ml-1">Buffer:</span>
+                                    </div>
+
+                                    <span>${{ formatAccountBuffer(account.detail as AccountCheckingDetailType)  }}</span>
+                                </div>
                             </div>
                         </CardResumeAccount>
                     </div>
