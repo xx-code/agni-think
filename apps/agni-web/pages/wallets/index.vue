@@ -531,7 +531,7 @@ function isBufferValid(buffer: number, balance: number): boolean {
                                         <span class="ml-1">Disponible:</span>
                                     </div>
 
-                                    <span>${{ roundNumber(account.balance + account.freezedBalance, 2)  }}</span>
+                                    <span>${{ roundNumber(account.balance + Math.abs(account.freezedBalance) , 2)  }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
