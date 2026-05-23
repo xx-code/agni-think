@@ -285,7 +285,7 @@ const openTransactionViews = async (accountId: string) => {
 }
 
 const availableBalance = computed(() => {
-    return totalAccountBalance.value.totalBalance - totalAccountBalance.value.totalFreezedBalance - totalAccountBalance.value.totalLockedBalance
+    return totalAccountBalance.value.totalBalance + Math.abs(totalAccountBalance.value.totalFreezedBalance + totalAccountBalance.value.totalLockedBalance) 
 })
 
 const lockedPercentage = computed(() => {
