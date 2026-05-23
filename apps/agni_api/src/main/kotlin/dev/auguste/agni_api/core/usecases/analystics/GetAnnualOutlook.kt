@@ -113,7 +113,7 @@ class GetAnnualOutlook(
             if (it.scheduler.repeater == null)
                 it.amount
             else  {
-                val now = LocalDate.now()
+                val now = it.scheduler.date.toLocalDate()
                 val end = now.with(TemporalAdjusters.lastDayOfYear())
                 it.amount * it.scheduler.repeater!!.computeOccurrences(now, end)
             }
