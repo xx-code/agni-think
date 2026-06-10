@@ -2,11 +2,7 @@
 import { ModalEditBudget } from "#components"
 import { getLocalTimeZone } from "@internationalized/date"
 import { computed, ref } from "vue"
-import { fetchBudget } from "~/composables/budgets/useBudget"
-import { fetchBudgets } from "~/composables/budgets/useBudgets"
-import useCreateBudget from "~/composables/budgets/useCreateBudget"
-import useDeleteBudget from "~/composables/budgets/useDeleteBudget"
-import useUpdateBudget from "~/composables/budgets/useUpdateBudget"
+import { fetchBudget, fetchBudgets, useCreateBudget, useDeleteBudget, useUpdateBudget } from "~/composables/api/budget"
 import type { BudgetType, EditBudgetType } from "~/types/ui/budget"
 
 type BudgetItem = {

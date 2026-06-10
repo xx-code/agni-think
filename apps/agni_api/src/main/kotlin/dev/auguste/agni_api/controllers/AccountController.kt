@@ -55,7 +55,8 @@ class AccountController(
        return ResponseEntity.ok(getAccountUseCase.execAsync(id))
     }
 
-    @GetMapping("/with-detail/{id}")
+    //TODO: Change by query
+    @GetMapping("/{id}/with-detail")
     fun getAccountWithDetail(@PathVariable id: UUID): ResponseEntity<GetAccountWithDetailOutput>  {
         return ResponseEntity.ok(getAccountWithDetailUseCase.execAsync(id))
     }

@@ -2,13 +2,9 @@
 import { ModalEditScheduleInvoice } from '#components';
 import type { TableColumn, TableRow } from '#ui/types';
 import { getLocalTimeZone } from '@internationalized/date';
-import { fetchCategories } from '~/composables/categories/useCategories';
-import useCreateScheduleInvoice from '~/composables/scheduleTransactions/useCreateScheduleTransaction';
-import useDeleteScheduleInvoice from '~/composables/scheduleTransactions/useDeleteScheduleTransaction';
-import { fetchScheduleInvoice } from '~/composables/scheduleTransactions/useScheduleTransaction';
-import { fetchScheduleInvoices } from '~/composables/scheduleTransactions/useScheduleTransactions';
-import useUpdateScheduleInvoice from '~/composables/scheduleTransactions/useUpdateScheduleTransaction';
-import { fetchTags } from '~/composables/tags/useTags';
+import { fetchCategories } from '~/composables/api/categories';
+import { fetchScheduleInvoices, useUpdateScheduleInvoice, useCreateScheduleInvoice, fetchScheduleInvoice, useDeleteScheduleInvoice } from '~/composables/api/scheduleTransactions';
+import { fetchTags } from '~/composables/api/tag';
 import type { QueryFilterRequest } from '~/types/api';
 import type { EditScheduleInvoiceType, ScheduleInvoiceType, TableScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
 

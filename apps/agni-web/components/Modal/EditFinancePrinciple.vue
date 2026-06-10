@@ -3,7 +3,7 @@ import * as z from 'zod'
 import { reactive } from "vue";
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { EditFinancePrincipleType, FinancePrincipleType } from '~/types/ui/financePrinciple';
-import { fetchPrincipleType } from '~/composables/internal';
+import { fetchPrincipleType } from '~/composables/api/internal';
 
 const { financePrinciple } = defineProps<{
     financePrinciple?: FinancePrincipleType

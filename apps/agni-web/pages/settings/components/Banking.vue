@@ -2,7 +2,7 @@
 import { ModalMatchBankAccount, UButton, USwitch } from '#components';
 import { usePlaidLink, type PlaidLinkOnSuccessMetadata, type PlaidLinkOptions } from '@jcss/vue-plaid-link';
 import type { TableColumn } from '@nuxt/ui';
-import { fetchAllBankRegister } from '~/composables/bankRegister';
+import { fetchAllBankRegister } from '~/composables/api/bankRegister';
 
 type BankRow = {
     id: string

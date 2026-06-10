@@ -3,17 +3,9 @@ import type { NuxtError } from '#app';
 import { ModalEditPatrimony, ModalEditSnapshotPatrimony } from '#components';
 import type { TableColumn } from '#ui/types';
 import { getLocalTimeZone } from '@internationalized/date';
-import { useAddSnapshotPatrimony } from '~/composables/patrimonies/useAddSnapshotPatrimony';
-import { useCreatePatrimony } from '~/composables/patrimonies/useCreatePatrimony';
-import { useDeletePatrimony } from '~/composables/patrimonies/useDeletePatrimony';
-import { fetchPatrimony } from '~/composables/patrimonies/usePatrimony';
-import { useRemoveSnapshotPatrimony } from '~/composables/patrimonies/useRemoveSnapshotPatrimony';
-import { fetchSnapshotsPatrimony } from '~/composables/patrimonies/useSnapshotsPatrimony';
-import { useUpdatePatrimony } from '~/composables/patrimonies/useUpdatePatrimony';
-import { useUpdateSnapshotPatrimony } from '~/composables/patrimonies/useUpdateSnapshotPatrimony';
 import type { EditePatrimony, EditSnapshotPatrimony, PatrimonyType, SnapshotPatrimonyType, TypePatrimony } from '~/types/ui/patrimony';
 import AssetCard from './AssetCard.vue';
-import { fetchPatrimonies } from '~/composables/patrimonies/usePatrimonies';
+import { fetchPatrimonies, fetchPatrimony, fetchSnapshotsPatrimony, useUpdatePatrimony, useCreatePatrimony, useUpdateSnapshotPatrimony, useAddSnapshotPatrimony, useDeletePatrimony, useRemoveSnapshotPatrimony } from '~/composables/api/patrimonies.js';
 
 const {data:patrimonies, refresh} = useAsyncData('patrimonies+page+all', async () => {
     const res = await fetchPatrimonies()

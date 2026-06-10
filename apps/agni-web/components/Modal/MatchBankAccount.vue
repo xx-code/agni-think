@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { fetchAccounts } from '~/composables/accounts/useAccounts';
+import { fetchAccounts } from '~/composables/api/accounts';
+import { createBankRegister } from '~/composables/api/bankRegister';
+
 
 const { start, stop } = useLoading()
 const { title, accessCode, bankAccounts } = defineProps<{

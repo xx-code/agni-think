@@ -2,10 +2,11 @@
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import z from 'zod';
-import { fetchAccounts } from '~/composables/accounts/useAccounts';
-import { fetchBudgets } from '~/composables/budgets/useBudgets';
-import { fetchCategories } from '~/composables/categories/useCategories';
-import { fetchTags } from '~/composables/tags/useTags';
+import { fetchAccounts } from '~/composables/api/accounts';
+import { fetchBudgets } from '~/composables/api/budget';
+import { fetchCategories } from '~/composables/api/categories';
+import { fetchDeductions } from '~/composables/api/deductionType';
+import { fetchTags } from '~/composables/api/tag';
 import type { EditInternalLoanType } from '~/types/ui/internal-loan';
 
 const emit = defineEmits<{

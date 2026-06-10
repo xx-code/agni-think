@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
-import { fetchAnnualOutlook, fetchBudgetingRule } from '~/composables/analytics'
-import { fetchCategories } from '~/composables/categories/useCategories'
+import { fetchAnnualOutlook, fetchBudgetingRule } from '~/composables/api/analytics'
+import { fetchCategories } from '~/composables/api/categories'
 import type { GetAnnualOutlookResponse } from '~/types/api/analytics'
 import type { GetBudgetingRuleRequest, GetBudgetingRuleResponse } from '~/types/api/analytics'
 import { periodOptions } from '~/utils/constant'
