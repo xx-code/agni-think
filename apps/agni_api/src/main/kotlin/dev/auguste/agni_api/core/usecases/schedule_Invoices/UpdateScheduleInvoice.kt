@@ -14,25 +14,25 @@ class UpdateScheduleInvoice(
 ): IUseCase<UpdateScheduleInvoiceInput, Unit> {
 
     override fun execAsync(input: UpdateScheduleInvoiceInput) {
-        val scheduleInvoice = scheduleInvoiceRepo.get(input.id) ?: throw Error("Schedule Invoice not found")
+        val scheduleInvoice = scheduleInvoiceRepo.get(input.id) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Schedule Invoice not found")
 
         if (input.name != null) {
             if (input.name != scheduleInvoice.title && scheduleInvoiceRepo.existsByName(input.name))
-                throw Error("Schedule Invoice with name ${input.name} already exists")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Schedule Invoice with name ${input.name} already exists")
 
             scheduleInvoice.title = input.name
         }
 
         if (input.accountId != null) {
             if (invoiceDependencies.accountRepo.get(input.accountId) == null)
-                throw Error("Account not found")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Account not found")
 
             scheduleInvoice.accountId = input.accountId
         }
 
         if (!scheduleInvoice.isFreeze && input.categoryId != null) {
             if (invoiceDependencies.categoryRepo.get(input.categoryId) == null)
-                throw Error("Category not found")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Category not found")
 
             scheduleInvoice.categoryId = input.categoryId
         }
@@ -43,12 +43,12 @@ class UpdateScheduleInvoice(
 
         if (!scheduleInvoice.isFreeze && input.tagIds != null) {
             if (invoiceDependencies.tagRepo.getManyByIds(input.tagIds).size != input.tagIds.size)
-                throw Error("Tags not found")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Tags not found")
         }
 
         if (input.amount != null) {
             if (input.amount < 0)
-                throw Error("Amount must be greater than 0")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Amount must be greater than 0")
             scheduleInvoice.amount = input.amount
         }
 

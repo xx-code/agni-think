@@ -5,6 +5,7 @@ import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.budgets.dto.CreateBudgetInput
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
@@ -15,11 +16,11 @@ class CreateBudget(
 ): IUseCase<CreateBudgetInput, CreatedOutput> {
     override fun execAsync(input: CreateBudgetInput): CreatedOutput {
         if (budgetRepo.existsByName(input.title))
-            throw Error("Budget name already exists")
+            throw DomainException.AlreadyExist.Budget(input.title)
 
         if (input.saveGoalIds.isNotEmpty()) {
-            if (input.saveGoalIds.size != savingGoalRepo.getManyByIds(input.saveGoalIds).size)
-                throw Error("Saving goals do not match; some saving goal not exists")
+                if (input.saveGoalIds.size != savingGoalRepo.getManyByIds(input.saveGoalIds).size)
+                throw DomainException.BusinessLogic.SavingGoalsDoNotMatch()
         }
 
         val newBudget = Budget(

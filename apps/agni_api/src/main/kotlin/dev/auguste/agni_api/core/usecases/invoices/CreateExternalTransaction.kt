@@ -24,7 +24,7 @@ class CreateExternalTransaction(
 
     override fun execAsync(input: UUID): BackgroundTaskOut {
         try {
-            val trans = externalTransactionRepo.get(input) ?: throw Error("External transaction not found")
+            val trans = externalTransactionRepo.get(input) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("External transaction not found")
 
             val docTrans = """
                 accountId=${trans.accountId};

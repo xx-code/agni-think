@@ -13,11 +13,11 @@ class UpdateSavingGoal(
 ): IUseCase<UpdateSavingGoalInput, Unit> {
 
     override fun execAsync(input: UpdateSavingGoalInput) {
-        val savingGoal = savingGoalRepo.get(input.id) ?: throw Error("Saving goal not found")
+        val savingGoal = savingGoalRepo.get(input.id) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Saving goal not found")
 
         if (input.title != null) {
             if (input.title != savingGoal.title && savingGoalRepo.existsByName(input.title))
-                throw Error("Saving goal '${input.title}' already exists")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Saving goal '${input.title}' already exists")
         }
 
         if (input.target != null)
@@ -44,7 +44,7 @@ class UpdateSavingGoal(
 
         if (input.accountId != null) {
             if (accountRepo.get(input.accountId) == null)
-                throw Error("Account not found")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Account not found")
 
             savingGoal.accountId = input.accountId
         }

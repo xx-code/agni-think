@@ -18,6 +18,7 @@ import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTr
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 import dev.auguste.agni_api.core.value_objects.InvoiceDeduction
 import java.util.UUID
+import dev.auguste.agni_api.core.entities.DomainException
 
 class UpdateInvoice(
     private val invoiceRepo: IRepository<Invoice>,
@@ -31,17 +32,17 @@ class UpdateInvoice(
         input: UpdateInvoiceInput
     ) {
         unitOfWork.execute {
-            val invoice = invoiceRepo.get(input.id) ?: throw Error("Invoice ${input.id} not found")
+            val invoice = invoiceRepo.get(input.id) ?: throw DomainException.NotFound.Invoice(input.id.toString())
 
             val internalLoans = invoiceDependencies.internalLoanRepo.getAll(QueryFilter(queryAll = true),
                 QueryInternalLoanExtend(invoiceId = invoice.id)
             )
             if (internalLoans.items.isNotEmpty())
-                throw Error("Invoice ${invoice.id} is Linked to loan this can be updated")
+                throw DomainException.BusinessLogic.Validation("Invoice ${invoice.id} is Linked to loan this can be updated")
 
             if (input.accountId != null) {
                 if (invoiceDependencies.accountRepo.get(input.accountId) == null)
-                    throw Error("Account ${input.accountId} not found")
+                    throw DomainException.NotFound.Account(input.accountId)
 
                 invoice.accountId = input.accountId
             }

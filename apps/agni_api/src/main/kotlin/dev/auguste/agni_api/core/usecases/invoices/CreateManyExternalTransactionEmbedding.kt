@@ -26,7 +26,7 @@ class CreateManyExternalTransactionEmbedding(
         try {
             val transactions = externalTransactionRepo.getManyByIds(input.toSet())
             if (transactions.size != input.size)
-                throw Error("Some External transactions not found")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Some External transactions not found")
 
             val documents = transactions.map { trans ->
                 EmbeddingDocument(

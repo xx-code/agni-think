@@ -15,8 +15,7 @@ class CreateBankRegister(
     override fun execAsync(input: CreateBankRegisterInput): CreatedOutput {
         val accounts = accountRepo.getManyByIds(input.accounts.map { it.accountId }.toSet())
         if (accounts.size != input.accounts.size)
-            throw Error("SOME_ACCOUNTS_NOT_FOUND")
-
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.SomeAccountsNotFound()
         val newBankRegister = BankRegister(
             title = input.title,
             accessCode = input.accessCode,

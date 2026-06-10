@@ -10,7 +10,7 @@ class UpdateSnapshotFromPatrimony(
 ): IUseCase<UpdateSnapshotFromPatrimonyInput, Unit> {
 
     override fun execAsync(input: UpdateSnapshotFromPatrimonyInput) {
-        val snapshot = snapshotRepo.get(input.id) ?: throw Error("No snapshot  found")
+        val snapshot = snapshotRepo.get(input.id) ?: throw dev.auguste.agni_api.core.entities.DomainException.NotFound.Snapshot(input.id.toString())
 
         if (input.balance != null)
             snapshot.currentBalanceObserved = input.balance

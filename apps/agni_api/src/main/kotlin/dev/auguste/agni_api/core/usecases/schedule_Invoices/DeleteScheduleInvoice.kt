@@ -11,7 +11,7 @@ class DeleteScheduleInvoice(
 ): IUseCase<DeleteScheduleInvoiceInput, Unit> {
     override fun execAsync(input: DeleteScheduleInvoiceInput) {
         if (scheduleInvoiceRepo.get(input.scheduleInvoiceId) == null)
-            throw Error("Schedule invoices not found")
+            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Schedule invoices not found")
 
         scheduleInvoiceRepo.delete(input.scheduleInvoiceId)
     }

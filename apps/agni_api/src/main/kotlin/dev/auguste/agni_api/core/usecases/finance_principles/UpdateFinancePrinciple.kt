@@ -9,11 +9,11 @@ class UpdateFinancePrinciple(
     private val financePrincipleRepo: IRepository<FinancePrinciple>
 ): IUseCase<UpdateFinancePrincipleInput, Unit> {
     override fun execAsync(input: UpdateFinancePrincipleInput) {
-        val financePrinciple = financePrincipleRepo.get(input.id) ?: throw Error("FinancePrinciple ${input.id} does not exist")
+        val financePrinciple = financePrincipleRepo.get(input.id) ?: throw dev.auguste.agni_api.core.entities.DomainException.NotFound.FinancePrinciple(input.id.toString())
 
         if (input.name != null) {
             if (input.name != financePrinciple.name && financePrincipleRepo.existsByName(input.name))
-                throw Error("FinancePrinciple ${input.name} already exists")
+                throw dev.auguste.agni_api.core.entities.DomainException.AlreadyExist.FinancePrinciple(input.name)
 
             financePrinciple.name = input.name
         }
@@ -26,7 +26,7 @@ class UpdateFinancePrinciple(
 
         if (input.strictness != null) {
             if (input.strictness !in 1..10)
-                throw Error("Finance principle name must be between 1 and 10.")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Finance principle name must be between 1 and 10.")
 
             financePrinciple.strictness = input.strictness
         }

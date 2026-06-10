@@ -9,7 +9,7 @@ class DeleteFinancePrinciple(
     private val financePrincipleRepo: IRepository<FinancePrinciple>
 ) : IUseCase<DeleteFinancePrincipleInput, Unit> {
     override fun execAsync(input: DeleteFinancePrincipleInput) {
-        financePrincipleRepo.get(input.principalId) ?: throw Error("FinancePrinciple ${input.principalId} not found")
+        financePrincipleRepo.get(input.principalId) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("FinancePrinciple ${input.principalId} not found")
 
         financePrincipleRepo.delete(input.principalId)
     }

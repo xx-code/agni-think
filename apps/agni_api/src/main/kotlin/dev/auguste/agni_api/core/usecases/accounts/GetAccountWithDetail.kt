@@ -10,11 +10,11 @@ import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.accounts.dto.GetAccountWithDetailOutput
 import dev.auguste.agni_api.core.usecases.accounts.dto.mapperAccountDetailOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.GetInvoice
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
 import java.util.UUID
+import dev.auguste.agni_api.core.entities.DomainException
 
 class GetAccountWithDetail(
     private val accountRepo: IRepository<Account>,
@@ -24,7 +24,7 @@ class GetAccountWithDetail(
     private val getInvoice: IUseCase<UUID, GetInvoiceOutput>
 ): IUseCase<UUID, GetAccountWithDetailOutput> {
     override fun execAsync(input: UUID): GetAccountWithDetailOutput {
-        val account = accountRepo.get(input) ?: throw Error("Account not found")
+        val account = accountRepo.get(input) ?: throw DomainException.NotFound.Account(input)
         val internalLoans = internalLoanRepo.getAll(QueryFilter(queryAll = true), QueryInternalLoanExtend(fundSourceId = input))
         var currentLoanBalance = 0.0
         if (internalLoans.items.isNotEmpty()) {

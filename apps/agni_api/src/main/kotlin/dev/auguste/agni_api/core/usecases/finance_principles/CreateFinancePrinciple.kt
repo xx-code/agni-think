@@ -11,10 +11,10 @@ class CreateFinancePrinciple(
 ) : IUseCase<CreateFinancePrincipleInput, CreatedOutput> {
     override fun execAsync(input: CreateFinancePrincipleInput): CreatedOutput {
         if (financePrincipleRepo.existsByName(input.name))
-            throw Error("Finance principle already exists.")
+            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Finance principle already exists.")
 
         if (input.strictness !in 1..10)
-            throw Error("Finance principle name must be between 1 and 10.")
+            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Finance principle name must be between 1 and 10.")
 
         val newFinancePrinciple = FinancePrinciple(
             name = input.name,

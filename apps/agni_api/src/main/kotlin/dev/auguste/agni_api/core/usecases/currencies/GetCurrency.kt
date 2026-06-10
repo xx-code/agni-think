@@ -4,11 +4,12 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Currency
 import dev.auguste.agni_api.core.usecases.currencies.dto.GetCurrencyOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.entities.DomainException
 import java.util.UUID
 
 class GetCurrency(private val currencyRepo: IRepository<Currency>): IUseCase<UUID, GetCurrencyOutput> {
     override fun execAsync(input: UUID): GetCurrencyOutput {
-        val currency = currencyRepo.get(input) ?: throw Error("Currency not found")
+        val currency = currencyRepo.get(input) ?: throw DomainException.NotFound.Currency(input.toString())
 
         return GetCurrencyOutput(
             id = currency.id,

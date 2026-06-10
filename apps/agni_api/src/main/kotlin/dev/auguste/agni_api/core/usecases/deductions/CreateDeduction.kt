@@ -4,13 +4,14 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Deduction
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.deductions.dto.CreateDeductionInput
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
 class CreateDeduction(private val deductionRepo: IRepository<Deduction>): IUseCase<CreateDeductionInput, CreatedOutput> {
 
     override fun execAsync(input: CreateDeductionInput): CreatedOutput {
         if (deductionRepo.existsByName(input.title))
-            throw Error("Deduction name already exists")
+            throw DomainException.AlreadyExist.Deduction(input.title)
 
         val newDeduction = Deduction(
             title = input.title,

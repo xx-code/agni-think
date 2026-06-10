@@ -19,7 +19,7 @@ class GetBudget(
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
 ) : IUseCase<UUID, GetBudgetOutput> {
     override fun execAsync(input: UUID): GetBudgetOutput {
-        val budget = budgetRepo.get(input) ?: throw Error("Saving goal id ${input}")
+        val budget = budgetRepo.get(input) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Saving goal id ${input}")
 
         val startDate = budget.scheduler.downgradeDate()
         val endDate = budget.scheduler.upgradeDate()

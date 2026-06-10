@@ -13,11 +13,11 @@ class UpdateBudget(
     private val savingGoalRepo: IRepository<SavingGoal>
 ): IUseCase<UpdateBudgetInput, Unit> {
     override fun execAsync(input: UpdateBudgetInput) {
-        val budget = budgetRepo.get(input.id) ?: throw Error("Budget ID ${input.id} not found")
+        val budget = budgetRepo.get(input.id) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Budget ID ${input.id} not found")
 
         if (input.title != null) {
             if (input.title != budget.title && budgetRepo.existsByName(input.title))
-                throw Error("Budget title ${input.title} already exists")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Budget title ${input.title} already exists")
 
             budget.title = input.title
         }
@@ -28,7 +28,7 @@ class UpdateBudget(
 
         if (!input.savingGoalIds.isNullOrEmpty()) {
             if (input.savingGoalIds != savingGoalRepo.getManyByIds(input.savingGoalIds))
-                throw Error("Saving goal ids ${input.savingGoalIds} not found")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Saving goal ids ${input.savingGoalIds} not found")
 
             budget.targetSavingGoalIds = input.savingGoalIds.toMutableSet()
         }

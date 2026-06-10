@@ -12,7 +12,7 @@ class GetScheduleInvoice(
 ): IUseCase<UUID, GetScheduleInvoiceOutput> {
 
     override fun execAsync(input: UUID): GetScheduleInvoiceOutput {
-        val scheduleInvoice = scheduleInvoiceRepo.get(input) ?: throw Error("Invoice not found")
+        val scheduleInvoice = scheduleInvoiceRepo.get(input) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Invoice not found")
 
         return GetScheduleInvoiceOutput(
             id = scheduleInvoice.id,

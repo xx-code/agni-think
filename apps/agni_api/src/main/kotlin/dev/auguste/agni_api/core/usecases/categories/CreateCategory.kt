@@ -10,7 +10,7 @@ class CreateCategory(private val categoryRepo: IRepository<Category>): IUseCase<
 
     override fun execAsync(input: CreateCategoryInput): CreatedOutput {
         if (categoryRepo.existsByName(input.title))
-            throw Error("Category title already exists")
+            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Category title already exists")
 
         val newCategory = Category(
             title = input.title,

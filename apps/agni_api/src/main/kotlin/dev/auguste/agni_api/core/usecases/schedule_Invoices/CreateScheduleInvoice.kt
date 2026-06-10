@@ -17,23 +17,23 @@ class CreateScheduleInvoice(
 ): IUseCase<CreateScheduleInvoiceInput, CreatedOutput> {
     override fun execAsync(input: CreateScheduleInvoiceInput): CreatedOutput {
         if (scheduleInvoiceRepo.existsByName(input.name))
-            throw Error("Account with name ${input.name} already exists")
+            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Account with name ${input.name} already exists")
 
         if (invoiceDependencies.accountRepo.get(input.accountId) == null)
-            throw Error("Account not found")
+            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Account not found")
 
         if (input.isFreeze == false && input.categoryId == null)
-            throw Error("Category Id must be defined if is not a freeze transaction")
+            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Category Id must be defined if is not a freeze transaction")
 
         if (input.isFreeze == false && input.type == null)
-            throw Error("Type ${input.type} not defined")
+            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Type ${input.type} not defined")
 
         if (input.isFreeze == false && input.categoryId != null && invoiceDependencies.categoryRepo.get(input.categoryId) == null)
-            throw Error("Category not found")
+            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Category not found")
 
         if (input.isFreeze == false && input.tagIds.isNotEmpty()) {
             if (invoiceDependencies.tagRepo.getManyByIds(input.tagIds).size != input.tagIds.size)
-                throw Error("Tags not found")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Tags not found")
         }
 
         var categoryId = FREEZE_CATEGORY_ID

@@ -10,7 +10,7 @@ class GetFinancePrinciple(
     private val financePrincipleRepo: IRepository<FinancePrinciple>
 ) : IUseCase<UUID, GetFinancePrincipleOutput> {
     override fun execAsync(input: UUID): GetFinancePrincipleOutput {
-        val financePrinciple = financePrincipleRepo.get(input) ?: throw Error("FinancePrinciple $input not found")
+        val financePrinciple = financePrincipleRepo.get(input) ?: throw dev.auguste.agni_api.core.entities.DomainException.NotFound.FinancePrinciple(input.toString())
 
         return GetFinancePrincipleOutput(
             id = financePrinciple.id,

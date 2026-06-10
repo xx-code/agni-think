@@ -3,6 +3,7 @@ package dev.auguste.agni_api.core.usecases.accounts
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.Currency
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.accounts.dto.CreateAccountInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -15,14 +16,14 @@ class CreateAccount(
     override fun execAsync(input: CreateAccountInput): CreatedOutput {
 
         if (accountRepository.existsByName(input.title))
-            throw Error("Account with name ${input.title} already exists")
+            throw DomainException.AlreadyExist.Account(input.title)
 
         if (input.currencyId != null)
             if (currencyRepository.get(input.currencyId) == null)
-                throw Error("Currency ID ${input.currencyId} already exists")
+                throw DomainException.NotFound.Currency(input.currencyId.toString())
 
         if (input.initBalance < 0)
-            throw Error("Balance must be greater than zero")
+            throw DomainException.BusinessLogic.Validation("Balance must be greater than zero")
 
         val newAccount = Account(
             title = input.title,

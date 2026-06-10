@@ -7,6 +7,7 @@ import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
 import dev.auguste.agni_api.core.entities.enums.PatrimonySnapshotStatusType
 import dev.auguste.agni_api.core.usecases.CreatedOutput
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.CreatePatrimonyInput
 import java.time.LocalDate
@@ -21,11 +22,11 @@ class CreatePatrimony(
     override fun execAsync(input: CreatePatrimonyInput): CreatedOutput {
         return unitOfWork.execute {
             if (patrimonyRepo.existsByName(input.title))
-                throw Error("Patrimony name already exists")
+                throw DomainException.AlreadyExist.Patrimony(input.title)
 
             if (input.accountIds.isNotEmpty())
                 if (this.accountRepo.getManyByIds(input.accountIds).size != input.accountIds.size)
-                    throw Error("Not all accounts are found")
+                    throw DomainException.BusinessLogic.NotAllAccountsFound()
 
             val newPatrimony = Patrimony(
                 title = input.title,

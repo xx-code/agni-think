@@ -23,7 +23,7 @@ class AddExternalTransaction(
         ))
 
         if (externalTransactions.items.isNotEmpty())
-            throw Error("External transactions Already Exists")
+            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("External transactions Already Exists")
 
         val newExternalTransaction = ExternalTransaction(
             accountId = input.accountId,

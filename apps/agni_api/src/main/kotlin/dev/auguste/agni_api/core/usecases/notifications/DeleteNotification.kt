@@ -9,7 +9,7 @@ import java.util.UUID
 class DeleteNotification(private val notificationRepo: IRepository<Notification>): IUseCase<DeleteNotificationInput, Unit> {
 
     override fun execAsync(input: DeleteNotificationInput) {
-        notificationRepo.get(input.notificationId) ?: throw Error("Notification ${input.notificationId} not found")
+        notificationRepo.get(input.notificationId) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Notification ${input.notificationId} not found")
 
         notificationRepo.delete(input.notificationId)
     }

@@ -9,7 +9,7 @@ class DeleteProvisionable(
     private val provisionRepo: IRepository<Provision>,
 ): IUseCase<DeleteProvisionInput, Unit> {
     override fun execAsync(input: DeleteProvisionInput) {
-        provisionRepo.get(input.provisionableId) ?: throw Error("Provisionable Not Found")
+        provisionRepo.get(input.provisionableId) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Provisionable Not Found")
 
         provisionRepo.delete(input.provisionableId)
     }

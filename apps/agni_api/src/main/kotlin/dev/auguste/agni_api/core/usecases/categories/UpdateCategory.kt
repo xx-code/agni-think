@@ -8,11 +8,11 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 class UpdateCategory(private val categoryRepo: IRepository<Category>): IUseCase<UpdateCategoryInput, Unit> {
 
     override fun execAsync(input: UpdateCategoryInput) {
-        val category = categoryRepo.get(input.id) ?: throw Error("Category ${input.id} not found")
+        val category = categoryRepo.get(input.id) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Category ${input.id} not found")
 
         if (input.title != null) {
             if (input.title != category.title && categoryRepo.existsByName(input.title))
-                throw Error("Category ${input.title} already exists")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Category ${input.title} already exists")
 
             category.title = input.title
         }

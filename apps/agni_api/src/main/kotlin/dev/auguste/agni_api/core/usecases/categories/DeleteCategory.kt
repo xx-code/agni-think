@@ -9,7 +9,7 @@ import java.util.UUID
 class DeleteCategory(private val categoryRepo: IRepository<Category>): IUseCase<DeleteCategoryInput, Unit> {
 
     override fun execAsync(input: DeleteCategoryInput) {
-        categoryRepo.get(input.categoryId)?: throw Error("Category $input not found")
+        categoryRepo.get(input.categoryId)?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Category $input not found")
 
         categoryRepo.delete(input.categoryId)
     }

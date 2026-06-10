@@ -33,19 +33,19 @@ class CreateInvoice(
     }
 
     override fun execInnerAsync(input: CreateInvoiceInput): CreatedOutput {
-        val account = invoiceDependencies.accountRepo.get(input.accountId) ?: throw Error("Account ID ${input.accountId} not found")
+        val account = invoiceDependencies.accountRepo.get(input.accountId) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Account ID ${input.accountId} not found")
 
         if (input.transactions.isEmpty())
-            throw Error("Transactions cannot be empty")
+            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Transactions cannot be empty")
 
         var deductions = listOf<Deduction>()
         if (input.deductions.isNotEmpty()) {
             if (input.deductions.any { it.amount < 0})
-                throw Error("Deduction cannot be negative")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Deduction cannot be negative")
 
             deductions = invoiceDependencies.deductionRepo.getManyByIds(input.deductions.map { it.deductionId}.toSet())
             if (input.deductions.size != deductions.size)
-                throw Error("Deductions cannot be empty")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Deductions cannot be empty")
         }
 
 
@@ -62,15 +62,15 @@ class CreateInvoice(
         var totalBeforeDeduction = 0.0
         input.transactions.forEach { transaction ->
             if (invoiceDependencies.categoryRepo.get(transaction.categoryId) == null)
-                throw Error("Category ${transaction.categoryId} not found")
+                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Category ${transaction.categoryId} not found")
 
             if (transaction.tagIds.isNotEmpty())
                 if (transaction.tagIds.size != invoiceDependencies.tagRepo.getManyByIds(transaction.tagIds).size)
-                    throw Error("Tags not found")
+                    throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Tags not found")
 
             if (transaction.budgetIds.isNotEmpty())
                 if (transaction.budgetIds.size != invoiceDependencies.budgetRepo.getManyByIds(transaction.budgetIds).size)
-                    throw Error("Budget not found")
+                    throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Budget not found")
 
             val newTransaction = Transaction(
                 invoiceId = newInvoice.id,

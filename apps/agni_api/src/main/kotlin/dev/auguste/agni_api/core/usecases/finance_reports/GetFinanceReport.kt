@@ -12,7 +12,7 @@ class GetFinanceReport(
     private val financeReportRepo: IRepository<FinanceReport>
 ): IUseCase<GetFinanceReportInput, GetFinanceReportOutput> {
     override fun execAsync(input: GetFinanceReportInput): GetFinanceReportOutput {
-        val report: FinanceReport = financeReportRepo.get(input.id) ?: throw Error("Report not found")
+        val report: FinanceReport = financeReportRepo.get(input.id) ?: throw dev.auguste.agni_api.core.entities.DomainException.NotFound.FinanceReport(input.id.toString())
 
         return GetFinanceReportOutput(
             id = report.id,

@@ -24,19 +24,19 @@ class DeleteSavingGoal(
 ): IUseCase<DeleteSavingGoalInput, Unit> {
     override fun execAsync(input: DeleteSavingGoalInput) {
         unitOfWork.execute {
-            val savingGoal = savingGoalRepo.get(input.savingGoalId) ?: throw Error("Could not find saving goal")
+            val savingGoal = savingGoalRepo.get(input.savingGoalId) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Could not find saving goal")
 
             val accountId = if (savingGoal.accountId == null) {
                 if (input.accountId == null)
-                    throw Error("Account ID must be non-null.")
+                    throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Account ID must be non-null.")
                 input.accountId
             } else {
                 if (input.accountId != null && input.accountId != savingGoal.accountId)
-                    throw Error("Account ID Must be same as saving accountId.")
+                    throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Account ID Must be same as saving accountId.")
                 savingGoal.accountId!!
             }
 
-            accountRepo.get(accountId) ?: throw Error("Account not found.")
+            accountRepo.get(accountId) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Account not found.")
 
             createInvoice.execInnerAsync(CreateInvoiceInput(
                 accountId = accountId,

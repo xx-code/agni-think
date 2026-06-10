@@ -15,7 +15,7 @@ class GetInvoice(
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>
 ): IUseCase<UUID, GetInvoiceOutput> {
     override fun execAsync(input: UUID): GetInvoiceOutput {
-        val invoice = invoiceRepo.get(input) ?: throw Error("Invoice with id $input not found")
+        val invoice = invoiceRepo.get(input) ?: throw dev.auguste.agni_api.core.entities.DomainException.NotFound.Invoice(input.toString())
 
         val invoiceTransactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
             invoiceIds = setOf(invoice.id),
@@ -27,7 +27,7 @@ class GetInvoice(
         ))
 
         if (invoiceTransactions.isEmpty())
-            throw Error("Invoice with id $input not Transactions")
+            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Invoice with id $input not Transactions")
 
 
         return GetInvoiceOutput(

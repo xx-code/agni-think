@@ -7,6 +7,7 @@ import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryPatrimo
 import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.DeletePatrimonyInput
 import java.util.UUID
 
@@ -17,7 +18,7 @@ class DeletePatrimony(
 
     override fun execAsync(input: DeletePatrimonyInput) {
         unitOfWork.execute {
-            patrimonyRepo.get(input.patrimonyId) ?: throw Error("Patrimony not found")
+            patrimonyRepo.get(input.patrimonyId) ?: throw DomainException.NotFound.Patrimony(input.patrimonyId.toString())
 
             patrimonySnapshotRepo.getAll(query = QueryFilter(0, 0, true), QueryPatrimonySnapshotExtend(setOf(input.patrimonyId)))
 

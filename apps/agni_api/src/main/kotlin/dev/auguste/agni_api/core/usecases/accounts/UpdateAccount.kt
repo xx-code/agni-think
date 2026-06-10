@@ -2,17 +2,18 @@ package dev.auguste.agni_api.core.usecases.accounts
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.accounts.dto.UpdateAccountInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
 class UpdateAccount(private val accountRepo: IRepository<Account>): IUseCase<UpdateAccountInput, Unit> {
 
     override fun execAsync(input: UpdateAccountInput) {
-        val account = accountRepo.get(input.id) ?: throw Error("Account ${input.id} not found")
+        val account = accountRepo.get(input.id) ?: throw DomainException.NotFound.Account(input.id)
 
         if (input.title != null) {
             if (input.title != account.title && accountRepo.existsByName(input.title))
-                throw Error("Account ${input.title} already exists")
+                throw DomainException.AlreadyExist.Account(input.title)
 
             account.title = input.title
         }

@@ -13,7 +13,7 @@ class AddSnapshotToPatrimony(
 ): IUseCase<AddSnapshotToPatrimonyInput, CreatedOutput> {
 
     override fun execAsync(input: AddSnapshotToPatrimonyInput): CreatedOutput {
-        patrimonyRepo.get(input.patrimonyId) ?: throw Error("Patrimony not found")
+        patrimonyRepo.get(input.patrimonyId) ?: throw dev.auguste.agni_api.core.entities.DomainException.NotFound.Patrimony(input.patrimonyId.toString())
 
         val snapShot = PatrimonySnapshot(
             patrimonyId = input.patrimonyId,

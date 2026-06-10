@@ -9,7 +9,7 @@ import java.util.UUID
 class GetCategory(private val categoryRepo: IRepository<Category>): IUseCase<UUID, GetCategoryOutput> {
 
     override fun execAsync(input: UUID): GetCategoryOutput {
-        val category = categoryRepo.get(input)?: throw Error("Category $input not found")
+        val category = categoryRepo.get(input)?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Category $input not found")
 
         return GetCategoryOutput(
             id = category.id,

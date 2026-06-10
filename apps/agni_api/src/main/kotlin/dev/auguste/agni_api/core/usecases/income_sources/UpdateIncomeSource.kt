@@ -4,6 +4,7 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.IncomeSource
 import dev.auguste.agni_api.core.usecases.income_sources.dto.UpdateIncomeSourceInput
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
 class UpdateIncomeSource(
@@ -11,11 +12,11 @@ class UpdateIncomeSource(
     private val accountRepo: IRepository<Account>
 ) : IUseCase<UpdateIncomeSourceInput, Unit> {
     override fun execAsync(input: UpdateIncomeSourceInput) {
-        val incomeSource = incomeSourceRepo.get(input.id) ?: throw Error("Income source ${input.id} not found")
+        val incomeSource = incomeSourceRepo.get(input.id) ?: throw DomainException.NotFound.IncomeSource(input.id.toString())
 
         if (input.title != null) {
             if (input.title != incomeSource.title && incomeSourceRepo.existsByName(input.title)) {
-                throw Error("Income source ${input.title} already exists")
+                throw DomainException.AlreadyExist.IncomeSource(input.title)
             }
 
             incomeSource.title = input.title
@@ -41,7 +42,7 @@ class UpdateIncomeSource(
 
         if (input.linkedAccountId != null) {
             if (accountRepo.get(input.linkedAccountId) == null)
-                throw Error("Account ${input.linkedAccountId} not found")
+                throw DomainException.NotFound.Account(input.linkedAccountId)
 
             incomeSource.linkedAccountId = input.linkedAccountId
         }
@@ -51,7 +52,7 @@ class UpdateIncomeSource(
 
         if (input.reliabilityLevel != null) {
             if (input.reliabilityLevel !in 0..100)
-                throw Error("The reliability level must be between 0 and 100.")
+                throw DomainException.BusinessLogic.InvalidReliabilityLevel(input.reliabilityLevel)
 
             incomeSource.reliabilityLevel = input.reliabilityLevel
         }
