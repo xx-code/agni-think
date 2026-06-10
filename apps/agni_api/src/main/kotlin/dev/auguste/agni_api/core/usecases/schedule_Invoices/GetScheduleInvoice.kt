@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.usecases.schedule_Invoices
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.GetScheduleInvoiceOutput
@@ -12,7 +13,7 @@ class GetScheduleInvoice(
 ): IUseCase<UUID, GetScheduleInvoiceOutput> {
 
     override fun execAsync(input: UUID): GetScheduleInvoiceOutput {
-        val scheduleInvoice = scheduleInvoiceRepo.get(input) ?: throw Error("Invoice not found")
+        val scheduleInvoice = scheduleInvoiceRepo.get(input) ?: throw DomainException.NotFound.ScheduleInvoice(input)
 
         return GetScheduleInvoiceOutput(
             id = scheduleInvoice.id,

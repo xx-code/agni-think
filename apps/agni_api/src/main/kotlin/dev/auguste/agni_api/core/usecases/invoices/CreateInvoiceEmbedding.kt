@@ -14,6 +14,7 @@ import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
 import java.util.UUID
 
@@ -49,7 +50,7 @@ class CreateInvoiceEmbedding(
             val budgets = budgetRepo.getManyByIds(invoice.transactions.flatMap { it.budgetIds }.toSet())
 
             if (invoice.transactions.isEmpty())
-                throw Error("Transactions must not be empty")
+                throw DomainException.BusinessLogic.TransactionsMustNotBeEmpty()
 
             val transactionStr = invoice.transactions.joinToString("\n") { trans ->
                 val tagStr = trans.tagIds.joinToString(", ") { getTag(it, tags) } ?: "none"

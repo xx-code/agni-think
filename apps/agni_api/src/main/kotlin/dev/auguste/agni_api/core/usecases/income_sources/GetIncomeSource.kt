@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.usecases.income_sources
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.IncomeSource
 import dev.auguste.agni_api.core.usecases.income_sources.dto.GetIncomeSourceOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -10,7 +11,7 @@ class GetIncomeSource(
     private val incomeSourceRepo: IRepository<IncomeSource>,
 ) : IUseCase<UUID, GetIncomeSourceOutput> {
     override fun execAsync(input: UUID): GetIncomeSourceOutput {
-        val incomeSource = incomeSourceRepo.get(input) ?: throw IllegalArgumentException("Income source $input not found")
+        val incomeSource = incomeSourceRepo.get(input) ?: throw DomainException.NotFound.IncomeSource(input)
 
         return GetIncomeSourceOutput(
             id = incomeSource.id,

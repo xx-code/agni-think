@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.usecases.schedule_Invoices
 
 import dev.auguste.agni_api.core.FREEZE_CATEGORY_ID
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.usecases.CreatedOutput
@@ -17,23 +18,23 @@ class CreateScheduleInvoice(
 ): IUseCase<CreateScheduleInvoiceInput, CreatedOutput> {
     override fun execAsync(input: CreateScheduleInvoiceInput): CreatedOutput {
         if (scheduleInvoiceRepo.existsByName(input.name))
-            throw Error("Account with name ${input.name} already exists")
+            throw DomainException.AlreadyExist.ScheduleInvoice("Account with name ${input.name} already exists")
 
         if (invoiceDependencies.accountRepo.get(input.accountId) == null)
-            throw Error("Account not found")
+            throw DomainException.BusinessLogic.Validation("Account not found")
 
         if (input.isFreeze == false && input.categoryId == null)
-            throw Error("Category Id must be defined if is not a freeze transaction")
+            throw DomainException.BusinessLogic.Validation("Category Id must be defined if is not a freeze transaction")
 
         if (input.isFreeze == false && input.type == null)
-            throw Error("Type ${input.type} not defined")
+            throw DomainException.BusinessLogic.Validation("Type ${input.type} not defined")
 
         if (input.isFreeze == false && input.categoryId != null && invoiceDependencies.categoryRepo.get(input.categoryId) == null)
-            throw Error("Category not found")
+            throw DomainException.NotFound.Category(input.categoryId)
 
         if (input.isFreeze == false && input.tagIds.isNotEmpty()) {
             if (invoiceDependencies.tagRepo.getManyByIds(input.tagIds).size != input.tagIds.size)
-                throw Error("Tags not found")
+                throw DomainException.NotFound.SomeTags(input.tagIds)
         }
 
         var categoryId = FREEZE_CATEGORY_ID
@@ -48,7 +49,7 @@ class CreateScheduleInvoice(
         if (input.schedule.repeater != null)
             repeater = SchedulerRecurrence( period = input.schedule.repeater.period, interval = input.schedule.repeater.interval)
 
-        var newScheduleInvoice = ScheduleInvoice(
+        val newScheduleInvoice = ScheduleInvoice(
             accountId = input.accountId,
             amount = input.amount,
             title = input.description,

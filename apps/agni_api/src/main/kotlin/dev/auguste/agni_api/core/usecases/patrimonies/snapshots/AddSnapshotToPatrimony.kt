@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.usecases.patrimonies.snapshots
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
 import dev.auguste.agni_api.core.usecases.CreatedOutput
@@ -13,7 +14,7 @@ class AddSnapshotToPatrimony(
 ): IUseCase<AddSnapshotToPatrimonyInput, CreatedOutput> {
 
     override fun execAsync(input: AddSnapshotToPatrimonyInput): CreatedOutput {
-        patrimonyRepo.get(input.patrimonyId) ?: throw Error("Patrimony not found")
+        patrimonyRepo.get(input.patrimonyId) ?: throw DomainException.NotFound.Patrimony(input.patrimonyId)
 
         val snapShot = PatrimonySnapshot(
             patrimonyId = input.patrimonyId,

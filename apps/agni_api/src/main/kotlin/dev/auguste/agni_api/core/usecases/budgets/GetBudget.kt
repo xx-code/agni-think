@@ -3,6 +3,7 @@ package dev.auguste.agni_api.core.usecases.budgets
 import dev.auguste.agni_api.core.adapters.dto.ScheduleRepeaterOutput
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Budget
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
@@ -19,7 +20,7 @@ class GetBudget(
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
 ) : IUseCase<UUID, GetBudgetOutput> {
     override fun execAsync(input: UUID): GetBudgetOutput {
-        val budget = budgetRepo.get(input) ?: throw Error("Saving goal id ${input}")
+        val budget = budgetRepo.get(input) ?: throw DomainException.NotFound.Budget(input)
 
         val startDate = budget.scheduler.downgradeDate()
         val endDate = budget.scheduler.upgradeDate()

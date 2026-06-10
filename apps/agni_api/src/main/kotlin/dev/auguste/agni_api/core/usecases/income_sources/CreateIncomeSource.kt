@@ -6,6 +6,7 @@ import dev.auguste.agni_api.core.entities.IncomeSource
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.income_sources.dto.CreateIncomeSourceInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.entities.DomainException
 
 class CreateIncomeSource(
     private val incomeSourceRepo: IRepository<IncomeSource>,
@@ -13,15 +14,15 @@ class CreateIncomeSource(
 ) : IUseCase<CreateIncomeSourceInput, CreatedOutput> {
     override fun execAsync(input: CreateIncomeSourceInput): CreatedOutput {
         if (incomeSourceRepo.existsByName(input.title))
-            throw Error("The income source ${input.title} already exists.")
+            throw DomainException.AlreadyExist.IncomeSource(input.title)
 
         if (input.linkedAccountId != null) {
             if (accountRepo.get(input.linkedAccountId) == null)
-                throw Error("Account ${input.linkedAccountId} does not exist.")
+                throw DomainException.NotFound.Account(input.linkedAccountId)
         }
 
         if (input.reliabilityLevel !in 0..100)
-            throw Error("The reliability level must be between 0 and 100.")
+            throw DomainException.BusinessLogic.InvalidReliabilityLevel(input.reliabilityLevel)
 
         val newIncomeSource = IncomeSource(
             title = input.title,

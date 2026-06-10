@@ -6,6 +6,7 @@ import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.CreateEmbeddingExternalTransEventContent
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryExternalTransactionExtend
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.ExternalTransaction
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -23,7 +24,7 @@ class AddExternalTransaction(
         ))
 
         if (externalTransactions.items.isNotEmpty())
-            throw Error("External transactions Already Exists")
+            throw DomainException.AlreadyExist.AllExternalTransactions()
 
         val newExternalTransaction = ExternalTransaction(
             accountId = input.accountId,

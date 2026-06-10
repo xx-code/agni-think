@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.usecases.internal_loan
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.entities.enums.AccountType
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -12,16 +13,16 @@ class UpdateInternalLoan(
     private val accountRepo: IRepository<Account>,
 ): IUseCase<UpdateInternalLoanInput, Unit> {
     override fun execAsync(input: UpdateInternalLoanInput) {
-        val internalLoan = internalLoanRepo.get(input.id) ?: throw Exception("Internal loan with id ${input.id} not found")
+        val internalLoan = internalLoanRepo.get(input.id) ?: throw DomainException.NotFound.InternalLoan(input.id)
 
         if (input.fundSourceId != null)  {
-            val account = accountRepo.get(input.fundSourceId) ?: throw Exception("Account not found")
+            val account = accountRepo.get(input.fundSourceId) ?: throw DomainException.NotFound.Account(input.fundSourceId)
             val accountType = account.detail.getType()
             if (accountType != AccountType.CHECKING && accountType != AccountType.SAVING)
-                throw  Exception("Account type not allow for loan collateral")
+                throw  DomainException.BusinessLogic.InternalLoanAccountNotAllowForCollateral()
 
             if (account.balance * (0.1) > account.balance)
-                throw Exception("Balance collateral not allowed")
+                throw DomainException.BusinessLogic.Validation("Balance collateral not allowed")
 
             internalLoan.fundSourceId = input.fundSourceId
         }

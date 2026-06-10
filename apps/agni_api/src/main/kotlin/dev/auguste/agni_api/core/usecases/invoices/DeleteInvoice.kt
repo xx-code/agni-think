@@ -8,6 +8,7 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInternalLoanExtend
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Transaction
@@ -36,8 +37,8 @@ class DeleteInvoice(
     }
 
     override fun execInnerAsync(input: DeleteInvoiceInput): Unit {
-        val invoice = invoiceRepo.get(input.invoiceId) ?: throw Exception("Invoice with id ${input.invoiceId} not found")
-        val account = accountRepo.get(invoice.accountId) ?: throw Exception("Account with id ${invoice.accountId} not found")
+        val invoice = invoiceRepo.get(input.invoiceId) ?: throw DomainException.NotFound.Invoice(input.invoiceId)
+        val account = accountRepo.get(invoice.accountId) ?: throw DomainException.NotFound.Account(invoice.accountId)
 
         val invoiceTransactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
             invoiceIds = setOf(invoice.id),

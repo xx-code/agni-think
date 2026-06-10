@@ -6,6 +6,7 @@ import dev.auguste.agni_api.core.adapters.events.contents.CreateEmbeddingExterna
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.ExternalTransaction
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.invoices.dto.TreatAnExternalTransactionInput
 
 class TreatAnExternalTransaction(
@@ -13,9 +14,9 @@ class TreatAnExternalTransaction(
     private val eventRegister: IEventRegister
 ): IUseCase<TreatAnExternalTransactionInput, Unit> {
     override fun execAsync(input: TreatAnExternalTransactionInput) {
-        val externalTransaction = externalTransactionRepo.get(input.transactionId) ?: throw Error("External transaction not found")
+        val externalTransaction = externalTransactionRepo.get(input.transactionId) ?: throw DomainException.NotFound.ExternalTransaction(input.transactionId)
         if (externalTransaction.isTreated)
-            throw Error("Treated transaction already treated")
+            throw DomainException.BusinessLogic.TreatedTransactionAlreadyTreated()
 
         externalTransaction.isTreated = true
         externalTransactionRepo.update(externalTransaction)
