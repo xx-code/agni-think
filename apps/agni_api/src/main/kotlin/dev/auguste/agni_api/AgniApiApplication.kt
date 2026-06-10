@@ -6,11 +6,27 @@ import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.web.servlet.config.annotation.CorsRegistry
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import javax.sql.DataSource
 
 @SpringBootApplication
 @EnableScheduling
 class AgniApiApplication
+
+@Configuration
+class CorsConfig : WebMvcConfigurer {
+    override fun addCorsMappings(registry: CorsRegistry) {
+        // TODO: Get allowed origins
+        registry.addMapping("/**")
+            .allowedOrigins("http://localhost:3000")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .allowedHeaders("*")
+            .exposedHeaders("Authorization")
+            .allowCredentials(true)
+            .maxAge(3600)
+    }
+}
 
 @Configuration
 class FlywayConfig(private val dataSource: DataSource) {

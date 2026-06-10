@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 
 
 @RestController
-@RequestMapping("/v2/internal")
+@RequestMapping("/v2/internals")
 class InternalController {
 
     @GetMapping("/account-type")

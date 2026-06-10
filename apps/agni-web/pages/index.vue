@@ -2,17 +2,15 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { formatBudgetDataForChart } from '~/utils/formatBudgetDataForChart'
 import { getListTime } from '~/utils/getListTime'
-import { fetchAnalyticSavings } from '~/composables/analytics/useSaving'
-import { fetchSpendByCategoriesAnalytic } from '~/composables/analytics/useSpends'
-import { fetchBalanceByPeriod } from '~/composables/invoices/useBalance'
 import type { QueryFilterRequest } from '~/types/api'
 import type { GetSavingAnalysticRequest, GetSpendCategoryRequest } from '~/types/api/analytics'
 import type { GetBalanceResponse, QueryBalanceByPeriod, QueryInvoice } from '~/types/api/transaction'
 import type { SavingAnalysticType } from '~/types/ui/analytics'
-import { fetchCategories } from '~/composables/categories/useCategories'
-import { fetchBudgets } from '~/composables/budgets/useBudgets'
-import { fetchSavingGoals } from '~/composables/goals/useSaveGoals'
-import { fetchInvoicePagination } from '~/composables/invoices/useTransactionPagination'
+import { fetchAnalyticSavings, fetchSpendByCategoriesAnalytic } from '~/composables/api/analytics'
+import { fetchBudgets } from '~/composables/api/budget'
+import { fetchCategories } from '~/composables/api/categories'
+import { fetchSavingGoals } from '~/composables/api/goals'
+import { fetchBalanceByPeriod, fetchInvoicePagination } from '~/composables/api/invoices'
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
 const calendarSelection = reactive<{

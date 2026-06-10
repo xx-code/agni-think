@@ -3,7 +3,7 @@ import * as z from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import type {  EditTransfertType } from '~/types/ui/transaction';
-import { fetchAccounts } from '~/composables/accounts/useAccounts';
+import { fetchAccounts } from '~/composables/api/accounts';
 
 const schema = z.object({
     accountIdFrom: z.string().nonempty('Vous devez selectionner un compte d\'origne'),

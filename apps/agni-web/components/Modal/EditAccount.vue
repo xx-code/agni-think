@@ -2,10 +2,8 @@
 import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { AccountBrokeDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from '~/types/ui/account';
-import { fetchAccountTypes } from '~/composables/internals/useAccountTypes';
-import { fetchManagementAccountTypes } from '~/composables/internals/useManagementAccountTypes';
-import { fetchContributionTypes } from '~/composables/internals/useContributionTypes';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
+import { fetchAccountTypes, fetchManagementAccountTypes, fetchContributionTypes } from '~/composables/api/internal';
 
 const { account } = defineProps<{
     account?: AccountWithDetailType

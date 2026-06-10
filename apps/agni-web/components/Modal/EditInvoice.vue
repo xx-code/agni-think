@@ -4,11 +4,12 @@ import * as z from 'zod';
 import { reactive, shallowRef, computed } from "vue";
 import type { EditInvoiceType, InvoiceType } from '~/types/ui/transaction';
 import type { FormSubmitEvent } from '#ui/types';
-import { fetchCategories } from '~/composables/categories/useCategories';
-import { fetchTags } from '~/composables/tags/useTags';
-import { fetchBudgets } from '~/composables/budgets/useBudgets';
-import { fetchAccounts } from '~/composables/accounts/useAccounts';
-import { fetchTransactionTypes } from '~/composables/internals/useTransactionTypes';
+import { fetchAccounts } from '~/composables/api/accounts';
+import { fetchBudgets } from '~/composables/api/budget';
+import { fetchCategories } from '~/composables/api/categories';
+import { fetchDeductions } from '~/composables/api/deductionType';
+import { fetchTransactionTypes } from '~/composables/api/internal';
+import { fetchTags } from '~/composables/api/tag';
 
 const { invoice, accountSelectedId } = defineProps<{
     invoice?: InvoiceType

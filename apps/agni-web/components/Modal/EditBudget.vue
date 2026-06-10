@@ -3,8 +3,8 @@ import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalize
 import { reactive, shallowRef, ref } from "vue";
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import type { BudgetType, EditBudgetType } from '~/types/ui/budget';
-import { fetchSavingGoals } from '~/composables/goals/useSaveGoals';
-import { fetchPeriodTypes } from '~/composables/internals/usePeriodTypes';
+import { fetchSavingGoals } from '~/composables/api/goals';
+import { fetchPeriodTypes } from '~/composables/api/internal';
 
 const { budget } = defineProps<{
     budget?: BudgetType

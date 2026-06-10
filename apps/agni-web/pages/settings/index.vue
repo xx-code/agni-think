@@ -2,23 +2,18 @@
 import type { NuxtError } from "#app";
 import { ModalEditCategory, ModalEditDeductionType, ModalEditTag, ModalEditFinancePrinciple, ModalEditIncomeSource } from "#components";
 import { getLocalTimeZone } from "@internationalized/date";
-import  { fetchCategories } from "~/composables/categories/useCategories";
-import { fetchCategory } from "~/composables/categories/useCategory";
-import useCreateCategory from "~/composables/categories/useCreateCategory";
-import useUpdateCategory from "~/composables/categories/useUpdateCategory";
-import { createFinancePrinciple, fetchFinancePrinciple, fetchFinancePrinciples, updateFinancePrinciple } from "~/composables/financePrinciples";
-import { createIncomeSource, deleteIncomeSource, fetchIncomeSource, fetchIncomeSources, updateIncomeSource } from "~/composables/incomeSources";
-import { fetchIncomeSourceFrequencyTypes, fetchIncomeSourceTypes, fetchPrincipleType } from "~/composables/internal";
-import useCreateTag from "~/composables/tags/useCreateTag";
-import { fetchTag } from "~/composables/tags/useTag";
-import { fetchTags } from "~/composables/tags/useTags";
-import useUpdateTag from "~/composables/tags/useUpdateTag";
+import { createFinancePrinciple, deleteFinancePrinciple, fetchFinancePrinciple, fetchFinancePrinciples, updateFinancePrinciple } from "~/composables/api/financePrinciples.js";
+import { createIncomeSource, deleteIncomeSource, fetchIncomeSource, fetchIncomeSources, updateIncomeSource } from "~/composables/api/incomeSources.js";
+import { fetchIncomeSourceFrequencyTypes, fetchIncomeSourceTypes, fetchPrincipleType } from "~/composables/api/internal.js";
 import type { CategoryType, EditCategoryType } from "~/types/ui/category";
 import type { DeductionType, EditDeduction } from "~/types/ui/deduction";
 import type { EditFinancePrincipleType, FinancePrincipleType } from "~/types/ui/financePrinciple";
 import type { EditIncomeSourceType, IncomeSourceType } from "~/types/ui/incomeSource";
 import type { EditTagType, TagType } from "~/types/ui/tag";
 import Banking from "./components/Banking.vue";
+import { fetchCategories, useUpdateCategory, useCreateCategory, fetchCategory } from "~/composables/api/categories.js";
+import { fetchDeductions, updateDeduction, createDeduction, fetchDeduction, deleteDeduction } from "~/composables/api/deductionType.js";
+import { fetchTags, useUpdateTag, useCreateTag, fetchTag } from "~/composables/api/tag.js";
 
 const { data: utils } = useAsyncData('', async () => {
     const [ incomeSourceTypes, incomeSourceFrequencyTypes, principleTypes ] = await Promise.all([

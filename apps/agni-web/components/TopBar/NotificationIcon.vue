@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SlideOverNotification } from '#components'
-import { checkNotifications } from '~/composables/notifications/useNotifications'
+import { checkNotifications } from '~/composables/api/notifications'
 
 const overlay = useOverlay()
 const slideOverNotification = overlay.create(SlideOverNotification)

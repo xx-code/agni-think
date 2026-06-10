@@ -1,23 +1,18 @@
 <script setup lang="ts">
 import type { TableColumn, TableRow } from "@nuxt/ui";
-import { fetchAccounts } from "~/composables/accounts/useAccounts";
-import { fetchBudgets } from "~/composables/budgets/useBudgets";
-import { fetchCategories } from "~/composables/categories/useCategories";
-import { fetchTags } from "~/composables/tags/useTags";
-import { fetchInvoicePagination } from "~/composables/invoices/useTransactionPagination";
-import { fetchBalance } from "~/composables/invoices/useBalance";
-import useDeleteTransaction from "~/composables/invoices/useDeleteTransaction";
 import type { EditInvoiceType, InvoiceTableType, InvoiceType, TransactionTableType, TransactionType } from "~/types/ui/transaction";
-import { fetchInvoice } from "~/composables/invoices/useTransaction";
-import useUpdateInvoice from "~/composables/invoices/useUpdateTransaction";
-import useCreateInvoice from "~/composables/invoices/useCreateTransaction";
 import type { FormFilterTransaction } from "~/types/ui/component";
-import useCompleteInvoice from "~/composables/invoices/useCompleteTransaction";
 import { getLocalTimeZone } from "@internationalized/date";
 import type { QueryInvoice } from "~/types/api/transaction";
 import type { QueryFilterRequest } from "~/types/api";
 import { ModalEditInvoice } from "#components";
-import { useTreatInvoiceText } from "~/composables/agents/chat";
+import { fetchAccounts } from "~/composables/api/accounts";
+import { useTreatInvoiceText } from "~/composables/api/agents";
+import { fetchBudgets } from "~/composables/api/budget";
+import { fetchCategories } from "~/composables/api/categories";
+import { fetchDeductions } from "~/composables/api/deductionType";
+import { fetchInvoicePagination, fetchBalance, useUpdateInvoice, useCreateInvoice, fetchInvoice, useCompleteInvoice, useDeleteInvoice } from "~/composables/api/invoices";
+import { fetchTags } from "~/composables/api/tag";
 
 const toast = useToast();
 const { start, stop } = useLoading()
@@ -244,7 +239,7 @@ async function scanNewTransaction() {
 
 
 const onDelete = async (id: string) => {
-    await useDeleteTransaction(id)
+    await useDeleteInvoice(id)
     refresh()
 }
 
