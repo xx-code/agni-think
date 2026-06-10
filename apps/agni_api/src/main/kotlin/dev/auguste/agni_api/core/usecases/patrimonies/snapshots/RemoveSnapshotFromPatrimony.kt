@@ -10,7 +10,7 @@ import java.util.UUID
 class RemoveSnapshotFromPatrimony(private val snapshotRepo: IRepository<PatrimonySnapshot>): IUseCase<RemoveSnapshotFromPatrimonyInput, Unit> {
 
     override fun execAsync(input: RemoveSnapshotFromPatrimonyInput) {
-        snapshotRepo.get(input.snapshotId) ?: throw DomainException.NotFound.Snapshot(input.snapshotId.toString())
+        snapshotRepo.get(input.snapshotId) ?: throw DomainException.NotFound.Snapshot(input.snapshotId)
 
         snapshotRepo.delete(input.snapshotId)
     }

@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.usecases.categories
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Category
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.categories.dto.CreateCategoryInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -10,7 +11,7 @@ class CreateCategory(private val categoryRepo: IRepository<Category>): IUseCase<
 
     override fun execAsync(input: CreateCategoryInput): CreatedOutput {
         if (categoryRepo.existsByName(input.title))
-            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Category title already exists")
+            throw DomainException.AlreadyExist.Category("Category title already exists")
 
         val newCategory = Category(
             title = input.title,

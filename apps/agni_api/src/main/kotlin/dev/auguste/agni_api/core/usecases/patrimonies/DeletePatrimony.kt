@@ -18,7 +18,7 @@ class DeletePatrimony(
 
     override fun execAsync(input: DeletePatrimonyInput) {
         unitOfWork.execute {
-            patrimonyRepo.get(input.patrimonyId) ?: throw DomainException.NotFound.Patrimony(input.patrimonyId.toString())
+            patrimonyRepo.get(input.patrimonyId) ?: throw DomainException.NotFound.Patrimony(input.patrimonyId)
 
             patrimonySnapshotRepo.getAll(query = QueryFilter(0, 0, true), QueryPatrimonySnapshotExtend(setOf(input.patrimonyId)))
 

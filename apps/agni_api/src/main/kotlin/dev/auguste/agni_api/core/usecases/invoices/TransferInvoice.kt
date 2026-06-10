@@ -4,6 +4,7 @@ import dev.auguste.agni_api.core.TRANSFERT_CATEGORY_ID
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Transaction
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
@@ -20,11 +21,11 @@ class TransferInvoice(
 ): IUseCase<TransferInvoiceInput, Unit> {
     override fun execAsync(input: TransferInvoiceInput) {
         unitOfWork.execute {
-            val accountFrom = accountRepo.get(input.accountIdFrom) ?: throw dev.auguste.agni_api.core.entities.DomainException.NotFound.Account(input.accountIdFrom)
-            val accountTo = accountRepo.get(input.accountIdTo) ?: throw dev.auguste.agni_api.core.entities.DomainException.NotFound.Account(input.accountIdTo)
+            val accountFrom = accountRepo.get(input.accountIdFrom) ?: throw DomainException.NotFound.Account(input.accountIdFrom)
+            val accountTo = accountRepo.get(input.accountIdTo) ?: throw DomainException.NotFound.Account(input.accountIdTo)
 
             if (input.amount < 0)
-                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Amount must be non-negative")
+                throw DomainException.BusinessLogic.Validation("Amount must be non-negative")
 
             val invoiceFrom = Invoice(
                 accountId = accountFrom.id,

@@ -12,7 +12,7 @@ class UpdateIncomeSource(
     private val accountRepo: IRepository<Account>
 ) : IUseCase<UpdateIncomeSourceInput, Unit> {
     override fun execAsync(input: UpdateIncomeSourceInput) {
-        val incomeSource = incomeSourceRepo.get(input.id) ?: throw DomainException.NotFound.IncomeSource(input.id.toString())
+        val incomeSource = incomeSourceRepo.get(input.id) ?: throw DomainException.NotFound.IncomeSource(input.id)
 
         if (input.title != null) {
             if (input.title != incomeSource.title && incomeSourceRepo.existsByName(input.title)) {

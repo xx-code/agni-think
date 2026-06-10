@@ -4,6 +4,7 @@ import dev.auguste.agni_api.core.SAVING_CATEGORY_ID
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
@@ -25,28 +26,28 @@ class DecreaseSavingGoal(
 ): IUseCase<DecreaseSavingGoalInput, Unit> {
     override fun execAsync(input: DecreaseSavingGoalInput) {
         unitOfWork.execute {
-            val savingGoal = savingGoalRepo.get(input.savingGoalId) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Could not find saving goal")
+            val savingGoal = savingGoalRepo.get(input.savingGoalId) ?: throw DomainException.NotFound.SavingGoal(input.savingGoalId)
 
             if (input.amount <= 0)
-                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Amount must be greater than zero")
+                throw DomainException.BusinessLogic.Validation("Amount must be greater than zero")
 
             if (savingGoal.balance < input.amount)
-                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Balance must be greater than amount.")
+                throw DomainException.BusinessLogic.Validation("Balance must be greater than amount.")
 
             val accountId = if (savingGoal.accountId == null) {
                 if (input.accountId == null)
-                    throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Account ID must be non-null.")
+                    throw DomainException.BusinessLogic.Validation("Account ID must be non-null.")
                 input.accountId
             } else {
                 if (savingGoal.accountId == null)
-                    throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Account ID Link to saving is null.")
+                    throw DomainException.BusinessLogic.Validation("Account ID Link to saving is null.")
                 savingGoal.accountId!!
             }
 
 
-            val account = accountRepo.get(accountId) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Account not found.")
+            val account = accountRepo.get(accountId) ?: throw DomainException.NotFound.Account(accountId)
             if (account.balance < input.amount)
-                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Balance must be greater than amount.")
+                throw DomainException.BusinessLogic.Validation("Balance must be greater than amount.")
 
             createInvoice.execInnerAsync(CreateInvoiceInput(
                 accountId = accountId,

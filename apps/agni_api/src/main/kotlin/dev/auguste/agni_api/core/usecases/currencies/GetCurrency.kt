@@ -9,7 +9,7 @@ import java.util.UUID
 
 class GetCurrency(private val currencyRepo: IRepository<Currency>): IUseCase<UUID, GetCurrencyOutput> {
     override fun execAsync(input: UUID): GetCurrencyOutput {
-        val currency = currencyRepo.get(input) ?: throw DomainException.NotFound.Currency(input.toString())
+        val currency = currencyRepo.get(input) ?: throw DomainException.NotFound.Currency(input)
 
         return GetCurrencyOutput(
             id = currency.id,

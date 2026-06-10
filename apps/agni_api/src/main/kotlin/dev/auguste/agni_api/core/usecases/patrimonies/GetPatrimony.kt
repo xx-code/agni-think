@@ -25,7 +25,7 @@ class GetPatrimony(
 ) : IUseCase<UUID, GetPatrimonyOutput> {
 
     override fun execAsync(input: UUID): GetPatrimonyOutput {
-        val patrimony = patrimonyRepo.get(input) ?: throw DomainException.NotFound.Patrimony(input.toString())
+        val patrimony = patrimonyRepo.get(input) ?: throw DomainException.NotFound.Patrimony(input)
 
         val snapshots = patrimonySnapshotRepo.getAll(
             QueryFilter(0, 0, true),

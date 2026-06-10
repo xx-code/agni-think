@@ -1,5 +1,6 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
@@ -14,7 +15,7 @@ class GetBalancesByPeriod(
         val results = mutableListOf<GetBalanceOutput>()
 
         if (input.interval <= 0)
-            throw IllegalArgumentException("interval can not be zero")
+        throw DomainException.BusinessLogic.Validation("interval can not be zero")
 
         var current = input.dateFrom
         val end = input.dateTo ?: LocalDateTime.now()

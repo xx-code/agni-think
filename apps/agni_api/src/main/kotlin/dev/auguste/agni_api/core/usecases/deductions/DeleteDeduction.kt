@@ -10,7 +10,7 @@ import java.util.UUID
 class DeleteDeduction(private val deductionRepo: IRepository<Deduction>): IUseCase<DeleteDeductionInput, Unit> {
 
     override fun execAsync(input: DeleteDeductionInput) {
-        deductionRepo.get(input.deductionId) ?: throw DomainException.NotFound.Deduction(input.deductionId.toString())
+        deductionRepo.get(input.deductionId) ?: throw DomainException.NotFound.Deduction(input.deductionId)
 
         deductionRepo.delete(input.deductionId)
     }

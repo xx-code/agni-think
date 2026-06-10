@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.usecases.provisionable
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -11,16 +12,16 @@ class CreateProvisionable(
 ) : IUseCase<CreateProvisionInput, CreatedOutput> {
     override fun execAsync(input: CreateProvisionInput): CreatedOutput {
         if (provisionRepo.existsByName(input.title))
-            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Provisionable already exist")
+            throw DomainException.AlreadyExist.Provisionable(input.title)
 
         if (input.initialCost <= 0)
-            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Provisionable initial doesn't have a cost")
+            throw DomainException.BusinessLogic.Validation("Provisionable initial doesn't have a cost")
 
         if (input.expectedLifespanMonth <= 0)
-            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Provisionable initial doesn't have a life month")
+            throw DomainException.BusinessLogic.Validation("Provisionable initial doesn't have a life month")
 
         if (input.residualValue < 0)
-            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Provisionable residualValue must be greater than 0")
+            throw DomainException.BusinessLogic.Validation("Provisionable residualValue must be greater than 0")
 
         val provision = Provision(
             title = input.title,

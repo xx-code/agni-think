@@ -20,7 +20,7 @@ class CreateAccount(
 
         if (input.currencyId != null)
             if (currencyRepository.get(input.currencyId) == null)
-                throw DomainException.NotFound.Currency(input.currencyId.toString())
+                throw DomainException.NotFound.Currency(input.currencyId)
 
         if (input.initBalance < 0)
             throw DomainException.BusinessLogic.Validation("Balance must be greater than zero")

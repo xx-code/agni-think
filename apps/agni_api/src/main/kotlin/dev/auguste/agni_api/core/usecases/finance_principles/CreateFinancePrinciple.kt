@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.usecases.finance_principles
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.FinancePrinciple
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.finance_principles.dto.CreateFinancePrincipleInput
@@ -11,10 +12,10 @@ class CreateFinancePrinciple(
 ) : IUseCase<CreateFinancePrincipleInput, CreatedOutput> {
     override fun execAsync(input: CreateFinancePrincipleInput): CreatedOutput {
         if (financePrincipleRepo.existsByName(input.name))
-            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Finance principle already exists.")
+            throw DomainException.AlreadyExist.FinancePrinciple(input.name)
 
         if (input.strictness !in 1..10)
-            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Finance principle name must be between 1 and 10.")
+            throw DomainException.BusinessLogic.Validation("Finance principle name must be between 1 and 10.")
 
         val newFinancePrinciple = FinancePrinciple(
             name = input.name,

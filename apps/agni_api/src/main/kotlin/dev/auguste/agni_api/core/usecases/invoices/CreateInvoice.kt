@@ -6,6 +6,7 @@ import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Deduction
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Transaction
 import dev.auguste.agni_api.core.entities.enums.DeductionBaseType
@@ -33,19 +34,20 @@ class CreateInvoice(
     }
 
     override fun execInnerAsync(input: CreateInvoiceInput): CreatedOutput {
-        val account = invoiceDependencies.accountRepo.get(input.accountId) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Account ID ${input.accountId} not found")
+        val account = invoiceDependencies.accountRepo.get(input.accountId) ?: throw DomainException.NotFound.Invoice(input.accountId)
 
         if (input.transactions.isEmpty())
-            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Transactions cannot be empty")
+            throw DomainException.BusinessLogic.TransactionsMustNotBeEmpty()
 
         var deductions = listOf<Deduction>()
         if (input.deductions.isNotEmpty()) {
             if (input.deductions.any { it.amount < 0})
-                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Deduction cannot be negative")
+                throw DomainException.BusinessLogic.Validation("Deduction cannot be negative")
 
-            deductions = invoiceDependencies.deductionRepo.getManyByIds(input.deductions.map { it.deductionId}.toSet())
+            val deductionIds = input.deductions.map { it.deductionId }.toSet()
+            deductions = invoiceDependencies.deductionRepo.getManyByIds(deductionIds)
             if (input.deductions.size != deductions.size)
-                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Deductions cannot be empty")
+                throw DomainException.NotFound.SomeDeductions(deductionIds)
         }
 
 
@@ -62,15 +64,15 @@ class CreateInvoice(
         var totalBeforeDeduction = 0.0
         input.transactions.forEach { transaction ->
             if (invoiceDependencies.categoryRepo.get(transaction.categoryId) == null)
-                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Category ${transaction.categoryId} not found")
+                throw DomainException.NotFound.Category(transaction.categoryId)
 
             if (transaction.tagIds.isNotEmpty())
                 if (transaction.tagIds.size != invoiceDependencies.tagRepo.getManyByIds(transaction.tagIds).size)
-                    throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Tags not found")
+                    throw DomainException.NotFound.SomeTags(transaction.tagIds)
 
             if (transaction.budgetIds.isNotEmpty())
                 if (transaction.budgetIds.size != invoiceDependencies.budgetRepo.getManyByIds(transaction.budgetIds).size)
-                    throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Budget not found")
+                    throw DomainException.NotFound.SomeBudgets(transaction.budgetIds)
 
             val newTransaction = Transaction(
                 invoiceId = newInvoice.id,

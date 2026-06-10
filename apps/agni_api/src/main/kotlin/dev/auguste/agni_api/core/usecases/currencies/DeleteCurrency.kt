@@ -10,7 +10,7 @@ import java.util.UUID
 class DeleteCurrency(private val currencyRepo: IRepository<Currency>): IUseCase<DeleteCurrencyInput, Unit> {
 
     override fun execAsync(input: DeleteCurrencyInput) {
-        currencyRepo.get(input.currencyId)?: throw DomainException.NotFound.Currency(input.currencyId.toString())
+        currencyRepo.get(input.currencyId)?: throw DomainException.NotFound.Currency(input.currencyId)
 
         currencyRepo.delete(input.currencyId)
     }

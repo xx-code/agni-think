@@ -13,16 +13,17 @@ class UpdateBankRegister(
     private val accountRepo: IRepository<Account>,
 ): IUseCase<UpdateBankRegisterInput, Unit> {
     override fun execAsync(input: UpdateBankRegisterInput) {
-        val bankRegister = bankRegisterRepo.get(input.bankRegisterId) ?: throw DomainException.NotFound.BankRegister(input.bankRegisterId.toString())
+        val bankRegister = bankRegisterRepo.get(input.bankRegisterId) ?: throw DomainException.NotFound.BankRegister(input.bankRegisterId)
 
         if (!input.accessCode.isNullOrEmpty()) {
            bankRegister.accessCode = input.accessCode
         }
 
         if (!input.accounts.isNullOrEmpty()) {
-            val accounts = accountRepo.getManyByIds(input.accounts.map { it.accountId }.toSet())
+            val accountIds = input.accounts.map { it.accountId }.toSet()
+            val accounts = accountRepo.getManyByIds(accountIds)
             if (accounts.size != input.accounts.size)
-                throw DomainException.BusinessLogic.SomeAccountsNotFound()
+                throw DomainException.NotFound.SomeAccounts(accountIds)
 
             bankRegister.accountslinked = input.accounts.map { AccountLinked(it.accountId, it.bankAccountId) }.toSet()
         }

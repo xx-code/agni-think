@@ -9,7 +9,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 class UpdateDeduction(private val deductionRepo: IRepository<Deduction>): IUseCase<UpdateDeductionInput, Unit> {
 
     override fun execAsync(input: UpdateDeductionInput) {
-        val deduction = deductionRepo.get(input.id) ?: throw DomainException.NotFound.Deduction(input.id.toString())
+        val deduction = deductionRepo.get(input.id) ?: throw DomainException.NotFound.Deduction(input.id)
 
         if (input.title != null) {
             if (input.title != deduction.title && deductionRepo.existsByName(input.title))

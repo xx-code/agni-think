@@ -13,7 +13,7 @@ class ConfirmSuggestion(
     private val agentSuggestionRepo: IRepository<AgentSuggestion>
 ): IUseCase<ConfirmSuggestionInput, Unit> {
     override fun execAsync(input: ConfirmSuggestionInput) {
-        val suggestion = agentSuggestionRepo.get(input.suggestionId) ?: throw DomainException.NotFound.("NO_AGENT_SUGGESTION_FOUND")
+        val suggestion = agentSuggestionRepo.get(input.suggestionId) ?: throw DomainException.NotFound.AgentSuggestion(input.suggestionId)
         suggestion.status = if (input.isAccept)  AgentSuggestionStatusType.ACCEPTED else AgentSuggestionStatusType.REJECTED
         agentSuggestionRepo.update(suggestion)
     }

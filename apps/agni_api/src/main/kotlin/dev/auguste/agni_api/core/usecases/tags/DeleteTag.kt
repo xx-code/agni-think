@@ -10,7 +10,7 @@ import java.util.UUID
 class DeleteTag(private val tagRepo: IRepository<Tag>): IUseCase<DeleteTagInput, Unit> {
 
     override fun execAsync(input: DeleteTagInput): Unit {
-        tagRepo.get(input.tagId) ?: throw DomainException.NotFound.Tag(input.tagId.toString())
+        tagRepo.get(input.tagId) ?: throw DomainException.NotFound.Tag(input.tagId)
 
         tagRepo.delete(input.tagId)
     }

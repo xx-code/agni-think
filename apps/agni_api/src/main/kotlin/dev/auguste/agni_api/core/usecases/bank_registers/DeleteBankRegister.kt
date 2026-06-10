@@ -10,7 +10,7 @@ class DeleteBankRegister(
     private val bankRegisterRepo: IRepository<BankRegister>,
 ): IUseCase<DeleteBankRegisterInput, Unit> {
     override fun execAsync(input: DeleteBankRegisterInput) {
-        bankRegisterRepo.get(input.bankRegisterId) ?: throw DomainException.NotFound.BankRegister(input.bankRegisterId.toString())
+        bankRegisterRepo.get(input.bankRegisterId) ?: throw DomainException.NotFound.BankRegister(input.bankRegisterId)
         bankRegisterRepo.delete(input.bankRegisterId)
     }
 }

@@ -32,7 +32,7 @@ class UpdateInvoice(
         input: UpdateInvoiceInput
     ) {
         unitOfWork.execute {
-            val invoice = invoiceRepo.get(input.id) ?: throw DomainException.NotFound.Invoice(input.id.toString())
+            val invoice = invoiceRepo.get(input.id) ?: throw DomainException.NotFound.Invoice(input.id)
 
             val internalLoans = invoiceDependencies.internalLoanRepo.getAll(QueryFilter(queryAll = true),
                 QueryInternalLoanExtend(invoiceId = invoice.id)

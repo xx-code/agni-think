@@ -26,7 +26,7 @@ class CreatePatrimony(
 
             if (input.accountIds.isNotEmpty())
                 if (this.accountRepo.getManyByIds(input.accountIds).size != input.accountIds.size)
-                    throw DomainException.BusinessLogic.NotAllAccountsFound()
+                    throw DomainException.NotFound.SomeAccounts(input.accountIds)
 
             val newPatrimony = Patrimony(
                 title = input.title,

@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.usecases.patrimonies.snapshots
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.UpdateSnapshotFromPatrimonyInput
@@ -10,7 +11,7 @@ class UpdateSnapshotFromPatrimony(
 ): IUseCase<UpdateSnapshotFromPatrimonyInput, Unit> {
 
     override fun execAsync(input: UpdateSnapshotFromPatrimonyInput) {
-        val snapshot = snapshotRepo.get(input.id) ?: throw dev.auguste.agni_api.core.entities.DomainException.NotFound.Snapshot(input.id.toString())
+        val snapshot = snapshotRepo.get(input.id) ?: throw DomainException.NotFound.Snapshot(input.id)
 
         if (input.balance != null)
             snapshot.currentBalanceObserved = input.balance

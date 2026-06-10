@@ -9,7 +9,7 @@ import java.util.UUID
 
 class GetDeduction(private val deductionRepo: IRepository<Deduction>): IUseCase<UUID, GetDeductionOutput> {
     override fun execAsync(input: UUID): GetDeductionOutput {
-        val deduction = deductionRepo.get(input) ?: throw DomainException.NotFound.Deduction(input.toString())
+        val deduction = deductionRepo.get(input) ?: throw DomainException.NotFound.Deduction(input)
 
         return GetDeductionOutput(
             id = deduction.id,

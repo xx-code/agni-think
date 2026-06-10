@@ -9,7 +9,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 class UpdateCurrency(private val currencyRepo: IRepository<Currency>): IUseCase<UpdateCurrencyInput, Unit> {
 
     override fun execAsync(input: UpdateCurrencyInput) {
-        val currency = currencyRepo.get(input.id) ?: throw DomainException.NotFound.Currency(input.id.toString())
+        val currency = currencyRepo.get(input.id) ?: throw DomainException.NotFound.Currency(input.id)
 
         if (input.name != null) {
             if (input.name != currency.name && currencyRepo.existsByName(input.name))

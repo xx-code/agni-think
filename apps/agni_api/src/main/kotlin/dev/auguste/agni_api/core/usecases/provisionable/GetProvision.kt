@@ -11,7 +11,7 @@ class GetProvision(
     private val provisionRepo: IRepository<Provision>
 ): IUseCase<UUID, GetProvisionOutput> {
     override fun execAsync(input: UUID): GetProvisionOutput {
-        val provisionable = provisionRepo.get(input) ?: throw DomainException.NotFound.Provisionable(input.toString())
+        val provisionable = provisionRepo.get(input) ?: throw DomainException.NotFound.Provisionable(input)
 
         return GetProvisionOutput(
             id = provisionable.id,

@@ -10,7 +10,7 @@ class DeleteBudget(
     private val budgetRepo: IRepository<Budget>
 ): IUseCase<DeleteBudgetInput, Unit>{
     override fun execAsync(input: DeleteBudgetInput) {
-        budgetRepo.get(input.budgetId) ?: throw DomainException.NotFound.Budget(input.budgetId.toString())
+        budgetRepo.get(input.budgetId) ?: throw DomainException.NotFound.Budget(input.budgetId)
         budgetRepo.delete(input.budgetId)
     }
 }

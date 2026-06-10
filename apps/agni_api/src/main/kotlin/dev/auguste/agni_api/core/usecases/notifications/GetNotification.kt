@@ -10,7 +10,7 @@ import java.util.UUID
 class GetNotification(private val notificationRepo: IRepository<Notification>): IUseCase<UUID, GetNotificationOutput> {
 
     override fun execAsync(input: UUID): GetNotificationOutput {
-        val notification = notificationRepo.get(input) ?: throw DomainException.NotFound.Notification(input.toString())
+        val notification = notificationRepo.get(input) ?: throw DomainException.NotFound.Notification(input)
 
         return GetNotificationOutput(
             id = notification.id,

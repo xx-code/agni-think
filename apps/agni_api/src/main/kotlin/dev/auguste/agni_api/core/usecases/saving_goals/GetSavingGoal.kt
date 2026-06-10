@@ -11,7 +11,7 @@ import java.util.UUID
 class GetSavingGoal(private val savingGoalRepo: IRepository<SavingGoal>): IUseCase<UUID, GetSavingGoalOutput> {
 
     override fun execAsync(input: UUID): GetSavingGoalOutput {
-        val savingGoal = savingGoalRepo.get(input) ?: throw DomainException.NotFound.SavingGoal(input.toString())
+        val savingGoal = savingGoalRepo.get(input) ?: throw DomainException.NotFound.SavingGoal(input)
 
         return GetSavingGoalOutput(
             id = savingGoal.id,

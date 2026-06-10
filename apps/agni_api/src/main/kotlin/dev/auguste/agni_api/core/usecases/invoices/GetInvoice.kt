@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.usecases.invoices
 
 import dev.auguste.agni_api.core.adapters.readers.IInvoicetransactionCountReader
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
@@ -15,7 +16,7 @@ class GetInvoice(
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>
 ): IUseCase<UUID, GetInvoiceOutput> {
     override fun execAsync(input: UUID): GetInvoiceOutput {
-        val invoice = invoiceRepo.get(input) ?: throw dev.auguste.agni_api.core.entities.DomainException.NotFound.Invoice(input.toString())
+        val invoice = invoiceRepo.get(input) ?: throw DomainException.NotFound.Invoice(input)
 
         val invoiceTransactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
             invoiceIds = setOf(invoice.id),
@@ -27,7 +28,7 @@ class GetInvoice(
         ))
 
         if (invoiceTransactions.isEmpty())
-            throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Invoice with id $input not Transactions")
+            throw DomainException.BusinessLogic.TransactionsMustNotBeEmpty()
 
 
         return GetInvoiceOutput(

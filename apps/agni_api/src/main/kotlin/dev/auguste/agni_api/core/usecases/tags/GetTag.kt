@@ -10,7 +10,7 @@ import java.util.UUID
 class GetTag(private val tagRepo: IRepository<Tag>): IUseCase<UUID, GetTagOutput> {
 
     override fun execAsync(input: UUID): GetTagOutput {
-        val tag = tagRepo.get(input) ?: throw DomainException.NotFound.Tag(input.toString())
+        val tag = tagRepo.get(input) ?: throw DomainException.NotFound.Tag(input)
 
         return GetTagOutput(
             id = tag.id,

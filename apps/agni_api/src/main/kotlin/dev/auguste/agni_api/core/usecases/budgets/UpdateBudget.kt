@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.usecases.budgets
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Budget
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.budgets.dto.UpdateBudgetInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -13,11 +14,11 @@ class UpdateBudget(
     private val savingGoalRepo: IRepository<SavingGoal>
 ): IUseCase<UpdateBudgetInput, Unit> {
     override fun execAsync(input: UpdateBudgetInput) {
-        val budget = budgetRepo.get(input.id) ?: throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Budget ID ${input.id} not found")
+        val budget = budgetRepo.get(input.id) ?: throw DomainException.NotFound.Budget(input.id)
 
         if (input.title != null) {
             if (input.title != budget.title && budgetRepo.existsByName(input.title))
-                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Budget title ${input.title} already exists")
+                throw DomainException.AlreadyExist.Budget(input.title)
 
             budget.title = input.title
         }
@@ -28,7 +29,7 @@ class UpdateBudget(
 
         if (!input.savingGoalIds.isNullOrEmpty()) {
             if (input.savingGoalIds != savingGoalRepo.getManyByIds(input.savingGoalIds))
-                throw dev.auguste.agni_api.core.entities.DomainException.BusinessLogic.Validation("Saving goal ids ${input.savingGoalIds} not found")
+                throw DomainException.NotFound.SomeSavingGoals(input.savingGoalIds)
 
             budget.targetSavingGoalIds = input.savingGoalIds.toMutableSet()
         }

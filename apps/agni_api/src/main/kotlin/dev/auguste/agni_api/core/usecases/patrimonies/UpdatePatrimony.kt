@@ -11,7 +11,7 @@ class UpdatePatrimony(
     private val patrimonyRepo: IRepository<Patrimony>,
     private val accountRepo: IRepository<Account>): IUseCase<UpdatePatrimonyInput, Unit> {
     override fun execAsync(input: UpdatePatrimonyInput) {
-        val patrimony = patrimonyRepo.get(input.id) ?: throw DomainException.NotFound.Patrimony(input.id.toString())
+        val patrimony = patrimonyRepo.get(input.id) ?: throw DomainException.NotFound.Patrimony(input.id)
 
         if (input.title != null)
             patrimony.title = input.title
@@ -22,7 +22,7 @@ class UpdatePatrimony(
         if (input.accountIds != null) {
             if (input.accountIds.isEmpty())
                 if (this.accountRepo.getManyByIds(input.accountIds).size != input.accountIds.size)
-                    throw DomainException.BusinessLogic.NotAllAccountsFound()
+                    throw DomainException.NotFound.SomeAccounts(input.accountIds)
 
             patrimony.accountIds = input.accountIds.toMutableSet()
         }

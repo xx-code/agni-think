@@ -14,7 +14,7 @@ class TreatAnExternalTransaction(
     private val eventRegister: IEventRegister
 ): IUseCase<TreatAnExternalTransactionInput, Unit> {
     override fun execAsync(input: TreatAnExternalTransactionInput) {
-        val externalTransaction = externalTransactionRepo.get(input.transactionId) ?: throw DomainException.NotFound.ExternalTransaction(input.transactionId.toString())
+        val externalTransaction = externalTransactionRepo.get(input.transactionId) ?: throw DomainException.NotFound.ExternalTransaction(input.transactionId)
         if (externalTransaction.isTreated)
             throw DomainException.BusinessLogic.TreatedTransactionAlreadyTreated()
 
