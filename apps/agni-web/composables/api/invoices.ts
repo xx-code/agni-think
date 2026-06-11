@@ -23,7 +23,7 @@ export async function fetchBalanceByPeriod(query: QueryBalanceByPeriod): Promise
 
 export async function useCompleteInvoice(transactionId: string): Promise<void> {
     await $fetch(`api/invoices/${transactionId}/completed`, {
-        method: 'GET',
+        method: 'PUT',
     });
 
 }
