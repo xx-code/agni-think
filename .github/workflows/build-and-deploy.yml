@@ -67,16 +67,12 @@ jobs:
           git clone https://${{ secrets.HOMELAB_GITHUB_TOKEN }}@github.com/${{ github.repository_owner }}/homelab.git homelab-repo
           cd homelab-repo
 
-          cat << EOF > apps/agni/hooks.yml
-          version: "1.0"
-          last_deployment:
-            branch: "${{ steps.vars.outputs.branch }}"
-            sha: "${{ steps.vars.outputs.sha_short }}"
-            updated_at: "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          EOF
+          COMPOSE_FILE="apps/agni/docker-compose.yml"
 
-          git add apps/agni/hooks.yml
-          git commit -m "chore(deploy): trigger webhook/pull for sha-${{ steps.vars.outputs.sha_short }}" || echo "No changes to commit"
+          sed -i "s|version: .* # DEPLOY_VERSION|version: ${{ steps.vars.outputs.sha_short }} # DEPLOY_VERSION|g" $COMPOSE_FILE
+
+          git add $COMPOSE_FILE
+          git commit -m "chore(deploy): update agni stack version to ${{ steps.vars.outputs.sha_short }}" || echo "No changes to commit"
           git push origin main
       #- name: Build and Release Agent
         # if: steps.filter.outputs.agent == 'true'
