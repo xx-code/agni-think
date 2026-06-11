@@ -4,13 +4,13 @@ import type { NotificationType } from "~/types/ui/notification";
 import type { UseApiFetchReturn } from "~/types/utils";
 
 export default async function useDeleteNotification(notificationId: string) {
-    await $fetch(`${getApiBase()}/notifications/${notificationId}`, {
+    await $fetch(`api/notifications/${notificationId}`, {
         method: 'DELETE'
     })
 } 
 
 export async function fetchNotifications(query: NotificationQueryFilterRequest): Promise<ListResponse<NotificationType>> {
-    const res = await $fetch<ListResponse<GetAllNotification>>(`${getApiBase()}/notifications`, {
+    const res = await $fetch<ListResponse<GetAllNotification>>(`api/notifications`, {
         method: 'GET',
         query: query
     })
@@ -34,7 +34,7 @@ export async function checkNotifications(): Promise<boolean> {
         queryAll: true,
         isRead: false
     }
-    const res = await $fetch<ListResponse<GetAllNotification>>(`${getApiBase()}/notifications`, {
+    const res = await $fetch<ListResponse<GetAllNotification>>(`api/notifications`, {
         method: 'GET',
         query: query
     })
@@ -43,7 +43,7 @@ export async function checkNotifications(): Promise<boolean> {
 }
 
 export async function useToggleNotification(notificationId: string) {
-    await $fetch(`${getApiBase()}/notifications/${notificationId}/toggle-read`, {
+    await $fetch(`api/notifications/${notificationId}/toggle-read`, {
         method: 'PUT'
     })
 } 

@@ -3,27 +3,27 @@ import type { CreateIncomeSourceRequest, GetIncomeSourceResponse, UpdateIncomeSo
 import type { IncomeSourceType } from "~/types/ui/incomeSource";
 
 export async function createIncomeSource(request: CreateIncomeSourceRequest) : Promise<CreatedRequest> {
-    return await $fetch<CreatedRequest>(`${getApiBase()}/income-sources`, {
+    return await $fetch<CreatedRequest>(`api/income-sources`, {
         method: 'POST',
         body: request
     })
 }
 
 export async function updateIncomeSource(id: string, request: UpdateIncomeSourceRequest) {
-    await $fetch(`${getApiBase()}/income-sources/${id}`, {
+    await $fetch(`api/income-sources/${id}`, {
         method: 'PUT',
         body: request
     })
 }
 
 export async function deleteIncomeSource(id: string) {
-    await $fetch(`${getApiBase()}/income-sources/${id}`, {
+    await $fetch(`api/income-sources/${id}`, {
         method: 'DELETE'
     })
 }
 
 export async function fetchIncomeSource(id: string) : Promise<IncomeSourceType> {
-    const data = await $fetch<GetIncomeSourceResponse>(`${getApiBase()}/income-sources/${id}`, {
+    const data = await $fetch<GetIncomeSourceResponse>(`api/income-sources/${id}`, {
         method: 'GET'
     })
 
@@ -45,7 +45,7 @@ export async function fetchIncomeSource(id: string) : Promise<IncomeSourceType> 
 }
 
 export async function fetchIncomeSources(query: QueryFilterRequest) : Promise<ListResponse<IncomeSourceType>> {
-    const data = await $fetch<ListResponse<GetIncomeSourceResponse>>(`${getApiBase()}/income-sources`, {
+    const data = await $fetch<ListResponse<GetIncomeSourceResponse>>(`api/income-sources`, {
         method: 'GET',
         query: query
     })

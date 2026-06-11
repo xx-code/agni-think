@@ -16,22 +16,6 @@ import javax.sql.DataSource
 class AgniApiApplication
 
 @Configuration
-class CorsConfig(
-    @Value("\${origin.frontend.url:http://localhost:8000}") val frontendOrigin: String
-) : WebMvcConfigurer {
-    override fun addCorsMappings(registry: CorsRegistry) {
-        // TODO: Get allowed origins
-        registry.addMapping("/**")
-            .allowedOrigins(frontendOrigin)
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-            .allowedHeaders("*")
-            .exposedHeaders("Authorization")
-            .allowCredentials(true)
-            .maxAge(3600)
-    }
-}
-
-@Configuration
 class FlywayConfig(private val dataSource: DataSource) {
     @Bean(initMethod = "migrate")
     fun flyway(): Flyway {

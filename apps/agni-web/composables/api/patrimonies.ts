@@ -4,14 +4,14 @@ import type { GetPatrimonyResponse } from "~/types/api/patrimony";
 import type { PatrimonyType, SnapshotPatrimonyType, TypePatrimony } from "~/types/ui/patrimony";
 
 export async  function useAddSnapshotPatrimony(patrimonyId: string, request: AddSnapshotPatrimonyRequest) {
-    await $fetch(`${getApiBase()}/patrimonies/${patrimonyId}/add-snapshot`, {
+    await $fetch(`api/patrimonies/${patrimonyId}/add-snapshot`, {
         method: "POST",
         body: request
     })
 }
 
 export async function useCreatePatrimony(request: CreatePatrimonyRequest): Promise<CreatedRequest> {
-    const newPat = await $fetch<CreatedRequest>(`${getApiBase()}/patrimonies`, {
+    const newPat = await $fetch<CreatedRequest>(`api/patrimonies`, {
         method: 'POST',
         body: request
     })
@@ -20,7 +20,7 @@ export async function useCreatePatrimony(request: CreatePatrimonyRequest): Promi
 }
 
 export async function useDeletePatrimony(patrimonyId: string): Promise<void> {
-    await $fetch(`${getApiBase()}/patrimonies/${patrimonyId}`, {
+    await $fetch(`api/patrimonies/${patrimonyId}`, {
         method: 'DELETE'
     })
 } 
@@ -33,7 +33,7 @@ export async function fetchPatrimonies(): Promise<ListResponse<PatrimonyType>> {
         offset: 0,
         queryAll: true
     }
-    const res = await $fetch<ListResponse<GetPatrimonyResponse>>(`${getApiBase()}/patrimonies`, {
+    const res = await $fetch<ListResponse<GetPatrimonyResponse>>(`api/patrimonies`, {
         query: query,
         method: 'GET',
     })
@@ -53,7 +53,7 @@ export async function fetchPatrimonies(): Promise<ListResponse<PatrimonyType>> {
 }
 
 export async function fetchPatrimony(patrimonyId: string): Promise<PatrimonyType> {
-    const res = await $fetch<GetPatrimonyResponse>(`${getApiBase()}/patrimonies/${patrimonyId}`, {
+    const res = await $fetch<GetPatrimonyResponse>(`api/patrimonies/${patrimonyId}`, {
         method: 'GET'
     })
 
@@ -69,7 +69,7 @@ export async function fetchPatrimony(patrimonyId: string): Promise<PatrimonyType
 }
 
 export async function useRemoveSnapshotPatrimony(patrimonyId: string, snapshotId: string): Promise<void> {
-    await $fetch(`${getApiBase()}/patrimonies/${patrimonyId}/remove-snapshot/${snapshotId}`, {
+    await $fetch(`api/patrimonies/${patrimonyId}/remove-snapshot/${snapshotId}`, {
         method: 'PUT'
     });
 }
@@ -81,7 +81,7 @@ export async function fetchSnapshotsPatrimony(patrimonyId: string, startDate?: D
         offset: 0,
         queryAll: true
     }
-    const res = await $fetch<ListResponse<GetSnapshotPatrimonyResponse>>(`${getApiBase()}/patrimonies/${patrimonyId}/snapshots`, {
+    const res = await $fetch<ListResponse<GetSnapshotPatrimonyResponse>>(`api/patrimonies/${patrimonyId}/snapshots`, {
         method: "GET",
         query: query 
     })
@@ -94,7 +94,7 @@ export async function fetchSnapshotsPatrimony(patrimonyId: string, startDate?: D
 
 export async function useUpdatePatrimony(patrimonyId: string, 
     request: UpdatePatrimonyRequest): Promise<void> {
-    await $fetch(`${getApiBase()}/patrimonies/${patrimonyId}`, {
+    await $fetch(`api/patrimonies/${patrimonyId}`, {
         method: 'PUT',
         body: request
     })
@@ -102,7 +102,7 @@ export async function useUpdatePatrimony(patrimonyId: string,
 
 export async function useUpdateSnapshotPatrimony(patrimonyId: string, snapshotId: string, 
     request: UpdateSnapshotPatrimonyRequest): Promise<void> {
-    await $fetch(`${getApiBase()}/patrimonies/${patrimonyId}/update-snapshot/${snapshotId}`, {
+    await $fetch(`api/patrimonies/${patrimonyId}/update-snapshot/${snapshotId}`, {
         method: 'PUT',
         body: request
     })

@@ -3,7 +3,7 @@ import type { CreateBudgetRequest } from "~/types/api/budget";
 import type { UpdateBudgetRequest } from "~/types/api/budget";
 
 export async function fetchBudget(budgetId: string): Promise<BudgetType> {
-    const res = await $fetch<GetBudgetResponse>(`${getApiBase()}/budgets/${budgetId}`, {
+    const res = await $fetch<GetBudgetResponse>(`api/budgets/${budgetId}`, {
         method: "GET"
     });
 
@@ -25,7 +25,7 @@ import type { GetBudgetResponse } from "~/types/api/budget";
 import type { BudgetType } from "~/types/ui/budget";
 
 export async function fetchBudgets(query: QueryFilterRequest): Promise<ListResponse<BudgetType>> {
-    const res = await $fetch<ListResponse<GetBudgetResponse>>(`${getApiBase()}/budgets`, {
+    const res = await $fetch<ListResponse<GetBudgetResponse>>(`api/budgets`, {
         method: 'GET',
         query: query
     });
@@ -47,7 +47,7 @@ export async function fetchBudgets(query: QueryFilterRequest): Promise<ListRespo
 }
 
 export async function useCreateBudget(request: CreateBudgetRequest): Promise<CreatedRequest> {
-    const created = await $fetch<CreatedRequest>(`${getApiBase()}/budgets`, {
+    const created = await $fetch<CreatedRequest>(`api/budgets`, {
         method: 'POST',
         body: request
     });
@@ -56,13 +56,13 @@ export async function useCreateBudget(request: CreateBudgetRequest): Promise<Cre
 }   
 
 export async function useDeleteBudget(budgetId: string): Promise<void> {
-    await $fetch(`${getApiBase()}/budgets/${budgetId}`, {
+    await $fetch(`api/budgets/${budgetId}`, {
         method: 'DELETE'
     });
 }
 
 export async function useUpdateBudget(budgetId: string, request: UpdateBudgetRequest): Promise<void> {
-    await $fetch(`${getApiBase()}/budgets/${budgetId}`, {
+    await $fetch(`api/budgets/${budgetId}`, {
         method: 'PUT',
         body: request
     })

@@ -3,7 +3,7 @@ import type { GetAnnualOutlookResponse, GetBudgetingRuleRequest, GetBudgetingRul
 import type { EstimationLeftAmountType, SavingAnalysticType } from "~/types/ui/analytics";
 
 export async function fetchAnnualOutlook(): Promise<GetAnnualOutlookResponse>{
-    const response = await $fetch<GetAnnualOutlookResponse>(`${getApiBase()}/analytics/annual-outlook`, {
+    const response = await $fetch<GetAnnualOutlookResponse>(`api/analytics/annual-outlook`, {
         method: 'GET'
     });
 
@@ -11,7 +11,7 @@ export async function fetchAnnualOutlook(): Promise<GetAnnualOutlookResponse>{
 }
 
 export async function fetchBudgetingRule(request: GetBudgetingRuleRequest): Promise<GetBudgetingRuleResponse> {
-    return await $fetch(`${getApiBase()}/analytics/budgeting-rule`, {
+    return await $fetch(`api/analytics/budgeting-rule`, {
         method: 'GET',
         query: request
     })
@@ -19,7 +19,7 @@ export async function fetchBudgetingRule(request: GetBudgetingRuleRequest): Prom
 
 
 export async function fetchEstimationLeftAmount(request: GetEstimationLeftAmountRequest): Promise<EstimationLeftAmountType>{
-    const response = await $fetch<GetEstimationLeftAmountResponse>(`${getApiBase()}/analytics/estimation-left-amount`, {
+    const response = await $fetch<GetEstimationLeftAmountResponse>(`api/analytics/estimation-left-amount`, {
         method: 'GET',
         query: request 
     });
@@ -28,7 +28,7 @@ export async function fetchEstimationLeftAmount(request: GetEstimationLeftAmount
 }
 
 export async function fetchAnalyticSavings(request: GetSavingAnalysticRequest): Promise<SavingAnalysticType>{
-    const response = await $fetch<GetSavingAnalysticResponse>(`${getApiBase()}/analytics/savings`, {
+    const response = await $fetch<GetSavingAnalysticResponse>(`api/analytics/savings`, {
         method: 'GET',
         query: request 
     });
@@ -43,7 +43,7 @@ export async function fetchAnalyticSavings(request: GetSavingAnalysticRequest): 
 
 
 export async function fetchSpendByCategoriesAnalytic(request: GetSpendCategoryRequest): Promise<ListResponse<GetSpendCategoryResponse>> {
-    const response = await $fetch<ListResponse<GetSpendCategoryResponse>>(`${getApiBase()}/analytics/spend-categories`, {
+    const response = await $fetch<ListResponse<GetSpendCategoryResponse>>(`api/analytics/spend-categories`, {
         method: 'GET',
         query: request 
     });
@@ -52,7 +52,7 @@ export async function fetchSpendByCategoriesAnalytic(request: GetSpendCategoryRe
 }
 
 export async function fetchSpendByTagAnalytic(request: GetSpendTagRequest): Promise<ListResponse<GetSpendTagResponse>> {
-    const response = await $fetch<ListResponse<GetSpendTagResponse>>(`${getApiBase()}/analytics/spend-tags`, {
+    const response = await $fetch<ListResponse<GetSpendTagResponse>>(`api/analytics/spend-tags`, {
         method: 'GET',
         query: request 
     });

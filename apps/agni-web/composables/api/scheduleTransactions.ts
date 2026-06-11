@@ -3,7 +3,7 @@ import type { CreateScheduleInvoiceRequest, GetScheduleInvoiceResponse, UpdateSc
 import type { ScheduleInvoiceType } from "~/types/ui/scheduleTransaction";
 
 export async function useCreateScheduleInvoice(request: CreateScheduleInvoiceRequest): Promise<CreatedRequest> {
-    const created = await $fetch<CreatedRequest>(`${getApiBase()}/schedule-invoices`, {
+    const created = await $fetch<CreatedRequest>(`api/schedule-invoices`, {
         method: 'POST',
         body: request
     });
@@ -12,13 +12,13 @@ export async function useCreateScheduleInvoice(request: CreateScheduleInvoiceReq
 }
 
 export async function useDeleteScheduleInvoice(scheduleTransactionId: string): Promise<void> {
-    await $fetch(`${getApiBase()}/schedule-invoices/${scheduleTransactionId}`, {
+    await $fetch(`api/schedule-invoices/${scheduleTransactionId}`, {
         method: 'DELETE'
     });
 }
 
 export async function fetchScheduleInvoice(scheduleTransactionId: string): Promise<ScheduleInvoiceType> {
-    const res = await $fetch<GetScheduleInvoiceResponse>(`${getApiBase()}/schedule-invoices/${scheduleTransactionId}`, {
+    const res = await $fetch<GetScheduleInvoiceResponse>(`api/schedule-invoices/${scheduleTransactionId}`, {
         method: 'GET'
     });
 
@@ -41,7 +41,7 @@ export async function fetchScheduleInvoice(scheduleTransactionId: string): Promi
 }
 
 export async function fetchScheduleInvoices(query: QueryFilterRequest) : Promise<ListResponse<ScheduleInvoiceType>> {
-    const data = await $fetch<ListResponse<GetScheduleInvoiceResponse>>(`${getApiBase()}/schedule-invoices`, {
+    const data = await $fetch<ListResponse<GetScheduleInvoiceResponse>>(`api/schedule-invoices`, {
         method: 'GET',
         query: query
     })
@@ -69,7 +69,7 @@ export async function fetchScheduleInvoices(query: QueryFilterRequest) : Promise
 }
 
 export async function useUpdateScheduleInvoice(scheduleTransctionId: string, request: UpdateScheduleInvoiceRequest): Promise<void> {
-    await $fetch(`${getApiBase()}/schedule-invoices/${scheduleTransctionId}`, {
+    await $fetch(`api/schedule-invoices/${scheduleTransctionId}`, {
         method: "PUT",
         body: request 
     });

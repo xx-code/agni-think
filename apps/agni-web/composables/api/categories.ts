@@ -4,7 +4,7 @@ import type { CreateCategoryRequest, GetCategoryResponse, UpdateCategoryRequest 
 import type { CategoryType } from "~/types/ui/category";
 
 export async function fetchCategories(query: Reactive<QueryFilterRequest & { isSystem?: boolean}>): Promise<ListResponse<CategoryType>> {
-    const res = await $fetch<ListResponse<GetCategoryResponse>>(`${getApiBase()}/categories`, {
+    const res = await $fetch<ListResponse<GetCategoryResponse>>(`api/categories`, {
         query: query
     })
 
@@ -21,7 +21,7 @@ export async function fetchCategories(query: Reactive<QueryFilterRequest & { isS
 }
 
 export async function fetchCategory(categoryId: string): Promise<CategoryType> {
-    const res = await $fetch<GetCategoryResponse>(`${getApiBase()}/categories/${categoryId}`);
+    const res = await $fetch<GetCategoryResponse>(`api/categories/${categoryId}`);
 
     return {
         id: res.id,
@@ -33,7 +33,7 @@ export async function fetchCategory(categoryId: string): Promise<CategoryType> {
 };
 
 export async function useCreateCategory(request: CreateCategoryRequest): Promise<CreatedRequest> {
-    const created = await $fetch<CreatedRequest>(`${getApiBase()}/categories`, {
+    const created = await $fetch<CreatedRequest>(`api/categories`, {
         method: 'POST',
         body: request
     });
@@ -42,13 +42,13 @@ export async function useCreateCategory(request: CreateCategoryRequest): Promise
 }
 
 export async function useDeleteCategory(categoryId: string): Promise<void> {
-    await $fetch(`${getApiBase()}/categories/${categoryId}`, {
+    await $fetch(`api/categories/${categoryId}`, {
         method: 'DELETE'
     });
 }
 
 export async function useUpdateCategory(categoryId: string, request: UpdateCategoryRequest): Promise<void> {
-    await $fetch(`${getApiBase()}/categories/${categoryId}`, {
+    await $fetch(`api/categories/${categoryId}`, {
         method: 'PUT',
         body: request
     })

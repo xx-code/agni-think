@@ -3,25 +3,25 @@ import type { CreateProvisionRequest, GetProvisionResponse, UpdateProvisionReque
 import type { ProvisionType } from "~/types/ui/provision";
 
 export async function createProvision(request: CreateProvisionRequest) : Promise<CreatedRequest> {
-    return await $fetch(`${getApiBase()}/provisions`, {
+    return await $fetch(`api/provisions`, {
         method: 'POST',
         body: request
     }) 
 }
 
 export async function updateProvision(id: string, request: UpdateProvisionRequest) {
-    await $fetch(`${getApiBase()}/provisions/${id}`, {
+    await $fetch(`api/provisions/${id}`, {
         method: 'PUT',
         body: request
     })
 }
 
 export async function deleteProvision(id: string) {
-    await $fetch(`${getApiBase()}/provisions/${id}`)
+    await $fetch(`api/provisions/${id}`)
 }
 
 export async function fetchProvision(id: string) : Promise<ProvisionType> {
-    const data = await $fetch<GetProvisionResponse>(`${getApiBase()}/provisions/${id}`)
+    const data = await $fetch<GetProvisionResponse>(`api/provisions/${id}`)
 
     return {
         id: data.id,
@@ -34,7 +34,7 @@ export async function fetchProvision(id: string) : Promise<ProvisionType> {
 }
 
 export async function fetchProvisions(query: QueryFilterRequest) : Promise<ListResponse<ProvisionType>> {
-    const data = await $fetch<ListResponse<GetProvisionResponse>>(`${getApiBase()}/provisions`, {
+    const data = await $fetch<ListResponse<GetProvisionResponse>>(`api/provisions`, {
         method: 'GET',
         query: query
     })

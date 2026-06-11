@@ -3,27 +3,27 @@ import type { CreateFinancePrincipleRequest, GetFinancePrincipleResponse, Update
 import type { FinancePrincipleType } from "~/types/ui/financePrinciple";
 
 export async function createFinancePrinciple(request: CreateFinancePrincipleRequest) : Promise<CreatedRequest> {
-    return await $fetch(`${getApiBase()}/finance-principles`, {
+    return await $fetch(`api/finance-principles`, {
         method: 'POST',
         body: request
     }) 
 }
 
 export async function updateFinancePrinciple(id: string, request: UpdateFinancePrincipleRequest) {
-    await $fetch(`${getApiBase()}/finance-principles/${id}`, {
+    await $fetch(`api/finance-principles/${id}`, {
         method: 'PUT',
         body: request
     })
 }
 
 export async function deleteFinancePrinciple(id: string) {
-    await $fetch(`${getApiBase()}/finance-principles/${id}`, {
+    await $fetch(`api/finance-principles/${id}`, {
         method: 'DELETE'
     })
 }
 
 export async function fetchFinancePrinciple(id: string) : Promise<FinancePrincipleType> {
-    const data = await $fetch<GetFinancePrincipleResponse>(`${getApiBase()}/finance-principles/${id}`, {
+    const data = await $fetch<GetFinancePrincipleResponse>(`api/finance-principles/${id}`, {
         method: 'GET',
     })
 
@@ -38,7 +38,7 @@ export async function fetchFinancePrinciple(id: string) : Promise<FinancePrincip
 }
 
 export async function fetchFinancePrinciples(query: QueryFilterRequest) : Promise<ListResponse<FinancePrincipleType>> {
-    const data = await $fetch<ListResponse<GetFinancePrincipleResponse>>(`${getApiBase()}/finance-principles`, {
+    const data = await $fetch<ListResponse<GetFinancePrincipleResponse>>(`api/finance-principles`, {
         method: 'GET',
         query: query
     })
