@@ -1,6 +1,7 @@
 package dev.auguste.agni_api
 
 import org.flywaydb.core.Flyway
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
@@ -15,11 +16,13 @@ import javax.sql.DataSource
 class AgniApiApplication
 
 @Configuration
-class CorsConfig : WebMvcConfigurer {
+class CorsConfig(
+    @Value("\${origin.frontend.url:http://localhost:8000}") val frontendOrigin: String
+) : WebMvcConfigurer {
     override fun addCorsMappings(registry: CorsRegistry) {
         // TODO: Get allowed origins
         registry.addMapping("/**")
-            .allowedOrigins("http://localhost:3000")
+            .allowedOrigins(frontendOrigin)
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
             .exposedHeaders("Authorization")
