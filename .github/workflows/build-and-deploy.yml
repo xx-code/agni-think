@@ -24,7 +24,7 @@ jobs:
               - 'config/frontend/**'
             api:
               - 'apps/agni_api/**'
-              - 'config/api/**
+              - 'config/api/**'
 
       - name: Set up Dcocker tags
         id: vars
