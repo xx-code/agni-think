@@ -387,7 +387,7 @@ const columns: TableColumn<ItemRow>[] = [
 </script>
 
 <template>
-    <div class="goals-page">
+    <div class="goals-page p-1">
         <!-- Summary Section -->
         <div class="summary-section">
             <div class="summary-card">
