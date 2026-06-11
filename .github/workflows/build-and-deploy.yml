@@ -30,6 +30,7 @@ jobs:
         id: vars
         run: | 
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
       - name: Login docker
         if: steps.filter.outputs.frontend == 'true' || steps.filter.outputs.api == 'true'
@@ -43,8 +44,8 @@ jobs:
         if: steps.filter.outputs.frontend 
         run: | 
           docker build --build-arg BUILD_CONFIGURATION=Release \
-          -t ${{vars.REGISTRY_URL}}/agni-web:${{ steps.vars.outputs.sha_short }} \
-          -t ${{vars.REGISTRY_URL}}/agni-web:latest \
+          -t ${{ vars.REGISTRY_URL }}/agni-web:${{ steps.vars.outputs.sha_short }} \
+          -t ${{ vars.REGISTRY_URL }}/agni-web:${{ steps.vars.outputs.branch }}-latest \
           -f config/frontend/Dockerfile .
           docker push --all-tags ${{ vars.REGISTRY_URL}}/agni-web
       
@@ -53,7 +54,7 @@ jobs:
         run: |
           docker build --build-arg BUILD_CONFIGURATION=Release \
           -t ${{vars.REGISTRY_URL}}/agni-api-spring-boot:${{ steps.vars.outputs.sha_short }} \
-          -t ${{vars.REGISTRY_URL}}/agni-api-spring-boot:latest \
+          -t ${{ vars.REGISTRY_URL }}/agni-api-spring-boot:${{ steps.vars.outputs.branch }}-latest \
           -f config/api/Dockerfile .
           docker push --all-tags ${{ vars.REGISTRY_URL}}/agni-api-spring-boot
 
