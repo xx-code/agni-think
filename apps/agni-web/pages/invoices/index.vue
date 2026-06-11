@@ -441,7 +441,7 @@ function getRecordTypeColor(type: string) {
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="space-y-6 p-5">
         <!-- En-tête avec stats -->
         <div class="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 shadow-sm">
             <div class="flex justify-between items-start flex-wrap gap-4">
