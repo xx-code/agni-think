@@ -222,9 +222,9 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
 
 <template>
   <!-- Root: warm off-white, no dark -->
-  <div class="min-h-screen bg-slate-50 text-slate-800">
+  <div class="bg-slate-50 text-slate-800">
 
-    <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
+    <div class="mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
 
       <!-- ── Header ── -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">

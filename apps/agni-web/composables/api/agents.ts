@@ -29,7 +29,7 @@ export async function useTreatInvoiceText(text: string): Promise<string> {
 }
 
 export async function fetchAgentSuggestions(query: QueryFilterRequest): Promise<ListResponse<AgentSuggestionType>> {
-    const res = await $fetch<ListResponse<GetAgentSuggestionResponse>>(`${getApiBase()}/agent-suggestions`, {
+    const res = await $fetch<ListResponse<GetAgentSuggestionResponse>>(`api/agent-suggestions`, {
         method: 'GET',
         query: {
             ...query,

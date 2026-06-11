@@ -4,7 +4,7 @@ import type { DeleteSavingGoalRequest } from "~/types/api/saveGoal";
 import type { SaveGoalType } from "~/types/ui/saveGoal";
 
 export async function useCreateSaveGoal(request: CreateSavingGoalRequest): Promise<CreatedRequest> {
-    const created = await $fetch<CreatedRequest>(`${getApiBase()}/saving-goals`, {
+    const created = await $fetch<CreatedRequest>(`api/saving-goals`, {
         method: 'POST',
         body: request
     });
@@ -14,14 +14,14 @@ export async function useCreateSaveGoal(request: CreateSavingGoalRequest): Promi
 
 
 export async function useDeleteSaveGoal(saveGoalId: string, request: DeleteSavingGoalRequest): Promise<void> {
-    await $fetch(`${getApiBase()}/saving-goals/${saveGoalId}`, {
+    await $fetch(`api/saving-goals/${saveGoalId}`, {
         method: 'DELETE',
         body: request
     });
 }
 
 export async function fetchSaveGoal(saveGoalId: string): Promise<SaveGoalType> {
-    const res = await $fetch<GetSavingGoalResponse>(`${getApiBase()}/saving-goals/${saveGoalId}`, {
+    const res = await $fetch<GetSavingGoalResponse>(`api/saving-goals/${saveGoalId}`, {
         method: 'GET'
     });
 
@@ -40,7 +40,7 @@ export async function fetchSaveGoal(saveGoalId: string): Promise<SaveGoalType> {
 }
 
 export async function fetchSavingGoals(query: QueryFilterSavingGoalRequest) : Promise<ListResponse<SaveGoalType>> {
-    const res = await $fetch<ListResponse<GetSavingGoalResponse>>(`${getApiBase()}/saving-goals`, {
+    const res = await $fetch<ListResponse<GetSavingGoalResponse>>(`api/saving-goals`, {
         method: 'GET',
         query: query
     })
@@ -74,7 +74,7 @@ export type UpdateSaveGoalRequest = {
 }
 export  async function useUpdateAmountSaveGoal(request: UpdateSaveGoalRequest): Promise<void> {
     if (request.isIncrease)
-        await $fetch(`${getApiBase()}/saving-goals/${request.saveGoalId}/increase`, {
+        await $fetch(`api/saving-goals/${request.saveGoalId}/increase`, {
             method: "PUT",
             body: {
                 id: request.saveGoalId, 
@@ -83,7 +83,7 @@ export  async function useUpdateAmountSaveGoal(request: UpdateSaveGoalRequest): 
             } 
         });    
     else 
-        await $fetch(`${getApiBase()}/saving-goals/${request.saveGoalId}/decrease`, {
+        await $fetch(`api/saving-goals/${request.saveGoalId}/decrease`, {
             method: "PUT",
             body: {
                 id: request.saveGoalId,
@@ -94,7 +94,7 @@ export  async function useUpdateAmountSaveGoal(request: UpdateSaveGoalRequest): 
 }
 
 export async function useUpdateSaveGaol(saveGoalId: string, request: UpdateSavingGoalRequest): Promise<void> {
-    await $fetch(`${getApiBase()}/saving-goals/${saveGoalId}`, {
+    await $fetch(`api/saving-goals/${saveGoalId}`, {
         method: 'PUT',
         body: request
     }) 

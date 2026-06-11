@@ -3,7 +3,7 @@ import type { GetFinanceReportResponse } from "~/types/api/finance-report";
 import type { FinanceReportType } from "~/types/ui/finance-report";
 
 export async function fetchFinanceReports(query: QueryFilterRequest): Promise<ListResponse<FinanceReportType>> {
-    const res = await $fetch<ListResponse<GetFinanceReportResponse>>(`${getApiBase()}/finance-reports`, {
+    const res = await $fetch<ListResponse<GetFinanceReportResponse>>(`api/finance-reports`, {
         method: 'GET',
         query: query
     })

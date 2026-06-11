@@ -3,7 +3,7 @@ import type {  CreateInvoiceRequest, FreezeInvoiceRequest, GetBalanceResponse, G
 import type { InvoiceType } from "~/types/ui/transaction";
 
 export async function fetchBalance(query: QueryInvoice): Promise<GetBalanceResponse> {
-    const res = $fetch<GetBalanceResponse>(`${getApiBase()}/invoices/balances`, {
+    const res = $fetch<GetBalanceResponse>(`api/invoices/balances`, {
         method: "GET",
         query: query
     });
@@ -13,7 +13,7 @@ export async function fetchBalance(query: QueryInvoice): Promise<GetBalanceRespo
 }
 
 export async function fetchBalanceByPeriod(query: QueryBalanceByPeriod): Promise<GetBalanceResponse[]> {
-    const res = $fetch<GetBalanceResponse[]>(`${getApiBase()}/invoices/balances-by-period`, {
+    const res = $fetch<GetBalanceResponse[]>(`api/invoices/balances-by-period`, {
         method: 'GET',
         query: query
     })
@@ -22,14 +22,14 @@ export async function fetchBalanceByPeriod(query: QueryBalanceByPeriod): Promise
 }
 
 export async function useCompleteInvoice(transactionId: string): Promise<void> {
-    await $fetch(`${getApiBase()}/invoices/${transactionId}/completed`, {
+    await $fetch(`api/invoices/${transactionId}/completed`, {
         method: 'GET',
     });
 
 }
 
 export async function useCreateInvoice(request: CreateInvoiceRequest): Promise<CreatedRequest> {
-    const created = await $fetch<CreatedRequest>(`${getApiBase()}/invoices`, {
+    const created = await $fetch<CreatedRequest>(`api/invoices`, {
         method: 'POST',
         body: request
     });
@@ -38,13 +38,13 @@ export async function useCreateInvoice(request: CreateInvoiceRequest): Promise<C
 }
 
 export async function useDeleteInvoice(transactionId: string): Promise<void> {
-    await $fetch(`${getApiBase()}/invoices/${transactionId}`, {
+    await $fetch(`api/invoices/${transactionId}`, {
         method: 'DELETE'
     });
 }
 
 export async function useFreezeInvoice(request: FreezeInvoiceRequest): Promise<CreatedRequest> {
-    const created = await $fetch<CreatedRequest>(`${getApiBase()}/invoices/create-freeze`, {
+    const created = await $fetch<CreatedRequest>(`api/invoices/create-freeze`, {
         method: 'POST',
         body: request
     });
@@ -53,7 +53,7 @@ export async function useFreezeInvoice(request: FreezeInvoiceRequest): Promise<C
 }
 
 export async function fetchInvoice(transactionId: string): Promise<InvoiceType> {
-    const res = await $fetch<GetInvoiceResponse>(`${getApiBase()}/invoices/${transactionId}`, {
+    const res = await $fetch<GetInvoiceResponse>(`api/invoices/${transactionId}`, {
         method: 'GET'
     });
 
@@ -82,7 +82,7 @@ export async function fetchInvoice(transactionId: string): Promise<InvoiceType> 
 } 
 
 export async function fetchInvoicePagination(query: MaybeRefOrGetter<QueryInvoice>): Promise<ListResponse<InvoiceType>> {
-    const res = await $fetch<ListResponse<GetInvoiceResponse>>(`${getApiBase()}/invoices`, {
+    const res = await $fetch<ListResponse<GetInvoiceResponse>>(`api/invoices`, {
         method: 'GET',
         query: query
     });
@@ -115,14 +115,14 @@ export async function fetchInvoicePagination(query: MaybeRefOrGetter<QueryInvoic
 }
 
 export async function useTransfertInvoice(request: TransferInvoiceRequest): Promise<void> {
-    await $fetch(`${getApiBase()}/invoices/transfert`, {
+    await $fetch(`api/invoices/transfert`, {
         method: "POST",
         body: request
     });
 }
 
 export async function useUpdateInvoice(invoiceId: string, request: UpdateInvoiceRequest): Promise<void> {
-    await $fetch(`${getApiBase()}/invoices/${invoiceId}`, {
+    await $fetch(`api/invoices/${invoiceId}`, {
         method: 'PUT',
         body: request
     })

@@ -3,7 +3,7 @@ import type { CreateAccountRequest, GetAccountResponse, GetAccountWithDetailResp
 import type { AccountBrokeDetailType, AccountCheckingDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType } from "~/types/ui/account";
 
 export async function fetchAccount(accountId: string): Promise<AccountType> {
-    const res = await $fetch<GetAccountResponse>(`${getApiBase()}/accounts/${accountId}`, {
+    const res = await $fetch<GetAccountResponse>(`api/accounts/${accountId}`, {
         method: 'GET'
     });
     return {
@@ -15,8 +15,9 @@ export async function fetchAccount(accountId: string): Promise<AccountType> {
 }
 
 export async function fetchAccountWithDetail(accountId: string): Promise<AccountWithDetailType> {
-    const res = await $fetch<GetAccountWithDetailResponse>(`${getApiBase()}/accounts/${accountId}/with-detail`, {
-        method: 'GET'
+    const res = await $fetch<GetAccountWithDetailResponse>(`api/accounts/${accountId}`, {
+        method: 'GET',
+        query: { withDetail: true}
     });
 
     const detailAccount = (type: string) => {
@@ -69,7 +70,7 @@ function sumTotalBalance(accounts: AccountWithDetailType[]): [number, number, nu
 }
 
 export async function fetchAccounts(query: QueryFilterRequest): Promise<ListResponse<AccountType>> {
-    const res = await $fetch<ListResponse<GetAccountResponse>>(`${getApiBase()}/accounts`, {
+    const res = await $fetch<ListResponse<GetAccountResponse>>(`api/accounts`, {
         method: 'GET',
         query: query,
     });
@@ -86,9 +87,9 @@ export async function fetchAccounts(query: QueryFilterRequest): Promise<ListResp
 }
 
 export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promise<ListResponse<AccountWithDetailType>> {
-    const res = await $fetch<ListResponse<GetAccountWithDetailResponse>>(`${getApiBase()}/accounts/with-detail`, {
+    const res = await $fetch<ListResponse<GetAccountWithDetailResponse>>(`api/accounts`, {
         method: 'GET',
-        query: query
+        query:  {...query, withDetail: true}
     });
 
     const accountsWithPastBalances: AccountWithDetailType[] = [];
@@ -144,7 +145,7 @@ export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promis
 }
 
 export async function createAccount(request: CreateAccountRequest): Promise<CreatedRequest> {
-    const response = await $fetch(`${getApiBase()}/accounts`, {
+    const response = await $fetch(`api/accounts`, {
         method: 'POST',
         body: request
     });
@@ -153,13 +154,13 @@ export async function createAccount(request: CreateAccountRequest): Promise<Crea
 }
 
 export async function deleteAccount(accountId: string): Promise<void> {
-    await $fetch(`${getApiBase()}/accounts/${accountId}`, {
+    await $fetch(`api/accounts/${accountId}`, {
         method: 'DELETE'
     });
 }
 
 export async function updateAccount(accountId: string, request: UpdateAccountRequest): Promise<void> {
-    await $fetch(`${getApiBase()}/accounts/${accountId}`, {
+    await $fetch(`api/accounts/${accountId}`, {
         method: 'PUT',
         body: request
     });

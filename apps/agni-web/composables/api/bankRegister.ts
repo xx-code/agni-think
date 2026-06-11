@@ -3,7 +3,7 @@ import type { CreateBankRegisterRequest, GetBankRegisterResponse } from "~/types
 import type { BankRegisterType } from "~/types/ui/bank-register";
 
 export async function createBankRegister(request: CreateBankRegisterRequest): Promise<CreatedRequest> {
-    const res = await $fetch<CreatedRequest>(`${getApiBase()}/bank-registers`, {
+    const res = await $fetch<CreatedRequest>(`api/bank-registers`, {
         method: 'POST',
         body: request
     })
@@ -12,7 +12,7 @@ export async function createBankRegister(request: CreateBankRegisterRequest): Pr
 }
 
 export async function fetchAllBankRegister(query: QueryFilterRequest): Promise<ListResponse<BankRegisterType>> {
-    const res = await $fetch<ListResponse<GetBankRegisterResponse>>(`${getApiBase()}/bank-registers`, {
+    const res = await $fetch<ListResponse<GetBankRegisterResponse>>(`api/bank-registers`, {
         method: 'GET',
         query: query
     })

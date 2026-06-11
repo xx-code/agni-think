@@ -4,7 +4,7 @@ import type { GetTagResponse } from "~/types/api/tag";
 import type { TagType } from "~/types/ui/tag";
 
 export async function useCreateTag(request: CreateTagRequest): Promise<CreatedRequest> {
-    const created = await $fetch<CreatedRequest>(`${getApiBase()}/tags`, {
+    const created = await $fetch<CreatedRequest>(`api/tags`, {
         method: 'POST',
         body: request
     });
@@ -13,7 +13,7 @@ export async function useCreateTag(request: CreateTagRequest): Promise<CreatedRe
 }
 
 export async function useDeleteTag(tagId: string): Promise<void> {
-    await $fetch(`${getApiBase()}/tags/${tagId}`, {
+    await $fetch(`api/tags/${tagId}`, {
         method: 'DELETE',
     });
 }
@@ -21,7 +21,7 @@ export async function useDeleteTag(tagId: string): Promise<void> {
 
 
 export async function fetchTag(tagId: string): Promise<TagType> {
-    const res = await $fetch<GetTagResponse>(`${getApiBase()}/tags/${tagId}`, {
+    const res = await $fetch<GetTagResponse>(`api/tags/${tagId}`, {
         method: 'GET',
     });
 
@@ -34,7 +34,7 @@ export async function fetchTag(tagId: string): Promise<TagType> {
 
 export async function fetchTags(query: QueryFilterRequest): Promise<ListResponse<TagType>> {
 
-    const res = await $fetch<ListResponse<GetTagResponse>>(`${getApiBase()}/tags`, {
+    const res = await $fetch<ListResponse<GetTagResponse>>(`api/tags`, {
         method: 'GET',
         query: query
     });
@@ -50,7 +50,7 @@ export async function fetchTags(query: QueryFilterRequest): Promise<ListResponse
 }
 
 export async function useUpdateTag(tagId: string, request: UpdateTagRequest): Promise<void> {
-    await $fetch(`${getApiBase()}/tags/${tagId}`, {
+    await $fetch(`api/tags/${tagId}`, {
         method: 'PUT',
         body: request
     })

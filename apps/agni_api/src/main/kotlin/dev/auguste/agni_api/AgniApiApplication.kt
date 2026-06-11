@@ -1,6 +1,7 @@
 package dev.auguste.agni_api
 
 import org.flywaydb.core.Flyway
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
@@ -13,20 +14,6 @@ import javax.sql.DataSource
 @SpringBootApplication
 @EnableScheduling
 class AgniApiApplication
-
-@Configuration
-class CorsConfig : WebMvcConfigurer {
-    override fun addCorsMappings(registry: CorsRegistry) {
-        // TODO: Get allowed origins
-        registry.addMapping("/**")
-            .allowedOrigins("http://localhost:3000")
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-            .allowedHeaders("*")
-            .exposedHeaders("Authorization")
-            .allowCredentials(true)
-            .maxAge(3600)
-    }
-}
 
 @Configuration
 class FlywayConfig(private val dataSource: DataSource) {

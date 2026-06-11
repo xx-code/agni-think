@@ -1,0 +1,52 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Dcocker tags
+        id: vars
+        run: | 
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Login docker
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.REGISTRY_URL }}
+          username: ${{ secrets.REGISTRY_USERNAME }} 
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and Release Frontend
+        run: | 
+          docker build --build-arg BUILD_CONFIGURATION=Release \ 
+          -t ${{vars.REGISTRY_URL}}/agni-web:${{ steps.vars.outputs.sha_short }} \ 
+          -t ${{vars.REGISTRY_URL}}/agni-web:latest \
+          -f config/frontend/Dockerfile .
+          docker push --all-tags ${{ vars.REGISTRY_URL}}/agni-web
+      
+      - name: Build and Release Api
+        run: |
+          docker build --build-arg BUILD_CONFIGURATION=Release \ 
+          -t ${{vars.REGISTRY_URL}}/agni-api-spring-boot:${{ steps.vars.outputs.sha_short }} \ 
+          -t ${{vars.REGISTRY_URL}}/agni-api-spring-boot:latest \
+          -f config/api/Dockerfile .
+          docker push --all-tags ${{ vars.REGISTRY_URL}}/agni-api-spring-boot
+
+      #- name: Build and Release Agent
+        # run: |
+        #   docker build --build-arg BUILD_CONFIGURATION=Release \ 
+        #   -t ${{vars.REGISTRY}}/agni-web:${{ steps.vars.outputs.sha_short }} \ 
+        #   -t ${{vars.REGISTRY}}/agni-web:last comit
+        #   -t ${{vars.REGISTRY}}/agni-web:latest \
+        #   -f config/agent/Dockerfile .
+        #   docker push
