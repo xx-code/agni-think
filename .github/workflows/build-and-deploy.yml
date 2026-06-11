@@ -28,7 +28,7 @@ jobs:
 
       - name: Build and Release Frontend
         run: | 
-          docker build --build-arg BUILD_CONFIGURATION=Release \ 
+          docker build --build-arg BUILD_CONFIGURATION=Release \
           -t ${{vars.REGISTRY_URL}}/agni-web:${{ steps.vars.outputs.sha_short }} \
           -t ${{vars.REGISTRY_URL}}/agni-web:latest \
           -f config/frontend/Dockerfile .
