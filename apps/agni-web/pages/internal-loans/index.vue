@@ -2,8 +2,8 @@
 import type { NuxtError } from '#app';
 import { ModalEditInternalLoan } from '#components';
 import { getLocalTimeZone } from '@internationalized/date';
-import { fetchAccounts } from '~/composables/accounts/useAccounts';
-import { fetchInternalLoans, useCreateInternalLoan } from '~/composables/internal-loan';
+import { fetchAccounts } from '~/composables/api/accounts';
+import { fetchInternalLoans, useCreateInternalLoan, useDeleteInternalLoan } from '~/composables/api/internal-loan';
 import type { EditInternalLoanType } from '~/types/ui/internal-loan';
 
 type InternalLoanRow = {

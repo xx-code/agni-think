@@ -1,21 +1,7 @@
-import useApiLink from "~/composables/useApiLink";
-import type { GetAccountResponse } from "~/types/api/account";
+import { getApiBase } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    try {
-        const api = useApiLink(); 
-        const id = getRouterParam(event, 'id');
-        const res = await $fetch(`${api}/accounts/${id}`, {
-            method: 'GET'
-        });
-        const data = (res as GetAccountResponse);
-        return data;
-    } catch(err) {
-        console.log('Get account: ' + err);
-        return createError({
-            status: 500,
-            message: 'Get Account error',
-            data: err
-        });
-    }
+    const id = getRouterParam(event, 'id');
+    return await handleRequest(event, `${getApiBase()}/accounts/${id}`);
 });

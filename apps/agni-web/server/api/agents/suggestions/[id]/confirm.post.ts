@@ -1,8 +1,8 @@
-import useApiAgentLink from "~/composables/useApiAgentLink";
-import { handlePostRequest } from "~/server/utils";
+import { getRouterParam } from "h3";
+import { getApiAgent } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    const api = useApiAgentLink(); 
     const id = getRouterParam(event, "id")
-    return await handlePostRequest(event, `${api}/agent-suggestions/${id}/confirm`)
+    return await handleRequest(event, `${getApiAgent()}/agent-suggestions/${id}/confirm`)
 });

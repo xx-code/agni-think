@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.usecases.internal_loan
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.internal_loan.dto.GetInternalLoanOutput
@@ -10,7 +11,7 @@ class GetInternalLoan(
     private val internalLoanRepo: IRepository<InternalLoan>
 ) : IUseCase<UUID, GetInternalLoanOutput> {
     override fun execAsync(input: UUID): GetInternalLoanOutput {
-        val internalLoan = internalLoanRepo.get(input) ?: throw Exception("Internal loan $input not found")
+        val internalLoan = internalLoanRepo.get(input) ?: throw DomainException.NotFound.InternalLoan(input)
 
         return GetInternalLoanOutput(
             id = internalLoan.id,

@@ -1,7 +1,6 @@
-import useApiAgentLink from "~/composables/useApiAgentLink";
-import { handleGetRequest } from "~/server/utils";
+import { getApiAgent } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    const api = useApiAgentLink(); 
-    return await handleGetRequest(event, `${api}/force-sync-transaction`)
+    return await handleRequest(event, `${getApiAgent()}/force-sync-transaction`)
 });

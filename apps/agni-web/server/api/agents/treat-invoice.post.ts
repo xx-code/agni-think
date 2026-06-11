@@ -1,7 +1,6 @@
-import useApiAgentLink from "~/composables/useApiAgentLink";
-import { handlePostRequest } from "~/server/utils";
+import { getApiAgent } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    const api = useApiAgentLink(); 
-    return await handlePostRequest(event, `${api}/treat-unformat-transaction`)
+    return await handleRequest(event, `${getApiAgent()}/treat-unformat-transaction`)
 });

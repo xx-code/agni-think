@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.usecases.internal_loan
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -15,7 +16,7 @@ class DeleteInternalLoan(
 ) : IUseCase<UUID, Unit> {
     override fun execAsync(input: UUID) {
         unitOfWork.execute {
-            val internalLoan = internalLoanRepo.get(input) ?: throw Exception("Internal loan $input not found")
+            val internalLoan = internalLoanRepo.get(input) ?: throw DomainException.NotFound.InternalLoan(input)
             internalLoanRepo.delete(input)
             deleteInternalLoan.execInnerAsync(DeleteInvoiceInput(internalLoan.invoiceId))
         }

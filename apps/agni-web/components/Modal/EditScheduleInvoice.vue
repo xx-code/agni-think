@@ -4,11 +4,10 @@ import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalize
 import { reactive, shallowRef } from "vue";
 import type { FormError, FormSubmitEvent } from '#ui/types';
 import type { EditScheduleInvoiceType, ScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
-import { fetchAccounts } from '~/composables/accounts/useAccounts';
-import { fetchCategories } from '~/composables/categories/useCategories';
-import { fetchTags } from '~/composables/tags/useTags';
-import { fetchTransactionTypes } from '~/composables/internals/useTransactionTypes';
-import { fetchPeriodTypes } from '~/composables/internals/usePeriodTypes';
+import { fetchAccounts } from '~/composables/api/accounts';
+import { fetchCategories } from '~/composables/api/categories';
+import { fetchTransactionTypes, fetchPeriodTypes } from '~/composables/api/internal';
+import { fetchTags } from '~/composables/api/tag';
 
 const { scheduleInvoice } = defineProps<{
     scheduleInvoice?: ScheduleInvoiceType

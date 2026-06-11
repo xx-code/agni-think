@@ -39,25 +39,22 @@ class AccountController(
 ) {
 
     @GetMapping
-    fun getAccounts(queryFilter: QueryFilter): ResponseEntity<ListOutput<GetAccountOutput>> {
-        val res = getAllAccountUseCase.execAsync(queryFilter)
-        return ResponseEntity.ok(res)
-    }
-
-    @GetMapping("/with-detail")
-    fun getAccountsWithDetail(queryFilter: QueryFilter): ResponseEntity<ListOutput<GetAccountWithDetailOutput>>  {
-        val res = getAllAccountWithDetailUseCase.execAsync(queryFilter)
+    fun getAccounts(queryFilter: QueryFilter, withDetail: Boolean = false): ResponseEntity<ListOutput<*>> {
+        val res = if (withDetail)  {
+            getAllAccountWithDetailUseCase.execAsync(queryFilter)
+        } else {
+            getAllAccountUseCase.execAsync(queryFilter)
+        }
         return ResponseEntity.ok(res)
     }
 
     @GetMapping("/{id}")
-    fun getAccount(@PathVariable id: UUID): ResponseEntity<GetAccountOutput> {
-       return ResponseEntity.ok(getAccountUseCase.execAsync(id))
-    }
-
-    @GetMapping("/with-detail/{id}")
-    fun getAccountWithDetail(@PathVariable id: UUID): ResponseEntity<GetAccountWithDetailOutput>  {
-        return ResponseEntity.ok(getAccountWithDetailUseCase.execAsync(id))
+    fun getAccount(@PathVariable id: UUID, withDetail: Boolean = false): ResponseEntity<*> {
+        if (withDetail) {
+            return ResponseEntity.ok(getAccountWithDetailUseCase.execAsync(id))
+        } else {
+            return ResponseEntity.ok(getAccountUseCase.execAsync(id))
+        }
     }
 
     @PostMapping

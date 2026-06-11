@@ -3,16 +3,17 @@ package dev.auguste.agni_api.core.usecases.currencies
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Currency
 import dev.auguste.agni_api.core.usecases.currencies.dto.UpdateCurrencyInput
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
 class UpdateCurrency(private val currencyRepo: IRepository<Currency>): IUseCase<UpdateCurrencyInput, Unit> {
 
     override fun execAsync(input: UpdateCurrencyInput) {
-        val currency = currencyRepo.get(input.id) ?: throw Error("Currency ${input.id} not found")
+        val currency = currencyRepo.get(input.id) ?: throw DomainException.NotFound.Currency(input.id)
 
         if (input.name != null) {
             if (input.name != currency.name && currencyRepo.existsByName(input.name))
-                throw Error("Currency ${input.name} already exists")
+                throw DomainException.AlreadyExist.Currency(input.name)
 
             currency.name = input.name
         }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
-import { fetchPlanningAdvisorAgent } from '~/composables/agents/usePlanningAdvisorAgent'
+import { fetchPlanningAdvisorAgent } from '~/composables/api/agents'
 import type { PlanningAgentAdvisorType } from '~/types/ui/agent'
 
 export type TargetGoal = {

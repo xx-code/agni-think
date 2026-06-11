@@ -1,23 +1,7 @@
-import useApiLink from "~/composables/useApiLink";
+import { getApiBase } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    try {
-        const api = useApiLink(); 
-        const id = getRouterParam(event, 'id')
-
-        const request = await readBody(event)
-        const res = await $fetch(`${api}/patrimonies/${id}/add-snapshot`, {
-            method: 'POST',
-            body: request 
-        });
-        
-        return res
-    } catch(err) {
-        console.log('Add patrimony snapshot: ' + err);
-        return createError({
-            status: 500,
-            message: 'Add Patrimony snapshot',
-            data: err
-        });
-    }
+    const id = getRouterParam(event, 'id');
+    return await handleRequest(event, `${getApiBase()}/patrimonies/${id}/add-snapshot`);
 });

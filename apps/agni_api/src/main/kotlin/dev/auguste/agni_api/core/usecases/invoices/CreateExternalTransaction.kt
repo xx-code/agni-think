@@ -9,6 +9,7 @@ import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventConte
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationType
 import dev.auguste.agni_api.core.adapters.events.listeners.ICreateExternalTransactionListener
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.ExternalTransaction
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -24,7 +25,7 @@ class CreateExternalTransaction(
 
     override fun execAsync(input: UUID): BackgroundTaskOut {
         try {
-            val trans = externalTransactionRepo.get(input) ?: throw Error("External transaction not found")
+            val trans = externalTransactionRepo.get(input) ?: throw DomainException.NotFound.Transaction(input)
 
             val docTrans = """
                 accountId=${trans.accountId};

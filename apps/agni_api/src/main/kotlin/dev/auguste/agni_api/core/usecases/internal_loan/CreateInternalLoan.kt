@@ -9,6 +9,7 @@ import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInterna
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInvoiceExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryScheduleInvoiceExtend
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
@@ -43,8 +44,8 @@ class CreateInternalLoan(
 ): IUseCase<CreateInternalLoanInput, CreatedOutput> {
     override fun execAsync(input: CreateInternalLoanInput): CreatedOutput {
         return unitOfWork.execute {
-            val account = accountRepo.get(input.fundSourceId) ?: throw  Exception("Fund Account not found")
-            val creditAccount = accountRepo.get(input.creditTargetId) ?: throw  Exception("Credit Card Account not found")
+            val account = accountRepo.get(input.fundSourceId) ?: throw DomainException.NotFound.Account(input.fundSourceId)
+            val creditAccount = accountRepo.get(input.creditTargetId) ?: throw DomainException.NotFound.Account(input.creditTargetId)
             val internalLoans = internalLoanRepo.getAll(query = QueryFilter(queryAll = true), QueryInternalLoanExtend(fundSourceId = input.fundSourceId))
             var currentLoanBalance = 0.0
             if (internalLoans.items.isNotEmpty()) {
@@ -56,7 +57,7 @@ class CreateInternalLoan(
             val invoices = invoiceRepo.getAll(QueryFilter(queryAll = true), QueryInvoiceExtend(status = InvoiceStatusType.PENDING))
             val otherPendingInvoices = invoices.items.filter { internalLoans.items.map { loan -> loan.invoiceId }.contains(it.id) }
             if (otherPendingInvoices.isNotEmpty()) {
-                throw Exception("You have to complete all pending invoices before take a loan")
+                throw DomainException.BusinessLogic.InternalLoanAllPendingMustBeReady()
             }
 
             val scheduleInvoice = scheduleInvoiceRepo.getAll(QueryFilter(queryAll = true),
@@ -68,10 +69,10 @@ class CreateInternalLoan(
 
             val accountType = account.detail.getType()
             if (accountType != AccountType.CHECKING && accountType != AccountType.SAVING)
-                throw  Exception("Account type not allow for loan collateral")
+                throw DomainException.BusinessLogic.InternalLoanAccountNotAllowForCollateral()
 
             if (creditAccount.detail.getType() != AccountType.CREDIT_CARD)
-                throw  Exception("Loan take a credit card")
+                throw DomainException.BusinessLogic.InternalLoanBadAccountCredit()
 
             val creditCardDetail = (creditAccount.detail as CreditCardAccountDetail)
             val creditUtilization = if (creditCardDetail.creditLimit > 0) {
@@ -97,7 +98,7 @@ class CreateInternalLoan(
                 scheduleInvoice.items
             )
             if (confidence < 80.0) {
-                throw Exception("Confiance insuffisante (${confidence.roundToInt()}%). Le risque de liquidité est trop élevé. pret refuser")
+                throw DomainException.BusinessLogic.InternalLoanBadConfidenceScore(confidence)
             }
 
             val internalLoan = InternalLoan(

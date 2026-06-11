@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.usecases.schedule_Invoices
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
@@ -11,7 +12,7 @@ class DeleteScheduleInvoice(
 ): IUseCase<DeleteScheduleInvoiceInput, Unit> {
     override fun execAsync(input: DeleteScheduleInvoiceInput) {
         if (scheduleInvoiceRepo.get(input.scheduleInvoiceId) == null)
-            throw Error("Schedule invoices not found")
+            throw DomainException.NotFound.ScheduleInvoice(input.scheduleInvoiceId)
 
         scheduleInvoiceRepo.delete(input.scheduleInvoiceId)
     }

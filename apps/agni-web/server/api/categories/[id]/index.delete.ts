@@ -1,18 +1,7 @@
-import useApiLink from "~/composables/useApiLink";
+import { getApiBase } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    try {
-        const api = useApiLink(); 
-        const id = getRouterParam(event, 'id');
-        await $fetch(`${api}/categories/${id}`, {
-            method: 'DELETE'
-        });
-    } catch(err) {
-        console.log('Delete category: ' + err);
-        return createError({
-            status: 500,
-            message: 'Delete category error',
-            data: err
-        });
-    }
+    const id = getRouterParam(event, 'id');
+    return await handleRequest(event, `${getApiBase()}/categories/${id}`);
 });

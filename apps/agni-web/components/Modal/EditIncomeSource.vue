@@ -2,9 +2,9 @@
 import { reactive } from "vue";
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import type { EditIncomeSourceType, IncomeSourceType } from '~/types/ui/incomeSource';
-import { fetchIncomeSourceFrequencyTypes, fetchIncomeSourceTypes } from '~/composables/internal';
-import { fetchAccounts } from '~/composables/accounts/useAccounts';
+import { fetchIncomeSourceFrequencyTypes, fetchIncomeSourceTypes } from '~/composables/api/internal';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
+import { fetchAccounts } from "~/composables/api/accounts";
 
 const { incomeSource } = defineProps<{
     incomeSource?: IncomeSourceType

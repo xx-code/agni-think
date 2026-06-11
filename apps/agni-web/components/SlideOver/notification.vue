@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import useDeleteNotification from '~/composables/notifications/useDeleteNotificaiton';
-import { fetchNotifications } from '~/composables/notifications/useNotifications';
-import useToggleNotification from '~/composables/notifications/useToggleNotification'
+import useDeleteNotification, { fetchNotifications, useToggleNotification } from '~/composables/api/notifications';
+
 
 const toast = useToast()
 const emit = defineEmits<{ close: [boolean] }>()

@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.usecases.schedule_Invoices
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.facades.InvoiceDependencies
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -14,25 +15,25 @@ class UpdateScheduleInvoice(
 ): IUseCase<UpdateScheduleInvoiceInput, Unit> {
 
     override fun execAsync(input: UpdateScheduleInvoiceInput) {
-        val scheduleInvoice = scheduleInvoiceRepo.get(input.id) ?: throw Error("Schedule Invoice not found")
+        val scheduleInvoice = scheduleInvoiceRepo.get(input.id) ?: throw DomainException.NotFound.ScheduleInvoice(input.id)
 
         if (input.name != null) {
             if (input.name != scheduleInvoice.title && scheduleInvoiceRepo.existsByName(input.name))
-                throw Error("Schedule Invoice with name ${input.name} already exists")
+                throw DomainException.AlreadyExist.ScheduleInvoice(input.name)
 
             scheduleInvoice.title = input.name
         }
 
         if (input.accountId != null) {
             if (invoiceDependencies.accountRepo.get(input.accountId) == null)
-                throw Error("Account not found")
+                throw DomainException.NotFound.Account(input.accountId)
 
             scheduleInvoice.accountId = input.accountId
         }
 
         if (!scheduleInvoice.isFreeze && input.categoryId != null) {
             if (invoiceDependencies.categoryRepo.get(input.categoryId) == null)
-                throw Error("Category not found")
+                throw DomainException.NotFound.Category(input.categoryId)
 
             scheduleInvoice.categoryId = input.categoryId
         }
@@ -43,12 +44,12 @@ class UpdateScheduleInvoice(
 
         if (!scheduleInvoice.isFreeze && input.tagIds != null) {
             if (invoiceDependencies.tagRepo.getManyByIds(input.tagIds).size != input.tagIds.size)
-                throw Error("Tags not found")
+                throw DomainException.NotFound.SomeTags(input.tagIds)
         }
 
         if (input.amount != null) {
             if (input.amount < 0)
-                throw Error("Amount must be greater than 0")
+                throw DomainException.BusinessLogic.Validation("Amount must be greater than 0")
             scheduleInvoice.amount = input.amount
         }
 

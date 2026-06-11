@@ -1,8 +1,8 @@
-import useApiLink from "~/composables/useApiLink";
-import { handleGetRequest } from "~/server/utils";
+import { getRouterParam } from "h3";
+import { getApiBase } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    const api = useApiLink(); 
     const id = getRouterParam(event, "id")
-    return await handleGetRequest(event, `${api}/finance-reports/${id}`)
+    return await handleRequest(event, `${getApiBase()}/finance-reports/${id}`)
 });

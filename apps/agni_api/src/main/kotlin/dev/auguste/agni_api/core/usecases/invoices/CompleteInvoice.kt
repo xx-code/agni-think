@@ -8,6 +8,7 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInternalLoanExtend
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
@@ -27,8 +28,8 @@ class CompleteInvoice(
 ): IUseCase<CompleteInvoiceInput, Unit> {
     override fun execAsync(input: CompleteInvoiceInput) {
         unitOfWork.execute {
-            val invoice = invoiceRepo.get(input.invoiceId) ?: throw Exception("Invoice with id $input not found")
-            val account = accountRepo.get(invoice.accountId) ?: throw Exception("Account with id $invoice not found")
+            val invoice = invoiceRepo.get(input.invoiceId) ?: throw DomainException.NotFound.Invoice(input.invoiceId)
+            val account = accountRepo.get(invoice.accountId) ?: throw DomainException.NotFound.Account(invoice.accountId)
 
             val transactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
                 invoiceIds = setOf(invoice.id),

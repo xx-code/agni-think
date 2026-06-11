@@ -3,7 +3,7 @@ import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { UFormField } from '#components';
 import type { EditUpdateAmountSaveGoalType, SaveGoalType } from '~/types/ui/saveGoal';
-import { fetchAccounts } from '~/composables/accounts/useAccounts';
+import { fetchAccounts } from '~/composables/api/accounts';
 
 const { saveGoal, isIncrease } = defineProps<{
     saveGoal?: SaveGoalType

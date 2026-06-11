@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date';
-import { fetchAccounts } from '~/composables/accounts/useAccounts';
-import { fetchBudgets } from '~/composables/budgets/useBudgets';
-import { fetchCategories } from '~/composables/categories/useCategories';
-import { fetchTransactionTypes } from '~/composables/internals/useTransactionTypes';
-import { fetchTags } from '~/composables/tags/useTags';
+import { fetchAccounts } from '~/composables/api/accounts';
+import { fetchBudgets } from '~/composables/api/budget';
+import { fetchCategories } from '~/composables/api/categories';
+import { fetchTransactionTypes } from '~/composables/api/internal';
+import { fetchTags } from '~/composables/api/tag';
 
 import type { FormFilterTransaction } from '~/types/ui/component';
 

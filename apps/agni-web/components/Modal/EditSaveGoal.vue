@@ -4,9 +4,8 @@ import { reactive } from "vue";
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { EditSaveGoalType, SaveGoalType } from '~/types/ui/saveGoal';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
-import { fetchAccounts } from '~/composables/accounts/useAccounts';
-import { fetchImportanceTypes } from '~/composables/internals/useImportanceTypes';
-import { fetcheIntensityDesirTypes } from '~/composables/internals/useIntensityDerisTypes';
+import { fetchAccounts } from '~/composables/api/accounts';
+import { fetchImportanceTypes, fetcheIntensityDesirTypes } from '~/composables/api/internal';
 
 const { saveGoal } = defineProps<{
     saveGoal?: SaveGoalType

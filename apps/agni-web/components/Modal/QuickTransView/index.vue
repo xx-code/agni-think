@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { fetchCategories } from '~/composables/categories/useCategories';
-import { fetchInvoicePagination } from '~/composables/invoices/useTransactionPagination';
 import type { AccountWithDetailType } from '~/types/ui/account';
 import ListTransaction from './ListTransaction.vue';
-import { fetchBalance } from '~/composables/invoices/useBalance';
-import { fetchTags } from '~/composables/tags/useTags';
-import { fetchBudgets } from '~/composables/budgets/useBudgets';
 import type { QueryFilterRequest } from '~/types/api';
 import type { QueryInvoice } from '~/types/api/transaction';
+import { fetchCategories } from '~/composables/api/categories.js';
+import { fetchBudgets } from '~/composables/api/budget.js';
+import { fetchBalance, fetchInvoicePagination } from '~/composables/api/invoices.js';
+import { fetchTags } from '~/composables/api/tag.js';
 
 export type SlideQuickViewTransactionType = {
     id: string

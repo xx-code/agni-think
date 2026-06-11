@@ -1,54 +1,18 @@
 import type { H3Error } from "#imports";
-export async function handlePostRequest(event: any, url: string) {
-   try {
-        const request = await readBody(event);
-        const res = await $fetch(url, {
-            method: 'POST',
-            body: request
-        });
-        return res;
-    } catch(err) {
-        throw createError(err as H3Error);
-    }
-}
+import { getQuery, readBody, createError } from "h3";
 
-export async function handleGetRequest(event:any, url: string) {
+export async function handleRequest(event: any, urlPath: string) {
     try {
-        const query = getQuery(event)
-        const res = await $fetch(url, {
-            method: 'GET',
-            query: query 
+        const query = getQuery(event);
+        const hasBody = ['POST', 'PUT', 'PATCH'].includes(event.method);
+        const body = hasBody ? await readBody(event) : undefined;
+        const res = await $fetch(urlPath, {
+            method: event.method,
+            query,
+            ...(hasBody && { body })
         });
         return res;
-    } catch(err) {
-        throw createError(err as H3Error);
-    }
-} 
-
-export async function handleDeleteRequest(event:any, url: string) {
-    try {
-        const query = getQuery(event)
-        const res = await $fetch(url, {
-            method: 'DELETE',
-            query: query 
-        });
-        return res;
-    } catch(err) {
-        throw createError(err as H3Error);
-    }
-}
-
-export async function handlePutRequest(event:any, url: string) {
-    try {
-        const query = getQuery(event)
-        const request = await readBody(event);
-        const res = await $fetch(url, {
-            method: 'PUT',
-            body: request,
-            query: query 
-        });
-        return res;
-    } catch(err) {
+    } catch (err) {
         throw createError(err as H3Error);
     }
 }

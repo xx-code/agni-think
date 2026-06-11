@@ -9,6 +9,7 @@ import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryExterna
 import dev.auguste.agni_api.core.entities.ExternalTransaction
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.invoices.dto.AddExternalTransactionInput
 
 class AddManyExternalTransactions(
@@ -37,7 +38,7 @@ class AddManyExternalTransactions(
         newExternalTransactions = newExternalTransactions.filter { trans -> trans.transactionId !in externalTransactions.items.map { it.transactionId } }
 
         if (newExternalTransactions.isEmpty())
-            throw Error("All new Transactions were already added.")
+            throw DomainException.BusinessLogic.AllNewTransactionsAlreadyAdded()
 
         externalTransRepo.createMany(newExternalTransactions)
 

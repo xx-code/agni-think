@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.usecases.currencies
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Currency
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.currencies.dto.CreateCurrencyInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -10,7 +11,7 @@ class CreateCurrency(private val currencyRepo: IRepository<Currency>): IUseCase<
 
     override fun execAsync(input: CreateCurrencyInput): CreatedOutput {
         if (currencyRepo.existsByName(input.name))
-            throw Error("Currency already exists")
+            throw DomainException.AlreadyExist.Currency(input.name)
 
         val newCurrency = Currency(
             name = input.name,

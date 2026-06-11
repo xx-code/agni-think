@@ -1,20 +1,7 @@
-import useApiLink from "~/composables/useApiLink";
+import { getApiBase } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    try {
-        const api = useApiLink(); 
-        const id = getRouterParam(event, 'id');
-        const request = await readBody(event);
-        await $fetch(`${api}/schedule-invoices/${id}`, {
-            method: 'PUT',
-            body: request
-        });
-    } catch(err) {
-        console.log('Updatge budget: ' + err);
-        return createError({
-            status: 500,
-            message: 'Udpate budget error',
-            data: err
-        });
-    }
+    const id = getRouterParam(event, 'id');
+    return await handleRequest(event, `${getApiBase()}/schedule-invoices/${id}`);
 });

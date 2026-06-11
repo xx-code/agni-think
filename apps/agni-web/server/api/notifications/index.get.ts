@@ -1,21 +1,6 @@
-import useApiLink from "~/composables/useApiLink";
+import { getApiBase } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    try {
-        const api = useApiLink(); 
-        const query = getQuery(event)
-        const res = await $fetch(`${api}/notifications`, {
-            method: 'GET',
-            query: query
-        });
-
-        return res;
-    } catch(err) {
-        console.log('Get Notification: ' + err);
-        return createError({
-            status: 500,
-            message: 'Get notifacations',
-            data: err
-        });
-    }
+    return await handleRequest(event, `${getApiBase()}/notifications`);
 });

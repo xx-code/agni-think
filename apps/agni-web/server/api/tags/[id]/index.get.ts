@@ -1,23 +1,7 @@
-import useApiLink from "~/composables/useApiLink";
-import type { GetTagResponse } from "~/types/api/tag";
+import { getApiBase } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    try {
-        const api = useApiLink(); 
-        const id = getRouterParam(event, 'id');
-        const res = await $fetch(`${api}/tags/${id}`, {
-            method: 'GET'
-        });
-
-        const data = (res as GetTagResponse);
-
-        return data;
-    } catch(err) {
-        console.log('Delete budget: ' + err);
-        return createError({
-            status: 500,
-            message: 'Delete budget error',
-            data: err
-        });
-    }
+    const id = getRouterParam(event, 'id');
+    return await handleRequest(event, `${getApiBase()}/tags/${id}`);
 });

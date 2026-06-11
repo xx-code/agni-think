@@ -1,20 +1,6 @@
-import useApiLink from "~/composables/useApiLink";
-import type { GetManagementTypeResponse } from "~/types/api/internal";
+import { getApiBase } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    try {
-        const api = useApiLink(); 
-        const res = await $fetch(`${api}/internal/management-account-type`, {
-            method: 'GET'
-        });
-        const data = (res as GetManagementTypeResponse[]);
-        return data;
-    } catch(err) {
-        console.log('Internal importance Type: ' + err);
-        return createError({
-            status: 500,
-            message: 'Internal importance Type error',
-            data: err
-        });
-    }
+    return await handleRequest(event, `${getApiBase()}/internals/management-account-type`);
 });

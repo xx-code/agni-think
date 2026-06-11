@@ -1,7 +1,6 @@
-import useApiLink from "~/composables/useApiLink";
-import { handleGetRequest } from "~/server/utils";
+import { getApiBase } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    const api = useApiLink(); 
-    return await handleGetRequest(event, `${api}/bank-registers`)
+    return await handleRequest(event, `${getApiBase()}/bank-registers`)
 });

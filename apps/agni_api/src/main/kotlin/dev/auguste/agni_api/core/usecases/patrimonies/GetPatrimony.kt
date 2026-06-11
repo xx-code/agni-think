@@ -9,6 +9,7 @@ import dev.auguste.agni_api.core.entities.PatrimonySnapshot
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
@@ -24,7 +25,7 @@ class GetPatrimony(
 ) : IUseCase<UUID, GetPatrimonyOutput> {
 
     override fun execAsync(input: UUID): GetPatrimonyOutput {
-        val patrimony = patrimonyRepo.get(input) ?: throw Error("Patrimony not found")
+        val patrimony = patrimonyRepo.get(input) ?: throw DomainException.NotFound.Patrimony(input)
 
         val snapshots = patrimonySnapshotRepo.getAll(
             QueryFilter(0, 0, true),

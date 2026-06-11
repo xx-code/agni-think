@@ -3,6 +3,7 @@ package dev.auguste.agni_api.core.usecases.bank_registers
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.BankRegister
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.bank_registers.dto.CreateBankRegisterInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -13,10 +14,10 @@ class CreateBankRegister(
     private val accountRepo: IRepository<Account>,
 ): IUseCase<CreateBankRegisterInput, CreatedOutput> {
     override fun execAsync(input: CreateBankRegisterInput): CreatedOutput {
-        val accounts = accountRepo.getManyByIds(input.accounts.map { it.accountId }.toSet())
+        val accountIds = input.accounts.map { it.accountId }.toSet()
+        val accounts = accountRepo.getManyByIds(accountIds)
         if (accounts.size != input.accounts.size)
-            throw Error("SOME_ACCOUNTS_NOT_FOUND")
-
+                throw DomainException.NotFound.SomeAccounts(accountIds)
         val newBankRegister = BankRegister(
             title = input.title,
             accessCode = input.accessCode,

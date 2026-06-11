@@ -1,21 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import useDeleteAccount from "~/composables/accounts/useDeleteAccount";
 import type { AccountCheckingDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
-import useCreateAccount from "~/composables/accounts/useCreateAccount";
-import useUpdateAccount from "~/composables/accounts/useUpdateAccount";
-import { fetchAccountWithDetail } from "~/composables/accounts/useAccount";
 import type { EditFreezeInvoiceType, EditInvoiceType, EditTransactionType, EditTransfertType, InvoiceTableType, InvoiceType, TransactionType } from "~/types/ui/transaction";
-import useUpdateTransaction from "~/composables/invoices/useUpdateTransaction";
-import useCreateInvoice from "~/composables/invoices/useCreateTransaction";
-import useFreezeInvoice from "~/composables/invoices/useFreezeTransaction";
-import useTransfertTransaction from "~/composables/invoices/useTransfertTransaction";
 import { getLocalTimeZone } from "@internationalized/date";
-import { fetchAccountsWithDetail } from "~/composables/accounts/useAccounts";
-import { fetchAccountTypes } from "~/composables/internals/useAccountTypes";
 import type { QueryFilterRequest } from "~/types/api";
 import type { QueryInvoice } from "~/types/api/transaction";
 import { ModalEditAccount, ModalEditFreezeInvoice, ModalEditInvoice, ModalEditTransfer, ModalQuickTransView } from "#components";
+import { createAccount, deleteAccount, fetchAccountsWithDetail, fetchAccountWithDetail, updateAccount } from "~/composables/api/accounts";
+import { fetchAccountTypes } from "~/composables/api/internal";
+import { useCreateInvoice, useFreezeInvoice, useTransfertInvoice, useUpdateInvoice } from "~/composables/api/invoices";
 
 const ALL_ACCOUNT_ID = "ALL_ACCOUNT_ID"
 
@@ -84,7 +77,7 @@ const toast = useToast();
 const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => {
     try {
         if (oldValue)
-            await useUpdateAccount(oldValue.id, {
+            await updateAccount(oldValue.id, {
                 title: value.title,
                 type : value.type,
                 detail: {
@@ -95,7 +88,7 @@ const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => 
                 }
             });
         else 
-            await useCreateAccount({
+            await createAccount({
                 title: value.title,
                 type : value.type,
                 detail: {
@@ -130,7 +123,7 @@ const openAccountModal = async (accountId?: string) => {
 
 async function onTransfertAccount(value: EditTransfertType) {
     try {
-        await useTransfertTransaction({
+        await useTransfertInvoice({
             accountIdFrom: value.accountIdFrom,
             accountIdTo: value.accountIdTo,
             amount: value.amount,
@@ -178,7 +171,7 @@ async function onSubmitInvoice(value: EditInvoiceType, oldValue?: InvoiceType) {
                     v.description === i.description
             ) !== undefined)
 
-            await useUpdateTransaction(oldValue.id, {
+            await useUpdateInvoice(oldValue.id, {
                 addTransactions: transactionAdded, 
                 removeTransactionIds: transactionRemovedIds,
                 deductions: value.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
@@ -254,7 +247,7 @@ async function openModalEditFreezeTransaction(accountId: string = '') {
 const onDeleteAccount = async (accountId: string) => {
     const doDelete = confirm();
     if (doDelete) {
-        await useDeleteAccount(accountId);
+        await deleteAccount(accountId);
         refreshAccounts();
     }
 }

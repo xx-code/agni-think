@@ -4,7 +4,7 @@ import { reactive, shallowRef } from "vue";
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import type { EditFreezeInvoiceType, InvoiceType } from '~/types/ui/transaction';
-import { fetchAccounts } from '~/composables/accounts/useAccounts';
+import { fetchAccounts } from '~/composables/api/accounts';
 
 const { accountId } = defineProps<{
     accountId?: string

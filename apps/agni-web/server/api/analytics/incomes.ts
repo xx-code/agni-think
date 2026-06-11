@@ -1,20 +1,6 @@
-import useApiLink from "~/composables/useApiLink";
+import { getApiBase } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    try {
-        const api = useApiLink(); 
-        const query = getQuery(event);
-        const res = await $fetch(`${api}/analytics/incomes`, {
-            method: 'GET',
-            query: query
-        });
-        return res;
-    } catch(err) {
-        console.log('Get estimation amount: ' + err);
-        return createError({
-            status: 500,
-            message: 'Get estimation amount',
-            data: err
-        });
-    }
+    return await handleRequest(event, `${getApiBase()}/analytics/incomes`);
 });

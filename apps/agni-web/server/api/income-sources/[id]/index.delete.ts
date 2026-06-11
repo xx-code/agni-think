@@ -1,8 +1,8 @@
-import useApiLink from "~/composables/useApiLink"
-import { handleDeleteRequest } from "~/server/utils"
+import { getRouterParam } from "h3"
+import { getApiBase } from "~/utils/env"
+import { handleRequest } from "~/server/utils"
 
 export default defineEventHandler(async event => {
-    const link = useApiLink()
     const id = getRouterParam(event, 'id')
-    return await handleDeleteRequest(event, `${link}/income-sources/${id}`)
+    return await handleRequest(event, `${getApiBase()}/income-sources/${id}`)
 })

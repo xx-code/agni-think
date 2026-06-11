@@ -1,21 +1,7 @@
-import useApiLink from "~/composables/useApiLink";
-import type { ListResponse } from "~/types/api";
+import { getApiBase } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    try {
-        const api = useApiLink(); 
-        const id = getRouterParam(event, "id")
-        const res = await $fetch(`${api}/currencies/${id}`, {
-            method: "PUT",
-        });
-
-        return res;
-    } catch(err) {
-        console.log('Get all currencies: ' + err);
-        return createError({
-            status: 500,
-            message: 'Get All currencies error',
-            data: err
-        });
-    }
+    const id = getRouterParam(event, 'id');
+    return await handleRequest(event, `${getApiBase()}/currencies/${id}`);
 });

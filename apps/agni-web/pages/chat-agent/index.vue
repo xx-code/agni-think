@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
-import { askToFinancePersonnalAdvisor, fetchLlmModels } from '~/composables/agents/chat'
+import { askToFinancePersonnalAdvisor, fetchLlmModels } from '~/composables/api/agents'
 
 type ChatMessage = {
   id: string

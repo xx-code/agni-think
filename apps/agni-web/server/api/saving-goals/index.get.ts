@@ -1,25 +1,6 @@
-import useApiLink from "~/composables/useApiLink";
-import type { ListResponse } from "~/types/api";
-import type { GetSavingGoalResponse } from "~/types/api/saveGoal";
+import { getApiBase } from "~/utils/env";
+import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    try {
-        const api = useApiLink(); 
-        const query = getQuery(event)
-        const response = await $fetch(`${api}/saving-goals`, {
-            method: 'GET',
-            query: query
-        });
-
-        const data = (response as ListResponse<GetSavingGoalResponse>);
-
-        return data;
-    } catch(err) {
-        console.log('Get all Save Goal: ' + err);
-        return createError({
-            status: 500,
-            message: 'Get all Save goal error',
-            data: err
-        });
-    }
+    return await handleRequest(event, `${getApiBase()}/saving-goals`);
 });

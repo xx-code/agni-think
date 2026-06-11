@@ -1,7 +1,6 @@
-import useApiLink from "~/composables/useApiAgentLink"
-import { handleGetRequest } from "~/server/utils"
+import { getApiAgent } from "~/utils/env"
+import { handleRequest } from "~/server/utils"
 
 export default defineEventHandler(async event => {
-    const link = useApiLink()
-    return await handleGetRequest(event, `${link}/models`)
+    return await handleRequest(event, `${getApiAgent()}/models`)
 })
