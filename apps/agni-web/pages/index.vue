@@ -222,7 +222,7 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
 
 <template>
   <!-- Root: warm off-white, no dark -->
-  <div class="bg-slate-50 text-slate-800">
+  <div class="text-slate-800">
 
     <div class="mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
 
