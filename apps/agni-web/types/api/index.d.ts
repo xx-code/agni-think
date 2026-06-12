@@ -16,3 +16,11 @@ export type QueryFilterRequest = {
         ascending: boolean
     }
 }
+
+export type ErrorResponse = {
+    status: number
+    error: string
+    message: string
+    errors: Map<string, string?>
+    timestamp: number
+}
