@@ -100,7 +100,7 @@ function isOverdue(date: Date) {
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-50 font-sans">
+    <div class="bg-slate-50 font-sans">
 
         <!-- Top Header Bar -->
         <header class="bg-white border-b border-slate-200 px-8 py-5 flex items-center justify-between">
