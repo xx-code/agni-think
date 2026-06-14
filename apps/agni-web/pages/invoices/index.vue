@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { TableColumn, TableRow } from "@nuxt/ui";
-import type { EditInvoiceType, InvoiceTableType, InvoiceType, TransactionTableType, TransactionType } from "~/types/ui/transaction";
+import type { InvoiceTableType, InvoiceType, TransactionTableType, TransactionType } from "~/types/ui/transaction";
 import type { FormFilterTransaction } from "~/types/ui/component";
 import { getLocalTimeZone } from "@internationalized/date";
 import type { QueryInvoice } from "~/types/api/transaction";
 import type { QueryFilterRequest } from "~/types/api";
-import { ModalEditInvoice } from "#components";
+import { ModalInvoice } from "#components";
 import { fetchAccounts } from "~/composables/api/accounts";
 import { useTreatInvoiceText } from "~/composables/api/agents";
 import { fetchBudgets } from "~/composables/api/budget";
@@ -14,7 +14,6 @@ import { fetchDeductions } from "~/composables/api/deductionType";
 import { fetchInvoicePagination, fetchBalance, useUpdateInvoice, useCreateInvoice, fetchInvoice, useCompleteInvoice, useDeleteInvoice } from "~/composables/api/invoices";
 import { fetchTags } from "~/composables/api/tag";
 
-const toast = useToast();
 const { start, stop } = useLoading()
 
 const page = ref(1);
@@ -56,19 +55,6 @@ const getCategory = (id: string) => utils.value?.categories.find(i => id === i.i
 const getTag = (id: string) => utils.value?.tags.find(i => id === i.id)
 const getBudget = (id: string) => utils.value?.budgets.find(i => id === i.id)
 const getDeduction = (id: string) => utils.value?.deductions.find(i => id === i.id)
-
-function calculateDeductionAmount(deduction: { deductionId: string; amount: number }) {
-    const deductionType = getDeduction(deduction.deductionId);
-    if (!deductionType) return 0;
-    
-    if (deductionType.mode === 'Flat') {
-        return deduction.amount || 0;
-    } else if (deductionType.mode === 'Rate') {
-        return  (deduction.amount || 0) / 100;
-    }
-    
-    return 0;
-}
 
 const { data, error, refresh, status } = useAsyncData(`transactions-${JSON.stringify(query)}`, async () => {
 
@@ -126,78 +112,20 @@ const { data, error, refresh, status } = useAsyncData(`transactions-${JSON.strin
 const expandedState = ref<Record<string, boolean>>({})
 
 const overlay = useOverlay()
-const modalInvoice = overlay.create(ModalEditInvoice);
-
-async function onSubmitInvoice(value: EditInvoiceType, oldValue?: InvoiceType) {
-    try {
-        if (oldValue) {
-            const transactionRemovedIds = oldValue.transactions.filter(i => !value.transactions.find(
-                v => 
-                    v.amount === i.amount && 
-                    v.categoryId === i.categoryId &&
-                    v.budgetIds.length === i.budgetRefs.length &&
-                    v.budgetIds.every(b => i.budgetRefs.includes(b)) &&
-                    v.tagIds.length === i.tagRefs.length &&
-                    v.tagIds.every(t => i.tagRefs.includes(t)) &&
-                    v.description === i.description
-            )).map(i => i.id)
-
-            const transactionAdded = value.transactions.filter(i => !oldValue.transactions.find(
-                v => 
-                    v.amount === i.amount && 
-                    v.categoryId === i.categoryId &&
-                    v.budgetRefs.length === i.budgetIds.length &&
-                    v.budgetRefs.every(b => i.budgetIds.includes(b)) &&
-                    v.tagRefs.length === i.tagIds.length &&
-                    v.tagRefs.every(t => i.tagIds.includes(t)) &&
-                    v.description === i.description
-            ))
-
-            await useUpdateInvoice(oldValue.id, {
-                addTransactions: transactionAdded, 
-                mouvement: value.mouvement,
-                removeTransactionIds: transactionRemovedIds,
-                deductions: value.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
-                accountId: value.accountId,
-                date: value.date.toDate(getLocalTimeZone()).toISOString(),
-                type: value.type
-            });
-        } else {
-            await useCreateInvoice({
-                accountId: value.accountId,
-                date: value.date.toDate(getLocalTimeZone()).toISOString(),
-                mouvement: value.mouvement,
-                type: value.type,
-                status: value.state,
-                transactions: value.transactions.map(i => ({
-                    amount: i.amount,
-                    categoryId: i.categoryId,
-                    budgetIds: i.budgetIds,
-                    description: i.description,
-                    tagIds: i.tagIds
-                })),
-                deductions: value.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
-            });
-        }
-        refresh()
-    } catch (err) {
-        toast.add({
-            title: 'Erreur',
-            description: 'Erreur lors de la soumission de la transaction: ' + err,
-            color: 'error'
-        })
-    }
-}
+const modalInvoice = overlay.create(ModalInvoice);
 
 async function openInvoice(transactionId?: string) {
     let invoice: any | undefined;
     if (transactionId)
         invoice = await fetchInvoice(transactionId);
 
-    modalInvoice.open({
+    const instance = modalInvoice.open({
         invoice: invoice,
-        onSubmit: onSubmitInvoice
     });
+
+    await instance.result
+
+    refresh()
 };
 
 async function syncBank() {
