@@ -226,6 +226,7 @@ async function onSubmit(event: FormSubmitEvent<EditInvoiceType>) {
                 :init-switch-more="switchMoreState"
                 v-model="form"
                 @submit="onSubmit"
+                @close="emit('close', true)"
                 @switch-more="state => switchMoreState = state"
             />
         </template> 

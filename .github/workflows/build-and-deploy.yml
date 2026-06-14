@@ -41,22 +41,22 @@ jobs:
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
       - name: Build and Release Frontend
-        if: steps.filter.outputs.frontend 
+        if: steps.filter.outputs.frontend == 'true' 
         run: | 
-          docker build --build-arg BUILD_CONFIGURATION=Release \
-          -t ${{ vars.REGISTRY_URL }}/agni-web:${{ steps.vars.outputs.sha_short }} \
-          -t ${{ vars.REGISTRY_URL }}/agni-web:${{ steps.vars.outputs.branch }}-latest \
+          docker build --no-cache --build-arg BUILD_CONFIGURATION=Release \
+          -t ${{ vars.REGISTRY_URL }}/agni-web-${{ steps.vars.outputs.branch }}:${{ steps.vars.outputs.sha_short }} \
+          -t ${{ vars.REGISTRY_URL }}/agni-web-${{ steps.vars.outputs.branch }}:latest \
           -f config/frontend/Dockerfile .
-          docker push --all-tags ${{ vars.REGISTRY_URL}}/agni-web
+          docker push --all-tags ${{ vars.REGISTRY_URL}}/agni-web-${{ steps.vars.outputs.branch }}
       
       - name: Build and Release Api
         if: steps.filter.outputs.api == 'true'
         run: |
-          docker build --build-arg BUILD_CONFIGURATION=Release \
-          -t ${{vars.REGISTRY_URL}}/agni-api-spring-boot:${{ steps.vars.outputs.sha_short }} \
-          -t ${{ vars.REGISTRY_URL }}/agni-api-spring-boot:${{ steps.vars.outputs.branch }}-latest \
+          docker build --no-cache --build-arg BUILD_CONFIGURATION=Release \
+          -t ${{ vars.REGISTRY_URL }}/agni-api-spring-boot-${{ steps.vars.outputs.branch }}:${{ steps.vars.outputs.sha_short }} \
+          -t ${{ vars.REGISTRY_URL }}/agni-api-spring-boot-${{ steps.vars.outputs.branch }}:latest \
           -f config/api/Dockerfile .
-          docker push --all-tags ${{ vars.REGISTRY_URL}}/agni-api-spring-boot
+          docker push --all-tags ${{ vars.REGISTRY_URL}}/agni-api-spring-boot-${{ steps.vars.outputs.branch }}
 
       - name: Hook HomeLab Repository
         if: steps.filter.outputs.frontend == 'true' || steps.filter.outputs.api == 'true'
