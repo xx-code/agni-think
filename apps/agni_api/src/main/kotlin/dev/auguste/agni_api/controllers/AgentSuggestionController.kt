@@ -31,6 +31,7 @@ class AgentSuggestionController(
 ) {
     @PostMapping
     fun addSuggestion(@RequestBody input: ApiAddSuggestionModel): ResponseEntity<CreatedOutput> {
+        
         return ResponseEntity.ok(addSuggestion.execAsync(mapApiAddSuggestionModel(input)))
     }
 
