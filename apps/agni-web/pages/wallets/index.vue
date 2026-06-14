@@ -360,7 +360,7 @@ function isBufferValid(buffer: number, balance: number): boolean {
 
                 <div class="ai-content">
                     <!-- Statistique principale -->
-                    <div class="ai-stat-card">
+                    <!-- <div class="ai-stat-card">
                         <div class="ai-stat-header">
                             <Icon name="i-lucide-trending-down" class="ai-stat-icon" />
                             <span class="ai-stat-label">Évolution des dépenses</span>
@@ -371,7 +371,7 @@ function isBufferValid(buffer: number, balance: number): boolean {
                         <div class="ai-stat-description">
                             vs. mois dernier
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Suggestions -->
                     <div class="ai-suggestions-list">
