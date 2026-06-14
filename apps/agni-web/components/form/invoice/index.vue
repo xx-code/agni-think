@@ -64,6 +64,8 @@ const emit = defineEmits<{
                 :default-value="initSwitchMore"
                 @update:model-value="state => emit('switchMore', state)" />
 
+        
+
             <div class="flex justify-end gap-3">
                 <UButton 
                     label="Annuler" 
