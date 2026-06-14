@@ -43,7 +43,7 @@ jobs:
       - name: Build and Release Frontend
         if: steps.filter.outputs.frontend 
         run: | 
-          docker build --build-arg BUILD_CONFIGURATION=Release \
+          docker build --no-cache --build-arg BUILD_CONFIGURATION=Release \
           -t ${{ vars.REGISTRY_URL }}/agni-web:${{ steps.vars.outputs.sha_short }} \
           -t ${{ vars.REGISTRY_URL }}/agni-web:${{ steps.vars.outputs.branch }}-latest \
           -f config/frontend/Dockerfile .
@@ -52,7 +52,7 @@ jobs:
       - name: Build and Release Api
         if: steps.filter.outputs.api == 'true'
         run: |
-          docker build --build-arg BUILD_CONFIGURATION=Release \
+          docker build --no-cache --build-arg BUILD_CONFIGURATION=Release \
           -t ${{vars.REGISTRY_URL}}/agni-api-spring-boot:${{ steps.vars.outputs.sha_short }} \
           -t ${{ vars.REGISTRY_URL }}/agni-api-spring-boot:${{ steps.vars.outputs.branch }}-latest \
           -f config/api/Dockerfile .
