@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import type { AccountCheckingDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
-import type { EditFreezeInvoiceType, EditInvoiceType, EditTransactionType, EditTransfertType, InvoiceTableType, InvoiceType, TransactionType } from "~/types/ui/transaction";
+import type { EditFreezeInvoiceType, EditTransfertType, InvoiceType } from "~/types/ui/transaction";
 import { getLocalTimeZone } from "@internationalized/date";
 import type { QueryFilterRequest } from "~/types/api";
 import type { QueryInvoice } from "~/types/api/transaction";
-import { ModalEditAccount, ModalEditFreezeInvoice, ModalEditInvoice, ModalEditTransfer, ModalQuickTransView } from "#components";
+import { ModalEditAccount, ModalEditFreezeInvoice, ModalEditTransfer, ModalInvoice, ModalQuickTransView } from "#components";
 import { createAccount, deleteAccount, fetchAccountsWithDetail, fetchAccountWithDetail, updateAccount } from "~/composables/api/accounts";
 import { fetchAccountTypes } from "~/composables/api/internal";
 import { useCreateInvoice, useFreezeInvoice, useTransfertInvoice, useUpdateInvoice } from "~/composables/api/invoices";
@@ -60,7 +60,7 @@ const paramsTransaction = reactive<QueryFilterRequest & QueryInvoice>({offset: 0
 const overlay = useOverlay();
 const modalAccount = overlay.create(ModalEditAccount);
 const modalTransfer = overlay.create(ModalEditTransfer);
-const modalInvoice = overlay.create(ModalEditInvoice);
+const modalInvoice = overlay.create(ModalInvoice);
 const modalFreezeInvoice = overlay.create(ModalEditFreezeInvoice);
 const slideTransactions = overlay.create(ModalQuickTransView)
 
@@ -150,70 +150,14 @@ async function openModalTransferAccount (accountId?: string){
     const shouldRefresh = await instance.result; 
 }
 
-async function onSubmitInvoice(value: EditInvoiceType, oldValue?: InvoiceType) {
-    try {
-         if (oldValue) {
-            const transactionRemovedIds = oldValue.transactions.filter(i => value.transactions.find(
-                v => 
-                    v.amount === i.amount && 
-                    v.categoryId === i.categoryId &&
-                    v.budgetIds.every(b => i.budgetRefs.includes(b)) &&
-                    v.tagIds.every(t => i.tagRefs.includes(t)) &&
-                    v.description === i.description
-            ) !== undefined).map(i => i.id)
-
-            const transactionAdded = value.transactions.filter(i => oldValue.transactions.find(
-                v => 
-                    v.amount === i.amount && 
-                    v.categoryId === i.categoryId &&
-                    v.budgetRefs.every(b => i.budgetIds.includes(b)) &&
-                    v.tagRefs.every(t => i.tagIds.includes(t)) &&
-                    v.description === i.description
-            ) !== undefined)
-
-            await useUpdateInvoice(oldValue.id, {
-                addTransactions: transactionAdded, 
-                removeTransactionIds: transactionRemovedIds,
-                deductions: value.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
-                accountId: value.accountId,
-                date: value.date.toDate(getLocalTimeZone()).toISOString(),
-                type: value.type
-            });
-        } else {
-            await useCreateInvoice({
-                accountId: value.accountId,
-                date: value.date.toDate(getLocalTimeZone()).toISOString(),
-                type: value.type,
-                mouvement: value.mouvement,
-                status: value.state,
-                transactions: value.transactions.map(i => ({
-                    amount: i.amount,
-                    categoryId: i.categoryId,
-                    budgetIds: i.budgetIds,
-                    description: i.description,
-                    tagIds: i.tagIds
-                })),
-                deductions: value.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount}))
-            });
-        }
-        refreshAccounts()
-    } catch(err) {
-        toast.add({
-            title: 'Error submit transaction',
-            description: 'Error while submit transaction ' + err,
-            color: 'error'
-        })
-    }
-}
-
 async function openModalEditInvoice(accountId?: string) {
     const instant = modalInvoice.open({
         invoice: undefined,
         accountSelectedId: accountId,
-        onSubmit: onSubmitInvoice 
     });
 
-    const shouldRefresh = await instant.result
+    await instant.result
+    refreshAccounts()
 }
 
 async function onFreezeInvoice(value: EditFreezeInvoiceType) {
