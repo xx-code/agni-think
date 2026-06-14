@@ -375,6 +375,7 @@ function isBufferValid(buffer: number, balance: number): boolean {
 
                     <!-- Suggestions -->
                     <div class="ai-suggestions-list">
+                        
                         <div class="ai-suggestion-item">
                             <Icon name="i-lucide-lightbulb" class="suggestion-icon tip" />
                             <div class="suggestion-content">
