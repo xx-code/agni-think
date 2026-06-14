@@ -1,4 +1,6 @@
-import type { CreatedRequest, ListResponse } from "~/types/api";
+import type { NuxtError } from "#app";
+import type { Result } from "~/types";
+import type { CreatedRequest, ErrorResponse, ListResponse } from "~/types/api";
 import type {  CreateInvoiceRequest, FreezeInvoiceRequest, GetBalanceResponse, GetInvoiceResponse, QueryBalanceByPeriod, QueryInvoice, TransferInvoiceRequest, UpdateInvoiceRequest } from "~/types/api/transaction";
 import type { InvoiceType } from "~/types/ui/transaction";
 
@@ -28,13 +30,18 @@ export async function useCompleteInvoice(transactionId: string): Promise<void> {
 
 }
 
-export async function useCreateInvoice(request: CreateInvoiceRequest): Promise<CreatedRequest> {
-    const created = await $fetch<CreatedRequest>(`api/invoices`, {
-        method: 'POST',
-        body: request
-    });
+export async function useCreateInvoice(request: CreateInvoiceRequest): Promise<Result<CreatedRequest>> {
+    try {
+        const created = await $fetch<CreatedRequest>(`api/invoices`, {
+            method: 'POST',
+            body: request
+        });
 
-    return created;
+        return { success: true, data: created } 
+    } catch(err) {
+        const nuxtError = err as NuxtError
+        return { success: false, error: nuxtError.data as ErrorResponse}
+    } 
 }
 
 export async function useDeleteInvoice(transactionId: string): Promise<void> {
@@ -121,9 +128,16 @@ export async function useTransfertInvoice(request: TransferInvoiceRequest): Prom
     });
 }
 
-export async function useUpdateInvoice(invoiceId: string, request: UpdateInvoiceRequest): Promise<void> {
-    await $fetch(`api/invoices/${invoiceId}`, {
-        method: 'PUT',
-        body: request
-    })
+export async function useUpdateInvoice(invoiceId: string, request: UpdateInvoiceRequest): Promise<Result<void>> {
+    try {
+        await $fetch(`api/invoices/${invoiceId}`, {
+            method: 'PUT',
+            body: request
+        })
+
+        return { success: true }  
+    } catch (err) {
+        const nuxtError = err as NuxtError
+        return { success: false, error: nuxtError.data as ErrorResponse}
+    } 
 }
