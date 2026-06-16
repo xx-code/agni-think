@@ -122,7 +122,7 @@ export async function fetchInvoicePagination(query: MaybeRefOrGetter<QueryFilter
 }
 
 export async function useTransfertInvoice(request: TransferInvoiceRequest): Promise<void> {
-    await $fetch(`api/invoices/transfert`, {
+    await $fetch(`api/invoices/transfer`, {
         method: "POST",
         body: request
     });
