@@ -50,11 +50,11 @@ class CreateInternalLoan(
                 }
             }
 
-            val invoices = invoiceRepo.getAll(QueryFilter(queryAll = true), QueryInvoiceExtend(status = InvoiceStatusType.PENDING))
-            val otherPendingInvoices = invoices.items.filter { internalLoans.items.map { loan -> loan.invoiceId }.contains(it.id) }
-            if (otherPendingInvoices.isNotEmpty()) {
-                throw DomainException.BusinessLogic.InternalLoanAllPendingMustBeReady()
-            }
+//            val invoices = invoiceRepo.getAll(QueryFilter(queryAll = true), QueryInvoiceExtend(status = InvoiceStatusType.PENDING))
+//            val otherPendingInvoices = invoices.items.filter { internalLoans.items.map { loan -> loan.invoiceId }.contains(it.id) }
+//            if (otherPendingInvoices.isNotEmpty()) {
+//                throw DomainException.BusinessLogic.InternalLoanAllPendingMustBeReady()
+//            }
 
             val scheduleInvoice = scheduleInvoiceRepo.getAll(QueryFilter(queryAll = true),
                 QueryScheduleInvoiceExtend(
