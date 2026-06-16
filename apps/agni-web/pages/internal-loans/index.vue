@@ -3,8 +3,10 @@ import type { NuxtError } from '#app';
 import { ModalEditInternalLoan } from '#components';
 import { getLocalTimeZone } from '@internationalized/date';
 import { fetchAccounts } from '~/composables/api/accounts';
-import { fetchInternalLoans, useCreateInternalLoan, useDeleteInternalLoan } from '~/composables/api/internal-loan';
+import { fetchInternalLoans, useCreateInternalLoan, useDeleteInternalLoan, useAddRefundInternalLoan, useRemoveRefundInternalLoan } from '~/composables/api/internal-loan';
+import { fetchInvoicePagination } from '~/composables/api/invoices';
 import type { EditInternalLoanType } from '~/types/ui/internal-loan';
+import type { InvoiceType } from '~/types/ui/transaction';
 
 type InternalLoanRow = {
     id: string
@@ -13,6 +15,9 @@ type InternalLoanRow = {
     creditCardAccountId: string
     creditCardAccountName: string
     dueDate: Date
+    loanAmount: number
+    refundAmount: number
+    freezeInvoices: string[]
 }
 
 const overlay = useOverlay()
@@ -20,23 +25,77 @@ const toast = useToast()
 const modalInternalLoan = overlay.create(ModalEditInternalLoan)
 
 const { data, refresh } = useAsyncData('internal-loans-pages', async () => {
-    const res = await fetchInternalLoans({ offset: 0, limit: 0, queryAll: true })
-    const accounts = await fetchAccounts({ offset: 0, limit: 0, queryAll: true })
+    const [res, accounts, freezeInvoicesRes] = await Promise.all([
+        fetchInternalLoans({ offset: 0, limit: 0, queryAll: true }),
+        fetchAccounts({ offset: 0, limit: 0, queryAll: true }),
+        fetchInvoicePagination({ isFreeze: true, offset: 0, limit: 0, queryAll: true })
+    ])
     const getAccountName = (id: string) => {
         const acc = accounts.items.find(i => i.id === id)
         return acc ? acc.title : ''
     }
     return {
+        accounts: accounts.items,
+        freezeInvoices: freezeInvoicesRes.items,
         internalLoans: res.items.map(i => ({
             id: i.id,
             fundAccountId: i.fundSourceId,
             fundAccountName: getAccountName(i.fundSourceId),
             creditCardAccountId: i.creditTargetId,
             creditCardAccountName: getAccountName(i.creditTargetId),
-            dueDate: i.dueDate
+            dueDate: i.dueDate,
+            loanAmount: i.loanAmount,
+            refundAmount: i.refundAmount,
+            freezeInvoices: i.freezeInvoices
         } satisfies InternalLoanRow)),
     }
 })
+
+const activeRefundLoanId = ref<string | null>(null)
+const refundAccountId = ref('')
+const refundAmount = ref(0)
+
+function toggleRefundPanel(loanId: string) {
+    if (activeRefundLoanId.value === loanId) {
+        activeRefundLoanId.value = null
+        return
+    }
+    activeRefundLoanId.value = loanId
+    refundAccountId.value = ''
+    refundAmount.value = 0
+}
+
+function loanFreezeInvoices(loan: InternalLoanRow): InvoiceType[] {
+    if (!data.value?.freezeInvoices) return []
+    return data.value.freezeInvoices.filter(f => loan.freezeInvoices.includes(f.id))
+}
+
+async function addRefund(loanId: string) {
+    if (!refundAccountId.value || refundAmount.value <= 0) {
+        toast.add({ title: 'Erreur', description: 'Sélectionnez un compte et entrez un montant.', color: 'error' })
+        return
+    }
+    try {
+        await useAddRefundInternalLoan(loanId, { refundAccountId: refundAccountId.value, refundAmount: refundAmount.value })
+        activeRefundLoanId.value = null
+        refresh()
+        toast.add({ title: 'Succès', description: 'Remboursement ajouté.', color: 'success' })
+    } catch (err) {
+        const nuxtErr = err as NuxtError
+        toast.add({ title: 'Erreur', description: nuxtErr.data?.message ?? 'Erreur lors de l\'ajout du remboursement.', color: 'error' })
+    }
+}
+
+async function removeRefund(loanId: string, freezeInvoiceId: string) {
+    try {
+        await useRemoveRefundInternalLoan(loanId, { freezeInvoiceRefundId: freezeInvoiceId })
+        refresh()
+        toast.add({ title: 'Succès', description: 'Remboursement retiré.', color: 'success' })
+    } catch (err) {
+        const nuxtErr = err as NuxtError
+        toast.add({ title: 'Erreur', description: nuxtErr.data?.message ?? 'Erreur lors du retrait du remboursement.', color: 'error' })
+    }
+}
 
 async function onSubmitInternalLoan(edit: EditInternalLoanType) {
     try {
@@ -70,12 +129,12 @@ async function deleteInternalLoan(id: string) {
     try {
         await useDeleteInternalLoan(id)
         refresh()
-        toast.add({ title: 'Succès', description: 'Prêt delete.', color: 'success' })
+        toast.add({ title: 'Succès', description: 'Prêt supprimé.', color: 'success' })
     } catch (err) {
         const nuxtErr = err as NuxtError
         toast.add({
             title: 'Erreur',
-            description: 'Erreur lors de la soumission de internal loan: ' + nuxtErr.data,
+            description: 'Erreur lors de la suppression: ' + nuxtErr.data,
             color: 'error'
         })
     }
@@ -89,13 +148,20 @@ function formatDate(date: Date) {
     return new Date(date).toLocaleDateString('fr-CA', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-function isDueSoon(date: Date) {
-    const diff = new Date(date).getTime() - Date.now()
-    return diff > 0 && diff < 7 * 24 * 60 * 60 * 1000
+const progressStats = computed(() => {
+    const loans = data.value?.internalLoans ?? []
+    const totalLoan = loans.reduce((s, l) => s + l.loanAmount, 0)
+    const totalRefund = loans.reduce((s, l) => s + l.refundAmount, 0)
+    return { totalLoan, totalRefund, overallProgress: totalLoan > 0 ? (totalRefund / totalLoan) * 100 : 0 }
+})
+
+function refundProgress(loan: InternalLoanRow) {
+    if (loan.loanAmount <= 0) return 0
+    return Math.min((loan.refundAmount / loan.loanAmount) * 100, 100)
 }
 
-function isOverdue(date: Date) {
-    return new Date(date).getTime() < Date.now()
+function formatMoney(amount: number) {
+    return new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' }).format(amount)
 }
 </script>
 
@@ -129,7 +195,7 @@ function isOverdue(date: Date) {
         <main class="px-8 py-8 max-w-7xl mx-auto">
 
             <!-- Stats Cards Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
                 <div class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-4 shadow-sm">
                     <div class="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
                         <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2"
@@ -145,34 +211,50 @@ function isOverdue(date: Date) {
                 </div>
 
                 <div class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-4 shadow-sm">
-                    <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2"
+                    <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-slate-800">
-                            {{ data?.internalLoans?.filter(l => isDueSoon(l.dueDate)).length ?? 0 }}
-                        </p>
-                        <p class="text-xs text-slate-500 mt-0.5">Échéances proches</p>
+                        <p class="text-2xl font-bold text-slate-800">{{ formatMoney(progressStats.totalLoan) }}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Montant total prêté</p>
                     </div>
                 </div>
 
                 <div class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-4 shadow-sm">
-                    <div class="w-11 h-11 rounded-xl bg-rose-50 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" stroke-width="2"
+                    <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
                     <div>
-                        <p class="text-2xl font-bold text-slate-800">
-                            {{ data?.internalLoans?.filter(l => isOverdue(l.dueDate)).length ?? 0 }}
-                        </p>
-                        <p class="text-xs text-slate-500 mt-0.5">En retard</p>
+                        <p class="text-2xl font-bold text-slate-800">{{ formatMoney(progressStats.totalRefund) }}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Total remboursé</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                    <div class="flex items-center gap-4 mb-2">
+                        <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-slate-800">{{ progressStats.overallProgress.toFixed(0) }}%
+                            </p>
+                            <p class="text-xs text-slate-500 mt-0.5">Progression globale</p>
+                        </div>
+                    </div>
+                    <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-amber-500 rounded-full transition-all duration-500"
+                            :style="{ width: progressStats.overallProgress + '%' }">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -224,7 +306,7 @@ function isOverdue(date: Date) {
                                     Échéance</th>
                                 <th
                                     class="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                                    Statut</th>
+                                    Progression</th>
                                 <th class="px-6 py-3"></th>
                             </tr>
                         </thead>
@@ -275,40 +357,40 @@ function isOverdue(date: Date) {
                                     <p class="text-slate-700 font-medium">{{ formatDate(loan.dueDate) }}</p>
                                 </td>
 
-                                <!-- Status Badge -->
-                                <td class="px-6 py-4">
-                                    <span v-if="isOverdue(loan.dueDate)"
-                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                                        En retard
-                                    </span>
-                                    <span v-else-if="isDueSoon(loan.dueDate)"
-                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                        Bientôt dû
-                                    </span>
-                                    <span v-else
-                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                        Actif
-                                    </span>
+                                <!-- Progress -->
+                                <td class="px-6 py-4 min-w-[140px]">
+                                    <div class="flex flex-col gap-1.5">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="text-slate-500">Remboursé</span>
+                                            <span class="font-semibold text-slate-700">{{ refundProgress(loan).toFixed(0) }}%</span>
+                                        </div>
+                                        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                            <div class="h-full rounded-full transition-all duration-500"
+                                                :class="refundProgress(loan) >= 100 ? 'bg-emerald-500' : refundProgress(loan) >= 50 ? 'bg-indigo-500' : 'bg-amber-500'"
+                                                :style="{ width: refundProgress(loan) + '%' }">
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs text-slate-400">
+                                            <span>{{ formatMoney(loan.refundAmount) }}</span>
+                                            <span>{{ formatMoney(loan.loanAmount) }}</span>
+                                        </div>
+                                    </div>
                                 </td>
 
                                 <!-- Actions -->
-                                <td class="px-6 py-4">
-                                    <div
-                                        class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                                        <button
-                                            class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                                            title="Modifier">
+                                <td class="px-6 py-4 relative">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button @click="toggleRefundPanel(loan.id)"
+                                            class="p-2 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                            title="Gérer les remboursements">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         </button>
                                         <button @click="deleteInternalLoan(loan.id)"
-                                            class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                            class="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                                             title="Supprimer">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
                                                 viewBox="0 0 24 24">
@@ -316,6 +398,68 @@ function isOverdue(date: Date) {
                                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                             </svg>
                                         </button>
+                                    </div>
+
+                                    <!-- Refund Panel -->
+                                    <div v-if="activeRefundLoanId === loan.id"
+                                        class="absolute right-0 top-full mt-1 z-20 w-80 bg-white rounded-2xl border border-slate-200 shadow-xl p-4"
+                                        @click.stop>
+                                        <div class="flex items-center justify-between mb-3">
+                                            <h3 class="text-sm font-semibold text-slate-700">Gestion des remboursements</h3>
+                                            <button @click="activeRefundLoanId = null"
+                                                class="p-0.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <!-- Add Refund -->
+                                        <div class="mb-4">
+                                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Ajouter un remboursement</p>
+                                            <select v-model="refundAccountId"
+                                                class="w-full mb-2 px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                                                <option value="" disabled>Sélectionner un compte</option>
+                                                <option v-for="acc in data?.accounts ?? []" :key="acc.id" :value="acc.id">
+                                                    {{ acc.title }}
+                                                </option>
+                                            </select>
+                                            <div class="flex items-center gap-2">
+                                                <input v-model.number="refundAmount" type="number" step="0.01" min="0"
+                                                    placeholder="Montant"
+                                                    class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+                                                <button @click="addRefund(loan.id)"
+                                                    class="px-3 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors">
+                                                    Ajouter
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Existing Refunds -->
+                                        <div>
+                                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Remboursements existants</p>
+                                            <div v-if="loanFreezeInvoices(loan).length === 0"
+                                                class="text-xs text-slate-400 py-2 text-center">
+                                                Aucun remboursement
+                                            </div>
+                                            <div v-else class="space-y-1 max-h-40 overflow-y-auto">
+                                                <div v-for="fi in loanFreezeInvoices(loan)" :key="fi.id"
+                                                    class="flex items-center justify-between px-2 py-1.5 rounded-lg bg-slate-50">
+                                                    <div class="text-xs">
+                                                        <p class="font-medium text-slate-700">{{ fi.transactions?.[0]?.description ?? 'Remboursement' }}</p>
+                                                        <p class="text-slate-400">{{ formatMoney(fi.total) }}</p>
+                                                    </div>
+                                                    <button @click="removeRefund(loan.id, fi.id)"
+                                                        class="p-1 rounded-md text-rose-400 hover:text-rose-600 hover:bg-rose-50">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
 

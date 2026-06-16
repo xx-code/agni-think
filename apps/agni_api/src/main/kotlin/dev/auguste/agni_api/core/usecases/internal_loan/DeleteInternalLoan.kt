@@ -11,14 +11,18 @@ import java.util.UUID
 
 class DeleteInternalLoan(
     private val internalLoanRepo: IRepository<InternalLoan>,
-    private val deleteInternalLoan: IInnerUseCase<DeleteInvoiceInput, Unit>,
+    private val deleteInvoice: IInnerUseCase<DeleteInvoiceInput, Unit>,
     private val unitOfWork: IUnitOfWork
 ) : IUseCase<UUID, Unit> {
     override fun execAsync(input: UUID) {
         unitOfWork.execute {
             val internalLoan = internalLoanRepo.get(input) ?: throw DomainException.NotFound.InternalLoan(input)
             internalLoanRepo.delete(input)
-            deleteInternalLoan.execInnerAsync(DeleteInvoiceInput(internalLoan.invoiceId))
+            deleteInvoice.execInnerAsync(DeleteInvoiceInput(internalLoan.invoiceId, false))
+
+            for (freezeId in internalLoan.trackRefunds) {
+                deleteInvoice.execAsync(DeleteInvoiceInput(freezeId, false))
+            }
         }
     }
 }

@@ -1,24 +1,35 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
+import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
+import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
+import dev.auguste.agni_api.core.usecases.budgets.UpdateDueBudget
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.internal_loan.AddRefundInternalLoan
+import dev.auguste.agni_api.core.usecases.internal_loan.AutoCompleteInternalLoan
 import dev.auguste.agni_api.core.usecases.internal_loan.CreateInternalLoan
 import dev.auguste.agni_api.core.usecases.internal_loan.DeleteInternalLoan
 import dev.auguste.agni_api.core.usecases.internal_loan.GetAllInternalLoan
 import dev.auguste.agni_api.core.usecases.internal_loan.GetInternalLoan
+import dev.auguste.agni_api.core.usecases.internal_loan.RemoveRefundInternalLoan
 import dev.auguste.agni_api.core.usecases.internal_loan.UpdateInternalLoan
+import dev.auguste.agni_api.core.usecases.internal_loan.dto.AddRefundInternalLoanInput
 import dev.auguste.agni_api.core.usecases.internal_loan.dto.CreateInternalLoanInput
 import dev.auguste.agni_api.core.usecases.internal_loan.dto.GetInternalLoanOutput
+import dev.auguste.agni_api.core.usecases.internal_loan.dto.RemoveRefundInternalLoanInput
 import dev.auguste.agni_api.core.usecases.internal_loan.dto.UpdateInternalLoanInput
+import dev.auguste.agni_api.core.usecases.invoices.dto.CompleteInvoiceInput
+import dev.auguste.agni_api.core.usecases.invoices.dto.CreateFreezeInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.DeleteInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
@@ -78,18 +89,68 @@ class InternalLoanConfig {
     @Bean
     fun getInternalLoan(
         internalRepo: IRepository<InternalLoan>,
+        getInvoice: IUseCase<UUID, GetInvoiceOutput>
     ): IUseCase<UUID, GetInternalLoanOutput> {
         return GetInternalLoan(
-            internalRepo
+            internalRepo,
+            getInvoice = getInvoice
         )
     }
 
     @Bean
     fun getAllInternalLoan(
         internalRepo: IRepository<InternalLoan>,
+        getInvoice: IUseCase<UUID, GetInvoiceOutput>
     ): IUseCase<QueryFilter, ListOutput<GetInternalLoanOutput>> {
         return GetAllInternalLoan(
-            internalRepo
+            internalRepo,
+            getInvoice = getInvoice
+        )
+    }
+
+    @Bean
+    fun getAddRefundInternalLoan(
+        internalRepo: IRepository<InternalLoan>,
+        getInvoice: IUseCase<UUID, GetInvoiceOutput>,
+        createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
+        unitOfWork: IUnitOfWork
+    ): IUseCase<AddRefundInternalLoanInput, Unit> {
+        return AddRefundInternalLoan(
+            internalLoanRepo = internalRepo,
+            getInvoice = getInvoice,
+            createInvoice = createInvoice,
+            unitOfWork = unitOfWork
+        )
+    }
+
+    @Bean
+    fun getRemoveRefundInternalLoan(
+        internalRepo: IRepository<InternalLoan>,
+        getInvoice: IUseCase<UUID, GetInvoiceOutput>,
+        deleteInvoice: IInnerUseCase<DeleteInvoiceInput, Unit>,
+        unitOfWork: IUnitOfWork
+    ): IUseCase<RemoveRefundInternalLoanInput, Unit> {
+        return RemoveRefundInternalLoan(
+            internalLoanRepo = internalRepo,
+            getInvoice = getInvoice,
+            deleteInvoice = deleteInvoice,
+            unitOfWork = unitOfWork
+        )
+    }
+
+
+    @Bean
+    fun autoCompleteInternalLoan(
+        internalLoanRepo : IRepository<InternalLoan>,
+        completeInvoice: IUseCase<CompleteInvoiceInput, Unit>,
+        getInvoice: IUseCase<UUID, GetInvoiceOutput>,
+        eventRegister: IEventRegister
+    ): IUseCase<Unit, BackgroundTaskOut> {
+        return AutoCompleteInternalLoan(
+            internalLoanRepo = internalLoanRepo,
+            getInvoice = getInvoice,
+            completeInvoice = completeInvoice,
+            eventRegister = eventRegister
         )
     }
 }

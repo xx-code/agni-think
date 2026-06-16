@@ -24,14 +24,10 @@ import dev.auguste.agni_api.core.usecases.internal_loan.dto.CreateInternalLoanIn
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
 import dev.auguste.agni_api.core.value_objects.CreditCardAccountDetail
-import dev.auguste.agni_api.infras.persistences.ScheduleInvoiceRepository
-import org.springframework.cglib.core.Local
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 class CreateInternalLoan(
     private val internalLoanRepo: IRepository<InternalLoan>,
@@ -89,17 +85,17 @@ class CreateInternalLoan(
             val resCreateInvoice = createInvoice.execInnerAsync(input.invoiceInput)
             val newInvoice = getInvoice.execAsync(resCreateInvoice.newId)
 
-            val confidence = calculateLoanConfidence(
-                newInvoice.date.toLocalDate(),
-                nextPaymentDate,
-                account.balance,
-                (newInvoice.total + currentLoanBalance),
-                creditUtilization,
-                scheduleInvoice.items
-            )
-            if (confidence < 80.0) {
-                throw DomainException.BusinessLogic.InternalLoanBadConfidenceScore(confidence)
-            }
+//            val confidence = calculateLoanConfidence(
+//                newInvoice.date.toLocalDate(),
+//                nextPaymentDate,
+//                account.balance,
+//                (newInvoice.total + currentLoanBalance),
+//                creditUtilization,
+//                scheduleInvoice.items
+//            )
+//            if (confidence < 80.0) {
+//                throw DomainException.BusinessLogic.InternalLoanBadConfidenceScore(confidence)
+//            }
 
             val internalLoan = InternalLoan(
                 creditTargetId = input.creditTargetId,

@@ -27,6 +27,15 @@ data class ApiUpdateInternalLoanModel(
     val dueDate: LocalDate? = null
 )
 
+data class ApiAddRefundInternalLoanModel(
+    val refundAccountId: UUID,
+    val refundAmount: Double,
+)
+
+data class ApiRemoveRefundInternalLoanModel(
+    val freezeInvoiceRefundId: UUID
+)
+
 
 fun mapApiCreateInternalLoanModel(input: ApiCreateInternalLoanModel): CreateInternalLoanInput {
     return CreateInternalLoanInput(

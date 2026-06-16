@@ -16,6 +16,7 @@ import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.DeleteInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
@@ -39,6 +40,18 @@ class DeleteInvoice(
     override fun execInnerAsync(input: DeleteInvoiceInput): Unit {
         val invoice = invoiceRepo.get(input.invoiceId) ?: throw DomainException.NotFound.Invoice(input.invoiceId)
         val account = accountRepo.get(invoice.accountId) ?: throw DomainException.NotFound.Account(invoice.accountId)
+
+        if (input.checkInternalLoan) {
+            val internalLoans = internalLoanRepo.getAll(QueryFilter(queryAll = true), QueryInternalLoanExtend(invoiceId = input.invoiceId))
+            if (internalLoans.items.isNotEmpty()) {
+                throw DomainException.BusinessLogic.InternalLoanLinkCantBeDelete()
+            }
+
+            val internalLoanRefunds = internalLoanRepo.getAll(QueryFilter(queryAll = true), QueryInternalLoanExtend(refundFreezeId = input.invoiceId))
+            if (internalLoanRefunds.items.isNotEmpty()) {
+                throw DomainException.BusinessLogic.InternalLoanLinkCantBeDelete()
+            }
+        }
 
         val invoiceTransactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
             invoiceIds = setOf(invoice.id),
@@ -65,9 +78,5 @@ class DeleteInvoice(
         if (invoice.statusType == InvoiceStatusType.COMPLETED)
             eventRegister.notify(EventType.DELETE_INVOICE, DeleteEmbeddingInvoiceEventContent(input.invoiceId))
 
-        val internalLoans = internalLoanRepo.getAll(QueryFilter(queryAll = true), QueryInternalLoanExtend(invoiceId = input.invoiceId))
-        if (internalLoans.items.isNotEmpty()) {
-            internalLoanRepo.delete(internalLoans.items.first().id)
-        }
     }
 }

@@ -9,7 +9,9 @@ class InternalLoan(
     val invoiceId: UUID,
     fundSourceId: UUID,
     dueDate: LocalDate,
+    trackRefunds: Set<UUID> = setOf()
 ): Entity(id) {
     var fundSourceId by cleanObservable(fundSourceId, this)
     var dueDate by cleanObservable(dueDate, this)
+    var trackRefunds by cleanObservable(trackRefunds, this)
 }

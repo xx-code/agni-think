@@ -25,7 +25,10 @@ data class JdbcInternalLoanModal(
     @Column("fund_source_id")
     val fundSourceId: UUID,
     @Column("due_date")
-    val dueDate: LocalDate) : JdbcModel() {
+    val dueDate: LocalDate,
+    @Column("refund_ids")
+    val refundIds: Set<UUID>
+) : JdbcModel() {
     override fun getId(): UUID {
         return id
     }
@@ -39,7 +42,8 @@ class JdbcInternalLoanMapper: IMapper<JdbcInternalLoanModal, InternalLoan> {
             creditTargetId = model.creditTargetId,
             invoiceId = model.invoiceId,
             fundSourceId = model.fundSourceId,
-            dueDate = model.dueDate
+            dueDate = model.dueDate,
+            trackRefunds = model.refundIds
         )
     }
 
@@ -49,7 +53,8 @@ class JdbcInternalLoanMapper: IMapper<JdbcInternalLoanModal, InternalLoan> {
             creditTargetId = entity.creditTargetId,
             invoiceId = entity.invoiceId,
             fundSourceId = entity.fundSourceId,
-            dueDate = entity.dueDate
+            dueDate = entity.dueDate,
+            refundIds = entity.trackRefunds
         )
     }
 
