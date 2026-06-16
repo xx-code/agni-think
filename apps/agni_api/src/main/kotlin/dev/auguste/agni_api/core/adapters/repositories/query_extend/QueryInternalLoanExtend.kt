@@ -7,7 +7,8 @@ import java.util.UUID
 class QueryInternalLoanExtend(
     val invoiceId: UUID? = null,
     val fundSourceId: UUID? = null,
-    val creditCardId: UUID? = null
+    val creditCardId: UUID? = null,
+    val refundFreezeId: UUID? = null
 ): IQueryExtend<InternalLoan> {
     override fun isStatisfy(entity: InternalLoan): Boolean {
         if (invoiceId != null && entity.invoiceId != invoiceId)
@@ -16,6 +17,9 @@ class QueryInternalLoanExtend(
             return false
 
         if (creditCardId != null && entity.creditTargetId != creditCardId)
+            return false
+
+        if (refundFreezeId != null && entity.trackRefunds.contains(refundFreezeId))
             return false
 
         return true

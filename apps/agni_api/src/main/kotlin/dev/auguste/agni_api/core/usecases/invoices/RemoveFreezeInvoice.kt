@@ -38,7 +38,7 @@ class RemoveFreezeInvoice(
             )
 
             for(invoiceItem in freezeInvoice.items) {
-                deleteInvoice.execAsync(DeleteInvoiceInput(invoiceItem.id))
+                deleteInvoice.execAsync(DeleteInvoiceInput(invoiceItem.id, false))
                 val account = accountRepo.get(invoiceItem.accountId)
 
                 eventRegister.notify(EventType.NOTIFICATION, NotificationEventContent(

@@ -1,14 +1,19 @@
 package dev.auguste.agni_api.controllers
 
+import dev.auguste.agni_api.controllers.models.ApiAddRefundInternalLoanModel
 import dev.auguste.agni_api.controllers.models.ApiCreateInternalLoanModel
+import dev.auguste.agni_api.controllers.models.ApiRemoveRefundInternalLoanModel
 import dev.auguste.agni_api.controllers.models.ApiUpdateInternalLoanModel
 import dev.auguste.agni_api.controllers.models.mapApiCreateInternalLoanModel
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.internal_loan.AddRefundInternalLoan
+import dev.auguste.agni_api.core.usecases.internal_loan.dto.AddRefundInternalLoanInput
 import dev.auguste.agni_api.core.usecases.internal_loan.dto.CreateInternalLoanInput
 import dev.auguste.agni_api.core.usecases.internal_loan.dto.GetInternalLoanOutput
+import dev.auguste.agni_api.core.usecases.internal_loan.dto.RemoveRefundInternalLoanInput
 import dev.auguste.agni_api.core.usecases.internal_loan.dto.UpdateInternalLoanInput
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.ResponseEntity
@@ -30,7 +35,9 @@ class InternalLoanController(
     @Qualifier("deleteInternalLoan")
     private val deleteInternalLoan: IUseCase<UUID, Unit>,
     private val getInternalLoan: IUseCase<UUID, GetInternalLoanOutput>,
-    private val getAllInternalLoan: IUseCase<QueryFilter, ListOutput<GetInternalLoanOutput>>
+    private val getAllInternalLoan: IUseCase<QueryFilter, ListOutput<GetInternalLoanOutput>>,
+    private val addRefundInternalLoan: IUseCase<AddRefundInternalLoanInput, Unit>,
+    private val removeRefundInternalLoan: IUseCase<RemoveRefundInternalLoanInput, Unit>
 ) {
     @GetMapping("{id}")
     fun getInternalLoan(@PathVariable id: UUID): ResponseEntity<GetInternalLoanOutput> {
@@ -55,5 +62,22 @@ class InternalLoanController(
     @DeleteMapping("{id}")
     fun deleteInternalLoan(@PathVariable id: UUID): ResponseEntity<Unit> {
         return ResponseEntity.ok(deleteInternalLoan.execAsync(id))
+    }
+
+    @PutMapping("{id}/add-fund")
+    fun addFundInternalLoan(@PathVariable id: UUID, @RequestBody request: ApiAddRefundInternalLoanModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(addRefundInternalLoan.execAsync(AddRefundInternalLoanInput(
+            internalLoanId = id,
+            accountId = request.refundAccountId,
+            amount = request.refundAmount
+        )))
+    }
+
+    @PutMapping("{id}/remove-fund")
+    fun refundFund(@PathVariable id: UUID, @RequestBody request: ApiRemoveRefundInternalLoanModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(removeRefundInternalLoan.execAsync(RemoveRefundInternalLoanInput(
+            internalLoanId = id,
+            freezeInvoiceId = request.freezeInvoiceRefundId
+        )))
     }
 }

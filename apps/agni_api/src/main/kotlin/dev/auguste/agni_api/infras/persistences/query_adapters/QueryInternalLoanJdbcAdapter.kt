@@ -1,5 +1,6 @@
 package dev.auguste.agni_api.infras.persistences.query_adapters
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInternalLoanExtend
@@ -17,6 +18,7 @@ import java.util.UUID
 class QueryInternalLoanJdbcAdapter(
     jdbcTemplate: NamedParameterJdbcTemplate,
     mapper: IMapper<JdbcInternalLoanModal, InternalLoan>,
+    private val objectMapper: ObjectMapper
 ): BaseQueryExtendJdbcAdapter<JdbcInternalLoanModal, InternalLoan>(jdbcTemplate, mapper) {
     override fun getSqlQuery(): StringBuilder = StringBuilder("SELECT * FROM internal_loans WHERE 1=1")
 
@@ -46,6 +48,11 @@ class QueryInternalLoanJdbcAdapter(
             params.addValue("creditTargetId", extend.creditCardId)
         }
 
+        if (extend.refundFreezeId != null) {
+            sqlBuilder.append(" AND jsonb_exists(refund_ids, :refundFreezeId)")
+            params.addValue("refundFreezeId", extend.refundFreezeId.toString())
+        }
+
         return SqlQueryBuilder(sqlBuilder, params)
     }
 
@@ -57,6 +64,9 @@ class QueryInternalLoanJdbcAdapter(
                 invoiceId = rs.getObject("invoice_id", UUID::class.java),
                 fundSourceId = rs.getObject("fund_source_id", UUID::class.java),
                 dueDate = rs.getObject("due_date", LocalDate::class.java),
+                refundIds = rs.getString("refund_ids")?.let {
+                    objectMapper.readValue(it, Array<String>::class.java).map { id -> UUID.fromString(id) }.toSet()
+                } ?: emptySet()
             )
         }
     }

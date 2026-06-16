@@ -17,7 +17,6 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.UpdateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 import dev.auguste.agni_api.core.value_objects.InvoiceDeduction
-import java.util.UUID
 import dev.auguste.agni_api.core.entities.DomainException
 
 class UpdateInvoice(
@@ -34,11 +33,15 @@ class UpdateInvoice(
         unitOfWork.execute {
             val invoice = invoiceRepo.get(input.id) ?: throw DomainException.NotFound.Invoice(input.id)
 
-            val internalLoans = invoiceDependencies.internalLoanRepo.getAll(QueryFilter(queryAll = true),
-                QueryInternalLoanExtend(invoiceId = invoice.id)
-            )
-            if (internalLoans.items.isNotEmpty())
-                throw DomainException.BusinessLogic.Validation("Invoice ${invoice.id} is Linked to loan this can be updated")
+            val internalLoans = invoiceDependencies.internalLoanRepo.getAll(QueryFilter(queryAll = true), QueryInternalLoanExtend(invoiceId = input.id))
+            if (internalLoans.items.isNotEmpty()) {
+                throw DomainException.BusinessLogic.InternalLoanLinkCantBeDelete()
+            }
+
+            val internalLoanRefunds = invoiceDependencies.internalLoanRepo.getAll(QueryFilter(queryAll = true), QueryInternalLoanExtend(refundFreezeId = input.id))
+            if (internalLoanRefunds.items.isNotEmpty()) {
+                throw DomainException.BusinessLogic.InternalLoanLinkCantBeDelete()
+            }
 
             if (input.accountId != null) {
                 if (invoiceDependencies.accountRepo.get(input.accountId) == null)
