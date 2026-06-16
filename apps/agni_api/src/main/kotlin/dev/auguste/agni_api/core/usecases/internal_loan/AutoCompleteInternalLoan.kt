@@ -30,7 +30,7 @@ class AutoCompleteInternalLoan(
                 QueryInternalLoanExtend(
                     scheduleDueDateComparator = QueryDateComparator(
                         date = LocalDateTime.now(),
-                        comparator = ComparatorType.GreaterOrEquals
+                        comparator = ComparatorType.LesserOrEquals
                     )
                 )
             )
