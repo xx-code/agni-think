@@ -1,5 +1,5 @@
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
-import type { CreateInternalLoanRequest, GetInternalLoanResponse, UpdateInternalLoanRequest } from "~/types/api/internal-loan";
+import type { AddRefundInternalRequest, CreateInternalLoanRequest, GetInternalLoanResponse, RemoveInternalRequestRequest, UpdateInternalLoanRequest } from "~/types/api/internal-loan";
 import type { InternalLoanType } from "~/types/ui/internal-loan";
 
 export async function fetchInternalLoan(id: string): Promise<InternalLoanType> {
@@ -12,7 +12,10 @@ export async function fetchInternalLoan(id: string): Promise<InternalLoanType> {
         fundSourceId: res.fundSourceId,
         invoiceId: res.invoiceId,
         creditTargetId: res.creditTargetId,
-        dueDate: new Date(res.dueDate) 
+        dueDate: new Date(res.dueDate), 
+        freezeInvoices: res.freezeInvoices,
+        loanAmount: res.loanAmount,
+        refundAmount: res.refundAmount
     }
 }
 
@@ -28,7 +31,10 @@ export async function fetchInternalLoans(query: QueryFilterRequest): Promise<Lis
             fundSourceId: i.fundSourceId,
             invoiceId: i.invoiceId,
             creditTargetId: i.creditTargetId,
-            dueDate: new Date(i.dueDate)
+            dueDate: new Date(i.dueDate),
+            freezeInvoices: i.freezeInvoices,
+            loanAmount: i.loanAmount,
+            refundAmount: i.refundAmount 
         } satisfies InternalLoanType)),
         total: res.total
     }
@@ -53,5 +59,19 @@ export async function useUpdateInternalLoan(id: string, request: UpdateInternalL
 export async function useDeleteInternalLoan(id: string) {
     await $fetch(`api/internal-loans/${id}`, {
         method: 'DELETE',
+    })
+}
+
+export async function useAddRefundInternalLoan(id: string, request: AddRefundInternalRequest) {
+    await $fetch(`api/internal-loans/${id}/add-fund`, {
+        method: 'PUT',
+        body: request
+    })
+}
+
+export async function useRemoveRefundInternalLoan(id: string, request: RemoveInternalRequestRequest) {
+    await $fetch(`api/internal-loans/${id}/remove-fund`, {
+        method: 'PUT',
+        body: request
     })
 }

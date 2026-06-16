@@ -29,10 +29,22 @@ class AddRefundInternalLoan(
             val internalLoan = internalLoanRepo.get(input.internalLoanId) ?: throw DomainException.NotFound.InternalLoan(input.internalLoanId)
             val invoiceLoan = getInvoice.execAsync(internalLoan.invoiceId)
 
+
+            var totalRefund = 0.0
+            for(refundId in internalLoan.trackRefunds) {
+                val refund = getInvoice.execAsync(refundId)
+                totalRefund += refund.total
+            }
+
+            val internalLoanRemind = invoiceLoan.total - totalRefund
+
+            if (input.amount > internalLoanRemind)
+                throw DomainException.BusinessLogic.InternalLoanRefundNotValid(input.amount, internalLoanRemind)
+
             val resFreeze = createInvoice.execInnerAsync(CreateInvoiceInput(
                 accountId = input.accountId,
                 status = InvoiceStatusType.COMPLETED,
-                date = LocalDateTime.from(internalLoan.dueDate),
+                date = internalLoan.dueDate.atStartOfDay(),
                 type = InvoiceType.OTHER,
                 mouvementType = InvoiceMouvementType.DEBIT,
                 currency = null,

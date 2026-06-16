@@ -122,7 +122,7 @@ const items: NavigationMenuItem[][] = [[
 
 <template>
     <UDashboardSidebar 
-        collapsible
+        :collapsible="false"
         :ui="{
             root: 'border-none'
         }">

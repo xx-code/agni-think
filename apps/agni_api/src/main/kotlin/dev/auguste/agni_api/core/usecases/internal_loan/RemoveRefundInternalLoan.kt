@@ -20,7 +20,6 @@ class RemoveRefundInternalLoan(
     override fun execAsync(input: RemoveRefundInternalLoanInput) {
         unitOfWork.execute {
             val internalLoan = internalLoanRepo.get(input.internalLoanId) ?: throw DomainException.NotFound.InternalLoan(input.internalLoanId)
-            val invoiceLoan = getInvoice.execAsync(internalLoan.invoiceId)
 
             if (internalLoan.trackRefunds.find({ it == input.freezeInvoiceId}) == null)
                 throw DomainException.NotFound.InternalLoanFreezeInvoice(input.internalLoanId)
@@ -29,7 +28,7 @@ class RemoveRefundInternalLoan(
             refunds.remove(input.freezeInvoiceId)
             internalLoan.trackRefunds = refunds
 
-            deleteInvoice.execInnerAsync(DeleteInvoiceInput(invoiceLoan.id, false))
+            deleteInvoice.execInnerAsync(DeleteInvoiceInput(input.freezeInvoiceId, false))
 
             internalLoanRepo.update(internalLoan)
         }
