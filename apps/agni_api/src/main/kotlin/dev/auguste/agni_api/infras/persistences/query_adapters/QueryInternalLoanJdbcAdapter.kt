@@ -1,7 +1,9 @@
 package dev.auguste.agni_api.infras.persistences.query_adapters
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInternalLoanExtend
 import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.infras.persistences.IMapper
@@ -11,12 +13,14 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.UUID
 
 @Component
 class QueryInternalLoanJdbcAdapter(
     jdbcTemplate: NamedParameterJdbcTemplate,
     mapper: IMapper<JdbcInternalLoanModal, InternalLoan>,
+    private val objectMapper: ObjectMapper
 ): BaseQueryExtendJdbcAdapter<JdbcInternalLoanModal, InternalLoan>(jdbcTemplate, mapper) {
     override fun getSqlQuery(): StringBuilder = StringBuilder("SELECT * FROM internal_loans WHERE 1=1")
 
@@ -46,6 +50,27 @@ class QueryInternalLoanJdbcAdapter(
             params.addValue("creditTargetId", extend.creditCardId)
         }
 
+        if (extend.refundFreezeId != null) {
+            sqlBuilder.append(" AND jsonb_exists(refund_ids, :refundFreezeId)")
+            params.addValue("refundFreezeId", extend.refundFreezeId.toString())
+        }
+
+        if (extend.scheduleDueDateComparator != null) {
+
+            val dateToVerify =extend.scheduleDueDateComparator.date.atOffset(ZoneOffset.UTC).toString()
+
+            val operator = when(extend.scheduleDueDateComparator.comparator) {
+                ComparatorType.Greater -> ">"
+                ComparatorType.GreaterOrEquals -> ">="
+                ComparatorType.Lesser -> "<"
+                ComparatorType.LesserOrEquals -> "<="
+                ComparatorType.Equal -> "="
+            }
+
+            sqlBuilder.append(" AND due_date $operator :dueDate::timestamptz")
+            params.addValue("dueDate", dateToVerify)
+        }
+
         return SqlQueryBuilder(sqlBuilder, params)
     }
 
@@ -57,6 +82,9 @@ class QueryInternalLoanJdbcAdapter(
                 invoiceId = rs.getObject("invoice_id", UUID::class.java),
                 fundSourceId = rs.getObject("fund_source_id", UUID::class.java),
                 dueDate = rs.getObject("due_date", LocalDate::class.java),
+                refundIds = rs.getString("refund_ids")?.let {
+                    objectMapper.readValue(it, Array<String>::class.java).map { id -> UUID.fromString(id) }.toSet()
+                } ?: emptySet()
             )
         }
     }

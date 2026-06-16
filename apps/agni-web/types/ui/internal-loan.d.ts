@@ -15,4 +15,7 @@ export type InternalLoanType = {
     creditTargetId: string
     invoiceId: string
     dueDate: Date
+    refundAmount: number
+    loanAmount: number
+    freezeInvoices: string[]
 }

@@ -16,7 +16,6 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.TransactionInput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.DecreaseSavingGoalInput
 import java.time.LocalDateTime
-import java.util.Date
 
 class DecreaseSavingGoal(
     private val savingGoalRepo: IRepository<SavingGoal>,

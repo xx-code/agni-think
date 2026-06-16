@@ -27,4 +27,16 @@ export type GetInternalLoanResponse = {
     invoiceId: string
     fundSourceId: string
     dueDate: string
+    refundAmount: number,
+    loanAmount: number,
+    freezeInvoices: string[]
+}
+
+export type AddRefundInternalRequest = {
+    refundAccountId: string
+    refundAmount: number
+}
+
+export type RemoveInternalRequestRequest = {
+    freezeInvoiceRefundId: string
 }

@@ -29,6 +29,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class FinancePrinciple(id: UUID) : NotFound("FINANCE_PRINCIPLE_NOT_FOUND", "FinancePrinciple not found $id")
         class AgentSuggestion(id: UUID): NotFound("AGENT_SUGGEST_NOT_FOUND", "La suggestion de l'agent $id est introuvable")
         class InternalLoan(id: UUID): NotFound("INTERNAL_LOAN_NOT_FOUND", "Pret personnel est introuvable $id")
+        class InternalLoanFreezeInvoice(id: UUID): NotFound("INTERNAL_LOAN_FREEZE_NOT_FOUND", "La facture freeze pour le Pret personnel est introuvable $id")
         class Transaction(id: UUID) : NotFound("TRANSACTION_NOT_FOUND", "Transaction not found $id")
         class ScheduleInvoice(id: UUID): NotFound("SCHEDULE_IN_VOICE_NOT_FOUND", "ScheduleInvoice $id est introuvable")
     }
@@ -60,5 +61,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class InternalLoanAccountNotAllowForCollateral(message: String = "Account type not allow for loan collateral"): BusinessLogic("INTERNAL_LOAD_BAD_CREDIT", message)
         class InternalLoanBadAccountCredit(message: String = "Loan take a credit card"): BusinessLogic("INTERNAL_LOAD_BAD_CREDIT", message)
         class InternalLoanBadConfidenceScore(confidence: Double, message: String = "Confiance insuffisante (${confidence.roundToInt()}%). Le risque de liquidité est trop élevé. pret refuser"): BusinessLogic("INTERNAL_LOAD_BAD_CREDIT", message)
+        class InternalLoanLinkCantBeDelete(message: String = "You can't delete any invoice linked to an internal loan"): BusinessLogic("INTERNAL_LOAD_LINK_DELETE", message)
+        class InternalLoanRefundNotValid(amount: Double, loanAmount: Double): BusinessLogic("INTERNAL_LOAD_REFUND_NOT_VALID", "L'argent a freezer  $amount$ doit etre inferieur $loanAmount$")
     }
 }

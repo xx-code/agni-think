@@ -3,6 +3,7 @@ package dev.auguste.agni_api.infras
 import org.slf4j.LoggerFactory
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.internal_loan.AutoCompleteInternalLoan
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
@@ -89,6 +90,34 @@ class CronJobUpdateBudgetDueDate(
 
     override fun run(args: ApplicationArguments) {
         logger.info("[STARTUP] Apply budget due date")
+        execute()
+    }
+}
+
+@Service
+class CronJobUpdateInternalLoanDueDate(
+    @Qualifier("autoCompleteInternalLoan")
+    private val autoCompleteInternalLoan: IUseCase<Unit, BackgroundTaskOut>
+) : ApplicationRunner {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    private fun execute() {
+        try {
+            val res = autoCompleteInternalLoan.execAsync(input = Unit)
+            logger.info("[*] Finished cron update internal loan due date: ${res.message}")
+        } catch (e: Exception) {
+            logger.info("[!] Error while executing task: ${e.message}")
+        }
+    }
+
+    @Scheduled(cron = "0 0 */12 * * *")
+    fun schedule() {
+        println("[SCHEDULE] Cron update internal loan due date")
+        execute()
+    }
+
+    override fun run(args: ApplicationArguments) {
+        logger.info("[STARTUP] Apply internal loan due date")
         execute()
     }
 }

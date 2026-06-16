@@ -1,6 +1,6 @@
 import type { NuxtError } from "#app";
 import type { Result } from "~/types";
-import type { CreatedRequest, ErrorResponse, ListResponse } from "~/types/api";
+import type { CreatedRequest, ErrorResponse, ListResponse, QueryFilterRequest } from "~/types/api";
 import type {  CreateInvoiceRequest, FreezeInvoiceRequest, GetBalanceResponse, GetInvoiceResponse, QueryBalanceByPeriod, QueryInvoice, TransferInvoiceRequest, UpdateInvoiceRequest } from "~/types/api/transaction";
 import type { InvoiceType } from "~/types/ui/transaction";
 
@@ -88,7 +88,7 @@ export async function fetchInvoice(transactionId: string): Promise<InvoiceType> 
     } satisfies InvoiceType 
 } 
 
-export async function fetchInvoicePagination(query: MaybeRefOrGetter<QueryInvoice>): Promise<ListResponse<InvoiceType>> {
+export async function fetchInvoicePagination(query: MaybeRefOrGetter<QueryFilterRequest & QueryInvoice>): Promise<ListResponse<InvoiceType>> {
     const res = await $fetch<ListResponse<GetInvoiceResponse>>(`api/invoices`, {
         method: 'GET',
         query: query

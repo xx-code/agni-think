@@ -4,7 +4,7 @@
             <LayoutSideBar />
             <div class="flex flex-col w-full h-full relative">
                 <div class="flex-none">
-                    <LayoutNavbar class="" />
+                    <LayoutNavbar />
                 </div>
 
                 <div class="flex-1 overflow-auto">
