@@ -18,8 +18,8 @@ class QuerySavingGoalExtendJdbcAdapter(
     jdbcTemplate: NamedParameterJdbcTemplate,
     mapper: IMapper<JdbcSavingGoalModel, SavingGoal>
 ): BaseQueryExtendJdbcAdapter<JdbcSavingGoalModel, SavingGoal>(jdbcTemplate, mapper) {
-    override fun getSqlQuery(): StringBuilder = StringBuilder("SELECT * FROM save_goals WHERE 1=1")
-    override fun getSqlCountQuery(): StringBuilder = StringBuilder("SELECT COUNT(*) FROM save_goals WHERE 1=1")
+    override fun getSqlQuery(): StringBuilder = StringBuilder("SELECT * FROM funds WHERE 1=1")
+    override fun getSqlCountQuery(): StringBuilder = StringBuilder("SELECT COUNT(*) FROM funds WHERE 1=1")
 
     override fun getSqlStringBuilder(
         sqlBuilder: StringBuilder,
@@ -40,13 +40,10 @@ class QuerySavingGoalExtendJdbcAdapter(
     override fun getRawMapper(): RowMapper<JdbcSavingGoalModel> {
         return RowMapper { rs, _ ->
             JdbcSavingGoalModel(
-                id = rs.getObject("save_goal_id", UUID::class.java),
+                id = rs.getObject("fund_id", UUID::class.java),
                 name = rs.getObject("title", String::class.java),
                 target = rs.getDouble("target"),
                 balance = rs.getDouble("balance"),
-                desirValue = rs.getInt("desir_value"),
-                importance = rs.getInt("importance"),
-                wishDueDate = rs.getObject("wish_due_date", LocalDate::class.java),
                 description = rs.getString("description"),
                 accountId = rs.getObject("account_id", UUID::class.java)
             )

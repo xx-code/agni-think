@@ -1,9 +1,6 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.ImportanceGoalType
-import dev.auguste.agni_api.core.entities.enums.IntensityEmotionalDesirType
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.CreateSavingGoalInput
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.ItemSavingGoalInput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.UpdateSavingGoalInput
 import java.time.LocalDate
 import java.util.UUID
@@ -51,17 +48,7 @@ fun mapApiCreateSavingGoal(model: ApiCreateSavingGoalModel): CreateSavingGoalInp
         target = model.target,
         title = model.title,
         description = model.description,
-        accountId = model.accountId,
-        desirValue = IntensityEmotionalDesirType.fromInt(model.desirValue),
-        importance = ImportanceGoalType.fromInt(model.importance),
-        wishDueDate = model.wishDueDate,
-        items = model.items.map {
-            ItemSavingGoalInput(
-                title = it.title,
-                price = it.price,
-                url = it.url
-            )
-        }.toSet()
+        accountId = model.accountId
     )
 }
 
@@ -71,16 +58,6 @@ fun mapApiUpdateSavingGoal(id: UUID, model: ApiUpdateSavingGoalModel): UpdateSav
         target = model.target,
         title = model.title,
         description = model.description,
-        accountId = model.accountId,
-        desirValue = model.desirValue?.let { IntensityEmotionalDesirType.fromInt(model.desirValue) } ,
-        importance = model.importance?.let { ImportanceGoalType.fromInt(model.importance) } ,
-        wishDueDate = model.wishDueDate,
-        items = model.items?.map {
-            ItemSavingGoalInput(
-                title = it.title,
-                price = it.price,
-                url = it.url
-            )
-        }?.toSet() ?: setOf()
+        accountId = model.accountId
     )
 }

@@ -27,6 +27,11 @@ class DeleteSavingGoal(
         unitOfWork.execute {
             val savingGoal = savingGoalRepo.get(input.savingGoalId) ?: throw DomainException.NotFound.SavingGoal(input.savingGoalId)
 
+            if (savingGoal.balance == 0.0) {
+                savingGoalRepo.delete(input.savingGoalId)
+                return@execute
+            }
+
             val accountId = if (savingGoal.accountId == null) {
                 if (input.accountId == null)
                     throw DomainException.BusinessLogic.Validation("Account ID must be non-null.")

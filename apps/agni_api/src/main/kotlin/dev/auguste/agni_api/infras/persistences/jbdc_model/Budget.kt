@@ -26,10 +26,7 @@ data class JdbcBudgetModel(
     val scheduler: String,
 
     @Column("is_archived")
-    val isArchived: Boolean,
-
-    @Column("save_goal_ids")
-    val goalIds: Set<UUID>
+    val isArchived: Boolean
 ) : JdbcModel() {
     override fun getId(): UUID {
         return id
@@ -48,8 +45,7 @@ class JdbcBudgetModelMapper(
             title = model.name,
             target = model.target,
             scheduler = Scheduler.fromMap(schedulerJson),
-            isArchived = model.isArchived,
-            targetSavingGoalIds = model.goalIds.toMutableSet()
+            isArchived = model.isArchived
         )
     }
 
@@ -59,8 +55,7 @@ class JdbcBudgetModelMapper(
             name = entity.title,
             target = entity.target,
             scheduler = objectMapper.writeValueAsString(entity.scheduler.toMap()),
-            isArchived = entity.isArchived,
-            goalIds = entity.targetSavingGoalIds
+            isArchived = entity.isArchived
         )
     }
 

@@ -42,11 +42,9 @@ class BudgetConfig {
     @Bean 
     fun updateBudget(
         budgetRepo : IRepository<Budget>,
-        savingGoalRepo: IRepository<SavingGoal>,
     ) : IUseCase<UpdateBudgetInput, Unit> {
         return UpdateBudget(
-            budgetRepo = budgetRepo,
-            savingGoalRepo = savingGoalRepo,
+            budgetRepo = budgetRepo
         )
     }
     
@@ -62,25 +60,21 @@ class BudgetConfig {
     @Bean
     fun getBudget(
         budgetRepo : IRepository<Budget>,
-        savingGoalRepo: IRepository<SavingGoal>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     ) : IUseCase<UUID, GetBudgetOutput> {
         return GetBudget(
             budgetRepo = budgetRepo,
-            savingGoalRepo = savingGoalRepo,
-            getBalance = getBalance,
+            getBalance = getBalance
         )
     }
     
     @Bean
     fun getAllBudgets(
         budgetRepo : IRepository<Budget>,
-        savingGoalRepo: IRepository<SavingGoal>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     ) : IUseCase<QueryFilter, ListOutput<GetBudgetOutput>> {
         return GetAllBudgets(
             budgetRepo = budgetRepo,
-            savingGoalRepo = savingGoalRepo,
             getBalance = getBalance
         )
     }

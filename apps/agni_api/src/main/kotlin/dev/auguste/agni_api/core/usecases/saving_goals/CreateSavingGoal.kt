@@ -28,17 +28,7 @@ class CreateSavingGoal(
             description = input.description,
             accountId = input.accountId,
             target = input.target,
-            balance = 0.0,
-            desired = input.desirValue,
-            importance = input.importance,
-            wishDueDate = input.wishDueDate,
-            itemsToTracks = input.items.map {
-                SavingGoalItem(
-                    title = it.title,
-                    price = it.price,
-                    url = it.url
-                )
-            }.toMutableSet()
+            balance = 0.0
         )
 
         savingGoalRepo.create(newSavingGoal)
