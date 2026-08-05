@@ -176,9 +176,13 @@ async function onSubmit(event: FormSubmitEvent<EditInvoiceType>) {
     }
 
     if (isSuccess) {
-        form.accountId = "";
+        toast.add({
+            title: "Success",
+            description: "Facture Ajouter",
+            color: 'success'
+        })
+ 
         form.state = "Pending";
-        form.type = "";
         form.transactions = [{
             amount: 0,
             description: '',
@@ -187,15 +191,11 @@ async function onSubmit(event: FormSubmitEvent<EditInvoiceType>) {
             budgetIds: []
         }];
         form.deductions = [];
-
-        toast.add({
-            title: "Success",
-            description: "Facture Ajouter",
-            color: 'success'
-        })
-
-        if (switchMoreState.value === false)
+        if (switchMoreState.value === false) {
+            form.accountId = "";
+            form.type = "";
             emit('close', true);
+        }
     } else {
         toast.add({
             title: resError?.error,
