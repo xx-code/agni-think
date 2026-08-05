@@ -14,8 +14,8 @@ export async function useCreateFund(request: CreateFundRequest): Promise<Created
 
 
 export async function useDeleteFund(saveGoalId: string, request: DeleteFundRequest): Promise<void> {
-    await $fetch(`api/funds/${saveGoalId}`, {
-        method: 'DELETE',
+    await $fetch(`api/funds/${saveGoalId}/remove`, {
+        method: 'PUT',
         body: request
     });
 }

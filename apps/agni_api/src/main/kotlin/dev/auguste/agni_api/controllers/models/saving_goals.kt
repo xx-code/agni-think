@@ -5,11 +5,6 @@ import dev.auguste.agni_api.core.usecases.saving_goals.dto.UpdateSavingGoalInput
 import java.time.LocalDate
 import java.util.UUID
 
-data class ApiItemSavingGoalModel(
-    val title: String,
-    val price: Double,
-    val url: String
-)
 
 data class ApiUpgradeSavingGoalModel(
     val accountId: UUID?,
@@ -20,11 +15,7 @@ data class ApiCreateSavingGoalModel(
     val title: String,
     val target: Double,
     val description: String,
-    val accountId: UUID?,
-    val desirValue: Int,
-    val importance: Int,
-    val wishDueDate: LocalDate?,
-    val items: Set<ApiItemSavingGoalModel>
+    val accountId: UUID?
 )
 
 data class ApiUpdateSavingGoalModel(
@@ -32,10 +23,6 @@ data class ApiUpdateSavingGoalModel(
     val target: Double?,
     val description: String?,
     val accountId: UUID?,
-    val desirValue: Int?,
-    val importance: Int?,
-    val wishDueDate: LocalDate?,
-    val items: Set<ApiItemSavingGoalModel>?
 )
 
 data class ApiDeleteSavingGoalModel(
