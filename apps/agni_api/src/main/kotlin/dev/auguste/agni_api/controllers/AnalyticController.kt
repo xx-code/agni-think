@@ -101,7 +101,7 @@ class AnalyticController(
         return ResponseEntity.ok(getAnnualOutlook.execAsync(Unit))
     }
 
-    @GetMapping("/total-summary")
+    @GetMapping("/fund-total-summary")
     fun getFundSummary() : ResponseEntity<FundSummaryOutput> {
         return ResponseEntity.ok(getFundTotalSummary.execAsync(Unit))
     }

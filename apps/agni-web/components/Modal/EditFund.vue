@@ -2,16 +2,16 @@
 import * as z from 'zod'
 import { reactive } from "vue";
 import type { FormSubmitEvent } from '@nuxt/ui';
-import type { EditSaveGoalType, SaveGoalType } from '~/types/ui/saveGoal';
+import type { EditFundType, FundType } from '~/types/ui/fund';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
 import { fetchAccounts } from '~/composables/api/accounts';
 import { fetchImportanceTypes, fetcheIntensityDesirTypes } from '~/composables/api/internal';
 
 const { saveGoal } = defineProps<{
-    saveGoal?: SaveGoalType
+    saveGoal?: FundType
 }>();
 const emit = defineEmits<{
-    (e: 'submit', value: EditSaveGoalType, oldValue?: SaveGoalType): void    
+    (e: 'submit', value: EditFundType, oldValue?: FundType): void    
     (e: 'close', close: boolean): void
 }>();
 const schema = z.object({
@@ -46,19 +46,7 @@ const form = reactive({
     accountId: saveGoal?.accountId || '',
     description: saveGoal?.description || '',
     targetAmount: saveGoal?.target || 0,
-    desirValue: saveGoal?.desirValue.toString(),
-    importance: saveGoal?.importance.toString(),
-    hasWishDueDate: saveGoal?.wishDueDate ? true : false
 });
-
-const df = new DateFormatter('en-Us', {
-    dateStyle: 'medium'
-});
-
-let wishDated: Date|undefined; 
-if (saveGoal?.wishDueDate)
-    wishDated = saveGoal.wishDueDate;
-const wishDate = shallowRef(wishDated ? new CalendarDate(wishDated.getFullYear(), wishDated.getMonth() + 1, wishDated.getDate()) : undefined);
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
     const data = event.data;
@@ -66,10 +54,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         title: data.title,
         target: data.targetAmount,
         accountId: data.accountId,
-        description: data.description || '',
-        desirValue: data.desirValue,
-        importance: data.importance,
-        wishDueDate: form.hasWishDueDate ? wishDate.value : undefined,
+        description: data.description || ''
     }, saveGoal);
 
     form.title = "";
@@ -95,25 +80,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     <UInput v-model="form.targetAmount" class="w-full" type="number" />
                 </UFormField>
 
-                <UFormField label="Intensite de desire" name="desirValue">
-                    <URadioGroup 
-                        orientation="horizontal" 
-                        variant="list" 
-                        :items="utils?.intensityDesirs || []" 
-                        value-key="id"
-                        label-key="value"
-                        v-model="form.desirValue" />
-                </UFormField>
-
-                <UFormField label="Importance" name="importance">
-                    <URadioGroup 
-                        orientation="horizontal" 
-                        variant="list" 
-                        value-key="id"
-                        label-key="value"
-                        v-model="form.importance"
-                        :items="utils?.importances || []" />
-                </UFormField> 
 
                 <UFormField label="Compte" name="accountId" >
                     <USelect 
@@ -123,20 +89,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                         class="w-full" />
                 </UFormField>
 
-                <UFormField label="Date butoir desirer" name="hasWishDueDate">
-                    <USwitch v-model="form.hasWishDueDate" />
-                </UFormField>
-
-                <UFormField label="" name="wishDueDate" v-if="form.hasWishDueDate">
-                    <UPopover>
-                        <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" >
-                            {{ wishDate ? df.format(wishDate.toDate(getLocalTimeZone())) : 'Selectionnez une de fin' }}
-                        </UButton>
-                        <template #content>
-                            <UCalendar v-model="wishDate" />
-                        </template>
-                    </UPopover>
-                </UFormField>
                 <UButton label="Submit" type="submit" />
             </UForm>
         </template>

@@ -63,8 +63,8 @@ const items: NavigationMenuItem[][] = [[
                 icon: 'i-lucide-wallet-cards' 
             },
             { 
-                label: 'Goals', 
-                to: '/goals', 
+                label: 'Fonds', 
+                to: '/funds', 
                 icon: 'i-lucide-piggy-bank' 
             }
         ]

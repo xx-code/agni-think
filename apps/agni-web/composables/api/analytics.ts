@@ -1,5 +1,5 @@
 import type { ListResponse } from "~/types/api";
-import type { GetAnnualOutlookResponse, GetBudgetingRuleRequest, GetBudgetingRuleResponse, GetEstimationLeftAmountRequest, GetEstimationLeftAmountResponse, GetSavingAnalysticRequest, GetSavingAnalysticResponse, GetSpendCategoryRequest, GetSpendCategoryResponse, GetSpendTagRequest, GetSpendTagResponse } from "~/types/api/analytics";
+import type { GetAnnualOutlookResponse, GetBudgetingRuleRequest, GetBudgetingRuleResponse, GetEstimationLeftAmountRequest, GetEstimationLeftAmountResponse, GetFundTotalSummary, GetSavingAnalysticRequest, GetSavingAnalysticResponse, GetSpendCategoryRequest, GetSpendCategoryResponse, GetSpendTagRequest, GetSpendTagResponse } from "~/types/api/analytics";
 import type { EstimationLeftAmountType, SavingAnalysticType } from "~/types/ui/analytics";
 
 export async function fetchAnnualOutlook(): Promise<GetAnnualOutlookResponse>{
@@ -59,3 +59,11 @@ export async function fetchSpendByTagAnalytic(request: GetSpendTagRequest): Prom
 
     return response
 }
+
+export async function fetchFundSummary(): Promise<GetFundTotalSummary> {
+    const res = await $fetch<GetFundTotalSummary>('/api/analytics/fund-total-summary', {
+        method: 'GET'
+    })
+
+    return res
+} 

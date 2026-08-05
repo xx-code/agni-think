@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { 
-    ModalEditAmountSaveGoal, 
-    ModalEditSaveGoal,
+    ModalEditAmountFund,
+    ModalEditFund,
     ModalPlanningAdvisor, 
 } from "#components"
 import type { TableColumn, TableRow } from "#ui/types"
@@ -9,10 +9,11 @@ import { DateFormatter, getLocalTimeZone } from "@internationalized/date"
 import { ref } from "vue"
 import type { TargetGoal } from "~/components/Modal/PlanningAdvisor.vue"
 import { fetchAccounts } from "~/composables/api/accounts"
-import { fetchSavingGoals, useUpdateSaveGaol, useCreateSaveGoal, fetchSaveGoal, useUpdateAmountSaveGoal, useDeleteSaveGoal } from "~/composables/api/goals"
+import { fetchFundSummary } from "~/composables/api/analytics"
+import { fetchFunds, useUpdateFund, useCreateFund, fetchFund, useUpdateAmountFund, useDeleteFund } from "~/composables/api/funds"
 import { fetchImportanceTypes, fetcheIntensityDesirTypes } from "~/composables/api/internal"
-import type { QueryFilterSavingGoalRequest } from "~/types/api/saveGoal"
-import type { EditSaveGoalType, EditUpdateAmountSaveGoalType, SaveGoalType } from "~/types/ui/saveGoal"
+import type { QueryFilterFundRequest } from "~/types/api/fund"
+import type { EditFundType, EditUpdateAmountFundType, FundType } from "~/types/ui/fund"
 
 interface ItemRow  {
     id: string
@@ -20,13 +21,12 @@ interface ItemRow  {
     description: string
     target: number 
     balance: number
-    desir: number
-    importance: number
-    wishDate?: Date
 }
 
+const loadingSummary = ref(false)
+
 const page = ref(1)
-const filter = reactive<QueryFilterSavingGoalRequest>({
+const filter = reactive<QueryFilterFundRequest>({
     offset: 0,
     limit: 8,
     queryAll: false
@@ -48,13 +48,24 @@ const { data: utils } = useAsyncData('utils+accounts', async () => {
 })
 
 const { data: goals, error, refresh } = useAsyncData('goal+page', async () => {
-    const res = await fetchSavingGoals(filter)
+    const res = await fetchFunds(filter)
 
     return res
 }, {
     watch: [filter]
 })  
 
+const { data: summary } = useAsyncData('page-fund-summary', async () => {
+    const res = await fetchFundSummary()
+
+    return {
+        totalTarget: res.totalTarget,
+        totalBalance: res.totalBalance,
+        remain: res.totalTarget - res.totalBalance
+    }
+}, {
+    watch: [goals]
+})
 
 
 const tableData = computed(() => {
@@ -64,16 +75,13 @@ const tableData = computed(() => {
         balance: i.balance,
         description: i.description,
         target: i.target,
-        importance: i.importance,
-        desir: i.desirValue,
-        wishDate: i.wishDueDate
     } satisfies ItemRow))
 })
 
 const toast = useToast()
 const overlay = useOverlay()
-const modalCreateSavingGoal = overlay.create(ModalEditSaveGoal)
-const modalUpdateAmountSavingGoal = overlay.create(ModalEditAmountSaveGoal)
+const modalCreateSavingGoal = overlay.create(ModalEditFund)
+const modalUpdateAmountSavingGoal = overlay.create(ModalEditAmountFund)
 const modalPlanningAdvisor = overlay.create(ModalPlanningAdvisor)
 
 const df = new DateFormatter('en-Us', {
@@ -93,28 +101,21 @@ const averageProgress = computed(() => {
     return data.reduce((sum, g) => sum + (g.balance / g.target * 100), 0) / data.length
 })
 
-async function onSubmitSaveGoal(value: EditSaveGoalType, oldValue?: SaveGoalType) {
+async function onSubmitFund(value: EditFundType, oldValue?: FundType) {
     try {
         if (oldValue) {
-            await useUpdateSaveGaol(oldValue.id, {
+            await useUpdateFund(oldValue.id, {
                 title: value.title,
                 description: value.description,
                 target: value.target,
-                accountId: value.accountId,
-                importance: value.importance,
-                desirValue: value.desirValue,
-                wishDueDate: value.wishDueDate?.toDate(getLocalTimeZone()).toISOString()
+                accountId: value.accountId
             })
         } else {
-            await useCreateSaveGoal({
+            await useCreateFund({
                 title: value.title,
                 description: value.description,
                 target: value.target,
-                accountId: value.accountId,
-                importance: value.importance,
-                desirValue: value.desirValue,
-                wishDueDate: value.wishDueDate?.toDate(getLocalTimeZone()).toISOString(),
-                items: []
+                accountId: value.accountId
             })
         }
         await refresh()
@@ -133,26 +134,26 @@ async function onSubmitSaveGoal(value: EditSaveGoalType, oldValue?: SaveGoalType
 } 
 
 async function openSavingGoal(goalId?: string) {
-    let goal: SaveGoalType | undefined = undefined
+    let goal: FundType | undefined = undefined
     if (goalId) {
-        goal = await fetchSaveGoal(goalId) 
+        goal = await fetchFund(goalId) 
     }
 
 
     modalCreateSavingGoal.open({
         saveGoal: goal,
-        onSubmit: onSubmitSaveGoal 
+        onSubmit: onSubmitFund 
     }) 
 }
 
-async function onUpdateAmountSaveGoal(value: EditUpdateAmountSaveGoalType, isIncrease: boolean, oldValue?: SaveGoalType) {
+async function onUpdateAmountFund(value: EditUpdateAmountFundType, isIncrease: boolean, oldValue?: FundType) {
     try {
         if (oldValue) {
-            await useUpdateAmountSaveGoal({
+            await useUpdateAmountFund({
                 isIncrease: isIncrease,
                 amount: value.amount,
                 accountId: value.accountId,
-                saveGoalId: oldValue?.id
+                fundId: oldValue?.id
             })
             await refresh()
             toast.add({
@@ -171,14 +172,14 @@ async function onUpdateAmountSaveGoal(value: EditUpdateAmountSaveGoalType, isInc
 }
 
 const openUpdateAmountSavingGoal = async (isIncrease: boolean, goalId?: string) => {
-    let goal: SaveGoalType | undefined = undefined
+    let goal: FundType | undefined = undefined
     if (goalId) {
-        goal = await fetchSaveGoal(goalId) 
+        goal = await fetchFund(goalId) 
     }
     
     modalUpdateAmountSavingGoal.open({
         isIncrease: isIncrease,
-        onSubmit: onUpdateAmountSaveGoal,
+        onSubmit: onUpdateAmountFund,
         saveGoal: goal
     })
 }
@@ -190,7 +191,7 @@ const deletePopOverGoalId = ref<string>()
 const onDeleteGoal = async (goalId: string) => {
     if (deleteAccountDepositId.value !== '') {
         try {
-            await useDeleteSaveGoal(goalId, { accountId: deleteAccountDepositId.value })
+            await useDeleteFund(goalId, { accountId: deleteAccountDepositId.value })
             await refresh()
             deletePopOverOpen.value = false
             deletePopOverGoalId.value = undefined
@@ -304,47 +305,6 @@ const columns: TableColumn<ItemRow>[] = [
         )
     },
     {
-        accessorKey: 'desir',
-        header: "Désir",
-        cell: ({ row }) => {
-            const desires = []
-            const maxDesires = utils.value?.intensityDesirs.length || row.original.desir
-            for (let i = 0; i < maxDesires; i++)
-                desires.push(h(UButton, { 
-                    icon: 'i-lucide-sparkles', 
-                    size: "xs",
-                    class: (i) < row.original.desir ? 'bg-yellow-400 hover:bg-yellow-500' : 'bg-gray-100 text-gray-400',
-                }))
-
-            return h('div', { class: 'flex items-center gap-1' }, desires)
-        }
-    },
-    {
-        accessorKey: 'importance',
-        header: "Importance",
-        cell: ({ row }) => {
-            const desires = []
-            const maxDesires = utils.value?.importances.length || row.original.importance
-            for (let i = 0; i < maxDesires; i++)
-                desires.push(h(UButton, { 
-                    icon: 'i-lucide-shield-alert', 
-                    size: "xs",
-                    class: (i) < row.original.importance ? 'bg-red-400 hover:bg-red-500' : 'bg-gray-100 text-gray-400',
-                }))
-
-            return h('div', { class: 'flex items-center gap-1' }, desires)
-        }
-    },
-    {
-        accessorKey: 'wishDate',
-        header: "Date souhaitée",
-        cell: ({ row }) => {
-            return row.original.wishDate 
-                ? h('span', { class: 'text-sm text-gray-600' }, formatDate(row.original.wishDate))
-                : h('span', { class: 'text-sm text-gray-400' }, '—')
-        }
-    },
-    {
         id: 'action',
         header: "Actions",
         cell: ({ row }) => {
@@ -387,7 +347,7 @@ const columns: TableColumn<ItemRow>[] = [
 </script>
 
 <template>
-    <div class="goals-page p-1">
+    <div class="goals-page p-5">
         <!-- Summary Section -->
         <div class="summary-section">
             <div class="summary-card">
@@ -395,7 +355,7 @@ const columns: TableColumn<ItemRow>[] = [
                     <UIcon name="i-lucide-target" class="summary-icon" />
                     <span class="summary-label">Objectif Total</span>
                 </div>
-                <div class="summary-amount">${{ totalTarget.toLocaleString() }}</div>
+                <div class="summary-amount">${{ summary?.totalTarget.toLocaleString() }}</div>
             </div>
 
             <div class="summary-card">
@@ -403,7 +363,7 @@ const columns: TableColumn<ItemRow>[] = [
                     <UIcon name="i-lucide-piggy-bank" class="summary-icon saved" />
                     <span class="summary-label">Économisé</span>
                 </div>
-                <div class="summary-amount saved">${{ totalSaved.toLocaleString() }}</div>
+                <div class="summary-amount saved">${{ summary?.totalBalance.toLocaleString() }}</div>
             </div>
 
             <div class="summary-card">
@@ -411,16 +371,9 @@ const columns: TableColumn<ItemRow>[] = [
                     <UIcon name="i-lucide-trending-up" class="summary-icon remaining" />
                     <span class="summary-label">Restant</span>
                 </div>
-                <div class="summary-amount remaining">${{ totalRemaining.toLocaleString() }}</div>
+                <div class="summary-amount remaining">${{ summary?.remain.toLocaleString() }}</div>
             </div>
 
-            <div class="summary-card">
-                <div class="summary-header">
-                    <UIcon name="i-lucide-activity" class="summary-icon progress" />
-                    <span class="summary-label">Progression Moyenne</span>
-                </div>
-                <div class="summary-amount progress">{{ averageProgress.toFixed(1) }}%</div>
-            </div>
         </div>
 
         <!-- Action Bar -->
@@ -443,14 +396,6 @@ const columns: TableColumn<ItemRow>[] = [
             </div>
 
             <div class="action-buttons">
-                <UButton 
-                    icon="i-lucide-bot" 
-                    label="Conseiller en Planification"
-                    size="xl"
-                    variant="outline"
-                    color="primary"
-                    @click="openPlanningAdvisorModal()"
-                />
                 <UButton 
                     icon="i-lucide-plus" 
                     label="Nouvel Objectif" 
@@ -521,7 +466,7 @@ const columns: TableColumn<ItemRow>[] = [
                     </div>
 
                     <!-- Metadata -->
-                    <div class="goal-metadata">
+                    <!-- <div class="goal-metadata">
                         <div class="metadata-row">
                             <div class="metadata-item">
                                 <UIcon name="i-lucide-sparkles" size="sm" />
@@ -554,7 +499,7 @@ const columns: TableColumn<ItemRow>[] = [
                             <UIcon name="i-lucide-calendar-clock" size="sm" />
                             <span>{{ formatDate(goal.wishDate) }}</span>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Quick Actions -->
                     <div class="quick-actions">

@@ -2,16 +2,16 @@
 import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { UFormField } from '#components';
-import type { EditUpdateAmountSaveGoalType, SaveGoalType } from '~/types/ui/saveGoal';
+import type { EditUpdateAmountFundType, FundType } from '~/types/ui/fund';
 import { fetchAccounts } from '~/composables/api/accounts';
 
 const { saveGoal, isIncrease } = defineProps<{
-    saveGoal?: SaveGoalType
+    saveGoal?: FundType
     isIncrease: boolean
 }>();
 
 const emit = defineEmits<{
-    (e: 'submit', value: EditUpdateAmountSaveGoalType, isIncrease: boolean, oldValue?: SaveGoalType): void    
+    (e: 'submit', value: EditUpdateAmountFundType, isIncrease: boolean, oldValue?: FundType): void    
     (e: 'close', close: boolean): void
 }>(); 
 
