@@ -31,6 +31,12 @@ class UpdateSavingGoal(
             savingGoal.accountId = input.accountId
         }
 
+        if (input.description != null) {
+            if (input.description != savingGoal.description) {
+                savingGoal.description = input.description
+            }
+        }
+
         if (savingGoal.hasChanged())
             savingGoalRepo.update(savingGoal)
     }
