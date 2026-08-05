@@ -24,25 +24,6 @@ class UpdateSavingGoal(
         if (input.target != null)
             savingGoal.target = input.target
 
-        if (input.desirValue != null)
-            savingGoal.desired = input.desirValue
-
-        if (input.wishDueDate != null)
-            savingGoal.wishDueDate = input.wishDueDate
-
-        if (input.description != null)
-            savingGoal.description = input.description
-
-        if (input.importance != null)
-            savingGoal.importance = input.importance
-
-        if (input.items != null)
-            savingGoal.itemsToTracks = input.items.map { SavingGoalItem(
-                title = it.title,
-                url = it.url,
-                price = it.price
-            ) }.toMutableSet()
-
         if (input.accountId != null) {
             if (accountRepo.get(input.accountId) == null)
                 throw DomainException.NotFound.Account(input.accountId)

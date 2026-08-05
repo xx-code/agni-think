@@ -12,9 +12,6 @@ export async function fetchBudget(budgetId: string): Promise<BudgetType> {
         title: res.title,
         currentBalance: res.currentBalance,
         target: res.target,
-        realTarget: res.realTarget,
-        saveGoalIds: res.savingGoalIds,
-        saveGoalTarget: res.savingGoalTarget,
         dueDate: new Date(res.dueDate),
         repeater: res.repeater
     }
@@ -34,11 +31,8 @@ export async function fetchBudgets(query: QueryFilterRequest): Promise<ListRespo
         items: res.items.map(i => ({
                 id: i.id,
                 title: i.title,
-                saveGoalIds: i.savingGoalIds,
                 currentBalance: i.currentBalance,
                 target: i.target,
-                realTarget: i.realTarget,
-                saveGoalTarget: i.savingGoalTarget,
                 dueDate: new Date(i.dueDate),
                 repeater: i.repeater
             } satisfies BudgetType)) ,

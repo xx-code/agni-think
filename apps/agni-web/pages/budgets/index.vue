@@ -10,8 +10,6 @@ type BudgetItem = {
     title: string    
     percentageSpend: number
     target: number
-    realTarget: number
-    saveTarget: number
     balance: number
     dueDate: Date
 }
@@ -30,8 +28,6 @@ const { data: displayBudgets, error, refresh } = useAsyncData('budgets+all', asy
         percentageSpend: roundNumber(computePercentage(i.target, i.currentBalance)),
         balance: i.currentBalance,
         target: i.target,
-        realTarget: i.realTarget,
-        saveTarget: i.saveGoalTarget,
         dueDate: i.dueDate
     } satisfies BudgetItem))
 })
@@ -98,7 +94,6 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
             await useUpdateBudget(oldValue.id, {
                 title: value.title,
                 target: value.target,
-                saveGoalIds: value.saveGoalIds,
                 schedule: {
                     repeater: value.repeater,
                     dueDate: value.dueDate.toDate(getLocalTimeZone()).toISOString(),
@@ -108,7 +103,6 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
             await useCreateBudget({
                 title: value.title,
                 target: value.target,
-                savingGoalIds: value.saveGoalIds,
                 schedule: {
                     repeater: value.repeater,
                     dueDate: value.dueDate.toDate(getLocalTimeZone()).toISOString(),
@@ -178,7 +172,7 @@ const getStatusColor = (percentage: number) => {
 </script>
 
 <template>
-    <div class="budget-page">
+    <div class="budget-page p-6">
         <!-- Summary Cards -->
         <div class="summary-section">
             <div class="summary-card">
@@ -296,16 +290,6 @@ const getStatusColor = (percentage: number) => {
                             </div>
                         </div>
 
-                        <div class="amount-breakdown">
-                            <div class="breakdown-item">
-                                <UIcon name="i-lucide-coins" size="sm" />
-                                <span>Réel: ${{ budget.realTarget.toLocaleString() }}</span>
-                            </div>
-                            <div class="breakdown-item">
-                                <UIcon name="i-lucide-target" size="sm" />
-                                <span>Objectif: ${{ budget.saveTarget.toLocaleString() }}</span>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Progress Bar -->

@@ -31,6 +31,11 @@ export type GetSavingAnalysticResponse = {
     investmentRates: number[]
 }
 
+export type GetFundTotalSummary = {
+    totalTarget: number 
+    totalBalance: number
+}
+
 // CATEGORY
 type GetSpendCategoryResponse = {
     categoryId: string

@@ -4,7 +4,6 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.entities.DomainException
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetSavingGoalItemOutput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetSavingGoalOutput
 import java.util.UUID
 
@@ -19,17 +18,7 @@ class GetSavingGoal(private val savingGoalRepo: IRepository<SavingGoal>): IUseCa
             description = savingGoal.description,
             target = savingGoal.target,
             balance = savingGoal.balance,
-            importance = savingGoal.importance.type,
-            wishDueDate = savingGoal.wishDueDate,
-            desirValue = savingGoal.desired.ordinal,
-            accountId = savingGoal.accountId,
-            items = savingGoal.itemsToTracks.map {
-                GetSavingGoalItemOutput(
-                    title = it.title,
-                    url = it.url,
-                    price = it.price
-                )
-            }
+            accountId = savingGoal.accountId
         )
     }
 }

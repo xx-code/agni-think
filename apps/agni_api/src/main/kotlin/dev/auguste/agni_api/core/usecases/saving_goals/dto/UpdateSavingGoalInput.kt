@@ -10,9 +10,5 @@ data class UpdateSavingGoalInput(
     val title: String?,
     val target: Double?,
     val description: String?,
-    val accountId: UUID?,
-    val wishDueDate: LocalDate?,
-    val items: Set<ItemSavingGoalInput>?,
-    val desirValue: IntensityEmotionalDesirType?,
-    val importance: ImportanceGoalType?
+    val accountId: UUID?
     )

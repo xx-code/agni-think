@@ -14,55 +14,16 @@ class SavingGoal(
     description: String,
     target: Double,
     balance: Double,
-    desired: IntensityEmotionalDesirType,
-    importance: ImportanceGoalType,
-    wishDueDate: LocalDate?,
-    itemsToTracks: MutableSet<SavingGoalItem>,
     accountId: UUID?
 ): Entity(id = id) {
 
-    var accountId by Delegates.observable(accountId) { prop, old, new ->
-        if (old != new)
-            this.markHasChanged()
-    }
+    var accountId by cleanObservable(accountId, this)
 
-    var itemsToTracks by Delegates.observable(itemsToTracks) { prop, old, new ->
-        if (old != new)
-            this.markHasChanged()
-    }
+    var title by cleanObservable(title, this)
 
-    var title: String by Delegates.observable(title) { prop, old, new ->
-        if (old != new)
-            this.markHasChanged()
-    }
+    var description by cleanObservable(description, this)
 
-    var description: String by Delegates.observable(description) { prop, old, new ->
-        if (old != new)
-            this.markHasChanged()
-    }
+    var target by cleanObservable(target, this)
 
-    var target: Double by Delegates.observable(target) { prop, old, new ->
-        if (old != new)
-            this.markHasChanged()
-    }
-
-    var balance: Double by Delegates.observable(balance) { prop, old, new ->
-        if (old != new)
-            this.markHasChanged()
-    }
-
-    var desired: IntensityEmotionalDesirType by Delegates.observable(desired) { prop, old, new ->
-        if (old != new)
-            this.markHasChanged()
-    }
-
-    var importance: ImportanceGoalType by Delegates.observable(importance) { prop, old, new ->
-        if (old != new)
-            this.markHasChanged()
-    }
-
-    var wishDueDate by Delegates.observable(wishDueDate) { prop, old, new ->
-        if (old != new)
-            this.markHasChanged()
-    }
+    var balance by cleanObservable(balance, this)
 }

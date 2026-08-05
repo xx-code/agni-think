@@ -13,5 +13,4 @@ data class CreateBudgetInput(
     val title: String,
     val target: Double,
     val schedule: BudgetScheduleInput,
-    val saveGoalIds: Set<UUID>
 )

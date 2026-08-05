@@ -11,91 +11,13 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 @Service
-class CronJobApplyScheduleInvoice(
+class CronJobOrchestratorEach12h(
     @Qualifier("applyScheduleInvoice")
-    private val applyScheduleInvoiceUseCase: IUseCase<Unit, BackgroundTaskOut>
-) : ApplicationRunner {
-    private val logger = LoggerFactory.getLogger(javaClass)
-
-    private fun execute() {
-        try {
-            val res = applyScheduleInvoiceUseCase.execAsync(input = Unit)
-            logger.info("[*] Finished cron schedule invoice: ${res.message}")
-        } catch (e: Exception) {
-            logger.info("[!] Error while executing task: ${e.message}")
-        }
-    }
-
-    @Scheduled(cron = "0 0 */12 * * *")
-    fun schedule() {
-        println("[SCHEDULE] Cron schedule invoice")
-        execute()
-    }
-
-    override fun run(args: ApplicationArguments) {
-        logger.info("[STARTUP] Apply schedule invoice")
-        execute()
-    }
-}
-
-@Service
-class CronJobRemoveFreezeInvoice(
+    private val applyScheduleInvoiceUseCase: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("removeFreezeInvoice")
-    private val removeFreezeInvoice: IUseCase<Unit, BackgroundTaskOut>
-) : ApplicationRunner {
-    private val logger = LoggerFactory.getLogger(javaClass)
-
-    private fun execute() {
-        try {
-            val res = removeFreezeInvoice.execAsync(input = Unit)
-            logger.info("[*] Finished cron remove freeze invoice: ${res.message}")
-        } catch (e: Exception) {
-            logger.info("[!] Error while executing task: ${e.message}")
-        }
-    }
-
-    @Scheduled(cron = "0 0 */12 * * *")
-    fun schedule() {
-        println("[SCHEDULE] Cron freeze invoice")
-        execute()
-    }
-
-    override fun run(args: ApplicationArguments) {
-        logger.info("[STARTUP] Remove freeze invoice")
-        execute()
-    }
-}
-
-@Service
-class CronJobUpdateBudgetDueDate(
+    private val removeFreezeInvoice: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("updateDueBudget")
-    private val updateBudgetDueDate: IUseCase<Unit, BackgroundTaskOut>
-) : ApplicationRunner {
-    private val logger = LoggerFactory.getLogger(javaClass)
-
-    private fun execute() {
-        try {
-            val res = updateBudgetDueDate.execAsync(input = Unit)
-            logger.info("[*] Finished cron update budget due date: ${res.message}")
-        } catch (e: Exception) {
-            logger.info("[!] Error while executing task: ${e.message}")
-        }
-    }
-
-    @Scheduled(cron = "0 0 */12 * * *")
-    fun schedule() {
-        println("[SCHEDULE] Cron update budget due date")
-        execute()
-    }
-
-    override fun run(args: ApplicationArguments) {
-        logger.info("[STARTUP] Apply budget due date")
-        execute()
-    }
-}
-
-@Service
-class CronJobUpdateInternalLoanDueDate(
+    private val updateBudgetDueDate: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("autoCompleteInternalLoan")
     private val autoCompleteInternalLoan: IUseCase<Unit, BackgroundTaskOut>
 ) : ApplicationRunner {
@@ -103,7 +25,16 @@ class CronJobUpdateInternalLoanDueDate(
 
     private fun execute() {
         try {
-            val res = autoCompleteInternalLoan.execAsync(input = Unit)
+            var res = applyScheduleInvoiceUseCase.execAsync(input = Unit)
+            logger.info("[*] Finished cron schedule invoice: ${res.message}")
+
+            res = removeFreezeInvoice.execAsync(input = Unit)
+            logger.info("[*] Finished cron remove freeze invoice: ${res.message}")
+
+            res = updateBudgetDueDate.execAsync(input = Unit)
+            logger.info("[*] Finished cron update budget due date: ${res.message}")
+
+            res = autoCompleteInternalLoan.execAsync(input = Unit)
             logger.info("[*] Finished cron update internal loan due date: ${res.message}")
         } catch (e: Exception) {
             logger.info("[!] Error while executing task: ${e.message}")
@@ -112,12 +43,12 @@ class CronJobUpdateInternalLoanDueDate(
 
     @Scheduled(cron = "0 0 */12 * * *")
     fun schedule() {
-        println("[SCHEDULE] Cron update internal loan due date")
+        logger.info("[SCHEDULE] Cron schedule each 12h")
         execute()
     }
 
     override fun run(args: ApplicationArguments) {
-        logger.info("[STARTUP] Apply internal loan due date")
+        logger.info("[STARTUP] Apply Cron")
         execute()
     }
 }

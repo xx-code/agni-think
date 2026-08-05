@@ -8,9 +8,6 @@ data class GetBudgetOutput (
     val id: UUID,
     val title: String,
     val target: Double,
-    val realTarget: Double,
-    val savingGoalTarget: Double,
-    val savingGoalIds: Set<UUID>,
     val currentBalance: Double,
     val dueDate: LocalDateTime,
     val repeater: ScheduleRepeaterOutput?
