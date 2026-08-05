@@ -1,6 +1,8 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
+import dev.auguste.agni_api.core.adapters.dto.FundSummaryOutput
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
+import dev.auguste.agni_api.core.adapters.readers.IFundSummaryReader
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.Category
@@ -12,6 +14,7 @@ import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.analystics.GetAnnualOutlook
 import dev.auguste.agni_api.core.usecases.analystics.GetBudgetingRuleAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetFinanceProfile
+import dev.auguste.agni_api.core.usecases.analystics.GetFundTotalSummary
 import dev.auguste.agni_api.core.usecases.analystics.GetSavingAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetSavingBalance
 import dev.auguste.agni_api.core.usecases.analystics.GetSpendByCategoryAnalytic
@@ -122,5 +125,11 @@ class AnalyticConfig {
             getBudgets = getBudgets,
             getSavingBalance = getSavingBalance
         )
+    }
+
+    @Bean fun getFundSummary(
+        fundSummaryReader: IFundSummaryReader
+    ) : IUseCase<Unit, FundSummaryOutput> {
+        return GetFundTotalSummary(fundSummaryReader)
     }
 }
