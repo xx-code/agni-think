@@ -29,7 +29,7 @@ export type UpgradeFundRequest = {
 }
 
 export type DeleteFundRequest = {
-    accountId: string
+    accountId?: string
 }
 
 export type QueryFilterFundRequest = QueryFilterRequest & {

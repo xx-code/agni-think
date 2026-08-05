@@ -17,6 +17,7 @@ import type { EditFundType, EditUpdateAmountFundType, FundType } from "~/types/u
 
 interface ItemRow  {
     id: string
+    accountId?: string
     title: string
     description: string
     target: number 
@@ -56,7 +57,9 @@ const { data: goals, error, refresh } = useAsyncData('goal+page', async () => {
 })  
 
 const { data: summary } = useAsyncData('page-fund-summary', async () => {
+    loadingSummary.value = true
     const res = await fetchFundSummary()
+    loadingSummary.value = false
 
     return {
         totalTarget: res.totalTarget,
@@ -74,6 +77,7 @@ const tableData = computed(() => {
         title: i.title,
         balance: i.balance,
         description: i.description,
+        accountId: i.accountId,
         target: i.target,
     } satisfies ItemRow))
 })
@@ -189,28 +193,20 @@ const deletePopOverOpen = ref(false)
 const deletePopOverGoalId = ref<string>()
 
 const onDeleteGoal = async (goalId: string) => {
-    if (deleteAccountDepositId.value !== '') {
-        try {
-            await useDeleteFund(goalId, { accountId: deleteAccountDepositId.value })
-            await refresh()
-            deletePopOverOpen.value = false
-            deletePopOverGoalId.value = undefined
-            toast.add({
-                title: 'Succès',
-                description: 'Objectif supprimé',
-                color: 'success'
-            })
-        } catch(err) {
-            toast.add({
-                title: 'Erreur',
-                description: 'Impossible de supprimer l\'objectif',
-                color: 'error'
-            })
-        }
-    } else {
+    try {
+        await useDeleteFund(goalId, { accountId: deleteAccountDepositId.value })
+        await refresh()
+        deletePopOverOpen.value = false
+        deletePopOverGoalId.value = undefined
+        toast.add({
+            title: 'Succès',
+            description: 'Fund supprimé',
+            color: 'success'
+        })
+    } catch(err) {
         toast.add({
             title: 'Erreur',
-            description: 'Veuillez sélectionner un compte de dépôt',
+            description: 'Impossible de supprimer l\'objectif',
             color: 'error'
         })
     }
@@ -338,6 +334,7 @@ const columns: TableColumn<ItemRow>[] = [
                     onClick: () => {
                         deletePopOverOpen.value = true
                         deletePopOverGoalId.value = row.original.id
+                        deleteAccountDepositId.value = row.original.accountId || ''
                     }
                 }),
             ])
