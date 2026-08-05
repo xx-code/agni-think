@@ -19,6 +19,8 @@ class UpdateSavingGoal(
         if (input.title != null) {
             if (input.title != savingGoal.title && savingGoalRepo.existsByName(input.title))
                 throw DomainException.AlreadyExist.SavingGoal(input.title)
+
+            savingGoal.title = input.title
         }
 
         if (input.target != null)
