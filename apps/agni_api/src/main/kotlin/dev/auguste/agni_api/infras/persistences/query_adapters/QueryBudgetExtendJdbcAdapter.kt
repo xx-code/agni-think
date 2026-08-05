@@ -58,10 +58,7 @@ class QueryBudgetExtendJdbcAdapter(
                 name = rs.getString("title"),
                 target = rs.getDouble("target"),
                 scheduler = rs.getString("scheduler"),
-                isArchived = rs.getBoolean("is_archived"),
-                goalIds = rs.getString("save_goal_ids")?.let {
-                    objectMapper.readValue(it, Array<String>::class.java).map { id -> UUID.fromString(id) }.toSet()
-                } ?: emptySet(),
+                isArchived = rs.getBoolean("is_archived")
             )
         }
     }

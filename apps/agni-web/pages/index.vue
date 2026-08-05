@@ -9,7 +9,7 @@ import type { SavingAnalysticType } from '~/types/ui/analytics'
 import { fetchAnalyticSavings, fetchSpendByCategoriesAnalytic } from '~/composables/api/analytics'
 import { fetchBudgets } from '~/composables/api/budget'
 import { fetchCategories } from '~/composables/api/categories'
-import { fetchSavingGoals } from '~/composables/api/goals'
+import { fetchFunds } from '~/composables/api/funds'
 import { fetchBalanceByPeriod, fetchInvoicePagination } from '~/composables/api/invoices'
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
@@ -111,7 +111,7 @@ const { data: utils } = useAsyncData('utils+all+dashboard', async () => {
   const [categories, budgets, goals] = await Promise.all([
     fetchCategories(query),
     fetchBudgets(query),
-    fetchSavingGoals(query)
+    fetchFunds(query)
   ])
   return {
     categories,
@@ -435,7 +435,7 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
             class="rounded-2xl bg-white border border-slate-100 shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200"
             @click="modal = 'goals'">
             <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h2 class="text-sm font-semibold text-slate-800">Objectifs d'épargne</h2>
+              <h2 class="text-sm font-semibold text-slate-800">Etat des fonds</h2>
               <UIcon name="i-lucide-external-link" class="text-slate-400 text-sm" />
             </div>
             <div class="p-5">

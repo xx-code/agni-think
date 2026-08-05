@@ -18,11 +18,6 @@ class CreateBudget(
         if (budgetRepo.existsByName(input.title))
             throw DomainException.AlreadyExist.Budget(input.title)
 
-        if (input.saveGoalIds.isNotEmpty()) {
-                if (input.saveGoalIds.size != savingGoalRepo.getManyByIds(input.saveGoalIds).size)
-                throw DomainException.BusinessLogic.SavingGoalsDoNotMatch()
-        }
-
         val newBudget = Budget(
             title = input.title,
             target = input.target,
@@ -34,8 +29,7 @@ class CreateBudget(
                         it.interval,
                     )
                 }
-            ),
-            targetSavingGoalIds = input.saveGoalIds.toMutableSet(),
+            )
         )
 
         budgetRepo.create(newBudget)

@@ -50,8 +50,7 @@ fun mapApiCreateBudgetModel(model: ApiCreateBudgetModel): CreateBudgetInput {
                     it.interval,
                 )
             }
-        ),
-        saveGoalIds = model.savingGoalIds
+        )
     )
 }
 
@@ -70,7 +69,6 @@ fun mapApiUpdateBudgetModel(id: UUID, model: ApiUpdateBudgetModel): UpdateBudget
                     )
                 }
             )
-        },
-        savingGoalIds = model.savingGoalIds
+        }
     )
 }

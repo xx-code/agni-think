@@ -9,7 +9,6 @@ class Budget(
     title: String,
     target: Double,
     scheduler: Scheduler,
-    targetSavingGoalIds: MutableSet<UUID>,
     isArchived: Boolean = false,
     ): Entity(id=id) {
 
@@ -24,11 +23,6 @@ class Budget(
     }
 
     var scheduler: Scheduler by Delegates.observable(scheduler) { _, old, new ->
-        if (old != new)
-            this.markHasChanged()
-    }
-
-    var targetSavingGoalIds by Delegates.observable(targetSavingGoalIds) { _, old, new ->
         if (old != new)
             this.markHasChanged()
     }

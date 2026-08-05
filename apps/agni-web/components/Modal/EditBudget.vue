@@ -3,7 +3,6 @@ import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalize
 import { reactive, shallowRef, ref } from "vue";
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import type { BudgetType, EditBudgetType } from '~/types/ui/budget';
-import { fetchSavingGoals } from '~/composables/api/goals';
 import { fetchPeriodTypes } from '~/composables/api/internal';
 
 const { budget } = defineProps<{
@@ -16,13 +15,9 @@ const emit = defineEmits<{
 }>();
 
 const { data: utils } = useAsyncData('saving+goals+utils', async () => {
-    const [ savingGoals, periodTypes ] = await Promise.all([
-        fetchSavingGoals({ offset: 0, limit: 0, queryAll: true }),
-        fetchPeriodTypes()
-    ])
+    const  periodTypes = await fetchPeriodTypes()
 
     return {
-        savingGoals,
         periodTypes
     }
 })
@@ -30,11 +25,9 @@ const { data: utils } = useAsyncData('saving+goals+utils', async () => {
 const form = reactive<Partial<EditBudgetType>>({
     title: budget?.title || '',
     target: budget?.target || 0,
-    saveGoalIds: [],
     repeater: budget?.repeater,
 
 })
-const saveGoalIds = ref(budget?.saveGoalIds || [])
 const isRecurrence = ref(budget?.repeater !== undefined)
 function onChangeIsRecurrence(isRecurrence: boolean) {
     form.repeater = isRecurrence ? (budget?.repeater || { period: "Day", interval: 1}) : undefined
@@ -64,7 +57,6 @@ async function onSubmit(event: FormSubmitEvent<EditBudgetType>) {
     emit('submit', {
         title: data.title,
         target: data.target,
-        saveGoalIds: saveGoalIds.value,
         dueDate: dueDate.value, 
         repeater: data.repeater
     }, budget);
@@ -114,11 +106,6 @@ async function onSubmit(event: FormSubmitEvent<EditBudgetType>) {
 
                 <UFormField label="Nombre de temps" name="interval" v-if="form.repeater">
                     <UInput v-model="form.repeater.interval" type="number" />
-                </UFormField>
-
-                <UFormField label="But d'epargne relie" >
-                    <UInputMenu multiple v-model="saveGoalIds" value-key="value" 
-                        :items="utils?.savingGoals.items.map(i => ({ label: i.title, value: i.id }))" />
                 </UFormField>
 
                 <UFormField >

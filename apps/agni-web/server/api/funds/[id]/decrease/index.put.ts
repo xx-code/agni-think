@@ -2,5 +2,6 @@ import { getApiBase } from "~/utils/env";
 import { handleRequest } from "~/server/utils";
 
 export default defineEventHandler(async event => {
-    return await handleRequest(event, `${getApiBase()}/saving-goals`);
+    const id = getRouterParam(event, 'id');
+    return await handleRequest(event, `${getApiBase()}/funds/${id}/decrease`);
 });

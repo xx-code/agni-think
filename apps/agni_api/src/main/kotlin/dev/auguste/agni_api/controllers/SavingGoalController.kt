@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-@RequestMapping("/v2/saving-goals")
+@RequestMapping("/v2/funds")
 class SavingGoalController (
     private val createSavingGoalUseCase: IUseCase<CreateSavingGoalInput, CreatedOutput>,
     private val updateSavingGoalUseCase: IUseCase<UpdateSavingGoalInput, Unit>,

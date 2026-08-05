@@ -15,12 +15,10 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 
 class GetAllBudgets(
     private val budgetRepo: IRepository<Budget>,
-    private val savingGoalRepo: IRepository<SavingGoal>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
 ) : IUseCase<QueryFilter, ListOutput<GetBudgetOutput>> {
     override fun execAsync(input: QueryFilter): ListOutput<GetBudgetOutput> {
         val budgets = budgetRepo.getAll(query = input)
-        val savingGoals = savingGoalRepo.getManyByIds(budgets.items.flatMap { it.targetSavingGoalIds }.toSet())
 
         val result = mutableListOf<GetBudgetOutput>()
         for (budget in budgets.items) {
@@ -35,16 +33,12 @@ class GetAllBudgets(
             ))
 
             val currentBalance = resultBalance.spend
-            val saveBalance = savingGoals.filter { budget.targetSavingGoalIds.contains(it.id) }.sumOf { it.balance }
 
             result.add(
                 GetBudgetOutput(
                     id = budget.id,
                     title = budget.title,
-                    target = budget.target + saveBalance,
-                    realTarget = budget.target,
-                    savingGoalTarget = saveBalance,
-                    savingGoalIds = budget.targetSavingGoalIds,
+                    target = budget.target,
                     currentBalance = currentBalance,
                     dueDate = budget.scheduler.date,
                     repeater = budget.scheduler.repeater?.let {

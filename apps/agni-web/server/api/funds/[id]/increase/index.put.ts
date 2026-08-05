@@ -3,7 +3,7 @@ import { readBody } from "h3";
 
 export default defineEventHandler(async event => {
     const request = await readBody(event);
-    return await $fetch(`${getApiBase()}/saving-goals/${request.id}/increase`, {
+    return await $fetch(`${getApiBase()}/funds/${request.id}/increase`, {
         method: 'PUT',
         body: request
     });

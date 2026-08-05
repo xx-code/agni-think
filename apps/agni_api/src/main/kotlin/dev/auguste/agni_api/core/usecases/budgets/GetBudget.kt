@@ -16,7 +16,6 @@ import java.util.UUID
 
 class GetBudget(
     private val budgetRepo: IRepository<Budget>,
-    private val savingGoalRepo: IRepository<SavingGoal>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
 ) : IUseCase<UUID, GetBudgetOutput> {
     override fun execAsync(input: UUID): GetBudgetOutput {
@@ -34,16 +33,10 @@ class GetBudget(
 
         val currentBalance = resultBalance.balance
 
-        val savingGoals = savingGoalRepo.getManyByIds(budget.targetSavingGoalIds)
-        val saveBalance = savingGoals.sumOf { it.balance }
-
         return GetBudgetOutput(
             id = budget.id,
             title = budget.title,
-            target = budget.target + saveBalance,
-            realTarget = budget.target,
-            savingGoalTarget = saveBalance,
-            savingGoalIds = budget.targetSavingGoalIds,
+            target = budget.target,
             currentBalance = currentBalance,
             dueDate = budget.scheduler.date,
             repeater = budget.scheduler.repeater?.let {
