@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ModalEditBudget } from "#components"
+import { ModalEditBudget, SlideOverQuickInvoicesView } from "#components"
 import { getLocalTimeZone } from "@internationalized/date"
 import { computed, ref } from "vue"
 import { fetchBudget, fetchBudgets, useCreateBudget, useDeleteBudget, useUpdateBudget } from "~/composables/api/budget"
@@ -34,6 +34,7 @@ const { data: displayBudgets, error, refresh } = useAsyncData('budgets+all', asy
 
 const overlay = useOverlay()
 const modalEditBudget = overlay.create(ModalEditBudget)
+const slideOverQuickInvoices = overlay.create(SlideOverQuickInvoicesView)
 const toast = useToast()
 
 const dateDisplayed = ref("Mois")
@@ -153,6 +154,16 @@ const onDeleteBudget = async (budgetId: string) => {
     }
 }
 
+const openInvoiceView = async (budgetId: string) => {
+    try {
+        slideOverQuickInvoices.open({
+            budgetIds: [budgetId]
+        })
+    } catch (err) {
+        console.log(err)
+    } 
+}
+
 // Computed summary stats
 const totalBudget = computed(() => displayBudgets.value?.reduce((sum, b) => sum + b.target, 0) || 0)
 const totalSpent = computed(() => displayBudgets.value?.reduce((sum, b) => sum + b.balance, 0) || 0)
@@ -256,6 +267,13 @@ const getStatusColor = (percentage: number) => {
                         </div>
                         
                         <div class="budget-actions">
+                            <UButton 
+                                icon="i-lucide-eye" 
+                                variant="ghost" 
+                                color="info" 
+                                size="sm"
+                                @click="() => openInvoiceView(budget.id)"
+                            />
                             <UButton 
                                 icon="i-lucide-pencil" 
                                 variant="ghost" 
