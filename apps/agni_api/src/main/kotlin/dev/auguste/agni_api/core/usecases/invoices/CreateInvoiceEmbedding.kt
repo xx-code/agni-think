@@ -45,18 +45,18 @@ class CreateInvoiceEmbedding(
         try {
             val invoice = getInvoice.execAsync(input)
 
-            val categories = categoryRepo.getManyByIds(invoice.transactions.map { it.categoryId }.toSet())
-            val tags = tagsRepo.getManyByIds(invoice.transactions.flatMap { it.tagIds }.toSet())
-            val budgets = budgetRepo.getManyByIds(invoice.transactions.flatMap { it.budgetIds }.toSet())
+            val categories = categoryRepo.getManyByIds(invoice.transactions.map { it.category.id }.toSet())
+            val tags = tagsRepo.getManyByIds(invoice.transactions.flatMap { invoice -> invoice.tags.map { it.id} }.toSet())
+            val budgets = budgetRepo.getManyByIds(invoice.transactions.flatMap { invoice -> invoice.budgets.map { it.id } }.toSet())
 
             if (invoice.transactions.isEmpty())
                 throw DomainException.BusinessLogic.TransactionsMustNotBeEmpty()
 
             val transactionStr = invoice.transactions.joinToString("\n") { trans ->
-                val tagStr = trans.tagIds.joinToString(", ") { getTag(it, tags) } ?: "none"
-                val budgetStr = trans.budgetIds.joinToString(", ") { getBudget(it, budgets) } ?: "none"
+                val tagStr = trans.tags.map{ it.id }.joinToString(", ") { getTag(it, tags) } ?: "none"
+                val budgetStr = trans.budgets.map { it.id }.joinToString(", ") { getBudget(it, budgets) } ?: "none"
 
-                "category: ${getCat(trans.categoryId, categories)} - ${trans.description} " +
+                "category: ${getCat(trans.category.id, categories)} - ${trans.description} " +
                         "with tags: [$tagStr] " +
                         "with budgets: [$budgetStr] " +
                         "amount: ${"%.2f".format(trans.amount)}"

@@ -7,10 +7,22 @@ export type GetBalanceResponse = {
 export type TransactionResponse = {
     id: string
     amount: number
-    categoryId: string
+    category: {
+        id: string
+        title: string
+        color: string
+        icon: string
+    }
     description: string
-    tagIds: string[]
-    budgetIds: string[]
+    tags: {
+        id: string
+        value: string
+        color: string
+    }[]
+    budgets: {
+        id: string
+        title: string
+    }[]
 }
 
 export type InvoiceDeductionResponse = {

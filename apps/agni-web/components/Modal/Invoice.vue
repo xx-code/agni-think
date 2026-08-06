@@ -56,9 +56,9 @@ const form = reactive<Partial<EditInvoiceType>>({
     transactions: invoice?.transactions.map(r => ({
         amount: r.amount,
         description: r.description,
-        categoryId: r.categoryId,
-        tagIds: r.tagRefs || [],
-        budgetIds: r.budgetRefs || []
+        categoryId: r.category.id,
+        tagIds: r.tags.map(i => i.id) || [],
+        budgetIds: r.budgets.map(i => i.id) || []
     })) || [{
         amount: 0,
         description: '',
@@ -123,22 +123,22 @@ async function onSubmit(event: FormSubmitEvent<EditInvoiceType>) {
         const transactionRemovedIds = invoice.transactions.filter(i => !data.transactions.find(
             v => 
                 v.amount === i.amount && 
-                v.categoryId === i.categoryId &&
-                v.budgetIds.length === i.budgetRefs.length &&
-                v.budgetIds.every(b => i.budgetRefs.includes(b)) &&
-                v.tagIds.length === i.tagRefs.length &&
-                v.tagIds.every(t => i.tagRefs.includes(t)) &&
+                v.categoryId === i.category.id &&
+                v.budgetIds.length === i.budgets.length &&
+                v.budgetIds.every(b => i.budgets.map(i => i.id).includes(b)) &&
+                v.tagIds.length === i.tags.length &&
+                v.tagIds.every(t => i.tags.map(i => i.id).includes(t)) &&
                 v.description === i.description
             )).map(i => i.id)
 
         const transactionAdded = data.transactions.filter(i => !invoice.transactions.find(
             v => 
                 v.amount === i.amount && 
-                v.categoryId === i.categoryId &&
-                v.budgetRefs.length === i.budgetIds.length &&
-                v.budgetRefs.every(b => i.budgetIds.includes(b)) &&
-                v.tagRefs.length === i.tagIds.length &&
-                v.tagRefs.every(t => i.tagIds.includes(t)) &&
+                v.category.id === i.categoryId &&
+                v.budgets.length === i.budgetIds.length &&
+                v.budgets.map(i => i.id).every(b => i.budgetIds.includes(b)) &&
+                v.tags.length === i.tagIds.length &&
+                v.tags.map(i => i.id).every(t => i.tagIds.includes(t)) &&
                 v.description === i.description
             ))
 

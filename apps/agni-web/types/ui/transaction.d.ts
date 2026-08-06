@@ -19,9 +19,21 @@ export type TransactionType = {
     id: string
     amount: number
     description: string
-    categoryId: string
-    tagRefs: string[]
-    budgetRefs: string[]
+    category: {
+        id: string
+        title: string
+        color: string
+        icon: string
+    }
+    tags: {
+        id: string
+        value: string
+        color: string
+    }[]
+    budgets: {
+        id: string
+        title: string
+    }[]
 }
 
 export type TransactionDeductionType = {

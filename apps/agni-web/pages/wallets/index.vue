@@ -5,10 +5,10 @@ import type { EditFreezeInvoiceType, EditTransfertType, InvoiceType } from "~/ty
 import { getLocalTimeZone } from "@internationalized/date";
 import type { QueryFilterRequest } from "~/types/api";
 import type { QueryInvoice } from "~/types/api/transaction";
-import { ModalEditAccount, ModalEditFreezeInvoice, ModalEditTransfer, ModalInvoice, ModalQuickTransView } from "#components";
+import { ModalEditAccount, ModalEditFreezeInvoice, ModalEditTransfer, ModalInvoice, SlideOverQuickInvoicesView } from "#components";
 import { createAccount, deleteAccount, fetchAccountsWithDetail, fetchAccountWithDetail, updateAccount } from "~/composables/api/accounts";
 import { fetchAccountTypes } from "~/composables/api/internal";
-import { useCreateInvoice, useFreezeInvoice, useTransfertInvoice, useUpdateInvoice } from "~/composables/api/invoices";
+import { useFreezeInvoice, useTransfertInvoice } from "~/composables/api/invoices";
 
 const ALL_ACCOUNT_ID = "ALL_ACCOUNT_ID"
 
@@ -62,7 +62,7 @@ const modalAccount = overlay.create(ModalEditAccount);
 const modalTransfer = overlay.create(ModalEditTransfer);
 const modalInvoice = overlay.create(ModalInvoice);
 const modalFreezeInvoice = overlay.create(ModalEditFreezeInvoice);
-const slideTransactions = overlay.create(ModalQuickTransView)
+const slideOverQuickInvoices = overlay.create(SlideOverQuickInvoicesView)
 
 const onSelectAccount = (id: string) => {
     selectedAccountId.value = id
@@ -212,10 +212,9 @@ const computeAllUtilization = (accounts: AccountWithDetailType[]) => {
 const openTransactionViews = async (accountId: string) => {
     try {
         let account = await fetchAccountWithDetail(accountId);
-            
-        slideTransactions.open({
+        slideOverQuickInvoices.open({
             account: account
-        });
+        })
     } catch (err) {
         console.log(err)
     } 
@@ -241,10 +240,10 @@ function isBufferValid(buffer: number, balance: number): boolean {
 </script>
 
 <template>
-    <div class="wallet-container">
+    <div class="p-6">
         <!-- Header avec bouton d'ajout -->
-        <div class="wallet-header">
-            <h1 class="wallet-title">Mon Portefeuille</h1>
+        <div class="flex justify-between items-center mb-5">
+            <h1 class="font-bold text-2xl">Mon Portefeuille</h1>
             <UButton 
                 icon="i-lucide-plus" 
                 size="lg" 
@@ -258,18 +257,20 @@ function isBufferValid(buffer: number, balance: number): boolean {
         <!-- Cartes principales -->
         <div class="main-cards-grid">
             <!-- Carte Balance Totale -->
-            <div class="balance-card">
-                <div class="card-header">
-                    <div>
-                        <h3 class="card-label">Balance Totale</h3>
-                        <p class="card-sublabel">Vue d'ensemble de vos finances</p>
+            <UCard >
+                <template #header>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-bold">Balance Totale</h3>
+                            <p>Vue d'ensemble de vos finances</p>
+                        </div>
+                        <div class="icon-wrapper balance-icon">
+                            <Icon name="i-lucide-wallet" class="text-2xl" />
+                        </div>
                     </div>
-                    <div class="icon-wrapper balance-icon">
-                        <Icon name="i-lucide-wallet" class="text-2xl" />
-                    </div>
-                </div>
-
-                <div class="balance-content">
+                </template>
+                
+                <div class="balance-content" @click="">
                     <AmountTitle 
                         :amount="roundNumber(totalAccountBalance.totalBalance)"
                         :sign="'$'"
@@ -277,12 +278,12 @@ function isBufferValid(buffer: number, balance: number): boolean {
                     />
                     
                     <div class="balance-details">
-                        <div class="balance-item available">
+                        <div class="align-baseline text-green-400">
                             <Icon name="i-lucide-circle-check" class="balance-item-icon" />
                             <span class="balance-item-label">Disponible:</span>
                             <span class="balance-item-value">${{ roundNumber(availableBalance, 2) }}</span>
                         </div>
-                        <div class="balance-item freezed">
+                        <div class="balance-item freezed text-blue-300">
                             <Icon name="i-lucide-snowflake" class="balance-item-icon" />
                             <span class="balance-item-label">Gelé:</span>
                             <span class="balance-item-value">${{ roundNumber(totalAccountBalance .totalFreezedBalance, 2) }}</span>
@@ -296,7 +297,7 @@ function isBufferValid(buffer: number, balance: number): boolean {
                 </div>
 
                 <!-- Actions rapides -->
-                <div class="quick-actions">
+                <div class="flex gap-2">
                     <UButton 
                         icon="i-lucide-banknote" 
                         size="sm" 
@@ -344,81 +345,14 @@ function isBufferValid(buffer: number, balance: number): boolean {
                         </span>
                     </div>
                 </div>
-            </div>
+            </UCard>
 
-            <!-- Carte Suggestions IA -->
-            <div class="ai-suggestions-card">
-                <div class="card-header">
-                    <div>
-                        <h3 class="card-label">Assistant Financier IA</h3>
-                        <p class="card-sublabel">Recommandations personnalisées</p>
-                    </div>
-                    <div class="icon-wrapper ai-icon">
-                        <Icon name="i-lucide-sparkles" class="text-2xl" />
-                    </div>
-                </div>
-
-                <div class="ai-content">
-                    <!-- Statistique principale -->
-                    <!-- <div class="ai-stat-card">
-                        <div class="ai-stat-header">
-                            <Icon name="i-lucide-trending-down" class="ai-stat-icon" />
-                            <span class="ai-stat-label">Évolution des dépenses</span>
-                        </div>
-                        <div class="ai-stat-value">
-                            <span class="loading-shimmer">Analyse en cours...</span>
-                        </div>
-                        <div class="ai-stat-description">
-                            vs. mois dernier
-                        </div>
-                    </div> -->
-
-                    <!-- Suggestions -->
-                    <div class="ai-suggestions-list">
-                        
-                        <div class="ai-suggestion-item">
-                            <Icon name="i-lucide-lightbulb" class="suggestion-icon tip" />
-                            <div class="suggestion-content">
-                                <p class="suggestion-title">Optimisation détectée</p>
-                                <p class="suggestion-text loading-shimmer-text">Analyse de vos habitudes de dépenses...</p>
-                            </div>
-                        </div>
-
-                        <div class="ai-suggestion-item">
-                            <Icon name="i-lucide-alert-circle" class="suggestion-icon warning" />
-                            <div class="suggestion-content">
-                                <p class="suggestion-title">Alerte budget</p>
-                                <p class="suggestion-text loading-shimmer-text">Vérification des limites de crédit...</p>
-                            </div>
-                        </div>
-
-                        <div class="ai-suggestion-item">
-                            <Icon name="i-lucide-target" class="suggestion-icon goal" />
-                            <div class="suggestion-content">
-                                <p class="suggestion-title">Objectif d'épargne</p>
-                                <p class="suggestion-text loading-shimmer-text">Calcul de votre potentiel d'épargne...</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CTA -->
-                    <UButton 
-                        block 
-                        size="md"
-                        variant="solid"
-                        color="primary"
-                        class="ai-cta-button">
-                        <Icon name="i-lucide-sparkles" class="mr-2" />
-                        Voir toutes les recommandations
-                    </UButton>
-                </div>
-            </div>
         </div>
         
         <!-- Liste des comptes par type -->
-        <div class="accounts-section">
+        <div class="mt-4">
             <div v-for="group in accounts" :key="group.id" class="account-group">
-                <div class="account-group-header" v-if="group.accounts.length > 0">
+                <div class="mt-2" v-if="group.accounts.length > 0">
                     <h2 class="account-group-title">{{ group.title }}</h2>
                     <div v-if="group.id === 'CreditCard'" class="credit-utilization">
                         <Icon name="i-lucide-credit-card" class="mr-1" />
@@ -429,7 +363,7 @@ function isBufferValid(buffer: number, balance: number): boolean {
                     </div>
                 </div>
                 
-                <div class="accounts-carousel">
+                <div class="flex gap-3 flex-wrap">
                     <div v-for="account in group.accounts" :key="account.id" class="account-card-wrapper">
                         <CardResumeAccount 
                             @open="openTransactionViews(account.id)"
@@ -491,426 +425,4 @@ function isBufferValid(buffer: number, balance: number): boolean {
 </template>
 
 <style scoped lang="scss">
-.wallet-container {
-    padding: 1.5rem;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.wallet-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-
-    .wallet-title {
-        font-size: 2rem;
-        font-weight: 800;
-        color: #1e293b;
-        margin: 0;
-    }
-}
-
-.main-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-
-    @media (max-width: 768px) {
-        grid-template-columns: 1fr;
-    }
-}
-
-.balance-card,
-.ai-suggestions-card {
-    background: white;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e2e8f0;
-    transition: all 0.3s ease;
-
-    &:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-    }
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1.5rem;
-
-    .card-label {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #64748b;
-        margin: 0 0 0.25rem 0;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .card-sublabel {
-        font-size: 0.75rem;
-        color: #94a3b8;
-        margin: 0;
-    }
-
-    .icon-wrapper {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        &.balance-icon {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        &.ai-icon {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-    }
-}
-
-.balance-content {
-    .main-amount {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: #1e293b;
-        margin-bottom: 1rem;
-    }
-
-    .balance-details {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
-
-        .balance-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            background: #f8fafc;
-
-            .balance-item-icon {
-                font-size: 1rem;
-            }
-
-            .balance-item-label {
-                font-size: 0.875rem;
-                color: #64748b;
-            }
-
-            .balance-item-value {
-                font-size: 0.875rem;
-                font-weight: 600;
-                margin-left: auto;
-            }
-
-            &.available {
-                .balance-item-icon,
-                .balance-item-value {
-                    color: #10b981;
-                }
-            }
-
-            &.freezed {
-                .balance-item-icon,
-                .balance-item-value {
-                    color: #06b6d4;
-                }
-            }
-
-            &.locked {
-                .balance-item-icon,
-                .balance-item-value {
-                    color: #f59e0b;
-                }
-            }
-        }
-    }
-}
-
-.quick-actions {
-    display: flex;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-}
-
-.progress-section {
-    .progress-bar-wrapper {
-        margin-bottom: 0.75rem;
-
-        .progress-bar-bg {
-            width: 100%;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 999px;
-            overflow: hidden;
-
-            .progress-bar-fill {
-                height: 100%;
-                background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
-                border-radius: 999px;
-                transition: width 0.5s ease;
-            }
-        }
-    }
-
-    .progress-labels {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.75rem;
-
-        .progress-label {
-            display: flex;
-            align-items: center;
-            gap: 0.375rem;
-            color: #64748b;
-
-            .progress-dot {
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-
-                &.available {
-                    background: #10b981;
-                }
-
-                &.locked {
-                    background: #f59e0b;
-                }
-            }
-        }
-    }
-}
-
-.ai-content {
-    .ai-stat-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 0.75rem;
-        padding: 1.25rem;
-        margin-bottom: 1.5rem;
-        color: white;
-
-        .ai-stat-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-
-            .ai-stat-icon {
-                font-size: 1.25rem;
-            }
-
-            .ai-stat-label {
-                font-size: 0.875rem;
-                opacity: 0.9;
-            }
-        }
-
-        .ai-stat-value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .ai-stat-description {
-            font-size: 0.75rem;
-            opacity: 0.8;
-        }
-    }
-
-    .ai-suggestions-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-
-        .ai-suggestion-item {
-            display: flex;
-            gap: 0.75rem;
-            padding: 1rem;
-            background: #f8fafc;
-            border-radius: 0.75rem;
-            border: 1px solid #e2e8f0;
-
-            .suggestion-icon {
-                font-size: 1.5rem;
-                flex-shrink: 0;
-
-                &.tip {
-                    color: #3b82f6;
-                }
-
-                &.warning {
-                    color: #f59e0b;
-                }
-
-                &.goal {
-                    color: #10b981;
-                }
-            }
-
-            .suggestion-content {
-                flex: 1;
-
-                .suggestion-title {
-                    font-size: 0.875rem;
-                    font-weight: 600;
-                    color: #1e293b;
-                    margin: 0 0 0.25rem 0;
-                }
-
-                .suggestion-text {
-                    font-size: 0.8125rem;
-                    color: #64748b;
-                    margin: 0;
-                    line-height: 1.5;
-                }
-            }
-        }
-    }
-
-    .ai-cta-button {
-        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-        border: none;
-        font-weight: 600;
-
-        &:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-        }
-    }
-}
-
-// Effet de chargement
-.loading-shimmer,
-.loading-shimmer-text {
-    background: linear-gradient(90deg, 
-        rgba(255, 255, 255, 0.8) 25%, 
-        rgba(255, 255, 255, 0.4) 50%, 
-        rgba(255, 255, 255, 0.8) 75%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
-    border-radius: 0.25rem;
-    display: inline-block;
-    color: transparent;
-}
-
-.loading-shimmer {
-    width: 100px;
-    height: 1.75rem;
-}
-
-.loading-shimmer-text {
-    width: 100%;
-    height: 1em;
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: 200% 0;
-    }
-    100% {
-        background-position: -200% 0;
-    }
-}
-
-.accounts-section {
-    .account-group {
-        margin-bottom: 2rem;
-
-        .account-group-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 2px solid #e2e8f0;
-
-            .account-group-title {
-                font-size: 1.25rem;
-                font-weight: 700;
-                color: #1e293b;
-                margin: 0;
-            }
-
-            .credit-utilization {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                font-size: 0.875rem;
-                color: #64748b;
-
-                strong {
-                    font-weight: 600;
-                }
-            }
-        }
-
-        .accounts-carousel {
-            display: flex;
-            gap: 1rem;
-            overflow-x: auto;
-            padding-bottom: 1rem;
-            scroll-snap-type: x mandatory;
-
-            &::-webkit-scrollbar {
-                height: 8px;
-            }
-
-            &::-webkit-scrollbar-track {
-                background: #f1f5f9;
-                border-radius: 4px;
-            }
-
-            &::-webkit-scrollbar-thumb {
-                background: #cbd5e1;
-                border-radius: 4px;
-
-                &:hover {
-                    background: #94a3b8;
-                }
-            }
-
-            .account-card-wrapper {
-                scroll-snap-align: start;
-                flex-shrink: 0;
-                width: 280px;
-            }
-        }
-    }
-}
-
-.credit-card-details {
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid #e2e8f0;
-
-    p {
-        font-size: 0.8125rem;
-        margin: 0.375rem 0;
-        display: flex;
-        align-items: center;
-
-        &.credit-limit {
-            color: #64748b;
-        }
-
-        &.credit-usage {
-            font-weight: 600;
-        }
-    }
-}
 </style>

@@ -7,11 +7,12 @@
                     <LayoutNavbar />
                 </div>
 
-                <div class="flex-1 overflow-auto">
-                    <div class="lg:bg-neutral-50 lg:rounded-tl-4xl lg:rounded-bl-4xl h-full">
+                <div class="flex-1 overflow-auto bg-neutral-50 lg:rounded-tl-4xl lg:rounded-bl-4xl">
+                    <div class="h-full ">
                         <slot />
                     </div>
                 </div>
+
 
                 <div class="flex-none"> 
                     <LayoutBottomBar class="" />

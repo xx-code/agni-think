@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn, TableRow } from "@nuxt/ui";
-import type { InvoiceTableType, InvoiceType, TransactionTableType, TransactionType } from "~/types/ui/transaction";
+import type { InvoiceTableType, TransactionTableType } from "~/types/ui/transaction";
 import type { FormFilterTransaction } from "~/types/ui/component";
 import { getLocalTimeZone } from "@internationalized/date";
 import type { QueryInvoice } from "~/types/api/transaction";
@@ -11,7 +11,7 @@ import { useTreatInvoiceText } from "~/composables/api/agents";
 import { fetchBudgets } from "~/composables/api/budget";
 import { fetchCategories } from "~/composables/api/categories";
 import { fetchDeductions } from "~/composables/api/deductionType";
-import { fetchInvoicePagination, fetchBalance, useUpdateInvoice, useCreateInvoice, fetchInvoice, useCompleteInvoice, useDeleteInvoice } from "~/composables/api/invoices";
+import { fetchInvoicePagination, fetchBalance, fetchInvoice, useCompleteInvoice, useDeleteInvoice } from "~/composables/api/invoices";
 import { fetchTags } from "~/composables/api/tag";
 
 const { start, stop } = useLoading()
@@ -79,21 +79,9 @@ const { data, error, refresh, status } = useAsyncData(`transactions-${JSON.strin
                 id: record.id,
                 description: record.description,
                 amount: record.amount,
-                category: {
-                    id: record.categoryId,
-                    icon: getCategory(record.categoryId)?.icon || 'i-lucide-circle',
-                    color: getCategory(record.categoryId)?.color || '#808080',
-                    title: getCategory(record.categoryId)?.title || 'Sans catégorie',
-                },
-                tags: record.tagRefs.map(tagId => ({
-                    id: tagId,
-                    value: getTag(tagId)?.value || '',
-                    color: getTag(tagId)?.color || ''
-                })),
-                budgets: record.budgetRefs.map(budgetId => ({
-                    id: budgetId,
-                    title: getBudget(budgetId)?.title || ''
-                }))
+                category: record.category,
+                tags: record.tags,
+                budgets: record.budgets
             } satisfies TransactionTableType)),
             deductions: i.deductions.map(d => ({
                 name: getDeduction(d.id)?.description || '', // ou autre nom si disponible
