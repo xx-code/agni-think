@@ -5,7 +5,6 @@ import dev.auguste.agni_api.core.entities.Deduction
 import dev.auguste.agni_api.core.usecases.deductions.dto.DeleteDeductionInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.entities.DomainException
-import java.util.UUID
 
 class DeleteDeduction(private val deductionRepo: IRepository<Deduction>): IUseCase<DeleteDeductionInput, Unit> {
 

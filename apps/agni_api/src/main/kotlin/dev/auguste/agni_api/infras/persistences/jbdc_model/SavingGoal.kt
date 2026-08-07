@@ -2,14 +2,11 @@ package dev.auguste.agni_api.infras.persistences.jbdc_model
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.auguste.agni_api.core.entities.SavingGoal
-import dev.auguste.agni_api.core.entities.enums.ImportanceGoalType
-import dev.auguste.agni_api.core.entities.enums.IntensityEmotionalDesirType
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.stereotype.Component
-import java.time.LocalDate
 import java.util.UUID
 
 @Table("funds")

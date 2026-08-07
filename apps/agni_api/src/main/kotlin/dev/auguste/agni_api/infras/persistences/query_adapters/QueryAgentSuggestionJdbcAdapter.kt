@@ -1,12 +1,9 @@
 package dev.auguste.agni_api.infras.persistences.query_adapters
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryAgentSuggestionExtend
 import dev.auguste.agni_api.core.entities.AgentSuggestion
-import dev.auguste.agni_api.core.entities.Budget
-import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.infras.persistences.IMapper
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcAgentSuggestionModel
 import org.springframework.jdbc.core.RowMapper

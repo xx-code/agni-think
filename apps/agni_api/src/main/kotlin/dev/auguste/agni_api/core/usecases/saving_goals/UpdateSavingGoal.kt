@@ -6,7 +6,6 @@ import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.UpdateSavingGoalInput
-import dev.auguste.agni_api.core.value_objects.SavingGoalItem
 
 class UpdateSavingGoal(
     private val savingGoalRepo: IRepository<SavingGoal>,

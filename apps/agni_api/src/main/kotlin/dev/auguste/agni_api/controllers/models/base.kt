@@ -1,6 +1,5 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.PeriodType
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
 

@@ -9,7 +9,6 @@ import dev.auguste.agni_api.core.entities.PatrimonySnapshot
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.DeletePatrimonyInput
-import java.util.UUID
 
 class DeletePatrimony(
     private val patrimonyRepo: IRepository<Patrimony>,

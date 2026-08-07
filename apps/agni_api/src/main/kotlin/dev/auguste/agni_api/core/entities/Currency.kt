@@ -1,6 +1,5 @@
 package dev.auguste.agni_api.core.entities
 
-import java.util.Locale
 import java.util.UUID
 import kotlin.properties.Delegates
 

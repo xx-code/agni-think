@@ -1,6 +1,5 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.usecases.CreatedOutput

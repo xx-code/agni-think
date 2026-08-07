@@ -1,13 +1,11 @@
 package dev.auguste.agni_api.controllers
 
 import dev.auguste.agni_api.controllers.models.InternalModelOutput
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
 import dev.auguste.agni_api.core.entities.enums.ContributionAccountType
 import dev.auguste.agni_api.core.entities.enums.FinancePolicyRiskLevelType
 import dev.auguste.agni_api.core.entities.enums.IncomeSourceFrequencyType
 import dev.auguste.agni_api.core.entities.enums.IncomeSourceType
 import dev.auguste.agni_api.core.entities.enums.ManagementAccountType
-import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.entities.enums.PrincipleType
 import dev.auguste.agni_api.core.entities.enums.PriorityRuleLevelType
 import org.springframework.http.ResponseEntity

@@ -7,7 +7,6 @@ import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.CreateSavingGoalInput
-import dev.auguste.agni_api.core.value_objects.SavingGoalItem
 
 class CreateSavingGoal(
     private val savingGoalRepo: IRepository<SavingGoal>,

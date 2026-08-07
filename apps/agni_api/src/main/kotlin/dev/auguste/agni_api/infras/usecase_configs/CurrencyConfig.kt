@@ -15,7 +15,6 @@ import dev.auguste.agni_api.core.usecases.currencies.dto.DeleteCurrencyInput
 import dev.auguste.agni_api.core.usecases.currencies.dto.GetCurrencyOutput
 import dev.auguste.agni_api.core.usecases.currencies.dto.UpdateCurrencyInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.tags.dto.DeleteTagInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID

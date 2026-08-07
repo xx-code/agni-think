@@ -1,8 +1,5 @@
 package dev.auguste.agni_api.core.usecases.invoices.dto
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInvoiceExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryTransactionExtend
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType

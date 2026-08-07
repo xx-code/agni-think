@@ -15,7 +15,6 @@ import dev.auguste.agni_api.core.usecases.internal_loan.dto.AddRefundInternalLoa
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.TransactionInput
-import java.time.LocalDateTime
 import java.util.UUID
 
 class AddRefundInternalLoan(

@@ -6,12 +6,10 @@ import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import dev.auguste.agni_api.infras.persistences.IMapper
-import kotlinx.serialization.json.Json
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.stereotype.Component
-import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 
 @Table("schedule_transactions")

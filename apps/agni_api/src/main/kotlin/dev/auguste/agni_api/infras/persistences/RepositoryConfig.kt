@@ -37,7 +37,6 @@ import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcExternalTransacti
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcFinancePrincipleModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcFinanceReportModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcIncomeSourceModel
-import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInternalLoanMapper
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInternalLoanModal
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInvoiceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcNotificationModel

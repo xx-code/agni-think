@@ -6,7 +6,6 @@ import dev.auguste.agni_api.core.entities.IncomeSource
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.income_sources.dto.GetIncomeSourceOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import java.time.LocalDate
 
 class GetAllIncomeSource(
     private val incomeSourceRepo: IRepository<IncomeSource>,

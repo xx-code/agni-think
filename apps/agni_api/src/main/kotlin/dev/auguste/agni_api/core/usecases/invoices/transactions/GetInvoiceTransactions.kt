@@ -4,7 +4,6 @@ import dev.auguste.agni_api.core.SAVING_CATEGORY_ID
 import dev.auguste.agni_api.core.TRANSFERT_CATEGORY_ID
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInvoiceExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryTransactionExtend
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.Category

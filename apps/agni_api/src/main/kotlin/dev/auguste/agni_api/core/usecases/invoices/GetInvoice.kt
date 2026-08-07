@@ -1,6 +1,5 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
-import dev.auguste.agni_api.core.adapters.readers.IInvoicetransactionCountReader
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Invoice
