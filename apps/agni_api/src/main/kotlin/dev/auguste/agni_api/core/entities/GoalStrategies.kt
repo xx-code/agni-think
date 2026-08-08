@@ -7,6 +7,10 @@ import dev.auguste.agni_api.core.entities.interfaces.IGoalEvaluationStrategy
 class FundGoalEvaluationStrategy(
     override val type: GoalEvaluationType = GoalEvaluationType.FUND
 ) : IGoalEvaluationStrategy {
+    override fun verifyGoalSourceExists(goal: Goal, context: IFinanceContext) {
+        context.verifyFundExists(goal.targetSourceId)
+    }
+
     override fun evaluateCurrentAmount(
         goal: Goal,
         context: IFinanceContext
@@ -18,6 +22,10 @@ class FundGoalEvaluationStrategy(
 class CategoryEvaluationStrategy(
     override val type: GoalEvaluationType = GoalEvaluationType.TRANSACTION_TARGET
 ) : IGoalEvaluationStrategy {
+    override fun verifyGoalSourceExists(goal: Goal, context: IFinanceContext) {
+        context.verifyCategoryExists(goal.targetSourceId)
+    }
+
     override fun evaluateCurrentAmount(
         goal: Goal,
         context: IFinanceContext

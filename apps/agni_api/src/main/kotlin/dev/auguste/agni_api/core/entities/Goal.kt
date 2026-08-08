@@ -13,7 +13,7 @@ data class GoalEvaluationProgress(
 )
 
 class Goal(
-    id: UUID,
+    id: UUID = UUID.randomUUID(),
     title: String,
     description: String,
     targetSourceId: UUID,

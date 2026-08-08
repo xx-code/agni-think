@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.adapters
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -18,9 +19,10 @@ import kotlin.test.assertFailsWith
 class FinanceContextTest {
 
     private val fundRepo = mockk<IRepository<SavingGoal>>()
+    private val categoryRepo = mockk<IRepository<Category>>()
     private val getBalance = mockk<IUseCase<GetBalanceInput, GetBalanceOutput>>()
 
-    private val financeContext = FinanceContext(fundRepo, getBalance)
+    private val financeContext = FinanceContext(fundRepo, getBalance, categoryRepo)
 
     @Test
     fun `returns fund balance when fund exists`() {
@@ -45,6 +47,56 @@ class FinanceContextTest {
 
         assertFailsWith<DomainException.NotFound.SavingGoal> {
             financeContext.getFundBalance(fundId)
+        }
+    }
+
+    @Test
+    fun `verify fund exists succeeds when fund exists`() {
+        val fundId = UUID.randomUUID()
+        val fund = SavingGoal(
+            id = fundId,
+            title = "Fond pipe",
+            description = "",
+            target = 300.0,
+            balance = 100.0,
+            accountId = null
+        )
+        every { fundRepo.get(fundId) } returns fund
+
+        financeContext.verifyFundExists(fundId)
+    }
+
+    @Test
+    fun `verify fund exists throws not found when fund does not exist`() {
+        val fundId = UUID.randomUUID()
+        every { fundRepo.get(fundId) } returns null
+
+        assertFailsWith<DomainException.NotFound.SavingGoal> {
+            financeContext.verifyFundExists(fundId)
+        }
+    }
+
+    @Test
+    fun `verify category exists succeeds when category exists`() {
+        val categoryId = UUID.randomUUID()
+        val category = Category(
+            id = categoryId,
+            title = "Restaurant",
+            icon = "",
+            color = ""
+        )
+        every { categoryRepo.get(categoryId) } returns category
+
+        financeContext.verifyCategoryExists(categoryId)
+    }
+
+    @Test
+    fun `verify category exists throws not found when category does not exist`() {
+        val categoryId = UUID.randomUUID()
+        every { categoryRepo.get(categoryId) } returns null
+
+        assertFailsWith<DomainException.NotFound.Category> {
+            financeContext.verifyCategoryExists(categoryId)
         }
     }
 

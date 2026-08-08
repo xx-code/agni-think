@@ -20,12 +20,20 @@ class FinanceContextMock(
         return funds.getValue(id)
     }
 
+    override fun verifyFundExists(id: UUID) {
+        println("verify funds $id")
+    }
+
     override fun getCategoryTotal(
         id: UUID,
         startDate: LocalDate,
         endDate: LocalDate
     ): Double {
         return balanceByCategories.getValue(id)
+    }
+
+    override fun verifyCategoryExists(id: UUID) {
+        println("verify category $id")
     }
 
     override fun getNetWorthTotal(): Double {

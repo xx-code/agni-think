@@ -15,6 +15,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class Currency(id: UUID) : NotFound("CURRENCY_NOT_FOUND", "Currency not found $id")
         class Notification(id: UUID) : NotFound("NOTIFICATION_NOT_FOUND", "Notification not found $id")
         class SavingGoal(id: UUID) : NotFound("SAVING_GOAL_NOT_FOUND", "Saving goal not found $id")
+        class Goal(id: UUID) : NotFound("GOAL_NOT_FOUND", "Goal est introuvable $id")
         class SomeSavingGoals(ids: Set<UUID>) : NotFound("SOME_SAVING_GOAL_NOT_FOUND", "Un ou des epargnes dans cette liste [${ids.joinToString(", ")}] sont introuvable")
         class IncomeSource(id: UUID) : NotFound("INCOME_SOURCE_NOT_FOUND", "Income source not found $id")
         class Budget(id: UUID) : NotFound("BUDGET_NOT_FOUND", "Budget not found $id")
