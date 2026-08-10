@@ -3,21 +3,32 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
-# Install system dependencies needed for venv and building certain python packages
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1
+
+# build-essential requis si un wheel doit être compilé (venv + torch cpu wheels OK sinon)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-venv \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Create the virtual environment
 RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH" \
+    VIRTUAL_ENV=/opt/venv
 
-# Ensure we use the virtual environment for subsequent commands
-ENV PATH="/opt/venv/bin:$PATH"
+# 1) torch CPU-only d'abord (ÉNORME réduction : ~2GB CUDA → ~200MB)
+#    (à retirer si tu utilises OpenAI embeddings au lieu de modèles locaux)
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 
 COPY apps/agni-ai/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Cache pip BuildKit (re-build CI rapides) — nécessite Docker BuildKit (défaut GitHub Actions)
+# RUN --mount=type=cache,target=/root/.cache/pip pip install --no-cache-dir -r requirements.txt
 
+# Nettoyage venv
+RUN find /opt/venv -type d -name __pycache__ -exec rm -rf {} + && \
+    find /opt/venv -type f -name "*.pyc" -delete
 
 # --- Stage 2: Runtime ---
 FROM python:3.12-slim AS runtime
@@ -26,17 +37,18 @@ WORKDIR /app
 
 RUN groupadd -r agni && useradd -r -g agni agni
 
-# Copy the venv from the builder
-COPY --from=builder /opt/venv /opt/venv
+# libgomp1 requis par onnxruntime (sentence-transformers) si utilisé
+# RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/*
 
 ENV PATH="/opt/venv/bin:$PATH" \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    HF_HOME=/home/agni/.cache/huggingface
 
+COPY --from=builder /opt/venv /opt/venv
 COPY --chown=agni:agni apps/agni-ai .
 
-# Setup perm before go to non root user
-RUN mkdir -p /home/agni/.cache/huggingface/xet/logs && \
-    chown -R agni:agni /home/agni/.cache
+RUN mkdir -p ${HF_HOME} && chown -R agni:agni /home/agni/.cache
 
 USER agni
 EXPOSE 8000
