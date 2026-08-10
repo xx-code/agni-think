@@ -98,7 +98,11 @@ jobs:
         run: |
           git clone https://${{ secrets.HOMELAB_GITHUB_TOKEN }}@github.com/xx-code/homelab.git homelab
           cd homelab
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
           ENV=${{ steps.vars.outputs.env }} SHA=${{ steps.vars.outputs.env }}-${{ steps.vars.outputs.sha_short }}
           sed -i "s|newTag: $ENV-.*|newTag: $SHA|" k8s/apps/agni/overlays/${{ steps.vars.outputs.overlay }}/kustomization.yaml
-          git commit -am "chore(deploy): bump agni $ENV sha-${{ steps.vars.outputs.sha_short }}" || echo "no changes"
-          git push origin main
+          git diff --quiet || {
+            git commit -am "chore(deploy): bump agni $ENV sha-${{ steps.vars.outputs.sha_short }}"
+            git push origin main
+          }
