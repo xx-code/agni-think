@@ -1,92 +1,104 @@
 name: Build & Deploy
-
 on:
   push:
-    branches:
-      - main
-      - dev
+    branches: [main, dev]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions: {contents: read, packages: write}
+
+env: {REGISTRY: ghcr.io/xx-code}
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Check changed files
-        id: filter
+      - id: filter
         uses: dorny/paths-filter@v3
         with:
           filters: |
-            frontend:
-              - 'apps/agni-web/**'
-              - 'config/frontend/**'
-            api:
-              - 'apps/agni_api/**'
-              - 'config/api/**'
+            frontend: ['apps/agni-web/**', 'config/frontend/**']
+            api:      ['apps/agni_api/**', 'config/api/**']
+            agent:    ['apps/agni-ai/**',  'config/agent/**']
 
-      - name: Set up Dcocker tags
-        id: vars
-        run: | 
-          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+      - id: vars
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_NAME" = "dev" ]; then
+            echo "env=dev"  >> "$GITHUB_OUTPUT"
+            echo "overlay=demo" >> "$GITHUB_OUTPUT"
+          else
+            echo "env=main" >> "$GITHUB_OUTPUT"
+            echo "overlay=prod" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Login docker
-        if: steps.filter.outputs.frontend == 'true' || steps.filter.outputs.api == 'true'
+      - name: Login GHCR
         uses: docker/login-action@v3
         with:
-          registry: ${{ vars.REGISTRY_URL }}
-          username: ${{ secrets.REGISTRY_USERNAME }} 
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Release Frontend
-        if: steps.filter.outputs.frontend == 'true' 
-        run: | 
-          docker build --no-cache --build-arg BUILD_CONFIGURATION=Release \
-          -t ${{ vars.REGISTRY_URL }}/agni-web-${{ steps.vars.outputs.branch }}:${{ steps.vars.outputs.sha_short }} \
-          -t ${{ vars.REGISTRY_URL }}/agni-web-${{ steps.vars.outputs.branch }}:latest \
-          -f config/frontend/Dockerfile .
-          docker push ${{ vars.REGISTRY_URL}}/agni-web-${{ steps.vars.outputs.branch }}:latest
-          docker push ${{ vars.REGISTRY_URL}}/agni-web-${{ steps.vars.outputs.branch }}:${{ steps.vars.outputs.sha_short }}
-      
-      - name: Build and Release Api
+      - name: Build Frontend
+        if: steps.filter.outputs.frontend == 'true'
+        run: |
+          IMG=${{ env.REGISTRY }}/agni-frontend
+          docker build -f config/frontend/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:${{ steps.vars.outputs.env }}-${{ steps.vars.outputs.sha_short }} .
+          docker push --all-tags $IMG
+
+      - name: Build Api
         if: steps.filter.outputs.api == 'true'
         run: |
-          docker build --no-cache --build-arg BUILD_CONFIGURATION=Release \
-          -t ${{ vars.REGISTRY_URL }}/agni-api-spring-boot-${{ steps.vars.outputs.branch }}:${{ steps.vars.outputs.sha_short }} \
-          -t ${{ vars.REGISTRY_URL }}/agni-api-spring-boot-${{ steps.vars.outputs.branch }}:latest \
-          -f config/api/Dockerfile .
-          docker push --all-tags ${{ vars.REGISTRY_URL}}/agni-api-spring-boot-${{ steps.vars.outputs.branch }}
+          IMG=${{ env.REGISTRY }}/agni-backend
+          docker build -f config/api/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:${{ steps.vars.outputs.env }}-${{ steps.vars.outputs.sha_short }} .
+          docker push --all-tags $IMG
 
-      - name: Hook HomeLab Repository
-        if: steps.filter.outputs.frontend == 'true' || steps.filter.outputs.api == 'true'
-        run: | 
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Build Agent
+        if: steps.filter.outputs.agent == 'true'
+        run: |
+          IMG=${{ env.REGISTRY }}/agni-backend-ai
+          docker build -f config/agent/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:${{ steps.vars.outputs.env }}-${{ steps.vars.outputs.sha_short }} .
+          docker push --all-tags $IMG
 
-          git clone https://${{ secrets.HOMELAB_GITHUB_TOKEN }}@github.com/${{ github.repository_owner }}/homelab.git homelab-repo
-          cd homelab-repo
+      # tous les composants taggés au même sha (reproducibilité du déploiement)
+      - name: Ensure sha tags
+        if: github.ref_type == 'branch'
+        run: |
+          SHA=${{ steps.vars.outputs.env }}-${{ steps.vars.outputs.sha_short }}
+          for comp in agni-frontend agni-backend agni-backend-ai; do
+            IMG=${{ env.REGISTRY }}/$comp
+            docker manifest inspect $IMG:$SHA >/dev/null 2>&1 && continue
+            if docker manifest inspect $IMG:${{ steps.vars.outputs.env }} >/dev/null 2>&1; then
+              docker pull $IMG:${{ steps.vars.outputs.env }}
+              docker tag $IMG:${{ steps.vars.outputs.env }} $IMG:$SHA
+            else
+              case $comp in
+                agni-frontend)  docker build -f config/frontend/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:$SHA . ;;
+                agni-backend)   docker build -f config/api/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:$SHA . ;;
+                agni-backend-ai) docker build -f config/agent/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:$SHA . ;;
+              esac
+            fi
+            docker push --all-tags $IMG
+          done
 
-          cat << EOF > apps/agni/hooks.yml
-          version: "1.0"
-          last_deployment:
-            branch: "${{ steps.vars.outputs.branch }}"
-            sha: "${{ steps.vars.outputs.sha_short }}"
-            updated_at: "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          EOF
+      - name: Release version tag
+        if: github.ref_type == 'tag'
+        run: |
+          for comp in agni-frontend agni-backend agni-backend-ai; do
+            IMG=${{ env.REGISTRY }}/$comp
+            docker pull $IMG:main
+            docker tag $IMG:main $IMG:${{ github.ref_name }}
+            docker push $IMG:${{ github.ref_name }}
+          done
 
-          git add apps/agni/hooks.yml
-          git commit -m "chore(deploy): trigger webhook/pull for sha-${{ steps.vars.outputs.sha_short }}" || echo "No changes to commit"
+      - name: Update homelab overlay (GitOps auto-deploy)
+        if: github.ref_type == 'branch'
+        run: |
+          git clone https://${{ secrets.HOMELAB_GITHUB_TOKEN }}@github.com/xx-code/homelab.git homelab
+          cd homelab
+          ENV=${{ steps.vars.outputs.env }} SHA=${{ steps.vars.outputs.env }}-${{ steps.vars.outputs.sha_short }}
+          sed -i "s|newTag: $ENV-.*|newTag: $SHA|" k8s/apps/agni/overlays/${{ steps.vars.outputs.overlay }}/kustomization.yaml
+          git commit -am "chore(deploy): bump agni $ENV sha-${{ steps.vars.outputs.sha_short }}" || echo "no changes"
           git push origin main
-      #- name: Build and Release Agent
-        # if: steps.filter.outputs.agent == 'true'
-        # run: |
-        #   docker build --build-arg BUILD_CONFIGURATION=Release \ 
-        #   -t ${{vars.REGISTRY}}/agni-web:${{ steps.vars.outputs.sha_short }} \ 
-        #   -t ${{vars.REGISTRY}}/agni-web:last comit
-        #   -t ${{vars.REGISTRY}}/agni-web:latest \
-        #   -f config/agent/Dockerfile .
-        #   docker push
-      
-      

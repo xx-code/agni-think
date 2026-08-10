@@ -73,12 +73,18 @@ class InvoiceConfig {
     fun getInvoiceTransactions(
         invoiceRepo: IRepository<Invoice>,
         deductionRepo: IRepository<Deduction>,
-        transactionRepo: IRepository<Transaction>
+        transactionRepo: IRepository<Transaction>,
+        categoryRepo: IRepository<Category>,
+        budgetRepo: IRepository<Budget>,
+        tagRepo: IRepository<Tag>,
     ): IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>> {
         return GetInvoiceTransactions(
             invoiceRepo = invoiceRepo,
             deductionRepo = deductionRepo,
-            transactionRepo = transactionRepo
+            transactionRepo = transactionRepo,
+            categoryRepo = categoryRepo,
+            budgetRepo = budgetRepo,
+            tagRepo = tagRepo
         )
     }
 

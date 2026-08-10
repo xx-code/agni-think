@@ -73,14 +73,7 @@ export async function fetchInvoice(transactionId: string): Promise<InvoiceType> 
         mouvement: res.mouvement,
         total: res.total,
         subTotal: res.subTotal,
-        transactions: res.transactions.map(i => ({
-            id: i.id,
-            amount: i.amount,
-            description: i.description,
-            budgetRefs: i.budgetIds,
-            categoryId: i.categoryId,
-            tagRefs: i.tagIds
-        })),
+        transactions: res.transactions,
         deductions: res.deductions.map(i => ({
             id: i.id,
             amount: i.amount
@@ -104,14 +97,7 @@ export async function fetchInvoicePagination(query: MaybeRefOrGetter<QueryFilter
             mouvement: i.mouvement,
             total: i.total,
             subTotal: i.subTotal,
-            transactions: i.transactions.map(i => ({
-                id: i.id,
-                amount: i.amount,
-                description: i.description,
-                budgetRefs: i.budgetIds,
-                categoryId: i.categoryId,
-                tagRefs: i.tagIds
-            })),
+            transactions: i.transactions,
             deductions: i.deductions.map(i => ({
                 id: i.id,
                 amount: i.amount

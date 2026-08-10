@@ -75,10 +75,10 @@ class UpdateInvoice(
                         maxAmount = null
                     )).first().transactions.map { TransactionInput(
                         amount = it.amount,
-                        categoryId = it.categoryId,
+                        categoryId = it.category.id,
                         description = it.description,
-                        tagIds = it.tagIds,
-                        budgetIds = it.budgetIds,
+                        tagIds = it.tags.map { tag -> tag.id }.toSet(),
+                        budgetIds = it.budgets.map { budget -> budget.id }.toSet(),
                     ) }.toSet()
                 }
 
