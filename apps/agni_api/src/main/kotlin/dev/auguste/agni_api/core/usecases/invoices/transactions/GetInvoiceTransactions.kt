@@ -124,27 +124,21 @@ class GetInvoiceTransactions(
         val total = computeInvoiceAmountWithDeduction(totalBeforeSubTotal, invoice, deductionTotal, invoiceParentTotal)
 
         val getCategory = { id: UUID ->
-            val category = categories.find { category -> category.id == id }
-            if (category == null) {
-                TransactionCategoryOutput(UUID.randomUUID(), "", "", "")
-            }
-            TransactionCategoryOutput(category!!.id, category.title, category.icon, category.color)
+            categories.find { it.id == id }?.let {
+                TransactionCategoryOutput(it.id, it.title, it.icon, it.color)
+            } ?:TransactionCategoryOutput(UUID.randomUUID(), "", "", "")
         }
 
         val getTag = { id: UUID ->
-            val tag = tags.find { tag -> tag.id == id }
-            if (tag == null) {
-                TransactionTagOutput(UUID.randomUUID(), "", "")
-            }
-            TransactionTagOutput(tag!!.id, tag.value, tag.color)
+            tags.find { it.id == id }?.let {
+                TransactionTagOutput(it.id, it.value, it.color)
+            } ?: TransactionTagOutput(UUID.randomUUID(), "", "")
         }
 
         val getBudget = { id: UUID ->
-            val budget = budgets.find { budget -> budget.id == id }
-            if (budget == null) {
-                TransactionBudgetOutput(UUID.randomUUID(), "")
-            }
-            TransactionBudgetOutput(budget!!.id, budget.title)
+            budgets.find { it.id == id }?.let {
+                TransactionBudgetOutput(it.id, it.title)
+            } ?: TransactionBudgetOutput(UUID.randomUUID(), "")
         }
 
         return GetInvoiceTransactionsOutput(
