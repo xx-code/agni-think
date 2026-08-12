@@ -14,6 +14,7 @@ import { fetchFunds, useUpdateFund, useCreateFund, fetchFund, useUpdateAmountFun
 import { fetchImportanceTypes, fetcheIntensityDesirTypes } from "~/composables/api/internal"
 import type { QueryFilterFundRequest } from "~/types/api/fund"
 import type { EditFundType, EditUpdateAmountFundType, FundType } from "~/types/ui/fund"
+import type { NavigationToggleItem } from "~/types/ui/navigation"
 
 interface ItemRow  {
     id: string
@@ -93,7 +94,17 @@ const df = new DateFormatter('en-Us', {
 })
 
 // View mode toggle
-const viewMode = ref<'cards' | 'table'>('cards')
+const viewModeId = ref<'cards' | 'table'>('cards')
+const viewModeItems: NavigationToggleItem[] = [
+    {
+        id: 'cards',
+        iconName: 'i-lucide-layout-grid'
+    },
+    {
+        id: 'table',
+        iconName: 'i-lucide-table-2'
+    }
+]
 
 // Computed summary stats
 const totalTarget = computed(() => tableData.value?.reduce((sum, g) => sum + g.target, 0) || 0)
@@ -345,66 +356,44 @@ const columns: TableColumn<ItemRow>[] = [
 
 <template>
     <div class="goals-page p-5">
-        <!-- Summary Section -->
-        <div class="summary-section">
-            <div class="summary-card">
-                <div class="summary-header">
-                    <UIcon name="i-lucide-target" class="summary-icon" />
-                    <span class="summary-label">Objectif Total</span>
-                </div>
-                <div class="summary-amount">${{ summary?.totalTarget.toLocaleString() }}</div>
-            </div>
+        <div class="grid md:grid-cols-3 gap-5 mb-10 grid-cols-1">
+            <UiBannerAccountant 
+                title="Objectif Total"
+                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(168, 85, 247, 0.1)', fontColor: '#a855f7'}"
+                :amount="summary?.totalTarget ?? 0"
+            />
 
-            <div class="summary-card">
-                <div class="summary-header">
-                    <UIcon name="i-lucide-piggy-bank" class="summary-icon saved" />
-                    <span class="summary-label">Économisé</span>
-                </div>
-                <div class="summary-amount saved">${{ summary?.totalBalance.toLocaleString() }}</div>
-            </div>
+            <UiBannerAccountant 
+                title="Économisé"
+                :icon="{ name: 'i-lucide-piggy-bank', backgroundColor: 'rgba(34, 197, 94, 0.1)', fontColor: '#22c55e'}"
+                :amount="summary?.totalBalance ?? 0"
+            />
 
-            <div class="summary-card">
-                <div class="summary-header">
-                    <UIcon name="i-lucide-trending-up" class="summary-icon remaining" />
-                    <span class="summary-label">Restant</span>
-                </div>
-                <div class="summary-amount remaining">${{ summary?.remain.toLocaleString() }}</div>
-            </div>
-
+            <UiBannerAccountant 
+                title="Restant"
+                :icon="{ name: 'i-lucide-trending-up', backgroundColor: 'rgba(59, 130, 246, 0.1)', fontColor: '#3b82f6'}"
+                :amount="summary?.remain ?? 0"
+            />
         </div>
 
         <!-- Action Bar -->
-        <div class="action-bar">
-            <div class="view-toggle">
-                <UButton
-                    :icon="viewMode === 'cards' ? 'i-lucide-layout-grid' : 'i-lucide-layout-grid'"
-                    :variant="viewMode === 'cards' ? 'solid' : 'outline'"
-                    color="neutral"
-                    size="lg"
-                    @click="viewMode = 'cards'"
-                />
-                <UButton
-                    :icon="viewMode === 'table' ? 'i-lucide-table-2' : 'i-lucide-table-2'"
-                    :variant="viewMode === 'table' ? 'solid' : 'outline'"
-                    color="neutral"
-                    size="lg"
-                    @click="viewMode = 'table'"
-                />
-            </div>
+        <div class="flex justify-between items-center mb-8 ">
+            <NavigationToggle 
+                :items="viewModeItems"
+                v-model="viewModeId"
+            />
 
-            <div class="action-buttons">
-                <UButton 
-                    icon="i-lucide-plus" 
-                    label="Nouvel Objectif" 
-                    size="xl"
-                    class="add-button"
-                    @click="openSavingGoal()"
-                />
-            </div>
+            <UButton 
+                icon="i-lucide-plus" 
+                label="Nouvel Objectif" 
+                size="xl"
+                class="add-button"
+                @click="openSavingGoal()"
+            />
         </div>
 
         <!-- Cards View -->
-        <div v-if="viewMode === 'cards'" class="goals-grid">
+        <div v-if="viewModeId === 'cards'" class="goals-grid">
             <TransitionGroup name="goal-list">
                 <div 
                     v-for="goal in tableData" 
