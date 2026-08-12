@@ -20,7 +20,7 @@ class Goal(
     targetAmount: Double,
     dueDate: LocalDate,
     status: GoalStatusType,
-    type: GoalEvaluationType
+    type: GoalEvaluationType,
 ): Entity(id) {
     var title by cleanObservable(title, this)
     var description by cleanObservable(description, this)

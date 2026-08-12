@@ -14,7 +14,6 @@ data class ApiCreateGoal(
     val targetAmount: Double,
     val targetSourceId: UUID,
     val targetDate: LocalDate,
-    val startingDate: LocalDate,
     val status: Int,
     val type: String
 )
@@ -34,7 +33,6 @@ fun mapApiCreateGoal(apiCreate: ApiCreateGoal): CreateGoalInput {
         targetAmount= apiCreate.targetAmount,
         targetSourceId= apiCreate.targetSourceId,
         targetDate= apiCreate.targetDate,
-        startingDate= apiCreate.startingDate,
         status= GoalStatusType.fromInt(apiCreate.status),
         type= GoalEvaluationType.fromString(apiCreate.type)
     )

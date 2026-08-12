@@ -7,22 +7,31 @@ import dev.auguste.agni_api.core.entities.interfaces.IGoalEvaluationStrategy
 class FundGoalEvaluationStrategy(
     override val type: GoalEvaluationType = GoalEvaluationType.FUND
 ) : IGoalEvaluationStrategy {
-    override fun verifyGoalSourceExists(goal: Goal, context: IFinanceContext) {
-        context.verifyFundExists(goal.targetSourceId)
+    override fun verifyGoalBusinessLogic(
+        goal: Goal,
+        context: IFinanceContext
+    ) {
+        val fund = context.getFund(goal.targetSourceId)
+        if (goal.targetAmount > fund.balance)
+            throw DomainException.BusinessLogic.GoalTargetAmountMustBeLeastFund(fund.balance, goal.targetAmount)
     }
 
     override fun evaluateCurrentAmount(
         goal: Goal,
         context: IFinanceContext
     ): Double {
-        return context.getFundBalance(goal.targetSourceId)
+        val fund = context.getFund(goal.targetSourceId)
+        return fund.balance
     }
 }
 
 class CategoryEvaluationStrategy(
     override val type: GoalEvaluationType = GoalEvaluationType.TRANSACTION_TARGET
 ) : IGoalEvaluationStrategy {
-    override fun verifyGoalSourceExists(goal: Goal, context: IFinanceContext) {
+    override fun verifyGoalBusinessLogic(
+        goal: Goal,
+        context: IFinanceContext
+    ) {
         context.verifyCategoryExists(goal.targetSourceId)
     }
 

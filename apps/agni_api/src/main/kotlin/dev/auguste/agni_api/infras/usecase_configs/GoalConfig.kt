@@ -83,10 +83,12 @@ class GoalConfig {
 
     @Bean
     fun updateGoal(
-        goalRepo: IRepository<Goal>
+        goalRepo: IRepository<Goal>,
+        financeContext: IFinanceContext
     ): IUseCase<UpdateGoalInput, Unit> {
         return UpdateGoal(
-            goalRepo
+            goalRepo,
+            financeContext
         )
     }
 

@@ -1,5 +1,6 @@
 package dev.auguste.agni_api.core.entities
 
+import dev.auguste.agni_api.core.adapters.FinanceContextFund
 import dev.auguste.agni_api.core.adapters.IFinanceContext
 import dev.auguste.agni_api.core.entities.enums.GoalEvaluationType
 import dev.auguste.agni_api.core.entities.enums.GoalStatusType
@@ -16,8 +17,12 @@ class FinanceContextMock(
     var balanceByCategories: MutableMap<UUID, Double>,
     var netWorth: Double
 ): IFinanceContext {
-    override fun getFundBalance(id: UUID): Double {
-        return funds.getValue(id)
+    override fun getFund(id: UUID): FinanceContextFund {
+        return FinanceContextFund(
+            id = id,
+            balance = funds.getValue(id),
+            target = 2000.0
+        )
     }
 
     override fun verifyFundExists(id: UUID) {

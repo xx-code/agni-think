@@ -20,11 +20,11 @@ class CreateGoal(
             targetAmount = input.targetAmount,
             dueDate = input.targetDate,
             status = input.status,
-            type = input.type
+            type = input.type,
         )
 
         val strategy = GoalEvaluationStrategyFactory.getStrategy(newGoal.type)
-        strategy.verifyGoalSourceExists(newGoal, financeContext)
+        strategy.verifyGoalBusinessLogic(newGoal, financeContext)
         newGoal.evaluateProgress(strategy, financeContext)
 
         goalRepo.create(newGoal)

@@ -66,5 +66,6 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class InternalLoanLinkCantBeDelete(message: String = "You can't delete any invoice linked to an internal loan"): BusinessLogic("INTERNAL_LOAD_LINK_DELETE", message)
         class InternalLoanRefundNotValid(amount: Double, loanAmount: Double): BusinessLogic("INTERNAL_LOAD_REFUND_NOT_VALID", "L'argent a freezer  $amount$ doit etre inferieur $loanAmount$")
         class GoalStrategyNotExist(type: GoalEvaluationType): BusinessLogic("GOAL_STRATEGY_NOT_EXIST", "Goal strategy not exist $type")
+        class GoalTargetAmountMustBeLeastFund(balance: Double, targetAmount: Double): BusinessLogic("GOAL_TARGET_AMOUNT_MUST_LEAST_FUND", "le montant cible $targetAmount doit etre inferieur a $balance$")
     }
 }

@@ -37,7 +37,7 @@ class FinanceContextTest {
         )
         every { fundRepo.get(fundId) } returns fund
 
-        assertEquals(100.0, financeContext.getFundBalance(fundId))
+        assertEquals(100.0, financeContext.getFund(fundId).balance)
     }
 
     @Test
@@ -46,7 +46,7 @@ class FinanceContextTest {
         every { fundRepo.get(fundId) } returns null
 
         assertFailsWith<DomainException.NotFound.SavingGoal> {
-            financeContext.getFundBalance(fundId)
+            financeContext.getFund(fundId)
         }
     }
 

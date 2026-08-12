@@ -11,7 +11,6 @@ data class CreateGoalInput(
     val targetAmount: Double,
     val targetSourceId: UUID,
     val targetDate: LocalDate,
-    val startingDate: LocalDate,
     val status: GoalStatusType,
     val type: GoalEvaluationType
 )

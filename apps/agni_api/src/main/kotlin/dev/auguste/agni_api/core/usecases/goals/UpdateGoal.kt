@@ -1,13 +1,16 @@
 package dev.auguste.agni_api.core.usecases.goals
 
+import dev.auguste.agni_api.core.adapters.IFinanceContext
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Goal
+import dev.auguste.agni_api.core.entities.factories.GoalEvaluationStrategyFactory
 import dev.auguste.agni_api.core.usecases.goals.dto.UpdateGoalInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
 class UpdateGoal(
-    private val goalRepo: IRepository<Goal>
+    private val goalRepo: IRepository<Goal>,
+    private val financeContext: IFinanceContext
 ): IUseCase<UpdateGoalInput, Unit> {
     override fun execAsync(input: UpdateGoalInput) {
         val goal = goalRepo.get(input.id) ?: throw DomainException.NotFound.Goal(input.id)
@@ -32,8 +35,11 @@ class UpdateGoal(
             goal.targetAmount = input.targetAmount
         }
 
-        if (goal.hasChanged())
+        if (goal.hasChanged()) {
+            val strategy = GoalEvaluationStrategyFactory.getStrategy(goal.type)
+            strategy.verifyGoalBusinessLogic(goal, financeContext)
             goalRepo.update(goal)
+        }
     }
 
 }

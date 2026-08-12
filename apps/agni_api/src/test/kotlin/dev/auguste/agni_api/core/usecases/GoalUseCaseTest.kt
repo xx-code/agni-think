@@ -1,5 +1,6 @@
 package dev.auguste.agni_api.core.usecases
 
+import dev.auguste.agni_api.core.adapters.FinanceContextFund
 import dev.auguste.agni_api.core.adapters.IFinanceContext
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.dto.RepoList
@@ -36,7 +37,7 @@ class GoalUseCaseTest {
     private val financeContext = mockk<IFinanceContext>()
 
     private val createGoal = CreateGoal(goalRepo = goalRepo, financeContext = financeContext)
-    private val updateGoal = UpdateGoal(goalRepo)
+    private val updateGoal = UpdateGoal(goalRepo, financeContext)
     private val deleteGoal = DeleteGoal(goalRepo)
     private val getGoal = GetGoal(goalRepo, financeContext)
     private val getAllGoals = GetAllGoals(goalRepo, financeContext)
@@ -71,7 +72,6 @@ class GoalUseCaseTest {
         targetAmount = targetAmount,
         targetSourceId = sourceId,
         targetDate = LocalDate.now().plusDays(30),
-        startingDate = LocalDate.now(),
         status = GoalStatusType.ACTIVE,
         type = type
     )
@@ -80,8 +80,7 @@ class GoalUseCaseTest {
     fun `create fund goal validates source, evaluates progress and persists it`() {
         val sourceId = UUID.randomUUID()
         val goalSlot = slot<Goal>()
-        every { financeContext.verifyFundExists(sourceId) } just Runs
-        every { financeContext.getFundBalance(sourceId) } returns 100.0
+        every { financeContext.getFund(sourceId) } returns FinanceContextFund(sourceId, 450.0, 450.0)
         every { goalRepo.create(capture(goalSlot)) } just Runs
 
         val result = createGoal.execAsync(createGoalInput(sourceId, type = GoalEvaluationType.FUND))
@@ -90,7 +89,7 @@ class GoalUseCaseTest {
         assertEquals("Fond", goalSlot.captured.title)
         assertEquals(sourceId, goalSlot.captured.targetSourceId)
         assertEquals(GoalEvaluationType.FUND, goalSlot.captured.type)
-        verify { financeContext.verifyFundExists(sourceId) }
+        verify { financeContext.getFund(sourceId) }
     }
 
     @Test
@@ -111,7 +110,7 @@ class GoalUseCaseTest {
     @Test
     fun `does not create goal when fund does not exist`() {
         val sourceId = UUID.randomUUID()
-        every { financeContext.verifyFundExists(sourceId) } throws DomainException.NotFound.SavingGoal(sourceId)
+        every { financeContext.getFund(sourceId) } throws DomainException.NotFound.SavingGoal(sourceId)
 
         assertFailsWith<DomainException.NotFound.SavingGoal> {
             createGoal.execAsync(createGoalInput(sourceId))
@@ -149,6 +148,7 @@ class GoalUseCaseTest {
         val existing = goal(id = goalId, title = "Old title")
         val goalSlot = slot<Goal>()
         every { goalRepo.get(goalId) } returns existing
+        every { financeContext.getFund(any()) } returns FinanceContextFund(goalId, 1000.0, 1000.0)
         every { goalRepo.update(capture(goalSlot)) } just Runs
 
         updateGoal.execAsync(
@@ -205,7 +205,7 @@ class GoalUseCaseTest {
         val sourceId = UUID.randomUUID()
         val existing = goal(id = goalId, sourceId = sourceId, targetAmount = 300.0)
         every { goalRepo.get(goalId) } returns existing
-        every { financeContext.getFundBalance(sourceId) } returns 100.0
+        every { financeContext.getFund(sourceId) } returns FinanceContextFund(sourceId, 100.0, 400.0)
 
         val output = getGoal.execAsync(goalId)
 
@@ -231,7 +231,7 @@ class GoalUseCaseTest {
         val sourceId = UUID.randomUUID()
         val goal1 = goal(sourceId = sourceId, targetAmount = 300.0)
         val goal2 = goal(sourceId = sourceId, targetAmount = 200.0, status = GoalStatusType.COMPLETED)
-        every { financeContext.getFundBalance(any()) } returns 50.0
+        every { financeContext.getFund(any()) } returns FinanceContextFund(sourceId, 50.0, 400.0)
         every { goalRepo.getAll(any(), anyNullable()) } returns RepoList(listOf(goal1, goal2), 2)
 
         val result = getAllGoals.execAsync(
@@ -261,7 +261,7 @@ class GoalUseCaseTest {
 
     @Test
     fun `get all goals returns empty list`() {
-        every { financeContext.getFundBalance(any()) } returns 0.0
+        every { financeContext.getFund(any()) } returns FinanceContextFund(UUID.randomUUID(), 0.0, 400.0)
         every { goalRepo.getAll(any(), anyNullable()) } returns RepoList(emptyList(), 0)
 
         val result = getAllGoals.execAsync(
