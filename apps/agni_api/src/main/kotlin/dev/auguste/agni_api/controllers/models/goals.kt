@@ -26,6 +26,12 @@ data class ApiUpdateGoal(
     val status: Int
 )
 
+data class ApiGaolQueryExtend(
+    val sourceId: UUID?,
+    val status: Int?,
+    val type: String?
+)
+
 fun mapApiCreateGoal(apiCreate: ApiCreateGoal): CreateGoalInput {
     return CreateGoalInput(
         title= apiCreate.title,

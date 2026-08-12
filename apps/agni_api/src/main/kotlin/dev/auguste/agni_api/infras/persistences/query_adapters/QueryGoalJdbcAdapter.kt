@@ -39,12 +39,12 @@ class QueryGoalJdbcAdapter(
 
         if (extend.status != null) {
             sqlBuilder.append(" AND status = :status")
-            params.addValue("status", extend.status)
+            params.addValue("status", extend.status.ordinal)
         }
 
         if (extend.type != null) {
             sqlBuilder.append(" AND type = :type")
-            params.addValue("type", extend.type)
+            params.addValue("type", extend.type.value)
         }
 
         if (extend.dueDateComparator != null) {

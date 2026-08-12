@@ -1,10 +1,12 @@
 package dev.auguste.agni_api.controllers
 
 import dev.auguste.agni_api.controllers.models.ApiCreateGoal
+import dev.auguste.agni_api.controllers.models.ApiGaolQueryExtend
 import dev.auguste.agni_api.controllers.models.ApiUpdateGoal
 import dev.auguste.agni_api.controllers.models.mapApiCreateGoal
 import dev.auguste.agni_api.controllers.models.mapApiUpdateGoal
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryGoalExtend
 import dev.auguste.agni_api.core.entities.enums.GoalEvaluationType
 import dev.auguste.agni_api.core.entities.enums.GoalStatusType
 import dev.auguste.agni_api.core.usecases.CreatedOutput
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
+import kotlin.uuid.toKotlinUuid
 
 
 @RestController
@@ -60,13 +63,13 @@ class GoalController(
     }
 
     @GetMapping
-    fun getAllGoals(@ModelAttribute query: QueryFilter, sourceId: UUID?, status: Int?, type: String?): ResponseEntity<ListOutput<GetGoalOutput>> {
+    fun getAllGoals(@ModelAttribute query: QueryFilter, @ModelAttribute queryExtend: ApiGaolQueryExtend): ResponseEntity<ListOutput<GetGoalOutput>> {
         return ResponseEntity.ok(
             getAllGoal.execAsync(GetAllGoalInput(
                 query,
-                sourceId = sourceId,
-                status = status?.let { GoalStatusType.fromInt(it) },
-                type = type?.let { GoalEvaluationType.fromString(it) }
+                sourceId = queryExtend.sourceId,
+                status = queryExtend.status?.let { GoalStatusType.fromInt(it) },
+                type = queryExtend.type?.let { GoalEvaluationType.fromString(it) }
             ))
         )
     }
