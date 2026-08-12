@@ -70,13 +70,13 @@ class QueryGoalJdbcAdapter(
         return RowMapper { rs, _ ->
             JdbcGoalModel(
                 id = rs.getObject("goal_id", UUID::class.java),
-                title = rs.getObject("title", String::class.java),
+                title = rs.getString("title"),
                 sourceId = rs.getObject("source_id", UUID::class.java),
-                description = rs.getObject("description", String::class.java),
+                description = rs.getString("description"),
                 dueDate = rs.getObject("due_date", LocalDate::class.java),
-                targetAmount = rs.getObject("target_amount", Double::class.java),
-                status = rs.getObject("status", Int::class.java),
-                type = rs.getObject("type", String::class.java),
+                targetAmount = rs.getDouble("target_amount"),
+                status = rs.getInt("status"),
+                type = rs.getString("type")
             )
         }
     }
