@@ -37,7 +37,7 @@ class GetAllGoals(
                    targetAmount = it.targetAmount,
                    targetSourceId = it.targetSourceId,
                    dueDate = it.dueDate,
-                   createdDate = it.createdAt,
+                   createdDate = it.createdAt.toLocalDate(),
                    status = it.status,
                    type = it.type,
                    evaluation = GetGoalEvaluationOutput(

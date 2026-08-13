@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.usecases.saving_goals
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
+import dev.auguste.agni_api.core.adapters.dto.QuerySortBy
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.ListOutput
@@ -9,7 +10,13 @@ import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetSavingGoalOutput
 
 class GetAllSavingGoal(private val savingGoalRepo: IRepository<SavingGoal>): IUseCase<QueryFilter, ListOutput<GetSavingGoalOutput>> {
     override fun execAsync(input: QueryFilter): ListOutput<GetSavingGoalOutput> {
-        val savingGoals = savingGoalRepo.getAll(input)
+        val query = QueryFilter(
+            offset = input.offset,
+            limit = input.limit,
+            queryAll = input.queryAll,
+            sortBy = QuerySortBy("updated_at", false),
+        )
+        val savingGoals = savingGoalRepo.getAll(query)
 
         return ListOutput(
             items = savingGoals.items.map {

@@ -1,4 +1,5 @@
 import type { CalendarDate } from "@internationalized/date"
+import type { GetFundResponse } from "../api/fund"
 
 export type EditFundType = {
     title: string,
@@ -15,6 +16,8 @@ export type FundType = {
     target: number,
     balance: number
 }
+
+export type FundCard = GetFundResponse & { goalSummary?: { numberGoal: number, nextDueDate: Date }  }
 
 export type EditUpdateAmountFundType = {
     accountId: string

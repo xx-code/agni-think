@@ -1,61 +1,31 @@
 <script setup lang="ts">
 import { 
-    ModalEditAmountFund,
-    ModalEditFund,
-    ModalPlanningAdvisor, 
+    ModalFund,
+    ModalFundAmount,
 } from "#components"
-import type { TableColumn, TableRow } from "#ui/types"
-import { DateFormatter, getLocalTimeZone } from "@internationalized/date"
 import { ref } from "vue"
-import type { TargetGoal } from "~/components/Modal/PlanningAdvisor.vue"
 import { fetchAccounts } from "~/composables/api/accounts"
 import { fetchFundSummary } from "~/composables/api/analytics"
-import { fetchFunds, useUpdateFund, useCreateFund, fetchFund, useUpdateAmountFund, useDeleteFund } from "~/composables/api/funds"
-import { fetchImportanceTypes, fetcheIntensityDesirTypes } from "~/composables/api/internal"
+import { fetchFunds, fetchFund, useDeleteFund } from "~/composables/api/funds"
+import { fundToFundForm } from "~/mappers/fund"
 import type { QueryFilterFundRequest } from "~/types/api/fund"
-import type { EditFundType, EditUpdateAmountFundType, FundType } from "~/types/ui/fund"
-import type { NavigationToggleItem } from "~/types/ui/navigation"
-
-interface ItemRow  {
-    id: string
-    accountId?: string
-    title: string
-    description: string
-    target: number 
-    balance: number
-}
+import type { FundType } from "~/types/ui/fund"
 
 const loadingSummary = ref(false)
-
-const page = ref(1)
+const isLoading = ref(false)
 const filter = reactive<QueryFilterFundRequest>({
     offset: 0,
-    limit: 8,
+    limit: 1,
     queryAll: false
 })
+const funds = ref<FundType[]>([])
+const totalFund = ref(0)
 
-const { data: utils } = useAsyncData('utils+accounts', async () => {
-    const query = { offset: 0, limit: 0, queryAll: true }
-    const [ accounts, importances, intensityDesirs ] = await Promise.all([
-        fetchAccounts(query),
-        fetchImportanceTypes(),
-        fetcheIntensityDesirTypes()
-    ])
+const { data: accounts } = useAsyncData('funds+accounts', async () => {
+    const res = await fetchAccounts({ limit: 10, offset: 0, queryAll: true})
 
-    return {
-        accounts,
-        importances,
-        intensityDesirs
-    }
+    return res.items
 })
-
-const { data: goals, error, refresh } = useAsyncData('goal+page', async () => {
-    const res = await fetchFunds(filter)
-
-    return res
-}, {
-    watch: [filter]
-})  
 
 const { data: summary } = useAsyncData('page-fund-summary', async () => {
     loadingSummary.value = true
@@ -68,145 +38,85 @@ const { data: summary } = useAsyncData('page-fund-summary', async () => {
         remain: res.totalTarget - res.totalBalance
     }
 }, {
-    watch: [goals]
+    watch: [funds]
 })
 
-
-const tableData = computed(() => {
-    return goals.value?.items.map(i => ({
-        id: i.id,
-        title: i.title,
-        balance: i.balance,
-        description: i.description,
-        accountId: i.accountId,
-        target: i.target,
-    } satisfies ItemRow))
-})
 
 const toast = useToast()
 const overlay = useOverlay()
-const modalCreateSavingGoal = overlay.create(ModalEditFund)
-const modalUpdateAmountSavingGoal = overlay.create(ModalEditAmountFund)
-const modalPlanningAdvisor = overlay.create(ModalPlanningAdvisor)
+const modalFund = overlay.create(ModalFund)
+const modalAmountFund = overlay.create(ModalFundAmount)
 
-const df = new DateFormatter('en-Us', {
-    dateStyle: 'medium'
-})
-
-// View mode toggle
-const viewModeId = ref<'cards' | 'table'>('cards')
-const viewModeItems: NavigationToggleItem[] = [
-    {
-        id: 'cards',
-        iconName: 'i-lucide-layout-grid'
-    },
-    {
-        id: 'table',
-        iconName: 'i-lucide-table-2'
-    }
-]
-
-// Computed summary stats
-const totalTarget = computed(() => tableData.value?.reduce((sum, g) => sum + g.target, 0) || 0)
-const totalSaved = computed(() => tableData.value?.reduce((sum, g) => sum + g.balance, 0) || 0)
-const totalRemaining = computed(() => totalTarget.value - totalSaved.value)
-const averageProgress = computed(() => {
-    const data = tableData.value
-    if (!data?.length) return 0
-    return data.reduce((sum, g) => sum + (g.balance / g.target * 100), 0) / data.length
-})
-
-async function onSubmitFund(value: EditFundType, oldValue?: FundType) {
-    try {
-        if (oldValue) {
-            await useUpdateFund(oldValue.id, {
-                title: value.title,
-                description: value.description,
-                target: value.target,
-                accountId: value.accountId
-            })
-        } else {
-            await useCreateFund({
-                title: value.title,
-                description: value.description,
-                target: value.target,
-                accountId: value.accountId
-            })
-        }
-        await refresh()
-        toast.add({
-            title: 'Succès',
-            description: oldValue ? 'Objectif mis à jour' : 'Objectif créé',
-            color: 'success'
-        })
-    } catch(err) {
-        toast.add({
-            title: 'Erreur',
-            description: "Erreur lors de la soumission: " + err,
-            color: 'error'
-        })
-    }
-} 
-
-async function openSavingGoal(goalId?: string) {
-    let goal: FundType | undefined = undefined
-    if (goalId) {
-        goal = await fetchFund(goalId) 
-    }
-
-
-    modalCreateSavingGoal.open({
-        saveGoal: goal,
-        onSubmit: onSubmitFund 
-    }) 
-}
-
-async function onUpdateAmountFund(value: EditUpdateAmountFundType, isIncrease: boolean, oldValue?: FundType) {
-    try {
-        if (oldValue) {
-            await useUpdateAmountFund({
-                isIncrease: isIncrease,
-                amount: value.amount,
-                accountId: value.accountId,
-                fundId: oldValue?.id
-            })
-            await refresh()
-            toast.add({
-                title: 'Succès',
-                description: isIncrease ? 'Montant ajouté' : 'Montant retiré',
-                color: 'success'
-            })
-        }
-    } catch(err) {
-        toast.add({
-            title: 'Erreur',
-            description: "Erreur lors de la mise à jour: " + err,
-            color: 'error'
-        })
+async function updateFundList(id: string) {
+    const fund = await fetchFund(id)
+    const index = funds.value.findIndex(i => i.id == id)
+    if (index >= 0 ) {
+        funds.value[index] = fund
+    } else {
+        funds.value.unshift(fund)
     }
 }
 
-const openUpdateAmountSavingGoal = async (isIncrease: boolean, goalId?: string) => {
-    let goal: FundType | undefined = undefined
+async function openModalFund(goalId?: string) {
+    let fund: FundType | undefined = undefined
     if (goalId) {
-        goal = await fetchFund(goalId) 
+        fund = await fetchFund(goalId) 
     }
-    
-    modalUpdateAmountSavingGoal.open({
-        isIncrease: isIncrease,
-        onSubmit: onUpdateAmountFund,
-        saveGoal: goal
-    })
+
+    modalFund.open({
+        fundId: fund?.id,
+        initData: fund ? fundToFundForm(fund) : undefined,
+        onClose: async (returnId) => {
+            if (returnId) {
+                await updateFundList(returnId)
+            }
+        }
+    }).result 
+}
+
+async function openModalFundAmount (isIncrease: boolean, fundId: string) {
+    try {
+        let fund = await fetchFund(fundId) 
+        
+        modalAmountFund.open({
+            isIncrease: isIncrease,
+            fund: fund,
+            fundAccountId: fund.accountId,
+            onClose: (close) => {
+                if (close) {
+                    updateFundList(fundId)
+                }
+            }
+        })
+    } catch(err: any) {
+        toast.add({
+            color: err,
+            title: 'Erreur',
+            description: err.message
+        })
+    }
 }
 
 const deleteAccountDepositId = ref('')
 const deletePopOverOpen = ref(false)
 const deletePopOverGoalId = ref<string>()
 
-const onDeleteGoal = async (goalId: string) => {
+function openModalDeleteFund(fundId: string) {
+    deletePopOverGoalId.value = fundId
+    deletePopOverOpen.value = true
+}
+
+const onDeleteFund = async (fundId: string) => {
     try {
-        await useDeleteFund(goalId, { accountId: deleteAccountDepositId.value })
-        await refresh()
+        await useDeleteFund(fundId, { accountId: deleteAccountDepositId.value })
+        const indexToRemove = funds.value.findIndex(i => i.id === fundId)
+        if (indexToRemove >= 0)  {
+            funds.value = funds.value.filter(i => i.id !== fundId)
+            totalFund.value -= 1
+            if (filter.offset === funds.value.length)
+                await getAllFunds()
+        }
+
         deletePopOverOpen.value = false
         deletePopOverGoalId.value = undefined
         toast.add({
@@ -214,144 +124,44 @@ const onDeleteGoal = async (goalId: string) => {
             description: 'Fund supprimé',
             color: 'success'
         })
-    } catch(err) {
+    } catch(err: any) {
         toast.add({
             title: 'Erreur',
-            description: 'Impossible de supprimer l\'objectif',
+            description: 'Impossible de supprimer l\'objectif ' + err.message,
             color: 'error'
         })
     }
 } 
 
-const rowSelection = ref<Record<string, boolean>>({})
-const table = useTemplateRef('table')
+async function showMoreFund() {
+    if (funds.value.length === totalFund.value)
+        return 
 
-function onSelectItem(row: TableRow<ItemRow>) {
-  row.toggleSelected(!row.getIsSelected())
+    filter.offset = funds.value.length
 }
 
-function openPlanningAdvisorModal() {
-    const selectedDataTable: TargetGoal[] = []
-    table.value?.tableApi.getSelectedRowModel().rows.forEach(i => {
-        selectedDataTable.push({ goalId: i.original.id, title: i.original.title })
-    })
-
-    if (selectedDataTable.length === 0) {
+async function getAllFunds() {
+    isLoading.value = true
+    try {
+        var res = await fetchFunds(filter)
+        console.log(res.items)
+        funds.value.push(...res.items) 
+        totalFund.value = res.total
+    } catch(err: any) {
         toast.add({
-            title: 'Attention',
-            description: 'Veuillez sélectionner au moins un objectif',
-            color: 'warning'
+            title: 'Erreur Funds',
+            description: err.message,
+            color: 'error'
         })
-        return
+    } finally {
+        isLoading.value = false
     }
-
-    modalPlanningAdvisor.open({
-        targetGoals: selectedDataTable
-    })
 }
 
-const UCheckbox = resolveComponent('UCheckbox')
-const UProgress = resolveComponent('UProgress')
-const UButton = resolveComponent('UButton')
+watch(filter, () => {
+    getAllFunds()
+}, { immediate: true })
 
-const columns: TableColumn<ItemRow>[] = [
-    {
-        id: 'select',
-        header: ({ table }) =>
-            h(UCheckbox, {
-                modelValue: table.getIsSomePageRowsSelected()
-                ? 'indeterminate'
-                : table.getIsAllPageRowsSelected(),
-                'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
-                table.toggleAllPageRowsSelected(!!value),
-                'aria-label': 'Tout sélectionner'
-            }),
-        cell: ({ row }) =>
-            h(UCheckbox, {
-                modelValue: row.getIsSelected(),
-                'onUpdate:modelValue': (value: boolean | 'indeterminate') => row.toggleSelected(!!value),
-                'aria-label': 'Sélectionner la ligne'
-            })
-    },
-    {
-        accessorKey: 'title',
-        header: "Titre",
-        cell: ({ row }) => 
-            h('div', { class: 'flex flex-col' }, [
-                h('p', { class: 'font-semibold text-gray-900 truncate max-w-48' }, row.original.title),
-                h('p', { class: 'text-xs text-gray-500 truncate max-w-48' }, row.original.description)
-            ])
-    },
-    {
-        accessorKey: 'target',
-        header: "Progression",
-        cell: ({ row }) => {
-            const percentage = roundNumber(computePercentage(row.original.target, row.original.balance))
-            return h('div', { class: 'flex flex-col gap-1 min-w-48' }, [
-                h('div', { class: 'flex items-center gap-2' }, [
-                    h('span', { class: 'text-sm font-semibold text-gray-900' }, 
-                        formatCurrency(row.original.balance)
-                    ),
-                    h('span', { class: 'text-xs text-gray-400' }, '/'),
-                    h('span', { class: 'text-sm text-gray-600' }, 
-                        formatCurrency(row.original.target)
-                    ),
-                ]),
-                h(UProgress, { 
-                    modelValue: percentage,
-                    color: percentage >= 90 ? 'success' : percentage >= 50 ? 'primary' : 'neutral'
-                })
-            ])
-        }        
-    },
-    {
-        id: 'left',
-        header: "Restant",
-        cell: ({ row }) => h('p', { class: 'font-semibold text-blue-600' }, 
-            formatCurrency(row.original.target - row.original.balance)
-        )
-    },
-    {
-        id: 'action',
-        header: "Actions",
-        cell: ({ row }) => {
-            return h('div', { class: 'flex gap-1' }, [
-                h(UButton, {
-                    icon: "i-lucide-plus",
-                    variant: "ghost",
-                    color: "success",
-                    size: "sm",
-                    onClick: () => openUpdateAmountSavingGoal(true, row.original.id)
-                }),
-                h(UButton, {
-                    icon: "i-lucide-minus",
-                    variant: "ghost",
-                    color: "warning",
-                    size: "sm",
-                    onClick: () => openUpdateAmountSavingGoal(false, row.original.id)
-                }),
-                h(UButton, {
-                    icon: "i-lucide-pencil",
-                    variant: "ghost",
-                    color: "neutral",
-                    size: "sm",
-                    onClick: () => openSavingGoal(row.original.id)
-                }),
-                h(UButton, {
-                    icon: "i-lucide-trash-2",
-                    variant: "ghost",
-                    color: "error",
-                    size: "sm",
-                    onClick: () => {
-                        deletePopOverOpen.value = true
-                        deletePopOverGoalId.value = row.original.id
-                        deleteAccountDepositId.value = row.original.accountId || ''
-                    }
-                }),
-            ])
-        }
-    }
-]
 </script>
 
 <template>
@@ -376,141 +186,53 @@ const columns: TableColumn<ItemRow>[] = [
             />
         </div>
 
-        <!-- Action Bar -->
-        <div class="flex justify-between items-center mb-8 ">
-            <NavigationToggle 
-                :items="viewModeItems"
-                v-model="viewModeId"
-            />
-
+        <div class="flex justify-end items-center mb-8 ">
             <UButton 
                 icon="i-lucide-plus" 
                 label="Nouvel Objectif" 
                 size="xl"
                 class="add-button"
-                @click="openSavingGoal()"
+                @click="openModalFund()"
             />
         </div>
 
         <!-- Cards View -->
-        <div v-if="viewModeId === 'cards'" class="goals-grid">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] md:gap-6">
             <TransitionGroup name="goal-list">
-                <div 
-                    v-for="goal in tableData" 
-                    :key="goal.id"
-                    class="goal-card"
-                >
-                    <!-- Card Header -->
-                    <div class="goal-header">
-                        <div class="goal-title-section">
-                            <h3 class="goal-title">{{ goal.title }}</h3>
-                            <span class="goal-percentage">
-                                {{ roundNumber(computePercentage(goal.target, goal.balance)) }}%
-                            </span>
-                        </div>
-                        
-                        <div class="goal-actions">
-                            <UButton 
-                                icon="i-lucide-pencil" 
-                                variant="ghost" 
-                                color="neutral" 
-                                size="sm"
-                                @click="openSavingGoal(goal.id)"
-                            />
-                            <UButton 
-                                icon="i-lucide-trash-2" 
-                                variant="ghost" 
-                                color="error" 
-                                size="sm"
-                                @click="() => {
-                                    deletePopOverOpen = true
-                                    deletePopOverGoalId = goal.id
-                                }"
-                            />
-                        </div>
-                    </div>
-
-                    <!-- Description -->
-                    <p v-if="goal.description" class="goal-description">{{ goal.description }}</p>
-
-                    <!-- Progress Section -->
-                    <div class="progress-section">
-                        <div class="progress-amounts">
-                            <span class="amount-saved">${{ goal.balance.toLocaleString() }}</span>
-                            <span class="amount-separator">/</span>
-                            <span class="amount-target">${{ goal.target.toLocaleString() }}</span>
-                        </div>
-                        <UProgress 
-                            v-bind:model-value="roundNumber(computePercentage(goal.target, goal.balance))" 
-                            :color="computePercentage(goal.target, goal.balance) >= 90 ? 'success' : 'primary'"
-                            size="md"
-                        />
-                        <div class="progress-remaining">
-                            <span class="remaining-label">Restant</span>
-                            <span class="remaining-amount">${{ (goal.target - goal.balance).toLocaleString() }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Metadata -->
-                    <!-- <div class="goal-metadata">
-                        <div class="metadata-row">
-                            <div class="metadata-item">
-                                <UIcon name="i-lucide-sparkles" size="sm" />
-                                <span>Désir</span>
-                                <div class="rating-dots">
-                                    <span 
-                                        v-for="i in (utils?.intensityDesirs.length || 5)"
-                                        :key="i"
-                                        class="dot"
-                                        :class="{ active: i <= goal.desir }"
-                                    />
-                                </div>
-                            </div>
-                            
-                            <div class="metadata-item">
-                                <UIcon name="i-lucide-shield-alert" size="sm" />
-                                <span>Importance</span>
-                                <div class="rating-dots">
-                                    <span 
-                                        v-for="i in (utils?.importances.length || 5)"
-                                        :key="i"
-                                        class="dot importance"
-                                        :class="{ active: i <= goal.importance }"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div v-if="goal.wishDate" class="metadata-date">
-                            <UIcon name="i-lucide-calendar-clock" size="sm" />
-                            <span>{{ formatDate(goal.wishDate) }}</span>
-                        </div>
-                    </div> -->
-
-                    <!-- Quick Actions -->
-                    <div class="quick-actions">
-                        <UButton 
-                            icon="i-lucide-plus"
-                            label="Ajouter"
-                            variant="outline"
-                            color="success"
-                            block
-                            @click="openUpdateAmountSavingGoal(true, goal.id)"
-                        />
-                        <UButton 
-                            icon="i-lucide-minus"
-                            label="Retirer"
-                            variant="outline"
-                            color="warning"
-                            block
-                            @click="openUpdateAmountSavingGoal(false, goal.id)"
-                        />
-                    </div>
-                </div>
+                <UiFundCard 
+                    v-for="fund in funds" 
+                    :key="fund.id"
+                    :fund="{
+                        id: fund.id,
+                        title: fund.title,
+                        balance: fund.balance,
+                        description: fund.description,
+                        target: fund.target,
+                        accountId: fund.accountId,
+                        goalSummary: {
+                            numberGoal: 4,
+                            nextDueDate: new Date('08-14-2026')
+                        }
+                    }"
+                    @add-goal=""
+                    @update="openModalFund(fund.id)"
+                    @delete="() => openModalDeleteFund(fund.id)"
+                    @increase-amount="openModalFundAmount(true, fund.id)"
+                    @decrease-amount="openModalFundAmount(false, fund.id)"
+                />
             </TransitionGroup>
 
-            <!-- Empty State -->
-            <div v-if="!tableData?.length" class="empty-state">
+            <div 
+                v-if="funds.length < totalFund"
+                class="p-5 rounded-xl bg-gray-50 border border-dashed border-gray-300 h-full flex justify-center cursor-pointer hover:shadow-xs"
+                @click="showMoreFund()" >
+                <div class="flex items-center my-8">
+                    <span>Afficher plus</span> 
+                    <UIcon name="i-lucide-arrow-right" />
+                </div>                
+            </div>
+
+            <div v-if="funds.length === 0 && totalFund == 0" class="empty-state">
                 <UIcon name="i-lucide-target" class="empty-icon" />
                 <h3 class="empty-title">Aucun objectif d'épargne</h3>
                 <p class="empty-description">Commencez par créer votre premier objectif</p>
@@ -518,38 +240,8 @@ const columns: TableColumn<ItemRow>[] = [
                     icon="i-lucide-plus" 
                     label="Créer un Objectif" 
                     size="xl"
-                    @click="openSavingGoal()"
+                    @click="openModalFund()"
                 />
-            </div>
-        </div>
-
-        <!-- Table View -->
-        <div v-else class="table-container">
-            <UTable 
-                ref="table"
-                v-model:row-selection="rowSelection"
-                :columns="columns"
-                :data="tableData" 
-                @select="(row, e) => onSelectItem(row as any)"
-            />
-            <div class="table-footer">
-                <UPagination 
-                    v-model:page="page" 
-                    @update:page="() => filter.offset = (filter.limit * (page - 1))"
-                    :items-per-page="filter.limit"  
-                    :total="goals?.total" 
-                    active-variant="subtle"
-                />
-                <div class="pagination-controls">
-                    <span class="pagination-label">Lignes par page</span>
-                    <UInputNumber 
-                        v-model="filter.limit" 
-                        :min="1" 
-                        :max="50"
-                        orientation="vertical"
-                        class="pagination-input"
-                    />
-                </div>
             </div>
         </div>
 
@@ -569,7 +261,7 @@ const columns: TableColumn<ItemRow>[] = [
                         value-key="value" 
                         label-key="label" 
                         placeholder="Sélectionner un compte"
-                        :items="utils?.accounts.items.map(i => ({ label: i.title, value: i.id }))" 
+                        :items="accounts?.map(i => ({ label: i.title, value: i.id }))" 
                         size="xl"
                     />
                     <div class="modal-actions">
@@ -578,13 +270,15 @@ const columns: TableColumn<ItemRow>[] = [
                             variant="outline"
                             color="neutral"
                             block
-                            @click="deletePopOverOpen = false"
+                            @click="() => { deletePopOverOpen = false }"
                         />
                         <UButton 
                             label="Supprimer" 
                             color="error"
                             block
-                            @click="deletePopOverGoalId ? onDeleteGoal(deletePopOverGoalId) : null"
+                            @click="() => {
+                                deletePopOverGoalId ? onDeleteFund(deletePopOverGoalId) : null
+                            }"
                         />
                     </div>
                 </div>

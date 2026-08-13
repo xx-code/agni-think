@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
+import java.time.OffsetDateTime
 import java.util.UUID
 
 @Component
@@ -44,7 +45,9 @@ class QuerySavingGoalExtendJdbcAdapter(
                 target = rs.getDouble("target"),
                 balance = rs.getDouble("balance"),
                 description = rs.getString("description"),
-                accountId = rs.getObject("account_id", UUID::class.java)
+                accountId = rs.getObject("account_id", UUID::class.java),
+                createdAt = rs.getObject("created_at", OffsetDateTime::class.java).toLocalDateTime(),
+                updatedAt = rs.getObject("updated_at", OffsetDateTime::class.java).toLocalDateTime()
             )
         }
     }

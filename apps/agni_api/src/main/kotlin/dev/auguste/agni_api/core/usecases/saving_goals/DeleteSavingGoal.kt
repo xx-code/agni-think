@@ -32,13 +32,12 @@ class DeleteSavingGoal(
                 return@execute
             }
 
+            if (input.accountId == null && savingGoal.accountId == null)
+                throw DomainException.BusinessLogic.Validation("Account ID must be non-null")
+
             val accountId = if (savingGoal.accountId == null) {
-                if (input.accountId == null)
-                    throw DomainException.BusinessLogic.Validation("Account ID must be non-null.")
-                input.accountId
+                input.accountId!!
             } else {
-                if (input.accountId != null && input.accountId != savingGoal.accountId)
-                    throw DomainException.BusinessLogic.Validation("Account ID Must be same as saving accountId.")
                 savingGoal.accountId!!
             }
 

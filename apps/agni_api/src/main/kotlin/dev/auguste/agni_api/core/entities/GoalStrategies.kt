@@ -39,6 +39,6 @@ class CategoryEvaluationStrategy(
         goal: Goal,
         context: IFinanceContext
     ): Double {
-        return context.getCategoryTotal(goal.targetSourceId, goal.createdAt, goal.dueDate)
+        return context.getCategoryTotal(goal.targetSourceId, goal.createdAt.toLocalDate(), goal.dueDate)
     }
 }
