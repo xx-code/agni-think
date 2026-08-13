@@ -15,7 +15,7 @@ const loadingSummary = ref(false)
 const isLoading = ref(false)
 const filter = reactive<QueryFilterFundRequest>({
     offset: 0,
-    limit: 1,
+    limit: 5,
     queryAll: false
 })
 const funds = ref<FundType[]>([])
@@ -231,18 +231,13 @@ watch(filter, () => {
                     <UIcon name="i-lucide-arrow-right" />
                 </div>                
             </div>
-
-            <div v-if="funds.length === 0 && totalFund == 0" class="empty-state">
-                <UIcon name="i-lucide-target" class="empty-icon" />
-                <h3 class="empty-title">Aucun objectif d'épargne</h3>
-                <p class="empty-description">Commencez par créer votre premier objectif</p>
-                <UButton 
-                    icon="i-lucide-plus" 
-                    label="Créer un Objectif" 
-                    size="xl"
-                    @click="openModalFund()"
-                />
-            </div>
+            <UiEmptyState 
+                v-if="funds.length === 0 && totalFund == 0"
+                icon="i-lucide-target"
+                title="Aucun fond"
+                description="Commencez par créer votre premier fond"
+                @new="openModalFund()"
+            />
         </div>
 
         <!-- Delete Modal -->
