@@ -3,8 +3,10 @@ package dev.auguste.agni_api.core.usecases.saving_goals
 import dev.auguste.agni_api.core.SAVING_CATEGORY_ID
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryGoalExtend
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.DomainException
+import dev.auguste.agni_api.core.entities.Goal
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
@@ -20,6 +22,7 @@ import java.time.LocalDateTime
 class DeleteSavingGoal(
     private val savingGoalRepo: IRepository<SavingGoal>,
     private val accountRepo: IRepository<Account>,
+    private val goalRepo: IRepository<Goal>,
     private val createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
     private val unitOfWork: IUnitOfWork
 ): IUseCase<DeleteSavingGoalInput, Unit> {
@@ -61,6 +64,7 @@ class DeleteSavingGoal(
             ))
 
             savingGoalRepo.delete(input.savingGoalId)
+            goalRepo.deleteManyBy(QueryGoalExtend(setOf(input.savingGoalId)))
         }
     }
 }

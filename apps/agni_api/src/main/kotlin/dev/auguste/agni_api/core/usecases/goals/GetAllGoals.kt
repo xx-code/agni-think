@@ -19,7 +19,7 @@ class GetAllGoals(
         val res = goalRepo.getAll(
             query = input.queryFilter,
             QueryGoalExtend(
-                sourceId = input.sourceId,
+                sourceIds = input.sourceId?.let { setOf(it) },
                 status = input.status,
                 type = input.type
             )

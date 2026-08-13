@@ -32,9 +32,9 @@ class QueryGoalJdbcAdapter(
         val extend = query as QueryGoalExtend
         val params = MapSqlParameterSource()
 
-        if (extend.sourceId != null) {
-            sqlBuilder.append(" AND source_id = :sourceId")
-            params.addValue("sourceId", extend.sourceId)
+        if (!extend.sourceIds.isNullOrEmpty()) {
+            sqlBuilder.append(" AND source_id IN (:sourceIds)")
+            params.addValue("sourceIds", extend.sourceIds)
         }
 
         if (extend.status != null) {

@@ -7,13 +7,13 @@ import dev.auguste.agni_api.core.entities.enums.GoalStatusType
 import java.util.UUID
 
 class QueryGoalExtend(
-    val sourceId: UUID? = null,
+    val sourceIds: Set<UUID>? = null,
     val status: GoalStatusType? = null,
     val type: GoalEvaluationType? = null,
     val dueDateComparator: QueryDateComparator? = null
 ): IQueryExtend<Goal> {
     override fun isStatisfy(entity: Goal): Boolean {
-        if (sourceId != null && sourceId != entity.targetSourceId)
+        if (!sourceIds.isNullOrEmpty() && !sourceIds.contains(entity.targetSourceId))
             return false
 
         if (status != null && status != entity.status)

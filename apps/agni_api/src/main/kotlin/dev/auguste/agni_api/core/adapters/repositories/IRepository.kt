@@ -13,6 +13,7 @@ interface IRepository<T: Entity> {
     fun get(id: UUID): T?
     fun delete(id: UUID)
     fun deleteManyByIds(ids: Set<UUID>)
+    fun deleteManyBy(queryExtend: IQueryExtend<T>)
     fun update(entity: T)
     fun existsByName(name: String): Boolean
 }
