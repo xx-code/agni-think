@@ -3,7 +3,6 @@ package dev.auguste.agni_api.core.usecases.budgets
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.DomainException
-import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.budgets.dto.UpdateBudgetInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.value_objects.Scheduler

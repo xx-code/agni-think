@@ -5,8 +5,6 @@ import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.internal_loan.dto.GetInternalLoanOutput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
 import java.util.UUID
 

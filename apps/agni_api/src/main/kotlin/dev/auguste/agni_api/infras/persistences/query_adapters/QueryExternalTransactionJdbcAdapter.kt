@@ -3,11 +3,8 @@ package dev.auguste.agni_api.infras.persistences.query_adapters
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryExternalTransactionExtend
-import dev.auguste.agni_api.core.entities.AgentSuggestion
 import dev.auguste.agni_api.core.entities.ExternalTransaction
-import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.infras.persistences.IMapper
-import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcAgentSuggestionModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcExternalTransactionModel
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource

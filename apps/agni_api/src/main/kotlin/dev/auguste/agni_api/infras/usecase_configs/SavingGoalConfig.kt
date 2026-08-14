@@ -4,6 +4,7 @@ import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.Goal
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
@@ -86,6 +87,7 @@ class SavingGoalConfig {
    fun deleteSavingGoal(
        savingGoalRepo: IRepository<SavingGoal>,
        accountRepo: IRepository<Account>,
+       goalRepo: IRepository<Goal>,
        createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
        unitOfWork: IUnitOfWork,
    ): IUseCase<DeleteSavingGoalInput, Unit> {
@@ -93,25 +95,30 @@ class SavingGoalConfig {
            savingGoalRepo = savingGoalRepo,
            accountRepo = accountRepo,
            createInvoice = createInvoice,
-           unitOfWork = unitOfWork
+           unitOfWork = unitOfWork,
+           goalRepo = goalRepo
        )
    }
 
     @Bean
     fun getAllSavingGoals(
         savingGoalRepo: IRepository<SavingGoal>,
+        goalRepo: IRepository<Goal>
     ): IUseCase<QueryFilter, ListOutput<GetSavingGoalOutput>> {
         return GetAllSavingGoal(
             savingGoalRepo = savingGoalRepo,
+            goalRepo = goalRepo
         )
     }
 
     @Bean
     fun getSavingGoal(
         savingGoalRepo: IRepository<SavingGoal>,
+        goalRepo: IRepository<Goal>
     ): IUseCase<UUID, GetSavingGoalOutput> {
         return GetSavingGoal(
-            savingGoalRepo = savingGoalRepo
+            savingGoalRepo = savingGoalRepo,
+            goalRepo = goalRepo
         )
     }
 }

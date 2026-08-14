@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import type { AccountCheckingDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
-import type { EditFreezeInvoiceType, EditTransfertType, InvoiceType } from "~/types/ui/transaction";
+import type { EditFreezeInvoiceType, EditTransfertType } from "~/types/ui/transaction";
 import { getLocalTimeZone } from "@internationalized/date";
 import type { QueryFilterRequest } from "~/types/api";
 import type { QueryInvoice } from "~/types/api/transaction";

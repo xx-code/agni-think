@@ -15,6 +15,7 @@ import dev.auguste.agni_api.core.entities.Deduction
 import dev.auguste.agni_api.core.entities.ExternalTransaction
 import dev.auguste.agni_api.core.entities.FinancePrinciple
 import dev.auguste.agni_api.core.entities.FinanceReport
+import dev.auguste.agni_api.core.entities.Goal
 import dev.auguste.agni_api.core.entities.IncomeSource
 import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.entities.Invoice
@@ -36,8 +37,8 @@ import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcDeductionModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcExternalTransactionModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcFinancePrincipleModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcFinanceReportModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcGoalModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcIncomeSourceModel
-import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInternalLoanMapper
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInternalLoanModal
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInvoiceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcNotificationModel
@@ -281,3 +282,14 @@ class InternalLoanRepository(
     internalLoanMapper: IMapper<JdbcInternalLoanModal, InternalLoan>,
     queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcInternalLoanModal, InternalLoan>
 ): JdbcRepository<JdbcInternalLoanModal, InternalLoan>(storage, internalLoanMapper, queryExtendAdapter)
+
+
+@Repository
+interface GoalStorage: GenericStorage<JdbcGoalModel, UUID>
+
+@Component
+class GoalRepository(
+    storage: GoalStorage,
+    goalMapper: IMapper<JdbcGoalModel, Goal>,
+    queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcGoalModel, Goal>
+): JdbcRepository<JdbcGoalModel, Goal>(storage, goalMapper, queryExtendAdapter)

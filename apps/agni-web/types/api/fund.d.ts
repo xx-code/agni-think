@@ -7,6 +7,11 @@ export type GetFundResponse = {
     target: number,
     balance: number
     accountId?: string
+    goals: {
+        id: string,
+        title: string,
+        dueDate: string
+    }[]
 }
 
 export type CreateFundRequest = {

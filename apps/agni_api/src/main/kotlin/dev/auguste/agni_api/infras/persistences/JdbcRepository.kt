@@ -91,6 +91,16 @@ abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
         storage.deleteById(id)
     }
 
+    override fun deleteManyBy(queryExtend: IQueryExtend<TEntity>) {
+        if (queryExtendAdapter == null)
+            throw Error("Query Adapter not setup")
+
+        val results = queryExtendAdapter.filter(QueryFilter.queryAll(), queryExtend)
+        if (results.items.isNotEmpty()) {
+            storage.deleteAllById(results.items.map { it.id!! }.toSet())
+        }
+    }
+
     override fun deleteManyByIds(ids: Set<UUID>) {
         storage.deleteAllById(ids)
     }

@@ -3,7 +3,6 @@ package dev.auguste.agni_api.core.value_objects
 import dev.auguste.agni_api.core.entities.enums.AccountType
 import dev.auguste.agni_api.core.entities.interfaces.IAccountDetail
 import java.time.LocalDate
-import java.time.ZoneOffset
 
 data class CreditCardAccountDetail(
     val creditLimit: Double,

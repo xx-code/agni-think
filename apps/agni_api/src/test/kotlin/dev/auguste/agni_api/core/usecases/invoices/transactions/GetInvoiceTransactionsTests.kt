@@ -2,8 +2,11 @@ package dev.auguste.agni_api.core.usecases.invoices.transactions
 
 import dev.auguste.agni_api.core.adapters.dto.RepoList
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.Budget
+import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.Deduction
 import dev.auguste.agni_api.core.entities.Invoice
+import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.entities.Transaction
 import dev.auguste.agni_api.core.entities.enums.DeductionBaseType
 import dev.auguste.agni_api.core.entities.enums.DeductionModeType
@@ -28,11 +31,17 @@ class GetInvoiceTransactionsTests {
     private val invoiceRepo = mockk<IRepository<Invoice>>(relaxed = true)
     private val deductionRepo = mockk<IRepository<Deduction>>(relaxed = true)
     private val transactionRepo = mockk<IRepository<Transaction>>(relaxed = true)
+    private val categoryRepo = mockk<IRepository<Category>>(relaxed = true)
+    private val budgetRepo = mockk<IRepository<Budget>>(relaxed = true)
+    private val tagRepo = mockk<IRepository<Tag>>(relaxed = true)
 
     private val useCase = GetInvoiceTransactions(
         deductionRepo = deductionRepo,
         transactionRepo = transactionRepo,
-        invoiceRepo = invoiceRepo
+        invoiceRepo = invoiceRepo,
+        categoryRepo = categoryRepo,
+        budgetRepo = budgetRepo,
+        tagRepo = tagRepo
     )
 
     private val fixedDate = LocalDateTime.of(2024, 1, 15, 0, 0)
