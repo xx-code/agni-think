@@ -2,6 +2,7 @@
 import { ModalEditBudget, SlideOverQuickInvoicesView } from "#components"
 import { getLocalTimeZone } from "@internationalized/date"
 import { computed, ref } from "vue"
+import { fetchBudgetTotalSummary } from "~/composables/api/analytics"
 import { fetchBudget, fetchBudgets, useCreateBudget, useDeleteBudget, useUpdateBudget } from "~/composables/api/budget"
 import type { BudgetType, EditBudgetType } from "~/types/ui/budget"
 
@@ -13,6 +14,8 @@ type BudgetItem = {
     balance: number
     dueDate: Date
 }
+
+const isLoadingSummary = ref(false)
 
 
 const { data: displayBudgets, error, refresh } = useAsyncData('budgets+all', async () => {
@@ -30,6 +33,20 @@ const { data: displayBudgets, error, refresh } = useAsyncData('budgets+all', asy
         target: i.target,
         dueDate: i.dueDate
     } satisfies BudgetItem))
+})
+
+const { data: summary } = useAsyncData('page-fund-summary', async () => {
+    isLoadingSummary.value = true
+    const res = await fetchBudgetTotalSummary()
+    isLoadingSummary.value = false
+
+    return {
+        total: res.totalBudget,
+        spend: res.totalSpend,
+        remain: res.totalBudget - res.totalSpend
+    }
+}, {
+    watch: [displayBudgets]
 })
 
 const overlay = useOverlay()
@@ -184,39 +201,24 @@ const getStatusColor = (percentage: number) => {
 
 <template>
     <div class="budget-page p-6">
-        <!-- Summary Cards -->
-        <div class="summary-section">
-            <div class="summary-card">
-                <div class="summary-header">
-                    <UIcon name="i-lucide-wallet" class="summary-icon" />
-                    <span class="summary-label">Budget Total</span>
-                </div>
-                <div class="summary-amount">${{ totalBudget.toLocaleString() }}</div>
-            </div>
+        <div class="grid md:grid-cols-3 gap-5 mb-10 grid-cols-1">
+            <UiBannerAccountant 
+                title="Budget Total"
+                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(168, 85, 247, 0.1)', fontColor: '#a855f7'}"
+                :amount="summary?.total ?? 0"
+            />
 
-            <div class="summary-card">
-                <div class="summary-header">
-                    <UIcon name="i-lucide-trending-up" class="summary-icon spend" />
-                    <span class="summary-label">Dépensé</span>
-                </div>
-                <div class="summary-amount spend">${{ totalSpent.toLocaleString() }}</div>
-            </div>
+            <UiBannerAccountant 
+                title="Dépensé"
+                :icon="{ name: 'i-lucide-piggy-bank', backgroundColor: 'rgba(242, 65, 71, 0.1)', fontColor: '#fb2c36'}"
+                :amount="summary?.spend ?? 0"
+            />
 
-            <div class="summary-card">
-                <div class="summary-header">
-                    <UIcon name="i-lucide-piggy-bank" class="summary-icon remaining" />
-                    <span class="summary-label">Restant</span>
-                </div>
-                <div class="summary-amount remaining">${{ totalRemaining.toLocaleString() }}</div>
-            </div>
-
-            <div class="summary-card">
-                <div class="summary-header">
-                    <UIcon name="i-lucide-activity" class="summary-icon progress" />
-                    <span class="summary-label">Progression Moyenne</span>
-                </div>
-                <div class="summary-amount progress">{{ averageProgress.toFixed(1) }}%</div>
-            </div>
+            <UiBannerAccountant 
+                title="Restant"
+                :icon="{ name: 'i-lucide-trending-up', backgroundColor: 'rgba(34, 197, 94, 0.1)', fontColor: '#22c55e'}"
+                :amount="summary?.remain ?? 0"
+            />
         </div>
 
         <!-- Action Bar -->

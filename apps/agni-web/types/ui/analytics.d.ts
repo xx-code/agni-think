@@ -1,3 +1,5 @@
+import type { BudgetTotalSummaryResponse } from "../api/analytics"
+
 export type EstimationLeftAmountType = {
     estimateAmount: number
 }
@@ -47,3 +49,5 @@ export type SpendAnalysticType = {
     totalSpends: number[] 
     spendByCategories: SpendCategoryType[][] 
 }
+
+export type BudgetTotalSummary = BudgetTotalSummaryResponse 
