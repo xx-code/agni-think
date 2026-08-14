@@ -1,6 +1,5 @@
 package dev.auguste.agni_api.core.usecases.schedule_Invoices.dto
 
-import dev.auguste.agni_api.core.adapters.dto.ScheduleRepeaterInput
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import java.util.UUID
 

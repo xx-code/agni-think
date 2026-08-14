@@ -4,7 +4,6 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryExternalTransactionExtend
 import dev.auguste.agni_api.core.entities.ExternalTransaction
 import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.GetSuggestionOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllExternalTransactionInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetExternalTransactionOutput

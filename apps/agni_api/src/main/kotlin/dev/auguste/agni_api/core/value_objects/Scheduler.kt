@@ -1,12 +1,9 @@
 package dev.auguste.agni_api.core.value_objects
 
-import dev.auguste.agni_api.core.entities.enums.IncomeSourceFrequencyType
 import dev.auguste.agni_api.core.entities.enums.PeriodType
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
-import java.time.temporal.ChronoUnit
 
 
 data class Scheduler(val date: LocalDateTime, val repeater: SchedulerRecurrence? = null) {

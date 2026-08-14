@@ -1,7 +1,6 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.value_objects.Scheduler

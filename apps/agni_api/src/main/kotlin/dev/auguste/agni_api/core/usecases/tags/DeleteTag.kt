@@ -5,7 +5,6 @@ import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.tags.dto.DeleteTagInput
-import java.util.UUID
 
 class DeleteTag(private val tagRepo: IRepository<Tag>): IUseCase<DeleteTagInput, Unit> {
 

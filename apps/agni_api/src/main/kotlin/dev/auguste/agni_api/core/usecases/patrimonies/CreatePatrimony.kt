@@ -11,7 +11,6 @@ import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.CreatePatrimonyInput
 import java.time.LocalDate
-import java.util.Date
 
 class CreatePatrimony(
     private val patrimonyRepo: IRepository<Patrimony>,

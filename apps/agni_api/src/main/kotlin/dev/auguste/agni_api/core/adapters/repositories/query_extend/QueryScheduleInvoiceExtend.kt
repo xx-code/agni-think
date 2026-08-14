@@ -3,7 +3,6 @@ package dev.auguste.agni_api.core.adapters.repositories.query_extend
 import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
-import java.util.Date
 
 class QueryScheduleInvoiceExtend(
     val comparatorDueDate: QueryDateComparator? = null,

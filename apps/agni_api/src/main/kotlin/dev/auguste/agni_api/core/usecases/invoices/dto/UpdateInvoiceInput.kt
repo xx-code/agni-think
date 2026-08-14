@@ -1,7 +1,6 @@
 package dev.auguste.agni_api.core.usecases.invoices.dto
 
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
-import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import java.time.LocalDateTime
 import java.util.UUID

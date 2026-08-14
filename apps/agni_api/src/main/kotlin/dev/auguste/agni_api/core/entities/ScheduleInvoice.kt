@@ -1,6 +1,5 @@
 package dev.auguste.agni_api.core.entities
 
-import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import java.util.UUID

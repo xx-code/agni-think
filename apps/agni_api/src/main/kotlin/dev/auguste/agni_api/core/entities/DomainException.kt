@@ -1,5 +1,6 @@
 package dev.auguste.agni_api.core.entities
 
+import dev.auguste.agni_api.core.entities.enums.GoalEvaluationType
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -14,6 +15,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class Currency(id: UUID) : NotFound("CURRENCY_NOT_FOUND", "Currency not found $id")
         class Notification(id: UUID) : NotFound("NOTIFICATION_NOT_FOUND", "Notification not found $id")
         class SavingGoal(id: UUID) : NotFound("SAVING_GOAL_NOT_FOUND", "Saving goal not found $id")
+        class Goal(id: UUID) : NotFound("GOAL_NOT_FOUND", "Goal est introuvable $id")
         class SomeSavingGoals(ids: Set<UUID>) : NotFound("SOME_SAVING_GOAL_NOT_FOUND", "Un ou des epargnes dans cette liste [${ids.joinToString(", ")}] sont introuvable")
         class IncomeSource(id: UUID) : NotFound("INCOME_SOURCE_NOT_FOUND", "Income source not found $id")
         class Budget(id: UUID) : NotFound("BUDGET_NOT_FOUND", "Budget not found $id")
@@ -63,5 +65,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class InternalLoanBadConfidenceScore(confidence: Double, message: String = "Confiance insuffisante (${confidence.roundToInt()}%). Le risque de liquidité est trop élevé. pret refuser"): BusinessLogic("INTERNAL_LOAD_BAD_CREDIT", message)
         class InternalLoanLinkCantBeDelete(message: String = "You can't delete any invoice linked to an internal loan"): BusinessLogic("INTERNAL_LOAD_LINK_DELETE", message)
         class InternalLoanRefundNotValid(amount: Double, loanAmount: Double): BusinessLogic("INTERNAL_LOAD_REFUND_NOT_VALID", "L'argent a freezer  $amount$ doit etre inferieur $loanAmount$")
+        class GoalStrategyNotExist(type: GoalEvaluationType): BusinessLogic("GOAL_STRATEGY_NOT_EXIST", "Goal strategy not exist $type")
+        class GoalTargetAmountMustBeLeastFund(balance: Double, targetAmount: Double): BusinessLogic("GOAL_TARGET_AMOUNT_MUST_LEAST_FUND", "le montant cible $targetAmount doit etre inferieur a $balance$")
     }
 }

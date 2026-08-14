@@ -1,6 +1,5 @@
 package dev.auguste.agni_api.core.entities
 
-import dev.auguste.agni_api.core.entities.enums.AccountType
 import dev.auguste.agni_api.core.entities.interfaces.IAccountDetail
 import java.util.UUID
 import kotlin.properties.Delegates

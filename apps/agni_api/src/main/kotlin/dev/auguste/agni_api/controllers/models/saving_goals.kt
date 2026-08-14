@@ -7,7 +7,7 @@ import java.util.UUID
 
 
 data class ApiUpgradeSavingGoalModel(
-    val accountId: UUID?,
+    val accountId: UUID,
     val amount: Double,
 )
 

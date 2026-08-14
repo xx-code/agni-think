@@ -5,7 +5,6 @@ import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
-import java.util.UUID
 
 class DeleteScheduleInvoice(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>

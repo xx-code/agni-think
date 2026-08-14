@@ -3,7 +3,6 @@ package dev.auguste.agni_api.infras.usecase_configs
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Notification
-import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.notifications.DeleteNotification
@@ -13,7 +12,6 @@ import dev.auguste.agni_api.core.usecases.notifications.PushNotification
 import dev.auguste.agni_api.core.usecases.notifications.ToggleReadNotification
 import dev.auguste.agni_api.core.usecases.notifications.dto.DeleteNotificationInput
 import dev.auguste.agni_api.core.usecases.notifications.dto.GetNotificationOutput
-import dev.auguste.agni_api.core.usecases.notifications.dto.PushNotificationInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID

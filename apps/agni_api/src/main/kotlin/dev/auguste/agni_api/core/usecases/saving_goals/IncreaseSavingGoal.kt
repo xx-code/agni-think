@@ -30,23 +30,16 @@ class IncreaseSavingGoal(
             if (input.amount <= 0)
                 throw DomainException.BusinessLogic.Validation("Amount must be greater than zero")
 
-            val accountId = if (savingGoal.accountId == null) {
-                if (input.accountId == null)
-                    throw DomainException.BusinessLogic.Validation("Account ID must be non-null.")
-                input.accountId
-            } else {
-                if (savingGoal.accountId == null)
-                    throw DomainException.BusinessLogic.Validation("Account ID Link to saving is null.")
-                savingGoal.accountId!!
-            }
+            if (savingGoal.accountId != null && input.accountId != savingGoal.accountId)
+                throw DomainException.BusinessLogic.Validation("Account ID must Not match.")
 
-            val account = accountRepo.get(accountId) ?: throw DomainException.NotFound.Account(accountId)
+            val account = accountRepo.get(input.accountId) ?: throw DomainException.NotFound.Account(input.accountId)
 
             if (input.amount > account.balance)
                 throw DomainException.BusinessLogic.Validation("Balance must be lesser than amount.")
 
             createInvoice.execInnerAsync(CreateInvoiceInput(
-                accountId = accountId,
+                accountId = input.accountId,
                 status = InvoiceStatusType.COMPLETED,
                 date = LocalDateTime.now(),
                 type = InvoiceType.OTHER,

@@ -4,9 +4,7 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.AgentSuggestion
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.enums.AgentSuggestionStatusType
-import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.ConfirmSuggestionInput
-import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.GetSuggestionOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 
 class ConfirmSuggestion(

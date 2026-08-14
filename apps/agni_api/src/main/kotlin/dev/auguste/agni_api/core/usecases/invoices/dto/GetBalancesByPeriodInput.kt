@@ -5,7 +5,6 @@ import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.entities.enums.PeriodType
 import java.time.LocalDateTime
-import java.util.Date
 import java.util.UUID
 
 data class GetBalancesByPeriodInput(
