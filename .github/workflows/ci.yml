@@ -1,0 +1,56 @@
+name: CI (Tests & Validation)
+
+on:
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      api: ${{ steps.filter.outputs.api }}
+      agent: ${{ steps.filter.outputs.agent }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            frontend: ['apps/agni-web/**', 'config/frontend/**']
+            api:      ['apps/agni_api/**', 'config/api/**']
+            agent:    ['apps/agni-ai/**',  'config/agent/**']
+
+  test-frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Frontend Tests
+        run: |
+          echo "Exécution des tests Frontend..."
+          # Remplace par ta commande (ex: cd apps/agni-web && npm test)
+
+  test-api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run API Tests
+        run: |
+          echo "Exécution des tests API..."
+          # Remplace par ta commande (ex: cd apps/agni_api && ./gradlew test)
+
+  test-agent:
+    needs: changes
+    if: needs.changes.outputs.agent == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Agent Tests
+        run: |
+          echo "Exécution des tests Agent AI..."
+          # Remplace par ta commande (ex: cd apps/agni-ai && pytest)
