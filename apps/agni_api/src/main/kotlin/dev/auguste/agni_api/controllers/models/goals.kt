@@ -19,11 +19,11 @@ data class ApiCreateGoal(
 )
 
 data class ApiUpdateGoal(
-    val title: String,
-    val description: String,
-    val targetAmount: Double,
-    val targetDate: LocalDate,
-    val status: Int
+    val title: String?,
+    val description: String?,
+    val targetAmount: Double?,
+    val targetDate: LocalDate?,
+    val status: Int?
 )
 
 data class ApiGaolQueryExtend(
@@ -51,6 +51,6 @@ fun mapApiUpdateGoal(id: UUID, apiUpdate: ApiUpdateGoal): UpdateGoalInput {
         description = apiUpdate.description,
         targetAmount = apiUpdate.targetAmount,
         targetDate = apiUpdate.targetDate,
-        status = GoalStatusType.fromInt(apiUpdate.status)
+        status = apiUpdate.status?.let { GoalStatusType.fromInt(apiUpdate.status) }
     )
 }

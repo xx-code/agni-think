@@ -32,7 +32,7 @@ class GetAllSavingGoal(
                     target = it.target,
                     balance = it.balance,
                     accountId = it.accountId,
-                    goals = goals.items.filter { fund -> fund.id == it.id }.map { goal ->
+                    goals = goals.items.filter { goal -> goal.targetSourceId == it.id }.map { goal ->
                         FundGoalOutput(
                             id = goal.id,
                             title = goal.title,

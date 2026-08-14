@@ -2,7 +2,7 @@
 import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { UFormField } from '#components';
-import type { EditUpdateAmountFundType, FundType } from '~/types/ui/fund';
+import type { EditUpdateAmountFund, Fund } from '~/types/ui/fund';
 import { fetchAccounts } from '~/composables/api/accounts';
 import { useUpdateAmountFund } from '~/composables/api/funds';
 
@@ -13,7 +13,7 @@ const { fund, fundAccountId, isIncrease } = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (e: 'submit', value: EditUpdateAmountFundType, isIncrease: boolean, oldValue?: FundType): void    
+    (e: 'submit', value: EditUpdateAmountFund, isIncrease: boolean, oldValue?: Fund): void    
     (e: 'close', close: boolean): void
 }>(); 
 

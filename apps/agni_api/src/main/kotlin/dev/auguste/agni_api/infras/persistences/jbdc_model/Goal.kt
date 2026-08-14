@@ -62,6 +62,6 @@ class JdbcGoalModelMapper: IMapper<JdbcGoalModel, Goal> {
     }
 
     override fun getSortField(): Set<String> {
-        return setOf("dueDate", "target_amount", "status", "type")
+        return setOf("due_date", "target_amount", "status", "type")
     }
 }

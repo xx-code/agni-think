@@ -1,6 +1,8 @@
 package dev.auguste.agni_api.core.usecases.goals
 
 import dev.auguste.agni_api.core.adapters.IFinanceContext
+import dev.auguste.agni_api.core.adapters.dto.QueryFilter
+import dev.auguste.agni_api.core.adapters.dto.QuerySortBy
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryGoalExtend
 import dev.auguste.agni_api.core.entities.Goal
@@ -16,8 +18,14 @@ class GetAllGoals(
     private val financeContext: IFinanceContext,
 ): IUseCase<GetAllGoalInput, ListOutput<GetGoalOutput>>{
     override fun execAsync(input: GetAllGoalInput): ListOutput<GetGoalOutput> {
+        val query = QueryFilter(
+            offset = input.queryFilter.offset,
+            limit =  input.queryFilter.limit,
+            queryAll = input.queryFilter.queryAll,
+            sortBy = QuerySortBy("due_date", true)
+        )
         val res = goalRepo.getAll(
-            query = input.queryFilter,
+            query = query,
             QueryGoalExtend(
                 sourceIds = input.sourceId?.let { setOf(it) },
                 status = input.status,

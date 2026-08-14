@@ -12,7 +12,7 @@ class FundGoalEvaluationStrategy(
         context: IFinanceContext
     ) {
         val fund = context.getFund(goal.targetSourceId)
-        if (goal.targetAmount > fund.balance)
+        if (goal.targetAmount > fund.target)
             throw DomainException.BusinessLogic.GoalTargetAmountMustBeLeastFund(fund.balance, goal.targetAmount)
     }
 

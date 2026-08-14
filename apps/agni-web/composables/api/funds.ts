@@ -1,7 +1,8 @@
+import { fundResponseToFund } from "~/mappers/fund";
 import type { CreatedRequest, ListResponse } from "~/types/api";
 import type { CreateFundRequest, GetFundResponse, QueryFilterFundRequest, UpdateFundRequest } from "~/types/api/fund";
 import type { DeleteFundRequest } from "~/types/api/fund";
-import type { FundType } from "~/types/ui/fund";
+import type { Fund } from "~/types/ui/fund";
 
 export async function useCreateFund(request: CreateFundRequest): Promise<CreatedRequest> {
     const created = await $fetch<CreatedRequest>(`api/funds`, {
@@ -20,37 +21,22 @@ export async function useDeleteFund(saveGoalId: string, request: DeleteFundReque
     });
 }
 
-export async function fetchFund(saveGoalId: string): Promise<FundType> {
+export async function fetchFund(saveGoalId: string): Promise<Fund> {
     const res = await $fetch<GetFundResponse>(`api/funds/${saveGoalId}`, {
         method: 'GET'
     });
 
-    return {
-        id: res.id,
-        title: res.title,
-        description: res.description,
-        balance: res.balance,
-        target: res.target,
-        accountId: res.accountId,
-    };
+    return fundResponseToFund(res)
 }
 
-export async function fetchFunds(query: QueryFilterFundRequest) : Promise<ListResponse<FundType>> {
+export async function fetchFunds(query: QueryFilterFundRequest) : Promise<ListResponse<Fund>> {
     const res = await $fetch<ListResponse<GetFundResponse>>(`api/funds`, {
         method: 'GET',
         query: query
     })
 
     return {
-        items: res.items.map(data => {
-            return {
-                id: data.id,
-                title: data.title,
-                description: data.description,
-                target: data.target,
-                balance: data.balance,
-            } satisfies FundType
-        }),
+        items: res.items.map(data => fundResponseToFund(data)),
         total: res.total
     }
 }

@@ -22,12 +22,13 @@ export type GoalResponse = {
     id: string
     title: string
     description: string
-    targetAmount: string
+    targetAmount: number
     targetSourceId: string
     dueDate: string
     createdDate: string
-    status: string
-    evaulation: {
+    status: number
+    type: string
+    evaluation: {
         currentBalance: number
         progressPercentage: number
     } 

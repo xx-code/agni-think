@@ -5,7 +5,7 @@ export enum GoalType {
 }
 
 export enum GoalStatus {
-    Active = "Active",
-    Completed = "Completed",
-    Paused = "Paused"
+    Active = 0,
+    Completed = 1,
+    Paused = 2
 }
