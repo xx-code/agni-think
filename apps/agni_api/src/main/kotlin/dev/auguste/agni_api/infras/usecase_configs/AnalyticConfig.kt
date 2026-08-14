@@ -5,6 +5,7 @@ import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.readers.IFundSummaryReader
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.FinancePrinciple
 import dev.auguste.agni_api.core.entities.IncomeSource
@@ -12,6 +13,7 @@ import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.analystics.GetAnnualOutlook
+import dev.auguste.agni_api.core.usecases.analystics.GetBudgetTotalSummary
 import dev.auguste.agni_api.core.usecases.analystics.GetBudgetingRuleAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetFinanceProfile
 import dev.auguste.agni_api.core.usecases.analystics.GetFundTotalSummary
@@ -20,6 +22,7 @@ import dev.auguste.agni_api.core.usecases.analystics.GetSavingBalance
 import dev.auguste.agni_api.core.usecases.analystics.GetSpendByCategoryAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetSpendByTagAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetAnnualOutlookOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetTotalSummaryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
@@ -131,5 +134,15 @@ class AnalyticConfig {
         fundSummaryReader: IFundSummaryReader
     ) : IUseCase<Unit, FundSummaryOutput> {
         return GetFundTotalSummary(fundSummaryReader)
+    }
+
+    @Bean fun getBudgetTotalSummary(
+        repoBudget: IRepository<Budget>,
+        getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
+    ) : IUseCase<Unit, GetBudgetTotalSummaryOutput> {
+        return GetBudgetTotalSummary(
+            repoBudget = repoBudget,
+            getBalance = getBalance
+        )
     }
 }

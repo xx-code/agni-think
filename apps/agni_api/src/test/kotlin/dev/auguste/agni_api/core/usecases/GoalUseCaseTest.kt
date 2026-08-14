@@ -253,7 +253,7 @@ class GoalUseCaseTest {
             goalRepo.getAll(
                 any(),
                 match<IQueryExtend<Goal>> {
-                    it is QueryGoalExtend && it.sourceId == sourceId && it.status == GoalStatusType.COMPLETED && it.type == GoalEvaluationType.FUND
+                    it is QueryGoalExtend && it.sourceIds != null && it.sourceIds.contains( sourceId)  && it.status == GoalStatusType.COMPLETED && it.type == GoalEvaluationType.FUND
                 }
             )
         }

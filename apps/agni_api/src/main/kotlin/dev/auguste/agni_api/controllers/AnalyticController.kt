@@ -9,6 +9,7 @@ import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetAnnualOutlookOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetTotalSummaryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
@@ -33,7 +34,8 @@ class AnalyticController(
     private val getFinanceProfile: IUseCase<Unit, GetFinanceProfileOutput>,
     private val getBudgetingRuleAnalytic: IUseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput>,
     private val getAnnualOutlook: IUseCase<Unit, GetAnnualOutlookOutput>,
-    private val getFundTotalSummary: IUseCase<Unit, FundSummaryOutput>
+    private val getFundTotalSummary: IUseCase<Unit, FundSummaryOutput>,
+    private val getBudgetTotalSummary: IUseCase<Unit, GetBudgetTotalSummaryOutput>
 ) {
     @GetMapping("/spend-categories")
     fun getSpendCategoriesAnalytic(query: ApiGetCategoryAnalyticModel) : ResponseEntity<ListOutput<GetSpendByCategoryOutput>> {
@@ -104,5 +106,10 @@ class AnalyticController(
     @GetMapping("/fund-total-summary")
     fun getFundSummary() : ResponseEntity<FundSummaryOutput> {
         return ResponseEntity.ok(getFundTotalSummary.execAsync(Unit))
+    }
+
+    @GetMapping("/budget-total-summary")
+    fun getBudgetTotalSummary() : ResponseEntity<GetBudgetTotalSummaryOutput> {
+        return ResponseEntity.ok(getBudgetTotalSummary.execAsync(Unit))
     }
 }
