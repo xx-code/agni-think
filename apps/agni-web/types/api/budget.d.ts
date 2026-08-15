@@ -1,3 +1,5 @@
+import type { QueryFilterRequest } from "."
+
 export type GetBudgetResponse = {
     id: string,
     title: string,
@@ -32,4 +34,8 @@ export type UpdateBudgetRequest = {
         }
         dueDate: string
     }  
+}
+
+export type BudgetQueryFilterRequest = QueryFilterRequest & {
+    periodTypes?: string[]
 }

@@ -4,7 +4,7 @@ import { getLocalTimeZone } from "@internationalized/date"
 import { computed, ref } from "vue"
 import { fetchBudgetTotalSummary } from "~/composables/api/analytics"
 import { fetchBudget, fetchBudgets, useCreateBudget, useDeleteBudget, useUpdateBudget } from "~/composables/api/budget"
-import type { BudgetType, EditBudgetType } from "~/types/ui/budget"
+import type { BudgetFilter, BudgetType, EditBudgetType } from "~/types/ui/budget"
 
 type BudgetItem = {
     id: string
@@ -17,13 +17,15 @@ type BudgetItem = {
 
 const isLoadingSummary = ref(false)
 
+const filter = reactive<BudgetFilter>({
+    offset: 0,
+    limit: 0,
+    queryAll: true,
+    periodTypes: []
+})
 
 const { data: displayBudgets, error, refresh } = useAsyncData('budgets+all', async () => {
-    const res = await fetchBudgets({
-        limit: 0,
-        offset: 0,
-        queryAll: true
-    }) 
+    const res = await fetchBudgets(filter) 
 
     return res.items.map(i => ({
         id: i.id,
@@ -33,7 +35,7 @@ const { data: displayBudgets, error, refresh } = useAsyncData('budgets+all', asy
         target: i.target,
         dueDate: i.dueDate
     } satisfies BudgetItem))
-})
+}, { watch: [filter] })
 
 const { data: summary } = useAsyncData('page-fund-summary', async () => {
     isLoadingSummary.value = true
@@ -54,22 +56,21 @@ const modalEditBudget = overlay.create(ModalEditBudget)
 const slideOverQuickInvoices = overlay.create(SlideOverQuickInvoicesView)
 const toast = useToast()
 
-const dateDisplayed = ref("Mois")
 const listTypeDateDisplay = computed(() => ([
+    {
+        label: 'Jours' as const,
+        type: "checkbox" as const,
+        onSelect(e: Event) { 
+            e.preventDefault()
+            onAddPeriodTag('Day', 'Jours')
+        } 
+    },
     {
         label: 'Semaine' as const,
         type: "checkbox" as const,
         onSelect(e: Event) { 
             e.preventDefault()
-            dateDisplayed.value = "Semaine"
-        } 
-    },
-    {
-        label: 'Bi-Semaine' as const,
-        type: "checkbox" as const,
-        onSelect(e: Event) { 
-            e.preventDefault()
-            dateDisplayed.value = "Bi-Semaine"
+            onAddPeriodTag('Week', 'Semaines')
         } 
     },
     {
@@ -77,23 +78,7 @@ const listTypeDateDisplay = computed(() => ([
         type: "checkbox" as const,
         onSelect(e: Event) {
             e.preventDefault()
-            dateDisplayed.value = "Mois"
-        } 
-    },
-    {
-        label: 'Trimestre' as const,
-        type: "checkbox" as const,
-        onSelect(e: Event) {
-            e.preventDefault()
-            dateDisplayed.value = "Trimestre"
-        } 
-    },
-    {
-        label: 'Semestre' as const,
-        type: "checkbox" as const,
-        onSelect(e: Event) {
-            e.preventDefault()
-            dateDisplayed.value = "Semestre"
+            onAddPeriodTag('Month', 'Mois')
         } 
     },
     {
@@ -101,10 +86,17 @@ const listTypeDateDisplay = computed(() => ([
         type: "checkbox" as const,
         onSelect(e: Event) {
             e.preventDefault()
-            dateDisplayed.value = "Année"
+            onAddPeriodTag( 'Year',  'Années')
         } 
     }
 ]))
+function onAddPeriodTag(id: string, label: string) {
+    if (!filter.periodTypes.find(i => i.id === id))
+        filter.periodTypes.push({id: id, label: label})
+}
+function onRemovePeriodTag(id: string) {
+    filter.periodTypes = filter.periodTypes.filter(i => i.id !== id)
+}
 
 async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
     try {
@@ -181,16 +173,6 @@ const openInvoiceView = async (budgetId: string) => {
     } 
 }
 
-// Computed summary stats
-const totalBudget = computed(() => displayBudgets.value?.reduce((sum, b) => sum + b.target, 0) || 0)
-const totalSpent = computed(() => displayBudgets.value?.reduce((sum, b) => sum + b.balance, 0) || 0)
-const totalRemaining = computed(() => totalBudget.value - totalSpent.value)
-const averageProgress = computed(() => {
-    const budgets = displayBudgets.value
-    if (!budgets?.length) return 0
-    return budgets.reduce((sum, b) => sum + b.percentageSpend, 0) / budgets.length
-})
-
 // Helper to get status color
 const getStatusColor = (percentage: number) => {
     if (percentage >= 90) return 'error'
@@ -222,30 +204,53 @@ const getStatusColor = (percentage: number) => {
         </div>
 
         <!-- Action Bar -->
-        <div class="action-bar">
-            <div class="period-selector">
-                <UDropdownMenu :items="listTypeDateDisplay">
-                    <UButton 
-                        icon="i-lucide-calendar-days" 
-                        size="xl" 
-                        variant="outline" 
-                        color="neutral"
-                        class="period-button"
+        <div class="flex justify-between items-center mb-10 flex-wrap">
+            <div class="flex">
+                <div class="flex items-center gap-1">
+                    <div class="">
+                        <UButton 
+                            icon="i-lucide-calendar-1" 
+                            size="xl" 
+                            class="p-3"
+                            variant="outline" 
+                            color="neutral"
+                        />
+                    </div>
+
+                    <UDropdownMenu :items="listTypeDateDisplay" @click.stop>
+                        <UButton 
+                            icon="i-lucide-calendar-1" 
+                            trailing-icon="i-lucide-chevron-down"
+                            size="xl" 
+                            variant="outline" 
+                            label="Periode"
+                            color="neutral"
+                        />
+                    </UDropdownMenu>
+                    
+                    <USeparator class="mx-2" orientation="vertical" />
+                </div> 
+
+                <div class="flex items-center flex-wrap gap-2">
+                    <UiTagButton 
+                        v-for="period in filter.periodTypes"
+                        :key="period.id"
+                        removable
+                        :label="period.label"
+                        @remove="onRemovePeriodTag(period.id)"
                     />
-                </UDropdownMenu>
-                <div class="period-display">
-                    <UIcon name="i-lucide-calendar" size="sm" />
-                    <span>{{ dateDisplayed }}</span>
                 </div>
             </div>
 
-            <UButton 
-                icon="i-lucide-plus" 
-                label="Nouveau Budget" 
-                size="xl" 
-                class="add-button"
-                @click="openModalBudget()"
-            />
+            <div>
+                <UButton 
+                    icon="i-lucide-plus" 
+                    label="Nouveau Budget" 
+                    size="xl" 
+                    class="add-button"
+                    @click="openModalBudget()"
+                />
+            </div> 
         </div>
 
         <!-- Budget Grid -->

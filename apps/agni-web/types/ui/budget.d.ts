@@ -1,4 +1,5 @@
 import type { Calendar, CalendarDate } from "@internationalized/date"
+import type { BudgetQueryFilterRequest } from "../api/budget"
 
 export type EditBudgetType = {
     title: string,
@@ -21,3 +22,5 @@ export type BudgetType = {
         interval: number
     }
 }
+
+export type BudgetFilter = Omit<BudgetQueryFilterRequest, 'periodTypes'> & { periodTypes: {id: string, label: string}[]}
