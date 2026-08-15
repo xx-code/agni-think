@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Table("budgets")
@@ -25,7 +26,12 @@ data class JdbcBudgetModel(
     val scheduler: String,
 
     @Column("is_archived")
-    val isArchived: Boolean
+    val isArchived: Boolean,
+
+    @Column("created_at")
+    val createdAt: LocalDateTime,
+    @Column("updated_at")
+    val updatedAt: LocalDateTime
 ) : JdbcModel() {
     override fun getId(): UUID {
         return id
@@ -44,7 +50,9 @@ class JdbcBudgetModelMapper(
             title = model.name,
             target = model.target,
             scheduler = Scheduler.fromMap(schedulerJson),
-            isArchived = model.isArchived
+            isArchived = model.isArchived,
+            createdAt = model.createdAt,
+            updatedAt = model.updatedAt
         )
     }
 
@@ -54,11 +62,13 @@ class JdbcBudgetModelMapper(
             name = entity.title,
             target = entity.target,
             scheduler = objectMapper.writeValueAsString(entity.scheduler.toMap()),
-            isArchived = entity.isArchived
+            isArchived = entity.isArchived,
+            createdAt = entity.createdAt,
+            updatedAt = entity.updatedAt
         )
     }
 
     override fun getSortField(): Set<String> {
-        return setOf("target")
+        return setOf("target", "created_at", "updated_at")
     }
 }
