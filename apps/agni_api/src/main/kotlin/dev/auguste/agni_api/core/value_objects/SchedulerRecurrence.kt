@@ -7,7 +7,7 @@ import java.time.temporal.ChronoUnit
 
 data class SchedulerRecurrence(val period: PeriodType, val interval: Int) {
     fun toMap(): Map<String, Any?> {
-        return mapOf("period" to period, "interval" to interval)
+        return mapOf("period" to period.value, "interval" to interval)
     }
 
     fun computeOccurrences(startDate: LocalDate, endDate: LocalDate): Int {

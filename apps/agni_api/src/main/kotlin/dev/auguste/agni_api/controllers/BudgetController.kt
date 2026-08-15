@@ -5,10 +5,12 @@ import dev.auguste.agni_api.controllers.models.ApiUpdateBudgetModel
 import dev.auguste.agni_api.controllers.models.mapApiCreateBudgetModel
 import dev.auguste.agni_api.controllers.models.mapApiUpdateBudgetModel
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
+import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.budgets.dto.CreateBudgetInput
 import dev.auguste.agni_api.core.usecases.budgets.dto.DeleteBudgetInput
+import dev.auguste.agni_api.core.usecases.budgets.dto.GetAllBudgetInput
 import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
 import dev.auguste.agni_api.core.usecases.budgets.dto.UpdateBudgetInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -31,7 +34,7 @@ class BudgetController(
     private val updateBudget: IUseCase<UpdateBudgetInput, Unit>,
     private val deleteBudget: IUseCase<DeleteBudgetInput, Unit>,
     private val getBudget: IUseCase<UUID, GetBudgetOutput>,
-    private val getAllBudgets: IUseCase<QueryFilter, ListOutput<GetBudgetOutput>>
+    private val getAllBudgets: IUseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>>
 ) {
 
     @PostMapping
@@ -63,7 +66,13 @@ class BudgetController(
     }
 
     @GetMapping
-    fun getAllBudgets(query: QueryFilter): ResponseEntity<ListOutput<GetBudgetOutput>> {
-        return ResponseEntity.ok(getAllBudgets.execAsync(query))
+    fun getAllBudgets(query: QueryFilter, @RequestParam periodTypes: List<String>?): ResponseEntity<ListOutput<GetBudgetOutput>> {
+
+        return ResponseEntity.ok(
+            getAllBudgets.execAsync(GetAllBudgetInput(
+                query,
+                periodTypes?.map { period -> PeriodType.fromString(period)}?.toSet()
+            ))
+        )
     }
 }

@@ -33,6 +33,7 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagOutput
+import dev.auguste.agni_api.core.usecases.budgets.dto.GetAllBudgetInput
 import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
@@ -119,7 +120,7 @@ class AnalyticConfig {
         categoryRepo: IRepository<Category>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
         getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
-        getBudgets: IUseCase<QueryFilter, ListOutput<GetBudgetOutput>>
+        getBudgets: IUseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>>
     ) : IUseCase<Unit, GetAnnualOutlookOutput>{
         return GetAnnualOutlook(
             scheduleRepo = scheduleInvoiceRepo,

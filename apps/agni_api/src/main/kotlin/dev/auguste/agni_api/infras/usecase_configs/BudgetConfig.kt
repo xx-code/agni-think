@@ -16,6 +16,7 @@ import dev.auguste.agni_api.core.usecases.budgets.UpdateBudget
 import dev.auguste.agni_api.core.usecases.budgets.UpdateDueBudget
 import dev.auguste.agni_api.core.usecases.budgets.dto.CreateBudgetInput
 import dev.auguste.agni_api.core.usecases.budgets.dto.DeleteBudgetInput
+import dev.auguste.agni_api.core.usecases.budgets.dto.GetAllBudgetInput
 import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
 import dev.auguste.agni_api.core.usecases.budgets.dto.UpdateBudgetInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -72,7 +73,7 @@ class BudgetConfig {
     fun getAllBudgets(
         budgetRepo : IRepository<Budget>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    ) : IUseCase<QueryFilter, ListOutput<GetBudgetOutput>> {
+    ) : IUseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>> {
         return GetAllBudgets(
             budgetRepo = budgetRepo,
             getBalance = getBalance
