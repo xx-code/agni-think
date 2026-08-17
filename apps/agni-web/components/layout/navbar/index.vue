@@ -50,7 +50,7 @@ onMounted(async () => {
                 :disabled="isLoading"
                 :has-notifications="hasNotifications"
             />
-            <UDashboardSidebarToggle />
+            <UDashboardSidebarToggle class="text-lg" />
         </div>
     </div>
 </template>
