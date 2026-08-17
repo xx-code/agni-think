@@ -23,4 +23,16 @@ export type BudgetType = {
     }
 }
 
-export type BudgetFilter = Omit<BudgetQueryFilterRequest, 'periodTypes'> & { periodTypes: {id: string, label: string}[]}
+export type BudgetCard = {
+    id: string 
+    title: string
+    target: number
+    balance: number
+    dueDate: Date
+    repeater?: {
+        period: string
+        interval: number
+    }
+}
+
+export type BudgetFilter = Omit<BudgetQueryFilterRequest, 'periodTypes'> & { periodTypes?: {id: string, label: string}[]}

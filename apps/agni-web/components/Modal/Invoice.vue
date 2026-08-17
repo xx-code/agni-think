@@ -23,20 +23,21 @@ const emit = defineEmits<{
 
 const toast = useToast()
 const switchMoreState = ref(false)
+const isLoading = ref(false)
 
 const { data: utils } = useAsyncData('utils+deduction+edit-invoices', async () => {
+    isLoading.value = true
     const query = {offset: 0, limit: 0, queryAll: true, isSystem: false}
     const [ categories, tags, budgets, accounts, invoiceTypes, deductions ] = await Promise.all([
         fetchCategories(query),
         fetchTags(query),
-        fetchBudgets(query),
+        fetchBudgets({offset: 0, limit: 10, queryAll: true}),
         fetchAccounts(query),
         fetchTransactionTypes(),
         fetchDeductions(query)
     ])
 
-    categories.items
-
+    isLoading.value = false
     return {
         categories: categories.items,
         tags: tags.items,
@@ -215,6 +216,7 @@ async function onSubmit(event: FormSubmitEvent<EditInvoiceType>) {
     >
         <template #body>
             <FormInvoice
+                v-if="!isLoading"
                 :is-update="invoice != undefined"
                 :accounts="utils?.accounts || []"
                 :budgets="utils?.budgets || []" 
@@ -229,6 +231,9 @@ async function onSubmit(event: FormSubmitEvent<EditInvoiceType>) {
                 @close="emit('close', true)"
                 @switch-more="state => switchMoreState = state"
             />
+            <div v-else class="h-full">
+                <LoadingIndicator  /> 
+            </div>
         </template> 
     </UModal>
 </template>
