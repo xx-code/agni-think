@@ -8,6 +8,7 @@
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
+    "test": "npx vitest",
     "postinstall": "nuxt prepare",
     "check-types": "tsc --noEmit"
   },
@@ -23,9 +24,14 @@
     "zod": "^3.25.64"
   },
   "devDependencies": {
+    "@nuxt/test-utils": "^4.1.0",
     "@types/node": "^24.3.1",
+    "@vue/test-utils": "^2.4.11",
+    "happy-dom": "^20.11.2",
+    "playwright-core": "^1.62.1",
     "sass-embedded": "^1.87.0",
     "typescript": "^5.8.3",
+    "vitest": "^4.1.10",
     "vue-tsc": "^2.2.10"
   }
 }
