@@ -2,10 +2,10 @@
 import type { NavigationMenuItem } from '@nuxt/ui';
 
 const items: NavigationMenuItem[][] = [[
-    [
-        { 
-            label: 'Dashboard', 
-            icon: 'i-lucide-layout-dashboard', 
+    [ 
+        {
+            label: 'Vue d\'ensemble',
+            icon: 'i-lucide-layout-dashboard',
             to: '/', 
         }
     ],
@@ -15,11 +15,7 @@ const items: NavigationMenuItem[][] = [[
             icon: 'i-lucide-wallet-minimal',
             open: true,
             children: [
-                {
-                    label: 'Vue d\'ensemble',
-                    icon: 'i-lucide-wallet-minimal',
-                    to: '/wallets', 
-                },
+                
                 {
                     label: 'Factures',
                     icon: 'i-lucide-banknote',
@@ -50,6 +46,11 @@ const items: NavigationMenuItem[][] = [[
                     label: 'Audits',
                     icon: 'i-lucide-shield-cog-corner',
                     to: '/accounting-departement/audits'
+                },
+                { 
+                    label: 'Tendances', 
+                    icon: 'i-lucide-circle-gauge', 
+                    to: '/trends', 
                 },
                 {
                     label: 'Analytique',
