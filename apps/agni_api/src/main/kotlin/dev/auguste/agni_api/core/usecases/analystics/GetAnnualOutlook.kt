@@ -14,6 +14,7 @@ import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetAnnualOutlookOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingBalanceInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.SpendByCategoryOutlook
+import dev.auguste.agni_api.core.usecases.budgets.dto.GetAllBudgetInput
 import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
@@ -28,7 +29,7 @@ class GetAnnualOutlook(
     private val scheduleRepo: IRepository<ScheduleInvoice>,
     private val categoryRepo: IRepository<Category>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    private val getBudgets: IUseCase<QueryFilter, ListOutput<GetBudgetOutput>>,
+    private val getBudgets: IUseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>>,
     private val getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
 ): IUseCase<Unit, GetAnnualOutlookOutput> {
     override fun execAsync(input: Unit): GetAnnualOutlookOutput {
@@ -79,9 +80,7 @@ class GetAnnualOutlook(
 
 
     private fun getBudgetBalances(): Pair<Double, Double> {
-        val budgets = getBudgets.execAsync(QueryFilter(
-            0, 0, true
-        )).items
+        val budgets = getBudgets.execAsync(GetAllBudgetInput(query = QueryFilter.queryAll())).items
 
 
         val now = LocalDateTime.now()

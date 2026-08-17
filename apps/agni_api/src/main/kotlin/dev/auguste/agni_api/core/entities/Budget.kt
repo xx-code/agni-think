@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.entities
 
 import dev.auguste.agni_api.core.value_objects.Scheduler
+import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.properties.Delegates
 
@@ -10,7 +11,9 @@ class Budget(
     target: Double,
     scheduler: Scheduler,
     isArchived: Boolean = false,
-    ): Entity(id=id) {
+    createdAt: LocalDateTime = LocalDateTime.now(),
+    updatedAt: LocalDateTime = LocalDateTime.now(),
+    ): Entity(id=id, createdAt = createdAt, updatedAt = updatedAt) {
 
     var title: String by Delegates.observable(title) { _, old, new ->
         if (old != new)

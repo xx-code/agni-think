@@ -1,6 +1,10 @@
 import type { CreatedRequest } from "~/types/api";
 import type { CreateBudgetRequest } from "~/types/api/budget";
 import type { UpdateBudgetRequest } from "~/types/api/budget";
+import type { ListResponse, QueryFilterRequest } from "~/types/api";
+import type { GetBudgetResponse } from "~/types/api/budget";
+import type { BudgetFilter, BudgetType } from "~/types/ui/budget";
+import { budgetFilterToBudgetQueryRequest } from "~/mappers/budget";
 
 export async function fetchBudget(budgetId: string): Promise<BudgetType> {
     const res = await $fetch<GetBudgetResponse>(`api/budgets/${budgetId}`, {
@@ -17,14 +21,10 @@ export async function fetchBudget(budgetId: string): Promise<BudgetType> {
     }
 }
 
-import type { ListResponse, QueryFilterRequest } from "~/types/api";
-import type { GetBudgetResponse } from "~/types/api/budget";
-import type { BudgetType } from "~/types/ui/budget";
-
-export async function fetchBudgets(query: QueryFilterRequest): Promise<ListResponse<BudgetType>> {
+export async function fetchBudgets(query: BudgetFilter): Promise<ListResponse<BudgetType>> {
     const res = await $fetch<ListResponse<GetBudgetResponse>>(`api/budgets`, {
         method: 'GET',
-        query: query
+        query: budgetFilterToBudgetQueryRequest(query)
     });
 
     return {

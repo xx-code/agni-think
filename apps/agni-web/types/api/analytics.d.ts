@@ -36,6 +36,11 @@ export type GetFundTotalSummary = {
     totalBalance: number
 }
 
+export type BudgetTotalSummaryResponse = {
+    totalBudget: number
+    totalSpend: number
+}
+
 // CATEGORY
 type GetSpendCategoryResponse = {
     categoryId: string

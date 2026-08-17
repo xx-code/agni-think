@@ -123,12 +123,12 @@ async function onClickDeleteGoal(id: string) {
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <UiFundCardGoal 
+                        <UiCardGoal 
                             v-for="goal in fundCardContextToFundGoalCards(fund)"
                             :key="goal.id"
                             :goal="goal"
-                            @delete="id => onClickDeleteGoal(id)"
-                            @update="id => openGoalModal(id)"
+                            @delete="(id: string) => onClickDeleteGoal(id)"
+                            @update="(id: string) => openGoalModal(id)"
                         />
                     </div>
                 </div>

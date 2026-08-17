@@ -1,13 +1,20 @@
-name: Build & Deploy
+name: CD (Build & Deploy)
+
 on:
+  push:
+    branches: [main, dev]
+    tags: ['v*']
   workflow_dispatch:
 
-permissions: {contents: read, packages: write}
+permissions:
+  contents: read
+  packages: write
 
-env: {REGISTRY: ghcr.io/xx-code}
+env:
+  REGISTRY: ghcr.io/xx-code
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,10 +31,10 @@ jobs:
         run: |
           echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           if [ "$GITHUB_REF_NAME" = "dev" ]; then
-            echo "env=dev"  >> "$GITHUB_OUTPUT"
+            echo "env=dev"     >> "$GITHUB_OUTPUT"
             echo "overlay=demo" >> "$GITHUB_OUTPUT"
           else
-            echo "env=main" >> "$GITHUB_OUTPUT"
+            echo "env=main"    >> "$GITHUB_OUTPUT"
             echo "overlay=prod" >> "$GITHUB_OUTPUT"
           fi
 
@@ -38,6 +45,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # --- Builds sélectifs par module ---
       - name: Build Frontend
         if: steps.filter.outputs.frontend == 'true'
         run: |
@@ -59,7 +67,6 @@ jobs:
           docker build -f config/agent/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:${{ steps.vars.outputs.env }}-${{ steps.vars.outputs.sha_short }} .
           docker push --all-tags $IMG
 
-      # tous les composants taggés au même sha (reproducibilité du déploiement)
       - name: Ensure sha tags
         if: github.ref_type == 'branch'
         run: |
@@ -72,8 +79,8 @@ jobs:
               docker tag $IMG:${{ steps.vars.outputs.env }} $IMG:$SHA
             else
               case $comp in
-                agni-frontend)  docker build -f config/frontend/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:$SHA . ;;
-                agni-backend)   docker build -f config/api/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:$SHA . ;;
+                agni-frontend)   docker build -f config/frontend/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:$SHA . ;;
+                agni-backend)    docker build -f config/api/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:$SHA . ;;
                 agni-backend-ai) docker build -f config/agent/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:$SHA . ;;
               esac
             fi

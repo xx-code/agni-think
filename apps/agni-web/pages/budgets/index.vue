@@ -2,34 +2,36 @@
 import { ModalEditBudget, SlideOverQuickInvoicesView } from "#components"
 import { getLocalTimeZone } from "@internationalized/date"
 import { computed, ref } from "vue"
+import { fetchBudgetTotalSummary } from "~/composables/api/analytics"
 import { fetchBudget, fetchBudgets, useCreateBudget, useDeleteBudget, useUpdateBudget } from "~/composables/api/budget"
-import type { BudgetType, EditBudgetType } from "~/types/ui/budget"
+import { budgetToBudgetCard } from "~/mappers/budget"
+import type { BudgetFilter, BudgetType, EditBudgetType } from "~/types/ui/budget"
 
-type BudgetItem = {
-    id: string
-    title: string    
-    percentageSpend: number
-    target: number
-    balance: number
-    dueDate: Date
-}
+const isLoadingSummary = ref(false)
 
+const filter = reactive<BudgetFilter>({
+    offset: 0,
+    limit: 5,
+    queryAll: false,
+    periodTypes: []
+})
 
-const { data: displayBudgets, error, refresh } = useAsyncData('budgets+all', async () => {
-    const res = await fetchBudgets({
-        limit: 0,
-        offset: 0,
-        queryAll: true
-    }) 
+const budgets = ref<BudgetType[]>([])
+const totalBudget = ref(0)
+const isLoading = ref(false)
 
-    return res.items.map(i => ({
-        id: i.id,
-        title: i.title,
-        percentageSpend: roundNumber(computePercentage(i.target, i.currentBalance)),
-        balance: i.currentBalance,
-        target: i.target,
-        dueDate: i.dueDate
-    } satisfies BudgetItem))
+const { data: summary } = useAsyncData('page-budget-summary', async () => {
+    isLoadingSummary.value = true
+    const res = await fetchBudgetTotalSummary()
+    isLoadingSummary.value = false
+
+    return {
+        total: res.totalBudget,
+        spend: res.totalSpend,
+        remain: res.totalBudget - res.totalSpend
+    }
+}, {
+    watch: [budgets]
 })
 
 const overlay = useOverlay()
@@ -37,22 +39,21 @@ const modalEditBudget = overlay.create(ModalEditBudget)
 const slideOverQuickInvoices = overlay.create(SlideOverQuickInvoicesView)
 const toast = useToast()
 
-const dateDisplayed = ref("Mois")
 const listTypeDateDisplay = computed(() => ([
+    {
+        label: 'Jours' as const,
+        type: "checkbox" as const,
+        onSelect(e: Event) { 
+            e.preventDefault()
+            onAddPeriodTag('Day', 'Jours')
+        } 
+    },
     {
         label: 'Semaine' as const,
         type: "checkbox" as const,
         onSelect(e: Event) { 
             e.preventDefault()
-            dateDisplayed.value = "Semaine"
-        } 
-    },
-    {
-        label: 'Bi-Semaine' as const,
-        type: "checkbox" as const,
-        onSelect(e: Event) { 
-            e.preventDefault()
-            dateDisplayed.value = "Bi-Semaine"
+            onAddPeriodTag('Week', 'Semaines')
         } 
     },
     {
@@ -60,23 +61,7 @@ const listTypeDateDisplay = computed(() => ([
         type: "checkbox" as const,
         onSelect(e: Event) {
             e.preventDefault()
-            dateDisplayed.value = "Mois"
-        } 
-    },
-    {
-        label: 'Trimestre' as const,
-        type: "checkbox" as const,
-        onSelect(e: Event) {
-            e.preventDefault()
-            dateDisplayed.value = "Trimestre"
-        } 
-    },
-    {
-        label: 'Semestre' as const,
-        type: "checkbox" as const,
-        onSelect(e: Event) {
-            e.preventDefault()
-            dateDisplayed.value = "Semestre"
+            onAddPeriodTag('Month', 'Mois')
         } 
     },
     {
@@ -84,14 +69,22 @@ const listTypeDateDisplay = computed(() => ([
         type: "checkbox" as const,
         onSelect(e: Event) {
             e.preventDefault()
-            dateDisplayed.value = "Année"
+            onAddPeriodTag( 'Year',  'Années')
         } 
     }
 ]))
+function onAddPeriodTag(id: string, label: string) {
+    if (!filter.periodTypes?.find(i => i.id === id))
+        filter.periodTypes?.push({id: id, label: label})
+}
+function onRemovePeriodTag(id: string) {
+    filter.periodTypes = filter.periodTypes?.filter(i => i.id !== id)
+}
 
 async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
     try {
-        if (oldValue)
+        let id;
+        if (oldValue) {
             await useUpdateBudget(oldValue.id, {
                 title: value.title,
                 target: value.target,
@@ -100,8 +93,9 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
                     dueDate: value.dueDate.toDate(getLocalTimeZone()).toISOString(),
                 }
             })
-        else 
-            await useCreateBudget({
+            id = oldValue.id
+        } else {
+            const res = await useCreateBudget({
                 title: value.title,
                 target: value.target,
                 schedule: {
@@ -109,7 +103,11 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
                     dueDate: value.dueDate.toDate(getLocalTimeZone()).toISOString(),
                 }
             })
-        refresh()
+            id = res.newId 
+        } 
+            
+        updateBudgetList(id)
+
         toast.add({
             title: 'Succès',
             description: oldValue ? 'Budget mis à jour' : 'Budget créé',
@@ -139,7 +137,13 @@ async function openModalBudget(budgetId?: string) {
 const onDeleteBudget = async (budgetId: string) => {
     try {
         await useDeleteBudget(budgetId)
-        refresh()
+        const indexToRemove = budgets.value.findIndex(i => i.id === budgetId)
+        if (indexToRemove >= 0)  {
+            budgets.value = budgets.value.filter(i => i.id !== budgetId)
+            totalBudget.value -= 1
+            if (filter.offset === budgets.value.length)
+                await getAllBudgets()
+        }
         toast.add({
             title: 'Succès',
             description: 'Budget supprimé',
@@ -164,578 +168,148 @@ const openInvoiceView = async (budgetId: string) => {
     } 
 }
 
-// Computed summary stats
-const totalBudget = computed(() => displayBudgets.value?.reduce((sum, b) => sum + b.target, 0) || 0)
-const totalSpent = computed(() => displayBudgets.value?.reduce((sum, b) => sum + b.balance, 0) || 0)
-const totalRemaining = computed(() => totalBudget.value - totalSpent.value)
-const averageProgress = computed(() => {
-    const budgets = displayBudgets.value
-    if (!budgets?.length) return 0
-    return budgets.reduce((sum, b) => sum + b.percentageSpend, 0) / budgets.length
-})
-
-// Helper to get status color
-const getStatusColor = (percentage: number) => {
-    if (percentage >= 90) return 'error'
-    if (percentage >= 70) return 'warning'
-    return 'success'
+async function updateBudgetList(id: string) {
+    const budget = await fetchBudget(id)
+    const index = budgets.value.findIndex(i => i.id == id)
+    if (index >= 0 ) {
+        budgets.value[index] = budget
+    } else {
+        budgets.value.unshift(budget)
+    }
 }
+
+async function showMoreBudget() {
+    if (budgets.value.length === totalBudget.value)
+        return 
+
+    filter.offset = budgets.value.length
+}
+
+async function getAllBudgets() {
+    isLoading.value = true
+    try {
+        var res = await fetchBudgets(filter)
+        budgets.value.push(...res.items) 
+        totalBudget.value = res.total
+    } catch(err: any) {
+        toast.add({
+            title: 'Erreur Funds',
+            description: err.message,
+            color: 'error'
+        })
+    } finally {
+        isLoading.value = false
+    }
+}
+
+
+watch(filter, () => {
+    getAllBudgets()
+}, { immediate: true })
+
 </script>
 
 <template>
-    <div class="budget-page p-6">
-        <!-- Summary Cards -->
-        <div class="summary-section">
-            <div class="summary-card">
-                <div class="summary-header">
-                    <UIcon name="i-lucide-wallet" class="summary-icon" />
-                    <span class="summary-label">Budget Total</span>
-                </div>
-                <div class="summary-amount">${{ totalBudget.toLocaleString() }}</div>
-            </div>
+    <div class="transition-opacity duration-500 ease-in-out opacity-100 p-6">
+        <div class="grid md:grid-cols-3 gap-5 mb-10 grid-cols-1">
+            <UiBannerAccountant 
+                title="Budget Total"
+                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(168, 85, 247, 0.1)', fontColor: '#a855f7'}"
+                :amount="summary?.total ?? 0"
+            />
 
-            <div class="summary-card">
-                <div class="summary-header">
-                    <UIcon name="i-lucide-trending-up" class="summary-icon spend" />
-                    <span class="summary-label">Dépensé</span>
-                </div>
-                <div class="summary-amount spend">${{ totalSpent.toLocaleString() }}</div>
-            </div>
+            <UiBannerAccountant 
+                title="Dépensé"
+                :icon="{ name: 'i-lucide-piggy-bank', backgroundColor: 'rgba(242, 65, 71, 0.1)', fontColor: '#fb2c36'}"
+                :amount="summary?.spend ?? 0"
+            />
 
-            <div class="summary-card">
-                <div class="summary-header">
-                    <UIcon name="i-lucide-piggy-bank" class="summary-icon remaining" />
-                    <span class="summary-label">Restant</span>
-                </div>
-                <div class="summary-amount remaining">${{ totalRemaining.toLocaleString() }}</div>
-            </div>
-
-            <div class="summary-card">
-                <div class="summary-header">
-                    <UIcon name="i-lucide-activity" class="summary-icon progress" />
-                    <span class="summary-label">Progression Moyenne</span>
-                </div>
-                <div class="summary-amount progress">{{ averageProgress.toFixed(1) }}%</div>
-            </div>
-        </div>
-
-        <!-- Action Bar -->
-        <div class="action-bar">
-            <div class="period-selector">
-                <UDropdownMenu :items="listTypeDateDisplay">
-                    <UButton 
-                        icon="i-lucide-calendar-days" 
-                        size="xl" 
-                        variant="outline" 
-                        color="neutral"
-                        class="period-button"
-                    />
-                </UDropdownMenu>
-                <div class="period-display">
-                    <UIcon name="i-lucide-calendar" size="sm" />
-                    <span>{{ dateDisplayed }}</span>
-                </div>
-            </div>
-
-            <UButton 
-                icon="i-lucide-plus" 
-                label="Nouveau Budget" 
-                size="xl" 
-                class="add-button"
-                @click="openModalBudget()"
+            <UiBannerAccountant 
+                title="Restant"
+                :icon="{ name: 'i-lucide-trending-up', backgroundColor: 'rgba(34, 197, 94, 0.1)', fontColor: '#22c55e'}"
+                :amount="summary?.remain ?? 0"
             />
         </div>
 
-        <!-- Budget Grid -->
-        <div class="budget-grid">
-            <TransitionGroup name="budget-list">
-                <div 
-                    v-for="budget in displayBudgets" 
-                    :key="budget.id"
-                    class="budget-card"
-                >
-                    <!-- Card Header -->
-                    <div class="budget-header">
-                        <div class="budget-title-section">
-                            <h3 class="budget-title">{{ budget.title }}</h3>
-                            <span 
-                                class="budget-status-badge"
-                                :class="getStatusColor(budget.percentageSpend)"
-                            >
-                                {{ budget.percentageSpend }}%
-                            </span>
-                        </div>
-                        
-                        <div class="budget-actions">
-                            <UButton 
-                                icon="i-lucide-eye" 
-                                variant="ghost" 
-                                color="info" 
-                                size="sm"
-                                @click="() => openInvoiceView(budget.id)"
-                            />
-                            <UButton 
-                                icon="i-lucide-pencil" 
-                                variant="ghost" 
-                                color="neutral" 
-                                size="sm"
-                                @click="openModalBudget(budget.id)"
-                            />
-                            <UButton 
-                                icon="i-lucide-trash-2" 
-                                variant="ghost" 
-                                color="error" 
-                                size="sm"
-                                @click="onDeleteBudget(budget.id)"
-                            />
-                        </div>
-                    </div>
-
-                    <!-- Budget Amount Section -->
-                    <div class="budget-amounts">
-                        <div class="amount-row">
-                            <div class="amount-main">
-                                <span class="amount-label">Restant</span>
-                                <div class="amount-display">
-                                    <span class="amount-value remaining">
-                                        ${{ (budget.target - budget.balance).toLocaleString() }}
-                                    </span>
-                                    <span class="amount-separator">/</span>
-                                    <span class="amount-total">
-                                        ${{ budget.target.toLocaleString() }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="progress-section">
-                        <UProgress 
-                            v-model="budget.percentageSpend" 
-                            :color="getStatusColor(budget.percentageSpend)"
-                            size="md"
+        <!-- Action Bar -->
+        <div class="flex justify-between items-center mb-10 flex-wrap">
+            <div class="flex">
+                <div class="flex items-center gap-1">
+                    <div class="">
+                        <UButton 
+                            icon="i-lucide-calendar-1" 
+                            size="xl" 
+                            class="p-3"
+                            variant="outline" 
+                            color="neutral"
                         />
-                        <div class="progress-details">
-                            <div class="progress-label">
-                                <UIcon name="i-lucide-credit-card" size="sm" />
-                                <span>Dépensé</span>
-                            </div>
-                            <span class="progress-amount">
-                                ${{ budget.balance.toLocaleString() }}
-                            </span>
-                        </div>
                     </div>
 
-                    <!-- Card Footer -->
-                    <div class="budget-footer">
-                        <div class="footer-item">
-                            <UIcon name="i-lucide-calendar-clock" size="sm" />
-                            <span>{{ formatDate(budget.dueDate) }}</span>
-                        </div>
-                    </div>
+                    <UDropdownMenu :items="listTypeDateDisplay" @click.stop>
+                        <UButton 
+                            icon="i-lucide-calendar-1" 
+                            trailing-icon="i-lucide-chevron-down"
+                            size="xl" 
+                            variant="outline" 
+                            label="Periode"
+                            color="neutral"
+                        />
+                    </UDropdownMenu>
+                    
+                    <USeparator class="mx-2" orientation="vertical" />
+                </div> 
+
+                <div class="flex items-center flex-wrap gap-2">
+                    <UiTagButton 
+                        v-for="period in filter.periodTypes"
+                        :key="period.id"
+                        removable
+                        :label="period.label"
+                        @remove="onRemovePeriodTag(period.id)"
+                    />
                 </div>
-            </TransitionGroup>
+            </div>
 
-            <!-- Empty State -->
-            <div v-if="!displayBudgets?.length" class="empty-state">
-                <UIcon name="i-lucide-wallet-cards" class="empty-icon" />
-                <h3 class="empty-title">Aucun budget</h3>
-                <p class="empty-description">Commencez par créer votre premier budget</p>
+            <div>
                 <UButton 
                     icon="i-lucide-plus" 
-                    label="Créer un Budget" 
-                    size="xl"
+                    label="Nouveau Budget" 
+                    size="xl" 
+                    class="add-button"
                     @click="openModalBudget()"
                 />
+            </div> 
+        </div>
+
+        <!-- Budget Grid -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] md:gap-6">
+            <TransitionGroup name="budget-list">
+                <UiBudgetCard 
+                    v-for="budget in budgets"
+                    :key="budget.id"
+                    :budget="budgetToBudgetCard(budget)"
+                    @click="() => openInvoiceView(budget.id)"
+                    @update="(id) => openModalBudget(id)"
+                    @delete="(id) => onDeleteBudget(id)"
+                />
+            </TransitionGroup>
+
+            <div 
+                v-if="budgets.length < totalBudget"
+                class="p-5 rounded-xl bg-gray-50 border border-dashed border-gray-300 h-full flex justify-center cursor-pointer hover:shadow-xs"
+                @click="showMoreBudget()" >
+                <div class="flex items-center my-8">
+                    <span>Afficher plus</span> 
+                    <UIcon name="i-lucide-arrow-right" />
+                </div>                
             </div>
+            <UiEmptyState 
+                v-if="budgets?.length === 0 && totalBudget == 0"
+                icon="i-lucide-target"
+                title="Aucun fond"
+                description="Commencez par créer votre premier fond"
+                @new="openModalBudget()"
+            />
         </div>
     </div>
 </template>
-
-<style scoped lang="scss">
-.budget-page {
-    animation: fadeIn 0.4s ease;
-}
-
-// Summary Section
-.summary-section {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.25rem;
-    margin-bottom: 2rem;
-
-    @media (max-width: 768px) {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-    }
-
-    @media (max-width: 480px) {
-        grid-template-columns: 1fr;
-    }
-}
-
-.summary-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f1f3f5;
-    transition: all 0.3s ease;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-}
-
-.summary-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.summary-icon {
-    width: 40px;
-    height: 40px;
-    padding: 0.5rem;
-    background: rgba(103, 85, 215, 0.1);
-    color: #6755d7;
-    border-radius: 10px;
-
-    &.spend {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
-    }
-
-    &.remaining {
-        background: rgba(34, 197, 94, 0.1);
-        color: #22c55e;
-    }
-
-    &.progress {
-        background: rgba(59, 130, 246, 0.1);
-        color: #3b82f6;
-    }
-}
-
-.summary-label {
-    font-size: 0.875rem;
-    color: #64748b;
-    font-weight: 500;
-}
-
-.summary-amount {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #6755d7;
-    letter-spacing: -0.5px;
-
-    &.spend {
-        color: #ef4444;
-    }
-
-    &.remaining {
-        color: #22c55e;
-    }
-
-    &.progress {
-        color: #3b82f6;
-    }
-}
-
-// Action Bar
-.action-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    gap: 1rem;
-
-    @media (max-width: 640px) {
-        flex-direction: column;
-        align-items: stretch;
-    }
-}
-
-.period-selector {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-}
-
-.period-display {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    font-weight: 600;
-    color: #1e293b;
-    font-size: 0.95rem;
-}
-
-.add-button {
-    background: #6755d7 !important;
-    color: white !important;
-    font-weight: 600;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: #5a47c7 !important;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(103, 85, 215, 0.3);
-    }
-}
-
-// Budget Grid
-.budget-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 1.5rem;
-
-    @media (max-width: 768px) {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1rem;
-    }
-
-    @media (max-width: 480px) {
-        grid-template-columns: 1fr;
-    }
-}
-
-.budget-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1.75rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f1f3f5;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        border-color: #e5e7eb;
-    }
-}
-
-// Budget Card Header
-.budget-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1.5rem;
-}
-
-.budget-title-section {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.budget-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0;
-}
-
-.budget-status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.875rem;
-    font-weight: 700;
-
-    &.success {
-        background: rgba(34, 197, 94, 0.1);
-        color: #22c55e;
-    }
-
-    &.warning {
-        background: rgba(251, 146, 60, 0.1);
-        color: #fb923c;
-    }
-
-    &.error {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
-    }
-}
-
-.budget-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-// Budget Amounts
-.budget-amounts {
-    margin-bottom: 1.5rem;
-}
-
-.amount-row {
-    margin-bottom: 1rem;
-}
-
-.amount-label {
-    display: block;
-    font-size: 0.875rem;
-    color: #64748b;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.amount-display {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-}
-
-.amount-value {
-    font-size: 2rem;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-
-    &.remaining {
-        color: #22c55e;
-    }
-}
-
-.amount-separator {
-    font-size: 1.5rem;
-    color: #cbd5e1;
-    font-weight: 700;
-}
-
-.amount-total {
-    font-size: 1.5rem;
-    color: #6755d7;
-    font-weight: 700;
-}
-
-.amount-breakdown {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.breakdown-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    color: #64748b;
-    font-weight: 500;
-}
-
-// Progress Section
-.progress-section {
-    margin-bottom: 1.25rem;
-}
-
-.progress-details {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 0.75rem;
-}
-
-.progress-label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: #64748b;
-    font-weight: 600;
-}
-
-.progress-amount {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: #1e293b;
-}
-
-// Budget Footer
-.budget-footer {
-    padding-top: 1rem;
-    border-top: 1px solid #f1f3f5;
-}
-
-.footer-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: #94a3b8;
-    font-weight: 500;
-}
-
-// Empty State
-.empty-state {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 4rem 2rem;
-    text-align: center;
-}
-
-.empty-icon {
-    width: 80px;
-    height: 80px;
-    color: #cbd5e1;
-    margin-bottom: 1.5rem;
-}
-
-.empty-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #475569;
-    margin: 0 0 0.5rem 0;
-}
-
-.empty-description {
-    font-size: 1rem;
-    color: #94a3b8;
-    margin: 0 0 2rem 0;
-}
-
-// Animations
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.budget-list-enter-active,
-.budget-list-leave-active {
-    transition: all 0.3s ease;
-}
-
-.budget-list-enter-from {
-    opacity: 0;
-    transform: scale(0.9) translateY(20px);
-}
-
-.budget-list-leave-to {
-    opacity: 0;
-    transform: scale(0.9);
-}
-
-.budget-list-move {
-    transition: transform 0.3s ease;
-}
-</style>
