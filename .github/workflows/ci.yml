@@ -26,12 +26,31 @@ jobs:
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: apps/agni-web
+
     steps:
-      - uses: actions/checkout@v4
       - name: Run Frontend Tests
-        run: |
-          echo "Exécution des tests Frontend..."
-          # Remplace par ta commande (ex: cd apps/agni-web && npm test)
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+          cache-dependency-path: apps/agni-web/yarn.lock
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      - name: Run tests
+        run: yarn test 
+      
+      - name: Test build
+        run: yarn build
+      
 
   test-api:
     needs: changes
