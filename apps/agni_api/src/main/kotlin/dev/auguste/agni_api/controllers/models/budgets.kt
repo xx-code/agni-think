@@ -23,9 +23,7 @@ data class ApiCreateBudgetModel(
 
     @field:Min(value = 0, message = "The Budget target cannot be more than 0")
     val target: Double,
-
-    val schedule: ApiBudgeScheduleInput,
-    val savingGoalIds: Set<UUID>
+    val schedule: ApiBudgeScheduleInput
 )
 
 data class ApiUpdateBudgetModel(
@@ -34,8 +32,7 @@ data class ApiUpdateBudgetModel(
     @field:Min(value = 0, message = "The Budget target cannot be more than 0")
     val target: Double?,
 
-    val schedule: ApiBudgeScheduleInput?,
-    val savingGoalIds: Set<UUID>?
+    val schedule: ApiBudgeScheduleInput?
 )
 
 fun mapApiCreateBudgetModel(model: ApiCreateBudgetModel): CreateBudgetInput {

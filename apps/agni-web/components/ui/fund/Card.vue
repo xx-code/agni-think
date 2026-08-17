@@ -78,7 +78,7 @@ const actionItems = ref<DropdownMenuItem[][]>([
                 </UDropdownMenu> 
             </div>
 
-            <UiFundCardProgress 
+            <UiCardProgress 
                 :balance="fund.balance" 
                 :target-amount="fund.target" 
                 :show-percentage="false"
