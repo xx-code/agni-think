@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import type { AccountCheckingDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
-import type { EditFreezeInvoiceType, EditTransfertType } from "~/types/ui/transaction";
 import { getLocalTimeZone } from "@internationalized/date";
-import type { QueryFilterRequest } from "~/types/api";
-import type { QueryInvoice } from "~/types/api/transaction";
-import { ModalEditAccount, ModalEditFreezeInvoice, ModalEditTransfer, ModalInvoice, SlideOverQuickInvoicesView } from "#components";
+import { ModalEditAccount, ModalInvoice, SlideOverQuickInvoicesView } from "#components";
 import { createAccount, deleteAccount, fetchAccountsWithDetail, fetchAccountWithDetail, updateAccount } from "~/composables/api/accounts";
 import { fetchAccountTypes } from "~/composables/api/internal";
-import { useFreezeInvoice, useTransfertInvoice } from "~/composables/api/invoices";
-
-const ALL_ACCOUNT_ID = "ALL_ACCOUNT_ID"
 
 type AccountByType = {
     id: string
@@ -53,25 +47,11 @@ const totalAccountBalance = computed(() => {
     return { totalBalance: total, totalFreezedBalance: totalFreezed, totalLockedBalance: totalLocked }
 })
 
-const selectedAccountId = ref(ALL_ACCOUNT_ID);
-
-const paramsTransaction = reactive<QueryFilterRequest & QueryInvoice>({offset: 0, limit: 4, isFreeze: false});
 
 const overlay = useOverlay();
 const modalAccount = overlay.create(ModalEditAccount);
-const modalTransfer = overlay.create(ModalEditTransfer);
 const modalInvoice = overlay.create(ModalInvoice);
-const modalFreezeInvoice = overlay.create(ModalEditFreezeInvoice);
 const slideOverQuickInvoices = overlay.create(SlideOverQuickInvoicesView)
-
-const onSelectAccount = (id: string) => {
-    selectedAccountId.value = id
-    if (id !== ALL_ACCOUNT_ID) {
-        paramsTransaction.accountIds = [id]
-    }
-
-    onUpateAccount(id)
-}
 
 const toast = useToast();
 const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => {
@@ -121,35 +101,6 @@ const openAccountModal = async (accountId?: string) => {
     }); 
 }
 
-async function onTransfertAccount(value: EditTransfertType) {
-    try {
-        await useTransfertInvoice({
-            accountIdFrom: value.accountIdFrom,
-            accountIdTo: value.accountIdTo,
-            amount: value.amount,
-            date: value.date.toDate(getLocalTimeZone()).toISOString()
-        })
-        refreshAccounts()
-    } catch(err) {
-        toast.add({
-            title: 'Error tranfert',
-            description: 'Error while transfert account',
-            color: 'error'
-        });
-    }
-} 
-
-async function openModalTransferAccount (accountId?: string){ 
-    const filterId = accountId === ALL_ACCOUNT_ID ? undefined : accountId
-        
-    const instance = modalTransfer.open({
-        accountId: filterId,
-        onSubmit: onTransfertAccount 
-    });
-
-    const shouldRefresh = await instance.result; 
-}
-
 async function openModalEditInvoice(accountId?: string) {
     const instant = modalInvoice.open({
         invoice: undefined,
@@ -160,46 +111,12 @@ async function openModalEditInvoice(accountId?: string) {
     refreshAccounts()
 }
 
-async function onFreezeInvoice(value: EditFreezeInvoiceType) {
-    try {
-        await useFreezeInvoice({
-            accountId: value.accountId,
-            title: value.title,
-            amount: value.amount,
-            endDate: value.endDate.toDate(getLocalTimeZone()).toISOString(),
-            status: value.status
-        })
-        refreshAccounts()
-    } catch(err) {
-        toast.add({
-            title: 'Error Freeze',
-            description: 'Error while freeze account',
-            color: 'error'
-        });
-    }
-}
-
-async function openModalEditFreezeTransaction(accountId: string = '') {
-    const instance = modalFreezeInvoice.open({
-        onSubmit: onFreezeInvoice
-    });
-
-    await instance.result; 
-
-}
-
 const onDeleteAccount = async (accountId: string) => {
     const doDelete = confirm();
     if (doDelete) {
         await deleteAccount(accountId);
         refreshAccounts();
     }
-}
-
-const onUpateAccount = async (payload: string) => {
-    let filterAcc: string[] = []
-    if (payload !== ALL_ACCOUNT_ID)
-        filterAcc = [payload] 
 }
 
 const computeAllUtilization = (accounts: AccountWithDetailType[]) => {
@@ -215,6 +132,7 @@ const openTransactionViews = async (accountId: string) => {
         slideOverQuickInvoices.open({
             account: account
         })
+        refreshAccounts()
     } catch (err) {
         console.log(err)
     } 
@@ -222,11 +140,6 @@ const openTransactionViews = async (accountId: string) => {
 
 const availableBalance = computed(() => {
     return totalAccountBalance.value.totalBalance + Math.abs(totalAccountBalance.value.totalFreezedBalance + totalAccountBalance.value.totalLockedBalance) 
-})
-
-const lockedPercentage = computed(() => {
-    if (totalAccountBalance.value.totalBalance <= 0) return 0
-    return ((totalAccountBalance.value.totalFreezedBalance + totalAccountBalance.value.totalLockedBalance) / totalAccountBalance.value.totalBalance) * 100
 })
 
 function formatAccountBuffer(detail: AccountCheckingDetailType): number {
@@ -240,10 +153,10 @@ function isBufferValid(buffer: number, balance: number): boolean {
 </script>
 
 <template>
-    <div class="p-6">
+    <div class="p-6 space-y-10">
         <!-- Header avec bouton d'ajout -->
-        <div class="flex justify-between items-center mb-5">
-            <h1 class="font-bold text-2xl">Mon Portefeuille</h1>
+        <div class="flex justify-between items-center">
+            <h1 class="font-bold text-2xl">Mon portefeuille</h1>
             <UButton 
                 icon="i-lucide-plus" 
                 size="lg" 
@@ -254,101 +167,13 @@ function isBufferValid(buffer: number, balance: number): boolean {
             </UButton>
         </div>
 
-        <!-- Cartes principales -->
-        <div class="main-cards-grid">
-            <!-- Carte Balance Totale -->
-            <UCard >
-                <template #header>
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="text-xl font-bold">Balance Totale</h3>
-                            <p>Vue d'ensemble de vos finances</p>
-                        </div>
-                        <div class="icon-wrapper balance-icon">
-                            <Icon name="i-lucide-wallet" class="text-2xl" />
-                        </div>
-                    </div>
-                </template>
+        <UiOverviewAccountSummary 
+            :total-balance="totalAccountBalance.totalBalance"
+            :disponible="availableBalance"
+            :freeze="totalAccountBalance.totalFreezedBalance"
+            :lock="totalAccountBalance.totalLockedBalance"
+        />
                 
-                <div class="balance-content" @click="">
-                    <AmountTitle 
-                        :amount="roundNumber(totalAccountBalance.totalBalance)"
-                        :sign="'$'"
-                        class="main-amount"
-                    />
-                    
-                    <div class="balance-details">
-                        <div class="align-baseline text-green-400">
-                            <Icon name="i-lucide-circle-check" class="balance-item-icon" />
-                            <span class="balance-item-label">Disponible:</span>
-                            <span class="balance-item-value">${{ roundNumber(availableBalance, 2) }}</span>
-                        </div>
-                        <div class="balance-item freezed text-blue-300">
-                            <Icon name="i-lucide-snowflake" class="balance-item-icon" />
-                            <span class="balance-item-label">Gelé:</span>
-                            <span class="balance-item-value">${{ roundNumber(totalAccountBalance .totalFreezedBalance, 2) }}</span>
-                        </div>
-                        <div class="balance-item locked">
-                            <Icon name="i-lucide-lock" class="balance-item-icon" />
-                            <span class="balance-item-label">Verrouillé:</span>
-                            <span class="balance-item-value">${{ roundNumber(totalAccountBalance.totalLockedBalance, 2) }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Actions rapides -->
-                <div class="flex gap-2">
-                    <UButton 
-                        icon="i-lucide-banknote" 
-                        size="sm" 
-                        variant="soft"
-                        color="success"
-                        @click="openModalEditInvoice()">
-                        Transaction
-                    </UButton>
-                    <UButton 
-                        icon="i-lucide-arrow-right-left" 
-                        size="sm" 
-                        variant="soft"
-                        color="info"
-                        @click="openModalTransferAccount(selectedAccountId)">
-                        Transfert
-                    </UButton>
-                    <UButton 
-                        icon="i-lucide-snowflake" 
-                        size="sm" 
-                        variant="soft"
-                        color="neutral"
-                        @click="openModalEditFreezeTransaction(selectedAccountId)">
-                        Geler
-                    </UButton>
-                </div>
-
-                <!-- Barre de progression -->
-                <div class="progress-section">
-                    <div class="progress-bar-wrapper">
-                        <div class="progress-bar-bg">
-                            <div 
-                                class="progress-bar-fill" 
-                                :style="{ width: `${lockedPercentage}%` }" 
-                            />
-                        </div>
-                    </div>
-                    <div class="progress-labels">
-                        <span class="progress-label">
-                            <span class="progress-dot available"></span>
-                            Disponible ({{ roundNumber(100 - lockedPercentage) }}%)
-                        </span>
-                        <span class="progress-label">
-                            <span class="progress-dot locked"></span>
-                            Bloqué ({{ roundNumber(lockedPercentage) }}%)
-                        </span>
-                    </div>
-                </div>
-            </UCard>
-
-        </div>
-        
         <!-- Liste des comptes par type -->
         <div class="mt-4">
             <div v-for="group in accounts" :key="group.id" class="account-group">
@@ -367,7 +192,6 @@ function isBufferValid(buffer: number, balance: number): boolean {
                     <div v-for="account in group.accounts" :key="account.id" class="account-card-wrapper">
                         <CardResumeAccount 
                             @open="openTransactionViews(account.id)"
-                            v-if="account.id !== selectedAccountId"
                             :id="account.id"
                             :title="account.title"
                             :balance="account.balance"
@@ -375,8 +199,8 @@ function isBufferValid(buffer: number, balance: number): boolean {
                             :is-positif="true"
                             :freezed-balance="account.freezedBalance"
                             :locked-balance="account.lockedBalance"
-                            :allow-edit="account.id !== ALL_ACCOUNT_ID"
-                            :allow-delete="account.id !== ALL_ACCOUNT_ID" 
+                            allow-edit
+                            allow-delete 
                             @add="openModalEditInvoice(account.id)"
                             @edit="openAccountModal(account.id)"
                             @delete="onDeleteAccount(account.id)"> 
