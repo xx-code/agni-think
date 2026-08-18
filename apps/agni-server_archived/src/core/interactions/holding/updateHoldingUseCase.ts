@@ -2,7 +2,7 @@ import { Holding } from "@core/domains/entities/holding"
 import { IUsecase } from "../interfaces"
 import Repository from "@core/adapters/repository"
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError"
-import { AccountType, mapperHoldingType } from "@core/domains/constants"
+import { Account, mapperHoldingType } from "@core/domains/constants"
 import { Account } from "@core/domains/entities/account"
 import UnExpectedError from "@core/errors/unExpectedError"
 
@@ -34,7 +34,7 @@ export class UpdateHoldingUseCase implements IUsecase<RequestUpdateHoldingDto, v
             if (!account)
                 throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
-            if (account.getType() !== AccountType.BROKING)
+            if (account.getType() !== Account.BROKING)
                 throw new UnExpectedError("NOT_ACCOUNT_BROKAGE")
         }
 

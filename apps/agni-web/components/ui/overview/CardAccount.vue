@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui';
+import { AccountType, getIconAccountType, getLabelAccountType } from '~/types/constants/account';
 import type { AccountCard } from '~/types/ui/account';
 
 const { account }  = defineProps<{
@@ -68,18 +69,19 @@ const actionItems = ref<DropdownMenuItem[][]>([
     ]
 ])
 
+
 </script>
 
 <template>
     <div class="flex flex-col gap-2 p-5 cursor-pointer">
         <div class="flex items-start">
             <duv class="flex-1">
-                <h5 class="text-sm font-semibold text-gray-500">{{ account.type }}</h5>
+                <h5 class="text-sm font-semibold text-gray-500">{{ getLabelAccountType(account.type)  }}</h5>
                 <h1 class="text-lg font-semibold">{{ account.title }}</h1>
             </duv>
 
             <div>
-                <UIcon class="mr-1" name="i-lucide-landmark" />
+                <UIcon class="mr-1" :name="getIconAccountType(account.type)" />
                 <UDropdownMenu :items="actionItems" >
                     <UButton 
                         @click.stop

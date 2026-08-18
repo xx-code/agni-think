@@ -57,7 +57,7 @@ export type UpdateAccountRequest = {
 export type AccountDetailRequest = {
     creditLimit?: number
     contributionType?: string
-    managementAccountType?: string
+    managementAccount?: string
     buffer?: number
     secureAmount?: number
     invoiceDate?: string

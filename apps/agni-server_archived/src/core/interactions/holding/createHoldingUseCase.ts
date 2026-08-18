@@ -5,7 +5,7 @@ import { Account } from "@core/domains/entities/account";
 import { Holding } from "@core/domains/entities/holding";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import { GetUID } from "@core/adapters/libs";
-import { AccountType, mapperHoldingType } from "@core/domains/constants";
+import { Account, mapperHoldingType } from "@core/domains/constants";
 import UnExpectedError from "@core/errors/unExpectedError";
 
 export type RequestCreateHoldingDto = {
@@ -32,7 +32,7 @@ export class CreateHoldingUseCase implements IUsecase<RequestCreateHoldingDto, C
         if (!account)
             throw new ResourceNotFoundError("ACCOUNT_NOT_FOUND")
 
-        if (account.getType() !== AccountType.BROKING)
+        if (account.getType() !== Account.BROKING)
             throw new UnExpectedError("NOT_ACCOUNT_BROKAGE")
         
         if (await this.holdingRepo.existByName(request.title))

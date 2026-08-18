@@ -1,7 +1,7 @@
 import { Account } from "@core/domains/entities/account";
 import Mapper, { KnexTable } from "./mapper";
 import { Knex } from "knex";
-import { AccountType, mapperTypeAccount } from "@core/domains/constants";
+import { Account, mapperTypeAccount } from "@core/domains/constants";
 import { KnexModel } from "./model";
 import { BrockageAccountDetail } from "@core/domains/valueObjects/brockageAccount";
 import { CreditCardAccountDetail } from "@core/domains/valueObjects/creditCardAccount";
@@ -38,10 +38,10 @@ export class AccountModelMapper implements Mapper<Account, AccountModel> {
     toDomain(model: AccountModel): Account {
         let detail = undefined
         switch(model.type) {
-            case AccountType.BROKING:
+            case Account.BROKING:
                 detail = BrockageAccountDetail.fromJson(model.detail)
                 break
-            case AccountType.CREDIT_CARD:
+            case Account.CREDIT_CARD:
                 detail = CreditCardAccountDetail.fromJson(model.detail)
                 break
             default:

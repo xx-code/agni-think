@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { AccountCheckingDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType, EditAccountType } from "~/types/ui/account";
+import type { AccountCheckingDetailType, AccountCreditDetailType, Account, AccountWithDetailType, EditAccount } from "~/types/ui/account";
 import { getLocalTimeZone } from "@internationalized/date";
 import { ModalEditAccount, ModalInvoice, SlideOverQuickInvoicesView } from "#components";
 import { createAccount, deleteAccount, fetchAccountsWithDetail, fetchAccountWithDetail, updateAccount } from "~/composables/api/accounts";
 import { accountWithDetailToAccountCard } from "~/mappers/account";
 import { fetchBalanceByPeriod } from "~/composables/api/invoices";
+import { getOrderAccountType } from "~/types/constants/account";
 
 const isLoadingAccount = ref(false)
 const { data: accountData, refresh: refreshAccounts } = await useAsyncData(
@@ -32,7 +33,7 @@ const { data: accountData, refresh: refreshAccounts } = await useAsyncData(
         isLoadingAccount.value = false
 
         return {
-            accounts: res.items,
+            accounts: res.items.sort((a, b) => getOrderAccountType(a.type) - getOrderAccountType(b.type)),
             balanceHistories: accIds.map((id, index) => ({
                 id,
                 histories: balancesByPeriod[index]?.map(i => i.balance) ?? []
@@ -65,15 +66,16 @@ const modalInvoice = overlay.create(ModalInvoice);
 const slideOverQuickInvoices = overlay.create(SlideOverQuickInvoicesView)
 
 const toast = useToast();
-const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => {
+const onSaveAccount = async (value: EditAccount, oldValue?: Account) => {
     try {
         if (oldValue)
             await updateAccount(oldValue.id, {
                 title: value.title,
                 type : value.type,
+                color: value.color,
                 detail: {
                     contributionType: value.contributionType,
-                    managementAccountType: value.managementType,
+                    managementAccount: value.managementType,
                     creditLimit: value.creditLimit,
                     invoiceDate: value.invoiceDate?.toDate(getLocalTimeZone()).toISOString()
                 }
@@ -85,7 +87,7 @@ const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => 
                 color: value.color,
                 detail: {
                     contributionType: value.contributionType,
-                    managementAccountType: value.managementType,
+                    managementAccount: value.managementType,
                     creditLimit: value.creditLimit,
                     invoiceDate: value.invoiceDate?.toDate(getLocalTimeZone()).toISOString()
                 }

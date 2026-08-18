@@ -1,6 +1,6 @@
 import type { CalendarDate } from "@internationalized/date"
 
-export type EditAccountType = {
+export type EditAccount = {
     title: string
     type: string
     color: string
@@ -10,7 +10,7 @@ export type EditAccountType = {
     invoiceDate?: CalendarDate
 }
 
-export type AccountType = {
+export type Account = {
     id: string
     title: string
     type: string
@@ -18,7 +18,7 @@ export type AccountType = {
     balance: number
 }
 
-export type AccountWithPastBalanceType = AccountType & {
+export type AccountWithPastBalanceType = Account & {
     pastBalanceDetail: {
         balance: number,
         diffPercent: number,
@@ -41,7 +41,7 @@ export type AccountCheckingDetailType = {
     buffer: number
 }
 
-export type AccountWithDetailType = AccountType & {
+export type AccountWithDetailType = Account & {
     lockedBalance: number
     freezedBalance: number
     detail?: AccountCreditDetailType | AccountBrokeDetailType | AccountCheckingDetailType

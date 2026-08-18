@@ -1,4 +1,4 @@
-import type { AccountCard, AccountType, AccountWithDetailType } from "~/types/ui/account";
+import type { AccountCard, Account, AccountWithDetailType } from "~/types/ui/account";
 
 export function accountWithDetailToAccountCard(data: AccountWithDetailType, balanceHistory: number[]= []): AccountCard {
     return {
@@ -11,7 +11,7 @@ export function accountWithDetailToAccountCard(data: AccountWithDetailType, bala
     }
 }
 
-export function accountToAccountCard(data: AccountType, balanceHistory: number[]= []): AccountCard {
+export function accountToAccountCard(data: Account, balanceHistory: number[]= []): AccountCard {
     return {
         id: data.id,
         title: data.title,

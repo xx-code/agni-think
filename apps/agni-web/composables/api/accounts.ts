@@ -1,8 +1,8 @@
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
 import type { CreateAccountRequest, GetAccountResponse, GetAccountWithDetailResponse, UpdateAccountRequest } from "~/types/api/account";
-import type { AccountBrokeDetailType, AccountCheckingDetailType, AccountCreditDetailType, AccountType, AccountWithDetailType } from "~/types/ui/account";
+import type { AccountBrokeDetailType, AccountCheckingDetailType, AccountCreditDetailType, Account, AccountWithDetailType } from "~/types/ui/account";
 
-export async function fetchAccount(accountId: string): Promise<AccountType> {
+export async function fetchAccount(accountId: string): Promise<Account> {
     const res = await $fetch<GetAccountResponse>(`api/accounts/${accountId}`, {
         method: 'GET'
     });
@@ -71,7 +71,7 @@ function sumTotalBalance(accounts: AccountWithDetailType[]): [number, number, nu
     return [Number(total.toFixed(2)), Number(totalLocked.toFixed(2)), Number(totalFreezed.toFixed(2))];
 }
 
-export async function fetchAccounts(query: QueryFilterRequest): Promise<ListResponse<AccountType>> {
+export async function fetchAccounts(query: QueryFilterRequest): Promise<ListResponse<Account>> {
     const res = await $fetch<ListResponse<GetAccountResponse>>(`api/accounts`, {
         method: 'GET',
         query: query,
@@ -84,7 +84,7 @@ export async function fetchAccounts(query: QueryFilterRequest): Promise<ListResp
             balance: i.balance,
             color: '',
             type: i.type
-        } satisfies AccountType)),
+        } satisfies Account)),
         total: Number(res.total)
     };
 }

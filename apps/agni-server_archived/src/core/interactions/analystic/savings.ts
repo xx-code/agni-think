@@ -1,4 +1,4 @@
-import { AccountType, mapperPeriod, Period, RecordType, TransactionType } from "@core/domains/constants";
+import { Account, mapperPeriod, Period, RecordType, TransactionType } from "@core/domains/constants";
 import { IUsecase } from "../interfaces";
 import UnExpectedError from "@core/errors/unExpectedError";
 import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
@@ -45,11 +45,11 @@ export class SavingAnalysticUseCase implements IUsecase<RequestSavingAnalystic, 
 
         const accounts = await this.accountRepo.getAll({offset: 0, limit: 0, queryAll: true})
         const saveAccountIds = accounts.items
-            .filter(i => i.getType() === AccountType.CHECKING)
+            .filter(i => i.getType() === Account.CHECKING)
             .map(i => i.getId())
 
         const investAccountIds = accounts.items
-            .filter(i => i.getType() === AccountType.BROKING)
+            .filter(i => i.getType() === Account.BROKING)
             .map(i => i.getId())
 
         const today = new Date(Date.now()) 
