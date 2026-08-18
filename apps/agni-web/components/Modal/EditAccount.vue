@@ -32,13 +32,15 @@ const { data: utils } = useAsyncData('utils+edit-account', async () => {
 
 const schema = z.object({
     accountName: z.string().nonempty('Le nom du compte est vide'),
-    accountType: z.string().nonempty('Vous devez selection un type de compte')
+    accountType: z.string().nonempty('Vous devez selection un type de compte'),
+    color: z.string().nonempty('Vous devez ajouter une couleur')
 })
 
 type Schema = z.output<typeof schema>
 
 const form = reactive({
     accountName: account?.title || '',
+    color: account?.color || '',
     accountType: account?.type || '',
     managementType: account?.detail ? (account?.detail as AccountBrokeDetailType).managementType ?? undefined : undefined,
     contributionType: account?.detail ? (account?.detail as AccountBrokeDetailType).type ?? undefined : undefined,
@@ -56,12 +58,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     emit('submit', {
         title: form.accountName,
         type: form.accountType,
+        color: form.color,
         creditLimit: form.creditLimit,
         contributionType: form.contributionType,
         managementType: form.managementType,
         invoiceDate: invoiceDate.value 
     }, account);
         
+    form.color = ""
     form.accountName = ""
     form.accountType = ""
     form.contributionType = ""
@@ -88,6 +92,18 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     value-key="value" 
                     :items="utils?.accountTypes.map(i => ({ label: i.value, value: i.id}))" class="w-full">
                 </USelect>
+            </UFormField>
+
+            <UFormField label="Couleur" name="color">
+                <div class="flex items-center gap-1">
+                    <div class="rounded-md" :style="'width: 25px; height: 25px;'+'background-color:'+form.color+';'"></div>
+                    <UPopover>
+                        <UButton color="neutral" variant="subtle" icon="i-lucide-palette" >Color Picker</UButton>
+                        <template #content>
+                            <UColorPicker v-model="form.color" />
+                        </template>
+                    </UPopover>
+                </div>
             </UFormField>
 
             <div v-if="form.accountType === 'CreditCard'">

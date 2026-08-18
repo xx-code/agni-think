@@ -68,4 +68,8 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class GoalStrategyNotExist(type: GoalEvaluationType): BusinessLogic("GOAL_STRATEGY_NOT_EXIST", "Goal strategy not exist $type")
         class GoalTargetAmountMustBeLeastFund(balance: Double, targetAmount: Double): BusinessLogic("GOAL_TARGET_AMOUNT_MUST_LEAST_FUND", "le montant cible $targetAmount doit etre inferieur a $balance$")
     }
+
+    sealed class Validation(code: String, message: String): DomainException(code, message) {
+        class InvalidColor(color: String): Validation("INVALID_COLOR","Format de couleur hexadécimale invalide: $color")
+    }
 }

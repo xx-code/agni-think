@@ -9,6 +9,7 @@ export async function fetchAccount(accountId: string): Promise<AccountType> {
     return {
         id: res.id,
         title: res.title,
+        color: res.color,
         balance: res.balance,
         type: res.type
     };
@@ -44,6 +45,7 @@ export async function fetchAccountWithDetail(accountId: string): Promise<Account
     return {
         id: res.id,
         title: res.title,
+        color: res.color,
         balance: res.balance,
         type: res.type,
         lockedBalance: res.lockedBalance,
@@ -80,6 +82,7 @@ export async function fetchAccounts(query: QueryFilterRequest): Promise<ListResp
             id: i.id,
             title: i.title,
             balance: i.balance,
+            color: '',
             type: i.type
         } satisfies AccountType)),
         total: Number(res.total)
@@ -122,24 +125,12 @@ export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promis
             title: account.title,
             balance: account.balance,
             type: account.type,
+            color: account.color,
             lockedBalance: account.lockedBalance,
             freezedBalance: account.freezeBalance,
             detail: detailAccount(account.type)
         });
     }
-
-    const totals = sumTotalBalance(accountsWithPastBalances);
-    const totalAccount: AccountWithDetailType = {
-        id: ALL_ACCOUNT_ID,
-        title: 'Total Balance',
-        balance: totals[0],
-        lockedBalance: totals[1],
-        freezedBalance: totals[2],
-        type: '',
-        detail: undefined
-    };
-
-    accountsWithPastBalances.unshift(totalAccount);
 
     return { items: accountsWithPastBalances, total: res.total };
 }

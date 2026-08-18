@@ -4,43 +4,54 @@ import type { AccountCheckingDetailType, AccountCreditDetailType, AccountType, A
 import { getLocalTimeZone } from "@internationalized/date";
 import { ModalEditAccount, ModalInvoice, SlideOverQuickInvoicesView } from "#components";
 import { createAccount, deleteAccount, fetchAccountsWithDetail, fetchAccountWithDetail, updateAccount } from "~/composables/api/accounts";
-import { fetchAccountTypes } from "~/composables/api/internal";
+import { accountWithDetailToAccountCard } from "~/mappers/account";
+import { fetchBalanceByPeriod } from "~/composables/api/invoices";
 
-type AccountByType = {
-    id: string
-    title: string
-    accounts: AccountWithDetailType[]
-}
+const isLoadingAccount = ref(false)
+const { data: accountData, refresh: refreshAccounts } = await useAsyncData(
+    'accounts+categories+tags+budgets',
+    async () => {
+        isLoadingAccount.value = true
+        const res = await fetchAccountsWithDetail({ offset: 0, limit: 0, queryAll: true })
+        const accIds = res.items.map(account => account.id)
 
-const { data: accounts, refresh: refreshAccounts } = await useAsyncData('accounts+categories+tags+budgets', async () => {
-    const res = await fetchAccountsWithDetail({ offset: 0, limit: 0, queryAll: true })
-    const accountTypes = await fetchAccountTypes()
+        const dateFrom = new Date()
+        dateFrom.setMonth(dateFrom.getMonth() - 7)
 
-    const accountsByType = []
-    for(const type of accountTypes) {
+        const balancesByPeriod = await Promise.all(
+            accIds.map(id =>
+                fetchBalanceByPeriod({
+                    period: 'Month',
+                    interval: 1,
+                    dateFrom: dateFrom.toISOString(),
+                    accountIds: [id]
+                })
+            )
+        )
 
-        const accounts = res.items.filter(i => i.type.toLowerCase() === type.id.toLowerCase())
-        accountsByType.push({
-            id: type.id,
-            title: type.value,
-            accounts: accounts
-        } satisfies AccountByType) 
+        isLoadingAccount.value = false
+
+        return {
+            accounts: res.items,
+            balanceHistories: accIds.map((id, index) => ({
+                id,
+                histories: balancesByPeriod[index]?.map(i => i.balance) ?? []
+            }))
+        }
     }
-
-    return accountsByType
-})
+)
 
 const totalAccountBalance = computed(() => {
     let total = 0 
     let totalFreezed = 0
     let totalLocked = 0
 
-    if (accounts.value) {
-        for(const acc of accounts.value) {
-            if (acc.id !== 'Saving' && acc.id !== 'Broking')
-                total += acc.accounts.reduce((acc, curr) => acc += curr.balance, 0)
-            totalFreezed += acc.accounts.reduce((acc, curr) => acc += curr.freezedBalance, 0)
-            totalLocked += acc.accounts.reduce((acc, curr) => acc += curr.lockedBalance, 0)
+    if (accountData.value) {
+        for(const acc of accountData.value.accounts) {
+            if (acc.type !== 'Saving' && acc.type !== 'Broking')
+                total += acc.balance
+            totalFreezed += acc.freezedBalance
+            totalLocked += acc.lockedBalance
         }
     }  
 
@@ -71,6 +82,7 @@ const onSaveAccount = async (value: EditAccountType, oldValue?: AccountType) => 
             await createAccount({
                 title: value.title,
                 type : value.type,
+                color: value.color,
                 detail: {
                     contributionType: value.contributionType,
                     managementAccountType: value.managementType,
@@ -112,7 +124,7 @@ async function openModalEditInvoice(accountId?: string) {
 }
 
 const onDeleteAccount = async (accountId: string) => {
-    const doDelete = confirm();
+    const doDelete = confirm('Voulez vous supprimer cette page');
     if (doDelete) {
         await deleteAccount(accountId);
         refreshAccounts();
@@ -129,9 +141,10 @@ const computeAllUtilization = (accounts: AccountWithDetailType[]) => {
 const openTransactionViews = async (accountId: string) => {
     try {
         let account = await fetchAccountWithDetail(accountId);
-        slideOverQuickInvoices.open({
+        const instance = slideOverQuickInvoices.open({
             account: account
         })
+        await instance.result
         refreshAccounts()
     } catch (err) {
         console.log(err)
@@ -168,83 +181,35 @@ function isBufferValid(buffer: number, balance: number): boolean {
         </div>
 
         <UiOverviewAccountSummary 
+            v-if="!isLoadingAccount"
             :total-balance="totalAccountBalance.totalBalance"
             :disponible="availableBalance"
             :freeze="totalAccountBalance.totalFreezedBalance"
             :lock="totalAccountBalance.totalLockedBalance"
         />
-                
-        <!-- Liste des comptes par type -->
-        <div class="mt-4">
-            <div v-for="group in accounts" :key="group.id" class="account-group">
-                <div class="mt-2" v-if="group.accounts.length > 0">
-                    <h2 class="account-group-title">{{ group.title }}</h2>
-                    <div v-if="group.id === 'CreditCard'" class="credit-utilization">
-                        <Icon name="i-lucide-credit-card" class="mr-1" />
-                        <span>Utilisation moyenne:</span>
-                        <strong :style="{color: creditUilisationToColor(Number(computeAllUtilization(group.accounts))) }">
-                            {{ computeAllUtilization(group.accounts) }}%
-                        </strong>
-                    </div>
-                </div>
-                
-                <div class="flex gap-3 flex-wrap">
-                    <div v-for="account in group.accounts" :key="account.id" class="account-card-wrapper">
-                        <CardResumeAccount 
-                            @open="openTransactionViews(account.id)"
-                            :id="account.id"
-                            :title="account.title"
-                            :balance="account.balance"
-                            :diff-past-balance-per="0"
-                            :is-positif="true"
-                            :freezed-balance="account.freezedBalance"
-                            :locked-balance="account.lockedBalance"
-                            allow-edit
-                            allow-delete 
-                            @add="openModalEditInvoice(account.id)"
-                            @edit="openAccountModal(account.id)"
-                            @delete="onDeleteAccount(account.id)"> 
+        <LoadingIndicator v-else />
 
-                            <div v-if="account.type === 'CreditCard'" class="credit-card-details">
-                                <p class="text-sm text-gray-400">
-                                    Prochaine facture: {{ formatDate((account.detail as AccountCreditDetailType).nextInvoicePaymentDate) }}
-                                </p>
-                                <p class="credit-limit">
-                                    <Icon name="i-lucide-landmark" class="inline mr-1" />
-                                    Limite: ${{ (account.detail as AccountCreditDetailType).creditLimit }}
-                                </p>
-                                <p 
-                                    class="credit-usage" 
-                                    :style="{color: creditUilisationToColor((account.detail as AccountCreditDetailType).creditUtilisation)}">
-                                    <Icon name="i-lucide-percent" class="inline mr-1" />
-                                    Utilisation: {{ (account.detail as AccountCreditDetailType).creditUtilisation }}%
-                                </p>
-                            </div>
-                            <div v-else-if="account.type == 'Checking'" class="credit-card-details text-sm">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <Icon name="i-lucide-circle-check" class="text-green-500" />
-                                        <span class="ml-1">Disponible:</span>
-                                    </div>
-
-                                    <span>${{ roundNumber(account.balance + Math.abs(account.freezedBalance) , 2)  }}</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <Icon 
-                                            name="i-lucide-align-horizontal-space-around" 
-                                            :class="[isBufferValid(formatAccountBuffer(account.detail as AccountCheckingDetailType), account.balance + account.freezedBalance) ? 'text-green-500' : 'text-red-500']" />
-                                        <span class="ml-1">Buffer:</span>
-                                    </div>
-
-                                    <span>${{ formatAccountBuffer(account.detail as AccountCheckingDetailType)  }}</span>
-                                </div>
-                            </div>
-                        </CardResumeAccount>
-                    </div>
+        <div class="grid grid-cols-2">
+            <div class="col-1">
+                <h1 class="text-lg text-gray-500 font-bold">Comptes</h1>
+                <div class="grid grid-cols-2 gap-4" v-if="!isLoadingAccount">
+                    <UiOverviewCardAccount 
+                        v-for="account in accountData?.accounts"
+                        :key="account.id"
+                        :account="accountWithDetailToAccountCard(account, accountData?.balanceHistories.find(el => el.id === account.id)?.histories ?? [])"
+                        @click="() => openTransactionViews(account.id)"
+                        @update="() => openAccountModal(account.id)"
+                        @delete="() => onDeleteAccount(account.id)"
+                    />
                 </div> 
+                <LoadingIndicator v-else />
             </div>
-        </div> 
+            
+            <div class="col-2">
+
+            </div>
+        </div>
+
     </div> 
 </template>
 

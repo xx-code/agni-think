@@ -54,6 +54,7 @@ class GetAllAccountWithDetail(
                 lockedBalance = lockedBalance,
                 freezeBalance = freezeBalance,
                 detail = mapperAccountDetailOutput(account.detail, account.balance),
+                color = account.color.toString()
             ))
         }
 

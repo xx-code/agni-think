@@ -6,5 +6,6 @@ data class GetAccountOutput(
     val id: UUID,
     val title: String,
     val balance: Double,
-    val type: String
+    val type: String,
+    val color: String
 )

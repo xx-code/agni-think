@@ -36,6 +36,7 @@ data class ApiCreateAccountModel(
     val title: String,
     val type: String,
     val currencyId: UUID?,
+    val color: String,
     val detail: ApiAccountDetailModel
 )
 
@@ -43,6 +44,7 @@ data class ApiUpdateAccountModel(
     val title: String? = null,
     val type: String? = null,
     val currencyId: UUID? = null,
+    val color: String? = null,
     val detail: ApiAccountDetailModel? = null,
 )
 
@@ -84,6 +86,7 @@ fun mapApiUpdateModel(id: UUID, model: ApiUpdateAccountModel): UpdateAccountInpu
     return UpdateAccountInput(
         id = id,
         title = model.title ,
+        color = model.color ,
         detail = if (model.type != null && model.detail != null)
             mapAccountDetail(model.type, model.detail)
         else null
@@ -95,6 +98,7 @@ fun mapApiCreateAccountModel(model: ApiCreateAccountModel): CreateAccountInput {
         title = model.title,
         initBalance = 0.0,
         currencyId = model.currencyId,
+        color = model.color,
         detail = mapAccountDetail(model.type, model.detail)
     )
 }
