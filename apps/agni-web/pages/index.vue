@@ -274,10 +274,10 @@ function goalStatusBadge(goal: FundCardGoal) {
         />
         <LoadingIndicator v-else />
 
-        <div class="grid md:grid-cols-2 grid-cols-1 gap-4">
+        <div class="grid md:grid-cols-2 grid-cols-1 gap-5">
             <div>
-                <h1 class="text-lg text-gray-500 font-bold">Comptes</h1>
-                <div class="grid grid-cols-2 gap-4" v-if="!isLoadingAccount">
+                <h1 class="text-lg text-gray-500 font-bold mb-5">Comptes</h1>
+                <div class="grid grid-cols-2 gap-5" v-if="!isLoadingAccount">
                     <UiOverviewCardAccount 
                         v-for="account in accountData?.accounts"
                         :key="account.id"
@@ -377,7 +377,7 @@ function goalStatusBadge(goal: FundCardGoal) {
                             :ui="{
                                 indicator: goalStatusBadge(goal).progressColor 
                             }" 
-                            size="md"
+                            size="sm"
                         />
                     </div>
                 </div>
