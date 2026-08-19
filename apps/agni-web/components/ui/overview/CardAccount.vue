@@ -75,10 +75,10 @@ const actionItems = ref<DropdownMenuItem[][]>([
 <template>
     <div class="flex flex-col gap-2 p-5 cursor-pointer">
         <div class="flex items-start">
-            <duv class="flex-1">
+            <div class="flex-1">
                 <h5 class="text-sm font-semibold text-gray-500">{{ getLabelAccountType(account.type)  }}</h5>
                 <h1 class="text-lg font-semibold">{{ account.title }}</h1>
-            </duv>
+            </div>
 
             <div>
                 <UIcon class="mr-1" :name="getIconAccountType(account.type)" />

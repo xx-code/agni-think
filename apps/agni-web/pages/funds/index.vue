@@ -266,24 +266,22 @@ watch(filterGoal, () => {
 
         <!-- Cards View -->
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] md:gap-6">
-            <TransitionGroup name="goal-list">
-                <UiFundCard 
-                    v-for="fund in funds" 
-                    :key="fund.id"
-                    :fund="fundToFundCard(fund)"
-                    @add-goal=""
-                    @refresh="refreshed =>  {
-                        if (refreshed) {
-                            updateGoalList()
-                            updateFundList(fund.id)
-                        }
-                    }"
-                    @update="openModalFund(fund.id)"
-                    @delete="() => openModalDeleteFund(fund.id)"
-                    @increase-amount="openModalFundAmount(true, fund.id)"
-                    @decrease-amount="openModalFundAmount(false, fund.id)"
-                />
-            </TransitionGroup>
+            <UiFundCard 
+                v-for="fund in funds" 
+                :key="fund.id"
+                :fund="fundToFundCard(fund)"
+                @add-goal=""
+                @refresh="refreshed =>  {
+                    if (refreshed) {
+                        updateGoalList()
+                        updateFundList(fund.id)
+                    }
+                }"
+                @update="openModalFund(fund.id)"
+                @delete="() => openModalDeleteFund(fund.id)"
+                @increase-amount="openModalFundAmount(true, fund.id)"
+                @decrease-amount="openModalFundAmount(false, fund.id)"
+            />
 
             <div 
                 v-if="funds.length < totalFund"

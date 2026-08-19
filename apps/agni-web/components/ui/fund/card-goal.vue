@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { deleteGoal } from '~/composables/api/goals';
 import type { FundCardGoal, FundGoalState } from '~/types/ui/fund';
 
 const { goal } = defineProps<{

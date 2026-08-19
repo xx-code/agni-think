@@ -30,6 +30,9 @@ class GetSpendByCategoryAnalytic(
             result.add(
                 GetSpendByCategoryOutput(
                     categoryId = category.id,
+                    icon = category.icon,
+                    title = category.title,
+                    color = category.color,
                     spends = categoryBalances.map { it.spend },
                 ))
         }
