@@ -20,7 +20,7 @@ const isLoading = ref(false)
 const toast = useToast() 
 
 
-const { data:fund, refresh } = await useAsyncData(`fundContext+${fundId}`, async () => {
+const { data:fund, refresh } = useAsyncData(`fundContext+${fundId}${(new Date()).getMilliseconds()}`, async () => {
     isLoading.value = true
 
     const [resFund, resGoals] = await Promise.all([
@@ -28,6 +28,7 @@ const { data:fund, refresh } = await useAsyncData(`fundContext+${fundId}`, async
         fetchAllGoal({ limit: 0, offset: 4, queryAll: true, sourceId: fundId })
     ])
     isLoading.value = false
+
 
     return {
         ...resFund,
@@ -105,7 +106,7 @@ async function onClickDeleteGoal(id: string) {
                     />
                 </div>
 
-                <UiFundCardProgress 
+                <UiCardProgress 
                     class="mb-4"
                     :target-amount="fund.target" 
                     :balance="fund.balance"
@@ -123,7 +124,7 @@ async function onClickDeleteGoal(id: string) {
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <UiCardGoal 
+                        <UiFundCardGoal 
                             v-for="goal in fundCardContextToFundGoalCards(fund)"
                             :key="goal.id"
                             :goal="goal"

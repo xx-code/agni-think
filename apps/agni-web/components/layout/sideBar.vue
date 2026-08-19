@@ -149,7 +149,7 @@ const items: NavigationMenuItem[][] = [[
         <template #default="{ collapsed }">
             <UNavigationMenu 
                 :ui="{
-                    linkLabel: 'block text-md text-start text-wrap'
+                    linkLabel: 'block text-md text-start text-wrap font-semibold'
                 }"
                 highlight
                 variant="pill"

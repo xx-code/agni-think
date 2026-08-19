@@ -274,7 +274,7 @@ function goalStatusBadge(goal: FundCardGoal) {
         />
         <LoadingIndicator v-else />
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid md:grid-cols-2 grid-cols-1 gap-4">
             <div>
                 <h1 class="text-lg text-gray-500 font-bold">Comptes</h1>
                 <div class="grid grid-cols-2 gap-4" v-if="!isLoadingAccount">
