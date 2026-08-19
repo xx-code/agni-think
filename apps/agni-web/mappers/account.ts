@@ -1,4 +1,4 @@
-import type { AccountCard, Account, AccountWithDetailType } from "~/types/ui/account";
+import type { AccountCard, Account, AccountWithDetailType, QuickViewTransactionBalanceInfo } from "~/types/ui/account";
 
 export function accountWithDetailToAccountCard(data: AccountWithDetailType, balanceHistory: number[]= []): AccountCard {
     return {
@@ -20,4 +20,8 @@ export function accountToAccountCard(data: Account, balanceHistory: number[]= []
         type: data.type,
         balanceHistory: balanceHistory
     }
+}
+
+export function accountWithDetailToQuickInvoiceViewBalanceInfo(data: AccountWithDetailType): QuickViewTransactionBalanceInfo {
+    return data
 }

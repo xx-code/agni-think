@@ -1,5 +1,6 @@
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
 import type { CreateAccountRequest, GetAccountResponse, GetAccountWithDetailResponse, UpdateAccountRequest } from "~/types/api/account";
+import type { AccountType } from "~/types/constants/account";
 import type { AccountBrokeDetailType, AccountCheckingDetailType, AccountCreditDetailType, Account, AccountWithDetailType } from "~/types/ui/account";
 
 export async function fetchAccount(accountId: string): Promise<Account> {
@@ -11,7 +12,7 @@ export async function fetchAccount(accountId: string): Promise<Account> {
         title: res.title,
         color: res.color,
         balance: res.balance,
-        type: res.type
+        type: res.type as AccountType
     };
 }
 
@@ -47,7 +48,7 @@ export async function fetchAccountWithDetail(accountId: string): Promise<Account
         title: res.title,
         color: res.color,
         balance: res.balance,
-        type: res.type,
+        type: (res.type as AccountType ?? 'ErrorType'),
         lockedBalance: res.lockedBalance,
         freezedBalance: res.freezeBalance,
         detail: detailAccount(res.type)
@@ -83,7 +84,7 @@ export async function fetchAccounts(query: QueryFilterRequest): Promise<ListResp
             title: i.title,
             balance: i.balance,
             color: '',
-            type: i.type
+            type: (i.type as AccountType ?? 'ErrorType')
         } satisfies Account)),
         total: Number(res.total)
     };
@@ -124,7 +125,7 @@ export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promis
             id: account.id,
             title: account.title,
             balance: account.balance,
-            type: account.type,
+            type: (account.type as AccountType ?? 'ErrorType'),
             color: account.color,
             lockedBalance: account.lockedBalance,
             freezedBalance: account.freezeBalance,

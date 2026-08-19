@@ -1,4 +1,5 @@
 import type { CalendarDate } from "@internationalized/date"
+import type { AccountType } from "../constants/account"
 
 export type EditAccount = {
     title: string
@@ -13,7 +14,7 @@ export type EditAccount = {
 export type Account = {
     id: string
     title: string
-    type: string
+    type: AccountType
     color: string
     balance: number
 }
@@ -55,3 +56,18 @@ export type AccountCard = {
     balance: number
     balanceHistory: number[]
 }
+
+export type SlideQuickViewTransactionType = {
+    id: string
+    icon: string
+    color: string
+    category: string
+    description: string
+    status: string
+    type: string
+    date: Date
+    subTotal: number
+    total: number 
+}
+
+export type QuickViewTransactionBalanceInfo = AccountWithDetailType

@@ -144,26 +144,25 @@ const openTransactionViews = async (accountId: string) => {
     try {
         let account = await fetchAccountWithDetail(accountId);
         const instance = slideOverQuickInvoices.open({
-            account: account
+            account: account,
+            onClose: (refresh) => {
+                if (refresh)
+                    refreshAccounts()
+            } 
         })
         await instance.result
-        refreshAccounts()
-    } catch (err) {
-        console.log(err)
+    } catch (err:any) {
+        toast.add({
+            title: 'Error open transaction view',
+            description: err.message ?? 'Error while transactions view try to open',
+            color: 'error'
+        });
     } 
 }
 
 const availableBalance = computed(() => {
     return totalAccountBalance.value.totalBalance + Math.abs(totalAccountBalance.value.totalFreezedBalance + totalAccountBalance.value.totalLockedBalance) 
 })
-
-function formatAccountBuffer(detail: AccountCheckingDetailType): number {
-    return roundNumber(detail.buffer) 
-}
-
-function isBufferValid(buffer: number, balance: number): boolean {
-    return balance >= buffer 
-}
 
 </script>
 
