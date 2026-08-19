@@ -1,4 +1,4 @@
-import { AccountType } from "../constants";
+import { Account } from "../constants";
 import { IAccountDetail } from "../interface/accountDetail";
 import ValueObject from "./valueObject";
 
@@ -36,7 +36,7 @@ export class CreditCardAccountDetail extends ValueObject implements IAccountDeta
         }
    }
 
-    getType(): AccountType {
-        return AccountType.CREDIT_CARD
+    getType(): Account {
+        return Account.CREDIT_CARD
     }
 }

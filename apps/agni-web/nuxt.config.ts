@@ -5,14 +5,19 @@ export default defineNuxtConfig({
   },
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  modules: ['@nuxt/icon', '@nuxt/fonts', '@nuxt/ui'],
+  modules: [
+    '@nuxt/icon', 
+    '@nuxt/fonts', 
+    '@nuxt/ui', 
+    (process.env.NODE_ENV !== 'production' ? '@nuxt/test-utils/module' : '')
+  ],
   css: [
     '@/assets/css/main.css'
   ], 
   ssr: false,
   runtimeConfig: { 
     public : {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080/v2/',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080/v2',
       apiAgent: process.env.NUXT_PUBLIC_API_AGENT || 'http://localhost:8000'
     } 
   }

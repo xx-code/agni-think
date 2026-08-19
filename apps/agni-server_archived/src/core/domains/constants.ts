@@ -22,7 +22,7 @@ export enum Period {
     DAY = 'Day'
 }
 
-export enum AccountType {
+export enum Account {
     CHECKING = "Checking",
     CREDIT_CARD = "CreditCard",
     SAVING = "Saving",
@@ -37,13 +37,13 @@ export enum HoldingType {
     CRYPTO = "Crypto"
 }
 
-export enum ManagementAccountType {
+export enum ManagementAccount {
     SELF_DIRECTED = "Self_directed", 
     MANAGED = "Managed", 
     ROBOT = "Robot"
 }
 
-export enum ContributionAccountType {
+export enum ContributionAccount {
     REGISTERED = "Registered",    // REER, CELI, etc.
     UNREGISTERED  = "Unregistered"
 }
@@ -165,25 +165,25 @@ export function mapperIntensityEmotionalDesir(value: number) {
     
 }
 
-export function mapperContributionAcccountType(value: string): ContributionAccountType {
+export function mapperContributionAcccountType(value: string): ContributionAccount {
     switch(value.toLowerCase()) {
-        case ContributionAccountType.REGISTERED.toLowerCase():
-            return ContributionAccountType.REGISTERED
-        case ContributionAccountType.UNREGISTERED.toLowerCase():
-            return ContributionAccountType.UNREGISTERED
+        case ContributionAccount.REGISTERED.toLowerCase():
+            return ContributionAccount.REGISTERED
+        case ContributionAccount.UNREGISTERED.toLowerCase():
+            return ContributionAccount.UNREGISTERED
         default:
             throw new ValueError("CONTRIBUTION_ACCOUNT_TYPE")
     }
 }
 
-export function mapperManagementAccountType(value: string): ManagementAccountType {
+export function mapperManagementAccount(value: string): ManagementAccount {
     switch(value.toLowerCase()) {
-        case ManagementAccountType.SELF_DIRECTED.toLowerCase():
-            return ManagementAccountType.SELF_DIRECTED
-        case ManagementAccountType.MANAGED.toLowerCase():
-            return ManagementAccountType.MANAGED
-        case ManagementAccountType.ROBOT.toLowerCase():
-            return ManagementAccountType.ROBOT
+        case ManagementAccount.SELF_DIRECTED.toLowerCase():
+            return ManagementAccount.SELF_DIRECTED
+        case ManagementAccount.MANAGED.toLowerCase():
+            return ManagementAccount.MANAGED
+        case ManagementAccount.ROBOT.toLowerCase():
+            return ManagementAccount.ROBOT
         default:
             throw new ValueError("NOT_CONTRIBUTION_ACCOUNT_TYPE")
     }
@@ -215,18 +215,18 @@ export function mapperPatrimonyType(value: string): PatrimonyType {
     }
 }
 
-export function mapperTypeAccount(value: string): AccountType {
+export function mapperTypeAccount(value: string): Account {
     switch(value.toLowerCase()) {
-        case AccountType.CHECKING.toLowerCase():
-            return AccountType.CHECKING
-        case AccountType.BROKING.toLowerCase():
-            return AccountType.BROKING
-        case AccountType.SAVING.toLowerCase():
-            return AccountType.SAVING
-        case AccountType.BUSINESS.toLowerCase():
-            return AccountType.BUSINESS
-        case AccountType.CREDIT_CARD.toLowerCase():
-            return AccountType.CREDIT_CARD
+        case Account.CHECKING.toLowerCase():
+            return Account.CHECKING
+        case Account.BROKING.toLowerCase():
+            return Account.BROKING
+        case Account.SAVING.toLowerCase():
+            return Account.SAVING
+        case Account.BUSINESS.toLowerCase():
+            return Account.BUSINESS
+        case Account.CREDIT_CARD.toLowerCase():
+            return Account.CREDIT_CARD
         default:
             throw new ValueError("ACCOUNT_TYPE_NOT_VALID")
     }

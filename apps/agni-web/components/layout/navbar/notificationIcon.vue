@@ -20,8 +20,7 @@
         <UChip :show="hasNotifications" color="error" size="sm">
             <UIcon 
                 name="i-lucide-bell" 
-                size="sm"
-                :class="{ 'bell-shake': hasNotifications }"
+                :class="{ 'bell-shake text-lg': hasNotifications }"
             />
         </UChip>
     </button>

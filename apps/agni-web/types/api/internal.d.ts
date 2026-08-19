@@ -1,4 +1,4 @@
-export type GetAccountTypeResponse = {
+export type GetAccountResponse = {
     id: string,
     value: string
 }

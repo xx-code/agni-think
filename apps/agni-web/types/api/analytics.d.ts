@@ -44,6 +44,9 @@ export type BudgetTotalSummaryResponse = {
 // CATEGORY
 type GetSpendCategoryResponse = {
     categoryId: string
+    title: string
+    color: string
+    icon: string
     spends: number[]
 }
 

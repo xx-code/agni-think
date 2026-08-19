@@ -7,31 +7,22 @@
 </script>
 
 <template>
-    <div class="logo-container">
+    <div>
         <transition name="logo-fade" mode="out-in">
-            <h1 v-if="!isCollapsed" key="full" class="logo-title"> {{ title}} </h1>
-            <h1 v-else key="short" class="logo-title-responsive"> {{ titleResponsive }} </h1>
+            <h1 
+                v-if="!isCollapsed" 
+                key="full" 
+                class="text-primary-700 font-bold text-2xl"> {{ title}} </h1>
         </transition>
     </div>  
 </template>
 
 <style lang="scss">
-.logo-container {
-    display: flex;
-    align-items: center;
-    min-height: 40px;
-}
-
 .logo-title, .logo-title-responsive {
-    color: #1e3050;
     font-size: 2rem;
     font-weight: 800;
     margin: 0;
     letter-spacing: -0.5px;
-    background: linear-gradient(135deg, #1e3050 0%, #6755d7 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .logo-title-responsive {

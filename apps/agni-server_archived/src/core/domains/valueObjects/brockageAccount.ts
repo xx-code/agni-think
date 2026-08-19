@@ -1,17 +1,17 @@
 import { 
-    AccountType, 
-    ContributionAccountType, 
-    ManagementAccountType, 
+    Account, 
+    ContributionAccount, 
+    ManagementAccount, 
     mapperContributionAcccountType, 
-    mapperManagementAccountType } from "../constants";
+    mapperManagementAccount } from "../constants";
 import { IAccountDetail } from "../interface/accountDetail";
 import ValueObject from "./valueObject";
 
 export class BrockageAccountDetail extends ValueObject implements IAccountDetail  {
-    public managementType: ManagementAccountType
-    public contributionAccount: ContributionAccountType
+    public managementType: ManagementAccount
+    public contributionAccount: ContributionAccount
 
-    constructor(managementType: ManagementAccountType, contributionAccount: ContributionAccountType) {
+    constructor(managementType: ManagementAccount, contributionAccount: ContributionAccount) {
         super()
         this.managementType = managementType
         this.contributionAccount = contributionAccount
@@ -28,8 +28,8 @@ export class BrockageAccountDetail extends ValueObject implements IAccountDetail
         })
     }
 
-    getType(): AccountType {
-        return AccountType.BROKING
+    getType(): Account {
+        return Account.BROKING
     }
 
     getJson() {
@@ -44,7 +44,7 @@ export class BrockageAccountDetail extends ValueObject implements IAccountDetail
                 contribution_account: string
             } = value;
 
-            return new BrockageAccountDetail(mapperManagementAccountType(object.management_type), mapperContributionAcccountType(object.contribution_account)) 
+            return new BrockageAccountDetail(mapperManagementAccount(object.management_type), mapperContributionAcccountType(object.contribution_account)) 
         } catch(err) {
             throw err
         }

@@ -15,7 +15,7 @@ class GetBalancesByPeriod(
         val results = mutableListOf<GetBalanceOutput>()
 
         if (input.interval <= 0)
-        throw DomainException.BusinessLogic.Validation("interval can not be zero")
+            throw DomainException.BusinessLogic.Validation("interval can not be zero")
 
         var current = input.dateFrom
         val end = input.dateTo ?: LocalDateTime.now()

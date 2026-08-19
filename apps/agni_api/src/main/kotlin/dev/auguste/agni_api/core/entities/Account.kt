@@ -9,7 +9,8 @@ class Account(
     title: String,
     balance: Double,
     detail: IAccountDetail,
-    currencyId: UUID?
+    color: Color,
+    currencyId: UUID?,
     ): Entity(id = id) {
 
     var title: String by Delegates.observable(title) {
@@ -31,4 +32,6 @@ class Account(
         if (old != new)
             this.markHasChanged()
     })
+
+    var color: Color by cleanObservable(color, this)
 }

@@ -1,26 +1,26 @@
-import { AccountType, ContributionAccountType, ImportanceGoal, IntensityEmotionalDesir, ManagementAccountType, Period, TransactionType } from '@core/domains/constants';
+import { Account, ContributionAccount, ImportanceGoal, IntensityEmotionalDesir, ManagementAccount, Period, TransactionType } from '@core/domains/constants';
 import { Router } from 'express';
 
 const router = Router();
 
 router.get('/v1/internal/account-type', (req, res) => {
     const typeAccounts: {id: string, value: string}[] = []
-    Object.keys(AccountType).forEach(key => {
-        const valueAcc = AccountType[key as keyof typeof AccountType]
+    Object.keys(Account).forEach(key => {
+        const valueAcc = Account[key as keyof typeof Account]
         switch(valueAcc) {
-            case AccountType.CHECKING:
+            case Account.CHECKING:
                 typeAccounts.push({id: 'Checking', value: 'Compte courant'})
                 break;
-            case AccountType.SAVING:
+            case Account.SAVING:
                 typeAccounts.push({id: 'Saving', value: 'Epargne'})
                 break;
-            case AccountType.BROKING:
+            case Account.BROKING:
                 typeAccounts.push({id: 'Broking', value: 'Investissement'})
                 break;
-            case AccountType.BUSINESS:
+            case Account.BUSINESS:
                 typeAccounts.push({id: 'Business', value: 'Pro'})
                 break
-            case AccountType.CREDIT_CARD:
+            case Account.CREDIT_CARD:
                 typeAccounts.push({id: 'CreditCard', value: 'Carte Credit' })
             default:
                 break;
@@ -135,14 +135,14 @@ router.get('/v1/internal/importance-type', (req, res) => {
 
 router.get('/v1/internal/contribution-type', (req, res) => {
     const types: {id: string, value: string}[] = []
-    Object.keys(ContributionAccountType).forEach(key => {
-        const valueAcc = ContributionAccountType[key as keyof typeof ContributionAccountType]
+    Object.keys(ContributionAccount).forEach(key => {
+        const valueAcc = ContributionAccount[key as keyof typeof ContributionAccount]
         switch(valueAcc) {
-            case ContributionAccountType.REGISTERED:
-                types.push({value: 'Enregisterer', id: ContributionAccountType.REGISTERED})
+            case ContributionAccount.REGISTERED:
+                types.push({value: 'Enregisterer', id: ContributionAccount.REGISTERED})
                 break;
-            case ContributionAccountType.UNREGISTERED:
-                types.push({value: 'Unregister', id: ContributionAccountType.UNREGISTERED})
+            case ContributionAccount.UNREGISTERED:
+                types.push({value: 'Unregister', id: ContributionAccount.UNREGISTERED})
                 break;
             default:
                 break;
@@ -154,17 +154,17 @@ router.get('/v1/internal/contribution-type', (req, res) => {
 
 router.get('/v1/internal/management-account-type', (req, res) => {
     const types: {id: string, value: string}[] = []
-    Object.keys(ManagementAccountType).forEach(key => {
-        const valueAcc = ManagementAccountType[key as keyof typeof ManagementAccountType]
+    Object.keys(ManagementAccount).forEach(key => {
+        const valueAcc = ManagementAccount[key as keyof typeof ManagementAccount]
         switch(valueAcc) {
-            case ManagementAccountType.MANAGED:
-                types.push({value: 'Manager', id: ManagementAccountType.MANAGED})
+            case ManagementAccount.MANAGED:
+                types.push({value: 'Manager', id: ManagementAccount.MANAGED})
                 break;
-            case ManagementAccountType.ROBOT:
-                types.push({value: 'Robot', id: ManagementAccountType.ROBOT})
+            case ManagementAccount.ROBOT:
+                types.push({value: 'Robot', id: ManagementAccount.ROBOT})
                 break;
-            case ManagementAccountType.SELF_DIRECTED:
-                types.push({value: 'Gerer', id: ManagementAccountType.SELF_DIRECTED})
+            case ManagementAccount.SELF_DIRECTED:
+                types.push({value: 'Gerer', id: ManagementAccount.SELF_DIRECTED})
                 break;
             default:
                 break;

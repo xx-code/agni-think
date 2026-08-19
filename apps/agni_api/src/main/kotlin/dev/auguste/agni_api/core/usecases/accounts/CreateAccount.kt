@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.usecases.accounts
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.Color
 import dev.auguste.agni_api.core.entities.Currency
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.CreatedOutput
@@ -29,7 +30,9 @@ class CreateAccount(
             title = input.title,
             currencyId = input.currencyId,
             balance = input.initBalance,
-            detail = input.detail)
+            detail = input.detail,
+            color = Color(input.color)
+        )
 
         accountRepository.create(newAccount)
 

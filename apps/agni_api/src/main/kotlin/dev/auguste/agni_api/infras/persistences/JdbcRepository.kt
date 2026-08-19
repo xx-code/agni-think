@@ -45,7 +45,7 @@ abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
         }
 
         var pageable = Pageable.unpaged()
-        if (!query.queryAll) {
+        if (!query.queryAll && query.offset >= 0 && query.limit > 0) {
             val pageIndex = query.offset / query.limit
             pageable = PageRequest.of(pageIndex, query.limit, sort)
         }

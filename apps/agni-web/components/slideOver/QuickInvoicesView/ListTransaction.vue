@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { SlideQuickViewTransactionType } from './index.vue';
 import type { DropdownMenuItem } from '@nuxt/ui';
+import type { SlideQuickViewTransactionType } from '~/types/ui/account';
 
 const { invoices, hasMore, loading } = defineProps<{
     invoices: SlideQuickViewTransactionType[],

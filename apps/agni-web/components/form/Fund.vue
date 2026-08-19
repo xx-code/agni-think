@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import type { FundForm } from '~/types/form/fund';
-import type { AccountType } from '~/types/ui/account';
+import type { Account } from '~/types/ui/account';
 
 const form = defineModel<Partial<FundForm>>()
 const { accounts, validate } = defineProps<{
-    accounts: AccountType[]
+    accounts: Account[]
     validate: (state: Partial<FundForm>) => FormError[]
 }>()
 const emit = defineEmits<{

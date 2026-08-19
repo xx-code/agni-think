@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { CalendarDate, getLocalTimeZone, parseDate } from '@internationalized/date';
-import type { AccountType } from '~/types/ui/account';
+import type { Account } from '~/types/ui/account';
 
 const { accounts, invoiceTypes } = defineProps<{
-    accounts: AccountType[]
+    accounts: Account[]
     invoiceTypes: {label: string, value: string}[]
 }>()
 
