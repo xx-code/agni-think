@@ -1,15 +1,23 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { AccountCheckingDetailType, AccountCreditDetailType, Account, AccountWithDetailType, EditAccount } from "~/types/ui/account";
+import type { AccountCreditDetailType, Account, AccountWithDetailType, EditAccount } from "~/types/ui/account";
 import { getLocalTimeZone } from "@internationalized/date";
-import { ModalEditAccount, ModalInvoice, SlideOverQuickInvoicesView } from "#components";
+import { ModalEditAccount, SlideOverQuickInvoicesView } from "#components";
 import { createAccount, deleteAccount, fetchAccountsWithDetail, fetchAccountWithDetail, updateAccount } from "~/composables/api/accounts";
 import { accountWithDetailToAccountCard } from "~/mappers/account";
-import { fetchBalanceByPeriod } from "~/composables/api/invoices";
+import { fetchBalance, fetchBalanceByPeriod } from "~/composables/api/invoices";
 import { getOrderAccountType } from "~/types/constants/account";
+import { fetchAnalyticSavings, fetchSpendByCategoriesAnalytic } from "~/composables/api/analytics";
+import { fetchAllGoal } from "~/composables/api/goals";
+import { goalToFundGoalCards } from "~/mappers/goal";
+import type { FundCardGoal } from "~/types/ui/fund";
 
 const isLoadingAccount = ref(false)
-const { data: accountData, refresh: refreshAccounts } = await useAsyncData(
+const isKpiLoading = ref(false)
+const isLoadingTopSpend = ref(false)
+const isLoadingGoal = ref(false)
+
+const { data: accountData, refresh: refreshAccounts } = useAsyncData(
     'accounts+categories+tags+budgets',
     async () => {
         isLoadingAccount.value = true
@@ -42,27 +50,105 @@ const { data: accountData, refresh: refreshAccounts } = await useAsyncData(
     }
 )
 
+const { data: kpi } = useAsyncData('cashflow+savingrates', async () => {
+    isKpiLoading.value = true
+
+    const date = new Date()
+    date.setDate(1)
+
+    const [currentBalance, savingBalance] = await Promise.all([        
+        fetchBalance({
+            startDate: date.toISOString(),
+            isFreeze: false
+        }),
+        fetchAnalyticSavings({
+            period: 'Month',
+            interval: 1,
+            startDate: date.toISOString(),
+        })
+    ])
+
+    isKpiLoading.value = false
+
+    return {
+        cashflow: currentBalance.income - currentBalance.spend,
+        savingRate: savingBalance.savingRates[0] ?? 0.0 
+    }
+}, { watch: [ accountData ]})
+
+const { data: topSpendByCategories } = useAsyncData('top-spend-categories', async () => {
+    isLoadingTopSpend.value = true
+
+    const date = new Date()
+    date.setDate(1)
+    
+    const res = await fetchSpendByCategoriesAnalytic({
+        period: 'Month',
+        interval: 1,
+        startDate: date.toISOString(),
+        offset: 0,
+        limit: 0,
+        queryAll: true
+    })
+
+    isLoadingTopSpend.value = false
+
+    return res.items
+            .map(item => ({ 
+                ...item,
+                spend: item.spends.at(-1) ?? 0,
+            }))
+            .filter(i => i.spend > 0).sort((a, b) => b.spend - a.spend).slice(0, 4)
+
+}, { watch: [ accountData ]})
+
+const { data: goals } = useAsyncData('goal+overview', async () => {
+    isLoadingGoal.value = true
+
+    const res = await fetchAllGoal({
+        offset: 0,
+        limit: 2
+    })
+
+    isLoadingGoal.value = false
+
+    return res.items.map(i => (goalToFundGoalCards(i))) 
+})
+
+
 const totalAccountBalance = computed(() => {
     let total = 0 
     let totalFreezed = 0
     let totalLocked = 0
+    let totalCreditUsage = 0
 
     if (accountData.value) {
         for(const acc of accountData.value.accounts) {
-            if (acc.type !== 'Saving' && acc.type !== 'Broking')
+            if (acc.type !== 'Saving' && acc.type !== 'Broking') {
                 total += acc.balance
+            }
+
             totalFreezed += acc.freezedBalance
             totalLocked += acc.lockedBalance
         }
+
+        const creditCardAccount = accountData.value.accounts.filter(i => i.type === 'CreditCard')
+        const sum = creditCardAccount.reduce((acc, account) => acc += (account.detail as AccountCreditDetailType).creditUtilisation, 0)
+
+        totalCreditUsage = roundNumber(sum/creditCardAccount.length)
     }  
 
-    return { totalBalance: total, totalFreezedBalance: totalFreezed, totalLockedBalance: totalLocked }
+    return { 
+        totalBalance: total, 
+        totalFreezedBalance: totalFreezed, 
+        totalLockedBalance: totalLocked,
+        totalCreditUsage
+    }
 })
 
 
 const overlay = useOverlay();
 const modalAccount = overlay.create(ModalEditAccount);
-const modalInvoice = overlay.create(ModalInvoice);
 const slideOverQuickInvoices = overlay.create(SlideOverQuickInvoicesView)
 
 const toast = useToast();
@@ -115,15 +201,6 @@ const openAccountModal = async (accountId?: string) => {
     }); 
 }
 
-async function openModalEditInvoice(accountId?: string) {
-    const instant = modalInvoice.open({
-        invoice: undefined,
-        accountSelectedId: accountId,
-    });
-
-    await instant.result
-    refreshAccounts()
-}
 
 const onDeleteAccount = async (accountId: string) => {
     const doDelete = confirm('Voulez vous supprimer cette page');
@@ -133,12 +210,7 @@ const onDeleteAccount = async (accountId: string) => {
     }
 }
 
-const computeAllUtilization = (accounts: AccountWithDetailType[]) => {
-    const creditCardAccount = accounts.filter(i => i.type === 'CreditCard')
-    const sum = creditCardAccount.reduce((acc, account) => acc += (account.detail as AccountCreditDetailType).creditUtilisation, 0)
 
-    return (sum/creditCardAccount.length).toFixed(2)
-}
 
 const openTransactionViews = async (accountId: string) => {
     try {
@@ -163,6 +235,18 @@ const openTransactionViews = async (accountId: string) => {
 const availableBalance = computed(() => {
     return totalAccountBalance.value.totalBalance + Math.abs(totalAccountBalance.value.totalFreezedBalance + totalAccountBalance.value.totalLockedBalance) 
 })
+
+function goalStatusBadge(goal: FundCardGoal) {
+    if (goal.status === 'EXPIRED') {
+        return { label: 'Expiré', class: 'bg-red-100 text-red-700', progressColor: 'bg-red-500' };
+    }
+    const daysLeft = getDaysRemaining(goal.dueDate);
+    const expectedProgress = 100;
+    if (goal.percentage < expectedProgress - 15) {
+        return { label: `${daysLeft} j · en retard`, class: 'bg-amber-100 text-amber-700', progressColor: 'bg-amber-500' };
+    }
+    return { label: `${daysLeft} j`, class: 'bg-gray-100 text-gray-600', progressColor: 'bg-primary-500' };
+}
 
 </script>
 
@@ -190,8 +274,8 @@ const availableBalance = computed(() => {
         />
         <LoadingIndicator v-else />
 
-        <div class="grid grid-cols-2">
-            <div class="col-1">
+        <div class="grid grid-cols-2 gap-4">
+            <div>
                 <h1 class="text-lg text-gray-500 font-bold">Comptes</h1>
                 <div class="grid grid-cols-2 gap-4" v-if="!isLoadingAccount">
                     <UiOverviewCardAccount 
@@ -206,11 +290,110 @@ const availableBalance = computed(() => {
                 <LoadingIndicator v-else />
             </div>
             
-            <div class="col-2">
+            <div class="flex flex-col gap-4">
+                <div v-if="!isKpiLoading" class="grid grid-cols-2">
+                    <div>
+                        <h4 class="text-gray-500 font-semibold">
+                            Cashflow ce mois
+                        </h4>
+                        <h1 
+                            :class="[
+                                'font-semibold text-2xl p-2',
+                                (kpi?.cashflow ?? 0) > 0 ? 'text-green-600' : 'text-red-600'
+                            ]">
+                            <span>{{ (kpi?.cashflow ?? 0) > 0 ? '+' : '' }}</span>
+                            {{ formatCurrency(kpi?.cashflow ?? 0) }}
+                        </h1>
+                    </div>
 
+                    <div>
+                        <h4 class="text-gray-500 font-semibold">
+                            Taux d'épargne
+                        </h4>
+                        <h1 class="font-semibold text-2xl p-2">{{ roundNumber(kpi?.savingRate ?? 0) }}%</h1>
+                    </div>
+                </div>
+
+                <LoadingIndicator v-else />
+
+                <div>
+                    <div v-if="!isLoadingAccount">
+                        <h4 class="text-gray-500 font-semibold">
+                            Total credit utilisation
+                        </h4>
+                        <h1 :class="[
+                            'font-semibold text-2xl p-2',
+                            totalAccountBalance.totalCreditUsage <= 30 ? 'text-green-600' : 'text-red-600'
+                        ]">{{ totalAccountBalance.totalCreditUsage }}%</h1>
+                    </div>
+
+                    <LoadingIndicator v-else />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <h1 class="font-bold">Top dépenses</h1>
+                    <div v-if="!isLoadingTopSpend" class="flex flex-col gap-2">
+                        <div 
+                            v-for="catSpend in topSpendByCategories" 
+                            :key="catSpend.categoryId"
+                            class="flex items-center">
+                            <div class="flex-1 flex items-center">
+                                <UIcon :style="{color: catSpend.color}" :name="catSpend.icon" />
+                                <span class="ml-1">{{ catSpend.title }}</span>
+                            </div>
+                            <span class="font-semibold">{{ formatCurrency(catSpend.spend) }}</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-center p-4" v-else-if="!isLoadingTopSpend && topSpendByCategories?.length == 0">
+                        <div>
+                            <UIcon name="i-lucide-mop" />
+                            <p class="text-gray-500 font-semibold">Pas de dépense ce mois</p>
+                        </div>
+                    </div>
+                    <LoadingIndicator v-else />
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <div v-if="!isLoadingGoal">
+                        <div v-if="goals?.length" class="flex flex-col gap-4">
+                            <div v-for="goal in goals" :key="goal.id" class="flex flex-col gap-1.5">
+
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-semibold">{{ goal.title }}</h3>
+                                    <span
+                                        class="px-2 py-0.5 rounded-full text-[11px] font-medium"
+                                        :class="goalStatusBadge(goal).class"
+                                    >
+                                        {{ goalStatusBadge(goal).label }}
+                                    </span>
+                                </div>
+                            <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>{{ formatCurrency(goal.currentBalance) }} / {{ formatCurrency(goal.targetAmount) }}</span>
+                            <span class="font-semibold">{{ roundNumber(goal.percentage) }}%</span>
+                        </div>
+
+                        <UProgress
+                            :model-value="goal.percentage"
+                            :ui="{
+                                indicator: goalStatusBadge(goal).progressColor 
+                            }" 
+                            size="md"
+                        />
+                    </div>
+                </div>
+
+                <div v-else class="flex justify-center p-4">
+                    <div class="text-center">
+                        <UIcon name="i-lucide-target" />
+                        <p class="text-gray-500 font-semibold text-sm">Aucun objectif pour l'instant</p>
+                    </div>
+                </div>
+
+                </div>
+                    <LoadingIndicator v-else />
+                </div>
             </div>
         </div>
-
     </div> 
 </template>
 
