@@ -1,11 +1,12 @@
 <script setup lang="ts">
-const { accountName, currency, balance, gains, spend } = defineProps<{
-    typeAccount: string,
-    accountName: string,
-    currency: string,
-    balance: number,
-    gains: number,
+import { accountWithDetailToQuickInvoiceViewBalanceInfo } from '~/mappers/account';
+import { getLabelAccountType, type AccountType } from '~/types/constants/account';
+import type { QuickViewTransactionBalanceInfo } from '~/types/ui/account';
+
+const { accountInfo } = defineProps<{
+    gains: number
     spend: number
+    accountInfo?: QuickViewTransactionBalanceInfo
 }>()
 
 const emit = defineEmits<{
@@ -18,14 +19,14 @@ const emit = defineEmits<{
 
 <template>
     <div class="space-y-2">
-        <div class="flex justify-between items-center">
-            <h3 class="font-semibold text-neutral-500">{{ typeAccount }} · {{ accountName }}</h3>
-            <h3>{{ currency }}</h3>
+        <div v-if="accountInfo" class="flex justify-between items-center">
+            <h3 class="font-semibold text-neutral-500">{{ getLabelAccountType(accountInfo.type) }} · {{ accountInfo.title }}</h3>
+            <h3>CAD</h3>
         </div>
 
-        <div>
+        <div v-if="accountInfo">
             <p class="font-semibold text-4xl">
-                {{ roundNumber(balance) }}
+                {{ roundNumber(accountInfo.balance) }}
             </p>
         </div>
         
@@ -39,6 +40,11 @@ const emit = defineEmits<{
                 <p class="text-red-600 font-medium">{{ formatCurrency(spend) }}</p>
             </div>
         </div>
+
+        <SlideOverQuickInvoicesViewBalanceInfo 
+            v-if="accountInfo"
+            :account-info="accountWithDetailToQuickInvoiceViewBalanceInfo(accountInfo)"
+        />
 
         <div class="flex gap-2 items-center p-1">
             <UButton 

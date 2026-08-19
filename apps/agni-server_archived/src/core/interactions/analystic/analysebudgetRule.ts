@@ -1,6 +1,6 @@
 import { IUsecase } from "../interfaces";
 import { MomentDateService } from "@core/domains/entities/libs";
-import { AccountType, mapperPeriod, Period, RecordType, SAVING_CATEGORY_ID, TransactionType } from "@core/domains/constants";
+import { Account, mapperPeriod, Period, RecordType, SAVING_CATEGORY_ID, TransactionType } from "@core/domains/constants";
 import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository";
 import { Transaction } from "@core/domains/entities/transaction";
 import { Record } from "@core/domains/entities/record";
@@ -86,7 +86,7 @@ export class AnalyseBudgetRuleUseCase implements IUsecase<RequestAnalyseBudgetRu
             })
 
             // SAVING part
-            const savingAccountIds = accounts.items.filter(i => i.getType() === AccountType.BROKING || i.getType() === AccountType.SAVING)
+            const savingAccountIds = accounts.items.filter(i => i.getType() === Account.BROKING || i.getType() === Account.SAVING)
             .map(i => i.getId())
 
             const savingTransactions = transactions.items.filter(i => savingAccountIds.includes(i.getAccountRef())).map(i => i.getId())

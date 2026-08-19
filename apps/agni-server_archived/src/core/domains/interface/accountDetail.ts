@@ -1,7 +1,7 @@
-import { AccountType } from "../constants";
+import { Account } from "../constants";
 import { IObjectEquality } from "./equality";
 
 export interface IAccountDetail extends IObjectEquality {
-    getType(): AccountType    
+    getType(): Account    
     getJson(): any
 }

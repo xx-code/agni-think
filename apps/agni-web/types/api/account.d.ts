@@ -5,6 +5,7 @@ export type GetAccountResponse = {
     title: string
     balance: number
     type: string   
+    color: string
 };
 
 export type GetAccountWithDetailResponse = {
@@ -14,6 +15,7 @@ export type GetAccountWithDetailResponse = {
     type: string   
     lockedBalance: number
     freezeBalance: number
+    color: string
     detail: {
         detailForCreditCard?: GetCreditCardDetailResponse 
         detailForBroking?: GetBrokingDetailResponse
@@ -39,6 +41,7 @@ export type GetCreditCardDetailResponse = {
 export type CreateAccountRequest = {
     title: string 
     type: string
+    color: string
     currencyId?: string
     detail: AccountDetailRequest
 }
@@ -46,6 +49,7 @@ export type CreateAccountRequest = {
 export type UpdateAccountRequest = {
     title?: string
     type?: string
+    color?: string
     currencyId?: string
     detail?: AccountDetailRequest
 }
@@ -53,7 +57,7 @@ export type UpdateAccountRequest = {
 export type AccountDetailRequest = {
     creditLimit?: number
     contributionType?: string
-    managementAccountType?: string
+    managementAccount?: string
     buffer?: number
     secureAmount?: number
     invoiceDate?: string

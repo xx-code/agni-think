@@ -16,7 +16,8 @@ class GetAccount(private val accountRepo: IRepository<Account>): IUseCase<UUID, 
             id = account.id,
             title = account.title,
             balance = account.balance,
-            type = account.detail.getType().value
+            type = account.detail.getType().value,
+            color = account.color.toString()
         )
     }
 }

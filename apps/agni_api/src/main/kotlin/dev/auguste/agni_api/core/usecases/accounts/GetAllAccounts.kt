@@ -17,7 +17,8 @@ class GetAllAccounts(private val accountRepo: IRepository<Account>): IUseCase<Qu
                 id = it.id,
                 title = it.title,
                 balance = it.balance,
-                type = it.detail.getType().value
+                type = it.detail.getType().value,
+                color = it.color.toString()
             )},
             total = accounts.total
         )

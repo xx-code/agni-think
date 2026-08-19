@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.usecases.accounts
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.Color
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.usecases.accounts.dto.UpdateAccountInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -20,6 +21,12 @@ class UpdateAccount(private val accountRepo: IRepository<Account>): IUseCase<Upd
 
         if (input.detail != null) {
             account.detail = input.detail
+        }
+
+        if (input.color != null) {
+            val color = Color(input.color)
+            if (account.color != color)
+                account.color = color
         }
 
         if (account.hasChanged())

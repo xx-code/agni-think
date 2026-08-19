@@ -1,7 +1,7 @@
 import { IUsecase } from "../interfaces"
 import IAgentScoringGoal, { InputSaveGoalAgent } from "@core/agents/agentGoalScoring"
 import IAgentPlanningAdvisor, { GoalPlanningAdvisor } from "@core/agents/agentPlanningAdvisor"
-import { AccountType, ImportanceGoal, IntensityEmotionalDesir, Period } from "@core/domains/constants"
+import { Account, ImportanceGoal, IntensityEmotionalDesir, Period } from "@core/domains/constants"
 import { GetEstimationLeftAmoutDto, RequestEstimationLeftAmount } from "./estimationleftAmount"
 import Repository from "@core/adapters/repository"
 import { Account } from "@core/domains/entities/account"
@@ -71,10 +71,10 @@ export class SuggestPlanningSaveGoalUseCase implements IUsecase<RequestSuggestPl
         let currentInvestissment = 0
         let currentSaving = 0
         for(const account of accounts.items) {
-            if (account.getType() == AccountType.BROKING)
+            if (account.getType() == Account.BROKING)
                 currentInvestissment += account.getBalance()
 
-            if (account.getType() == AccountType.SAVING)
+            if (account.getType() == Account.SAVING)
                 currentSaving += account.getBalance()
         }
 

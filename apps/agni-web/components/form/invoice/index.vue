@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import type { EditInvoiceType } from '~/types/form/invoice';
-import type { AccountType } from '~/types/ui/account';
+import type { Account } from '~/types/ui/account';
 import type { BudgetType } from '~/types/ui/budget';
 import type { CategoryType } from '~/types/ui/category';
 import type { DeductionType } from '~/types/ui/deduction';
@@ -11,7 +11,7 @@ const { accounts, invoiceTypes,
         deductions, categories, tags,
         validate, initSwitchMore = false } = defineProps<{
     isUpdate: boolean
-    accounts: AccountType[]
+    accounts: Account[]
     categories: CategoryType[]
     budgets: BudgetType[]
     tags: TagType[]

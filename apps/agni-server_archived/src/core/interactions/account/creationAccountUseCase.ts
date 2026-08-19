@@ -1,7 +1,7 @@
 import { GetUID } from '../../adapters/libs';
 import { Account } from '../../domains/entities/account';
 import { ResourceAlreadyExist } from '../../errors/resourceAlreadyExistError';
-import { AccountType, mapperContributionAcccountType, mapperManagementAccountType, mapperTypeAccount } from '@core/domains/constants';
+import { Account, mapperContributionAcccountType, mapperManagementAccount, mapperTypeAccount } from '@core/domains/constants';
 import { IUsecase } from '../interfaces';
 import { CreatedDto } from '@core/dto/base';
 import Repository from '@core/adapters/repository';
@@ -41,19 +41,19 @@ export class CreationAccountUseCase implements IUsecase<RequestCreationAccountUs
 
     let detail: IAccountDetail | undefined
     switch(type) {
-      case AccountType.BROKING:
+      case Account.BROKING:
         if (!request.contributionType)
           throw new ValueError("CONTRIBUTION_TYPE_FOR_BROKING")
 
         if (!request.managementType)
           throw new ValueError("MANAGEMENT_TYPE_FOR_BROKING")
 
-        let managementType = mapperManagementAccountType(request.managementType)
+        let managementType = mapperManagementAccount(request.managementType)
         let contributionType = mapperContributionAcccountType(request.contributionType)
 
         detail = new BrockageAccountDetail(managementType, contributionType)
         break
-      case AccountType.CREDIT_CARD:
+      case Account.CREDIT_CARD:
         if (!request.creditLimit)
           throw new ValueError("CREDIT_LIMIT_MUST_BE_DEFINE_FOR_CREDIT_CARD")
 

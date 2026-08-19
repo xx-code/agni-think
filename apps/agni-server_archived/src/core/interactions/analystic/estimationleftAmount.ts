@@ -1,6 +1,6 @@
 import { IUsecase } from "../interfaces"
 import { MomentDateService } from "@core/domains/entities/libs"
-import { AccountType, RecordType, TransactionType } from "@core/domains/constants"
+import { Account, RecordType, TransactionType } from "@core/domains/constants"
 import Repository, { RecordFilter, TransactionFilter } from "@core/adapters/repository"
 import { Budget } from "@core/domains/entities/budget"
 import { Transaction } from "@core/domains/entities/transaction"
@@ -150,7 +150,7 @@ export class EstimationLeftAmountUseCase implements IUsecase<RequestEstimationLe
 
         let currentBalance = 0
         for(const account of accounts.items) {
-            if ([AccountType.BROKING, AccountType.SAVING].includes(account.getType())) {
+            if ([Account.BROKING, Account.SAVING].includes(account.getType())) {
                 continue;
             }
 

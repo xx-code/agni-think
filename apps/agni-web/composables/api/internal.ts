@@ -1,4 +1,4 @@
-import type { GetAccountTypeResponse, GetContributionTypeResponse, GetInternalTypeResponse, GetManagementTypeResponse } from "~/types/api/internal"
+import type { GetAccountResponse, GetContributionTypeResponse, GetInternalTypeResponse, GetManagementTypeResponse } from "~/types/api/internal"
 
 export async function fetchFinancePolicyRiskTypes(): Promise<GetInternalTypeResponse[]> {
     return await $fetch(`api/internals/finance-policy-risk-type`, {
@@ -30,8 +30,8 @@ export async function fetchPrincipleType(): Promise<GetInternalTypeResponse[]> {
     })
 }
 
-export async function fetchAccountTypes(): Promise<GetAccountTypeResponse[]> {
-    const res = await $fetch<GetAccountTypeResponse[]>(`api/internals/account-type`, {
+export async function fetchAccounts(): Promise<GetAccountResponse[]> {
+    const res = await $fetch<GetAccountResponse[]>(`api/internals/account-type`, {
         method: 'GET'
     })
 
@@ -60,7 +60,7 @@ export async function fetcheIntensityDesirTypes(): Promise<GetInternalTypeRespon
     return res
 }
 
-export async function fetchManagementAccountTypes(): Promise<GetManagementTypeResponse[]> {
+export async function fetchManagementAccounts(): Promise<GetManagementTypeResponse[]> {
     const res = await $fetch<GetManagementTypeResponse[]>(`api/internals/management-account-type`, {
         method: 'GET'
     })

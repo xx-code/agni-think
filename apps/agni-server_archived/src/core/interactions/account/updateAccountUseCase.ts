@@ -1,5 +1,5 @@
 import { ResourceAlreadyExist } from "@core/errors/resourceAlreadyExistError";
-import { AccountType, mapperContributionAcccountType, mapperManagementAccountType } from "@core/domains/constants";
+import { Account, mapperContributionAcccountType, mapperManagementAccount } from "@core/domains/constants";
 import { IUsecase } from "../interfaces";
 import { ResourceNotFoundError } from "@core/errors/resournceNotFoundError";
 import Repository from "@core/adapters/repository";
@@ -37,13 +37,13 @@ export class UpdateAccountUseCase implements IUsecase<RequestUpdateAccountUseCas
             fetchedAccount.setTitle(request.title)
         }
 
-        if (request.creditLimit && fetchedAccount.getType() === AccountType.CREDIT_CARD) {
+        if (request.creditLimit && fetchedAccount.getType() === Account.CREDIT_CARD) {
             const detailCredit = new CreditCardAccountDetail(request.creditLimit)
             detailCredit.creditLimite = request.creditLimit
             fetchedAccount.setDetail(detailCredit)
         }
 
-        if ((request.contributionType || request.managementType) && fetchedAccount.getType() === AccountType.BROKING) {
+        if ((request.contributionType || request.managementType) && fetchedAccount.getType() === Account.BROKING) {
             const currentDetail = (fetchedAccount.getDetail() as BrockageAccountDetail)
 
             if (currentDetail === undefined && (!request.contributionType || !request.managementType))
@@ -56,7 +56,7 @@ export class UpdateAccountUseCase implements IUsecase<RequestUpdateAccountUseCas
             }
             
             if (request.managementType)
-                detailBroke.managementType = mapperManagementAccountType(request.managementType)
+                detailBroke.managementType = mapperManagementAccount(request.managementType)
 
             fetchedAccount.setDetail(detailBroke)
         }

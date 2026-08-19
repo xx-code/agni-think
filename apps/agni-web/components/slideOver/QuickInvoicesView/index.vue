@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AccountWithDetailType } from '~/types/ui/account';
+import type { AccountWithDetailType, SlideQuickViewTransactionType } from '~/types/ui/account';
 import ListTransaction from './ListTransaction.vue';
 import type { QueryFilterRequest } from '~/types/api';
 import type { GetBalanceResponse, QueryInvoice } from '~/types/api/transaction';
@@ -9,18 +9,7 @@ import { ModalEditFreezeInvoice, ModalEditTransfer, ModalInvoice } from '#compon
 import type { EditFreezeInvoiceType, EditTransfertType, InvoiceType } from '~/types/ui/transaction.js';
 import { getLocalTimeZone } from '@internationalized/date';
 
-export type SlideQuickViewTransactionType = {
-    id: string
-    icon: string
-    color: string
-    category: string
-    description: string
-    status: string
-    type: string
-    date: Date
-    subTotal: number
-    total: number 
-}
+
 function formatInvoiceToSlideItem(invoice: InvoiceType): SlideQuickViewTransactionType {
     return {
         id: invoice.id,
@@ -43,11 +32,12 @@ const { account, budgetIds, tagIds, categoryIds } = defineProps<{
     categoryIds?: string[]
 }>();
 const emit = defineEmits<{
-    close: [boolean]
+    close: [refresh: boolean]
 }>();
 
 const toast = useToast()
 const el = useTemplateRef('el')
+const doRefresh = ref(false)
 
 const queryAllTrans = reactive<QueryFilterRequest & QueryInvoice>({
     offset: 0,
@@ -114,6 +104,7 @@ async function openModalEditInvoice(invoiceId?:string) {
     await instance.result 
 
     resetAllInvoices()
+    doRefresh.value = true
 } 
 
 async function onTransfertAccount(value: EditTransfertType) {
@@ -126,6 +117,7 @@ async function onTransfertAccount(value: EditTransfertType) {
         })
 
         resetAllInvoices()
+        doRefresh.value = true
     } catch(err) {
         toast.add({
             title: 'Error tranfert',
@@ -136,7 +128,7 @@ async function onTransfertAccount(value: EditTransfertType) {
 } 
 
 async function openModalTransferAccount (){ 
-    const instance = modalTransfer.open({
+    modalTransfer.open({
         accountId: account?.id,
         onSubmit: onTransfertAccount 
     });
@@ -152,6 +144,7 @@ async function onFreezeInvoice(value: EditFreezeInvoiceType) {
             status: value.status
         })
         resetAllInvoices()
+        doRefresh.value = true
     } catch(err) {
         toast.add({
             title: 'Error Freeze',
@@ -177,6 +170,7 @@ async function deleteInvoice(invoiceId: string) {
             await useDeleteInvoice(invoiceId)
 
             resetAllInvoices()
+            doRefresh.value = true
         }
     } catch (err) {
         toast.add({
@@ -213,24 +207,25 @@ useInfiniteScroll(
 </script>
 
 <template>
-    <USlideover :close="{ onClick: () => emit('close', false) }">
+    <USlideover :close="{ onClick: () => emit('close', doRefresh) }">
         <template #content>
             <div ref="el" class="space-y-6 p-6 overflow-auto">
-                <!-- En-tête du compte -->
+                <div class="flex justify-end">
+                    <UButton 
+                        icon="i-lucide-x"
+                        variant="ghost"
+                        @click="emit('close', doRefresh)"
+                    />
+                </div>
                 <SlideOverQuickInvoicesViewHeader 
-                    :type-account="account?.type || ''"
-                    :account-name="account?.title || 'Toutes les comptes'" 
-                    :balance="account?.balance || 0"
-                    :currency="'CAD'"
-                    :spend="balance?.spend || 0"
-                    :gains="balance?.income || 0"
-
+                    :account-info="account"
+                    :gains="balance?.income ?? 0"
+                    :spend="balance?.spend ?? 0"
                     @create-invoice="() => openModalEditInvoice()"
                     @transfer="() => openModalTransferAccount()"
                     @freeze="() => openModalEditFreeze()"
                 />
 
-                <!-- Toggle Tout / Gelées -->
                 <div class="flex items-center gap-1 w-fit rounded-xl bg-neutral-100 dark:bg-neutral-800 p-1">
                     <button
                         @click="showFreeze = false"
@@ -258,7 +253,6 @@ useInfiniteScroll(
 
                 <LoadingIndicator v-if="loading && invoices.length === 0" />
 
-                <!-- Liste de toutes les transactions -->
                 <div v-else-if="invoices.length > 0">
                     <ListTransaction 
                         :invoices="invoices" 
@@ -268,10 +262,9 @@ useInfiniteScroll(
                         @delete="id => deleteInvoice(id)"
                     />
                 </div>
-                <!-- État vide -->
+
                 <div v-else 
-                    class="text-center py-12"
-                >
+                    class="text-center py-12">
                     <UIcon 
                         name="i-lucide-inbox" 
                         class="w-12 h-12 mx-auto text-gray-400 mb-3"

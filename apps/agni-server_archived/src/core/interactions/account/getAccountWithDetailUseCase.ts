@@ -7,7 +7,7 @@ import { SaveGoal } from "@core/domains/entities/saveGoal";
 import { Record } from "@core/domains/entities/record";
 import { CreditCardAccountDetail } from "@core/domains/valueObjects/creditCardAccount";
 import { BrockageAccountDetail } from "@core/domains/valueObjects/brockageAccount";
-import { AccountType, TransactionStatus, TransactionType } from "@core/domains/constants";
+import { Account, TransactionStatus, TransactionType } from "@core/domains/constants";
 
 export type GetBrokingDetailDto = {
     managementType: string
@@ -67,7 +67,7 @@ export class GetAccountDetailUseCase implements IUsecase<string, GetAccountDetai
         
         let detail: GetCreditCardDetailDto | GetBrokingDetailDto | undefined 
         switch(account.getType()) {
-            case AccountType.CREDIT_CARD:
+            case Account.CREDIT_CARD:
                 const creditLimit = (account.getDetail() as CreditCardAccountDetail).creditLimite
                 let utilization = 0 
                 if (account.getBalance() < 0) {
@@ -79,7 +79,7 @@ export class GetAccountDetailUseCase implements IUsecase<string, GetAccountDetai
                     creditUtilisation: utilization
                 }
                 break
-            case AccountType.BROKING:
+            case Account.BROKING:
                 detail = {
                     contributionType: (account.getDetail() as BrockageAccountDetail).contributionAccount,
                     managementType: (account.getDetail() as BrockageAccountDetail).managementType

@@ -9,5 +9,6 @@ data class GetAccountWithDetailOutput(
     val type: String,
     val lockedBalance: Double,
     val freezeBalance: Double,
+    val color: String,
     val detail: AccountDetailOutput
 )

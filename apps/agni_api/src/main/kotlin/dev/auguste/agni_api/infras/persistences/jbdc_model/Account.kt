@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.Color
 import dev.auguste.agni_api.core.entities.enums.AccountType
 import dev.auguste.agni_api.core.entities.interfaces.IAccountDetail
 import dev.auguste.agni_api.core.value_objects.BrokingAccountDetail
@@ -30,7 +31,8 @@ data class JbdcAccountModel(
     val type: String,
     @Column("currency_id")
     val currencyId: UUID?,
-    val detail: String?
+    val detail: String?,
+    val color: String
 ) : JdbcModel() {
     override fun getId(): UUID {
         return id
@@ -64,7 +66,8 @@ class JdbcAccountModelMapper(
             title = model.name,
             balance = model.balance,
             currencyId = model.currencyId,
-            detail = detail
+            detail = detail,
+            color = Color(model.color)
         )
     }
 
@@ -77,7 +80,8 @@ class JdbcAccountModelMapper(
             type = entity.detail.getType().value,
             balance = entity.balance,
             currencyId = entity.currencyId,
-            detail = detailJson
+            detail = detailJson,
+            color = entity.color.toString()
         )
     }
 
