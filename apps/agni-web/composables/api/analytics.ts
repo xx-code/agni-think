@@ -1,6 +1,6 @@
 import type { ListResponse } from "~/types/api";
-import type { BudgetTotalSummaryResponse, GetAnnualOutlookResponse, GetBudgetingRuleRequest, GetBudgetingRuleResponse, GetEstimationLeftAmountRequest, GetEstimationLeftAmountResponse, GetFundTotalSummary, GetSavingAnalysticRequest, GetSavingAnalysticResponse, GetSpendCategoryRequest, GetSpendCategoryResponse, GetSpendTagRequest, GetSpendTagResponse } from "~/types/api/analytics";
-import type { BudgetTotalSummary, EstimationLeftAmountType, SavingAnalysticType } from "~/types/ui/analytics";
+import type { BudgetTotalSummaryResponse, GetAnnualOutlookResponse, GetBudgetingRuleRequest, GetBudgetingRuleResponse, GetEstimationLeftAmountRequest, GetEstimationLeftAmountResponse, GetFundTotalSummary, GetSavingAnalysticRequest, GetSavingAnalysticResponse, GetSpendCategoryRequest, GetSpendCategoryResponse, GetSpendTagRequest, GetSpendTagResponse, PatrimonySummaryResponse } from "~/types/api/analytics";
+import type { BudgetTotalSummary, EstimationLeftAmountType, PatrimonySummary, SavingAnalysticType } from "~/types/ui/analytics";
 
 export async function fetchAnnualOutlook(): Promise<GetAnnualOutlookResponse>{
     const response = await $fetch<GetAnnualOutlookResponse>(`api/analytics/annual-outlook`, {
@@ -70,5 +70,10 @@ export async function fetchFundSummary(): Promise<GetFundTotalSummary> {
 
 export async function fetchBudgetTotalSummary(): Promise<BudgetTotalSummary> {
     const res = await $fetch<BudgetTotalSummaryResponse>('/api/analytics/budget-total-summary')
+    return res
+}
+
+export async function fetchPatrimonySummary(): Promise<PatrimonySummary> {
+    const res = await $fetch<PatrimonySummaryResponse>('/api/analytics/patrimony-summary')
     return res
 }
