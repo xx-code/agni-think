@@ -6,9 +6,24 @@ import { getLocalTimeZone } from '@internationalized/date';
 import type { EditePatrimony, EditSnapshotPatrimony, PatrimonyType, SnapshotPatrimonyType, TypePatrimony } from '~/types/ui/patrimony';
 import AssetCard from './AssetCard.vue';
 import { fetchPatrimonies, fetchPatrimony, fetchSnapshotsPatrimony, useUpdatePatrimony, useCreatePatrimony, useUpdateSnapshotPatrimony, useAddSnapshotPatrimony, useDeletePatrimony, useRemoveSnapshotPatrimony } from '~/composables/api/patrimonies.js';
+import { fetchPatrimonySummary } from '~/composables/api/analytics.ts';
+
+const isLoadingSummary = ref(false)
+const isLoading = ref(false)
 
 const {data:patrimonies, refresh} = useAsyncData('patrimonies+page+all', async () => {
+    isLoading.value = true
     const res = await fetchPatrimonies()
+    isLoading.value = false
+
+    return res
+})
+
+const { data: patrimonySummary } = useAsyncData('patrimony-summary', async () => {
+    isLoadingSummary.value = true
+    const res = await fetchPatrimonySummary()
+
+    isLoadingSummary.value = false
 
     return res
 })
@@ -206,51 +221,17 @@ const columns: TableColumn<SnapshotPatrimonyType>[] = [
     }
 ]
 
-function computerPercentagePatrimony(totalAmount: number, assetAmount: number) {
-    return roundNumber(((assetAmount * 100) / totalAmount))
-}
-
 </script>
 
 <template> 
-  <div class="space-y-6 mt-6">
-    <!-- SECTION : Résumé global -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <UCard class="rounded-lg shadow-sm">
-        <h4 class="text-sm font-medium text-gray-400">Valeur nette totale</h4>
-        <p class="font-bold text-2xl mt-2 text-gray-800">
-          {{ formatCurrency(totalPatrimony.currentBalance) }}
-        </p>
-      </UCard>
+    <div class="space-y-6 mt-6">
+        <UiPatrimonyHeader 
+            :networth="patrimonySummary?.networth ?? 0"
+            :monthly-evolution="patrimonySummary?.monthlyEvolutionPerc ?? 0"
+            :total-asset="patrimonySummary?.totalAsset ?? 0"
+            :total-liability="patrimonySummary?.totalLiability ?? 0"
+        />
 
-      <UCard class="rounded-lg shadow-sm">
-        <h4 class="text-sm font-medium text-gray-400">Évolution mensuelle</h4>
-        <p 
-          :class="[
-            'font-bold text-2xl mt-2 flex items-center gap-1',
-            computeDiff(totalPatrimony.currentBalance, totalPatrimony.lastBalance, 'Asset') > 0 
-              ? 'text-green-500' 
-              : 'text-red-500'
-          ]">
-          <span>
-            {{ computeDiff(totalPatrimony.currentBalance, totalPatrimony.lastBalance, 'Asset') > 0 ? '+' : '-' }}
-          </span>
-          {{ Math.abs(roundNumber(computePercentage(totalPatrimony.currentBalance, totalPatrimony.lastBalance))) }}%
-        </p>
-      </UCard>
-
-      <UCard class="rounded-lg shadow-sm">
-        <h4 class="text-sm font-medium text-gray-400">Actifs vs Passifs</h4>
-        <p class="font-bold text-2xl mt-2 text-gray-700">
-          <span class="text-green-600">
-            {{ computerPercentagePatrimony(totalPatrimony.totalAmount, totalPatrimony.currentAmountAsset) }}%
-          </span> / 
-          <span class="text-red-500">
-            {{ computerPercentagePatrimony(totalPatrimony.totalAmount, totalPatrimony.currentAmountLiability) }}%
-          </span>
-        </p>
-      </UCard>
-    </div>
 
     <!-- SECTION : Graphiques -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

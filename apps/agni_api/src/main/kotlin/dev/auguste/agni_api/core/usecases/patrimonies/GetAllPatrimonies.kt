@@ -57,7 +57,7 @@ class GetAllPatrimonies(
                 patrimonySnapshots.first().currentBalanceObserved else accountBalance
 
             val pastSnapshot = if (patrimonySnapshots.size > 1)
-                patrimonySnapshots.last().currentBalanceObserved else accountPastBalance
+                patrimonySnapshots[1].currentBalanceObserved else accountPastBalance
 
             val amount = patrimony.amount + accountBalance
 
@@ -77,7 +77,7 @@ class GetAllPatrimonies(
 
         results.add(GetPatrimonyOutput(
             id = UUID.randomUUID(),
-            title = "Epargne Saving Goal",
+            title = "Fond d'épargne",
             amount = savingGoalAmount,
             currentBalance = savingGoalAmount,
             pastBalance = savingGoalAmount,

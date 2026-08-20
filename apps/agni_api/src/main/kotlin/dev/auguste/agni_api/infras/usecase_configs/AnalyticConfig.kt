@@ -17,6 +17,7 @@ import dev.auguste.agni_api.core.usecases.analystics.GetBudgetTotalSummary
 import dev.auguste.agni_api.core.usecases.analystics.GetBudgetingRuleAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetFinanceProfile
 import dev.auguste.agni_api.core.usecases.analystics.GetFundTotalSummary
+import dev.auguste.agni_api.core.usecases.analystics.GetPatrimonySummary
 import dev.auguste.agni_api.core.usecases.analystics.GetSavingAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetSavingBalance
 import dev.auguste.agni_api.core.usecases.analystics.GetSpendByCategoryAnalytic
@@ -26,6 +27,7 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetTotalSummaryOu
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonySummaryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingBalanceInput
@@ -39,6 +41,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
+import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
 import dev.auguste.agni_api.infras.persistences.AccountRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -144,6 +147,14 @@ class AnalyticConfig {
         return GetBudgetTotalSummary(
             repoBudget = repoBudget,
             getBalance = getBalance
+        )
+    }
+
+    @Bean fun getPatrimonySummary(
+        getAllPatrimonies: IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>>
+    ) : IUseCase<Unit, GetPatrimonySummaryOutput> {
+        return GetPatrimonySummary(
+            getAllPatrimonies = getAllPatrimonies,
         )
     }
 }
