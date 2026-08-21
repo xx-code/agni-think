@@ -9,6 +9,9 @@ import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.FinancePrinciple
 import dev.auguste.agni_api.core.entities.IncomeSource
+import dev.auguste.agni_api.core.entities.Patrimony
+import dev.auguste.agni_api.core.entities.PatrimonySnapshot
+import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.usecases.ListOutput
@@ -17,6 +20,7 @@ import dev.auguste.agni_api.core.usecases.analystics.GetBudgetTotalSummary
 import dev.auguste.agni_api.core.usecases.analystics.GetBudgetingRuleAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetFinanceProfile
 import dev.auguste.agni_api.core.usecases.analystics.GetFundTotalSummary
+import dev.auguste.agni_api.core.usecases.analystics.GetPatrimonyEvolution
 import dev.auguste.agni_api.core.usecases.analystics.GetPatrimonySummary
 import dev.auguste.agni_api.core.usecases.analystics.GetSavingAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetSavingBalance
@@ -27,6 +31,8 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetTotalSummaryOu
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonyEvolutionInput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonyEvolutionOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonySummaryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
@@ -38,9 +44,11 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagOutput
 import dev.auguste.agni_api.core.usecases.budgets.dto.GetAllBudgetInput
 import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
+import dev.auguste.agni_api.core.usecases.patrimonies.GetAllPatrimonies
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
 import dev.auguste.agni_api.infras.persistences.AccountRepository
 import org.springframework.context.annotation.Bean
@@ -63,7 +71,7 @@ class AnalyticConfig {
     @Bean
     fun getSpendCategoryAnalytic(
         categoryRepo: IRepository<Category>,
-        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>,
+        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
     ) : IUseCase<GetSpendByCategoryInput, ListOutput<GetSpendByCategoryOutput>> {
         return GetSpendByCategoryAnalytic(
             categoryRepo = categoryRepo,
@@ -74,7 +82,7 @@ class AnalyticConfig {
     @Bean
     fun getSpendTagAnalytic(
         tagRepo: IRepository<Tag>,
-        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>,
+        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
     ) : IUseCase<GetSpendByTagInput, ListOutput<GetSpendByTagOutput>> {
         return GetSpendByTagAnalytic(
             tagRepo = tagRepo,
@@ -85,7 +93,7 @@ class AnalyticConfig {
     @Bean
     fun getSavingAnalytic(
         accountRepo: IRepository<Account>,
-        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>,
+        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
     ) : IUseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput> {
         return GetSavingAnalytic(
             accountRepo = accountRepo,
@@ -155,6 +163,22 @@ class AnalyticConfig {
     ) : IUseCase<Unit, GetPatrimonySummaryOutput> {
         return GetPatrimonySummary(
             getAllPatrimonies = getAllPatrimonies,
+        )
+    }
+
+
+    @Bean
+    fun getPatrimonyEvolution(
+        patrimonyRepo: IRepository<Patrimony>,
+        snapshotRepo: IRepository<PatrimonySnapshot>,
+        savingGoalRepo: IRepository<SavingGoal>,
+        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
+    ): IUseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput> {
+        return GetPatrimonyEvolution(
+            patrimonyRepo = patrimonyRepo,
+            patrimonySnapshotRepo = snapshotRepo,
+            getBalanceByPeriod = getBalanceByPeriod,
+            savingGoalRepo = savingGoalRepo,
         )
     }
 }

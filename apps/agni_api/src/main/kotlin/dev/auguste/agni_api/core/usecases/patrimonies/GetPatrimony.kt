@@ -10,6 +10,7 @@ import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.entities.DomainException
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
@@ -21,7 +22,7 @@ class GetPatrimony(
     private val patrimonyRepo: IRepository<Patrimony>,
     private val accountRepo: IRepository<Account>,
     private val patrimonySnapshotRepo: IRepository<PatrimonySnapshot>,
-    private val getBalancesByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>
+    private val getBalancesByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
 ) : IUseCase<UUID, GetPatrimonyOutput> {
 
     override fun execAsync(input: UUID): GetPatrimonyOutput {

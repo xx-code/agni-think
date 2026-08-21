@@ -50,6 +50,7 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.DeleteInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllExternalTransactionInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllInvoiceInput
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
@@ -192,7 +193,7 @@ class InvoiceConfig {
     @Bean
     fun getBalanceByPeriod(
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    ): IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>> {
+    ): IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>> {
         return GetBalancesByPeriod(
             getBalance = getBalance
         )

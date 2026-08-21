@@ -3,6 +3,7 @@ package dev.auguste.agni_api.core.usecases.invoices
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
@@ -10,9 +11,9 @@ import java.time.LocalDateTime
 
 class GetBalancesByPeriod(
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
-): IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>> {
-    override fun execAsync(input: GetBalancesByPeriodInput): List<GetBalanceOutput> {
-        val results = mutableListOf<GetBalanceOutput>()
+): IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>> {
+    override fun execAsync(input: GetBalancesByPeriodInput): List<GetBalanceByPeriodOutput> {
+        val results = mutableListOf<GetBalanceByPeriodOutput>()
 
         if (input.interval <= 0)
             throw DomainException.BusinessLogic.Validation("interval can not be zero")
@@ -28,22 +29,29 @@ class GetBalancesByPeriod(
                 PeriodType.DAY -> current.plusDays(input.interval.toLong())
             }
 
+            val resBalance = getBalance.execAsync(GetBalanceInput(
+                startDate = current,
+                endDate = next,
+                categoryIds = input.categoryIds,
+                types = input.types,
+                status = input.status,
+                accountIds = input.accountIds,
+                tagIds = input.tagIds,
+                isFreeze = input.isFreeze,
+                minAmount = input.minAmount,
+                maxAmount = input.maxAmount,
+                budgetIds = input.budgetIds,
+                mouvement = input.mouvement,
+                removeSystemCategory = input.removeSystemCategory
+            ))
+
             results.add(
-                getBalance.execAsync(GetBalanceInput(
-                    startDate = current,
-                    endDate = next,
-                    categoryIds = input.categoryIds,
-                    types = input.types,
-                    status = input.status,
-                    accountIds = input.accountIds,
-                    tagIds = input.tagIds,
-                    isFreeze = input.isFreeze,
-                    minAmount = input.minAmount,
-                    maxAmount = input.maxAmount,
-                    budgetIds = input.budgetIds,
-                    mouvement = input.mouvement,
-                    removeSystemCategory = input.removeSystemCategory
-                ))
+                GetBalanceByPeriodOutput(
+                    date = current.toLocalDate(),
+                    balance = resBalance.balance,
+                    income = resBalance.income,
+                    spend = resBalance.spend
+                )
             )
 
             current = next

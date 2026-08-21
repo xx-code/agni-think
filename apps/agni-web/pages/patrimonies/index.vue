@@ -6,9 +6,10 @@ import { getLocalTimeZone } from '@internationalized/date';
 import type { EditePatrimony, EditSnapshotPatrimony, PatrimonyType, SnapshotPatrimonyType, TypePatrimony } from '~/types/ui/patrimony';
 import AssetCard from './AssetCard.vue';
 import { fetchPatrimonies, fetchPatrimony, fetchSnapshotsPatrimony, useUpdatePatrimony, useCreatePatrimony, useUpdateSnapshotPatrimony, useAddSnapshotPatrimony, useDeletePatrimony, useRemoveSnapshotPatrimony } from '~/composables/api/patrimonies.js';
-import { fetchPatrimonySummary } from '~/composables/api/analytics.ts';
+import { fetchPatrimonyEvolution, fetchPatrimonySummary } from '~/composables/api/analytics.ts';
 
 const isLoadingSummary = ref(false)
+const isLoadingEvolution = ref(false)
 const isLoading = ref(false)
 
 const {data:patrimonies, refresh} = useAsyncData('patrimonies+page+all', async () => {
@@ -16,7 +17,10 @@ const {data:patrimonies, refresh} = useAsyncData('patrimonies+page+all', async (
     const res = await fetchPatrimonies()
     isLoading.value = false
 
-    return res
+    return {
+        assets: res.items.filter(i => i.type === 'Asset'),
+        liability: res.items.filter(i => i.type === 'Liability')
+    }
 })
 
 const { data: patrimonySummary } = useAsyncData('patrimony-summary', async () => {
@@ -28,6 +32,17 @@ const { data: patrimonySummary } = useAsyncData('patrimony-summary', async () =>
     return res
 })
 
+const { data: patrimonyEvolutions } = useAsyncData('patrimony-evolutions', async () => {
+    isLoadingEvolution.value = true
+    const res = await fetchPatrimonyEvolution({
+        period: 'Month',
+        interval: 6
+    })
+    isLoadingEvolution.value = false
+
+    return res 
+})
+
 
 const overlay = useOverlay()
 const modalEditPatrimony = overlay.create(ModalEditPatrimony)
@@ -35,52 +50,8 @@ const modalEditSnapshotPatrimony = overlay.create(ModalEditSnapshotPatrimony)
 
 const snapshots = ref<SnapshotPatrimonyType[]>([])
 
-const totalPatrimony = computed(() => {
-    const assets = patrimonies.value?.items.filter(i => i.type.toLowerCase() === 'asset')
-    const liablities = patrimonies.value?.items.filter(i => i.type.toLowerCase() === 'liability')
-
-    const currentAmountAsset = assets?.reduce((acc: number, asset) => acc + asset.currentBalance, 0)
-    const lastAmountAsset = assets?.reduce((acc: number, asset) => acc + asset.lastSnapshotBalance, 0)
-    const currentAmountLiability = liablities?.reduce((acc: number, asset) => acc + asset.currentBalance, 0)
-    const lastAmountLiability = liablities?.reduce((acc: number, asset) => acc + asset.lastSnapshotBalance, 0)
-
-    return {
-
-        currentAmountAsset: currentAmountAsset || 0,
-        lastAmountAsset: lastAmountAsset || 0,
-        currentAmountLiability: currentAmountLiability || 0,
-        lastAmountLiability: lastAmountLiability || 0,
-        currentBalance: (currentAmountAsset || 0) - (currentAmountLiability || 0), 
-        lastBalance: (lastAmountAsset || 0) - (lastAmountLiability || 0),
-        totalAmount: (currentAmountAsset || 0) + (currentAmountLiability || 0)
-    } 
-})
-
 const selectedPatrimony = ref<PatrimonyType>()
 
-const optionsChart = computed(() => ({responsive: true, plugins: {colors: { forceOverride: true}}})) 
-const patriomiesDonutChart = computed(() => {
-    let labels: string[] = [] 
-    const data: number[]= []
-    const reactiveColor: string[] = []
-    if (patrimonies.value){
-        labels = patrimonies.value.items.map(pat => pat.title)
-        patrimonies.value.items.forEach(pat => {
-            let value = pat.currentBalance 
-            if (pat.type !== 'Asset' && value > 0)
-              value *= -1
-            data.push(value)
-        })
-    }
-
-    return {
-        labels: labels,
-        datasets: [{
-            label: 'Somme',
-            data: data,
-        }]
-    } 
-});
 
 async function onClickPatrimony(id: string) {
     try {
@@ -232,37 +203,28 @@ const columns: TableColumn<SnapshotPatrimonyType>[] = [
             :total-liability="patrimonySummary?.totalLiability ?? 0"
         />
 
+        <UiPatrimonyGraph 
+            :net-worth-dates="patrimonyEvolutions?.networthByPeriod.map(i => i.date) ?? []"
+            :net-worth-evolutions="patrimonyEvolutions?.networthByPeriod.map(i => i.networth) ?? []"
+            :asset-labels="patrimonies?.assets.map(i => i.title) ?? []"
+            :asset-amounts="patrimonies?.assets.map(i => i.currentBalance) ?? []"
+            :liability-labels="patrimonies?.liability.map(i => i.title) ?? []"
+            :liability-amounts="patrimonies?.liability.map(i => i.amount) ?? []"
+        />
 
-    <!-- SECTION : Graphiques -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <UCard class="rounded-lg shadow-sm">
-        <CustomCardTitle title="Répartition du patrimoine"/>
-        <div class="flex justify-center items-center h-[280px]">
-          <DoughnutChart :data="patriomiesDonutChart" :options="optionsChart"/>
+        <!-- SECTION : Bouton ajout -->
+        <div class="flex justify-end">
+            <UButton 
+                label="Ajouter un patrimoine" 
+                icon="i-lucide-castle"
+                @click="openPatrimony()" />
         </div>
-      </UCard>
-
-      <UCard class="rounded-lg shadow-sm">
-        <CustomCardTitle title="Répartition des actifs"/>
-        <div class="flex justify-center items-center h-[280px] text-gray-400 italic">
-          (À venir)
-        </div>
-      </UCard>
-    </div>
-
-    <!-- SECTION : Bouton ajout -->
-    <div class="flex justify-end">
-      <UButton 
-        label="Ajouter un patrimoine" 
-        icon="i-lucide-castle"
-        @click="openPatrimony()" />
-    </div>
 
     <!-- SECTION : Liste patrimoines -->
 
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <div 
-        v-for="patrimony in patrimonies?.items.filter(i => i.type.toLowerCase() == 'asset')" 
+        v-for="patrimony in patrimonies?.assets" 
         :key="patrimony.id">
         <AssetCard 
             :patrimony="patrimony"
@@ -275,7 +237,7 @@ const columns: TableColumn<SnapshotPatrimonyType>[] = [
 
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <div 
-        v-for="patrimony in patrimonies?.items.filter(i => i.type.toLocaleLowerCase() == 'liability')" 
+        v-for="patrimony in patrimonies?.liability" 
             :key="patrimony.id">
             <AssetCard 
                 :patrimony="patrimony"
