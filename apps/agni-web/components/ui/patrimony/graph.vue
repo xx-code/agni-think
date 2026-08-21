@@ -22,14 +22,14 @@ const evolutionOptionChart = computed(() => ({
     plugins: {
         colors: { forceOverride: true},
         legend: { display: false },
-        // tooltip: {
-        //     enabled: true,
-        //     displayColors: false,
-        //     callbacks: {
-        //     label: (ctx:any) => formatCurrency(ctx.parsed.y),
-        //     title: () => ''
-        //     }
-        // }
+        tooltip: {
+            enabled: true,
+            displayColors: false,
+            callbacks: {
+            label: (ctx:any) => formatCurrency(ctx.parsed.y),
+            title: () => ''
+            }
+        }
     },
     scales: {
         y: { display: false, grace: '15%' },       // pas d'axe — c'est une sparkline
@@ -49,14 +49,14 @@ const evolutionDataChart = computed(() => {
         labels: netWorthDates.map(i => formatDate(i)),
         datasets: [{
             data: netWorthEvolutions,
-            borderColor: '#1e293b',
+            borderColor: '#4338ca',
             borderWidth: 2,
             backgroundColor: gradient,
             fill: true,
             tension: 0.4,
             pointRadius: 0,
             pointHoverRadius: 5,
-            pointHoverBackgroundColor: '#1e293b',
+            pointHoverBackgroundColor: '#4338ca',
             pointHitRadius: 10,
         }]
     }
@@ -111,7 +111,7 @@ const repartitionLiabilityDataChart = computed(() => ({
         </div>
 
         <div class="grid md:grid-cols-2 grid-cols-1 gap-5 flex-wrap w-full">
-            <div class="bg-white p-4 rounded-2xl border border-gray-200">
+            <div class="bg-white p-5 rounded-2xl shadow-sm">
                 <div class="mb-4 ">
                     <h2 class="font-semibold text-xl">Actifs</h2>
                     <h6>
@@ -134,7 +134,7 @@ const repartitionLiabilityDataChart = computed(() => ({
                 </div>
             </div> 
 
-            <div class="bg-white p-4 rounded-2xl border border-gray-200">
+            <div class="bg-white p-5 rounded-2xl shadow-sm">
                 <div class="mb-4 ">
                     <h2 class="font-semibold text-xl">Passifs</h2>
                     <h6>

@@ -1,6 +1,6 @@
 import type {  CalendarDate } from "@internationalized/date"
+import type { TypePatrimony } from "../constants/patrimony"
 
-export type TypePatrimony = 'Asset' | 'Liability' 
 
 export type EditePatrimony = {
     title: string
@@ -33,4 +33,13 @@ export type SnapshotPatrimonyType = {
     balance: number
     date: Date
     status: string
+}
+
+export type PatrimonyCard = {
+    id: string
+    title: string
+    description: string
+    balance: number
+    evolution: number
+    type: TypePatrimony
 }
