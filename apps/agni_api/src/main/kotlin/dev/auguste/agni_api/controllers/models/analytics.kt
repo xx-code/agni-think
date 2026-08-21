@@ -47,3 +47,8 @@ data class ApiGetTagAnalyticModel(
     val queryAll: Boolean = false,
     val categoryId: UUID? = null
 )
+
+data class ApiGetPatrimonyEvolutionModel(
+    val period: String,
+    val interval: Int
+)

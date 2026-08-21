@@ -7,12 +7,13 @@ import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
 
 class GetSpendByTagAnalytic(
     private val tagRepo: IRepository<Tag>,
-    private val getBalanceByPeriod : IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>
+    private val getBalanceByPeriod : IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
 ) : IUseCase<GetSpendByTagInput, ListOutput<GetSpendByTagOutput>> {
 
     override fun execAsync(input: GetSpendByTagInput): ListOutput<GetSpendByTagOutput> {

@@ -10,6 +10,7 @@ import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
 import dev.auguste.agni_api.core.usecases.patrimonies.CreatePatrimony
@@ -19,6 +20,7 @@ import dev.auguste.agni_api.core.usecases.patrimonies.GetPatrimony
 import dev.auguste.agni_api.core.usecases.patrimonies.UpdatePatrimony
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.CreatePatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.DeletePatrimonyInput
+import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.UpdatePatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.AddSnapshotToPatrimony
@@ -71,14 +73,14 @@ class PatrimonyConfig {
         accountRepo: IRepository<Account>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
         savingGoalRepo: IRepository<SavingGoal>,
-        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>
+        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
     ): IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>> {
         return GetAllPatrimonies(
             patrimonyRepo = patrimonyRepo,
             accountRepo = accountRepo,
             patrimonySnapshotRepo = snapshotRepo,
-            savingGoalRepo = savingGoalRepo,
             getBalanceByPeriod = getBalanceByPeriod,
+            savingGoalRepo = savingGoalRepo
         )
     }
 
@@ -86,13 +88,15 @@ class PatrimonyConfig {
     fun getPatrimony(
         patrimonyRepo: IRepository<Patrimony>,
         accountRepo: IRepository<Account>,
+        savingGoalRepo: IRepository<SavingGoal>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
-        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>
-    ): IUseCase<UUID, GetPatrimonyOutput> {
+        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
+    ): IUseCase<GetPatrimonyInput, GetPatrimonyOutput> {
         return GetPatrimony(
             patrimonyRepo = patrimonyRepo,
             accountRepo = accountRepo,
             patrimonySnapshotRepo = snapshotRepo,
+            savingGoalRepo = savingGoalRepo,
             getBalancesByPeriod = getBalanceByPeriod,
         )
     }
@@ -139,10 +143,14 @@ class PatrimonyConfig {
 
     @Bean
     fun getAllSnapshotsFromPatrimonies(
-       snapshotRepo: IRepository<PatrimonySnapshot>
+       snapshotRepo: IRepository<PatrimonySnapshot>,
+       savingGoalRepo: IRepository<SavingGoal>,
+       getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
     ) : IUseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>> {
         return GetAllSnapshotFromPatrimony(
-            snapshotPatrimonyRepo = snapshotRepo
+            snapshotPatrimonyRepo = snapshotRepo,
+            savingGoalRepo = savingGoalRepo,
+            getBalanceByPeriod = getBalanceByPeriod,
         )
     }
 }

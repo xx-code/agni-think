@@ -14,6 +14,7 @@ import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.CreatePatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.DeletePatrimonyInput
+import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.UpdatePatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.AddSnapshotToPatrimonyInput
@@ -41,7 +42,7 @@ class PatrimonyController(
     private val createPatrimonyUseCase: IUseCase<CreatePatrimonyInput, CreatedOutput>,
     private val updatePatrimonyUseCase: IUseCase<UpdatePatrimonyInput, Unit>,
     private val deletePatrimonyUseCase: IUseCase<DeletePatrimonyInput, Unit>,
-    private val getPatrimonyUseCase: IUseCase<UUID, GetPatrimonyOutput>,
+    private val getPatrimonyUseCase: IUseCase<GetPatrimonyInput, GetPatrimonyOutput>,
     private val getAllPatrimoniesUseCase: IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>>,
     private val addSnapshotToPatrimonyUseCase: IUseCase<AddSnapshotToPatrimonyInput, CreatedOutput>,
     private val removeSnapshotFromPatrimonyUseCase: IUseCase<RemoveSnapshotFromPatrimonyInput, Unit>,
@@ -73,7 +74,13 @@ class PatrimonyController(
     @GetMapping("/{id}")
     fun getPatrimony(@PathVariable id: UUID) : ResponseEntity<GetPatrimonyOutput> {
         return ResponseEntity.ok(getPatrimonyUseCase.execAsync(
-            id
+            GetPatrimonyInput(id)
+        ))
+    }
+    @GetMapping("/total-fund")
+    fun getPatrimony() : ResponseEntity<GetPatrimonyOutput> {
+        return ResponseEntity.ok(getPatrimonyUseCase.execAsync(
+            GetPatrimonyInput(UUID.randomUUID(), true)
         ))
     }
 
@@ -106,9 +113,9 @@ class PatrimonyController(
     }
 
     @GetMapping("/{id}/snapshots")
-    fun getSnapshotsFromPatrimony(@PathVariable id: UUID, query: QueryFilter) : ResponseEntity<ListOutput<GetSnapshotPatrimonyOutput>> {
+    fun getSnapshotsFromPatrimony(@PathVariable id: UUID, query: QueryFilter, isFund: Boolean = false) : ResponseEntity<ListOutput<GetSnapshotPatrimonyOutput>> {
         return ResponseEntity.ok(getAllPatrimonySnapshotUseCase.execAsync(
-            GetAllSnapshotPatrimonyInput(id, query)
+            GetAllSnapshotPatrimonyInput(id, query, isFund = isFund)
         ))
     }
 }

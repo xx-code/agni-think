@@ -2,6 +2,7 @@ package dev.auguste.agni_api.controllers
 
 import dev.auguste.agni_api.controllers.models.ApiGetBudgetingRuleModel
 import dev.auguste.agni_api.controllers.models.ApiGetCategoryAnalyticModel
+import dev.auguste.agni_api.controllers.models.ApiGetPatrimonyEvolutionModel
 import dev.auguste.agni_api.controllers.models.ApiGetSavingAnalyticModel
 import dev.auguste.agni_api.controllers.models.ApiGetTagAnalyticModel
 import dev.auguste.agni_api.core.adapters.dto.FundSummaryOutput
@@ -13,6 +14,9 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetTotalSummaryOu
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonyEvolutionInput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonyEvolutionOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonySummaryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryInput
@@ -35,7 +39,9 @@ class AnalyticController(
     private val getBudgetingRuleAnalytic: IUseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput>,
     private val getAnnualOutlook: IUseCase<Unit, GetAnnualOutlookOutput>,
     private val getFundTotalSummary: IUseCase<Unit, FundSummaryOutput>,
-    private val getBudgetTotalSummary: IUseCase<Unit, GetBudgetTotalSummaryOutput>
+    private val getBudgetTotalSummary: IUseCase<Unit, GetBudgetTotalSummaryOutput>,
+    private val getPatrimonySummary: IUseCase<Unit, GetPatrimonySummaryOutput>,
+    private val getPatrimonyEvolution: IUseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput>,
 ) {
     @GetMapping("/spend-categories")
     fun getSpendCategoriesAnalytic(query: ApiGetCategoryAnalyticModel) : ResponseEntity<ListOutput<GetSpendByCategoryOutput>> {
@@ -111,5 +117,18 @@ class AnalyticController(
     @GetMapping("/budget-total-summary")
     fun getBudgetTotalSummary() : ResponseEntity<GetBudgetTotalSummaryOutput> {
         return ResponseEntity.ok(getBudgetTotalSummary.execAsync(Unit))
+    }
+
+    @GetMapping("/patrimony-summary")
+    fun getPatrimonySummary() : ResponseEntity<GetPatrimonySummaryOutput> {
+        return ResponseEntity.ok(getPatrimonySummary.execAsync(Unit))
+    }
+
+    @GetMapping("/patrimony-evolution")
+    fun getPatrimonyEvolution(query: ApiGetPatrimonyEvolutionModel) : ResponseEntity<GetPatrimonyEvolutionOutput> {
+        return ResponseEntity.ok(getPatrimonyEvolution.execAsync(GetPatrimonyEvolutionInput(
+            PeriodType.fromString(query.period),
+            query.interval
+        )))
     }
 }

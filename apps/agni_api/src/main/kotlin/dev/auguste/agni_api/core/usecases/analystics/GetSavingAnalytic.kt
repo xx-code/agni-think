@@ -9,12 +9,13 @@ import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
 
 class GetSavingAnalytic(
     private val accountRepo: IRepository<Account>,
-    private val getBalanceByPeriod : IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>
+    private val getBalanceByPeriod : IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
 ) : IUseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput> {
     override fun execAsync(input: GetSavingAnalyticInput): GetSavingAnalyticOutput {
 

@@ -69,11 +69,20 @@ const actionItems = ref<DropdownMenuItem[][]>([
     ]
 ])
 
+const showNegativeIndicator = computed(() => {
+    if (account.type != AccountType.CreditCard)
+        return true 
+    return false
+})
+
 
 </script>
 
 <template>
-    <div class="flex flex-col gap-2 p-5 cursor-pointer">
+    <div 
+        class="flex flex-col gap-2 p-5 cursor-pointer border-l-2 rounded-3xl"
+        :style="{borderColor: showNegativeIndicator && account.balance < 0 ? '#fb2c36' : account.color}">
+                
         <div class="flex items-start">
             <div class="flex-1">
                 <h5 class="text-sm font-semibold text-gray-500">{{ getLabelAccountType(account.type)  }}</h5>
@@ -95,7 +104,10 @@ const actionItems = ref<DropdownMenuItem[][]>([
         </div> 
 
         <div>
-            <span class="text-xl font-semibold">{{ formatCurrency(account.balance) }}</span>
+            <span :class="[
+                'text-xl font-semibold',
+                showNegativeIndicator && account.balance < 0 ? 'text-red-500' : ''
+            ]">{{ formatCurrency(account.balance) }}</span>
         </div>
 
         <div class="h-20">

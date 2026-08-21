@@ -41,6 +41,31 @@ export type BudgetTotalSummaryResponse = {
     totalSpend: number
 }
 
+export type PatrimonySummaryResponse = {
+    networth: number,
+    passNetworth: number,
+    totalAsset: number,
+    passTotalAsset: number,
+    totalLiability: number,
+    passTotalLiability: number,
+    monthlyEvolutionPerc: number
+}
+
+export type NetWorthPeriodResponse = {
+    date: string,
+    networth: number
+}
+
+export type PatrimonyEvolutionResponse = {
+    networthByPeriod: NetWorthPeriodResponse[],
+    breakdown: Map<string, NetWorthPeriodResponse[]>
+}
+
+export type QueryPatrimonyEvolution = {
+    period: string
+    interval: number
+}
+
 // CATEGORY
 type GetSpendCategoryResponse = {
     categoryId: string
@@ -110,3 +135,4 @@ type GetBudgetingRuleResponse = {
     variableCost: number
     income: number
 }
+
