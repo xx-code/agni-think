@@ -1,20 +1,30 @@
+import type { GetPatrimonyResponse } from "~/types/api/patrimony";
+import type { TypePatrimony } from "~/types/constants/patrimony";
 import type { PatrimonyCard, PatrimonyType } from "~/types/ui/patrimony";
 
-export function patrimonyToPatrimonyCard(data: PatrimonyType): PatrimonyCard {
-    const base = data.type === 'Asset' ? data.lastSnapshotBalance : data.currentBalance
-    const current = data.type === 'Liability' ? data.currentBalance : data.lastSnapshotBalance
-    const computeEvolution = () => {
-        if (data.lastSnapshotBalance === 0) 
-            return data.currentBalance > 0 ? 100 : 0 
+const computeEvolution = (pastBalance: number, currentBalance: number) => {
+        if (pastBalance === 0) 
+            return currentBalance > 0 ? 100 : 0 
 
-        return ((data.currentBalance - data.lastSnapshotBalance) / Math.abs(data.lastSnapshotBalance)) * 100
+        return ((currentBalance - pastBalance) / Math.abs(pastBalance)) * 100
     }
+
+export function patrimonyResponseToPatrimony(data: GetPatrimonyResponse): PatrimonyType {
+    return {
+        ...data, 
+        type: data.type as TypePatrimony,
+        evolution: computeEvolution(data.pastBalance, data.currentBalance)
+    }
+}
+
+export function patrimonyToPatrimonyCard(data: PatrimonyType): PatrimonyCard {
     return {
         id: data.id,
         title: data.title,
         description: "",
         balance: data.currentBalance,
-        evolution: computeEvolution(),
+        evolution: computeEvolution(data.pastBalance, data.currentBalance),
+        isFund: data.totalFund,
         type: data.type,
     }
 }

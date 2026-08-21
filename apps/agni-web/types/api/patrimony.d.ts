@@ -8,6 +8,7 @@ export type GetPatrimonyResponse = {
     currentBalance: number
     pastBalance: number
     type: string
+    totalFund: boolean
 }
 
 export type CreatePatrimonyRequest = {

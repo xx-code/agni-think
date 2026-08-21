@@ -20,6 +20,7 @@ import dev.auguste.agni_api.core.usecases.patrimonies.GetPatrimony
 import dev.auguste.agni_api.core.usecases.patrimonies.UpdatePatrimony
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.CreatePatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.DeletePatrimonyInput
+import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.UpdatePatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.AddSnapshotToPatrimony
@@ -87,13 +88,15 @@ class PatrimonyConfig {
     fun getPatrimony(
         patrimonyRepo: IRepository<Patrimony>,
         accountRepo: IRepository<Account>,
+        savingGoalRepo: IRepository<SavingGoal>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
-    ): IUseCase<UUID, GetPatrimonyOutput> {
+    ): IUseCase<GetPatrimonyInput, GetPatrimonyOutput> {
         return GetPatrimony(
             patrimonyRepo = patrimonyRepo,
             accountRepo = accountRepo,
             patrimonySnapshotRepo = snapshotRepo,
+            savingGoalRepo = savingGoalRepo,
             getBalancesByPeriod = getBalanceByPeriod,
         )
     }
@@ -140,10 +143,14 @@ class PatrimonyConfig {
 
     @Bean
     fun getAllSnapshotsFromPatrimonies(
-       snapshotRepo: IRepository<PatrimonySnapshot>
+       snapshotRepo: IRepository<PatrimonySnapshot>,
+       savingGoalRepo: IRepository<SavingGoal>,
+       getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
     ) : IUseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>> {
         return GetAllSnapshotFromPatrimony(
-            snapshotPatrimonyRepo = snapshotRepo
+            snapshotPatrimonyRepo = snapshotRepo,
+            savingGoalRepo = savingGoalRepo,
+            getBalanceByPeriod = getBalanceByPeriod,
         )
     }
 }

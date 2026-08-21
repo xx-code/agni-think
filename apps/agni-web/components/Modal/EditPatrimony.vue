@@ -2,7 +2,8 @@
 import type { FormSubmitEvent } from '#ui/types';
 import * as z from 'zod';
 import { fetchAccounts } from '~/composables/api/accounts';
-import type { EditePatrimony, PatrimonyType, TypePatrimony } from '~/types/ui/patrimony';
+import type { TypePatrimony } from '~/types/constants/patrimony';
+import type { EditePatrimony, PatrimonyType } from '~/types/ui/patrimony';
 
 const { patrimony } = defineProps<{
     patrimony?: PatrimonyType

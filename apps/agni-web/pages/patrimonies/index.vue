@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { NuxtError } from '#app';
-import { ModalEditPatrimony, ModalEditSnapshotPatrimony } from '#components';
+import { ModalEditPatrimony, ModalEditSnapshotPatrimony, SlideOverPatrimonySnapshot } from '#components';
 import type { TableColumn } from '#ui/types';
 import { getLocalTimeZone } from '@internationalized/date';
 import type { EditePatrimony, EditSnapshotPatrimony, PatrimonyType, SnapshotPatrimonyType } from '~/types/ui/patrimony';
@@ -47,24 +47,8 @@ const { data: patrimonyEvolutions } = useAsyncData('patrimony-evolutions', async
 
 const overlay = useOverlay()
 const modalEditPatrimony = overlay.create(ModalEditPatrimony)
-const modalEditSnapshotPatrimony = overlay.create(ModalEditSnapshotPatrimony)
+const slideOverSnapshot = overlay.create(SlideOverPatrimonySnapshot)
 
-const snapshots = ref<SnapshotPatrimonyType[]>([])
-
-const selectedPatrimony = ref<PatrimonyType>()
-
-
-async function onClickPatrimony(id: string) {
-    try {
-        const res = await fetchPatrimony(id)
-        const resSnapshots = await fetchSnapshotsPatrimony(id, new Date('2025-08-20'), new Date('2025-08-26'))
-        selectedPatrimony.value = res
-        snapshots.value = resSnapshots.items
-    } catch(err) {
-        console.log(err)
-        alert("Patrimony error")
-    }
-}
 
 async function onSubmitPatrimony(patrimony: EditePatrimony, oldPatrimony?: PatrimonyType) {
     try {
@@ -89,29 +73,6 @@ async function onSubmitPatrimony(patrimony: EditePatrimony, oldPatrimony?: Patri
     }
 }
 
-async function onSubmitSnapshot(snapshot: EditSnapshotPatrimony, oldSnapshot?: SnapshotPatrimonyType) {
-    try {
-        if (oldSnapshot)
-            await useUpdateSnapshotPatrimony(oldSnapshot.patrimonyId, oldSnapshot.id, {
-                status: snapshot.status,
-                balance: snapshot.balance,
-                date: snapshot.date.toDate(getLocalTimeZone()).toISOString()
-            })
-        else
-            await useAddSnapshotPatrimony(selectedPatrimony.value?.id || '', {
-                balance: snapshot.balance,
-                status: snapshot.status,
-                date: snapshot.date.toDate(getLocalTimeZone()).toISOString()
-            })
-        await onClickPatrimony(selectedPatrimony.value?.id || '')
-        refresh()
-    } catch(err) {
-        console.log(err)
-        const nuxtError = err as NuxtError
-        alert("Error: " + nuxtError?.cause || 'Error Patrimony')
-    }
-}
-
 async function openPatrimony(id?: string) {
     if (id === 'SAVE_GOAL')
         return
@@ -125,11 +86,19 @@ async function openPatrimony(id?: string) {
     })
 }
 
-function openSnapshot(snapshot?: SnapshotPatrimonyType) {
-    modalEditSnapshotPatrimony.open({
-        snapshot: snapshot,
-        onSubmit: onSubmitSnapshot
+
+
+async function onClickPatrimonyCard(id: string, isFund: boolean) {
+    const instance = slideOverSnapshot.open({
+        id: id,
+        isFund: isFund,
+        onClose: (doRefresh) => {
+            if (doRefresh) {
+                refresh()
+            }
+        }
     })
+    await instance.result
 }
 
 async function deletePatrimony(patrimonyId: string) {
@@ -137,8 +106,6 @@ async function deletePatrimony(patrimonyId: string) {
     const isOk = confirm("Voulez vous supprmier le patrimoine")
     if (isOk) {
         await useDeletePatrimony(patrimonyId)
-        selectedPatrimony.value = undefined
-        snapshots.value = []
         refresh()
     }
     } catch(err) {
@@ -147,45 +114,6 @@ async function deletePatrimony(patrimonyId: string) {
         alert("Error: " + nuxtError?.message || 'Error Patrimony')
     } 
 }
-
-async function removeSnapshot(patrimonyId: string, snapshotId: string) {
-    await useRemoveSnapshotPatrimony(patrimonyId, snapshotId)
-    refresh()
-    onClickPatrimony(patrimonyId)
-}
-
-const UButton = resolveComponent('UButton')
-const columns: TableColumn<SnapshotPatrimonyType>[] = [
-    {
-        accessorKey: 'balance',
-        header: 'Balance',
-        cell: ({ row }) =>  formatCurrency(row.original.balance) 
-    },
-    {
-        accessorKey: 'status',
-        header: 'Status',
-        cell: ({ row }) =>  row.original.status
-    },
-    {
-        accessorKey: 'date',
-        header: 'Date',
-        cell: ({ row }) => formatDate(row.original.date)
-    },
-    {
-        id: 'action',
-        header: '',
-        cell: ({ row }) => {
-            return (
-                h('div', { class: 'space-x-1 text-right'},
-                    [
-                        h(UButton, { variant: 'ghost', color: 'info', icon: 'i-lucide-edit', onClick: () => openSnapshot(row.original) }),
-                        h(UButton, { variant: 'ghost', color: 'error', icon: 'i-lucide-trash', onClick: () => removeSnapshot(row.original.patrimonyId, row.original.id) }),
-                    ]
-                )
-            )
-        }
-    }
-]
 
 </script>
 
@@ -225,7 +153,7 @@ const columns: TableColumn<SnapshotPatrimonyType>[] = [
                     v-for="asset in patrimonies?.assets"
                     :key="asset.id"
                     :patrimony="patrimonyToPatrimonyCard(asset)"
-                    @click="onClickPatrimony(asset.id)"
+                    @click="onClickPatrimonyCard(asset.id, asset.totalFund)"
                     @update="openPatrimony(asset.id)"
                     @delete="deletePatrimony(asset.id)"
                 />
@@ -243,24 +171,11 @@ const columns: TableColumn<SnapshotPatrimonyType>[] = [
                     v-for="liability in patrimonies?.liabilities"
                     :key="liability.id"
                     :patrimony="patrimonyToPatrimonyCard(liability)"
-                    @click="onClickPatrimony(liability.id)"
+                    @click="onClickPatrimonyCard(liability.id, liability.totalFund)"
                     @update="openPatrimony(liability.id)"
                     @delete="deletePatrimony(liability.id)"
                 />
             </div>
         </div>
-    
-        <!-- SECTION : Table snapshots -->
-        <UCard class="mt-4 rounded-lg shadow-sm">
-            <div class="flex justify-between items-center">
-                <CustomCardTitle :title="'Historique des snapshots - ' + (selectedPatrimony?.title ?? '')"/>
-                <UButton label="Snapshot" icon="i-lucide-circle-fading-plus"  @click="openSnapshot()"/>
-            </div>
-            <UTable 
-                :columns="columns" 
-                :data="snapshots"
-                class="mt-2"
-            />
-        </UCard>
     </div>
 </template>

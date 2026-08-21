@@ -207,7 +207,7 @@ useInfiniteScroll(
 </script>
 
 <template>
-    <USlideover :close="{ onClick: () => emit('close', doRefresh) }">
+    <USlideover v-on:update:open="emit('close', doRefresh)">
         <template #content>
             <div ref="el" class="space-y-6 p-6 overflow-auto">
                 <div class="flex justify-end">
