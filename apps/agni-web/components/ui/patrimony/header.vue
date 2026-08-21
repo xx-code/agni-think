@@ -20,14 +20,14 @@ const percentageLiability = computed(() => computeEvolution(totalAsset + Math.ab
 <template>
     <div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 ">
-            <div class="bg-white p-4 rounded-xl border border-gray-200">
+            <div class="bg-white p-5 rounded-2xl shadow-sm">
                 <h4 class="text-md font-semibold text-gray-400 mb-2">Valeur nette totale</h4>
                 <p class="font-semibold text-2xl text-gray-800">
                     {{ formatCurrency(networth) }}
                 </p>
             </div>
 
-            <div class="bg-white p-4 rounded-xl border border-gray-200">
+            <div class="bg-white p-5 rounded-2xl shadow-sm">
                 <h4 class="text-md font-semibold text-gray-400 mb-2">Évolution mensuelle</h4>
                 <p :class="[
                     'font-semibold text-2xl flex items-center gap-1',
@@ -36,7 +36,7 @@ const percentageLiability = computed(() => computeEvolution(totalAsset + Math.ab
                 </p>
             </div>
 
-            <div class="bg-white p-4 rounded-xl border border-gray-200">
+            <div class="bg-white p-5 rounded-2xl shadow-sm">
                 <h4 class="text-md font-semibold text-gray-400 mb-2">Actifs vs Passifs</h4>
                 <div class="flex items-center justify-between font-semibold text-2xl mb-2">
                     <h3 class="text-green-500">{{ roundNumber(percentageAsset) }}%</h3>

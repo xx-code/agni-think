@@ -3,10 +3,11 @@ import type { NuxtError } from '#app';
 import { ModalEditPatrimony, ModalEditSnapshotPatrimony } from '#components';
 import type { TableColumn } from '#ui/types';
 import { getLocalTimeZone } from '@internationalized/date';
-import type { EditePatrimony, EditSnapshotPatrimony, PatrimonyType, SnapshotPatrimonyType, TypePatrimony } from '~/types/ui/patrimony';
-import AssetCard from './AssetCard.vue';
+import type { EditePatrimony, EditSnapshotPatrimony, PatrimonyType, SnapshotPatrimonyType } from '~/types/ui/patrimony';
 import { fetchPatrimonies, fetchPatrimony, fetchSnapshotsPatrimony, useUpdatePatrimony, useCreatePatrimony, useUpdateSnapshotPatrimony, useAddSnapshotPatrimony, useDeletePatrimony, useRemoveSnapshotPatrimony } from '~/composables/api/patrimonies.js';
 import { fetchPatrimonyEvolution, fetchPatrimonySummary } from '~/composables/api/analytics.ts';
+import { patrimonyToPatrimonyCard } from '~/mappers/patrimony.ts';
+import type { TypePatrimony } from '~/types/constants/patrimony.ts';
 
 const isLoadingSummary = ref(false)
 const isLoadingEvolution = ref(false)
@@ -19,7 +20,7 @@ const {data:patrimonies, refresh} = useAsyncData('patrimonies+page+all', async (
 
     return {
         assets: res.items.filter(i => i.type === 'Asset'),
-        liability: res.items.filter(i => i.type === 'Liability')
+        liabilities: res.items.filter(i => i.type === 'Liability')
     }
 })
 
@@ -153,12 +154,6 @@ async function removeSnapshot(patrimonyId: string, snapshotId: string) {
     onClickPatrimony(patrimonyId)
 }
 
-const computeDiff = (currentBalance: number, accountBalance: number, type: TypePatrimony) => {
-    if (type === 'Asset')
-        return currentBalance - accountBalance 
-    return  accountBalance - currentBalance 
-}
-
 const UButton = resolveComponent('UButton')
 const columns: TableColumn<SnapshotPatrimonyType>[] = [
     {
@@ -208,8 +203,8 @@ const columns: TableColumn<SnapshotPatrimonyType>[] = [
             :net-worth-evolutions="patrimonyEvolutions?.networthByPeriod.map(i => i.networth) ?? []"
             :asset-labels="patrimonies?.assets.map(i => i.title) ?? []"
             :asset-amounts="patrimonies?.assets.map(i => i.currentBalance) ?? []"
-            :liability-labels="patrimonies?.liability.map(i => i.title) ?? []"
-            :liability-amounts="patrimonies?.liability.map(i => i.amount) ?? []"
+            :liability-labels="patrimonies?.liabilities.map(i => i.title) ?? []"
+            :liability-amounts="patrimonies?.liabilities.map(i => i.amount) ?? []"
         />
 
         <!-- SECTION : Bouton ajout -->
@@ -220,45 +215,52 @@ const columns: TableColumn<SnapshotPatrimonyType>[] = [
                 @click="openPatrimony()" />
         </div>
 
-    <!-- SECTION : Liste patrimoines -->
+        <div>
+            <div class="mb-5">
+                <span class="text-lg font-bold">Actifs</span>
+                <span class="ml-1">{{ formatCurrency(patrimonySummary?.totalAsset ?? 0) }}</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <UiPatrimonyCard 
+                    v-for="asset in patrimonies?.assets"
+                    :key="asset.id"
+                    :patrimony="patrimonyToPatrimonyCard(asset)"
+                    @click="onClickPatrimony(asset.id)"
+                    @update="openPatrimony(asset.id)"
+                    @delete="deletePatrimony(asset.id)"
+                />
+            </div>
+        </div> 
 
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      <div 
-        v-for="patrimony in patrimonies?.assets" 
-        :key="patrimony.id">
-        <AssetCard 
-            :patrimony="patrimony"
-            @open="onClickPatrimony(patrimony.id)"
-            @delete="deletePatrimony(patrimony.id)"
-            @update="openPatrimony(patrimony.id)"
-        /> 
-      </div>
-    </div>
+        <div>
+            <div class="mb-5">
+                <span class="text-lg font-bold">Passifs</span>
+                <span class="ml-1">{{ formatCurrency(patrimonySummary?.totalLiability ?? 0) }}</span>
+            </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      <div 
-        v-for="patrimony in patrimonies?.liability" 
-            :key="patrimony.id">
-            <AssetCard 
-                :patrimony="patrimony"
-                @open="onClickPatrimony(patrimony.id)"
-                @delete="deletePatrimony(patrimony.id)"
-                @update="openPatrimony(patrimony.id)"
-            />    
-      </div>
-    </div>
-
-    <!-- SECTION : Table snapshots -->
-    <UCard class="mt-4 rounded-lg shadow-sm">
-        <div class="flex justify-between items-center">
-            <CustomCardTitle :title="'Historique des snapshots - ' + (selectedPatrimony?.title ?? '')"/>
-            <UButton label="Snapshot" icon="i-lucide-circle-fading-plus"  @click="openSnapshot()"/>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <UiPatrimonyCard 
+                    v-for="liability in patrimonies?.liabilities"
+                    :key="liability.id"
+                    :patrimony="patrimonyToPatrimonyCard(liability)"
+                    @click="onClickPatrimony(liability.id)"
+                    @update="openPatrimony(liability.id)"
+                    @delete="deletePatrimony(liability.id)"
+                />
+            </div>
         </div>
-        <UTable 
-            :columns="columns" 
-            :data="snapshots"
-            class="mt-2"
-        />
-    </UCard>
-  </div>
+    
+        <!-- SECTION : Table snapshots -->
+        <UCard class="mt-4 rounded-lg shadow-sm">
+            <div class="flex justify-between items-center">
+                <CustomCardTitle :title="'Historique des snapshots - ' + (selectedPatrimony?.title ?? '')"/>
+                <UButton label="Snapshot" icon="i-lucide-circle-fading-plus"  @click="openSnapshot()"/>
+            </div>
+            <UTable 
+                :columns="columns" 
+                :data="snapshots"
+                class="mt-2"
+            />
+        </UCard>
+    </div>
 </template>
