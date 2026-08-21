@@ -1,7 +1,8 @@
 import type { AddSnapshotPatrimonyRequest, CreatePatrimonyRequest, GetSnapshotPatrimonyResponse, UpdatePatrimonyRequest, UpdateSnapshotPatrimonyRequest } from "~/types/api/patrimony";
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
 import type { GetPatrimonyResponse } from "~/types/api/patrimony";
-import type { PatrimonyType, SnapshotPatrimonyType, TypePatrimony } from "~/types/ui/patrimony";
+import type { PatrimonyType, SnapshotPatrimonyType } from "~/types/ui/patrimony";
+import { patrimonyResponseToPatrimony } from "~/mappers/patrimony";
 
 export async  function useAddSnapshotPatrimony(patrimonyId: string, request: AddSnapshotPatrimonyRequest) {
     await $fetch(`api/patrimonies/${patrimonyId}/add-snapshot`, {
@@ -39,47 +40,31 @@ export async function fetchPatrimonies(): Promise<ListResponse<PatrimonyType>> {
     })
 
     return {
-        items: res.items.map(i => ({
-            id: i.id,
-            title: i.title,
-            amount: i.amount,
-            lastSnapshotBalance: i.pastBalance,
-            currentBalance: i.currentBalance,
-            type: i.type as TypePatrimony,
-            accountIds: i.accountIds
-        })),
+        items: res.items.map(i => patrimonyResponseToPatrimony(i)),
         total: Number(res.total) 
     } 
 }
 
-export async function fetchPatrimony(patrimonyId: string): Promise<PatrimonyType> {
-    const res = await $fetch<GetPatrimonyResponse>(`api/patrimonies/${patrimonyId}`, {
-        method: 'GET'
-    })
-
-    return {
-        id: res.id,
-        title: res.title,
-        amount: res.amount,
-        currentBalance: res.currentBalance,
-        lastSnapshotBalance: res.pastBalance,
-        type: res.type as TypePatrimony,
-        accountIds: res.accountIds
-    }
+export async function fetchPatrimony(patrimonyId: string, isFund?: boolean): Promise<PatrimonyType> {
+    let patrimony = isFund ? await $fetch<GetPatrimonyResponse>(`/api/patrimonies/total-fund`) : 
+        await $fetch<GetPatrimonyResponse>(`api/patrimonies/${patrimonyId}`)
+        
+    return patrimonyResponseToPatrimony(patrimony)
 }
 
 export async function useRemoveSnapshotPatrimony(patrimonyId: string, snapshotId: string): Promise<void> {
-    await $fetch(`api/patrimonies/${patrimonyId}/remove-snapshot/${snapshotId}`, {
+    await $fetch(`api/patrimonies/remove-snapshot/${snapshotId}`, {
         method: 'PUT'
     });
 }
 
 
-export async function fetchSnapshotsPatrimony(patrimonyId: string, startDate?: Date, endDate?: Date): Promise<ListResponse<SnapshotPatrimonyType>> {
-    const query: QueryFilterRequest = {
+export async function fetchSnapshotsPatrimony(patrimonyId: string, startDate?: Date, endDate?: Date, isFund?: boolean): Promise<ListResponse<SnapshotPatrimonyType>> {
+    const query = {
         limit: 0,
         offset: 0,
-        queryAll: true
+        queryAll: true,
+        isFund: isFund
     }
     const res = await $fetch<ListResponse<GetSnapshotPatrimonyResponse>>(`api/patrimonies/${patrimonyId}/snapshots`, {
         method: "GET",
@@ -102,7 +87,7 @@ export async function useUpdatePatrimony(patrimonyId: string,
 
 export async function useUpdateSnapshotPatrimony(patrimonyId: string, snapshotId: string, 
     request: UpdateSnapshotPatrimonyRequest): Promise<void> {
-    await $fetch(`api/patrimonies/${patrimonyId}/update-snapshot/${snapshotId}`, {
+    await $fetch(`api/patrimonies/update-snapshot/${snapshotId}`, {
         method: 'PUT',
         body: request
     })

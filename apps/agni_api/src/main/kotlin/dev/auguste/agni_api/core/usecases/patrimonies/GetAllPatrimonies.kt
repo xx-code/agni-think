@@ -101,7 +101,8 @@ class GetAllPatrimonies(
             currentBalance = savingGoalAmount,
             pastBalance = if (passSavingGoalBalance > 0) passSavingGoalBalance else 0.0,
             type = PatrimonyType.ASSET.value,
-            accountIds = listOf()
+            accountIds = listOf(),
+            isTotalFund = true
         ))
 
         return ListOutput(
