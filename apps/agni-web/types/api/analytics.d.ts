@@ -51,6 +51,21 @@ export type PatrimonySummaryResponse = {
     monthlyEvolutionPerc: number
 }
 
+export type NetWorthPeriodResponse = {
+    date: string,
+    networth: number
+}
+
+export type PatrimonyEvolutionResponse = {
+    networthByPeriod: NetWorthPeriodResponse[],
+    breakdown: Map<string, NetWorthPeriodResponse[]>
+}
+
+export type QueryPatrimonyEvolution = {
+    period: string
+    interval: number
+}
+
 // CATEGORY
 type GetSpendCategoryResponse = {
     categoryId: string

@@ -24,6 +24,7 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.CreateFreezeInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.DeleteInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllInvoiceInput
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
@@ -53,7 +54,7 @@ class InvoiceController(
     private val deleteInvoiceUseCase: IInnerUseCase<DeleteInvoiceInput, Unit>,
     private val transferInvoiceUseCase: IUseCase<TransferInvoiceInput, Unit>,
     private val getBalanceUseCase: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    private val getBalanceByPeriodUseCase: IUseCase<GetBalancesByPeriodInput, List<GetBalanceOutput>>,
+    private val getBalanceByPeriodUseCase: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
     private val createFreezeInvoiceUseCase: IUseCase<CreateFreezeInvoiceInput, CreatedOutput>,
     private val completeInvoiceUseCase: IUseCase<CompleteInvoiceInput, Unit>,
 ) {
@@ -135,7 +136,7 @@ class InvoiceController(
     }
 
     @GetMapping("/balances-by-period")
-    fun getBalancesByPeriod(query: ApiQueryBalanceByPeriod) : ResponseEntity<List<GetBalanceOutput>> {
+    fun getBalancesByPeriod(query: ApiQueryBalanceByPeriod) : ResponseEntity<List<GetBalanceByPeriodOutput>> {
         return ResponseEntity.ok(getBalanceByPeriodUseCase.execAsync(
             GetBalancesByPeriodInput(
                 period = PeriodType.fromString(query.period),
