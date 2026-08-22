@@ -1,0 +1,694 @@
+[
+    {
+        "serverPath": "/api/accounts",
+        "apiPath": "/accounts",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/accounts",
+        "apiPath": "/accounts",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/accounts/:id",
+        "apiPath": "/accounts/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/accounts/:id",
+        "apiPath": "/accounts/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/accounts/:id",
+        "apiPath": "/accounts/:id",
+        "method": "DELETE"
+    },
+
+    {
+        "serverPath": "/api/agents/chat",
+        "apiPath": "/agents/chat",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/agents/planningAdvisor",
+        "apiPath": "/agents/planningAdvisor",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/agents/suggestions",
+        "apiPath": "/agents/suggestions",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/agents/suggestions/:id/confirm",
+        "apiPath": "/agents/suggestions/:id/confirm",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/agents/treat-invoice",
+        "apiPath": "/agents/treat-invoice",
+        "method": "POST"
+    },
+
+    {
+        "serverPath": "/api/analytics/annual-outlook",
+        "apiPath": "/analytics/annual-outlook",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/analytics/budgeting-rule",
+        "apiPath": "/analytics/budgeting-rule",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/analytics/budget-total-summary",
+        "apiPath": "/analytics/budget-total-summary",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/analytics/cashflow",
+        "apiPath": "/analytics/cashflow",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/analytics/estimation-left-amount",
+        "apiPath": "/analytics/estimation-left-amount",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/analytics/fund-total-summary",
+        "apiPath": "/analytics/fund-total-summary",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/analytics/incomes",
+        "apiPath": "/analytics/incomes",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/analytics/patrimony-evolution",
+        "apiPath": "/analytics/patrimony-evolution",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/analytics/patrimony-summary",
+        "apiPath": "/analytics/patrimony-summary",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/analytics/savings",
+        "apiPath": "/analytics/savings",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/analytics/spend-categories",
+        "apiPath": "/analytics/spend-categories",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/analytics/spend-tags",
+        "apiPath": "/analytics/spend-tags",
+        "method": "GET"
+    },
+
+    {
+        "serverPath": "/api/bank/accounts",
+        "apiPath": "/bank/accounts",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/bank/exchange-token",
+        "apiPath": "/bank/exchange-token",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/bank/init-transaction",
+        "apiPath": "/bank/init-transaction",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/bank/sync-transaction",
+        "apiPath": "/bank/sync-transaction",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/bank/token",
+        "apiPath": "/bank/token",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/bank/transactions",
+        "apiPath": "/bank/transactions",
+        "method": "*"
+    },
+
+    {
+        "serverPath": "/api/bank-registers",
+        "apiPath": "/bank-registers",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/bank-registers",
+        "apiPath": "/bank-registers",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/bank-registers/:id",
+        "apiPath": "/bank-registers/:id",
+        "method": "PUT"
+    },
+
+    {
+        "serverPath": "/api/budgets",
+        "apiPath": "/budgets",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/budgets",
+        "apiPath": "/budgets",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/budgets/:id",
+        "apiPath": "/budgets/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/budgets/:id",
+        "apiPath": "/budgets/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/budgets/:id",
+        "apiPath": "/budgets/:id",
+        "method": "DELETE"
+    },
+
+    {
+        "serverPath": "/api/categories",
+        "apiPath": "/categories",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/categories",
+        "apiPath": "/categories",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/categories/:id",
+        "apiPath": "/categories/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/categories/:id",
+        "apiPath": "/categories/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/categories/:id",
+        "apiPath": "/categories/:id",
+        "method": "DELETE"
+    },
+
+    {
+        "serverPath": "/api/currencies",
+        "apiPath": "/currencies",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/currencies",
+        "apiPath": "/currencies",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/currencies/:id",
+        "apiPath": "/currencies/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/currencies/:id",
+        "apiPath": "/currencies/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/currencies/:id",
+        "apiPath": "/currencies/:id",
+        "method": "DELETE"
+    },
+
+    {
+        "serverPath": "/api/deductions",
+        "apiPath": "/deductions",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/deductions",
+        "apiPath": "/deductions",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/deductions/:id",
+        "apiPath": "/deductions/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/deductions/:id",
+        "apiPath": "/deductions/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/deductions/:id",
+        "apiPath": "/deductions/:id",
+        "method": "DELETE"
+    },
+
+    {
+        "serverPath": "/api/finance-principles",
+        "apiPath": "/finance-principles",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/finance-principles",
+        "apiPath": "/finance-principles",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/finance-principles/:id",
+        "apiPath": "/finance-principles/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/finance-principles/:id",
+        "apiPath": "/finance-principles/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/finance-principles/:id",
+        "apiPath": "/finance-principles/:id",
+        "method": "DELETE"
+    },
+
+    {
+        "serverPath": "/api/finance-reports",
+        "apiPath": "/finance-reports",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/finance-reports/:id",
+        "apiPath": "/finance-reports/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/finance-reports/:id",
+        "apiPath": "/finance-reports/:id",
+        "method": "DELETE"
+    },
+
+    {
+        "serverPath": "/api/funds",
+        "apiPath": "/funds",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/funds",
+        "apiPath": "/funds",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/funds/:id",
+        "apiPath": "/funds/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/funds/:id",
+        "apiPath": "/funds/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/funds/:id/decrease",
+        "apiPath": "/funds/:id/decrease",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/funds/:id/increase",
+        "apiPath": "/funds/:id/increase",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/funds/:id/remove",
+        "apiPath": "/funds/:id/remove",
+        "method": "PUT"
+    },
+
+    {
+        "serverPath": "/api/goals",
+        "apiPath": "/goals",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/goals",
+        "apiPath": "/goals",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/goals/:id",
+        "apiPath": "/goals/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/goals/:id",
+        "apiPath": "/goals/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/goals/:id",
+        "apiPath": "/goals/:id",
+        "method": "DELETE"
+    },
+
+    {
+        "serverPath": "/api/income-sources",
+        "apiPath": "/income-sources",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/income-sources",
+        "apiPath": "/income-sources",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/income-sources/:id",
+        "apiPath": "/income-sources/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/income-sources/:id",
+        "apiPath": "/income-sources/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/income-sources/:id",
+        "apiPath": "/income-sources/:id",
+        "method": "DELETE"
+    },
+
+    {
+        "serverPath": "/api/internal-loans",
+        "apiPath": "/internal-loans",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/internal-loans",
+        "apiPath": "/internal-loans",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/internal-loans/:id",
+        "apiPath": "/internal-loans/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/internal-loans/:id",
+        "apiPath": "/internal-loans/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/internal-loans/:id",
+        "apiPath": "/internal-loans/:id",
+        "method": "DELETE"
+    },
+    {
+        "serverPath": "/api/internal-loans/:id/add-fund",
+        "apiPath": "/internal-loans/:id/add-fund",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/internal-loans/:id/remove-fund",
+        "apiPath": "/internal-loans/:id/remove-fund",
+        "method": "PUT"
+    },
+
+    {
+        "serverPath": "/api/internals/account-type",
+        "apiPath": "/internals/account-type",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/internals/contribution-type",
+        "apiPath": "/internals/contribution-type",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/internals/finance-policy-risk-type",
+        "apiPath": "/internals/finance-policy-risk-type",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/internals/importance-type",
+        "apiPath": "/internals/importance-type",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/internals/income-source-frequency-type",
+        "apiPath": "/internals/income-source-frequency-type",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/internals/income-source-type",
+        "apiPath": "/internals/income-source-type",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/internals/intensity-desir-type",
+        "apiPath": "/internals/intensity-desir-type",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/internals/management-account-type",
+        "apiPath": "/internals/management-account-type",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/internals/period-type",
+        "apiPath": "/internals/period-type",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/internals/principle-type",
+        "apiPath": "/internals/principle-type",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/internals/priority-rule-level-type",
+        "apiPath": "/internals/priority-rule-level-type",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/internals/transaction-type",
+        "apiPath": "/internals/transaction-type",
+        "method": "*"
+    },
+
+    {
+        "serverPath": "/api/invoices",
+        "apiPath": "/invoices",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/invoices",
+        "apiPath": "/invoices",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/invoices/:id",
+        "apiPath": "/invoices/:id",
+        "method": "DELETE"
+    },
+    {
+        "serverPath": "/api/invoices/:id",
+        "apiPath": "/invoices/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/invoices/:id",
+        "apiPath": "/invoices/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/invoices/:id/completed",
+        "apiPath": "/invoices/:id/completed",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/invoices/balances",
+        "apiPath": "/invoices/balances",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/invoices/balances-by-period",
+        "apiPath": "/invoices/balances-by-period",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/invoices/create-freeze",
+        "apiPath": "/invoices/create-freeze",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/invoices/transfer",
+        "apiPath": "/invoices/transfer",
+        "method": "POST"
+    },
+
+    {
+        "serverPath": "/api/llm/models",
+        "apiPath": "/llm/models",
+        "method": "*"
+    },
+
+    {
+        "serverPath": "/api/notifications",
+        "apiPath": "/notifications",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/notifications/:id",
+        "apiPath": "/notifications/:id",
+        "method": "DELETE"
+    },
+    {
+        "serverPath": "/api/notifications/:id/toggle-read",
+        "apiPath": "/notifications/:id/toggle-read",
+        "method": "PUT"
+    },
+
+    {
+        "serverPath": "/api/patrimonies",
+        "apiPath": "/patrimonies",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/patrimonies",
+        "apiPath": "/patrimonies",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/patrimonies/:id",
+        "apiPath": "/patrimonies/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/patrimonies/:id",
+        "apiPath": "/patrimonies/:id",
+        "method": "DELETE"
+    },
+    {
+        "serverPath": "/api/patrimonies/:id",
+        "apiPath": "/patrimonies/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/patrimonies/:id/add-snapshot",
+        "apiPath": "/patrimonies/:id/add-snapshot",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/patrimonies/:id/snapshots",
+        "apiPath": "/patrimonies/:id/snapshots",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/patrimonies/remove-snapshot/:id",
+        "apiPath": "/patrimonies/remove-snapshot/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/patrimonies/total-fund",
+        "apiPath": "/patrimonies/total-fund",
+        "method": "*"
+    },
+    {
+        "serverPath": "/api/patrimonies/update-snapshot/:id",
+        "apiPath": "/patrimonies/update-snapshot/:id",
+        "method": "PUT"
+    },
+
+    {
+        "serverPath": "/api/provisions",
+        "apiPath": "/provisions",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/provisions",
+        "apiPath": "/provisions",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/provisions/:id",
+        "apiPath": "/provisions/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/provisions/:id",
+        "apiPath": "/provisions/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/provisions/:id",
+        "apiPath": "/provisions/:id",
+        "method": "DELETE"
+    },
+
+    {
+        "serverPath": "/api/schedule-invoices",
+        "apiPath": "/schedule-invoices",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/schedule-invoices",
+        "apiPath": "/schedule-invoices",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/schedule-invoices/:id",
+        "apiPath": "/schedule-invoices/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/schedule-invoices/:id",
+        "apiPath": "/schedule-invoices/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/schedule-invoices/:id",
+        "apiPath": "/schedule-invoices/:id",
+        "method": "DELETE"
+    },
+
+    {
+        "serverPath": "/api/tags",
+        "apiPath": "/tags",
+        "method": "POST"
+    },
+    {
+        "serverPath": "/api/tags",
+        "apiPath": "/tags",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/tags/:id",
+        "apiPath": "/tags/:id",
+        "method": "PUT"
+    },
+    {
+        "serverPath": "/api/tags/:id",
+        "apiPath": "/tags/:id",
+        "method": "GET"
+    },
+    {
+        "serverPath": "/api/tags/:id",
+        "apiPath": "/tags/:id",
+        "method": "DELETE"
+    }
+]
