@@ -24,6 +24,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
+import kotlin.math.abs
 
 
 class GetPatrimonyEvolution(
@@ -127,7 +128,7 @@ class GetPatrimonyEvolution(
 
         // 5. Aggregate overall net worth per period
         val aggregatedTotals = periodBuckets.mapIndexed { index, bucketDate ->
-            val totalPatrimonyForPeriod = patrimonyAssetBreakdown.values.sumOf { points -> points[index].networth } - patrimonyLiabilityBreakdown.values.sumOf { points -> points[points.lastIndex].networth }
+            val totalPatrimonyForPeriod = patrimonyAssetBreakdown.values.sumOf { points -> points[index].networth } - patrimonyLiabilityBreakdown.values.sumOf { points -> abs(points[points.lastIndex].networth)  }
             val historicalSavings = savingGoalBalancesPerPeriod[bucketDate] ?: 0.0
 
             NetWorthPeriodOutput(
