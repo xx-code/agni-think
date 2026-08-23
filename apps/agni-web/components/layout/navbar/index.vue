@@ -44,14 +44,18 @@ onMounted(async () => {
 
 <template>
     <div class="p-2.5">
-        <div class="flex justify-between lg:justify-end   items-center">
+        <div class="flex justify-between md:justify-end   items-center">
             <LayoutNavbarNotificationIcon 
                 @on-open="openNotificationHub"
                 :disabled="isLoading"
                 :has-notifications="hasNotifications"
             />
-            <UDashboardSidebarToggle class="text-lg" />
-            
+            <UDashboardSidebarToggle 
+                :ui="{
+                    base: 'md:hidden'
+                }"
+                class="text-lg" 
+            />
         </div>
     </div>
 </template>
