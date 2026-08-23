@@ -1,7 +1,11 @@
 <script lang="ts" setup>
 import type { FormSubmitEvent } from '#ui/types';
 import * as z from 'zod';
-import { fetchAccounts } from '~/composables/api/accounts';
+import type { ListResponse } from '~/types/api';
+import type { GetAccountResponse } from '~/types/api/account';
+import { listAccountsToListAccount } from '~/mappers/account';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 import type { TypePatrimony } from '~/types/constants/patrimony';
 import type { EditePatrimony, PatrimonyType } from '~/types/ui/patrimony';
 
@@ -23,8 +27,11 @@ const schema = z.object({
 })
 
 const {data: accounts} = useAsyncData('editAmountSaving+accounts', async () => {
-    const res = fetchAccounts({ offset: 0, limit:0, queryAll: true})
-    return res
+    return await ApiLinkBuilder
+        .route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+        .query({ offset: 0, limit: 0, queryAll: true })
+        .mapper(listAccountsToListAccount)
+        .execute()
 })
 
 type Schema = z.output<typeof schema>;

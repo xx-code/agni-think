@@ -1,5 +1,18 @@
-import type { PatrimonyEvolutionResponse } from "~/types/api/analytics";
-import type { NetworthPeriod, PatrimonyEvolution } from "~/types/ui/analytics";
+import type { GetEstimationLeftAmountResponse, GetSavingAnalysticResponse, PatrimonyEvolutionResponse } from "~/types/api/analytics";
+import type { EstimationLeftAmountType, NetworthPeriod, PatrimonyEvolution, SavingAnalysticType } from "~/types/ui/analytics";
+
+export function estimationLeftAmountResponseToEstimationLeftAmount(data: GetEstimationLeftAmountResponse): EstimationLeftAmountType {
+    return { estimateAmount: data.estimateAmount };
+}
+
+export function savingAnalyticResponseToSavingAnalytic(data: GetSavingAnalysticResponse): SavingAnalysticType {
+    return {
+        savings: data.savings,
+        investments: data.investments,
+        savingRates: data.savingRates,
+        investementRates: data.investmentRates
+    };
+}
 
 export function patrimonyEvolutionResponseToPatrimonyEvolution(data: PatrimonyEvolutionResponse): PatrimonyEvolution {
     const tranformMap: Map<string, NetworthPeriod[]> = new Map()

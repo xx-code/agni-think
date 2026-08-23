@@ -8,11 +8,7 @@ export type GetAccountResponse = {
     color: string
 };
 
-export type GetAccountWithDetailResponse = {
-    id: string
-    title: string
-    balance: number
-    type: string   
+export type GetAccountWithDetailResponse = GetAccountResponse & {
     lockedBalance: number
     freezeBalance: number
     color: string

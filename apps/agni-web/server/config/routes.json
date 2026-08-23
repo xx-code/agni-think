@@ -12,45 +12,47 @@
     {
         "serverPath": "/api/accounts/:id",
         "apiPath": "/accounts/:id",
-        "method": "PUT"
+        "method": "GET"
     },
     {
         "serverPath": "/api/accounts/:id",
         "apiPath": "/accounts/:id",
-        "method": "GET"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/accounts/:id",
         "apiPath": "/accounts/:id",
         "method": "DELETE"
     },
-
     {
         "serverPath": "/api/agents/chat",
-        "apiPath": "/agents/chat",
-        "method": "POST"
+        "apiPath": "/chat",
+        "method": "POST",
+        "backend": "agent"
     },
     {
         "serverPath": "/api/agents/planningAdvisor",
-        "apiPath": "/agents/planningAdvisor",
-        "method": "*"
-    },
-    {
-        "serverPath": "/api/agents/suggestions",
-        "apiPath": "/agents/suggestions",
+        "apiPath": "/analytics/save-goal-planning",
         "method": "GET"
     },
     {
+        "serverPath": "/api/agents/suggestions",
+        "apiPath": "/agent-suggestions",
+        "method": "GET",
+        "backend": "agent"
+    },
+    {
         "serverPath": "/api/agents/suggestions/:id/confirm",
-        "apiPath": "/agents/suggestions/:id/confirm",
-        "method": "POST"
+        "apiPath": "/agent-suggestions/:id/confirm",
+        "method": "POST",
+        "backend": "agent"
     },
     {
         "serverPath": "/api/agents/treat-invoice",
-        "apiPath": "/agents/treat-invoice",
-        "method": "POST"
+        "apiPath": "/treat-unformat-transaction",
+        "method": "POST",
+        "backend": "agent"
     },
-
     {
         "serverPath": "/api/analytics/annual-outlook",
         "apiPath": "/analytics/annual-outlook",
@@ -111,38 +113,42 @@
         "apiPath": "/analytics/spend-tags",
         "method": "GET"
     },
-
     {
         "serverPath": "/api/bank/accounts",
-        "apiPath": "/bank/accounts",
-        "method": "*"
+        "apiPath": "/bank_accounts",
+        "method": "GET",
+        "backend": "agent"
     },
     {
         "serverPath": "/api/bank/exchange-token",
-        "apiPath": "/bank/exchange-token",
-        "method": "*"
+        "apiPath": "/exchange-public-token",
+        "method": "POST",
+        "backend": "agent"
     },
     {
         "serverPath": "/api/bank/init-transaction",
-        "apiPath": "/bank/init-transaction",
-        "method": "*"
+        "apiPath": "/init-external-transactions",
+        "method": "GET",
+        "backend": "agent"
     },
     {
         "serverPath": "/api/bank/sync-transaction",
-        "apiPath": "/bank/sync-transaction",
-        "method": "*"
+        "apiPath": "/force-sync-transaction",
+        "method": "GET",
+        "backend": "agent"
     },
     {
         "serverPath": "/api/bank/token",
-        "apiPath": "/bank/token",
-        "method": "POST"
+        "apiPath": "/create-bank-link",
+        "method": "POST",
+        "backend": "agent"
     },
     {
         "serverPath": "/api/bank/transactions",
-        "apiPath": "/bank/transactions",
-        "method": "*"
+        "apiPath": "/bank-transaction",
+        "method": "GET",
+        "backend": "agent"
     },
-
     {
         "serverPath": "/api/bank-registers",
         "apiPath": "/bank-registers",
@@ -158,7 +164,6 @@
         "apiPath": "/bank-registers/:id",
         "method": "PUT"
     },
-
     {
         "serverPath": "/api/budgets",
         "apiPath": "/budgets",
@@ -172,19 +177,18 @@
     {
         "serverPath": "/api/budgets/:id",
         "apiPath": "/budgets/:id",
-        "method": "PUT"
+        "method": "GET"
     },
     {
         "serverPath": "/api/budgets/:id",
         "apiPath": "/budgets/:id",
-        "method": "GET"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/budgets/:id",
         "apiPath": "/budgets/:id",
         "method": "DELETE"
     },
-
     {
         "serverPath": "/api/categories",
         "apiPath": "/categories",
@@ -198,19 +202,18 @@
     {
         "serverPath": "/api/categories/:id",
         "apiPath": "/categories/:id",
-        "method": "PUT"
+        "method": "GET"
     },
     {
         "serverPath": "/api/categories/:id",
         "apiPath": "/categories/:id",
-        "method": "GET"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/categories/:id",
         "apiPath": "/categories/:id",
         "method": "DELETE"
     },
-
     {
         "serverPath": "/api/currencies",
         "apiPath": "/currencies",
@@ -224,19 +227,18 @@
     {
         "serverPath": "/api/currencies/:id",
         "apiPath": "/currencies/:id",
-        "method": "PUT"
+        "method": "GET"
     },
     {
         "serverPath": "/api/currencies/:id",
         "apiPath": "/currencies/:id",
-        "method": "GET"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/currencies/:id",
         "apiPath": "/currencies/:id",
         "method": "DELETE"
     },
-
     {
         "serverPath": "/api/deductions",
         "apiPath": "/deductions",
@@ -250,19 +252,18 @@
     {
         "serverPath": "/api/deductions/:id",
         "apiPath": "/deductions/:id",
-        "method": "PUT"
+        "method": "GET"
     },
     {
         "serverPath": "/api/deductions/:id",
         "apiPath": "/deductions/:id",
-        "method": "GET"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/deductions/:id",
         "apiPath": "/deductions/:id",
         "method": "DELETE"
     },
-
     {
         "serverPath": "/api/finance-principles",
         "apiPath": "/finance-principles",
@@ -276,19 +277,18 @@
     {
         "serverPath": "/api/finance-principles/:id",
         "apiPath": "/finance-principles/:id",
-        "method": "PUT"
+        "method": "GET"
     },
     {
         "serverPath": "/api/finance-principles/:id",
         "apiPath": "/finance-principles/:id",
-        "method": "GET"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/finance-principles/:id",
         "apiPath": "/finance-principles/:id",
         "method": "DELETE"
     },
-
     {
         "serverPath": "/api/finance-reports",
         "apiPath": "/finance-reports",
@@ -304,7 +304,6 @@
         "apiPath": "/finance-reports/:id",
         "method": "DELETE"
     },
-
     {
         "serverPath": "/api/funds",
         "apiPath": "/funds",
@@ -318,12 +317,12 @@
     {
         "serverPath": "/api/funds/:id",
         "apiPath": "/funds/:id",
-        "method": "PUT"
+        "method": "GET"
     },
     {
         "serverPath": "/api/funds/:id",
         "apiPath": "/funds/:id",
-        "method": "GET"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/funds/:id/decrease",
@@ -340,7 +339,6 @@
         "apiPath": "/funds/:id/remove",
         "method": "PUT"
     },
-
     {
         "serverPath": "/api/goals",
         "apiPath": "/goals",
@@ -354,19 +352,18 @@
     {
         "serverPath": "/api/goals/:id",
         "apiPath": "/goals/:id",
-        "method": "PUT"
+        "method": "GET"
     },
     {
         "serverPath": "/api/goals/:id",
         "apiPath": "/goals/:id",
-        "method": "GET"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/goals/:id",
         "apiPath": "/goals/:id",
         "method": "DELETE"
     },
-
     {
         "serverPath": "/api/income-sources",
         "apiPath": "/income-sources",
@@ -380,19 +377,18 @@
     {
         "serverPath": "/api/income-sources/:id",
         "apiPath": "/income-sources/:id",
-        "method": "PUT"
+        "method": "GET"
     },
     {
         "serverPath": "/api/income-sources/:id",
         "apiPath": "/income-sources/:id",
-        "method": "GET"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/income-sources/:id",
         "apiPath": "/income-sources/:id",
         "method": "DELETE"
     },
-
     {
         "serverPath": "/api/internal-loans",
         "apiPath": "/internal-loans",
@@ -428,68 +424,66 @@
         "apiPath": "/internal-loans/:id/remove-fund",
         "method": "PUT"
     },
-
     {
         "serverPath": "/api/internals/account-type",
         "apiPath": "/internals/account-type",
-        "method": "*"
+        "method": "GET"
     },
     {
         "serverPath": "/api/internals/contribution-type",
         "apiPath": "/internals/contribution-type",
-        "method": "*"
+        "method": "GET"
     },
     {
         "serverPath": "/api/internals/finance-policy-risk-type",
         "apiPath": "/internals/finance-policy-risk-type",
-        "method": "*"
+        "method": "GET"
     },
     {
         "serverPath": "/api/internals/importance-type",
         "apiPath": "/internals/importance-type",
-        "method": "*"
+        "method": "GET"
     },
     {
         "serverPath": "/api/internals/income-source-frequency-type",
         "apiPath": "/internals/income-source-frequency-type",
-        "method": "*"
+        "method": "GET"
     },
     {
         "serverPath": "/api/internals/income-source-type",
         "apiPath": "/internals/income-source-type",
-        "method": "*"
+        "method": "GET"
     },
     {
         "serverPath": "/api/internals/intensity-desir-type",
         "apiPath": "/internals/intensity-desir-type",
-        "method": "*"
+        "method": "GET"
     },
     {
         "serverPath": "/api/internals/management-account-type",
         "apiPath": "/internals/management-account-type",
-        "method": "*"
+        "method": "GET"
     },
     {
         "serverPath": "/api/internals/period-type",
         "apiPath": "/internals/period-type",
-        "method": "*"
+        "method": "GET"
     },
     {
         "serverPath": "/api/internals/principle-type",
         "apiPath": "/internals/principle-type",
-        "method": "*"
+        "method": "GET"
     },
     {
         "serverPath": "/api/internals/priority-rule-level-type",
         "apiPath": "/internals/priority-rule-level-type",
-        "method": "*"
+        "method": "GET"
     },
     {
         "serverPath": "/api/internals/transaction-type",
         "apiPath": "/internals/transaction-type",
-        "method": "*"
+        "method": "GET"
     },
-
     {
         "serverPath": "/api/invoices",
         "apiPath": "/invoices",
@@ -503,7 +497,7 @@
     {
         "serverPath": "/api/invoices/:id",
         "apiPath": "/invoices/:id",
-        "method": "DELETE"
+        "method": "GET"
     },
     {
         "serverPath": "/api/invoices/:id",
@@ -513,7 +507,7 @@
     {
         "serverPath": "/api/invoices/:id",
         "apiPath": "/invoices/:id",
-        "method": "GET"
+        "method": "DELETE"
     },
     {
         "serverPath": "/api/invoices/:id/completed",
@@ -540,13 +534,12 @@
         "apiPath": "/invoices/transfer",
         "method": "POST"
     },
-
     {
         "serverPath": "/api/llm/models",
-        "apiPath": "/llm/models",
-        "method": "*"
+        "apiPath": "/models",
+        "method": "GET",
+        "backend": "agent"
     },
-
     {
         "serverPath": "/api/notifications",
         "apiPath": "/notifications",
@@ -562,7 +555,6 @@
         "apiPath": "/notifications/:id/toggle-read",
         "method": "PUT"
     },
-
     {
         "serverPath": "/api/patrimonies",
         "apiPath": "/patrimonies",
@@ -581,12 +573,12 @@
     {
         "serverPath": "/api/patrimonies/:id",
         "apiPath": "/patrimonies/:id",
-        "method": "DELETE"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/patrimonies/:id",
         "apiPath": "/patrimonies/:id",
-        "method": "PUT"
+        "method": "DELETE"
     },
     {
         "serverPath": "/api/patrimonies/:id/add-snapshot",
@@ -606,14 +598,13 @@
     {
         "serverPath": "/api/patrimonies/total-fund",
         "apiPath": "/patrimonies/total-fund",
-        "method": "*"
+        "method": "GET"
     },
     {
         "serverPath": "/api/patrimonies/update-snapshot/:id",
         "apiPath": "/patrimonies/update-snapshot/:id",
         "method": "PUT"
     },
-
     {
         "serverPath": "/api/provisions",
         "apiPath": "/provisions",
@@ -627,19 +618,18 @@
     {
         "serverPath": "/api/provisions/:id",
         "apiPath": "/provisions/:id",
-        "method": "PUT"
+        "method": "GET"
     },
     {
         "serverPath": "/api/provisions/:id",
         "apiPath": "/provisions/:id",
-        "method": "GET"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/provisions/:id",
         "apiPath": "/provisions/:id",
         "method": "DELETE"
     },
-
     {
         "serverPath": "/api/schedule-invoices",
         "apiPath": "/schedule-invoices",
@@ -653,19 +643,18 @@
     {
         "serverPath": "/api/schedule-invoices/:id",
         "apiPath": "/schedule-invoices/:id",
-        "method": "PUT"
+        "method": "GET"
     },
     {
         "serverPath": "/api/schedule-invoices/:id",
         "apiPath": "/schedule-invoices/:id",
-        "method": "GET"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/schedule-invoices/:id",
         "apiPath": "/schedule-invoices/:id",
         "method": "DELETE"
     },
-
     {
         "serverPath": "/api/tags",
         "apiPath": "/tags",
@@ -679,12 +668,12 @@
     {
         "serverPath": "/api/tags/:id",
         "apiPath": "/tags/:id",
-        "method": "PUT"
+        "method": "GET"
     },
     {
         "serverPath": "/api/tags/:id",
         "apiPath": "/tags/:id",
-        "method": "GET"
+        "method": "PUT"
     },
     {
         "serverPath": "/api/tags/:id",

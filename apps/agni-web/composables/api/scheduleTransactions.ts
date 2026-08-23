@@ -1,76 +1,44 @@
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
 import type { CreateScheduleInvoiceRequest, GetScheduleInvoiceResponse, UpdateScheduleInvoiceRequest } from "~/types/api/scheduleTransaction";
+import { listScheduleInvoicesResponseToListScheduleInvoices, scheduleInvoiceResponseToScheduleInvoice } from "~/mappers/scheduleTransaction";
 import type { ScheduleInvoiceType } from "~/types/ui/scheduleTransaction";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
+import { API_ROUTES } from "~/shared/routes";
 
 export async function useCreateScheduleInvoice(request: CreateScheduleInvoiceRequest): Promise<CreatedRequest> {
-    const created = await $fetch<CreatedRequest>(`api/schedule-invoices`, {
-        method: 'POST',
-        body: request
-    });
-
-    return created;
+    return await ApiLinkBuilder
+        .route<CreatedRequest>(API_ROUTES.SCHEDULE_INVOICES.CREATE_SCHEDULE_INVOICE)
+        .body(request)
+        .execute()
 }
 
 export async function useDeleteScheduleInvoice(scheduleTransactionId: string): Promise<void> {
-    await $fetch(`api/schedule-invoices/${scheduleTransactionId}`, {
-        method: 'DELETE'
-    });
+    await ApiLinkBuilder
+        .route(API_ROUTES.SCHEDULE_INVOICES.DELETE_SCHEDULE_INVOICE)
+        .params({ id: scheduleTransactionId })
+        .execute()
 }
 
 export async function fetchScheduleInvoice(scheduleTransactionId: string): Promise<ScheduleInvoiceType> {
-    const res = await $fetch<GetScheduleInvoiceResponse>(`api/schedule-invoices/${scheduleTransactionId}`, {
-        method: 'GET'
-    });
-
-    return {
-            id: res.id,
-            accountId: res.accountId,
-            amount: res.amount,
-            categoryId: res.categoryId,
-            isPause: res.isPause,
-            isFreeze: res.isFreeze,
-            name: res.name,
-            tagIds: res.tagIds,
-            type: res.type,
-            repeater: res.repeater ? {
-                interval: res.repeater.interval,
-                period: res.repeater.periodType
-            } : undefined,
-            dueDate: new Date(res.dueDate)
-        } 
+    return await ApiLinkBuilder
+        .route<GetScheduleInvoiceResponse>(API_ROUTES.SCHEDULE_INVOICES.GET_SCHEDULE_INVOICE)
+        .params({ id: scheduleTransactionId })
+        .mapper(scheduleInvoiceResponseToScheduleInvoice)
+        .execute()
 }
 
-export async function fetchScheduleInvoices(query: QueryFilterRequest) : Promise<ListResponse<ScheduleInvoiceType>> {
-    const data = await $fetch<ListResponse<GetScheduleInvoiceResponse>>(`api/schedule-invoices`, {
-        method: 'GET',
-        query: query
-    })
-
-
-    return {
-        items: data.items.map(i => ({
-                id: i.id,
-                accountId: i.accountId,
-                amount: i.amount,
-                categoryId: i.categoryId,
-                isPause: i.isPause,
-                name: i.name,
-                isFreeze: i.isFreeze,
-                tagIds: i.tagIds,
-                type: i.type,
-                repeater: i.repeater ? {
-                    interval: i.repeater.interval,
-                    period: i.repeater.periodType
-                } : undefined,
-                dueDate: new Date(i.dueDate) 
-            })),
-        total: Number(data.total)  
-    }  satisfies ListResponse<ScheduleInvoiceType> 
+export async function fetchScheduleInvoices(query: QueryFilterRequest): Promise<ListResponse<ScheduleInvoiceType>> {
+    return await ApiLinkBuilder
+        .route<ListResponse<GetScheduleInvoiceResponse>>(API_ROUTES.SCHEDULE_INVOICES.GET_SCHEDULE_INVOICES)
+        .query(query)
+        .mapper(listScheduleInvoicesResponseToListScheduleInvoices)
+        .execute()
 }
 
 export async function useUpdateScheduleInvoice(scheduleTransctionId: string, request: UpdateScheduleInvoiceRequest): Promise<void> {
-    await $fetch(`api/schedule-invoices/${scheduleTransctionId}`, {
-        method: "PUT",
-        body: request 
-    });
+    await ApiLinkBuilder
+        .route(API_ROUTES.SCHEDULE_INVOICES.UPDATE_SCHEDULE_INVOICE)
+        .params({ id: scheduleTransctionId })
+        .body(request)
+        .execute()
 }

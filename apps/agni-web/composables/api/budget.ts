@@ -1,63 +1,45 @@
 import type { CreatedRequest } from "~/types/api";
-import type { CreateBudgetRequest } from "~/types/api/budget";
-import type { UpdateBudgetRequest } from "~/types/api/budget";
+import type { CreateBudgetRequest, GetBudgetResponse, UpdateBudgetRequest } from "~/types/api/budget";
 import type { ListResponse, QueryFilterRequest } from "~/types/api";
-import type { GetBudgetResponse } from "~/types/api/budget";
+import { budgetFilterToBudgetQueryRequest, budgetResponseToBudget, listBudgetsResponseToListBudgets } from "~/mappers/budget";
 import type { BudgetFilter, BudgetType } from "~/types/ui/budget";
-import { budgetFilterToBudgetQueryRequest } from "~/mappers/budget";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
+import { API_ROUTES } from "~/shared/routes";
 
 export async function fetchBudget(budgetId: string): Promise<BudgetType> {
-    const res = await $fetch<GetBudgetResponse>(`api/budgets/${budgetId}`, {
-        method: "GET"
-    });
-
-    return {
-        id: res.id,
-        title: res.title,
-        currentBalance: res.currentBalance,
-        target: res.target,
-        dueDate: new Date(res.dueDate),
-        repeater: res.repeater
-    }
+    return await ApiLinkBuilder
+        .route<GetBudgetResponse>(API_ROUTES.BUDGETS.GET_BUDGET)
+        .params({ id: budgetId })
+        .mapper(budgetResponseToBudget)
+        .execute()
 }
 
 export async function fetchBudgets(query: BudgetFilter): Promise<ListResponse<BudgetType>> {
-    const res = await $fetch<ListResponse<GetBudgetResponse>>(`api/budgets`, {
-        method: 'GET',
-        query: budgetFilterToBudgetQueryRequest(query)
-    });
-
-    return {
-        items: res.items.map(i => ({
-                id: i.id,
-                title: i.title,
-                currentBalance: i.currentBalance,
-                target: i.target,
-                dueDate: new Date(i.dueDate),
-                repeater: i.repeater
-            } satisfies BudgetType)) ,
-        total: res.total
-    } 
+    return await ApiLinkBuilder
+        .route(API_ROUTES.BUDGETS.GET_BUDGETS)
+        .query(budgetFilterToBudgetQueryRequest(query))
+        .mapper(listBudgetsResponseToListBudgets)
+        .execute()
 }
 
 export async function useCreateBudget(request: CreateBudgetRequest): Promise<CreatedRequest> {
-    const created = await $fetch<CreatedRequest>(`api/budgets`, {
-        method: 'POST',
-        body: request
-    });
-
-    return created
-}   
+    return await ApiLinkBuilder
+        .route<CreatedRequest>(API_ROUTES.BUDGETS.CREATE_BUDGET)
+        .body(request)
+        .execute()
+}
 
 export async function useDeleteBudget(budgetId: string): Promise<void> {
-    await $fetch(`api/budgets/${budgetId}`, {
-        method: 'DELETE'
-    });
+    await ApiLinkBuilder
+        .route(API_ROUTES.BUDGETS.DELETE_BUDGET)
+        .params({ id: budgetId })
+        .execute()
 }
 
 export async function useUpdateBudget(budgetId: string, request: UpdateBudgetRequest): Promise<void> {
-    await $fetch(`api/budgets/${budgetId}`, {
-        method: 'PUT',
-        body: request
-    })
+    await ApiLinkBuilder
+        .route(API_ROUTES.BUDGETS.UPDATE_BUDGET)
+        .params({ id: budgetId })
+        .body(request)
+        .execute()
 }

@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { AccountType } from '~/types/constants/account';
-import type { AccountCheckingDetailType, AccountCreditDetailType, QuickViewTransactionBalanceInfo } from '~/types/ui/account';
+import type { QuickViewTransactionBalanceInfo } from '~/types/ui/account';
 
 const { accountInfo } = defineProps<{
     accountInfo: QuickViewTransactionBalanceInfo
 }>()
 
 const availableBalance = computed(() => {
-    return accountInfo.balance + Math.abs(accountInfo.freezedBalance + accountInfo.lockedBalance) 
+    return accountInfo.balance + Math.abs(accountInfo.freezeBalance + accountInfo.lockedBalance) 
 })
 
-function formatAccountBuffer(detail: AccountCheckingDetailType): number {
-    return roundNumber(detail.buffer) 
+function formatAccountBuffer(buffer: number | undefined): number {
+    return roundNumber(buffer ?? 0) 
 }
 
 function isBufferValid(buffer: number, balance: number): boolean {
@@ -32,7 +32,7 @@ function isBufferValid(buffer: number, balance: number): boolean {
             <div class="flex items-center">
                 <Icon name="i-lucide-snowflake" class="text-blue-300" />
                 <span class="ml-1">Gelé</span>
-                <span class="ml-1">{{ formatCurrency(accountInfo.freezedBalance) }}</span>
+                <span class="ml-1">{{ formatCurrency(accountInfo.freezeBalance) }}</span>
             </div>
 
             <div class="flex items-center">
@@ -42,21 +42,21 @@ function isBufferValid(buffer: number, balance: number): boolean {
             </div>
         </div>
 
-        <div v-if="accountInfo.type === AccountType.CreditCard" class="text-sm mt-2">
+        <div v-if="accountInfo.type === AccountType.CreditCard && accountInfo.detail?.detailForCreditCard" class="text-sm mt-2">
             <span class="text-sm text-gray-400">
-                Prochaine facture: {{ formatDate((accountInfo.detail as AccountCreditDetailType).nextInvoicePaymentDate) }}
+                Prochaine facture: {{ formatDate(accountInfo.detail?.detailForCreditCard?.nextInvoicePayment) }}
             </span>
             <div class="flex items-center text-sm">
                 <Icon name="i-lucide-landmark" class="inline mr-1" />
                 <span>
-                    Limite: ${{ (accountInfo.detail as AccountCreditDetailType).creditLimit }}
+                    Limite: ${{ accountInfo.detail?.detailForCreditCard?.creditCardLimit }}
                 </span>
             </div>
             <div 
                 class="flex items-center text-sm" 
-                :style="{color: creditUilisationToColor((accountInfo.detail as AccountCreditDetailType).creditUtilisation)}">
+                :style="{color: creditUilisationToColor(accountInfo.detail?.detailForCreditCard?.creditUtilisation ?? 0)}">
                 <span>
-                    Credit utilisation: {{ (accountInfo.detail as AccountCreditDetailType).creditUtilisation }}%
+                    Credit utilisation: {{ accountInfo.detail?.detailForCreditCard?.creditUtilisation }}%
                 </span>
             </div>
         </div>
@@ -66,11 +66,11 @@ function isBufferValid(buffer: number, balance: number): boolean {
                 <div class="flex items-center">
                     <Icon 
                         name="i-lucide-align-horizontal-space-around" 
-                        :class="[isBufferValid(formatAccountBuffer(accountInfo.detail as AccountCheckingDetailType), accountInfo.balance + accountInfo.freezedBalance) ? 'text-green-500' : 'text-red-500']" />
+                        :class="[isBufferValid(formatAccountBuffer(accountInfo.detail?.detailForChecking?.buffer), accountInfo.balance + accountInfo.freezeBalance) ? 'text-green-500' : 'text-red-500']" />
                     <span class="ml-1">Buffer</span>
                 </div>
 
-                <span>${{ formatCurrency((accountInfo.detail as AccountCheckingDetailType).buffer)  }}</span>
+                <span>${{ formatCurrency(accountInfo.detail?.detailForChecking?.buffer ?? 0)  }}</span>
             </div>
         </div>
     </div> 

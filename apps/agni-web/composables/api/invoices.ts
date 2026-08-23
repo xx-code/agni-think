@@ -1,129 +1,95 @@
 import type { NuxtError } from "#app";
 import type { Result } from "~/types";
 import type { CreatedRequest, ErrorResponse, ListResponse, QueryFilterRequest } from "~/types/api";
-import type {  CreateInvoiceRequest, FreezeInvoiceRequest, GetBalanceResponse, GetInvoiceResponse, QueryBalanceByPeriod, QueryInvoice, TransferInvoiceRequest, UpdateInvoiceRequest } from "~/types/api/transaction";
+import type { CreateInvoiceRequest, FreezeInvoiceRequest, GetBalanceResponse, GetInvoiceResponse, QueryBalanceByPeriod, QueryInvoice, TransferInvoiceRequest, UpdateInvoiceRequest } from "~/types/api/transaction";
+import { invoiceResponseToInvoice, listInvoicesResponseToListInvoices } from "~/mappers/invoice";
 import type { InvoiceType } from "~/types/ui/transaction";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
+import { API_ROUTES } from "~/shared/routes";
 
 export async function fetchBalance(query: QueryInvoice): Promise<GetBalanceResponse> {
-    const res = $fetch<GetBalanceResponse>(`api/invoices/balances`, {
-        method: "GET",
-        query: query
-    });
-
-
-    return res;
+    return await ApiLinkBuilder
+        .route<GetBalanceResponse>(API_ROUTES.INVOICES.GET_BALANCES)
+        .query(query)
+        .execute()
 }
 
 export async function fetchBalanceByPeriod(query: QueryBalanceByPeriod): Promise<GetBalanceResponse[]> {
-    const res = $fetch<GetBalanceResponse[]>(`api/invoices/balances-by-period`, {
-        method: 'GET',
-        query: query
-    })
-
-    return res
+    return await ApiLinkBuilder
+        .route<GetBalanceResponse[]>(API_ROUTES.INVOICES.GET_BALANCES_BY_PERIOD)
+        .query(query)
+        .execute()
 }
 
 export async function useCompleteInvoice(transactionId: string): Promise<void> {
-    await $fetch(`api/invoices/${transactionId}/completed`, {
-        method: 'PUT',
-    });
-
+    await ApiLinkBuilder
+        .route(API_ROUTES.INVOICES.COMPLETE_INVOICE)
+        .params({ id: transactionId })
+        .execute()
 }
 
 export async function useCreateInvoice(request: CreateInvoiceRequest): Promise<Result<CreatedRequest>> {
     try {
-        const created = await $fetch<CreatedRequest>(`api/invoices`, {
-            method: 'POST',
-            body: request
-        });
+        const created = await ApiLinkBuilder
+            .route<CreatedRequest>(API_ROUTES.INVOICES.CREATE_INVOICE)
+            .body(request)
+            .execute()
 
-        return { success: true, data: created } 
+        return { success: true, data: created }
     } catch(err) {
         const nuxtError = err as NuxtError
         return { success: false, error: nuxtError.data as ErrorResponse}
-    } 
+    }
 }
 
 export async function useDeleteInvoice(transactionId: string): Promise<void> {
-    await $fetch(`api/invoices/${transactionId}`, {
-        method: 'DELETE'
-    });
+    await ApiLinkBuilder
+        .route(API_ROUTES.INVOICES.DELETE_INVOICE)
+        .params({ id: transactionId })
+        .execute()
 }
 
 export async function useFreezeInvoice(request: FreezeInvoiceRequest): Promise<CreatedRequest> {
-    const created = await $fetch<CreatedRequest>(`api/invoices/create-freeze`, {
-        method: 'POST',
-        body: request
-    });
-
-    return created;
+    return await ApiLinkBuilder
+        .route<CreatedRequest>(API_ROUTES.INVOICES.CREATE_FREEZE)
+        .body(request)
+        .execute()
 }
 
 export async function fetchInvoice(transactionId: string): Promise<InvoiceType> {
-    const res = await $fetch<GetInvoiceResponse>(`api/invoices/${transactionId}`, {
-        method: 'GET'
-    });
-
-    return {
-        id: res.id,
-        accountId: res.accountId,
-        date: new Date(res.date),
-        type: res.type,
-        status: res.status,
-        mouvement: res.mouvement,
-        total: res.total,
-        subTotal: res.subTotal,
-        transactions: res.transactions,
-        deductions: res.deductions.map(i => ({
-            id: i.id,
-            amount: i.amount
-        })),
-    } satisfies InvoiceType 
-} 
+    return await ApiLinkBuilder
+        .route<GetInvoiceResponse>(API_ROUTES.INVOICES.GET_INVOICE)
+        .params({ id: transactionId })
+        .mapper(invoiceResponseToInvoice)
+        .execute()
+}
 
 export async function fetchInvoicePagination(query: MaybeRefOrGetter<QueryFilterRequest & QueryInvoice>): Promise<ListResponse<InvoiceType>> {
-    const res = await $fetch<ListResponse<GetInvoiceResponse>>(`api/invoices`, {
-        method: 'GET',
-        query: query
-    });
-
-    return {
-        items: res.items.map(i => ({
-            id: i.id,
-            accountId: i.accountId,
-            date: new Date(i.date),
-            type: i.type,
-            status: i.status,
-            mouvement: i.mouvement,
-            total: i.total,
-            subTotal: i.subTotal,
-            transactions: i.transactions,
-            deductions: i.deductions.map(i => ({
-                id: i.id,
-                amount: i.amount
-            })), 
-        })),
-        total: Number(res.total) 
-    } satisfies ListResponse<InvoiceType>
+    return await ApiLinkBuilder
+        .route<ListResponse<GetInvoiceResponse>>(API_ROUTES.INVOICES.GET_INVOICES)
+        .query(query)
+        .mapper(listInvoicesResponseToListInvoices)
+        .execute()
 }
 
 export async function useTransfertInvoice(request: TransferInvoiceRequest): Promise<void> {
-    await $fetch(`api/invoices/transfer`, {
-        method: "POST",
-        body: request
-    });
+    await ApiLinkBuilder
+        .route(API_ROUTES.INVOICES.TRANSFER)
+        .body(request)
+        .execute()
 }
 
 export async function useUpdateInvoice(invoiceId: string, request: UpdateInvoiceRequest): Promise<Result<void>> {
     try {
-        await $fetch(`api/invoices/${invoiceId}`, {
-            method: 'PUT',
-            body: request
-        })
+        await ApiLinkBuilder
+            .route(API_ROUTES.INVOICES.UPDATE_INVOICE)
+            .params({ id: invoiceId })
+            .body(request)
+            .execute()
 
-        return { success: true }  
+        return { success: true }
     } catch (err) {
         const nuxtError = err as NuxtError
         return { success: false, error: nuxtError.data as ErrorResponse}
-    } 
+    }
 }

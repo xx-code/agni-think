@@ -32,28 +32,32 @@ export const API_ROUTES = {
     AGENTS: {
         CHAT: {
             serverPath: '/api/agents/chat',
-            apiPath: '/agents/chat',
-            method: 'POST'
+            apiPath: '/chat',
+            method: 'POST',
+            backend: 'agent'
         },
         PLANNING_ADVISOR: {
             serverPath: '/api/agents/planningAdvisor',
-            apiPath: '/agents/planningAdvisor',
+            apiPath: '/analytics/save-goal-planning',
             method: 'GET'
         },
         GET_SUGGESTIONS: {
             serverPath: '/api/agents/suggestions',
-            apiPath: '/agents/suggestions',
-            method: 'GET'
+            apiPath: '/agent-suggestions',
+            method: 'GET',
+            backend: 'agent'
         },
         CONFIRM_SUGGESTION: {
             serverPath: '/api/agents/suggestions/:id/confirm',
-            apiPath: '/agents/suggestions/:id/confirm',
-            method: 'POST'
+            apiPath: '/agent-suggestions/:id/confirm',
+            method: 'POST',
+            backend: 'agent'
         },
         TREAT_INVOICE: {
             serverPath: '/api/agents/treat-invoice',
-            apiPath: '/agents/treat-invoice',
-            method: 'POST'
+            apiPath: '/treat-unformat-transaction',
+            method: 'POST',
+            backend: 'agent'
         }
     },
 
@@ -123,33 +127,39 @@ export const API_ROUTES = {
     BANK: {
         GET_ACCOUNTS: {
             serverPath: '/api/bank/accounts',
-            apiPath: '/bank/accounts',
-            method: 'GET'
+            apiPath: '/bank_accounts',
+            method: 'GET',
+            backend: 'agent'
         },
         EXCHANGE_TOKEN: {
             serverPath: '/api/bank/exchange-token',
-            apiPath: '/bank/exchange-token',
-            method: 'GET'
+            apiPath: '/exchange-public-token',
+            method: 'POST',
+            backend: 'agent'
         },
         INIT_TRANSACTION: {
             serverPath: '/api/bank/init-transaction',
-            apiPath: '/bank/init-transaction',
-            method: 'GET'
+            apiPath: '/init-external-transactions',
+            method: 'GET',
+            backend: 'agent'
         },
         SYNC_TRANSACTION: {
             serverPath: '/api/bank/sync-transaction',
-            apiPath: '/bank/sync-transaction',
-            method: 'GET'
+            apiPath: '/force-sync-transaction',
+            method: 'GET',
+            backend: 'agent'
         },
         CREATE_TOKEN: {
             serverPath: '/api/bank/token',
-            apiPath: '/bank/token',
-            method: 'POST'
+            apiPath: '/create-bank-link',
+            method: 'POST',
+            backend: 'agent'
         },
         GET_TRANSACTIONS: {
             serverPath: '/api/bank/transactions',
-            apiPath: '/bank/transactions',
-            method: 'GET'
+            apiPath: '/bank-transaction',
+            method: 'GET',
+            backend: 'agent'
         }
     },
 
@@ -580,8 +590,9 @@ export const API_ROUTES = {
     LLM: {
         GET_MODELS: {
             serverPath: '/api/llm/models',
-            apiPath: '/llm/models',
-            method: 'GET'
+            apiPath: '/models',
+            method: 'GET',
+            backend: 'agent'
         }
     },
 

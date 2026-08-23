@@ -13,6 +13,8 @@ import { fetchCategories } from "~/composables/api/categories";
 import { fetchDeductions } from "~/composables/api/deductionType";
 import { fetchInvoicePagination, fetchBalance, fetchInvoice, useCompleteInvoice, useDeleteInvoice } from "~/composables/api/invoices";
 import { fetchTags } from "~/composables/api/tag";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
+import { API_ROUTES } from "~/shared/routes";
 
 const { start, stop } = useLoading()
 
@@ -119,7 +121,9 @@ async function openInvoice(transactionId?: string) {
 async function syncBank() {
     try {
         start()
-        await $fetch("/api/bank/sync-transaction")
+        await ApiLinkBuilder
+            .route(API_ROUTES.BANK.SYNC_TRANSACTION)
+            .execute()
         query.status = "Pending"
         query.offset = 0
         page.value = 1

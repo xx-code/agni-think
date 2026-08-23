@@ -2,14 +2,14 @@ import type { ApiRouteDefinition } from "~/types/shared/routes"
 
 export class ApiLinkBuilder<TResponse = any, TMapped = TResponse>{
     private url: string
-    private method: ApiRouteDefinition['method']
+    private httpMethod: ApiRouteDefinition['method']
     private bodyData?: any
     private queryData?: any
     private mapperFn?: (data: TResponse) => TMapped
 
     constructor(route: ApiRouteDefinition) {
         this.url = route.serverPath
-        this.method = route.method
+        this.httpMethod = route.method
     }
 
     public static route<T = any>(route: ApiRouteDefinition): ApiLinkBuilder<T, T> {
@@ -20,6 +20,11 @@ export class ApiLinkBuilder<TResponse = any, TMapped = TResponse>{
         Object.entries(params).forEach(([key, value]) => {
             this.url = this.url.replace(`:${key}`, String(value)) 
         })
+        return this
+    }
+
+    public method(method: ApiRouteDefinition['method']): this {
+        this.httpMethod = method
         return this
     }
 
@@ -41,7 +46,7 @@ export class ApiLinkBuilder<TResponse = any, TMapped = TResponse>{
     public buildOptions() {
         return {
             url: this.url,
-            method: this.method,
+            method: this.httpMethod === '*' ? undefined : this.httpMethod,
             body: this.bodyData,
             query: this.queryData
         }
