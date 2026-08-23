@@ -1,5 +1,6 @@
 import type { CalendarDate } from "@internationalized/date"
 import type { AccountType } from "../constants/account"
+import type { GetAccountResponse, GetAccountWithDetailResponse, GetCreditCardDetailResponse, GetCheckingDetailResponse } from "../api/account"
 
 export type EditAccount = {
     title: string
@@ -11,12 +12,16 @@ export type EditAccount = {
     invoiceDate?: CalendarDate
 }
 
-export type Account = {
-    id: string
-    title: string
+export type Account = Omit<GetAccountResponse, 'type'> & {
     type: AccountType
-    color: string
-    balance: number
+}
+
+export type AccountWithDetailType = Omit<GetAccountWithDetailResponse, 'detail'> & {
+    detail?: {
+        detailForCreditCard?: AccountCreditDetailType
+        detailForBroking?: AccountBrokeDetailType
+        detailForChecking?: AccountCheckingDetailType
+    }
 }
 
 export type AccountWithPastBalanceType = Account & {
@@ -27,26 +32,13 @@ export type AccountWithPastBalanceType = Account & {
     }
 }
 
-export type AccountCreditDetailType = {
-    creditUtilisation: number
-    creditLimit: number
-    nextInvoicePaymentDate: Date
+export type AccountCreditDetailType = Omit<GetCreditCardDetailResponse, 'nextInvoicePayment'> & {
+    nextInvoicePayment: Date
 }
 
-export type AccountBrokeDetailType = {
-    managementType: string
-    type: string
-}
+export type AccountBrokeDetailType = GetBrokingDetailResponse
 
-export type AccountCheckingDetailType = {
-    buffer: number
-}
-
-export type AccountWithDetailType = Account & {
-    lockedBalance: number
-    freezedBalance: number
-    detail?: AccountCreditDetailType | AccountBrokeDetailType | AccountCheckingDetailType
-}
+export type AccountCheckingDetailType = GetCheckingDetailResponse
 
 export type AccountCard = {
     id: string

@@ -3,7 +3,9 @@ import * as z from 'zod'
 import { reactive } from "vue";
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { EditFinancePrincipleType, FinancePrincipleType } from '~/types/ui/financePrinciple';
-import { fetchPrincipleType } from '~/composables/api/internal';
+import type { GetInternalTypeResponse } from '~/types/api/internal';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 const { financePrinciple } = defineProps<{
     financePrinciple?: FinancePrincipleType
@@ -15,9 +17,9 @@ const emit = defineEmits<{
 }>();
 
 const { data: principleTypes } = useAsyncData('principle-types', async () => {
-    const res = await fetchPrincipleType()
-
-    return res
+    return await ApiLinkBuilder
+        .route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.PRINCIPLE_TYPE)
+        .execute()
 })
 
 const schema = z.object({

@@ -1,8 +1,9 @@
 import type { AgentAdvisorRequest, AgentPlanningAdvisorResponse, ChatPersonnalFinanceAdvisorRequest, ChatPersonnalFinanceAdvisorResponse } from "~/types/api/agent";
-import type { GetAgentSuggestionResponse } from "~/types/api/agent-suggestion";
-import type { ListResponse, QueryFilterRequest } from "~/types/api";
-import type { AgentSuggestionStatusType, AgentSuggestionType } from "~/types/ui/agent-suggestion";
 import type { PlanningAgentAdvisorType } from "~/types/ui/agent";
+import type { QueryFilterRequest } from "~/types/api";
+import { listAgentSuggestionsResponseToListAgentSuggestions } from "~/mappers/agentSuggestion";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
+import { API_ROUTES } from "~/shared/routes";
 
 export async function askToFinancePersonnalAdvisor(request: ChatPersonnalFinanceAdvisorRequest): Promise<ChatPersonnalFinanceAdvisorResponse> {
     const res = await $fetch<string>(`${getApiAgent()}/chat`, {
@@ -28,30 +29,18 @@ export async function useTreatInvoiceText(text: string): Promise<string> {
     });
 }
 
-export async function fetchAgentSuggestions(query: QueryFilterRequest): Promise<ListResponse<AgentSuggestionType>> {
-    const res = await $fetch<ListResponse<GetAgentSuggestionResponse>>(`api/agent-suggestions`, {
-        method: 'GET',
-        query: {
+export async function fetchAgentSuggestions(query: QueryFilterRequest) {
+    return await ApiLinkBuilder
+        .route(API_ROUTES.AGENTS.GET_SUGGESTIONS)
+        .query({
             ...query,
             status: 'Pending'
-        }
-    });
-
-    return {
-        items: res.items.map(i => ({
-            agentId: i.agentId,
-            agentName: i.agentName,
-            confidenceScore: i.confidenceScore,
-            title: i.title,
-            description: i.description,
-            status: i.status as AgentSuggestionStatusType
-        } satisfies AgentSuggestionType)),
-        total: res.total
-    };
+        })
+        .mapper(listAgentSuggestionsResponseToListAgentSuggestions)
+        .execute()
 }
 
 export async function fetchPlanningAdvisorAgent(request: AgentAdvisorRequest): Promise<PlanningAgentAdvisorType> {
-    console.log(request);
     const response = await $fetch<AgentPlanningAdvisorResponse>(`${getApiAgent()}/analytics/save-goal-planning`, {
         method: 'POST',
         body: request

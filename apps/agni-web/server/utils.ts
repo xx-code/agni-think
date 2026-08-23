@@ -1,4 +1,4 @@
-import type { H3Error } from "#imports";
+import type { H3Error } from "h3";
 import { getQuery, readBody, createError } from "h3";
 
 export async function handleRequest(event: any, urlPath: string) {

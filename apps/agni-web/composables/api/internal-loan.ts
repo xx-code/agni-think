@@ -1,77 +1,60 @@
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
-import type { AddRefundInternalRequest, CreateInternalLoanRequest, GetInternalLoanResponse, RemoveInternalRequestRequest, UpdateInternalLoanRequest } from "~/types/api/internal-loan";
+import type { AddRefundInternalRequest, CreateInternalLoanRequest, RemoveInternalRequestRequest, UpdateInternalLoanRequest } from "~/types/api/internal-loan";
+import { internalLoanResponseToInternalLoan, listInternalLoansResponseToListInternalLoans } from "~/mappers/internalLoan";
 import type { InternalLoanType } from "~/types/ui/internal-loan";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
+import { API_ROUTES } from "~/shared/routes";
 
 export async function fetchInternalLoan(id: string): Promise<InternalLoanType> {
-    const res = await $fetch<GetInternalLoanResponse>(`api/internal-loans/${id}`, {
-        method: 'GET'
-    })
-
-    return {
-        id: res.id,
-        fundSourceId: res.fundSourceId,
-        invoiceId: res.invoiceId,
-        creditTargetId: res.creditTargetId,
-        dueDate: new Date(res.dueDate), 
-        freezeInvoices: res.freezeInvoices,
-        loanAmount: res.loanAmount,
-        refundAmount: res.refundAmount
-    }
+    return await ApiLinkBuilder
+        .route(API_ROUTES.INTERNAL_LOANS.GET_INTERNAL_LOAN)
+        .params({ id: id })
+        .mapper(internalLoanResponseToInternalLoan)
+        .execute()
 }
 
 export async function fetchInternalLoans(query: QueryFilterRequest): Promise<ListResponse<InternalLoanType>> {
-    const res = await $fetch<ListResponse<GetInternalLoanResponse>>(`api/internal-loans`, {
-        method: 'GET',
-        query: query
-    })
-
-    return {
-        items: res.items.map(i => ({
-            id: i.id,
-            fundSourceId: i.fundSourceId,
-            invoiceId: i.invoiceId,
-            creditTargetId: i.creditTargetId,
-            dueDate: new Date(i.dueDate),
-            freezeInvoices: i.freezeInvoices,
-            loanAmount: i.loanAmount,
-            refundAmount: i.refundAmount 
-        } satisfies InternalLoanType)),
-        total: res.total
-    }
+    return await ApiLinkBuilder
+        .route(API_ROUTES.INTERNAL_LOANS.GET_INTERNAL_LOANS)
+        .query(query)
+        .mapper(listInternalLoansResponseToListInternalLoans)
+        .execute()
 }
 
 export async function useCreateInternalLoan(request: CreateInternalLoanRequest): Promise<CreatedRequest> {
-    const res = await $fetch<CreatedRequest>(`api/internal-loans`, {
-        method: 'POST',
-        body: request
-    })
-
-    return res
+    return await ApiLinkBuilder
+        .route<CreatedRequest>(API_ROUTES.INTERNAL_LOANS.CREATE_INTERNAL_LOAN)
+        .body(request)
+        .execute()
 }
 
 export async function useUpdateInternalLoan(id: string, request: UpdateInternalLoanRequest) {
-    await $fetch(`api/internal-loans/${id}`, {
-        method: 'PUT',
-        body: request
-    })
+    await ApiLinkBuilder
+        .route(API_ROUTES.INTERNAL_LOANS.UPDATE_INTERNAL_LOAN)
+        .params({ id: id })
+        .body(request)
+        .execute()
 }
 
 export async function useDeleteInternalLoan(id: string) {
-    await $fetch(`api/internal-loans/${id}`, {
-        method: 'DELETE',
-    })
+    await ApiLinkBuilder
+        .route(API_ROUTES.INTERNAL_LOANS.DELETE_INTERNAL_LOAN)
+        .params({ id: id })
+        .execute()
 }
 
 export async function useAddRefundInternalLoan(id: string, request: AddRefundInternalRequest) {
-    await $fetch(`api/internal-loans/${id}/add-fund`, {
-        method: 'PUT',
-        body: request
-    })
+    await ApiLinkBuilder
+        .route(API_ROUTES.INTERNAL_LOANS.ADD_FUND)
+        .params({ id: id })
+        .body(request)
+        .execute()
 }
 
 export async function useRemoveRefundInternalLoan(id: string, request: RemoveInternalRequestRequest) {
-    await $fetch(`api/internal-loans/${id}/remove-fund`, {
-        method: 'PUT',
-        body: request
-    })
+    await ApiLinkBuilder
+        .route(API_ROUTES.INTERNAL_LOANS.REMOVE_FUND)
+        .params({ id: id })
+        .body(request)
+        .execute()
 }

@@ -4,10 +4,16 @@ import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalize
 import { reactive, shallowRef } from "vue";
 import type { FormError, FormSubmitEvent } from '#ui/types';
 import type { EditScheduleInvoiceType, ScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
-import { fetchAccounts } from '~/composables/api/accounts';
-import { fetchCategories } from '~/composables/api/categories';
-import { fetchTransactionTypes, fetchPeriodTypes } from '~/composables/api/internal';
-import { fetchTags } from '~/composables/api/tag';
+import type { ListResponse } from '~/types/api';
+import type { GetCategoryResponse } from '~/types/api/category';
+import type { GetTagResponse } from '~/types/api/tag';
+import type { GetAccountResponse } from '~/types/api/account';
+import type { GetInternalTypeResponse } from '~/types/api/internal';
+import { listCategoriesResponseToListCategories } from '~/mappers/category';
+import { listTagsResponseToListTags } from '~/mappers/tag';
+import { listAccountsToListAccount } from '~/mappers/account';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 const { scheduleInvoice } = defineProps<{
     scheduleInvoice?: ScheduleInvoiceType
@@ -20,11 +26,23 @@ const emit = defineEmits<{
 const { data: utils } = useAsyncData('utils+edit-invoices', async () => {
     const query = {offset: 0, limit: 0, queryAll: true, isSystem: false}
     const [ categories, tags, accounts, transactionTypes, periodTypes ] = await Promise.all([
-        fetchCategories(query),
-        fetchTags(query),
-        fetchAccounts(query),
-        fetchTransactionTypes(),
-        fetchPeriodTypes()
+        ApiLinkBuilder
+            .route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES)
+            .query(query)
+            .mapper(listCategoriesResponseToListCategories)
+            .execute(),
+        ApiLinkBuilder
+            .route<ListResponse<GetTagResponse>>(API_ROUTES.TAGS.GET_TAGS)
+            .query(query)
+            .mapper(listTagsResponseToListTags)
+            .execute(),
+        ApiLinkBuilder
+            .route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+            .query(query)
+            .mapper(listAccountsToListAccount)
+            .execute(),
+        ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.TRANSACTION_TYPE).execute(),
+        ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.PERIOD_TYPE).execute()
     ])
 
     return {

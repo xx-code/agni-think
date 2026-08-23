@@ -1,73 +1,44 @@
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
 import type { CreateIncomeSourceRequest, GetIncomeSourceResponse, UpdateIncomeSourceRequest } from "~/types/api/incomeSource";
+import { incomeSourceResponseToIncomeSource, listIncomeSourcesResponseToListIncomeSources } from "~/mappers/incomeSource";
 import type { IncomeSourceType } from "~/types/ui/incomeSource";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
+import { API_ROUTES } from "~/shared/routes";
 
-export async function createIncomeSource(request: CreateIncomeSourceRequest) : Promise<CreatedRequest> {
-    return await $fetch<CreatedRequest>(`api/income-sources`, {
-        method: 'POST',
-        body: request
-    })
+export async function createIncomeSource(request: CreateIncomeSourceRequest): Promise<CreatedRequest> {
+    return await ApiLinkBuilder
+        .route<CreatedRequest>(API_ROUTES.INCOME_SOURCES.CREATE_INCOME_SOURCE)
+        .body(request)
+        .execute()
 }
 
-export async function updateIncomeSource(id: string, request: UpdateIncomeSourceRequest) {
-    await $fetch(`api/income-sources/${id}`, {
-        method: 'PUT',
-        body: request
-    })
+export async function updateIncomeSource(id: string, request: UpdateIncomeSourceRequest): Promise<void> {
+    await ApiLinkBuilder
+        .route(API_ROUTES.INCOME_SOURCES.UPDATE_INCOME_SOURCE)
+        .params({ id: id })
+        .body(request)
+        .execute()
 }
 
-export async function deleteIncomeSource(id: string) {
-    await $fetch(`api/income-sources/${id}`, {
-        method: 'DELETE'
-    })
+export async function deleteIncomeSource(id: string): Promise<void> {
+    await ApiLinkBuilder
+        .route(API_ROUTES.INCOME_SOURCES.DELETE_INCOME_SOURCE)
+        .params({ id: id })
+        .execute()
 }
 
-export async function fetchIncomeSource(id: string) : Promise<IncomeSourceType> {
-    const data = await $fetch<GetIncomeSourceResponse>(`api/income-sources/${id}`, {
-        method: 'GET'
-    })
-
-    return {
-        id: data.id,
-        title: data.title,
-        payFrequencyType: data.payFrequencyType,
-        startDate: new Date(data.startDate), 
-        linkedAccountId: data.linkedAccountId,
-        estimateNextNetAmount: data.estimateNextNetAmount,
-        endDate: data.endDate ? new Date(data.endDate) : undefined,
-        annualGrossAmount: data.annualGrossAmount,
-        type: data.type,
-        taxRate: data.taxRate,
-        reliabilityLevel: data.reliabilityLevel,
-        otherRate: data.otherRate,
-        estimatedFutureOccurrences: data.estimatedFutureOccurrences
-    }
+export async function fetchIncomeSource(id: string): Promise<IncomeSourceType> {
+    return await ApiLinkBuilder
+        .route<GetIncomeSourceResponse>(API_ROUTES.INCOME_SOURCES.GET_INCOME_SOURCE)
+        .params({ id: id })
+        .mapper(incomeSourceResponseToIncomeSource)
+        .execute()
 }
 
-export async function fetchIncomeSources(query: QueryFilterRequest) : Promise<ListResponse<IncomeSourceType>> {
-    const data = await $fetch<ListResponse<GetIncomeSourceResponse>>(`api/income-sources`, {
-        method: 'GET',
-        query: query
-    })
-
-    return {
-        items: data.items.map(data => {
-            return {
-                id: data.id,
-                linkedAccountId: data.linkedAccountId,
-                estimateNextNetAmount: data.estimateNextNetAmount,
-                endDate: data.endDate ? new Date(data.endDate) : undefined,
-                annualGrossAmount: data.annualGrossAmount,
-                type: data.type,
-                taxRate: data.taxRate,
-                reliabilityLevel: data.reliabilityLevel,
-                otherRate: data.otherRate,
-                estimatedFutureOccurrences: data.estimatedFutureOccurrences,
-                title: data.title,
-                startDate: new Date(data.startDate),
-                payFrequencyType: data.payFrequencyType
-            } satisfies IncomeSourceType
-        }),
-        total: data.total
-    } 
+export async function fetchIncomeSources(query: QueryFilterRequest): Promise<ListResponse<IncomeSourceType>> {
+    return await ApiLinkBuilder
+        .route<ListResponse<GetIncomeSourceResponse>>(API_ROUTES.INCOME_SOURCES.GET_INCOME_SOURCES)
+        .query(query)
+        .mapper(listIncomeSourcesResponseToListIncomeSources)
+        .execute()
 }

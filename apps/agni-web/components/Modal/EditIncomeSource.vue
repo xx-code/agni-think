@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { reactive } from "vue";
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
-import type { EditIncomeSourceType, IncomeSourceType } from '~/types/ui/incomeSource';
-import { fetchIncomeSourceFrequencyTypes, fetchIncomeSourceTypes } from '~/composables/api/internal';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
-import { fetchAccounts } from "~/composables/api/accounts";
+import type { EditIncomeSourceType, IncomeSourceType } from '~/types/ui/incomeSource';
+import type { GetInternalTypeResponse } from '~/types/api/internal';
+import type { ListResponse } from '~/types/api';
+import type { GetAccountResponse } from '~/types/api/account';
+import { listAccountsToListAccount } from '~/mappers/account';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 const { incomeSource } = defineProps<{
     incomeSource?: IncomeSourceType
@@ -17,9 +21,12 @@ const emit = defineEmits<{
 
 const { data: utils } = useAsyncData('principle-types', async () => {
     const res = await Promise.all([
-        fetchIncomeSourceFrequencyTypes(),
-        fetchIncomeSourceTypes(),
-        fetchAccounts({ offset:0, limit: 0, queryAll: true})
+        ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.INCOME_SOURCE_FREQUENCY_TYPE).execute(),
+        ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.INCOME_SOURCE_TYPE).execute(),
+        ApiLinkBuilder.route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+            .query({ offset: 0, limit: 0, queryAll: true })
+            .mapper(listAccountsToListAccount)
+            .execute()
     ])
 
     return {

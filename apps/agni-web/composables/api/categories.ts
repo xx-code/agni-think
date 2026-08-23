@@ -1,55 +1,45 @@
 import type { Reactive } from "vue";
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
 import type { CreateCategoryRequest, GetCategoryResponse, UpdateCategoryRequest } from "~/types/api/category";
+import { categoryResponseToCategory, listCategoriesResponseToListCategories } from "~/mappers/category";
 import type { CategoryType } from "~/types/ui/category";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
+import { API_ROUTES } from "~/shared/routes";
 
 export async function fetchCategories(query: Reactive<QueryFilterRequest & { isSystem?: boolean}>): Promise<ListResponse<CategoryType>> {
-    const res = await $fetch<ListResponse<GetCategoryResponse>>(`api/categories`, {
-        query: query
-    })
-
-    return {
-        items: res.items.map(i => ({
-            id: i.id,
-            title: i.title,
-            icon: i.icon,
-            isSystem: i.isSystem ?? false,
-            color: i.color
-        })),
-        total: Number(res.total) 
-    } satisfies ListResponse<CategoryType>
+    return await ApiLinkBuilder
+        .route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES)
+        .query(query)
+        .mapper(listCategoriesResponseToListCategories)
+        .execute()
 }
 
 export async function fetchCategory(categoryId: string): Promise<CategoryType> {
-    const res = await $fetch<GetCategoryResponse>(`api/categories/${categoryId}`);
-
-    return {
-        id: res.id,
-        title: res.title,
-        color: res.color,
-        icon: res.icon,
-        isSystem: res.isSystem ?? false
-    };
-};
+    return await ApiLinkBuilder
+        .route<GetCategoryResponse>(API_ROUTES.CATEGORIES.GET_CATEGORY)
+        .params({ id: categoryId })
+        .mapper(categoryResponseToCategory)
+        .execute()
+}
 
 export async function useCreateCategory(request: CreateCategoryRequest): Promise<CreatedRequest> {
-    const created = await $fetch<CreatedRequest>(`api/categories`, {
-        method: 'POST',
-        body: request
-    });
-
-    return created
+    return await ApiLinkBuilder
+        .route<CreatedRequest>(API_ROUTES.CATEGORIES.CREATE_CATEGORY)
+        .body(request)
+        .execute()
 }
 
 export async function useDeleteCategory(categoryId: string): Promise<void> {
-    await $fetch(`api/categories/${categoryId}`, {
-        method: 'DELETE'
-    });
+    await ApiLinkBuilder
+        .route(API_ROUTES.CATEGORIES.DELETE_CATEGORY)
+        .params({ id: categoryId })
+        .execute()
 }
 
 export async function useUpdateCategory(categoryId: string, request: UpdateCategoryRequest): Promise<void> {
-    await $fetch(`api/categories/${categoryId}`, {
-        method: 'PUT',
-        body: request
-    })
+    await ApiLinkBuilder
+        .route(API_ROUTES.CATEGORIES.UPDATE_CATEGORY)
+        .params({ id: categoryId })
+        .body(request)
+        .execute()
 }

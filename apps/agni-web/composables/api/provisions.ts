@@ -1,55 +1,45 @@
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
 import type { CreateProvisionRequest, GetProvisionResponse, UpdateProvisionRequest } from "~/types/api/provision";
+import { listProvisionsResponseToListProvisions, provisionResponseToProvision } from "~/mappers/provision";
 import type { ProvisionType } from "~/types/ui/provision";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
+import { API_ROUTES } from "~/shared/routes";
 
-export async function createProvision(request: CreateProvisionRequest) : Promise<CreatedRequest> {
-    return await $fetch(`api/provisions`, {
-        method: 'POST',
-        body: request
-    }) 
+export async function createProvision(request: CreateProvisionRequest): Promise<CreatedRequest> {
+    return await ApiLinkBuilder
+        .route<CreatedRequest>(API_ROUTES.PROVISIONS.CREATE_PROVISION)
+        .body(request)
+        .execute()
 }
 
-export async function updateProvision(id: string, request: UpdateProvisionRequest) {
-    await $fetch(`api/provisions/${id}`, {
-        method: 'PUT',
-        body: request
-    })
+export async function updateProvision(id: string, request: UpdateProvisionRequest): Promise<void> {
+    await ApiLinkBuilder
+        .route(API_ROUTES.PROVISIONS.UPDATE_PROVISION)
+        .params({ id: id })
+        .body(request)
+        .execute()
 }
 
-export async function deleteProvision(id: string) {
-    await $fetch(`api/provisions/${id}`)
+export async function deleteProvision(id: string): Promise<void> {
+    await ApiLinkBuilder
+        .route(API_ROUTES.PROVISIONS.DELETE_PROVISION)
+        .method('DELETE')
+        .params({ id: id })
+        .execute()
 }
 
-export async function fetchProvision(id: string) : Promise<ProvisionType> {
-    const data = await $fetch<GetProvisionResponse>(`api/provisions/${id}`)
-
-    return {
-        id: data.id,
-        acquisitionDate: new Date(data.acquisitionDate),
-        expectedLifespanMonth: data.expectedLifespanMonth,
-        initialCost: data.initialCost,
-        residualValue: data.residualValue,
-        title: data.title
-    }
+export async function fetchProvision(id: string): Promise<ProvisionType> {
+    return await ApiLinkBuilder
+        .route<GetProvisionResponse>(API_ROUTES.PROVISIONS.GET_PROVISION)
+        .params({ id: id })
+        .mapper(provisionResponseToProvision)
+        .execute()
 }
 
-export async function fetchProvisions(query: QueryFilterRequest) : Promise<ListResponse<ProvisionType>> {
-    const data = await $fetch<ListResponse<GetProvisionResponse>>(`api/provisions`, {
-        method: 'GET',
-        query: query
-    })
-
-    return {
-        items: data.items.map(data => {
-            return {
-                id: data.id,
-                acquisitionDate: new Date(data.acquisitionDate),
-                expectedLifespanMonth: data.expectedLifespanMonth,
-                initialCost: data.initialCost,
-                residualValue: data.residualValue,
-                title: data.title
-            } satisfies ProvisionType
-        }),
-        total: data.total
-    }
+export async function fetchProvisions(query: QueryFilterRequest): Promise<ListResponse<ProvisionType>> {
+    return await ApiLinkBuilder
+        .route<ListResponse<GetProvisionResponse>>(API_ROUTES.PROVISIONS.GET_PROVISIONS)
+        .query(query)
+        .mapper(listProvisionsResponseToListProvisions)
+        .execute()
 }
