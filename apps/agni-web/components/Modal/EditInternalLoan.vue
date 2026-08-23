@@ -2,12 +2,19 @@
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import z from 'zod';
-import { fetchAccounts } from '~/composables/api/accounts';
-import { fetchBudgets } from '~/composables/api/budget';
-import { fetchCategories } from '~/composables/api/categories';
-import { fetchDeductions } from '~/composables/api/deductionType';
-import { fetchTags } from '~/composables/api/tag';
 import type { EditInternalLoanType } from '~/types/ui/internal-loan';
+import type { ListResponse } from '~/types/api';
+import type { GetCategoryResponse } from '~/types/api/category';
+import type { GetTagResponse } from '~/types/api/tag';
+import type { GetAccountResponse } from '~/types/api/account';
+import type { GetDeductionResponse } from '~/types/api/deduction';
+import { listCategoriesResponseToListCategories } from '~/mappers/category';
+import { listTagsResponseToListTags } from '~/mappers/tag';
+import { budgetFilterToBudgetQueryRequest, listBudgetsResponseToListBudgets } from '~/mappers/budget';
+import { listDeductionsResponseToListDeductions } from '~/mappers/deduction';
+import { listAccountsToListAccount } from '~/mappers/account';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 const emit = defineEmits<{
     (e: 'submit', value: EditInternalLoanType): void    
@@ -40,11 +47,31 @@ type Schema = z.output<typeof schema>;
 const { data: utils } = useAsyncData('utils+internal-loans', async () => {
     const query = {offset: 0, limit: 0, queryAll: true, isSystem: false}
     const [ categories, tags, budgets, accounts, deductions ] = await Promise.all([
-        fetchCategories(query),
-        fetchTags(query),
-        fetchBudgets(query),
-        fetchAccounts(query),
-        fetchDeductions({ queryAll: true, offset: 0, limit: 0})
+        ApiLinkBuilder
+            .route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES)
+            .query(query)
+            .mapper(listCategoriesResponseToListCategories)
+            .execute(),
+        ApiLinkBuilder
+            .route<ListResponse<GetTagResponse>>(API_ROUTES.TAGS.GET_TAGS)
+            .query(query)
+            .mapper(listTagsResponseToListTags)
+            .execute(),
+        ApiLinkBuilder
+            .route(API_ROUTES.BUDGETS.GET_BUDGETS)
+            .query(budgetFilterToBudgetQueryRequest(query))
+            .mapper(listBudgetsResponseToListBudgets)
+            .execute(),
+        ApiLinkBuilder
+            .route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+            .query(query)
+            .mapper(listAccountsToListAccount)
+            .execute(),
+        ApiLinkBuilder
+            .route<ListResponse<GetDeductionResponse>>(API_ROUTES.DEDUCTIONS.GET_DEDUCTIONS)
+            .query({ queryAll: true, offset: 0, limit: 0 })
+            .mapper(listDeductionsResponseToListDeductions)
+            .execute()
     ])
 
     return {

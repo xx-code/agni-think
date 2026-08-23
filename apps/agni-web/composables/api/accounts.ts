@@ -1,159 +1,63 @@
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
 import type { CreateAccountRequest, GetAccountResponse, GetAccountWithDetailResponse, UpdateAccountRequest } from "~/types/api/account";
-import type { AccountType } from "~/types/constants/account";
-import type { AccountBrokeDetailType, AccountCheckingDetailType, AccountCreditDetailType, Account, AccountWithDetailType } from "~/types/ui/account";
+import { accountResponseToAccount, accountWithDetailResponseToAccountWithDetail, listAccountsToListAccount, listAccountsResponseToListAccountWithDetail } from "~/mappers/account";
+import type { Account, AccountWithDetailType } from "~/types/ui/account";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
+import { API_ROUTES } from "~/shared/routes";
 
 export async function fetchAccount(accountId: string): Promise<Account> {
-    const res = await $fetch<GetAccountResponse>(`api/accounts/${accountId}`, {
-        method: 'GET'
-    });
-    return {
-        id: res.id,
-        title: res.title,
-        color: res.color,
-        balance: res.balance,
-        type: res.type as AccountType
-    };
+    return await ApiLinkBuilder
+        .route<GetAccountResponse>(API_ROUTES.ACCOUNTS.GET_ACCOUNT)
+        .params({ id: accountId })
+        .mapper(accountResponseToAccount)
+        .execute()
 }
 
 export async function fetchAccountWithDetail(accountId: string): Promise<AccountWithDetailType> {
-    const res = await $fetch<GetAccountWithDetailResponse>(`api/accounts/${accountId}`, {
-        method: 'GET',
-        query: { withDetail: true}
-    });
-
-    const detailAccount = (type: string) => {
-        switch(type) {
-            case 'Broking':
-                return {
-                    managementType: res.detail.detailForBroking?.contributionType ?? "",
-                    type: res.detail.detailForBroking?.managementType ?? ""
-                } satisfies AccountBrokeDetailType;
-            case 'CreditCard':    
-                return {
-                    creditUtilisation: res.detail.detailForCreditCard?.creditUtilisation ?? 0,
-                    creditLimit: res.detail.detailForCreditCard?.creditCardLimit ?? 0,
-                    nextInvoicePaymentDate: new Date(res.detail.detailForCreditCard?.nextInvoicePayment ?? Date.now().toString())
-                } satisfies AccountCreditDetailType;
-            case 'Checking':
-                return {
-                    buffer: res.detail.detailForChecking?.buffer ?? 0
-                } satisfies AccountCheckingDetailType;
-            default:
-                return undefined;
-        }
-    };
-    return {
-        id: res.id,
-        title: res.title,
-        color: res.color,
-        balance: res.balance,
-        type: (res.type as AccountType ?? 'ErrorType'),
-        lockedBalance: res.lockedBalance,
-        freezedBalance: res.freezeBalance,
-        detail: detailAccount(res.type)
-    };
+    return await ApiLinkBuilder
+        .route<GetAccountWithDetailResponse>(API_ROUTES.ACCOUNTS.GET_ACCOUNT)
+        .params({ id: accountId })
+        .query({ withDetail: true })
+        .mapper(accountWithDetailResponseToAccountWithDetail)
+        .execute()
 }
 
 export const ALL_ACCOUNT_ID = "all";
 
-function sumTotalBalance(accounts: AccountWithDetailType[]): [number, number, number] {
-    let total = 0;
-    let totalFreezed = 0;
-    let totalLocked = 0;
-    accounts.forEach(acc => {
-        if (acc.type !== 'Saving' && acc.type !== 'Broking') {
-            total += acc.balance;
-        }
-        totalFreezed += acc.freezedBalance;
-        totalLocked += acc.lockedBalance;
-    });
-
-    return [Number(total.toFixed(2)), Number(totalLocked.toFixed(2)), Number(totalFreezed.toFixed(2))];
-}
-
 export async function fetchAccounts(query: QueryFilterRequest): Promise<ListResponse<Account>> {
-    const res = await $fetch<ListResponse<GetAccountResponse>>(`api/accounts`, {
-        method: 'GET',
-        query: query,
-    });
-
-    return {
-        items: res.items.map(i => ({
-            id: i.id,
-            title: i.title,
-            balance: i.balance,
-            color: '',
-            type: (i.type as AccountType ?? 'ErrorType')
-        } satisfies Account)),
-        total: Number(res.total)
-    };
+    return await ApiLinkBuilder
+        .route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+        .query(query)
+        .mapper(listAccountsToListAccount)
+        .execute()
 }
 
 export async function fetchAccountsWithDetail(query: QueryFilterRequest): Promise<ListResponse<AccountWithDetailType>> {
-    const res = await $fetch<ListResponse<GetAccountWithDetailResponse>>(`api/accounts`, {
-        method: 'GET',
-        query:  {...query, withDetail: true}
-    });
-
-    const accountsWithPastBalances: AccountWithDetailType[] = [];
-
-    for (const account of res.items) {
-        const detailAccount = (type: string) => {
-            switch(type) {
-                case 'Broking':
-                    return {
-                        managementType: account.detail.detailForBroking?.contributionType ?? "",
-                        type: account.detail.detailForBroking?.managementType ?? ""
-                    } satisfies AccountBrokeDetailType;
-                case 'CreditCard':    
-                    return {
-                        creditUtilisation: account.detail.detailForCreditCard?.creditUtilisation ?? 0,
-                        creditLimit: account.detail.detailForCreditCard?.creditCardLimit ?? 0,
-                        nextInvoicePaymentDate: new Date(account.detail.detailForCreditCard?.nextInvoicePayment ?? Date.now().toString())
-                    } satisfies AccountCreditDetailType;
-                case 'Checking':
-                    return {
-                        buffer: account.detail.detailForChecking?.buffer ?? 0
-                    } satisfies AccountCheckingDetailType;
-                default:
-                    return undefined;
-            }
-        };
-
-        accountsWithPastBalances.push({
-            id: account.id,
-            title: account.title,
-            balance: account.balance,
-            type: (account.type as AccountType ?? 'ErrorType'),
-            color: account.color,
-            lockedBalance: account.lockedBalance,
-            freezedBalance: account.freezeBalance,
-            detail: detailAccount(account.type)
-        });
-    }
-
-    return { items: accountsWithPastBalances, total: res.total };
+    return await ApiLinkBuilder
+        .route<ListResponse<GetAccountWithDetailResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+        .query({ ...query, withDetail: true })
+        .mapper(listAccountsResponseToListAccountWithDetail)
+        .execute()
 }
 
 export async function createAccount(request: CreateAccountRequest): Promise<CreatedRequest> {
-    const response = await $fetch(`api/accounts`, {
-        method: 'POST',
-        body: request
-    });
-
-    return response as CreatedRequest;
+    return await ApiLinkBuilder
+        .route<CreatedRequest>(API_ROUTES.ACCOUNTS.CREATE_ACCOUNT)
+        .body(request)
+        .execute()
 }
 
 export async function deleteAccount(accountId: string): Promise<void> {
-    await $fetch(`api/accounts/${accountId}`, {
-        method: 'DELETE'
-    });
+    await ApiLinkBuilder
+        .route(API_ROUTES.ACCOUNTS.DELETE_ACCOUNT)
+        .params({ id: accountId })
+        .execute()
 }
 
 export async function updateAccount(accountId: string, request: UpdateAccountRequest): Promise<void> {
-    await $fetch(`api/accounts/${accountId}`, {
-        method: 'PUT',
-        body: request
-    });
+    await ApiLinkBuilder
+        .route(API_ROUTES.ACCOUNTS.UPDATE_ACCOUNT)
+        .params({ id: accountId })
+        .body(request)
+        .execute()
 }

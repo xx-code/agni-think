@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { fetchAccounts } from '~/composables/api/accounts';
 import { createBankRegister } from '~/composables/api/bankRegister';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 
 const { start, stop } = useLoading()
@@ -51,7 +53,9 @@ async function saveBank() {
             accessCode: accessCode,
             accounts: bankMatching.value.map(i => ({ accountId: i.accountId, bankAccountId: i.bankAccountId}))
         })
-        await $fetch("/api/bank/init-transaction")
+        await ApiLinkBuilder
+            .route(API_ROUTES.BANK.INIT_TRANSACTION)
+            .execute()
         emit("close", true)
     } catch (err) {
         stop()

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
-import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
+import { DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import { fetchPlanningAdvisorAgent } from '~/composables/api/agents'
 import type { PlanningAgentAdvisorType } from '~/types/ui/agent'
 
@@ -211,7 +211,7 @@ async function makePlanning() {
                     </div>
 
                     <div class="space-x-3 space-y-1">
-                        <UButton label="Voulez vous reessayer" class="bg-gray-500" @click="isAsked = false"/>
+                        <UButton label="Voulez vous reessayer" class="bg-gray-500" @click="() => { isAsked = false } "/>
                         <UButton label="On annule tous" color="neutral" @click="emit('close', false)" />
                         <UButton label="On garde la suggestion" @click="() => { }" />
                     </div>

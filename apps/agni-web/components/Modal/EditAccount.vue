@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
-import type { AccountBrokeDetailType, AccountCreditDetailType, Account, AccountWithDetailType, EditAccount } from '~/types/ui/account';
+import type { Account, AccountWithDetailType, EditAccount } from '~/types/ui/account';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
 import { fetchAccounts, fetchManagementAccounts, fetchContributionTypes } from '~/composables/api/internal';
 
@@ -42,15 +42,15 @@ const form = reactive({
     accountName: account?.title || '',
     color: account?.color || '',
     Account: account?.type || '',
-    managementType: account?.detail ? (account?.detail as AccountBrokeDetailType).managementType ?? undefined : undefined,
-    contributionType: account?.detail ? (account?.detail as AccountBrokeDetailType).type ?? undefined : undefined,
-    creditLimit: account?.detail ?(account?.detail as AccountCreditDetailType).creditLimit ?? 0 : undefined,
+    managementType: account?.detail ? account.detail.detailForBroking?.managementType ?? undefined : undefined,
+    contributionType: account?.detail ? account.detail.detailForBroking?.contributionType ?? undefined : undefined,
+    creditLimit: account?.detail ? account.detail.detailForCreditCard?.creditCardLimit ?? 0 : undefined,
 })
 
 const df = new DateFormatter('en-Us', {
     dateStyle: 'medium'
 });
-let invoiceRawDate: Date|undefined = account?.detail ? (account?.detail as AccountCreditDetailType).nextInvoicePaymentDate : new Date()
+let invoiceRawDate: Date|undefined = account?.detail?.detailForCreditCard?.nextInvoicePayment ?? new Date()
 const invoiceDate = shallowRef(invoiceRawDate ? new CalendarDate(invoiceRawDate.getFullYear(), invoiceRawDate.getMonth() + 1, invoiceRawDate.getDate()) : undefined)
 
 

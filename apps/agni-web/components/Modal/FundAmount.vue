@@ -3,8 +3,11 @@ import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { UFormField } from '#components';
 import type { EditUpdateAmountFund, Fund } from '~/types/ui/fund';
-import { fetchAccounts } from '~/composables/api/accounts';
-import { useUpdateAmountFund } from '~/composables/api/funds';
+import type { ListResponse } from '~/types/api';
+import type { GetAccountResponse } from '~/types/api/account';
+import { listAccountsToListAccount } from '~/mappers/account';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 const { fund, fundAccountId, isIncrease } = defineProps<{
     fund: {id: string, title: string }
@@ -31,8 +34,12 @@ const form = reactive({
 })
 
 const {data: accounts} = useAsyncData('editAmountSaving+accounts', async () => {
-    const res = fetchAccounts({ offset: 0, limit:0, queryAll: true})
-    return (await res).items
+    const res = await ApiLinkBuilder
+        .route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+        .query({ offset: 0, limit: 0, queryAll: true })
+        .mapper(listAccountsToListAccount)
+        .execute()
+    return res.items
 })
 
 type Schema = z.output<typeof schema>
@@ -40,12 +47,17 @@ type Schema = z.output<typeof schema>
 async function onSubmit(event: FormSubmitEvent<Schema>) {
     const data = event.data
     try {
-        await useUpdateAmountFund({
-            isIncrease: isIncrease,
-            amount: data.amount,
+        const body = {
+            id: fund.id,
             accountId: data.accountId,
-            fundId: fund.id
-        })
+            amount: data.amount
+        }
+
+        await ApiLinkBuilder
+            .route(isIncrease ? API_ROUTES.FUNDS.INCREASE_FUND : API_ROUTES.FUNDS.DECREASE_FUND)
+            .params({ id: fund.id })
+            .body(body)
+            .execute()
 
         toast.add({
             title: 'Succès',

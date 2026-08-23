@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SlideOverNotification } from '#components'
-import { checkNotifications } from '~/composables/api/notifications'
+import { useCheckNotifications } from '~/composables/api/notifications'
 
 const overlay = useOverlay()
 const slideOverNotification = overlay.create(SlideOverNotification)
@@ -22,8 +22,8 @@ async function openNotificationHub() {
 async function refreshNotification() {
   try {
     isLoading.value = true
-    const res = await checkNotifications()
-    isNotif.value = res
+    const res = await useCheckNotifications()
+    isNotif.value = res.success && !!res.data
   } catch (error) {
     console.error('Failed to check notifications:', error)
   } finally {

@@ -3,6 +3,8 @@ import { ModalMatchBankAccount, UButton, USwitch } from '#components';
 import { usePlaidLink, type PlaidLinkOnSuccessMetadata, type PlaidLinkOptions } from '@jcss/vue-plaid-link';
 import type { TableColumn } from '@nuxt/ui';
 import { fetchAllBankRegister } from '~/composables/api/bankRegister';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 type BankRow = {
     id: string
@@ -27,9 +29,9 @@ const { data, refresh } = useAsyncData("banking+all+register", async () => {
 
 const token = ref<string|null>(null)
 const createLink = async () => {
-    const res = await $fetch("/api/bank/token", {
-        method: 'POST'
-    })
+    const res = await ApiLinkBuilder
+        .route<{ link_token: string }>(API_ROUTES.BANK.CREATE_TOKEN)
+        .execute()
     //@ts-ignore
     token.value = res.link_token
 }
@@ -43,23 +45,21 @@ const propsRegisterBank = ref<{
 const config = computed(() => {
   const config: PlaidLinkOptions = {
     token: token.value,
-    onSuccess: async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
-        try {
-            const res = await $fetch<{code: string}>("/api/bank/exchange-token", {
-                method: 'POST',
-                body: {
-                    public_token: public_token
+        onSuccess: async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
+            try {
+                const res = await ApiLinkBuilder
+                    .route<{ code: string }>(API_ROUTES.BANK.EXCHANGE_TOKEN)
+                    .body({ public_token: public_token })
+                    .execute()
+                propsRegisterBank.value = {
+                    accessCode: res.code,
+                    title: metadata.institution?.name ?? "",
+                    bankAccounts: metadata.accounts.map(i => ({id: i.id, name: i.name }))
                 }
-            })    
-            propsRegisterBank.value = {
-                accessCode: res.code,
-                title: metadata.institution?.name ?? "",
-                bankAccounts: metadata.accounts.map(i => ({id: i.id, name: i.name }))
+            } catch(err) {
+                console.log(err)
             }
-        } catch(err) {
-            console.log(err)
-        }
-    },
+        },
   };
   return config;
 })
@@ -70,7 +70,9 @@ const { start, stop } = useLoading()
 async function forceInitTransaction() {
     try {
         start()
-        await $fetch("/api/bank/init-transaction")
+        await ApiLinkBuilder
+            .route(API_ROUTES.BANK.INIT_TRANSACTION)
+            .execute()
         stop()
     } catch(err) {
         stop()

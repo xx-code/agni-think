@@ -1,59 +1,44 @@
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
 import type { CreateFinancePrincipleRequest, GetFinancePrincipleResponse, UpdateFinancePrincipleRequest } from "~/types/api/financePrinciple";
+import { financePrincipleResponseToFinancePrinciple, listFinancePrinciplesResponseToListFinancePrinciples } from "~/mappers/financePrinciple";
 import type { FinancePrincipleType } from "~/types/ui/financePrinciple";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
+import { API_ROUTES } from "~/shared/routes";
 
-export async function createFinancePrinciple(request: CreateFinancePrincipleRequest) : Promise<CreatedRequest> {
-    return await $fetch(`api/finance-principles`, {
-        method: 'POST',
-        body: request
-    }) 
+export async function createFinancePrinciple(request: CreateFinancePrincipleRequest): Promise<CreatedRequest> {
+    return await ApiLinkBuilder
+        .route<CreatedRequest>(API_ROUTES.FINANCE_PRINCIPLES.CREATE_FINANCE_PRINCIPLE)
+        .body(request)
+        .execute()
 }
 
-export async function updateFinancePrinciple(id: string, request: UpdateFinancePrincipleRequest) {
-    await $fetch(`api/finance-principles/${id}`, {
-        method: 'PUT',
-        body: request
-    })
+export async function updateFinancePrinciple(id: string, request: UpdateFinancePrincipleRequest): Promise<void> {
+    await ApiLinkBuilder
+        .route(API_ROUTES.FINANCE_PRINCIPLES.UPDATE_FINANCE_PRINCIPLE)
+        .params({ id: id })
+        .body(request)
+        .execute()
 }
 
-export async function deleteFinancePrinciple(id: string) {
-    await $fetch(`api/finance-principles/${id}`, {
-        method: 'DELETE'
-    })
+export async function deleteFinancePrinciple(id: string): Promise<void> {
+    await ApiLinkBuilder
+        .route(API_ROUTES.FINANCE_PRINCIPLES.DELETE_FINANCE_PRINCIPLE)
+        .params({ id: id })
+        .execute()
 }
 
-export async function fetchFinancePrinciple(id: string) : Promise<FinancePrincipleType> {
-    const data = await $fetch<GetFinancePrincipleResponse>(`api/finance-principles/${id}`, {
-        method: 'GET',
-    })
-
-    return {
-       id: data.id, 
-       description: data.description,
-       name: data.name,
-       strictness: data.strictness,
-       targetType: data.targetType,
-       logicRules: data.logicRules
-    }
+export async function fetchFinancePrinciple(id: string): Promise<FinancePrincipleType> {
+    return await ApiLinkBuilder
+        .route<GetFinancePrincipleResponse>(API_ROUTES.FINANCE_PRINCIPLES.GET_FINANCE_PRINCIPLE)
+        .params({ id: id })
+        .mapper(financePrincipleResponseToFinancePrinciple)
+        .execute()
 }
 
-export async function fetchFinancePrinciples(query: QueryFilterRequest) : Promise<ListResponse<FinancePrincipleType>> {
-    const data = await $fetch<ListResponse<GetFinancePrincipleResponse>>(`api/finance-principles`, {
-        method: 'GET',
-        query: query
-    })
-
-    return  {
-        items: data.items.map(data => {
-            return {
-                id: data.id, 
-                description: data.description,
-                name: data.name,
-                strictness: data.strictness,
-                targetType: data.targetType,
-                logicRules: data.logicRules
-            } satisfies GetFinancePrincipleResponse
-        }),
-        total: data.total
-    }
+export async function fetchFinancePrinciples(query: QueryFilterRequest): Promise<ListResponse<FinancePrincipleType>> {
+    return await ApiLinkBuilder
+        .route<ListResponse<GetFinancePrincipleResponse>>(API_ROUTES.FINANCE_PRINCIPLES.GET_FINANCE_PRINCIPLES)
+        .query(query)
+        .mapper(listFinancePrinciplesResponseToListFinancePrinciples)
+        .execute()
 }

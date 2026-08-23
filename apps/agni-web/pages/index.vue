@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { AccountCreditDetailType, Account, AccountWithDetailType, EditAccount } from "~/types/ui/account";
+import type { Account, AccountWithDetailType, EditAccount } from "~/types/ui/account";
 import { getLocalTimeZone } from "@internationalized/date";
 import { ModalEditAccount, SlideOverQuickInvoicesView } from "#components";
 import { createAccount, deleteAccount, fetchAccountsWithDetail, fetchAccountWithDetail, updateAccount } from "~/composables/api/accounts";
-import { accountWithDetailToAccountCard } from "~/mappers/account";
+import {accountWithDetailToAccountCard, listAccountsResponseToListAccountWithDetail } from "~/mappers/account";
 import { fetchBalance, fetchBalanceByPeriod } from "~/composables/api/invoices";
 import { getOrderAccountType } from "~/types/constants/account";
 import { fetchAnalyticSavings, fetchSpendByCategoriesAnalytic } from "~/composables/api/analytics";
 import { fetchAllGoal } from "~/composables/api/goals";
 import { goalToFundGoalCards } from "~/mappers/goal";
 import type { FundCardGoal } from "~/types/ui/fund";
+import { API_ROUTES } from "~/shared/routes";
 
 const isLoadingAccount = ref(false)
 const isKpiLoading = ref(false)
@@ -21,7 +22,12 @@ const { data: accountData, refresh: refreshAccounts } = useAsyncData(
     'accounts+categories+tags+budgets',
     async () => {
         isLoadingAccount.value = true
-        const res = await fetchAccountsWithDetail({ offset: 0, limit: 0, queryAll: true })
+        const res = await ApiLinkBuilder
+                        .route(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+                        .mapper(listAccountsResponseToListAccountWithDetail)
+                        .query({offest: 0, limit: 0, queryAll: true, withDetail: true})
+                        .execute()
+
         const accIds = res.items.map(account => account.id)
 
         const dateFrom = new Date()
@@ -128,12 +134,12 @@ const totalAccountBalance = computed(() => {
                 total += acc.balance
             }
 
-            totalFreezed += acc.freezedBalance
+            totalFreezed += acc.freezeBalance
             totalLocked += acc.lockedBalance
         }
 
         const creditCardAccount = accountData.value.accounts.filter(i => i.type === 'CreditCard')
-        const sum = creditCardAccount.reduce((acc, account) => acc += (account.detail as AccountCreditDetailType).creditUtilisation, 0)
+        const sum = creditCardAccount.reduce((acc, account) => acc += account.detail?.detailForCreditCard?.creditUtilisation ?? 0, 0)
 
         totalCreditUsage = roundNumber(sum/creditCardAccount.length)
     }  
@@ -152,7 +158,7 @@ const modalAccount = overlay.create(ModalEditAccount);
 const slideOverQuickInvoices = overlay.create(SlideOverQuickInvoicesView)
 
 const toast = useToast();
-const onSaveAccount = async (value: EditAccount, oldValue?: Account) => {
+const onSaveAccount = async (value: EditAccount, oldValue?: AccountWithDetailType) => {
     try {
         if (oldValue)
             await updateAccount(oldValue.id, {

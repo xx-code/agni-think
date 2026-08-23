@@ -4,7 +4,11 @@ import { reactive, shallowRef } from "vue";
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import type { EditFreezeInvoiceType, InvoiceType } from '~/types/ui/transaction';
-import { fetchAccounts } from '~/composables/api/accounts';
+import type { ListResponse } from '~/types/api';
+import type { GetAccountResponse } from '~/types/api/account';
+import { listAccountsToListAccount } from '~/mappers/account';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 const { accountId } = defineProps<{
     accountId?: string
@@ -24,8 +28,11 @@ const schema = z.object({
 type Schema = z.output<typeof schema>
 
 const {data: accounts} = useAsyncData('editAmountSaving+accounts', async () => {
-    const res = fetchAccounts({ offset: 0, limit:0, queryAll: true})
-    return res
+    return await ApiLinkBuilder
+        .route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+        .query({ offset: 0, limit: 0, queryAll: true })
+        .mapper(listAccountsToListAccount)
+        .execute()
 })
 
 const form = reactive({

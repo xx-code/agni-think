@@ -3,7 +3,9 @@ import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalize
 import { reactive, shallowRef, ref } from "vue";
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import type { BudgetType, EditBudgetType } from '~/types/ui/budget';
-import { fetchPeriodTypes } from '~/composables/api/internal';
+import type { GetInternalTypeResponse } from '~/types/api/internal';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 const { budget } = defineProps<{
     budget?: BudgetType
@@ -15,7 +17,9 @@ const emit = defineEmits<{
 }>();
 
 const { data: utils } = useAsyncData('saving+goals+utils', async () => {
-    const  periodTypes = await fetchPeriodTypes()
+    const periodTypes = await ApiLinkBuilder
+        .route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.PERIOD_TYPE)
+        .execute()
 
     return {
         periodTypes

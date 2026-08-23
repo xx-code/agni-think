@@ -1,20 +1,14 @@
 import type { ListResponse, QueryFilterRequest } from "~/types/api";
 import type { GetFinanceReportResponse } from "~/types/api/finance-report";
+import { listFinanceReportsResponseToListFinanceReports } from "~/mappers/financeReport";
 import type { FinanceReportType } from "~/types/ui/finance-report";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
+import { API_ROUTES } from "~/shared/routes";
 
 export async function fetchFinanceReports(query: QueryFilterRequest): Promise<ListResponse<FinanceReportType>> {
-    const res = await $fetch<ListResponse<GetFinanceReportResponse>>(`api/finance-reports`, {
-        method: 'GET',
-        query: query
-    })
-
-    return {
-        items: res.items.map(i => ({
-            id: i.id,
-            title: i.title,
-            description: i.description,
-            date: new Date(i.date)
-        } satisfies FinanceReportType)),
-        total: res.total
-    }
+    return await ApiLinkBuilder
+        .route<ListResponse<GetFinanceReportResponse>>(API_ROUTES.FINANCE_REPORTS.GET_FINANCE_REPORTS)
+        .query(query)
+        .mapper(listFinanceReportsResponseToListFinanceReports)
+        .execute()
 }

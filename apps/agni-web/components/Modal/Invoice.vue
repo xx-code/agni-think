@@ -2,14 +2,21 @@
 import { reactive } from "vue";
 import type { InvoiceType } from '~/types/ui/transaction';
 import type { FormError, FormSubmitEvent } from '#ui/types';
-import { fetchAccounts } from '~/composables/api/accounts';
-import { fetchBudgets } from '~/composables/api/budget';
-import { fetchCategories } from '~/composables/api/categories';
-import { fetchDeductions } from '~/composables/api/deductionType';
-import { fetchTransactionTypes } from '~/composables/api/internal';
-import { fetchTags } from '~/composables/api/tag';
+import type { NuxtError } from "#app";
+import type { CreatedRequest, ErrorResponse, ListResponse } from '~/types/api';
+import type { GetCategoryResponse } from '~/types/api/category';
+import type { GetTagResponse } from '~/types/api/tag';
+import type { GetAccountResponse } from '~/types/api/account';
+import type { GetInternalTypeResponse } from '~/types/api/internal';
+import type { GetDeductionResponse } from '~/types/api/deduction';
+import { listCategoriesResponseToListCategories } from '~/mappers/category';
+import { listTagsResponseToListTags } from '~/mappers/tag';
+import { budgetFilterToBudgetQueryRequest, listBudgetsResponseToListBudgets } from '~/mappers/budget';
+import { listDeductionsResponseToListDeductions } from '~/mappers/deduction';
+import { listAccountsToListAccount } from '~/mappers/account';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 import type { EditInvoiceType } from '~/types/form/invoice';
-import { useCreateInvoice, useUpdateInvoice } from '~/composables/api/invoices';
 
 const { invoice, accountSelectedId } = defineProps<{
     invoice?: InvoiceType
@@ -29,12 +36,32 @@ const { data: utils } = useAsyncData('utils+deduction+edit-invoices', async () =
     isLoading.value = true
     const query = {offset: 0, limit: 0, queryAll: true, isSystem: false}
     const [ categories, tags, budgets, accounts, invoiceTypes, deductions ] = await Promise.all([
-        fetchCategories(query),
-        fetchTags(query),
-        fetchBudgets({offset: 0, limit: 10, queryAll: true}),
-        fetchAccounts(query),
-        fetchTransactionTypes(),
-        fetchDeductions(query)
+        ApiLinkBuilder
+            .route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES)
+            .query(query)
+            .mapper(listCategoriesResponseToListCategories)
+            .execute(),
+        ApiLinkBuilder
+            .route<ListResponse<GetTagResponse>>(API_ROUTES.TAGS.GET_TAGS)
+            .query(query)
+            .mapper(listTagsResponseToListTags)
+            .execute(),
+        ApiLinkBuilder
+            .route(API_ROUTES.BUDGETS.GET_BUDGETS)
+            .query(budgetFilterToBudgetQueryRequest({offset: 0, limit: 10, queryAll: true}))
+            .mapper(listBudgetsResponseToListBudgets)
+            .execute(),
+        ApiLinkBuilder
+            .route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+            .query(query)
+            .mapper(listAccountsToListAccount)
+            .execute(),
+        ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.TRANSACTION_TYPE).execute(),
+        ApiLinkBuilder
+            .route<ListResponse<GetDeductionResponse>>(API_ROUTES.DEDUCTIONS.GET_DEDUCTIONS)
+            .query(query)
+            .mapper(listDeductionsResponseToListDeductions)
+            .execute()
     ])
 
     isLoading.value = false
@@ -118,7 +145,7 @@ function validate(state: Partial<EditInvoiceType>): FormError[] {
 async function onSubmit(event: FormSubmitEvent<EditInvoiceType>) {
     const data = event.data;
     let isSuccess = false
-    let resError = undefined
+    let resError: ErrorResponse | undefined = undefined
 
     if (invoice) {
         const transactionRemovedIds = invoice.transactions.filter(i => !data.transactions.find(
@@ -143,37 +170,50 @@ async function onSubmit(event: FormSubmitEvent<EditInvoiceType>) {
                 v.description === i.description
             ))
 
-        const res = await useUpdateInvoice(invoice.id, {
-            addTransactions: transactionAdded, 
-            mouvement: data.mouvement,
-            removeTransactionIds: transactionRemovedIds,
-            deductions: data.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
-            accountId: data.accountId,
-            date: data.date,
-            type: data.type
-        });
+        try {
+            await ApiLinkBuilder
+                .route(API_ROUTES.INVOICES.UPDATE_INVOICE)
+                .params({ id: invoice.id })
+                .body({
+                    addTransactions: transactionAdded, 
+                    mouvement: data.mouvement,
+                    removeTransactionIds: transactionRemovedIds,
+                    deductions: data.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
+                    accountId: data.accountId,
+                    date: data.date,
+                    type: data.type
+                })
+                .execute()
 
-        isSuccess = res.success
-        resError = res.error
+            isSuccess = true
+        } catch(err) {
+            resError = (err as NuxtError).data as ErrorResponse
+        }
     } else {
-        const res = await useCreateInvoice({
-            accountId: data.accountId,
-            date: data.date,
-            mouvement: data.mouvement,
-            type: data.type,
-            status: data.state,
-            transactions: data.transactions.map(i => ({
-                amount: i.amount,
-                categoryId: i.categoryId,
-                budgetIds: i.budgetIds,
-                description: i.description,
-                tagIds: i.tagIds
-            })),
-            deductions: data.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
-        });
+        try {
+            await ApiLinkBuilder
+                .route<CreatedRequest>(API_ROUTES.INVOICES.CREATE_INVOICE)
+                .body({
+                    accountId: data.accountId,
+                    date: data.date,
+                    mouvement: data.mouvement,
+                    type: data.type,
+                    status: data.state,
+                    transactions: data.transactions.map(i => ({
+                        amount: i.amount,
+                        categoryId: i.categoryId,
+                        budgetIds: i.budgetIds,
+                        description: i.description,
+                        tagIds: i.tagIds
+                    })),
+                    deductions: data.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount})),
+                })
+                .execute()
 
-        isSuccess = res.success
-        resError = res.error
+            isSuccess = true
+        } catch(err) {
+            resError = (err as NuxtError).data as ErrorResponse
+        }
     }
 
     if (isSuccess) {
