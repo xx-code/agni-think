@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import type { dashboardSidebarCollapse } from '#build/ui';
 import type { NavigationMenuItem } from '@nuxt/ui';
 
-const items: NavigationMenuItem[][] = [[
+const items: NavigationMenuItem[][] = [
     [ 
         {
             label: 'Vue d\'ensemble',
@@ -128,18 +129,14 @@ const items: NavigationMenuItem[][] = [[
             // ]
         }
     ]
-    
-    
-]] 
+] 
 
 </script>
 
 <template>
     <UDashboardSidebar 
         :collapsible="false"
-        :ui="{
-            root: 'border-none'
-        }">
+        :ui="{ root: 'border-none hidden md:flex md:w-20 lg:w-64' }">
         <template #header="{ collapsed }">
             <div class="flex justify-between items-center w-full">
                 <Logo title="Agni." title-responsive="A." :is-collapsed="collapsed" />
@@ -147,17 +144,14 @@ const items: NavigationMenuItem[][] = [[
         </template>
 
         <template #default="{ collapsed }">
-            <UNavigationMenu 
-                :ui="{
-                    linkLabel: 'block text-md text-start text-wrap font-semibold'
-                }"
-                highlight
-                variant="pill"
-                :collapsed="collapsed"
-                v-for="item in items"
-                :items="item" 
-                orientation="vertical" />
+            <div class="flex flex-col gap-1 px-2">
+                <LayoutNavbarGroup 
+                    v-for="(item, index) in items"
+                    :key="index"
+                    :items="item"
+                    :divider="index === 1 || index === items.length - 1"
+                />
+            </div>
         </template>
-
     </UDashboardSidebar>
 </template>
