@@ -3,40 +3,40 @@ const isCollapsed = ref(false)
 const isMobile = ref(false)
 
 const navItems = [
-  { title: 'Dashboard', link: '/', icon: 'i-lucide-circle-gauge' },
-  { title: 'Transactions', link: '/invoices', icon: 'i-lucide-banknote' },
-  { title: 'Wallets', link: '/wallets', icon: 'i-lucide-wallet-minimal' },
-  { title: 'Schedule Transactions', link: '/schedule-invoices', icon: 'i-lucide-calendar-clock' },
-  { title: 'Budgets', link: '/budgets', icon: 'i-lucide-wallet-cards' },
-  { title: 'Goals', link: '/goals', icon: 'i-lucide-piggy-bank' },
-  { title: 'Analytics', link: '/analytics', icon: 'i-lucide-chart-network' },
-  { title: 'Provisions', link: '/provisions', icon: 'i-lucide-gpu' },
-  { title: 'Agent Advisor', link: '/chat-agent', icon: 'i-lucide-bot' },
-  { title: 'Patrimoine', link: '/patrimonies', icon: 'i-lucide-castle' },
-  { title: 'Internal Loans', link: '/internal-loans', icon: 'i-lucide-hand-coins' },
-  { title: 'Settings', link: '/settings', icon: 'i-lucide-settings' },
+    { title: 'Dashboard', link: '/', icon: 'i-lucide-circle-gauge' },
+    { title: 'Transactions', link: '/invoices', icon: 'i-lucide-banknote' },
+    { title: 'Wallets', link: '/wallets', icon: 'i-lucide-wallet-minimal' },
+    { title: 'Schedule Transactions', link: '/schedule-invoices', icon: 'i-lucide-calendar-clock' },
+    { title: 'Budgets', link: '/budgets', icon: 'i-lucide-wallet-cards' },
+    { title: 'Goals', link: '/goals', icon: 'i-lucide-piggy-bank' },
+    { title: 'Analytics', link: '/analytics', icon: 'i-lucide-chart-network' },
+    { title: 'Provisions', link: '/provisions', icon: 'i-lucide-gpu' },
+    { title: 'Agent Advisor', link: '/chat-agent', icon: 'i-lucide-bot' },
+    { title: 'Patrimoine', link: '/patrimonies', icon: 'i-lucide-castle' },
+    { title: 'Internal Loans', link: '/internal-loans', icon: 'i-lucide-hand-coins' },
+    { title: 'Settings', link: '/settings', icon: 'i-lucide-settings' }
 ]
 
 const checkScreenSize = () => {
-  isMobile.value = window.innerWidth <= 975
-  if (isMobile.value) {
-    isCollapsed.value = true
-  }
+    isMobile.value = window.innerWidth <= 975
+    if (isMobile.value) {
+        isCollapsed.value = true
+    }
 }
 
 onMounted(() => {
-  checkScreenSize()
-  window.addEventListener('resize', checkScreenSize)
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', checkScreenSize)
+    window.removeEventListener('resize', checkScreenSize)
 })
 
 const toggleNavbar = () => {
-  if (!isMobile.value) {
-    isCollapsed.value = !isCollapsed.value
-  }
+    if (!isMobile.value) {
+        isCollapsed.value = !isCollapsed.value
+    }
 }
 </script>
 
