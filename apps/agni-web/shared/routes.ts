@@ -121,6 +121,11 @@ export const API_ROUTES = {
             serverPath: '/api/analytics/spend-tags',
             apiPath: '/analytics/spend-tags',
             method: 'GET'
+        },
+        PROVISION_SUMMARY: {
+            serverPath: '/api/analytics/provision-summary',
+            apiPath: '/analytics/provision-summary',
+            method: 'GET'
         }
     },
 

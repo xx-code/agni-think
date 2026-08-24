@@ -95,6 +95,14 @@ export type GetSpendTagRequest = {
     categoryId?: string
 }
 
+export type GetProvisionSummaryResponse = {
+    activesProvision: number,
+    initialValue: number,
+    accountingTotalValue: number,
+    costByMonth: number,
+    monthlyPayment: number
+}
+
 type GetSpendTagResponse = {
     tagId: string
     spends: number[]
