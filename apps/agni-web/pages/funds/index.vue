@@ -245,7 +245,7 @@ watch(filterGoal, () => {
             />
         </div>
 
-        <div class="w-full max-w-full flex gap-4 overflow-x-auto overflow-y-hidden pb-4 mb-8 flex-nowrap shrink-0">
+        <div class="w-full max-w-full flex gap-4 scrollbar-none overflow-x-auto overflow-y-hidden pb-4 mb-8 flex-nowrap shrink-0">
             <UiFundCardSummaryGoal 
                 v-for="goal in  goalSummaries.map(i => goalToFundGoalCards(i))" 
                 :key="goal.id"

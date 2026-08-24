@@ -46,7 +46,7 @@ const actionItems = ref<DropdownMenuItem[][]>([
 </script>
 
 <template>
-    <div class="bg-white p-5 rounded-2xl shadow-sm cursor-pointer">
+    <UiCard class="cursor-pointer">
         <div class="flex justify-between items-start">
             <span 
                 :class="[
@@ -82,5 +82,5 @@ const actionItems = ref<DropdownMenuItem[][]>([
             </div>
         </div>
 
-    </div>
+    </UiCard>
 </template>
