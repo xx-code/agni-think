@@ -7,9 +7,9 @@ const { goal } = defineProps<{
 </script>
 
 <template>
-    <div :class="[
-        'flex flex-col p-4 gap-3 bg-white rounded-xl border',
-        goal.status == 'EXPIRED' ? 'border-red-200' : 'border-gray-200'
+    <UiCard :class="[
+        'flex flex-col gap-3',
+        goal.status == 'EXPIRED' ? 'shadow-red-200' : ''
     ]">
         <div class="flex justify-between items-center">
             <h3 class="font-semibold text-md">{{ goal.title }}</h3>
@@ -37,5 +37,5 @@ const { goal } = defineProps<{
             <span class="font-semibold text-gray-500 text-xs">{{ formatCurrency(goal.targetAmount)  }}</span>
         </div>
 
-    </div>
+    </UiCard>
 </template>

@@ -12,7 +12,7 @@ const { fundId } = defineProps<{
     fundId: string
 }>()
 const emit = defineEmits<{
-    refresh: [boolean]
+    refresh: [refresh: boolean]
 }>()
 
 const isOpen = ref(false)

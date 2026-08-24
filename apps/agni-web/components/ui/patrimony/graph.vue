@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { UiCard } from '#components';
+
 const { 
     netWorthDates, 
     netWorthEvolutions,
@@ -103,15 +105,15 @@ const repartitionLiabilityDataChart = computed(() => ({
 
 <template>
     <div class="flex flex-col gap-5">
-        <div class="bg-white p-5 rounded-2xl shadow-sm">
+        <UiCard>
             <h2 class="text-sm text-gray-500 mb-1">Évolution du patrimoine</h2>
             <div class="h-40 mt-5">
                 <LineChart :data="evolutionDataChart" :options="evolutionOptionChart" />
             </div>
-        </div>
+        </UiCard>
 
         <div class="grid md:grid-cols-2 grid-cols-1 gap-5 flex-wrap w-full">
-            <div class="bg-white p-5 rounded-2xl shadow-sm">
+            <UiCard>
                 <div class="mb-4 ">
                     <h2 class="font-semibold text-xl">Actifs</h2>
                     <h6>
@@ -132,9 +134,9 @@ const repartitionLiabilityDataChart = computed(() => ({
                         {{ label }} · {{ formatCurrency(assetAmounts[i]!) }}
                     </div>
                 </div>
-            </div> 
+            </UiCard> 
 
-            <div class="bg-white p-5 rounded-2xl shadow-sm">
+            <UiCard>
                 <div class="mb-4 ">
                     <h2 class="font-semibold text-xl">Passifs</h2>
                     <h6>
@@ -157,7 +159,7 @@ const repartitionLiabilityDataChart = computed(() => ({
                         {{ label }} · {{ formatCurrency(liabilityAmounts[i]!) }}
                     </div>
                 </div>
-            </div> 
+            </UiCard> 
         </div> 
     </div>
 </template>
