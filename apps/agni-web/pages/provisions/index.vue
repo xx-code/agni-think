@@ -3,11 +3,24 @@ import type { NuxtError } from '#app';
 import { ModalEditProvision } from '#components';
 import { getLocalTimeZone } from '@internationalized/date';
 import { createProvision, deleteProvision, fetchProvision, fetchProvisions, updateProvision } from '~/composables/api/provisions';
+import { provisionSummaryResponseToProvisionSummary } from '~/mappers/analytics';
+import { API_ROUTES } from '~/shared/routes';
 import type { EditProvisionType, ProvisionType } from '~/types/ui/provision';
 
+const isLoadingSummary = ref(false)
 const overlay = useOverlay();
 const modalProvision = overlay.create(ModalEditProvision);
 const toast = useToast();
+
+const { data: provisionSummary } = useAsyncData('provision-summary', async () => {
+    isLoadingSummary.value = true
+    const res = ApiLinkBuilder.route(API_ROUTES.ANALYTICS.PROVISION_SUMMARY)
+        .mapper(provisionSummaryResponseToProvisionSummary)
+        .execute()
+    isLoadingSummary.value = false
+
+    return res
+}, { watch: []})
 
 const { data, error, refresh } = useAsyncData('provision+all', async () => {
     const res = await fetchProvisions({ queryAll: true, offset: 0, limit: 0 })
@@ -141,78 +154,49 @@ const filteredProvisions = computed(() => {
 </script>
 
 <template>
-    <div class="p-5 space-y-5">
-
-        <!-- Header -->
-        <div class="flex items-end justify-between">
-            <div>
-                <h1 class="text-3xl font-bold tracking-tight text-gray-900">Provisions</h1>
-                <p class="text-sm text-gray-500 mt-1">Suivi de l'amortissement de vos équipements</p>
-            </div>
-            <UButton
-                label="Nouvelle provision"
-                icon="i-lucide-plus"
-                size="md"
-                color="primary"
-                @click="openModalProvision()"
-            />
-        </div>
+    <UiPage>
+        <UiPageHeader 
+            title="Provisions"
+            subtitle="Suivi de l'amortissement de vos équipements"
+            :button="{
+                icon: 'i-lucide-plus',
+                label: 'Nouvelle provision'
+            }"
+            @click-button="openModalProvision()"
+        /> 
 
         <!-- Summary cards -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <UCard :ui="{ body: 'p-4' }">
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50">
-                        <UIcon name="i-lucide-package" class="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500">Provisions actives</p>
-                        <p class="text-xl font-bold text-gray-900">
-                            {{ summary.active }}
-                            <span class="text-sm font-normal text-gray-400">/{{ summary.total }}</span>
-                        </p>
-                    </div>
-                </div>
-            </UCard>
+            <UiBannerAccountant 
+                title="Provisions actives"
+                :amount="provisionSummary?.activesProvision ?? 0"
+                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(168, 85, 247, 0.1)', fontColor: '#a855f7'}"
+            />
 
-            <UCard :ui="{ body: 'p-4' }">
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-purple-50">
-                        <UIcon name="i-lucide-wallet" class="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500">Valeur initiale totale</p>
-                        <p class="text-xl font-bold text-gray-900">{{ formatCurrency(summary.totalInitial) }}</p>
-                    </div>
-                </div>
-            </UCard>
+            <UiBannerAccountant 
+                title="Valeur initiale totale"
+                :amount="provisionSummary?.initialValue ?? 0"
+                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(23, 85, 247, 0.1)', fontColor: '#a855f7'}"
+            />
 
-            <UCard :ui="{ body: 'p-4' }">
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-50">
-                        <UIcon name="i-lucide-trending-down" class="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500">Valeur comptable actuelle</p>
-                        <p class="text-xl font-bold text-gray-900">{{ formatCurrency(summary.totalBookValue) }}</p>
-                    </div>
-                </div>
-            </UCard>
+            <UiBannerAccountant 
+                title="Valeur comptable actuelle"
+                :amount="provisionSummary?.accountingTotalValue ?? 0"
+                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(102, 100, 43, 0.1)', fontColor: '#a855f7'}"
+            />
 
-            <UCard :ui="{ body: 'p-4' }">
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-50">
-                        <UIcon name="i-lucide-calendar-clock" class="w-5 h-5 text-amber-600" />
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500">Provision mensuelle</p>
-                        <p class="text-xl font-bold text-gray-900">
-                            {{ formatCurrency(summary.totalMonthly) }}
-                            <span class="text-xs font-normal text-gray-400">/mois</span>
-                        </p>
-                    </div>
-                </div>
-            </UCard>
+            <UiBannerAccountant 
+                title="Cout mensuelle"
+                :amount="provisionSummary?.costByMonth ?? 0"
+                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(235, 23, 54, 0.1)', fontColor: '#a855f7'}"
+            />
+
+            <UiBannerAccountant 
+                title="Payment mensuelle"
+                :amount="provisionSummary?.monthlyPayment ?? 0"
+                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(168, 245, 247, 0.1)', fontColor: '#a855f7'}"
+            />
+            
         </div>
 
         <!-- Provisions list -->
@@ -351,5 +335,5 @@ const filteredProvisions = computed(() => {
 
             </div>
         </UCard>
-    </div>
+    </UiPage>
 </template>

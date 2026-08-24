@@ -11,6 +11,7 @@ import dev.auguste.agni_api.core.entities.FinancePrinciple
 import dev.auguste.agni_api.core.entities.IncomeSource
 import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
+import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.Tag
@@ -22,6 +23,7 @@ import dev.auguste.agni_api.core.usecases.analystics.GetFinanceProfile
 import dev.auguste.agni_api.core.usecases.analystics.GetFundTotalSummary
 import dev.auguste.agni_api.core.usecases.analystics.GetPatrimonyEvolution
 import dev.auguste.agni_api.core.usecases.analystics.GetPatrimonySummary
+import dev.auguste.agni_api.core.usecases.analystics.GetProvisionSummary
 import dev.auguste.agni_api.core.usecases.analystics.GetSavingAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetSavingBalance
 import dev.auguste.agni_api.core.usecases.analystics.GetSpendByCategoryAnalytic
@@ -34,6 +36,7 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonyEvolutionInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonyEvolutionOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonySummaryOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetProvisionSummaryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingBalanceInput
@@ -180,5 +183,12 @@ class AnalyticConfig {
             getBalanceByPeriod = getBalanceByPeriod,
             savingGoalRepo = savingGoalRepo,
         )
+    }
+
+    @Bean
+    fun getProvisionSummary(
+        provisionRepo: IRepository<Provision> ) : IUseCase<Unit, GetProvisionSummaryOutput>
+    {
+        return GetProvisionSummary(provisionRepo)
     }
 }
