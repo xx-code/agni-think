@@ -214,8 +214,20 @@ watch(filterGoal, () => {
 </script>
 
 <template>
-    <div class="goals-page p-5">
-        <div class="grid md:grid-cols-3 gap-5 mb-10 grid-cols-1">
+    <UiPage>
+        <UiPageHeader 
+            title="Mes Fond"
+            :button="
+                {
+                    icon: 'i-lucide-plus',
+                    label: 'Ajouter un fond'
+                }
+            "
+            subtitle="Planifier mon horizon financier"
+            @click-button="openModalFund()"
+        />
+
+        <div class="grid md:grid-cols-3 gap-5 grid-cols-1">
             <UiBannerAccountant 
                 title="Objectif Total"
                 :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(168, 85, 247, 0.1)', fontColor: '#a855f7'}"
@@ -232,16 +244,6 @@ watch(filterGoal, () => {
                 title="Restant"
                 :icon="{ name: 'i-lucide-trending-up', backgroundColor: 'rgba(59, 130, 246, 0.1)', fontColor: '#3b82f6'}"
                 :amount="summary?.remain ?? 0"
-            />
-        </div>
-
-        <div class="flex justify-end items-center mb-8 ">
-            <UButton 
-                icon="i-lucide-plus" 
-                label="Nouvel Objectif" 
-                size="xl"
-                class="add-button"
-                @click="openModalFund()"
             />
         </div>
 
@@ -340,5 +342,5 @@ watch(filterGoal, () => {
                 </div>
             </template>
         </UModal>
-    </div>
+    </UiPage>
 </template>
