@@ -257,19 +257,19 @@ function goalStatusBadge(goal: FundCardGoal) {
 </script>
 
 <template>
-    <div class="p-6 space-y-10">
+    <UiPage>
         <!-- Header avec bouton d'ajout -->
-        <div class="flex justify-between items-center">
-            <h1 class="font-bold text-2xl">Mon portefeuille</h1>
-            <UButton 
-                icon="i-lucide-plus" 
-                size="lg" 
-                variant="solid" 
-                color="primary"
-                @click="openAccountModal()">
-                Ajouter un compte
-            </UButton>
-        </div>
+        <UiPageHeader 
+            title="Mon portefeuille"
+            :button="
+                {
+                    icon: 'i-lucide-plus',
+                    label: 'Ajouter un compte'
+                }
+            "
+            subtitle="Vue d'ensemble sur le portefeuille"
+            @click-button="openAccountModal()"
+        />
 
         <UiOverviewAccountSummary 
             v-if="!isLoadingAccount"
@@ -400,7 +400,7 @@ function goalStatusBadge(goal: FundCardGoal) {
                 </div>
             </div>
         </div>
-    </div> 
+    </UiPage> 
 </template>
 
 <style scoped lang="scss">

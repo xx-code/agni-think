@@ -118,7 +118,19 @@ async function deletePatrimony(patrimonyId: string) {
 </script>
 
 <template> 
-    <div class="space-y-6 mt-6">
+    <UiPage>
+        <UiPageHeader 
+            title="Mon patrimoine"
+            :button="
+                {
+                    icon: 'i-lucide-plus',
+                    label: 'Ajouter un actif/passif'
+                }
+            "
+            subtitle="Voir et gerer l'evolution de mon patrimoine"
+            @click-button="openPatrimony()"
+        />
+
         <UiPatrimonyHeader 
             :networth="patrimonySummary?.networth ?? 0"
             :monthly-evolution="patrimonySummary?.monthlyEvolutionPerc ?? 0"
@@ -134,14 +146,6 @@ async function deletePatrimony(patrimonyId: string) {
             :liability-labels="patrimonies?.liabilities.map(i => i.title) ?? []"
             :liability-amounts="patrimonies?.liabilities.map(i => i.amount) ?? []"
         />
-
-        <!-- SECTION : Bouton ajout -->
-        <div class="flex justify-end">
-            <UButton 
-                label="Ajouter un patrimoine" 
-                icon="i-lucide-castle"
-                @click="openPatrimony()" />
-        </div>
 
         <div>
             <div class="mb-5">
@@ -177,5 +181,5 @@ async function deletePatrimony(patrimonyId: string) {
                 />
             </div>
         </div>
-    </div>
+    </UiPage>
 </template>

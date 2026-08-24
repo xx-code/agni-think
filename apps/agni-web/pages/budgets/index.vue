@@ -73,11 +73,18 @@ const listTypeDateDisplay = computed(() => ([
         } 
     }
 ]))
+
 function onAddPeriodTag(id: string, label: string) {
-    if (!filter.periodTypes?.find(i => i.id === id))
-        filter.periodTypes?.push({id: id, label: label})
+    if (!filter.periodTypes?.find(i => i.id === id)) {
+        budgets.value = []
+        totalBudget.value = 0
+        filter.periodTypes?.push({id: id, label: label}) 
+    }
 }
+
 function onRemovePeriodTag(id: string) {
+    budgets.value = []
+    totalBudget.value = 0
     filter.periodTypes = filter.periodTypes?.filter(i => i.id !== id)
 }
 
@@ -210,7 +217,19 @@ watch(filter, () => {
 </script>
 
 <template>
-    <div class="transition-opacity duration-500 ease-in-out opacity-100 p-6">
+    <UiPage>
+        <UiPageHeader 
+            title="Mes Budgets"
+            :button="
+                {
+                    icon: 'i-lucide-plus',
+                    label: 'Ajouter un budget'
+                }
+            "
+            subtitle="Gerer tous les budgets"
+            @click-button="openModalBudget()"
+        />
+
         <div class="grid md:grid-cols-3 gap-5 mb-10 grid-cols-1">
             <UiBannerAccountant 
                 title="Budget Total"
@@ -232,7 +251,7 @@ watch(filter, () => {
         </div>
 
         <!-- Action Bar -->
-        <div class="flex justify-between items-center mb-10 flex-wrap">
+        <div class="flex justify-between items-center flex-wrap">
             <div class="flex">
                 <div class="flex items-center gap-1">
                     <div class="">
@@ -270,7 +289,7 @@ watch(filter, () => {
                 </div>
             </div>
 
-            <div>
+            <!-- <div>
                 <UButton 
                     icon="i-lucide-plus" 
                     label="Nouveau Budget" 
@@ -278,7 +297,7 @@ watch(filter, () => {
                     class="add-button"
                     @click="openModalBudget()"
                 />
-            </div> 
+            </div>  -->
         </div>
 
         <!-- Budget Grid -->
@@ -311,5 +330,5 @@ watch(filter, () => {
                 @new="openModalBudget()"
             />
         </div>
-    </div>
+    </UiPage>
 </template>
