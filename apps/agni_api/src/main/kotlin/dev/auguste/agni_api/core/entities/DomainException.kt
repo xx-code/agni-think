@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.entities
 
 import dev.auguste.agni_api.core.entities.enums.GoalEvaluationType
+import dev.auguste.agni_api.core.value_objects.Scheduler
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -71,5 +72,8 @@ sealed class DomainException(val code: String, message: String): Exception(messa
 
     sealed class Validation(code: String, message: String): DomainException(code, message) {
         class InvalidColor(color: String): Validation("INVALID_COLOR","Format de couleur hexadécimale invalide: $color")
+        class ProvisionDepreciateLoanInterestPositif(interest: Double): Validation("PROVISION_DEPRECIATE_INTEREST_POSITIF", "L'interest $interest ne dois pas etre negatif")
+        class ProvisionDepreciateLoanMonthMustBeGreaterThanZero(month: Long): Validation("PROVISION_DEPRECIATE_LOAN_MONTH_MUST_BE_GREATER_THAN_ZERO", "Le nombre de mois $month dois etre supperieur a 0")
+        class ProvisionWithLoanMustHaveAScheduler(): Validation("PROVISION_WITH_LOAN_MUST_HAVE_AS_SCHEDULE", "Si vous avez un pret sur un accede depreciative il faut un scheduler")
     }
 }
