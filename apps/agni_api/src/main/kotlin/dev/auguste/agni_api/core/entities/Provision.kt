@@ -3,12 +3,12 @@ package dev.auguste.agni_api.core.entities
 import dev.auguste.agni_api.core.entities.enums.DepreciationType
 import dev.auguste.agni_api.core.entities.enums.ProvisionType
 import dev.auguste.agni_api.core.value_objects.ProvisionDepreciateCriteria
-import dev.auguste.agni_api.core.value_objects.Scheduler
+import dev.auguste.agni_api.core.value_objects.ProvisionPayment
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.math.pow
-import kotlin.properties.Delegates
+
 
 class Provision(
     id: UUID = UUID.randomUUID(),
@@ -17,22 +17,23 @@ class Provision(
     isPatrimony: Boolean,
     acquisitionDate: LocalDate,
     expectedLifespanMonth: Int,
-    depreciationCriteria: List<ProvisionDepreciateCriteria>,
+    depreciationCriteria: MutableList<ProvisionDepreciateCriteria>,
     floorValue: Double,
-    type: ProvisionType = ProvisionType.DEPRECIATE,
+    val type: ProvisionType = ProvisionType.DEPRECIATE,
+    paymentInfo: ProvisionPayment? = null,
     interestLoan: Double = 0.0,
     loanMonth: Long = 0,
-    scheduler: Scheduler? = null
 ): Entity(id = id) {
 
     var title by cleanObservable(title, this)
-    var initialCost by cleanObservable(initialCost, this)
+    var initialCost by cleanObservable(initialCost, this, {
+        it > 0
+    }, DomainException.BusinessLogic.Validation("Provisionable initial doesn't have a cost"))
     var acquisitionDate by cleanObservable(acquisitionDate, this)
     var expectedLifespanMonth by cleanObservable(expectedLifespanMonth, this)
     var isPatrimony by cleanObservable(isPatrimony, this)
     var floorValue by cleanObservable(floorValue, this)
     var depreciationCriteria by cleanObservable(depreciationCriteria, this)
-    var type by cleanObservable(type, this)
     var interestLoan by cleanObservable(interestLoan, this,
         {
             it >= 0.0
@@ -40,13 +41,14 @@ class Provision(
         DomainException.Validation.ProvisionDepreciateLoanInterestPositif(interestLoan)
     )
     var loanMonth by cleanObservable(loanMonth, this, {
-        it > 0.0
+        it > 0.0 && type == ProvisionType.DEPRECIATE_LOAN
     },
         DomainException.Validation.ProvisionDepreciateLoanMonthMustBeGreaterThanZero(loanMonth))
 
-    var scheduler by cleanObservable(scheduler, this, {
-        it != null &&  type == ProvisionType.DEPRECIATE_LOAN
-    }, DomainException.Validation.ProvisionWithLoanMustHaveAScheduler())
+    var paymentInfo by cleanObservable(paymentInfo, this, {
+        it != null && type == ProvisionType.DEPRECIATE_LOAN
+    }, DomainException.BusinessLogic.ProvisionWithLoanMustHaveAScheduleInvoice())
+
 
     fun calculateTotalCost(): Double {
         if (type != ProvisionType.DEPRECIATE_LOAN)
@@ -75,8 +77,8 @@ class Provision(
         return (netDepreciationCost / expectedLifespanMonth).coerceAtLeast(0.0)
     }
 
-    fun calculateResidualValue(): Double {
-        val monthsOwned = ChronoUnit.MONTHS.between(acquisitionDate, LocalDate.now()).coerceAtLeast(0)
+    fun calculateResidualValue(date: LocalDate = LocalDate.now()): Double {
+        val monthsOwned = ChronoUnit.MONTHS.between(acquisitionDate, date).coerceAtLeast(0)
         var residual = initialCost
 
         val percentageCriteria = depreciationCriteria.filter {
@@ -118,4 +120,5 @@ class Provision(
 
         return residual.coerceAtLeast(floorValue)
     }
+
 }

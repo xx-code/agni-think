@@ -1,17 +1,18 @@
 package dev.auguste.agni_api.core.usecases.provisionable
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.provisionable.dto.DeleteProvisionInput
+import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
 
 class DeleteProvisionable(
-    private val provisionRepo: IRepository<Provision>,
+    private val provisionRepo: IRepository<Provision>
 ): IUseCase<DeleteProvisionInput, Unit> {
     override fun execAsync(input: DeleteProvisionInput) {
         provisionRepo.get(input.provisionableId) ?: throw DomainException.NotFound.Provisionable(input.provisionableId)
-
         provisionRepo.delete(input.provisionableId)
     }
 }

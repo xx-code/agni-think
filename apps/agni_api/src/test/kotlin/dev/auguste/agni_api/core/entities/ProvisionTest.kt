@@ -3,6 +3,7 @@ package dev.auguste.agni_api.core.entities
 import dev.auguste.agni_api.core.entities.enums.DepreciationType
 import dev.auguste.agni_api.core.entities.enums.ProvisionType
 import dev.auguste.agni_api.core.value_objects.ProvisionDepreciateCriteria
+import dev.auguste.agni_api.core.value_objects.ProvisionPayment
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -22,12 +23,12 @@ private fun buildProvision(
     isPatrimony: Boolean = false,
     acquisitionDate: LocalDate = LocalDate.now(),
     expectedLifespanMonth: Int = 12,
-    depreciationCriteria: List<ProvisionDepreciateCriteria> = emptyList(),
+    depreciationCriteria: MutableList<ProvisionDepreciateCriteria>,
     floorValue: Double = 0.0,
     type: ProvisionType = ProvisionType.DEPRECIATE,
     interestLoan: Double = 0.0,
     loanMonth: Long = 0,
-    scheduler: Scheduler? = null,
+    provisionPayment: ProvisionPayment? = null,
     id: UUID = UUID.randomUUID()
 ): Provision {
     return Provision(
@@ -42,7 +43,7 @@ private fun buildProvision(
         type = type,
         interestLoan = interestLoan,
         loanMonth = loanMonth,
-        scheduler = scheduler
+        paymentInfo = provisionPayment,
     )
 }
 
