@@ -60,5 +60,5 @@ export type GetProvisionResponse = {
     monthlyPayment: number
     residualValue: number
     nextPaymentDate?: string
-    nextPaymnetAmount?: number
+    nextPaymentAmount?: number
 }

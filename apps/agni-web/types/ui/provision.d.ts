@@ -10,6 +10,11 @@ export type EditProvisionType = {
 }
 
 
-export type Provision = Omit<GetProvisionResponse, 'acquisitionDate', 'nextPaymentDate'> & {
+export type Provision = Omit<GetProvisionResponse, 'acquisitionDate' | 'nextPaymentDate'> & {
     acquisitionDate: Date, nextPaymentDate?: Date
+} 
+
+export type ProvisionCard = Provision & {
+    remainingMonths: number
+    amortizationPercent: number
 } 
