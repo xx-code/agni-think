@@ -80,7 +80,7 @@ class JdbcProvisionMapper(
             type = ProvisionType.fromString(model.type),
             paymentInfo = model.paymentInfo?.let { ProvisionPayment.fromMap(objectMapper.readValue<Map<String, Any>>(it)) } ,
             interestLoan = model.interestLoan,
-            loanMonth = model.loanMonth
+            loanMonth = model.loanMonth,
         )
     }
 

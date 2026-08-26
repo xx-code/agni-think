@@ -17,18 +17,35 @@ import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.math.pow
 
+private val ACQUISITION_DATE: LocalDate = LocalDate.of(2024, 1, 1)
+
+private fun buildPayment(
+    paymentAmount: Double = 1126.83,
+    endDate: LocalDate = ACQUISITION_DATE.plusMonths(12)
+): ProvisionPayment {
+    return ProvisionPayment(
+        accountId = UUID.randomUUID(),
+        categoryId = UUID.randomUUID(),
+        budgetIds = emptySet(),
+        tagIds = emptySet(),
+        paymentAmount = paymentAmount,
+        scheduler = Scheduler(LocalDateTime.of(2024, 2, 1, 0, 0)),
+        endDate = endDate
+    )
+}
+
 private fun buildProvision(
     title: String = "MacBook",
     initialCost: Double = 1000.0,
     isPatrimony: Boolean = false,
-    acquisitionDate: LocalDate = LocalDate.now(),
+    acquisitionDate: LocalDate = ACQUISITION_DATE,
     expectedLifespanMonth: Int = 12,
-    depreciationCriteria: MutableList<ProvisionDepreciateCriteria>,
+    depreciationCriteria: MutableList<ProvisionDepreciateCriteria> = mutableListOf(),
     floorValue: Double = 0.0,
     type: ProvisionType = ProvisionType.DEPRECIATE,
+    paymentInfo: ProvisionPayment? = null,
     interestLoan: Double = 0.0,
     loanMonth: Long = 0,
-    provisionPayment: ProvisionPayment? = null,
     id: UUID = UUID.randomUUID()
 ): Provision {
     return Provision(
@@ -41,9 +58,9 @@ private fun buildProvision(
         depreciationCriteria = depreciationCriteria,
         floorValue = floorValue,
         type = type,
+        paymentInfo = paymentInfo,
         interestLoan = interestLoan,
-        loanMonth = loanMonth,
-        paymentInfo = provisionPayment,
+        loanMonth = loanMonth
     )
 }
 
@@ -59,23 +76,22 @@ class ProvisionTest {
 
         assertEquals("MacBook", provision.title)
         assertEquals(1000.0, provision.initialCost)
-        assertEquals(LocalDate.now(), provision.acquisitionDate)
+        assertEquals(ACQUISITION_DATE, provision.acquisitionDate)
         assertEquals(12, provision.expectedLifespanMonth)
         assertFalse(provision.isPatrimony)
         assertEquals(0.0, provision.floorValue)
         assertEquals(ProvisionType.DEPRECIATE, provision.type)
         assertEquals(0.0, provision.interestLoan)
         assertEquals(0, provision.loanMonth)
-        assertNull(provision.scheduler)
+        assertNull(provision.paymentInfo)
         assertTrue(provision.depreciationCriteria.isEmpty())
     }
 
     @Test
     fun `initialize with provided values`() {
         val id = UUID.randomUUID()
-        val acquisitionDate = LocalDate.now().minusMonths(4)
-        val scheduler = Scheduler(LocalDateTime.now().plusDays(15))
-        val criteria = listOf(
+        val payment = buildPayment()
+        val criteria = mutableListOf(
             ProvisionDepreciateCriteria("Wear", "Standard wear", DepreciationType.STRAIGHT_LINE, 10.0)
         )
 
@@ -83,14 +99,14 @@ class ProvisionTest {
             title = "Voiture",
             initialCost = 20000.0,
             isPatrimony = true,
-            acquisitionDate = acquisitionDate,
+            acquisitionDate = ACQUISITION_DATE,
             expectedLifespanMonth = 120,
             depreciationCriteria = criteria,
             floorValue = 5000.0,
             type = ProvisionType.DEPRECIATE_LOAN,
+            paymentInfo = payment,
             interestLoan = 4.5,
             loanMonth = 48,
-            scheduler = scheduler,
             id = id
         )
 
@@ -98,14 +114,14 @@ class ProvisionTest {
         assertEquals("Voiture", provision.title)
         assertEquals(20000.0, provision.initialCost)
         assertTrue(provision.isPatrimony)
-        assertEquals(acquisitionDate, provision.acquisitionDate)
+        assertEquals(ACQUISITION_DATE, provision.acquisitionDate)
         assertEquals(120, provision.expectedLifespanMonth)
         assertEquals(criteria, provision.depreciationCriteria)
         assertEquals(5000.0, provision.floorValue)
         assertEquals(ProvisionType.DEPRECIATE_LOAN, provision.type)
+        assertEquals(payment, provision.paymentInfo)
         assertEquals(4.5, provision.interestLoan)
         assertEquals(48, provision.loanMonth)
-        assertEquals(scheduler, provision.scheduler)
     }
 
     @Test
@@ -131,7 +147,7 @@ class ProvisionTest {
         provision.resetChangeState()
         assertFalse(provision.hasChanged())
 
-        provision.initialCost = 2000.0
+        provision.floorValue = 200.0
         assertTrue(provision.hasChanged())
     }
 
@@ -140,7 +156,7 @@ class ProvisionTest {
         val provision = buildProvision()
 
         provision.title = provision.title
-        provision.initialCost = provision.initialCost
+        provision.floorValue = provision.floorValue
 
         assertFalse(provision.hasChanged())
     }
@@ -148,6 +164,33 @@ class ProvisionTest {
     // ---------------------------------------------------------------
     // Property validation
     // ---------------------------------------------------------------
+
+    @Test
+    fun `accept strictly positive initial cost`() {
+        val provision = buildProvision()
+
+        provision.initialCost = 1.0
+
+        assertEquals(1.0, provision.initialCost)
+    }
+
+    @Test
+    fun `reject zero initial cost`() {
+        val provision = buildProvision()
+
+        assertThrows(DomainException.BusinessLogic.Validation::class.java) {
+            provision.initialCost = 0.0
+        }
+    }
+
+    @Test
+    fun `reject negative initial cost`() {
+        val provision = buildProvision()
+
+        assertThrows(DomainException.BusinessLogic.Validation::class.java) {
+            provision.initialCost = -10.0
+        }
+    }
 
     @Test
     fun `accept zero interest loan`() {
@@ -170,8 +213,17 @@ class ProvisionTest {
     }
 
     @Test
-    fun `reject loan month equal to zero`() {
-        val provision = buildProvision()
+    fun `accept positive loan month for loan provision`() {
+        val provision = buildProvision(type = ProvisionType.DEPRECIATE_LOAN)
+
+        provision.loanMonth = 12
+
+        assertEquals(12, provision.loanMonth)
+    }
+
+    @Test
+    fun `reject loan month equal to zero for loan provision`() {
+        val provision = buildProvision(type = ProvisionType.DEPRECIATE_LOAN)
 
         val exception = assertThrows(DomainException.Validation.ProvisionDepreciateLoanMonthMustBeGreaterThanZero::class.java) {
             provision.loanMonth = 0
@@ -182,7 +234,7 @@ class ProvisionTest {
 
     @Test
     fun `reject negative loan month`() {
-        val provision = buildProvision()
+        val provision = buildProvision(type = ProvisionType.DEPRECIATE_LOAN)
 
         assertThrows(DomainException.Validation.ProvisionDepreciateLoanMonthMustBeGreaterThanZero::class.java) {
             provision.loanMonth = -6
@@ -190,55 +242,55 @@ class ProvisionTest {
     }
 
     @Test
-    fun `accept positive loan month`() {
-        val provision = buildProvision()
+    fun `reject positive loan month on non loan provision`() {
+        val provision = buildProvision(type = ProvisionType.DEPRECIATE)
 
-        provision.loanMonth = 12
-
-        assertEquals(12, provision.loanMonth)
+        assertThrows(DomainException.Validation.ProvisionDepreciateLoanMonthMustBeGreaterThanZero::class.java) {
+            provision.loanMonth = 12
+        }
     }
 
     // ---------------------------------------------------------------
-    // Scheduler validation
+    // PaymentInfo validation
     // ---------------------------------------------------------------
 
     @Test
-    fun `accept scheduler for loan provision`() {
+    fun `accept payment info for loan provision`() {
         val provision = buildProvision(type = ProvisionType.DEPRECIATE_LOAN)
-        val scheduler = Scheduler(LocalDateTime.now().plusMonths(1))
+        val payment = buildPayment()
 
-        provision.scheduler = scheduler
+        provision.paymentInfo = payment
 
-        assertEquals(scheduler, provision.scheduler)
+        assertEquals(payment, provision.paymentInfo)
     }
 
     @Test
-    fun `mark entity changed when scheduler is assigned on loan provision`() {
+    fun `mark entity changed when payment info is assigned on loan provision`() {
         val provision = buildProvision(type = ProvisionType.DEPRECIATE_LOAN)
 
-        provision.scheduler = Scheduler(LocalDateTime.now())
+        provision.paymentInfo = buildPayment()
 
         assertTrue(provision.hasChanged())
     }
 
     @Test
-    fun `reject null scheduler assignment`() {
+    fun `reject null payment info assignment`() {
         val provision = buildProvision(type = ProvisionType.DEPRECIATE_LOAN)
 
-        assertThrows(DomainException.Validation.ProvisionWithLoanMustHaveAScheduler::class.java) {
-            provision.scheduler = null
+        assertThrows(DomainException.BusinessLogic.ProvisionWithLoanMustHaveAScheduleInvoice::class.java) {
+            provision.paymentInfo = null
         }
     }
 
     @Test
-    fun `reject scheduler on non loan provision`() {
+    fun `reject payment info on non loan provision`() {
         val provision = buildProvision(type = ProvisionType.DEPRECIATE)
 
-        val exception = assertThrows(DomainException.Validation.ProvisionWithLoanMustHaveAScheduler::class.java) {
-            provision.scheduler = Scheduler(LocalDateTime.now())
+        val exception = assertThrows(DomainException.BusinessLogic.ProvisionWithLoanMustHaveAScheduleInvoice::class.java) {
+            provision.paymentInfo = buildPayment()
         }
 
-        assertEquals("PROVISION_WITH_LOAN_MUST_HAVE_AS_SCHEDULE", exception.code)
+        assertEquals("PROVISION_WITH_LOAN_MUST_HAVE_AS_SCHEDULE_INVOICE", exception.code)
     }
 
     // ---------------------------------------------------------------
@@ -250,8 +302,7 @@ class ProvisionTest {
         val provision = buildProvision(
             initialCost = 1500.0,
             type = ProvisionType.DEPRECIATE,
-            interestLoan = 10.0,
-            loanMonth = 12
+            interestLoan = 10.0
         )
 
         assertEquals(1500.0, provision.calculateTotalCost())
@@ -323,7 +374,7 @@ class ProvisionTest {
     }
 
     @Test
-    fun `monthly payment spreads initial cost for non loan provision`() {
+    fun `monthly payment spreads total cost over loan month`() {
         val provision = buildProvision(
             initialCost = 2400.0,
             type = ProvisionType.DEPRECIATE,
@@ -348,10 +399,9 @@ class ProvisionTest {
     fun `cost per month spreads depreciable amount over lifespan`() {
         val provision = buildProvision(
             initialCost = 1200.0,
-            acquisitionDate = LocalDate.now(),
             expectedLifespanMonth = 12,
             floorValue = 0.0,
-            depreciationCriteria = listOf(
+            depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Half", "Half depreciated", DepreciationType.FIX, 600.0)
             )
         )
@@ -391,90 +441,101 @@ class ProvisionTest {
 
     @Test
     fun `residual value equals initial cost when no criteria`() {
-        val provision = buildProvision(initialCost = 1000.0, acquisitionDate = LocalDate.now().minusMonths(10))
+        val provision = buildProvision(initialCost = 1000.0)
 
-        assertEquals(1000.0, provision.calculateResidualValue(), 0.0001)
+        assertEquals(1000.0, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(10)), 0.0001)
     }
 
     @Test
-    fun `residual value ignores percentage criteria with zero or negative value`() {
+    fun `reject declining balance criteria without month range`() {
+        val exception = assertThrows(DomainException.Validation.ProvisionDepreciateCriteriaDecliningBalanceMustHaveRangeGreaterThanZero::class.java) {
+            ProvisionDepreciateCriteria("Declining", "No range", DepreciationType.DECLINING_BALANCE, 24.0, 0)
+        }
+
+        assertEquals("PROVISION_DEPRECIATE_CRITERIA_DECLINING_BALANCE_MUST_HAVE_RANGE_GREATER_THAN_ZERO", exception.code)
+    }
+
+    @Test
+    fun `accept declining balance criteria with positive month range`() {
+        val criteria = ProvisionDepreciateCriteria("Declining", "With range", DepreciationType.DECLINING_BALANCE, 24.0, 12)
+
+        assertEquals(12, criteria.monthRange)
+    }
+
+    @Test
+    fun `residual value ignores criteria with zero or negative value`() {
         val provision = buildProvision(
-            acquisitionDate = LocalDate.now().minusMonths(5),
-            depreciationCriteria = listOf(
+            depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Zero", "No effect", DepreciationType.STRAIGHT_LINE, 0.0),
-                ProvisionDepreciateCriteria("Negative", "No effect", DepreciationType.DECLINING_BALANCE, -10.0),
+                ProvisionDepreciateCriteria("Negative", "No effect", DepreciationType.DECLINING_BALANCE, -10.0, 12),
                 ProvisionDepreciateCriteria("Zero fix", "No effect", DepreciationType.FIX, 0.0)
             )
         )
 
-        assertEquals(1000.0, provision.calculateResidualValue(), 0.0001)
+        assertEquals(1000.0, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(5)), 0.0001)
     }
 
     @Test
     fun `residual value does not apply depreciation before ownership starts`() {
         val provision = buildProvision(
-            acquisitionDate = LocalDate.now().plusMonths(3),
-            depreciationCriteria = listOf(
+            depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Declining", "Declining", DepreciationType.DECLINING_BALANCE, 24.0, 12),
                 ProvisionDepreciateCriteria("Straight", "10 percent per year", DepreciationType.STRAIGHT_LINE, 10.0)
             )
         )
 
-        assertEquals(1000.0, provision.calculateResidualValue(), 0.0001)
+        assertEquals(1000.0, provision.calculateResidualValue(ACQUISITION_DATE.minusMonths(3)), 0.0001)
+        assertEquals(1000.0, provision.calculateResidualValue(ACQUISITION_DATE), 0.0001)
     }
 
     @Test
     fun `residual value applies declining balance for owned months`() {
         val provision = buildProvision(
-            acquisitionDate = LocalDate.now().minusMonths(3),
-            depreciationCriteria = listOf(
+            depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Declining", "24 percent per year", DepreciationType.DECLINING_BALANCE, 24.0, 12)
             )
         )
 
         val expected = 1000.0 * (1.0 - (24.0 / 100.0) / 12.0).pow(3.0)
 
-        assertEquals(expected, provision.calculateResidualValue(), 0.0001)
-        assertEquals(941.192, provision.calculateResidualValue(), 0.0001)
+        assertEquals(expected, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(3)), 0.0001)
+        assertEquals(941.192, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(3)), 0.0001)
     }
 
     @Test
     fun `residual value caps declining balance at criteria month range`() {
         val provision = buildProvision(
-            acquisitionDate = LocalDate.now().minusMonths(24),
-            depreciationCriteria = listOf(
+            depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Declining", "24 percent per year", DepreciationType.DECLINING_BALANCE, 24.0, 6)
             )
         )
 
         val expected = 1000.0 * (1.0 - (24.0 / 100.0) / 12.0).pow(6.0)
 
-        assertEquals(expected, provision.calculateResidualValue(), 0.0001)
-        assertEquals(885.842380864, provision.calculateResidualValue(), 0.0001)
+        assertEquals(expected, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(24)), 0.0001)
+        assertEquals(885.842380864, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(24)), 0.0001)
     }
 
     @Test
     fun `residual value applies straight line based on months owned`() {
         val provision = buildProvision(
             initialCost = 1200.0,
-            acquisitionDate = LocalDate.now().minusMonths(6),
-            depreciationCriteria = listOf(
+            depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Straight", "10 percent per year", DepreciationType.STRAIGHT_LINE, 10.0)
             )
         )
 
         val expected = 1200.0 - 1200.0 * ((10.0 / 100.0) / 12.0) * 6
 
-        assertEquals(expected, provision.calculateResidualValue(), 0.0001)
-        assertEquals(1140.0, provision.calculateResidualValue(), 0.0001)
+        assertEquals(expected, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
+        assertEquals(1140.0, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
     }
 
     @Test
     fun `residual value chains multiple percentage criteria sorted by month range`() {
         val provision = buildProvision(
             initialCost = 1200.0,
-            acquisitionDate = LocalDate.now().minusMonths(6),
-            depreciationCriteria = listOf(
+            depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Second", "20 percent per year", DepreciationType.STRAIGHT_LINE, 20.0, 12),
                 ProvisionDepreciateCriteria("First", "10 percent per year", DepreciationType.STRAIGHT_LINE, 10.0, 0)
             )
@@ -483,15 +544,14 @@ class ProvisionTest {
         val afterFirst = 1200.0 - 1200.0 * ((10.0 / 100.0) / 12.0) * 6
         val expected = afterFirst - 1200.0 * ((20.0 / 100.0) / 12.0) * 6
 
-        assertEquals(expected, provision.calculateResidualValue(), 0.0001)
-        assertEquals(1020.0, provision.calculateResidualValue(), 0.0001)
+        assertEquals(expected, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
+        assertEquals(1020.0, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
     }
 
     @Test
     fun `residual value combines straight line and declining balance`() {
         val provision = buildProvision(
-            acquisitionDate = LocalDate.now().minusMonths(6),
-            depreciationCriteria = listOf(
+            depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Declining", "24 percent per year", DepreciationType.DECLINING_BALANCE, 24.0, 12),
                 ProvisionDepreciateCriteria("Straight", "10 percent per year", DepreciationType.STRAIGHT_LINE, 10.0, 0)
             )
@@ -500,27 +560,26 @@ class ProvisionTest {
         val afterStraightLine = 1000.0 - 1000.0 * ((10.0 / 100.0) / 12.0) * 6
         val expected = afterStraightLine * (1.0 - (24.0 / 100.0) / 12.0).pow(6.0)
 
-        assertEquals(expected, provision.calculateResidualValue(), 0.0001)
-        assertEquals(841.5503, provision.calculateResidualValue(), 0.0001)
+        assertEquals(expected, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
+        assertEquals(841.5503, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
     }
 
     @Test
     fun `residual value subtracts fixed amounts`() {
         val provision = buildProvision(
-            depreciationCriteria = listOf(
+            depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Battery", "Battery replacement", DepreciationType.FIX, 250.0),
                 ProvisionDepreciateCriteria("Screen", "Screen wear", DepreciationType.FIX, 100.0)
             )
         )
 
-        assertEquals(650.0, provision.calculateResidualValue(), 0.0001)
+        assertEquals(650.0, provision.calculateResidualValue(ACQUISITION_DATE.plusYears(2)), 0.0001)
     }
 
     @Test
     fun `residual value applies fixed percentage on current residual`() {
         val provision = buildProvision(
-            acquisitionDate = LocalDate.now().minusMonths(6),
-            depreciationCriteria = listOf(
+            depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Vat", "Vat deduction", DepreciationType.FIX_PERCENTAGE, 20.0),
                 ProvisionDepreciateCriteria("Straight", "10 percent per year", DepreciationType.STRAIGHT_LINE, 10.0, 0)
             ),
@@ -530,31 +589,31 @@ class ProvisionTest {
         val afterStraightLine = 1000.0 - 1000.0 * ((10.0 / 100.0) / 12.0) * 6
         val expected = afterStraightLine - afterStraightLine * (20.0 / 100.0)
 
-        assertEquals(expected, provision.calculateResidualValue(), 0.0001)
-        assertEquals(760.0, provision.calculateResidualValue(), 0.0001)
+        assertEquals(expected, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
+        assertEquals(760.0, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
     }
 
     @Test
     fun `residual value never goes below floor value`() {
         val provision = buildProvision(
             floorValue = 300.0,
-            depreciationCriteria = listOf(
+            depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Big fix", "Almost all value", DepreciationType.FIX, 800.0)
             )
         )
 
-        assertEquals(300.0, provision.calculateResidualValue(), 0.0001)
+        assertEquals(300.0, provision.calculateResidualValue(ACQUISITION_DATE.plusYears(2)), 0.0001)
     }
 
     @Test
     fun `residual value stays above floor value when depreciation is small`() {
         val provision = buildProvision(
             floorValue = 100.0,
-            depreciationCriteria = listOf(
+            depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Small fix", "Little wear", DepreciationType.FIX, 100.0)
             )
         )
 
-        assertEquals(900.0, provision.calculateResidualValue(), 0.0001)
+        assertEquals(900.0, provision.calculateResidualValue(ACQUISITION_DATE.plusYears(2)), 0.0001)
     }
 }
