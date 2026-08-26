@@ -1,4 +1,5 @@
 import type { CalendarDate } from "@internationalized/date"
+import type { GetProvisionResponse } from "../api/provision"
 
 export type EditProvisionType = {
     title: string
@@ -8,11 +9,7 @@ export type EditProvisionType = {
     residualValue: number
 }
 
-export type ProvisionType = {
-    id: string,
-    title: string,
-    initialCost: number,
-    acquisitionDate: Date,
-    expectedLifespanMonth: number,
-    residualValue: number
-}
+
+export type Provision = Omit<GetProvisionResponse, 'acquisitionDate', 'nextPaymentDate'> & {
+    acquisitionDate: Date, nextPaymentDate?: Date
+} 

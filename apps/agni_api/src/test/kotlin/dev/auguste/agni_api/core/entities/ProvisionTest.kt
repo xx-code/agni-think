@@ -517,6 +517,59 @@ class ProvisionTest {
     }
 
     @Test
+    fun `residual value consumes whole bracket when owned longer than its range`() {
+        val provision = buildProvision(
+            depreciationCriteria = mutableListOf(
+                ProvisionDepreciateCriteria("Declining", "24 percent per year", DepreciationType.DECLINING_BALANCE, 24.0, 12)
+            )
+        )
+
+        val expected = 1000.0 * (1.0 - (24.0 / 100.0) / 12.0).pow(12.0)
+
+        assertEquals(expected, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(24)), 0.0001)
+        assertEquals(784.7167, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(24)), 0.01)
+    }
+
+    @Test
+    fun `residual value applies each declining balance tranche to its own bracket`() {
+        val provision = buildProvision(
+            depreciationCriteria = mutableListOf(
+                ProvisionDepreciateCriteria("First year", "24 percent per year", DepreciationType.DECLINING_BALANCE, 24.0, 12),
+                ProvisionDepreciateCriteria("Second year", "12 percent per year", DepreciationType.DECLINING_BALANCE, 12.0, 24)
+            )
+        )
+
+        val firstBracketMonths = 12.0
+        val secondBracketMonths = 6.0
+        val expected = 1000.0 *
+                (1.0 - (24.0 / 100.0) / 12.0).pow(firstBracketMonths) *
+                (1.0 - (12.0 / 100.0) / 12.0).pow(secondBracketMonths)
+
+        assertEquals(expected, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(18)), 0.0001)
+        assertEquals(738.7952, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(18)), 0.01)
+    }
+
+    @Test
+    fun `residual value stops applying tranches beyond owned months`() {
+        val provision = buildProvision(
+            depreciationCriteria = mutableListOf(
+                ProvisionDepreciateCriteria("Half year", "24 percent per year", DepreciationType.DECLINING_BALANCE, 24.0, 6),
+                ProvisionDepreciateCriteria("First year", "12 percent per year", DepreciationType.DECLINING_BALANCE, 12.0, 12),
+                ProvisionDepreciateCriteria("Second year", "10 percent per year", DepreciationType.DECLINING_BALANCE, 10.0, 24)
+            )
+        )
+
+        val firstBracketMonths = 6.0
+        val secondBracketMonths = 3.0
+        val expected = 1000.0 *
+                (1.0 - (24.0 / 100.0) / 12.0).pow(firstBracketMonths) *
+                (1.0 - (12.0 / 100.0) / 12.0).pow(secondBracketMonths)
+
+        assertEquals(expected, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(9)), 0.0001)
+        assertEquals(859.5320, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(9)), 0.01)
+    }
+
+    @Test
     fun `residual value applies straight line based on months owned`() {
         val provision = buildProvision(
             initialCost = 1200.0,
@@ -532,7 +585,7 @@ class ProvisionTest {
     }
 
     @Test
-    fun `residual value chains multiple percentage criteria sorted by month range`() {
+    fun `residual value combines straight line criteria by summing their annual rates`() {
         val provision = buildProvision(
             initialCost = 1200.0,
             depreciationCriteria = mutableListOf(
@@ -541,27 +594,26 @@ class ProvisionTest {
             )
         )
 
-        val afterFirst = 1200.0 - 1200.0 * ((10.0 / 100.0) / 12.0) * 6
-        val expected = afterFirst - 1200.0 * ((20.0 / 100.0) / 12.0) * 6
+        val expected = 1200.0 - 1200.0 * (((10.0 + 20.0) / 100.0) / 12.0) * 6
 
         assertEquals(expected, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
         assertEquals(1020.0, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
     }
 
     @Test
-    fun `residual value combines straight line and declining balance`() {
+    fun `residual value applies declining balance before straight line deduction`() {
         val provision = buildProvision(
             depreciationCriteria = mutableListOf(
                 ProvisionDepreciateCriteria("Declining", "24 percent per year", DepreciationType.DECLINING_BALANCE, 24.0, 12),
-                ProvisionDepreciateCriteria("Straight", "10 percent per year", DepreciationType.STRAIGHT_LINE, 10.0, 0)
+                ProvisionDepreciateCriteria("Straight", "10 percent per year", DepreciationType.STRAIGHT_LINE, 10.0)
             )
         )
 
-        val afterStraightLine = 1000.0 - 1000.0 * ((10.0 / 100.0) / 12.0) * 6
-        val expected = afterStraightLine * (1.0 - (24.0 / 100.0) / 12.0).pow(6.0)
+        val afterDecliningBalance = 1000.0 * (1.0 - (24.0 / 100.0) / 12.0).pow(6.0)
+        val expected = afterDecliningBalance - 1000.0 * ((10.0 / 100.0) / 12.0) * 6
 
         assertEquals(expected, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
-        assertEquals(841.5503, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
+        assertEquals(835.8424, provision.calculateResidualValue(ACQUISITION_DATE.plusMonths(6)), 0.0001)
     }
 
     @Test

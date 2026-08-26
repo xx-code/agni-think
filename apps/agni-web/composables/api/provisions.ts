@@ -1,9 +1,9 @@
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from "~/types/api";
 import type { CreateProvisionRequest, GetProvisionResponse, UpdateProvisionRequest } from "~/types/api/provision";
 import { listProvisionsResponseToListProvisions, provisionResponseToProvision } from "~/mappers/provision";
-import type { ProvisionType } from "~/types/ui/provision";
 import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
 import { API_ROUTES } from "~/shared/routes";
+import type { Provision } from "~/types/ui/provision";
 
 export async function createProvision(request: CreateProvisionRequest): Promise<CreatedRequest> {
     return await ApiLinkBuilder
@@ -28,7 +28,7 @@ export async function deleteProvision(id: string): Promise<void> {
         .execute()
 }
 
-export async function fetchProvision(id: string): Promise<ProvisionType> {
+export async function fetchProvision(id: string): Promise<Provision> {
     return await ApiLinkBuilder
         .route<GetProvisionResponse>(API_ROUTES.PROVISIONS.GET_PROVISION)
         .params({ id: id })
@@ -36,7 +36,7 @@ export async function fetchProvision(id: string): Promise<ProvisionType> {
         .execute()
 }
 
-export async function fetchProvisions(query: QueryFilterRequest): Promise<ListResponse<ProvisionType>> {
+export async function fetchProvisions(query: QueryFilterRequest): Promise<ListResponse<Provision>> {
     return await ApiLinkBuilder
         .route<ListResponse<GetProvisionResponse>>(API_ROUTES.PROVISIONS.GET_PROVISIONS)
         .query(query)

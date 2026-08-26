@@ -81,29 +81,34 @@ class Provision(
         val monthsOwned = ChronoUnit.MONTHS.between(acquisitionDate, date).coerceAtLeast(0)
         var residual = initialCost
 
-        val percentageCriteria = depreciationCriteria.filter {
-            it.type == DepreciationType.DECLINING_BALANCE || it.type == DepreciationType.STRAIGHT_LINE
+        val decliningBalances = depreciationCriteria.filter {
+            it.type == DepreciationType.DECLINING_BALANCE
         }.sortedBy { it.monthRange }
 
-        percentageCriteria.forEach { criteria ->
-            when (criteria.type) {
-                DepreciationType.DECLINING_BALANCE -> {
-                    // Nombre de mois applicables pour cette tranche
-                    val applicableMonths = monthsOwned.coerceAtMost(criteria.monthRange.toLong()).toDouble()
-                    if (applicableMonths > 0 && criteria.value > 0.0) {
-                        // Conversion du taux annuel en facteur d'amortissement mensuel
-                        val annualRate = criteria.value / 100.0
-                        val monthlyFactor = 1.0 - (annualRate / 12.0)
-                        residual *= monthlyFactor.pow(applicableMonths)
-                    }
-                }
-                DepreciationType.STRAIGHT_LINE -> {
-                    if (criteria.value > 0.0) {
-                        val monthlyDepreciation = initialCost * ((criteria.value / 100.0) / 12.0)
-                        residual -= monthlyDepreciation * monthsOwned
-                    }
-                }
-                else -> {}
+        var previousRange = 0L
+        for (criteria in decliningBalances) {
+            if (monthsOwned <= previousRange) break
+
+            val monthsInCurrentBracket = (monthsOwned - previousRange)
+                .coerceAtMost(criteria.monthRange.toLong() - previousRange)
+
+            if (monthsInCurrentBracket > 0 && criteria.value > 0.0) {
+                val annualRate = criteria.value / 100.0
+                val monthlyFactor = 1.0 - (annualRate / 12.0)
+                residual *= monthlyFactor.pow(monthsInCurrentBracket.toDouble())
+            }
+            previousRange = criteria.monthRange.toLong()
+        }
+
+        val straightLineCriteria = depreciationCriteria.filter {
+            it.type == DepreciationType.STRAIGHT_LINE
+        }
+
+        if (straightLineCriteria.isNotEmpty()) {
+            val totalStraightLineAnnualRate = straightLineCriteria.sumOf { it.value }
+            if (totalStraightLineAnnualRate > 0.0) {
+                val monthlyDepreciation = initialCost * ((totalStraightLineAnnualRate / 100.0) / 12.0)
+                residual -= monthlyDepreciation * monthsOwned
             }
         }
 

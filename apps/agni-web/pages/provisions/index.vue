@@ -5,7 +5,7 @@ import { getLocalTimeZone } from '@internationalized/date';
 import { createProvision, deleteProvision, fetchProvision, fetchProvisions, updateProvision } from '~/composables/api/provisions';
 import { provisionSummaryResponseToProvisionSummary } from '~/mappers/analytics';
 import { API_ROUTES } from '~/shared/routes';
-import type { EditProvisionType, ProvisionType } from '~/types/ui/provision';
+import type { EditProvisionType, Provision } from '~/types/ui/provision';
 
 const isLoadingSummary = ref(false)
 const overlay = useOverlay();
@@ -27,25 +27,25 @@ const { data, error, refresh } = useAsyncData('provision+all', async () => {
     return res
 })
 
-async function onSubmitProvision(value: EditProvisionType, oldValue?: ProvisionType) {
+async function onSubmitProvision(value: EditProvisionType, oldValue?: Provision) {
     try {
-        if (oldValue) {
-            await updateProvision(oldValue.id, {
-                title: value.title,
-                initialCost: value.initialCost,
-                acquisitionDate: value.acquisitionDate?.toDate(getLocalTimeZone()).toISOString(),
-                expectedLifespanMonth: value.expectedLifespanMonth,
-                residualValue: value.residualValue
-            })
-        } else {
-            await createProvision({
-                title: value.title,
-                initialCost: value.initialCost,
-                acquisitionDate: value.acquisitionDate.toDate(getLocalTimeZone()).toISOString(),
-                expectedLifespanMonth: value.expectedLifespanMonth,
-                residualValue: value.residualValue
-            })
-        }
+        // if (oldValue) {
+        //     await updateProvision(oldValue.id, {
+        //         title: value.title,
+        //         initialCost: value.initialCost,
+        //         acquisitionDate: value.acquisitionDate?.toDate(getLocalTimeZone()).toISOString(),
+        //         expectedLifespanMonth: value.expectedLifespanMonth,
+        //         residualValue: value.residualValue
+        //     })
+        // } else {
+        //     await createProvision({
+        //         title: value.title,
+        //         initialCost: value.initialCost,
+        //         acquisitionDate: value.acquisitionDate.toDate(getLocalTimeZone()).toISOString(),
+        //         expectedLifespanMonth: value.expectedLifespanMonth,
+        //         residualValue: value.residualValue
+        //     })
+        // }
         await refresh()
     } catch (err) {
         const nuxtError = err as NuxtError
@@ -54,7 +54,7 @@ async function onSubmitProvision(value: EditProvisionType, oldValue?: ProvisionT
 }
 
 const openModalProvision = async (provisionId?: string) => {
-    let provision: ProvisionType | undefined = undefined;
+    let provision: Provision | undefined = undefined;
     if (provisionId) {
         provision = await fetchProvision(provisionId);
     }
@@ -81,25 +81,18 @@ function getElapsedMonths(acquisitionDate: Date): number {
     return Math.max(0, (now.getFullYear() - acq.getFullYear()) * 12 + (now.getMonth() - acq.getMonth()))
 }
 
-function getAmortizationPercent(provision: ProvisionType): number {
+function getAmortizationPercent(provision: Provision): number {
     const elapsed = getElapsedMonths(provision.acquisitionDate)
     return Math.min(100, Math.round((elapsed / provision.expectedLifespanMonth) * 100))
 }
 
-function getCurrentBookValue(provision: ProvisionType): number {
-    const elapsed = getElapsedMonths(provision.acquisitionDate)
-    const depreciable = provision.initialCost - provision.residualValue
-    const monthlyDep = depreciable / provision.expectedLifespanMonth
-    const bookValue = provision.initialCost - monthlyDep * Math.min(elapsed, provision.expectedLifespanMonth)
-    return Math.max(provision.residualValue, bookValue)
-}
 
-function getMonthlyProvision(provision: ProvisionType): number {
+function getMonthlyProvision(provision: Provision): number {
     const depreciable = provision.initialCost - provision.residualValue
     return depreciable / provision.expectedLifespanMonth
 }
 
-function getRemainingMonths(provision: ProvisionType): number {
+function getRemainingMonths(provision: Provision): number {
     const elapsed = getElapsedMonths(provision.acquisitionDate)
     return Math.max(0, provision.expectedLifespanMonth - elapsed)
 }
@@ -133,15 +126,6 @@ function formatDate(date: Date): string {
 // --- Summary ---
 
 const provisions = computed(() => data.value?.items ?? [])
-
-const summary = computed(() => {
-    const items = provisions.value
-    const totalInitial = items.reduce((s, p) => s + p.initialCost, 0)
-    const totalBookValue = items.reduce((s, p) => s + getCurrentBookValue(p), 0)
-    const totalMonthly = items.reduce((s, p) => s + getMonthlyProvision(p), 0)
-    const active = items.filter(p => getAmortizationPercent(p) < 100).length
-    return { totalInitial, totalBookValue, totalMonthly, active, total: items.length }
-})
 
 const searchQuery = ref('')
 
@@ -283,7 +267,7 @@ const filteredProvisions = computed(() => {
                             <div class="text-center border-x border-gray-100">
                                 <p class="text-xs text-gray-400 mb-0.5">Valeur actuelle</p>
                                 <p class="text-sm font-bold" :class="getStatusColor(getAmortizationPercent(provision))">
-                                    {{ formatCurrency(getCurrentBookValue(provision)) }}
+                                    {{ formatCurrency(provision.residualValue) }}
                                 </p>
                             </div>
                             <div class="text-center">
