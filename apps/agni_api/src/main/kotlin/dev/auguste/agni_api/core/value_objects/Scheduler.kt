@@ -13,17 +13,21 @@ data class Scheduler(val date: LocalDateTime, val repeater: SchedulerRecurrence?
         if (repeater == null)
             return date
 
+        require(repeater.interval > 0) {
+            "Repeater interval must be strictly positive, got ${repeater.interval}"
+        }
+
         val now = LocalDateTime.now()
         var next = date
 
-        do {
+        while (next.isBefore(now)) {
             next = when(repeater.period) {
                 PeriodType.YEAR -> next.plusYears(repeater.interval.toLong())
                 PeriodType.MONTH -> next.plusMonths(repeater.interval.toLong())
                 PeriodType.WEEK -> next.plusWeeks(repeater.interval.toLong())
                 PeriodType.DAY -> next.plusDays(repeater.interval.toLong())
             }
-        } while (next.isBefore(now))
+        }
 
         return next
     }

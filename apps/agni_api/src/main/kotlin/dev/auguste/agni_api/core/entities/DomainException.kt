@@ -1,6 +1,8 @@
 package dev.auguste.agni_api.core.entities
 
+import dev.auguste.agni_api.core.entities.DomainException.Validation
 import dev.auguste.agni_api.core.entities.enums.GoalEvaluationType
+import dev.auguste.agni_api.core.value_objects.Scheduler
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -10,6 +12,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class Category(id: UUID) : NotFound("CATEGORY_NOT_FOUND", "La categorie est introuvable $id")
         class SomeAccounts(ids: Set<UUID>) : NotFound("SOME_ACCOUNT_NOT_FOUND", "Un ou des comptes dans cette liste [${ids.joinToString(", ")}] sont introuvable")
         class Provisionable(id: UUID) : NotFound("PROVISIONABLE_NOT_FOUND", "Provisionable not found $id")
+        class ProvisionableScheduleInvoice(id: UUID) : NotFound("PROVISIONABLE_SCHEDULE_INVOICE_NOT_FOUND", "La facture scheduler de provisionable est introuvable id: $id")
         class Patrimony(id: UUID) : NotFound("PATRIMONY_NOT_FOUND", "Patrimony not found $id")
         class FinanceReport(id: UUID) : NotFound("FINANCE_REPORT_NOT_FOUND", "FinanceReport not found $id")
         class Currency(id: UUID) : NotFound("CURRENCY_NOT_FOUND", "Currency not found $id")
@@ -67,9 +70,14 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class InternalLoanRefundNotValid(amount: Double, loanAmount: Double): BusinessLogic("INTERNAL_LOAD_REFUND_NOT_VALID", "L'argent a freezer  $amount$ doit etre inferieur $loanAmount$")
         class GoalStrategyNotExist(type: GoalEvaluationType): BusinessLogic("GOAL_STRATEGY_NOT_EXIST", "Goal strategy not exist $type")
         class GoalTargetAmountMustBeLeastFund(balance: Double, targetAmount: Double): BusinessLogic("GOAL_TARGET_AMOUNT_MUST_LEAST_FUND", "le montant cible $targetAmount doit etre inferieur a $balance$")
+        class ProvisionWithLoanMustHaveAScheduleInvoice(): BusinessLogic("PROVISION_WITH_LOAN_MUST_HAVE_AS_SCHEDULE_INVOICE", "Si vous avez un pret sur un actif depreciative il faut un scheduler")
+        class ProvisionWithLoanMustHaveCantBeByDay(): BusinessLogic("PROVISION_WITH_LOAN_CANT_BE_BY_DAY", "Les pret sur des actif ne peuvent pas se decomposer par jour")
     }
 
     sealed class Validation(code: String, message: String): DomainException(code, message) {
         class InvalidColor(color: String): Validation("INVALID_COLOR","Format de couleur hexadécimale invalide: $color")
+        class ProvisionDepreciateLoanInterestPositif(interest: Double): Validation("PROVISION_DEPRECIATE_INTEREST_POSITIF", "L'interest $interest ne dois pas etre negatif")
+        class ProvisionDepreciateLoanMonthMustBeGreaterThanZero(month: Long): Validation("PROVISION_DEPRECIATE_LOAN_MONTH_MUST_BE_GREATER_THAN_ZERO", "Le nombre de mois $month dois etre supperieur a 0")
+        class ProvisionDepreciateCriteriaDecliningBalanceMustHaveRangeGreaterThanZero(montRange: Int): Validation("PROVISION_DEPRECIATE_CRITERIA_DECLINING_BALANCE_MUST_HAVE_RANGE_GREATER_THAN_ZERO", "Un critere degressive doit avoir les paliers mensuels supperieur a zero")
     }
 }

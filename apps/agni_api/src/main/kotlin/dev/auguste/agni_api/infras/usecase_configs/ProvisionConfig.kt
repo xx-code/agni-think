@@ -2,6 +2,7 @@ package dev.auguste.agni_api.infras.usecase_configs
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
@@ -33,9 +34,11 @@ class ProvisionConfig {
 
     @Bean
     fun updateProvision(
+        unitOfWork: IUnitOfWork,
         provisionRepo: IRepository<Provision>
     ): IUseCase<UpdateProvisionInput, Unit> {
         return UpdateProvisionable(
+            unitOfWork = unitOfWork,
             provisionRepo = provisionRepo
         )
     }

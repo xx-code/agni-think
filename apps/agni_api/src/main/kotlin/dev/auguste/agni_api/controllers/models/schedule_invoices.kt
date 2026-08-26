@@ -49,7 +49,6 @@ data class ApiUpdateScheduleInvoiceModel(
 
 fun mapApiCreateScheduleInvoice(model: ApiCreateScheduleInvoiceModel): CreateScheduleInvoiceInput {
     return CreateScheduleInvoiceInput(
-        name = model.name,
         accountId = model.accountId,
         amount = model.amount,
         description = model.description,

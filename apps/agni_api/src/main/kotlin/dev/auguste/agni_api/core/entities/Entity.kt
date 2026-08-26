@@ -32,4 +32,13 @@ abstract class Entity {
     }
 }
 
-fun<T> cleanObservable(init: T, entity: Entity) = Delegates.observable<T>(init) { _, props, newValue -> if(props != newValue) entity.markHasChanged()}
+fun<T> cleanObservable(init: T, entity: Entity,  isCorrectValue: ((T) -> Boolean)? = null, isCorrectValueError: Exception? = null) = Delegates.observable<T>(init) {
+    _, props, newValue ->
+
+    if (isCorrectValue != null) {
+        if (isCorrectValueError == null) throw Error("You have to init Error when correct value")
+        if (!isCorrectValue(newValue)) throw isCorrectValueError
+    }
+
+    if(props != newValue) entity.markHasChanged()
+}

@@ -8,7 +8,6 @@ import java.util.UUID
 data class SchedulerInvoiceInput(val dueDate: LocalDateTime, val repeater: ScheduleRepeaterInput? = null)
 
 data class CreateScheduleInvoiceInput(
-    val name: String,
     val accountId: UUID,
     val amount: Double,
     val description: String,

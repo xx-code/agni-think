@@ -3,6 +3,7 @@ package dev.auguste.agni_api.core.usecases.provisionable
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Provision
+import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.provisionable.dto.GetProvisionOutput
@@ -21,7 +22,12 @@ class GetAllProvisionable(
                     initialCost = it.initialCost,
                     acquisitionDate = it.acquisitionDate,
                     expectedLifespanMonth = it.expectedLifespanMonth,
-                    residualValue = it.residualValue
+                    totalCost = it.calculateTotalCost(),
+                    costByMonth = it.calculateTotalCostPerMonth(),
+                    monthlyPayment = it.calculateMonthlyPayment(),
+                    residualValue = it.calculateResidualValue(),
+                    nextPaymentDate = it.paymentInfo?.scheduler?.date?.toLocalDate(),
+                    nextPaymentAmount = it.paymentInfo?.paymentAmount,
                 )
             },
             total = provisionables.total,

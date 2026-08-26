@@ -7,7 +7,12 @@ data class GetProvisionOutput(
     val id: UUID,
     val title: String,
     val initialCost: Double,
+    val totalCost: Double,
     val acquisitionDate: LocalDate,
     val expectedLifespanMonth: Int,
-    val residualValue: Double
+    val costByMonth: Double,
+    val monthlyPayment: Double,
+    val residualValue: Double,
+    val nextPaymentDate: LocalDate?,
+    val nextPaymentAmount: Double?,
 )

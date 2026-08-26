@@ -17,8 +17,8 @@ class CreateScheduleInvoice(
     private val invoiceDependencies: InvoiceDependencies
 ): IUseCase<CreateScheduleInvoiceInput, CreatedOutput> {
     override fun execAsync(input: CreateScheduleInvoiceInput): CreatedOutput {
-        if (scheduleInvoiceRepo.existsByName(input.name))
-            throw DomainException.AlreadyExist.ScheduleInvoice("Account with name ${input.name} already exists")
+        if (scheduleInvoiceRepo.existsByName(input.description))
+            throw DomainException.AlreadyExist.ScheduleInvoice("Account with name ${input.description} already exists")
 
         if (invoiceDependencies.accountRepo.get(input.accountId) == null)
             throw DomainException.BusinessLogic.Validation("Account not found")
