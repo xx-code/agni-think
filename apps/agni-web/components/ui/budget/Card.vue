@@ -59,9 +59,8 @@ const actionItems = ref<DropdownMenuItem[][]>([
 </script>
 
 <template>
-    <div :class="[
-            'p-5 rounded-xl bg-white border  h-full cursor-pointer hover:shadow-sm',
-            percEv > 100 ? 'border-red-200' : 'border-gray-200'
+    <UiCard :class="['cursor-pointer',
+            percEv > 100 ? 'shadow-red-200' : ''
         ]">
         <div class="flex items-start gap-1 mb-4">
             <h3 class="flex-1 truncate min-w-0 font-bold text-lg" :title="budget.title">{{ budget.title }}</h3>
@@ -112,5 +111,5 @@ const actionItems = ref<DropdownMenuItem[][]>([
             <UKbd v-if="isClosed">Cloturer</UKbd>
         </div>
 
-    </div>
+    </UiCard>
 </template>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
 import { DateFormatter, getLocalTimeZone } from '@internationalized/date'
-import { fetchPlanningAdvisorAgent } from '~/composables/api/agents'
+import type { AgentPlanningAdvisorResponse } from '~/types/api/agent'
+import { getApiAgent } from '~/utils/env'
 import type { PlanningAgentAdvisorType } from '~/types/ui/agent'
 
 export type TargetGoal = {
@@ -73,14 +74,25 @@ async function makePlanning() {
     try {
         isAsked.value = true;
         isLoading.value = true;
-        const res = await fetchPlanningAdvisorAgent({
-            estimationPeriodStart: startDate.value.toDate(getLocalTimeZone()).toISOString(),
-            estimationPeriodEnd: endDate.value.toDate(getLocalTimeZone()).toISOString(),
-            amountToAllocate: amountToAllocate.value,
-            futureAmountToAllocate: futureAmountToAllocate.value,
-            wishSpends: wishSpends.value.map(i => ({ amount: i.amount, description: i.description})) 
+        const response = await $fetch<AgentPlanningAdvisorResponse>(`${getApiAgent()}/analytics/save-goal-planning`, {
+            method: 'POST',
+            body: {
+                estimationPeriodStart: startDate.value.toDate(getLocalTimeZone()).toISOString(),
+                estimationPeriodEnd: endDate.value.toDate(getLocalTimeZone()).toISOString(),
+                amountToAllocate: amountToAllocate.value,
+                futureAmountToAllocate: futureAmountToAllocate.value,
+                wishSpends: wishSpends.value.map(i => ({ amount: i.amount, description: i.description})) 
+            }
         });
-        agentResponse.value = res; 
+        agentResponse.value = {
+            comment: response.comment,
+            suggestGoalPlanning: response.suggestGoalPlanning.map(i => ({
+                amountSuggest: i.amountSuggest,
+                reason: i.reason,
+                saveGoalId: i.saveGoalId,
+                title: i.title
+            }))
+        }; 
         isLoading.value = false
     } catch(err) {
         isAsked.value = false;

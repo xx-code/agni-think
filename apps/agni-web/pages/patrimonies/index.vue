@@ -1,13 +1,14 @@
 <script lang="ts" setup>
 import type { NuxtError } from '#app';
-import { ModalEditPatrimony, ModalEditSnapshotPatrimony, SlideOverPatrimonySnapshot } from '#components';
-import type { TableColumn } from '#ui/types';
-import { getLocalTimeZone } from '@internationalized/date';
-import type { EditePatrimony, EditSnapshotPatrimony, PatrimonyType, SnapshotPatrimonyType } from '~/types/ui/patrimony';
-import { fetchPatrimonies, fetchPatrimony, fetchSnapshotsPatrimony, useUpdatePatrimony, useCreatePatrimony, useUpdateSnapshotPatrimony, useAddSnapshotPatrimony, useDeletePatrimony, useRemoveSnapshotPatrimony } from '~/composables/api/patrimonies.js';
-import { fetchPatrimonyEvolution, fetchPatrimonySummary } from '~/composables/api/analytics.ts';
-import { patrimonyToPatrimonyCard } from '~/mappers/patrimony.ts';
-import type { TypePatrimony } from '~/types/constants/patrimony.ts';
+import { ModalEditPatrimony, SlideOverPatrimonySnapshot } from '#components';
+import type { EditePatrimony , PatrimonyType  } from '~/types/ui/patrimony';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
+import { patrimonyResponseToPatrimony, patrimonyToPatrimonyCard } from '~/mappers/patrimony';
+import { patrimonyEvolutionResponseToPatrimonyEvolution } from '~/mappers/analytics';
+import type { CreatedRequest, ListResponse, QueryFilterRequest } from '~/types/api';
+import type { GetPatrimonyResponse } from '~/types/api/patrimony';
+import type { QueryPatrimonyEvolution, PatrimonySummaryResponse } from '~/types/api/analytics';
 
 const isLoadingSummary = ref(false)
 const isLoadingEvolution = ref(false)
@@ -15,18 +16,23 @@ const isLoading = ref(false)
 
 const {data:patrimonies, refresh} = useAsyncData('patrimonies+page+all', async () => {
     isLoading.value = true
-    const res = await fetchPatrimonies()
+    const query: QueryFilterRequest = { limit: 0, offset: 0, queryAll: true }
+    const res = await ApiLinkBuilder.route<ListResponse<GetPatrimonyResponse>>(API_ROUTES.PATRIMONIES.GET_PATRIMONIES).query(query).execute()
+    const mapped = {
+        items: res.items.map(i => patrimonyResponseToPatrimony(i)),
+        total: Number(res.total)
+    }
     isLoading.value = false
 
     return {
-        assets: res.items.filter(i => i.type === 'Asset'),
-        liabilities: res.items.filter(i => i.type === 'Liability')
+        assets: mapped.items.filter(i => i.type === 'Asset'),
+        liabilities: mapped.items.filter(i => i.type === 'Liability')
     }
 })
 
 const { data: patrimonySummary } = useAsyncData('patrimony-summary', async () => {
     isLoadingSummary.value = true
-    const res = await fetchPatrimonySummary()
+    const res = await ApiLinkBuilder.route<PatrimonySummaryResponse>(API_ROUTES.ANALYTICS.PATRIMONY_SUMMARY).execute()
 
     isLoadingSummary.value = false
 
@@ -35,10 +41,10 @@ const { data: patrimonySummary } = useAsyncData('patrimony-summary', async () =>
 
 const { data: patrimonyEvolutions } = useAsyncData('patrimony-evolutions', async () => {
     isLoadingEvolution.value = true
-    const res = await fetchPatrimonyEvolution({
+    const res = await ApiLinkBuilder.route(API_ROUTES.ANALYTICS.PATRIMONY_EVOLUTION).query({
         period: 'Month',
         interval: 6
-    })
+    } as QueryPatrimonyEvolution).mapper(patrimonyEvolutionResponseToPatrimonyEvolution).execute()
     isLoadingEvolution.value = false
 
     return res 
@@ -53,19 +59,19 @@ const slideOverSnapshot = overlay.create(SlideOverPatrimonySnapshot)
 async function onSubmitPatrimony(patrimony: EditePatrimony, oldPatrimony?: PatrimonyType) {
     try {
         if (oldPatrimony)
-            await useUpdatePatrimony(oldPatrimony.id, {
+            await ApiLinkBuilder.route(API_ROUTES.PATRIMONIES.UPDATE_PATRIMONY).params({id: oldPatrimony.id}).body({
                 title: patrimony.title,
                 type: patrimony.type,
                 amount: patrimony.amount,
                 accountIds: patrimony.accountIds, 
-            })
+            }).execute()
         else
-            await useCreatePatrimony({
+            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.PATRIMONIES.CREATE_PATRIMONY).body({
                 title: patrimony.title,
                 type: patrimony.type,
                 amount: patrimony.amount,
                 accountIds: patrimony.accountIds,
-            })
+            }).execute()
         refresh()
     } catch(err) {
         console.log(err)
@@ -79,7 +85,7 @@ async function openPatrimony(id?: string) {
 
     let patrimony: PatrimonyType|undefined 
     if (id)
-        patrimony = await fetchPatrimony(id)
+        patrimony = await ApiLinkBuilder.route<GetPatrimonyResponse>(API_ROUTES.PATRIMONIES.GET_PATRIMONY).params({id}).mapper(patrimonyResponseToPatrimony).execute()
     modalEditPatrimony.open({
         patrimony: patrimony,
         onSubmit: onSubmitPatrimony
@@ -105,7 +111,7 @@ async function deletePatrimony(patrimonyId: string) {
     try {
     const isOk = confirm("Voulez vous supprmier le patrimoine")
     if (isOk) {
-        await useDeletePatrimony(patrimonyId)
+        await ApiLinkBuilder.route(API_ROUTES.PATRIMONIES.DELETE_PATRIMONY).params({id: patrimonyId}).execute()
         refresh()
     }
     } catch(err) {
@@ -118,7 +124,19 @@ async function deletePatrimony(patrimonyId: string) {
 </script>
 
 <template> 
-    <div class="space-y-6 mt-6">
+    <UiPage>
+        <UiPageHeader 
+            title="Mon patrimoine"
+            :button="
+                {
+                    icon: 'i-lucide-plus',
+                    label: 'Ajouter un actif/passif'
+                }
+            "
+            subtitle="Voir et gerer l'evolution de mon patrimoine"
+            @click-button="openPatrimony()"
+        />
+
         <UiPatrimonyHeader 
             :networth="patrimonySummary?.networth ?? 0"
             :monthly-evolution="patrimonySummary?.monthlyEvolutionPerc ?? 0"
@@ -134,14 +152,6 @@ async function deletePatrimony(patrimonyId: string) {
             :liability-labels="patrimonies?.liabilities.map(i => i.title) ?? []"
             :liability-amounts="patrimonies?.liabilities.map(i => i.amount) ?? []"
         />
-
-        <!-- SECTION : Bouton ajout -->
-        <div class="flex justify-end">
-            <UButton 
-                label="Ajouter un patrimoine" 
-                icon="i-lucide-castle"
-                @click="openPatrimony()" />
-        </div>
 
         <div>
             <div class="mb-5">
@@ -177,5 +187,5 @@ async function deletePatrimony(patrimonyId: string) {
                 />
             </div>
         </div>
-    </div>
+    </UiPage>
 </template>

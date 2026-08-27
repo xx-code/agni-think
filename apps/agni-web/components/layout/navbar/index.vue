@@ -1,8 +1,12 @@
 <script lang="ts" setup>
 import type { NuxtError } from '#app'
 import { SlideOverNotification } from '#components'
-import { useCheckNotifications } from '~/composables/api/notifications'
-import type { ErrorResponse } from '~/types/api'
+import type { Result } from '~/types'
+import type { ErrorResponse, ListResponse } from '~/types/api'
+import type { NotificationQueryFilterRequest } from '~/types/api/notification'
+import { listNotificationsResponseToListNotifications } from '~/mappers/notification'
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder'
+import { API_ROUTES } from '~/shared/routes'
 
 const overlay = useOverlay()
 const slideOverNotification = overlay.create(SlideOverNotification)
@@ -11,9 +15,23 @@ const isLoading = ref(false)
 const hasNotifications = ref(false)
 const notificationError = ref<ErrorResponse>()
 
+async function checkHasUnreadNotifications(): Promise<Result<boolean>> {
+    try {
+        const query: NotificationQueryFilterRequest = { offset: 0, limit: 0, queryAll: true, isRead: false }
+        const res = await ApiLinkBuilder
+            .route(API_ROUTES.NOTIFICATIONS.GET_NOTIFICATIONS)
+            .query(query)
+            .mapper(listNotificationsResponseToListNotifications)
+            .execute()
+        return { success: true, data: res.items.length > 0 }
+    } catch(error: any) {
+        return { success: false, error: (error as NuxtError).data as ErrorResponse }
+    }
+}
+
 async function refreshNotification() {
     isLoading.value = true
-    const res = await useCheckNotifications()      
+    const res = await checkHasUnreadNotifications()      
     if (res.success)
         hasNotifications.value = res.data!
     else

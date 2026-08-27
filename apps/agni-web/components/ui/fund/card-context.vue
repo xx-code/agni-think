@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { fetchFund } from '~/composables/api/funds';
-import { deleteGoal, fetchAllGoal, fetchGoal } from '~/composables/api/goals';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
+import { fundResponseToFund } from '~/mappers/fund';
+import { goalResponseToGoal } from '~/mappers/goal';
 import { fundCardContextToFundGoalCards } from '~/mappers/fund';
 import { goalToGoalForm } from '~/mappers/goal';
+import type { ListResponse } from '~/types/api';
+import type { GetFundResponse, QueryFilterFundRequest } from '~/types/api/fund';
+import type { GoalQueryFilterRequest, GoalResponse } from '~/types/api/goal';
 import { GoalType } from '~/types/constants/goal';
 import type { FundContext } from '~/types/ui/fund';
 import type { GoalForm } from '~/types/form/goal';
@@ -12,7 +17,7 @@ const { fundId } = defineProps<{
     fundId: string
 }>()
 const emit = defineEmits<{
-    refresh: [boolean]
+    refresh: [refresh: boolean]
 }>()
 
 const isOpen = ref(false)
@@ -24,8 +29,14 @@ const { data:fund, refresh } = useAsyncData(`fundContext+${fundId}${(new Date())
     isLoading.value = true
 
     const [resFund, resGoals] = await Promise.all([
-        fetchFund(fundId),
-        fetchAllGoal({ limit: 0, offset: 4, queryAll: true, sourceId: fundId })
+        ApiLinkBuilder.route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND).params({id: fundId}).mapper(fundResponseToFund).execute(),
+        (async () => {
+            const raw = await ApiLinkBuilder.route<ListResponse<GoalResponse>>(API_ROUTES.GOALS.GET_GOALS).query({ limit: 0, offset: 4, queryAll: true, sourceId: fundId } as GoalQueryFilterRequest).execute()
+            return {
+                items: raw.items.map(i => goalResponseToGoal(i)),
+                total: raw.total
+            }
+        })()
     ])
     isLoading.value = false
 
@@ -50,7 +61,7 @@ const modal = overlay.create(ModalGoal)
 async function openGoalModal(goalId?: string) {
     let initData: GoalForm | undefined
     if (goalId) {
-        const goal = await fetchGoal(goalId)
+        const goal = await ApiLinkBuilder.route<GoalResponse>(API_ROUTES.GOALS.GET_GOAL).params({id: goalId}).mapper(goalResponseToGoal).execute()
         initData = goalToGoalForm(goal)
     }
 
@@ -68,7 +79,7 @@ async function openGoalModal(goalId?: string) {
 
 async function onClickDeleteGoal(id: string) {
     try {
-        await deleteGoal(id)
+        await ApiLinkBuilder.route(API_ROUTES.GOALS.DELETE_GOAL).params({id}).execute()
         refresh()
         emit('refresh', true)
     } catch (err: any) {

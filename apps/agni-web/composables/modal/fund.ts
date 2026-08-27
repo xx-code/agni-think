@@ -1,6 +1,9 @@
 import type { FundForm } from "~/types/form/fund"
-import { useCreateFund } from "../api/funds"
+import type { CreatedRequest } from "~/types/api"
+import type { CreateFundRequest } from "~/types/api/fund"
 import { fundFormToCreateFundRequest } from "~/mappers/fund"
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder"
+import { API_ROUTES } from "~/shared/routes"
 
 export const useFundModal = () => {
     const isOpen = useState('fundModal:isOpen', () => false)
@@ -30,7 +33,10 @@ export const useFundModal = () => {
         isLoading.value = true
         error.value = null
         try {
-            await useCreateFund(fundFormToCreateFundRequest(formState))
+            await ApiLinkBuilder
+                .route<CreatedRequest>(API_ROUTES.FUNDS.CREATE_FUND)
+                .body(fundFormToCreateFundRequest(formState))
+                .execute()
             close()
         } catch(err: any) {
             error.value = err.message  || 'Une erreur est survenue'

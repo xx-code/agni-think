@@ -2,10 +2,12 @@
 import { reactive } from "vue";
 import { CalendarDate, getLocalTimeZone } from '@internationalized/date';
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
-import { createGoal, updateGoal } from '~/composables/api/goals';
+import type { CreatedRequest } from '~/types/api';
 import type { GoalForm } from '~/types/form/goal';
 import { goalFormToCreateRequest, goalFormToUpdateRequest } from '~/mappers/goal';
 import type { GoalType } from '~/types/constants/goal';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 const { goalId, initData, type, targetSourceId } = defineProps<{
     goalId?: string
@@ -52,9 +54,16 @@ async function onSubmit(event: FormSubmitEvent<GoalForm>) {
     try {
         let id = goalId
         if (goalId && initData)
-            await updateGoal(goalId, goalFormToUpdateRequest(data))
+            await ApiLinkBuilder
+                .route(API_ROUTES.GOALS.UPDATE_GOAL)
+                .params({ id: goalId })
+                .body(goalFormToUpdateRequest(data))
+                .execute()
         else {
-            const res = await createGoal(goalFormToCreateRequest(data))
+            const res = await ApiLinkBuilder
+                .route<CreatedRequest>(API_ROUTES.GOALS.CREATE_GOAL)
+                .body(goalFormToCreateRequest(data))
+                .execute()
             id = res.newId
         }
 

@@ -1,5 +1,5 @@
-import type { GetEstimationLeftAmountResponse, GetSavingAnalysticResponse, PatrimonyEvolutionResponse } from "~/types/api/analytics";
-import type { EstimationLeftAmountType, NetworthPeriod, PatrimonyEvolution, SavingAnalysticType } from "~/types/ui/analytics";
+import type { GetEstimationLeftAmountResponse, GetProvisionSummaryResponse, GetSavingAnalysticResponse, PatrimonyEvolutionResponse } from "~/types/api/analytics";
+import type { EstimationLeftAmountType, NetworthPeriod, PatrimonyEvolution, ProvisionSummary, SavingAnalysticType } from "~/types/ui/analytics";
 
 export function estimationLeftAmountResponseToEstimationLeftAmount(data: GetEstimationLeftAmountResponse): EstimationLeftAmountType {
     return { estimateAmount: data.estimateAmount };
@@ -28,4 +28,8 @@ export function patrimonyEvolutionResponseToPatrimonyEvolution(data: PatrimonyEv
         networthByPeriod: data.networthByPeriod.map(i => ({...i, date: new Date(i.date)})),
         breakdown: tranformMap
     }
+}
+
+export function provisionSummaryResponseToProvisionSummary(data: GetProvisionSummaryResponse): ProvisionSummary {
+    return data
 }

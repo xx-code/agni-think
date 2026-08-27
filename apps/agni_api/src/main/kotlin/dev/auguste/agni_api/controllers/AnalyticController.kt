@@ -17,6 +17,7 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonyEvolutionInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonyEvolutionOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonySummaryOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetProvisionSummaryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryInput
@@ -42,6 +43,7 @@ class AnalyticController(
     private val getBudgetTotalSummary: IUseCase<Unit, GetBudgetTotalSummaryOutput>,
     private val getPatrimonySummary: IUseCase<Unit, GetPatrimonySummaryOutput>,
     private val getPatrimonyEvolution: IUseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput>,
+    private val getProvisionSummary: IUseCase<Unit, GetProvisionSummaryOutput>
 ) {
     @GetMapping("/spend-categories")
     fun getSpendCategoriesAnalytic(query: ApiGetCategoryAnalyticModel) : ResponseEntity<ListOutput<GetSpendByCategoryOutput>> {
@@ -130,5 +132,10 @@ class AnalyticController(
             PeriodType.fromString(query.period),
             query.interval
         )))
+    }
+
+    @GetMapping("/provision-summary")
+    fun getProvisionSummary() : ResponseEntity<GetProvisionSummaryOutput> {
+        return ResponseEntity.ok(getProvisionSummary.execAsync(Unit))
     }
 }

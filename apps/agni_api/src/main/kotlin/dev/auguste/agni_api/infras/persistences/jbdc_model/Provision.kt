@@ -1,12 +1,22 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Provision
+import dev.auguste.agni_api.core.entities.enums.ProvisionType
+import dev.auguste.agni_api.core.value_objects.ProvisionDepreciateCriteria
+import dev.auguste.agni_api.core.value_objects.ProvisionPayment
 import dev.auguste.agni_api.infras.persistences.IMapper
+import kotlinx.coroutines.reactor.mono
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.stereotype.Component
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 @Table("provisions")
@@ -19,7 +29,11 @@ data class JdbcProvisionModel(
     @Column("title")
     val name: String,
 
-    val initialCost: Double,
+    @Column("cost_ht")
+    val costHT: Double,
+
+    @Column("cost_ttc")
+    val costTTC: Double,
 
     @Column("acquisition_date")
     val acquisitionDate: LocalDate,
@@ -27,23 +41,66 @@ data class JdbcProvisionModel(
     @Column("expected_lifespan_month")
     val expectedLifespanMonth: Int,
 
-    val residualValue: Double,
-) : JdbcModel() {
+    @Column("is_patrimony")
+    val isPatrimony: Boolean,
+
+    @Column("interest_loan")
+    val interestLoan: Double,
+
+    @Column("loan_month")
+    val loanMonth: Long,
+
+    @Column("floor_value")
+    val floorValue: Double,
+
+    val type: String,
+
+    @Column("depreciate_criteria")
+    val depreciateCriteria: String,
+
+    @Column("payment_info")
+    val paymentInfo: String,
+
+    @Column("created_at")
+    val createdAt: LocalDateTime,
+
+    @Column("updated_at")
+    val updatedAt: LocalDateTime
+    ) : JdbcModel() {
     override fun getId(): UUID {
         return id
     }
 }
 
 @Component
-class JdbcProvisionMapper: IMapper<JdbcProvisionModel, Provision> {
+class JdbcProvisionMapper(
+    private val objectMapper: ObjectMapper
+): IMapper<JdbcProvisionModel, Provision> {
     override fun toDomain(model: JdbcProvisionModel): Provision {
+        val depreciateCriteriaJson = objectMapper.readValue(model.depreciateCriteria, Array<String>::class.java).map {
+            objectMapper.readValue<Map<String, Any>>(it)
+        }.toSet()
+
+        val paymentInfoJson = if (
+            model.paymentInfo == "null" || model.paymentInfo == "[null]" ||
+            model.paymentInfo.isEmpty() || model.paymentInfo == "{}" || model.paymentInfo == "[]"
+            ) { null }
+        else {  jacksonObjectMapper().readValue<Map<String, Any>>(model.paymentInfo) }
+
         return Provision(
             id = model.id,
             title = model.name,
-            initialCost = model.initialCost,
+            costHT = model.costHT,
+            costTTC = model.costTTC,
             acquisitionDate = model.acquisitionDate,
             expectedLifespanMonth = model.expectedLifespanMonth,
-            residualValue = model.residualValue
+            isPatrimony = model.isPatrimony,
+            depreciationCriteria = depreciateCriteriaJson.map { ProvisionDepreciateCriteria.fromMap(it) }.toMutableList(),
+            floorValue = model.floorValue,
+            type = ProvisionType.fromString(model.type),
+            paymentInfo = paymentInfoJson?.let {  ProvisionPayment.fromMap(paymentInfoJson) } ,
+            interestLoan = model.interestLoan,
+            loanMonth = model.loanMonth,
         )
     }
 
@@ -51,14 +108,25 @@ class JdbcProvisionMapper: IMapper<JdbcProvisionModel, Provision> {
         return JdbcProvisionModel(
             id = entity.id,
             name = entity.title,
-            initialCost = entity.initialCost,
+            costHT = entity.costHT,
+            costTTC = entity.costTTC,
             acquisitionDate = entity.acquisitionDate,
             expectedLifespanMonth = entity.expectedLifespanMonth,
-            residualValue = entity.residualValue
+            isPatrimony = entity.isPatrimony,
+            interestLoan = entity.interestLoan,
+            loanMonth = entity.loanMonth,
+            floorValue = entity.floorValue,
+            type = entity.type.value,
+            depreciateCriteria = objectMapper.writeValueAsString(entity.depreciationCriteria.map { objectMapper.writeValueAsString(it.toMap()) }),
+            paymentInfo = if (entity.paymentInfo != null) {
+                objectMapper.writeValueAsString(entity.paymentInfo!!.toMap())
+            } else { "null"},
+            createdAt = entity.createdAt,
+            updatedAt = entity.updatedAt,
         )
     }
 
     override fun getSortField(): Set<String> {
-        return setOf("acquisition_date")
+        return setOf("acquisition_date", "updated_at")
     }
 }

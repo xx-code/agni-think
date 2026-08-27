@@ -4,16 +4,18 @@ import {
     ModalFundAmount,
 } from "#components"
 import { ref } from "vue"
-import { fetchAccounts } from "~/composables/api/accounts"
-import { fetchFundSummary } from "~/composables/api/analytics"
-import { fetchFunds, fetchFund, useDeleteFund } from "~/composables/api/funds"
-import { fetchAllGoal } from "~/composables/api/goals"
-import { fundToFundCard, fundToFundForm } from "~/mappers/fund"
-import { goalToFundGoalCards } from "~/mappers/goal"
-import type { QueryFilterFundRequest } from "~/types/api/fund"
-import type { GoalQueryFilterRequest } from "~/types/api/goal"
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder'
+import { API_ROUTES } from '~/shared/routes'
+import { listAccountsToListAccount } from '~/mappers/account'
+import { goalToFundGoalCards, goalResponseToGoal } from '~/mappers/goal'
+import type { CreatedRequest, ListResponse } from '~/types/api'
+import type { GetAccountResponse } from '~/types/api/account'
+import type { GetFundResponse, QueryFilterFundRequest } from '~/types/api/fund'
+import type { GoalQueryFilterRequest, GoalResponse } from '~/types/api/goal'
+import type { GetFundTotalSummary } from '~/types/api/analytics'
 import type { Fund } from "~/types/ui/fund"
 import type { Goal } from "~/types/ui/goal"
+import { fundResponseToFund, fundToFundCard, fundToFundForm } from "~/mappers/fund"
 
 const loadingSummary = ref(false)
 const isLoading = ref(false)
@@ -37,14 +39,14 @@ const goalSummaries = ref<Goal[]>([])
 const totalGoalSummary = ref(0)
 
 const { data: accounts } = useAsyncData('funds+accounts', async () => {
-    const res = await fetchAccounts({ limit: 10, offset: 0, queryAll: true})
+    const res = await ApiLinkBuilder.route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS).query({ limit: 10, offset: 0, queryAll: true}).mapper(listAccountsToListAccount).execute()
 
     return res.items
 })
 
 const { data: summary } = useAsyncData('page-fund-summary', async () => {
     loadingSummary.value = true
-    const res = await fetchFundSummary()
+    const res = await ApiLinkBuilder.route<GetFundTotalSummary>(API_ROUTES.ANALYTICS.FUND_TOTAL_SUMMARY).execute()
     loadingSummary.value = false
 
     return {
@@ -63,7 +65,7 @@ const modalFund = overlay.create(ModalFund)
 const modalAmountFund = overlay.create(ModalFundAmount)
 
 async function updateFundList(id: string) {
-    const fund = await fetchFund(id)
+    const fund = await ApiLinkBuilder.route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND).params({id}).mapper(fundResponseToFund).execute()
     const index = funds.value.findIndex(i => i.id == id)
     if (index >= 0 ) {
         funds.value[index] = fund
@@ -80,7 +82,7 @@ async function updateGoalList() {
 async function openModalFund(goalId?: string) {
     let fund: Fund | undefined = undefined
     if (goalId) {
-        fund = await fetchFund(goalId) 
+        fund = await ApiLinkBuilder.route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND).params({id: goalId}).mapper(fundResponseToFund).execute()
     }
 
     modalFund.open({
@@ -97,7 +99,7 @@ async function openModalFund(goalId?: string) {
 
 async function openModalFundAmount (isIncrease: boolean, fundId: string) {
     try {
-        let fund = await fetchFund(fundId) 
+        let fund = await ApiLinkBuilder.route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND).params({id: fundId}).mapper(fundResponseToFund).execute()
         
         modalAmountFund.open({
             isIncrease: isIncrease,
@@ -130,7 +132,7 @@ function openModalDeleteFund(fundId: string) {
 
 const onDeleteFund = async (fundId: string) => {
     try {
-        await useDeleteFund(fundId, { accountId: deleteAccountDepositId.value })
+        await ApiLinkBuilder.route(API_ROUTES.FUNDS.REMOVE_FUND).params({id: fundId}).body({ accountId: deleteAccountDepositId.value }).execute()
         const indexToRemove = funds.value.findIndex(i => i.id === fundId)
         if (indexToRemove >= 0)  {
             funds.value = funds.value.filter(i => i.id !== fundId)
@@ -172,7 +174,11 @@ async function showMoreGoalSummary() {
 async function getAllFunds() {
     isLoading.value = true
     try {
-        var res = await fetchFunds(filter)
+        const raw = await ApiLinkBuilder.route<ListResponse<GetFundResponse>>(API_ROUTES.FUNDS.GET_FUNDS).query(filter).execute()
+        var res = {
+            items: raw.items.map(data => fundResponseToFund(data)),
+            total: raw.total
+        }
         funds.value.push(...res.items) 
         totalFund.value = res.total
     } catch(err: any) {
@@ -189,7 +195,11 @@ async function getAllFunds() {
 async function getAllGoals() {
     isLoadingGoal.value = true
     try {
-        var res = await fetchAllGoal(filterGoal)
+        const goalRes = await ApiLinkBuilder.route<ListResponse<GoalResponse>>(API_ROUTES.GOALS.GET_GOALS).query(filterGoal).execute()
+        var res = {
+            items: goalRes.items.map(i => goalResponseToGoal(i)),
+            total: goalRes.total
+        }
         goalSummaries.value.push(...res.items) 
         totalGoalSummary.value = res.total
     } catch(err: any) {
@@ -214,8 +224,20 @@ watch(filterGoal, () => {
 </script>
 
 <template>
-    <div class="goals-page p-5">
-        <div class="grid md:grid-cols-3 gap-5 mb-10 grid-cols-1">
+    <UiPage>
+        <UiPageHeader 
+            title="Mes Fond"
+            :button="
+                {
+                    icon: 'i-lucide-plus',
+                    label: 'Ajouter un fond'
+                }
+            "
+            subtitle="Planifier mon horizon financier"
+            @click-button="openModalFund()"
+        />
+
+        <div class="grid md:grid-cols-3 gap-5 grid-cols-1">
             <UiBannerAccountant 
                 title="Objectif Total"
                 :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(168, 85, 247, 0.1)', fontColor: '#a855f7'}"
@@ -235,17 +257,7 @@ watch(filterGoal, () => {
             />
         </div>
 
-        <div class="flex justify-end items-center mb-8 ">
-            <UButton 
-                icon="i-lucide-plus" 
-                label="Nouvel Objectif" 
-                size="xl"
-                class="add-button"
-                @click="openModalFund()"
-            />
-        </div>
-
-        <div class="w-full max-w-full flex gap-4 overflow-x-auto overflow-y-hidden pb-4 mb-8 flex-nowrap shrink-0">
+        <div class="w-full max-w-full flex gap-4 scrollbar-none overflow-x-auto overflow-y-hidden pb-4 mb-8 flex-nowrap shrink-0">
             <UiFundCardSummaryGoal 
                 v-for="goal in  goalSummaries.map(i => goalToFundGoalCards(i))" 
                 :key="goal.id"
@@ -340,5 +352,5 @@ watch(filterGoal, () => {
                 </div>
             </template>
         </UModal>
-    </div>
+    </UiPage>
 </template>

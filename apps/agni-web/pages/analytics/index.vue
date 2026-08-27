@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
-import { fetchAnnualOutlook, fetchBudgetingRule } from '~/composables/api/analytics'
-import { fetchCategories } from '~/composables/api/categories'
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder'
+import { API_ROUTES } from '~/shared/routes'
+import { listCategoriesResponseToListCategories } from '~/mappers/category'
 import type { GetAnnualOutlookResponse } from '~/types/api/analytics'
 import type { GetBudgetingRuleRequest, GetBudgetingRuleResponse } from '~/types/api/analytics'
+import type { ListResponse } from '~/types/api'
+import type { GetCategoryResponse } from '~/types/api/category'
 import { periodOptions } from '~/utils/constant'
 
 // ─── Filter Mode ──────────────────────────────────────────────────────────────
@@ -36,7 +39,7 @@ const isLoadingOut = ref(false)
 const isLoadingRule = ref(false)
 
 const { data: categories } = useAsyncData('cats+outlook', () =>
-  fetchCategories({ limit: 0, offset: 0, queryAll: true }).then(r => r.items)
+  ApiLinkBuilder.route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES).query({ limit: 0, offset: 0, queryAll: true }).mapper(listCategoriesResponseToListCategories).execute().then(r => r.items)
 )
 
 const getCategory = (id: string) => categories.value?.find(c => c.id === id)
@@ -44,7 +47,7 @@ const getCategory = (id: string) => categories.value?.find(c => c.id === id)
 async function loadOutlook() {
     isLoadingOut.value = true
     try { 
-        outlookData.value = await fetchAnnualOutlook()
+        outlookData.value = await ApiLinkBuilder.route<GetAnnualOutlookResponse>(API_ROUTES.ANALYTICS.ANNUAL_OUTLOOK).execute()
     }
     catch { 
         outlookData.value = null 
@@ -61,7 +64,7 @@ async function loadRule() {
     : { startDate: rangeFilter.startDate, endDate: rangeFilter.endDate }
 
     try { 
-        ruleData.value = await fetchBudgetingRule(req) 
+        ruleData.value = await ApiLinkBuilder.route<GetBudgetingRuleResponse>(API_ROUTES.ANALYTICS.BUDGETING_RULE).query(req).execute()
     }
     catch { 
         ruleData.value = null 

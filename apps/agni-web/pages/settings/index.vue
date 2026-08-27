@@ -2,24 +2,32 @@
 import type { NuxtError } from "#app";
 import { ModalEditCategory, ModalEditDeductionType, ModalEditTag, ModalEditFinancePrinciple, ModalEditIncomeSource } from "#components";
 import { getLocalTimeZone } from "@internationalized/date";
-import { createFinancePrinciple, deleteFinancePrinciple, fetchFinancePrinciple, fetchFinancePrinciples, updateFinancePrinciple } from "~/composables/api/financePrinciples.js";
-import { createIncomeSource, deleteIncomeSource, fetchIncomeSource, fetchIncomeSources, updateIncomeSource } from "~/composables/api/incomeSources.js";
-import { fetchIncomeSourceFrequencyTypes, fetchIncomeSourceTypes, fetchPrincipleType } from "~/composables/api/internal.js";
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
+import { financePrincipleResponseToFinancePrinciple, listFinancePrinciplesResponseToListFinancePrinciples } from '~/mappers/financePrinciple';
+import { incomeSourceResponseToIncomeSource, listIncomeSourcesResponseToListIncomeSources } from '~/mappers/incomeSource';
+import { categoryResponseToCategory, listCategoriesResponseToListCategories } from '~/mappers/category';
+import { deductionResponseToDeduction, listDeductionsResponseToListDeductions } from '~/mappers/deduction';
+import { tagResponseToTag, listTagsResponseToListTags } from '~/mappers/tag';
+import type { CreatedRequest, ListResponse, QueryFilterRequest } from '~/types/api';
+import type { GetInternalTypeResponse } from '~/types/api/internal';
+import type { GetFinancePrincipleResponse } from '~/types/api/financePrinciple';
+import type { GetIncomeSourceResponse } from '~/types/api/incomeSource';
+import type { GetCategoryResponse } from '~/types/api/category';
+import type { GetDeductionResponse } from '~/types/api/deduction';
+import type { GetTagResponse } from '~/types/api/tag';
 import type { CategoryType, EditCategoryType } from "~/types/ui/category";
 import type { DeductionType, EditDeduction } from "~/types/ui/deduction";
 import type { EditFinancePrincipleType, FinancePrincipleType } from "~/types/ui/financePrinciple";
 import type { EditIncomeSourceType, IncomeSourceType } from "~/types/ui/incomeSource";
 import type { EditTagType, TagType } from "~/types/ui/tag";
 import Banking from "./components/Banking.vue";
-import { fetchCategories, useUpdateCategory, useCreateCategory, fetchCategory } from "~/composables/api/categories.js";
-import { fetchDeductions, updateDeduction, createDeduction, fetchDeduction, deleteDeduction } from "~/composables/api/deductionType.js";
-import { fetchTags, useUpdateTag, useCreateTag, fetchTag } from "~/composables/api/tag.js";
 
 const { data: utils } = useAsyncData('', async () => {
     const [ incomeSourceTypes, incomeSourceFrequencyTypes, principleTypes ] = await Promise.all([
-        fetchIncomeSourceTypes(),
-        fetchIncomeSourceFrequencyTypes(),
-        fetchPrincipleType()
+        ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.INCOME_SOURCE_TYPE).execute(),
+        ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.INCOME_SOURCE_FREQUENCY_TYPE).execute(),
+        ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.PRINCIPLE_TYPE).execute()
     ])
 
     return {
@@ -30,29 +38,29 @@ const { data: utils } = useAsyncData('', async () => {
 })
 
 const { data: tags, error: errorTag, refresh: refreshTags } = useAsyncData('settings+tags', async () => {
-    const res = await fetchTags({ queryAll: true, limit: 0, offset: 0}) 
+    const res = await ApiLinkBuilder.route<ListResponse<GetTagResponse>>(API_ROUTES.TAGS.GET_TAGS).query({ queryAll: true, limit: 0, offset: 0}).mapper(listTagsResponseToListTags).execute()
 
     return res.items
 })
 const { data: categories, error: errorCategory, refresh: refreshCategories } = useAsyncData('settings+categories', async () => {
-    const res = await fetchCategories({ queryAll: true, limit: 0, offset: 0}) 
+    const res = await ApiLinkBuilder.route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES).query({ queryAll: true, limit: 0, offset: 0}).mapper(listCategoriesResponseToListCategories).execute()
 
     return res.items
 })
 const { data: deductionTypes, error: errorDeductionType, refresh: refreshDeductionTypes } = useAsyncData('settings+deduction-types', async () => {
-    const res = await fetchDeductions({ queryAll: true, limit: 0, offset: 0})
+    const res = await ApiLinkBuilder.route<ListResponse<GetDeductionResponse>>(API_ROUTES.DEDUCTIONS.GET_DEDUCTIONS).query({ queryAll: true, limit: 0, offset: 0}).mapper(listDeductionsResponseToListDeductions).execute()
 
     return res.items
 })
 
 const { data: financePrinciples, error: errorFinancePrinciples, refresh: refreshPrinciples } = useAsyncData('finance-principles+all+setting', async () => {
-    const res = await fetchFinancePrinciples({ queryAll: true, limit: 0, offset: 0})
+    const res = await ApiLinkBuilder.route<ListResponse<GetFinancePrincipleResponse>>(API_ROUTES.FINANCE_PRINCIPLES.GET_FINANCE_PRINCIPLES).query({ queryAll: true, limit: 0, offset: 0}).mapper(listFinancePrinciplesResponseToListFinancePrinciples).execute()
 
     return res.items
 })
 
 const { data: incomeSources, error: errorIncomeSources, refresh: refreshIncomeSources } = useAsyncData('income-sources+all+setting', async () => {
-    const res = await fetchIncomeSources({ queryAll: true, limit: 0, offset: 0})
+    const res = await ApiLinkBuilder.route<ListResponse<GetIncomeSourceResponse>>(API_ROUTES.INCOME_SOURCES.GET_INCOME_SOURCES).query({ queryAll: true, limit: 0, offset: 0}).mapper(listIncomeSourcesResponseToListIncomeSources).execute()
 
     return res.items
 })
@@ -69,17 +77,17 @@ const toast = useToast();
 async function onSubmitCategory(value: EditCategoryType, oldValue?: CategoryType) {
     try {
         if(oldValue) {
-            await useUpdateCategory(oldValue.id, {
+            await ApiLinkBuilder.route(API_ROUTES.CATEGORIES.UPDATE_CATEGORY).params({id: oldValue.id}).body({
                 title: value.title,
                 icon: value.icon,
                 color: value.color
-            });
+            }).execute();
         } else {
-            await useCreateCategory({
+            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.CATEGORIES.CREATE_CATEGORY).body({
                 title: value.title,
                 icon: value.icon,
                 color: value.color
-            });
+            }).execute();
         }
         refreshCategories();
     } catch(err) {
@@ -94,15 +102,15 @@ async function onSubmitCategory(value: EditCategoryType, oldValue?: CategoryType
 async function onSubmitTag(value: EditTagType, oldValue?: TagType) {
     try {
         if(oldValue) {
-            await useUpdateTag(oldValue.id, {
+            await ApiLinkBuilder.route(API_ROUTES.TAGS.UPDATE_TAG).params({id: oldValue.id}).body({
                 value: value.value,
                 color: value.color
-            });
+            }).execute();
         } else {
-            await useCreateTag({
+            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.TAGS.CREATE_TAG).body({
                 value: value.value,
                 color: value.color
-            });
+            }).execute();
         }
         refreshTags();
     } catch(err) {
@@ -117,17 +125,17 @@ async function onSubmitTag(value: EditTagType, oldValue?: TagType) {
 async function onSubmitDeductionType(value: EditDeduction, oldValue?: DeductionType) {
     try {
         if(oldValue) {
-            await updateDeduction(oldValue.id, {
+            await ApiLinkBuilder.route(API_ROUTES.DEDUCTIONS.UPDATE_DEDUCTION).params({id: oldValue.id}).body({
                 description: value.description,
                 title: value.title
-            });
+            }).execute();
         } else {
-            await createDeduction({
+            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.DEDUCTIONS.CREATE_DEDUCTION).body({
                 title: value.title,
                 description: value.description,
                 mode: value.mode,
                 base: value.base
-            });
+            }).execute();
         }
         await refreshDeductionTypes();
     } catch(err) {
@@ -142,21 +150,21 @@ async function onSubmitDeductionType(value: EditDeduction, oldValue?: DeductionT
 async function onSubmitFinancePrinciple(value: EditFinancePrincipleType, oldValue?: FinancePrincipleType) {
     try {
         if (oldValue) {
-            await updateFinancePrinciple(oldValue.id, {
+            await ApiLinkBuilder.route(API_ROUTES.FINANCE_PRINCIPLES.UPDATE_FINANCE_PRINCIPLE).params({id: oldValue.id}).body({
                 name: value.name,
                 strictness: value.strictness,
                 targetType: value.targetType,
                 description: value.description,             
                 logicRules: value.logicRules
-            })
+            }).execute()
         } else {
-            await createFinancePrinciple({
+            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.FINANCE_PRINCIPLES.CREATE_FINANCE_PRINCIPLE).body({
                 name: value.name,
                 strictness: value.strictness,
                 targetType: value.targetType,
                 description: value.description,             
                 logicRules: value.logicRules
-            })
+            }).execute()
         }
 
         await refreshPrinciples()
@@ -173,7 +181,7 @@ async function onSubmitFinancePrinciple(value: EditFinancePrincipleType, oldValu
 async function onSubmitIncomeSource(value: EditIncomeSourceType, oldValue?: IncomeSourceType) {
     try {
         if (oldValue) {
-            await updateIncomeSource(oldValue.id, {
+            await ApiLinkBuilder.route(API_ROUTES.INCOME_SOURCES.UPDATE_INCOME_SOURCE).params({id: oldValue.id}).body({
                 title: value.title,
                 annualGrossAmount: value.annualGrossAmount,
                 endDate: value.endDate?.toDate(getLocalTimeZone()).toISOString(),
@@ -184,9 +192,9 @@ async function onSubmitIncomeSource(value: EditIncomeSourceType, oldValue?: Inco
                 startDate: value.startDate.toDate(getLocalTimeZone()).toISOString(),
                 taxRate: value.taxRate,
                 type: value.type
-            })
+            }).execute()
         } else {
-            await createIncomeSource({
+            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.INCOME_SOURCES.CREATE_INCOME_SOURCE).body({
                 title: value.title,
                 annualGrossAmount: value.annualGrossAmount,
                 endDate: value.endDate?.toDate(getLocalTimeZone()).toISOString(),
@@ -197,7 +205,7 @@ async function onSubmitIncomeSource(value: EditIncomeSourceType, oldValue?: Inco
                 startDate: value.startDate.toDate(getLocalTimeZone()).toISOString(),
                 taxRate: value.taxRate,
                 type: value.type
-            })
+            }).execute()
         }
         await refreshIncomeSources()
     } catch(err) {
@@ -213,7 +221,7 @@ async function onSubmitIncomeSource(value: EditIncomeSourceType, oldValue?: Inco
 const openModalCategory = async (categoryId?: string) => {  
     let category:CategoryType|undefined=undefined;
     if (categoryId) {
-        category = await fetchCategory(categoryId); 
+        category = await ApiLinkBuilder.route<GetCategoryResponse>(API_ROUTES.CATEGORIES.GET_CATEGORY).params({id: categoryId}).mapper(categoryResponseToCategory).execute(); 
     }
 
     modalCategory.open({
@@ -225,7 +233,7 @@ const openModalCategory = async (categoryId?: string) => {
 const openModalTag = async (tagId?: string) => {  
     let tag:TagType|undefined=undefined;
     if (tagId) {
-        tag = await fetchTag(tagId); 
+        tag = await ApiLinkBuilder.route<GetTagResponse>(API_ROUTES.TAGS.GET_TAG).params({id: tagId}).mapper(tagResponseToTag).execute(); 
     }
     modalTag.open({
         tag: tag,
@@ -236,7 +244,7 @@ const openModalTag = async (tagId?: string) => {
 const openModalDeductionType = async (id?: string) => {  
     let type:DeductionType|undefined=undefined;
     if (id) {
-        type = await fetchDeduction(id); 
+        type = await ApiLinkBuilder.route<GetDeductionResponse>(API_ROUTES.DEDUCTIONS.GET_DEDUCTION).params({id}).mapper(deductionResponseToDeduction).execute(); 
     }
 
     modalEditDeductionType.open({
@@ -248,7 +256,7 @@ const openModalDeductionType = async (id?: string) => {
 const openModalFinancePrinciple = async (id?: string) => {  
     let principe:FinancePrincipleType|undefined=undefined;
     if (id) {
-        principe = await fetchFinancePrinciple(id); 
+        principe = await ApiLinkBuilder.route<GetFinancePrincipleResponse>(API_ROUTES.FINANCE_PRINCIPLES.GET_FINANCE_PRINCIPLE).params({id}).mapper(financePrincipleResponseToFinancePrinciple).execute(); 
     }
 
     modalEditFinancePrinciple.open({
@@ -260,7 +268,7 @@ const openModalFinancePrinciple = async (id?: string) => {
 const openModalIncomeSource = async (id?: string) => {  
     let source:IncomeSourceType|undefined=undefined;
     if (id) {
-        source = await fetchIncomeSource(id); 
+        source = await ApiLinkBuilder.route<GetIncomeSourceResponse>(API_ROUTES.INCOME_SOURCES.GET_INCOME_SOURCE).params({id}).mapper(incomeSourceResponseToIncomeSource).execute(); 
     }
 
     modalEditIncomeSource.open({
@@ -272,7 +280,7 @@ const openModalIncomeSource = async (id?: string) => {
 
 const onDeleteDeductionType = async (id: string) => {
     try {
-        await deleteDeduction(id) 
+        await ApiLinkBuilder.route(API_ROUTES.DEDUCTIONS.DELETE_DEDUCTION).params({id}).execute()
         refreshDeductionTypes()
     } catch(err) {
         toast.add({
@@ -285,7 +293,7 @@ const onDeleteDeductionType = async (id: string) => {
 
 const onDeletePrinciple = async (id: string) => {
     try {
-        await deleteFinancePrinciple(id) 
+        await ApiLinkBuilder.route(API_ROUTES.FINANCE_PRINCIPLES.DELETE_FINANCE_PRINCIPLE).params({id}).execute()
         refreshPrinciples()
     } catch(err) {
         toast.add({
@@ -298,7 +306,7 @@ const onDeletePrinciple = async (id: string) => {
 
 const onDeleteIncomeSource = async (id: string) => {
     try {
-        await deleteIncomeSource(id) 
+        await ApiLinkBuilder.route(API_ROUTES.INCOME_SOURCES.DELETE_INCOME_SOURCE).params({id}).execute()
         refreshIncomeSources()
     } catch(err) {
         toast.add({

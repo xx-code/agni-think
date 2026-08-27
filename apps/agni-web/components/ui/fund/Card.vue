@@ -57,8 +57,8 @@ const actionItems = ref<DropdownMenuItem[][]>([
 </script>
 
 <template>
-    <UiFundCardContext :fund-id="fund.id" @refresh="v => emit('refresh', v)">
-        <div class="p-5 rounded-xl bg-white border border-gray-200 h-full cursor-pointer hover:shadow-sm">
+    <UiFundCardContext :fund-id="fund.id" @refresh="(v) => emit('refresh', v)">
+        <UiCard class="cursor-pointer">
             <div class="flex items-start gap-1 mb-4">
                 <div class="flex-1 min-w-0">
                     <h3 class="font-bold text-lg truncate" :title="fund.title">{{ fund.title }}</h3>
@@ -110,6 +110,6 @@ const actionItems = ref<DropdownMenuItem[][]>([
                 </p>
             </div>
     
-        </div>
+        </UiCard>
     </UiFundCardContext> 
 </template>

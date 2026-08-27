@@ -1,355 +1,173 @@
 <script setup lang="ts">
-import type { NuxtError } from '#app';
 import { ModalEditProvision } from '#components';
-import { getLocalTimeZone } from '@internationalized/date';
-import { createProvision, deleteProvision, fetchProvision, fetchProvisions, updateProvision } from '~/composables/api/provisions';
-import type { EditProvisionType, ProvisionType } from '~/types/ui/provision';
+import { provisionSummaryResponseToProvisionSummary } from '~/mappers/analytics';
+import { listProvisionsResponseToListProvisions, provisionResponseToProvision, provisionToProvisionCard } from '~/mappers/provision';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
+import type { ListResponse } from '~/types/api';
+import type { GetProvisionResponse } from '~/types/api/provision';
+import type { QueryFilterRequest } from '~/types/api';
+import type { Provision } from '~/types/ui/provision';
 
+const isLoadingSummary = ref(false)
+const isLoading = ref(false)
 const overlay = useOverlay();
 const modalProvision = overlay.create(ModalEditProvision);
 const toast = useToast();
 
-const { data, error, refresh } = useAsyncData('provision+all', async () => {
-    const res = await fetchProvisions({ queryAll: true, offset: 0, limit: 0 })
-    return res
+const provisions = ref<Provision[]>([])
+const totalProvision = ref(0)
+
+const filter = reactive<QueryFilterRequest>({
+    offset: 0,
+    limit: 5,
+    queryAll: false
 })
 
-async function onSubmitProvision(value: EditProvisionType, oldValue?: ProvisionType) {
-    try {
-        if (oldValue) {
-            await updateProvision(oldValue.id, {
-                title: value.title,
-                initialCost: value.initialCost,
-                acquisitionDate: value.acquisitionDate?.toDate(getLocalTimeZone()).toISOString(),
-                expectedLifespanMonth: value.expectedLifespanMonth,
-                residualValue: value.residualValue
-            })
-        } else {
-            await createProvision({
-                title: value.title,
-                initialCost: value.initialCost,
-                acquisitionDate: value.acquisitionDate.toDate(getLocalTimeZone()).toISOString(),
-                expectedLifespanMonth: value.expectedLifespanMonth,
-                residualValue: value.residualValue
-            })
-        }
-        await refresh()
-    } catch (err) {
-        const nuxtError = err as NuxtError
-        toast.add({ title: "Erreur provision", color: 'error' });
-    }
+const { data: provisionSummary } = useAsyncData('provision-summary', async () => {
+    isLoadingSummary.value = true
+    const res = ApiLinkBuilder.route(API_ROUTES.ANALYTICS.PROVISION_SUMMARY)
+        .mapper(provisionSummaryResponseToProvisionSummary)
+        .execute()
+    isLoadingSummary.value = false
+
+    return res
+}, { watch: [ provisions ]})
+
+async function updateProvisionList() {
+    provisions.value = []
+    totalProvision.value = 0
+    await getAllProvisions()
 }
 
 const openModalProvision = async (provisionId?: string) => {
-    let provision: ProvisionType | undefined = undefined;
+    let provision: Provision | undefined = undefined;
     if (provisionId) {
-        provision = await fetchProvision(provisionId);
+        provision = await ApiLinkBuilder.route<GetProvisionResponse>(API_ROUTES.PROVISIONS.GET_PROVISION).params({id: provisionId}).mapper(provisionResponseToProvision).execute();
     }
     modalProvision.open({
         provision: provision,
-        onSubmit: onSubmitProvision
+        onClose: (refresh) => {
+            if (refresh) {
+                updateProvisionList()
+            }
+        }
     });
 }
 
 const onDeleteProvision = async (id: string) => {
     try {
-        await deleteProvision(id)
-        refresh()
+        await ApiLinkBuilder.route(API_ROUTES.PROVISIONS.DELETE_PROVISION).method('DELETE').params({id}).execute()
+        updateProvisionList()
     } catch (err) {
         toast.add({ title: "Erreur suppression provision", color: 'error' });
     }
 }
 
-// --- Amortization helpers ---
+async function showMoreProvision() {
+    if (provisions.value.length === totalProvision.value)
+        return 
 
-function getElapsedMonths(acquisitionDate: Date): number {
-    const now = new Date()
-    const acq = new Date(acquisitionDate)
-    return Math.max(0, (now.getFullYear() - acq.getFullYear()) * 12 + (now.getMonth() - acq.getMonth()))
+    filter.offset = provisions.value.length
 }
 
-function getAmortizationPercent(provision: ProvisionType): number {
-    const elapsed = getElapsedMonths(provision.acquisitionDate)
-    return Math.min(100, Math.round((elapsed / provision.expectedLifespanMonth) * 100))
+async function getAllProvisions() {
+    isLoading.value = true
+    try {
+        const res = await ApiLinkBuilder.route<ListResponse<GetProvisionResponse>>(API_ROUTES.PROVISIONS.GET_PROVISIONS)
+            .query(filter)
+            .mapper(listProvisionsResponseToListProvisions).execute()
+        provisions.value.push(...res.items) 
+        totalProvision.value = res.total
+    } catch(err: any) {
+        toast.add({
+            title: 'Erreur Provision',
+            description: err.message,
+            color: 'error'
+        })
+    } finally {
+        isLoading.value = false
+    }
 }
 
-function getCurrentBookValue(provision: ProvisionType): number {
-    const elapsed = getElapsedMonths(provision.acquisitionDate)
-    const depreciable = provision.initialCost - provision.residualValue
-    const monthlyDep = depreciable / provision.expectedLifespanMonth
-    const bookValue = provision.initialCost - monthlyDep * Math.min(elapsed, provision.expectedLifespanMonth)
-    return Math.max(provision.residualValue, bookValue)
-}
 
-function getMonthlyProvision(provision: ProvisionType): number {
-    const depreciable = provision.initialCost - provision.residualValue
-    return depreciable / provision.expectedLifespanMonth
-}
-
-function getRemainingMonths(provision: ProvisionType): number {
-    const elapsed = getElapsedMonths(provision.acquisitionDate)
-    return Math.max(0, provision.expectedLifespanMonth - elapsed)
-}
-
-function getStatusColor(percent: number): string {
-    if (percent >= 100) return 'text-gray-400'
-    if (percent >= 75) return 'text-red-500'
-    if (percent >= 40) return 'text-yellow-500'
-    return 'text-emerald-500'
-}
-
-function getBarColor(percent: number): string {
-    if (percent >= 100) return 'bg-gray-300'
-    if (percent >= 75) return 'bg-red-400'
-    if (percent >= 40) return 'bg-yellow-400'
-    return 'bg-emerald-400'
-}
-
-function formatCurrency(value: number): string {
-    return new Intl.NumberFormat('fr-CA', {
-        style: 'currency',
-        currency: 'CAD',
-        maximumFractionDigits: 0
-    }).format(value)
-}
-
-function formatDate(date: Date): string {
-    return new Date(date).toLocaleDateString('fr-CA', { year: 'numeric', month: 'short' })
-}
-
-// --- Summary ---
-
-const provisions = computed(() => data.value?.items ?? [])
-
-const summary = computed(() => {
-    const items = provisions.value
-    const totalInitial = items.reduce((s, p) => s + p.initialCost, 0)
-    const totalBookValue = items.reduce((s, p) => s + getCurrentBookValue(p), 0)
-    const totalMonthly = items.reduce((s, p) => s + getMonthlyProvision(p), 0)
-    const active = items.filter(p => getAmortizationPercent(p) < 100).length
-    return { totalInitial, totalBookValue, totalMonthly, active, total: items.length }
-})
-
-const searchQuery = ref('')
-
-const filteredProvisions = computed(() => {
-    if (!searchQuery.value) return provisions.value
-    return provisions.value.filter(p =>
-        p.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-})
+watch(filter, () => {
+    getAllProvisions()
+}, { immediate: true })
 </script>
 
 <template>
-    <div class="p-5 space-y-5">
-
-        <!-- Header -->
-        <div class="flex items-end justify-between">
-            <div>
-                <h1 class="text-3xl font-bold tracking-tight text-gray-900">Provisions</h1>
-                <p class="text-sm text-gray-500 mt-1">Suivi de l'amortissement de vos équipements</p>
-            </div>
-            <UButton
-                label="Nouvelle provision"
-                icon="i-lucide-plus"
-                size="md"
-                color="primary"
-                @click="openModalProvision()"
-            />
-        </div>
+    <UiPage>
+        <UiPageHeader 
+            title="Provisions"
+            subtitle="Suivi de l'amortissement de vos équipements"
+            :button="{
+                icon: 'i-lucide-plus',
+                label: 'Nouvelle provision'
+            }"
+            @click-button="openModalProvision()"
+        /> 
 
         <!-- Summary cards -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <UCard :ui="{ body: 'p-4' }">
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50">
-                        <UIcon name="i-lucide-package" class="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500">Provisions actives</p>
-                        <p class="text-xl font-bold text-gray-900">
-                            {{ summary.active }}
-                            <span class="text-sm font-normal text-gray-400">/{{ summary.total }}</span>
-                        </p>
-                    </div>
-                </div>
-            </UCard>
+            <UiBannerAccountant 
+                title="Provisions actives"
+                :amount="provisionSummary?.activesProvision ?? 0"
+                :icon="{ name: 'i-lucide-shield-check', backgroundColor: 'rgba(168, 85, 247, 0.1)', fontColor: '#a855f7' }"
+            />
 
-            <UCard :ui="{ body: 'p-4' }">
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-purple-50">
-                        <UIcon name="i-lucide-wallet" class="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500">Valeur initiale totale</p>
-                        <p class="text-xl font-bold text-gray-900">{{ formatCurrency(summary.totalInitial) }}</p>
-                    </div>
-                </div>
-            </UCard>
+            <UiBannerAccountant 
+                title="Valeur initiale totale"
+                :amount="provisionSummary?.initialValue ?? 0"
+                :icon="{ name: 'i-lucide-vault', backgroundColor: 'rgba(59, 130, 246, 0.1)', fontColor: '#3b82f6' }"
+            />
 
-            <UCard :ui="{ body: 'p-4' }">
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-50">
-                        <UIcon name="i-lucide-trending-down" class="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500">Valeur comptable actuelle</p>
-                        <p class="text-xl font-bold text-gray-900">{{ formatCurrency(summary.totalBookValue) }}</p>
-                    </div>
-                </div>
-            </UCard>
+            <UiBannerAccountant 
+                title="Valeur comptable actuelle"
+                :amount="provisionSummary?.accountingTotalValue ?? 0"
+                :icon="{ name: 'i-lucide-scale', backgroundColor: 'rgba(16, 185, 129, 0.1)', fontColor: '#10b981' }"
+            />
 
-            <UCard :ui="{ body: 'p-4' }">
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-50">
-                        <UIcon name="i-lucide-calendar-clock" class="w-5 h-5 text-amber-600" />
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500">Provision mensuelle</p>
-                        <p class="text-xl font-bold text-gray-900">
-                            {{ formatCurrency(summary.totalMonthly) }}
-                            <span class="text-xs font-normal text-gray-400">/mois</span>
-                        </p>
-                    </div>
-                </div>
-            </UCard>
+            <UiBannerAccountant 
+                title="Cout mensuelle"
+                :amount="provisionSummary?.costByMonth ?? 0"
+                :icon="{ name: 'i-lucide-trending-down', backgroundColor: 'rgba(239, 68, 68, 0.1)', fontColor: '#ef4444' }"
+            />
+
+            <UiBannerAccountant 
+                title="Payment mensuelle"
+                :amount="provisionSummary?.monthlyPayment ?? 0"
+                :icon="{ name: 'i-lucide-calendar-check', backgroundColor: 'rgba(14, 165, 233, 0.1)', fontColor: '#0ea5e9' }"
+            />
         </div>
 
-        <!-- Provisions list -->
-        <UCard>
-            <div class="space-y-6">
+        <!-- Cards grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <UiProvisionCard
+                v-for="provision of provisions"
+                :key="provision.id"
+                :data="provisionToProvisionCard(provision)"
+                @update="openModalProvision(provision.id)"
+                @delete="onDeleteProvision(provision.id)"
+            />
 
-                <!-- Search + count -->
-                <div class="flex items-center justify-between gap-4">
-                    <div class="max-w-sm w-full">
-                        <UInput
-                            v-model="searchQuery"
-                            icon="i-lucide-search"
-                            placeholder="Rechercher une provision..."
-                            size="md"
-                        />
-                    </div>
-                    <p class="text-sm text-gray-400 shrink-0">
-                        {{ filteredProvisions.length }} élément{{ filteredProvisions.length > 1 ? 's' : '' }}
-                    </p>
-                </div>
-
-                <!-- Cards grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    <div
-                        v-for="provision of filteredProvisions"
-                        :key="provision.id"
-                        class="group relative flex flex-col gap-4 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
-                    >
-                        <!-- Card header -->
-                        <div class="flex items-start justify-between gap-2">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-gray-50">
-                                    <UIcon name="i-lucide-box" class="w-5 h-5 text-gray-600" />
-                                </div>
-                                <div class="min-w-0">
-                                    <h3 class="font-bold text-gray-900 leading-tight truncate">{{ provision.title }}</h3>
-                                    <p class="text-xs text-gray-400">Acquis {{ formatDate(provision.acquisitionDate) }}</p>
-                                </div>
-                            </div>
-
-                            <!-- Status badge -->
-                            <span
-                                class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-                                :class="{
-                                    'bg-gray-100 text-gray-500': getAmortizationPercent(provision) >= 100,
-                                    'bg-red-50 text-red-600': getAmortizationPercent(provision) >= 75 && getAmortizationPercent(provision) < 100,
-                                    'bg-yellow-50 text-yellow-600': getAmortizationPercent(provision) >= 40 && getAmortizationPercent(provision) < 75,
-                                    'bg-emerald-50 text-emerald-600': getAmortizationPercent(provision) < 40,
-                                }"
-                            >
-                                <span v-if="getAmortizationPercent(provision) >= 100">Amorti</span>
-                                <span v-else>{{ getAmortizationPercent(provision) }}%</span>
-                            </span>
-                        </div>
-
-                        <!-- Amortization progress bar -->
-                        <div class="space-y-1.5">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-gray-500">Amortissement</span>
-                                <span class="text-xs font-medium text-gray-500">
-                                    <template v-if="getRemainingMonths(provision) > 0">
-                                        {{ getRemainingMonths(provision) }} mois restants
-                                    </template>
-                                    <template v-else>
-                                        Durée de vie atteinte
-                                    </template>
-                                </span>
-                            </div>
-                            <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <div
-                                    class="h-full rounded-full transition-all duration-500"
-                                    :class="getBarColor(getAmortizationPercent(provision))"
-                                    :style="{ width: getAmortizationPercent(provision) + '%' }"
-                                />
-                            </div>
-                        </div>
-
-                        <!-- Key metrics -->
-                        <div class="grid grid-cols-3 gap-2 pt-2 border-t border-gray-50">
-                            <div class="text-center">
-                                <p class="text-xs text-gray-400 mb-0.5">Valeur initiale</p>
-                                <p class="text-sm font-semibold text-gray-700">{{ formatCurrency(provision.initialCost) }}</p>
-                            </div>
-                            <div class="text-center border-x border-gray-100">
-                                <p class="text-xs text-gray-400 mb-0.5">Valeur actuelle</p>
-                                <p class="text-sm font-bold" :class="getStatusColor(getAmortizationPercent(provision))">
-                                    {{ formatCurrency(getCurrentBookValue(provision)) }}
-                                </p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-xs text-gray-400 mb-0.5">Mensualité</p>
-                                <p class="text-sm font-semibold text-gray-700">{{ formatCurrency(getMonthlyProvision(provision)) }}</p>
-                            </div>
-                        </div>
-
-                        <!-- Footer -->
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-1.5 text-xs text-gray-400">
-                                <UIcon name="i-lucide-clock" class="w-3.5 h-3.5" />
-                                <span>{{ provision.expectedLifespanMonth }} mois · Résiduel {{ formatCurrency(provision.residualValue) }}</span>
-                            </div>
-                            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <UButton
-                                    variant="ghost"
-                                    color="neutral"
-                                    icon="i-lucide-pencil"
-                                    size="xs"
-                                    @click="openModalProvision(provision.id)"
-                                />
-                                <UButton
-                                    variant="ghost"
-                                    color="error"
-                                    icon="i-lucide-trash-2"
-                                    size="xs"
-                                    @click="onDeleteProvision(provision.id)"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Empty state -->
-                <div
-                    v-if="filteredProvisions.length === 0"
-                    class="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200"
-                >
-                    <UIcon name="i-lucide-package" class="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p class="text-gray-500 font-medium text-sm">Aucune provision trouvée</p>
-                    <p class="text-gray-400 text-xs mt-1 mb-4">Ajoutez un équipement pour commencer le suivi</p>
-                    <UButton
-                        label="Créer une provision"
-                        size="sm"
-                        @click="openModalProvision()"
-                    />
-                </div>
-
+            <div 
+                v-if="provisions.length < totalProvision"
+                class="p-5 rounded-xl bg-gray-50 border border-dashed border-gray-300 h-full flex justify-center cursor-pointer hover:shadow-xs"
+                @click="showMoreProvision()" >
+                <div class="flex items-center my-8">
+                    <span>Afficher plus</span> 
+                    <UIcon name="i-lucide-arrow-right" />
+                </div>                
             </div>
-        </UCard>
-    </div>
+
+            <UiEmptyState 
+                v-if="provisions?.length === 0 && totalProvision == 0"
+                icon="i-lucide-package"
+                title="Aucune provision trouvée"
+                description="Ajoutez un équipement pour commencer le suivi"
+                @new="openModalProvision()"
+            />
+        </div> 
+    </UiPage>
 </template>

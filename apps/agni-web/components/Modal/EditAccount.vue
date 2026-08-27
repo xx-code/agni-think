@@ -3,7 +3,9 @@ import * as z from 'zod';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { Account, AccountWithDetailType, EditAccount } from '~/types/ui/account';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
-import { fetchAccounts, fetchManagementAccounts, fetchContributionTypes } from '~/composables/api/internal';
+import type { GetAccountResponse, GetContributionTypeResponse, GetManagementTypeResponse } from '~/types/api/internal';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 const { account } = defineProps<{
     account?: AccountWithDetailType
@@ -17,9 +19,9 @@ const emit = defineEmits<{
 const { data: utils } = useAsyncData('utils+edit-account', async () => {
     const [Accounts, managementTypes, contributionTypes] = await Promise.all(
         [ 
-            fetchAccounts(), 
-            fetchManagementAccounts(),
-            fetchContributionTypes()
+            ApiLinkBuilder.route<GetAccountResponse[]>(API_ROUTES.INTERNALS.ACCOUNT_TYPE).execute(),
+            ApiLinkBuilder.route<GetManagementTypeResponse[]>(API_ROUTES.INTERNALS.MANAGEMENT_ACCOUNT_TYPE).execute(),
+            ApiLinkBuilder.route<GetContributionTypeResponse[]>(API_ROUTES.INTERNALS.CONTRIBUTION_TYPE).execute()
         ]
     )
 

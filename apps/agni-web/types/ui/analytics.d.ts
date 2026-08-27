@@ -1,4 +1,4 @@
-import type { BudgetTotalSummaryResponse, PatrimonyEvolutionResponse, PatrimonySummaryResponse } from "../api/analytics"
+import type { BudgetTotalSummaryResponse, GetProvisionSummaryResponse, PatrimonyEvolutionResponse, PatrimonySummaryResponse } from "../api/analytics"
 
 export type EstimationLeftAmountType = {
     estimateAmount: number
@@ -62,3 +62,5 @@ export type PatrimonyEvolution = {
     networthByPeriod: NetworthPeriod[],
     breakdown: Map<string, NetworthPeriod[]>
 } 
+
+export type ProvisionSummary = GetProvisionSummaryResponse
