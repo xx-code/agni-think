@@ -8,7 +8,8 @@ import java.util.UUID
 data class UpdateProvisionInput(
     val id: UUID,
     val title: String?,
-    val initialCost: Double?,
+    val costHT: Double?,
+    val costTTC: Double?,
     val acquisitionDate: LocalDate?,
     val expectedLifespanMonth: Int?,
     val isPatrimony: Boolean?,

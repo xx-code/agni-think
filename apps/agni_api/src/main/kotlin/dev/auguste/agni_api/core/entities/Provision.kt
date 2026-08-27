@@ -13,7 +13,8 @@ import kotlin.math.pow
 class Provision(
     id: UUID = UUID.randomUUID(),
     title: String,
-    initialCost: Double,
+    costHT: Double,
+    costTTC: Double,
     isPatrimony: Boolean,
     acquisitionDate: LocalDate,
     expectedLifespanMonth: Int,
@@ -26,7 +27,10 @@ class Provision(
 ): Entity(id = id) {
 
     var title by cleanObservable(title, this)
-    var initialCost by cleanObservable(initialCost, this, {
+    var costHT by cleanObservable(costHT, this, {
+        it > 0
+    }, DomainException.BusinessLogic.Validation("Provisionable initial doesn't have a cost"))
+    var costTTC by cleanObservable(costTTC, this, {
         it > 0
     }, DomainException.BusinessLogic.Validation("Provisionable initial doesn't have a cost"))
     var acquisitionDate by cleanObservable(acquisitionDate, this)
@@ -52,21 +56,24 @@ class Provision(
 
     fun calculateTotalCost(): Double {
         if (type != ProvisionType.DEPRECIATE_LOAN)
-            return initialCost
+            return costHT
 
         if (interestLoan <= 0.0 || loanMonth <= 0) {
-            return initialCost
+            return costTTC
         }
 
-        val monthlyRate = (interestLoan / 100.0) / 12.0
+        val n = loanMonth.toDouble()
 
-        return initialCost * (1.0 + monthlyRate).pow(loanMonth.toDouble())
+        return calculateMonthlyPayment() * n
     }
 
     fun calculateMonthlyPayment(): Double {
-        if (loanMonth.toInt() == 0)
-            return 0.0
-        return calculateTotalCost() / loanMonth
+        if (type != ProvisionType.DEPRECIATE_LOAN || interestLoan <= 0.0 || loanMonth <= 0)
+            return costTTC / loanMonth.coerceAtLeast(1)
+
+        val monthlyRate = (interestLoan / 100.0) / 12.0
+        val n = loanMonth.toDouble()
+        return costTTC * monthlyRate / (1.0 - (1.0 + monthlyRate).pow(-n))
     }
 
     fun calculateTotalCostPerMonth(): Double {
@@ -79,7 +86,7 @@ class Provision(
 
     fun calculateResidualValue(date: LocalDate = LocalDate.now()): Double {
         val monthsOwned = ChronoUnit.MONTHS.between(acquisitionDate, date).coerceAtLeast(0)
-        var residual = initialCost
+        var residual = costHT
 
         val decliningBalances = depreciationCriteria.filter {
             it.type == DepreciationType.DECLINING_BALANCE
@@ -107,7 +114,7 @@ class Provision(
         if (straightLineCriteria.isNotEmpty()) {
             val totalStraightLineAnnualRate = straightLineCriteria.sumOf { it.value }
             if (totalStraightLineAnnualRate > 0.0) {
-                val monthlyDepreciation = initialCost * ((totalStraightLineAnnualRate / 100.0) / 12.0)
+                val monthlyDepreciation = costHT * ((totalStraightLineAnnualRate / 100.0) / 12.0)
                 residual -= monthlyDepreciation * monthsOwned
             }
         }

@@ -1,5 +1,9 @@
 <script lang="ts" setup>
-import useDeleteNotification, { fetchNotifications, useToggleNotification } from '~/composables/api/notifications';
+import type { ListResponse } from '~/types/api'
+import type { NotificationQueryFilterRequest } from '~/types/api/notification'
+import { listNotificationsResponseToListNotifications } from '~/mappers/notification'
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder'
+import { API_ROUTES } from '~/shared/routes'
 
 
 const toast = useToast()
@@ -7,23 +11,23 @@ const emit = defineEmits<{ close: [boolean] }>()
 
 // récupère toutes les notifications
 const { data: notifications, refresh } = useAsyncData('notifications', async () => {
-  const res = await fetchNotifications({
-    limit: 0,
-    offset: 0,
-    queryAll: true
-  })
-
+  const res = await ApiLinkBuilder
+    .route(API_ROUTES.NOTIFICATIONS.GET_NOTIFICATIONS)
+    .query({ limit: 0, offset: 0, queryAll: true })
+    .mapper(listNotificationsResponseToListNotifications)
+    .execute()
   return res
 })
 
 async function toggleReadState(notification: any) {
   const oldState = notification.isRead
-  // Optimistic update
   notification.isRead = !oldState
   try {
-    await useToggleNotification(notification.id)
+    await ApiLinkBuilder
+      .route(API_ROUTES.NOTIFICATIONS.TOGGLE_READ)
+      .params({ id: notification.id })
+      .execute()
   } catch (err) {
-    // rollback si erreur
     notification.isRead = oldState
     toast.add({
       title: 'Erreur',
@@ -36,8 +40,10 @@ async function toggleReadState(notification: any) {
 
 async function deleteNotification(id: string) {
   try {
-    // ton API delete
-    await useDeleteNotification(id)
+    await ApiLinkBuilder
+      .route(API_ROUTES.NOTIFICATIONS.DELETE_NOTIFICATION)
+      .params({ id: id })
+      .execute()
     await refresh()
   } catch (err) {
     toast.add({

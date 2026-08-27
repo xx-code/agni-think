@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date';
-import { fetchAccounts } from '~/composables/api/accounts';
-import { fetchBudgets } from '~/composables/api/budget';
-import { fetchCategories } from '~/composables/api/categories';
-import { fetchTransactionTypes } from '~/composables/api/internal';
-import { fetchTags } from '~/composables/api/tag';
+import type { ListResponse, QueryFilterRequest } from '~/types/api';
+import type { GetAccountResponse } from '~/types/api/account';
+import type { GetCategoryResponse } from '~/types/api/category';
+import type { GetTagResponse } from '~/types/api/tag';
+import type { GetInternalTypeResponse } from '~/types/api/internal';
+import { listAccountsToListAccount } from '~/mappers/account';
+import { listCategoriesResponseToListCategories } from '~/mappers/category';
+import { listTagsResponseToListTags } from '~/mappers/tag';
+import { budgetFilterToBudgetQueryRequest, listBudgetsResponseToListBudgets } from '~/mappers/budget';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 import type { FormFilterTransaction } from '~/types/ui/component';
 
@@ -15,11 +21,27 @@ const emit = defineEmits<{
 const { data: utils } = useAsyncData('utils+edit-invoices', async () => {
     const query = {offset: 0, limit: 0, queryAll: true, isSystem: false}
     const [ categories, tags, budgets, accounts, transactionTypes ] = await Promise.all([
-        fetchCategories(query),
-        fetchTags(query),
-        fetchBudgets(query),
-        fetchAccounts(query),
-        fetchTransactionTypes()
+        ApiLinkBuilder
+            .route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES)
+            .query(query)
+            .mapper(listCategoriesResponseToListCategories)
+            .execute(),
+        ApiLinkBuilder
+            .route<ListResponse<GetTagResponse>>(API_ROUTES.TAGS.GET_TAGS)
+            .query(query)
+            .mapper(listTagsResponseToListTags)
+            .execute(),
+        ApiLinkBuilder
+            .route(API_ROUTES.BUDGETS.GET_BUDGETS)
+            .query(budgetFilterToBudgetQueryRequest(query))
+            .mapper(listBudgetsResponseToListBudgets)
+            .execute(),
+        ApiLinkBuilder
+            .route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+            .query(query)
+            .mapper(listAccountsToListAccount)
+            .execute(),
+        ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.TRANSACTION_TYPE).execute()
     ])
 
     return {

@@ -6,10 +6,10 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 
-data class Scheduler(val date: LocalDateTime, val repeater: SchedulerRecurrence? = null) {
+data class Scheduler(var date: LocalDateTime, val repeater: SchedulerRecurrence? = null) {
     fun isDueDate(): Boolean = date.isBefore(LocalDateTime.now())
 
-    fun upgradeDate(): LocalDateTime {
+    fun upgradeDate(toDate: LocalDateTime = LocalDateTime.now()): LocalDateTime {
         if (repeater == null)
             return date
 
@@ -17,10 +17,9 @@ data class Scheduler(val date: LocalDateTime, val repeater: SchedulerRecurrence?
             "Repeater interval must be strictly positive, got ${repeater.interval}"
         }
 
-        val now = LocalDateTime.now()
         var next = date
 
-        while (next.isBefore(now)) {
+        while (next.isBefore(toDate)) {
             next = when(repeater.period) {
                 PeriodType.YEAR -> next.plusYears(repeater.interval.toLong())
                 PeriodType.MONTH -> next.plusMonths(repeater.interval.toLong())

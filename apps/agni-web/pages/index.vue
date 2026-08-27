@@ -3,14 +3,17 @@ import { computed } from "vue";
 import type { Account, AccountWithDetailType, EditAccount } from "~/types/ui/account";
 import { getLocalTimeZone } from "@internationalized/date";
 import { ModalEditAccount, SlideOverQuickInvoicesView } from "#components";
-import { createAccount, deleteAccount, fetchAccountsWithDetail, fetchAccountWithDetail, updateAccount } from "~/composables/api/accounts";
-import {accountWithDetailToAccountCard, listAccountsResponseToListAccountWithDetail } from "~/mappers/account";
-import { fetchBalance, fetchBalanceByPeriod } from "~/composables/api/invoices";
+import { accountWithDetailResponseToAccountWithDetail, accountWithDetailToAccountCard, listAccountsResponseToListAccountWithDetail } from "~/mappers/account";
+import { savingAnalyticResponseToSavingAnalytic } from "~/mappers/analytics";
+import { goalResponseToGoal, goalToFundGoalCards } from "~/mappers/goal";
 import { getOrderAccountType } from "~/types/constants/account";
-import { fetchAnalyticSavings, fetchSpendByCategoriesAnalytic } from "~/composables/api/analytics";
-import { fetchAllGoal } from "~/composables/api/goals";
-import { goalToFundGoalCards } from "~/mappers/goal";
+import type { CreatedRequest, ListResponse } from "~/types/api";
+import type { GetAccountWithDetailResponse } from "~/types/api/account";
+import type { GetSavingAnalysticResponse, GetSpendCategoryResponse } from "~/types/api/analytics";
+import type { GoalResponse } from "~/types/api/goal";
+import type { GetBalanceResponse } from "~/types/api/transaction";
 import type { FundCardGoal } from "~/types/ui/fund";
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
 import { API_ROUTES } from "~/shared/routes";
 
 const isLoadingAccount = ref(false)
@@ -35,12 +38,12 @@ const { data: accountData, refresh: refreshAccounts } = useAsyncData(
 
         const balancesByPeriod = await Promise.all(
             accIds.map(id =>
-                fetchBalanceByPeriod({
+                ApiLinkBuilder.route<GetBalanceResponse[]>(API_ROUTES.INVOICES.GET_BALANCES_BY_PERIOD).query({
                     period: 'Month',
                     interval: 1,
                     dateFrom: dateFrom.toISOString(),
                     accountIds: [id]
-                })
+                }).execute()
             )
         )
 
@@ -63,15 +66,15 @@ const { data: kpi } = useAsyncData('cashflow+savingrates', async () => {
     date.setDate(1)
 
     const [currentBalance, savingBalance] = await Promise.all([        
-        fetchBalance({
+        ApiLinkBuilder.route<GetBalanceResponse>(API_ROUTES.INVOICES.GET_BALANCES).query({
             startDate: date.toISOString(),
             isFreeze: false
-        }),
-        fetchAnalyticSavings({
+        }).execute(),
+        ApiLinkBuilder.route<GetSavingAnalysticResponse>(API_ROUTES.ANALYTICS.SAVINGS).query({
             period: 'Month',
             interval: 1,
             startDate: date.toISOString(),
-        })
+        }).mapper(savingAnalyticResponseToSavingAnalytic).execute()
     ])
 
     isKpiLoading.value = false
@@ -88,14 +91,14 @@ const { data: topSpendByCategories } = useAsyncData('top-spend-categories', asyn
     const date = new Date()
     date.setDate(1)
     
-    const res = await fetchSpendByCategoriesAnalytic({
+    const res = await ApiLinkBuilder.route<ListResponse<GetSpendCategoryResponse>>(API_ROUTES.ANALYTICS.SPEND_CATEGORIES).query({
         period: 'Month',
         interval: 1,
         startDate: date.toISOString(),
         offset: 0,
         limit: 0,
         queryAll: true
-    })
+    }).execute()
 
     isLoadingTopSpend.value = false
 
@@ -111,14 +114,12 @@ const { data: topSpendByCategories } = useAsyncData('top-spend-categories', asyn
 const { data: goals } = useAsyncData('goal+overview', async () => {
     isLoadingGoal.value = true
 
-    const res = await fetchAllGoal({
-        offset: 0,
-        limit: 2
-    })
+    const res = await ApiLinkBuilder.route<ListResponse<GoalResponse>>(API_ROUTES.GOALS.GET_GOALS).query({offset: 0, limit: 2}).execute();
+    const items = res.items.map(i => goalResponseToGoal(i));
 
     isLoadingGoal.value = false
 
-    return res.items.map(i => (goalToFundGoalCards(i))) 
+    return items.map(i => (goalToFundGoalCards(i))) 
 })
 
 
@@ -161,7 +162,7 @@ const toast = useToast();
 const onSaveAccount = async (value: EditAccount, oldValue?: AccountWithDetailType) => {
     try {
         if (oldValue)
-            await updateAccount(oldValue.id, {
+            await ApiLinkBuilder.route(API_ROUTES.ACCOUNTS.UPDATE_ACCOUNT).params({id: oldValue.id}).body({
                 title: value.title,
                 type : value.type,
                 color: value.color,
@@ -171,9 +172,9 @@ const onSaveAccount = async (value: EditAccount, oldValue?: AccountWithDetailTyp
                     creditLimit: value.creditLimit,
                     invoiceDate: value.invoiceDate?.toDate(getLocalTimeZone()).toISOString()
                 }
-            });
+            }).execute();
         else 
-            await createAccount({
+            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.ACCOUNTS.CREATE_ACCOUNT).body({
                 title: value.title,
                 type : value.type,
                 color: value.color,
@@ -183,7 +184,7 @@ const onSaveAccount = async (value: EditAccount, oldValue?: AccountWithDetailTyp
                     creditLimit: value.creditLimit,
                     invoiceDate: value.invoiceDate?.toDate(getLocalTimeZone()).toISOString()
                 }
-            });
+            }).execute();
         
         refreshAccounts();
     } catch(err) {
@@ -198,7 +199,7 @@ const onSaveAccount = async (value: EditAccount, oldValue?: AccountWithDetailTyp
 const openAccountModal = async (accountId?: string) => {
     let account: AccountWithDetailType |undefined;
     if (accountId) {
-        account = await fetchAccountWithDetail(accountId);
+        account = await ApiLinkBuilder.route<GetAccountWithDetailResponse>(API_ROUTES.ACCOUNTS.GET_ACCOUNT).params({id: accountId}).query({withDetail: true}).mapper(accountWithDetailResponseToAccountWithDetail).execute();
     }
         
     modalAccount.open({
@@ -211,7 +212,7 @@ const openAccountModal = async (accountId?: string) => {
 const onDeleteAccount = async (accountId: string) => {
     const doDelete = confirm('Voulez vous supprimer cette page');
     if (doDelete) {
-        await deleteAccount(accountId);
+        await ApiLinkBuilder.route(API_ROUTES.ACCOUNTS.DELETE_ACCOUNT).params({id: accountId}).execute();
         refreshAccounts();
     }
 }
@@ -220,7 +221,7 @@ const onDeleteAccount = async (accountId: string) => {
 
 const openTransactionViews = async (accountId: string) => {
     try {
-        let account = await fetchAccountWithDetail(accountId);
+        let account = await ApiLinkBuilder.route<GetAccountWithDetailResponse>(API_ROUTES.ACCOUNTS.GET_ACCOUNT).params({id: accountId}).query({withDetail: true}).mapper(accountWithDetailResponseToAccountWithDetail).execute();
         const instance = slideOverQuickInvoices.open({
             account: account,
             onClose: (refresh) => {

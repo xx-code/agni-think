@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { SlideOverNotification } from '#components'
-import { useCheckNotifications } from '~/composables/api/notifications'
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder'
+import { API_ROUTES } from '~/shared/routes'
+import { listNotificationsResponseToListNotifications } from '~/mappers/notification'
+import type { NuxtError } from '#app'
+import type { Result } from '~/types'
+import type { ErrorResponse, ListResponse } from '~/types/api'
+import type { GetAllNotification, NotificationQueryFilterRequest } from '~/types/api/notification'
 
 const overlay = useOverlay()
 const slideOverNotification = overlay.create(SlideOverNotification)
@@ -22,7 +28,20 @@ async function openNotificationHub() {
 async function refreshNotification() {
   try {
     isLoading.value = true
-    const res = await useCheckNotifications()
+    let res: Result<boolean>
+    try {
+        const query: NotificationQueryFilterRequest = {
+            offset: 0,
+            limit: 0,
+            queryAll: true,
+            isRead: false
+        }
+        const notifRes = await ApiLinkBuilder.route(API_ROUTES.NOTIFICATIONS.GET_NOTIFICATIONS).query(query).mapper(listNotificationsResponseToListNotifications).execute() as ListResponse<GetAllNotification>
+        res = { success: true, data: notifRes.items.length > 0 }
+    } catch(error: any) {
+        const nuxtError = error as NuxtError
+        res = { success: false, error: nuxtError.data as ErrorResponse }
+    }
     isNotif.value = res.success && !!res.data
   } catch (error) {
     console.error('Failed to check notifications:', error)

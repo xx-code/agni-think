@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
-import { askToFinancePersonnalAdvisor, fetchLlmModels } from '~/composables/api/agents'
+import { getApiAgent } from '~/utils/env'
 
 type ChatMessage = {
   id: string
@@ -38,18 +38,22 @@ async function ask(text?: string) {
   isThinking.value = true
   scrollToBottom()
 
-  try {
-    const response = await askToFinancePersonnalAdvisor({
-      session_id: sessionId.value,
-      model: "",
-      question: inputText
+    try {
+    const response = await $fetch<string>(`${getApiAgent()}/chat`, {
+      method: 'POST',
+      body: {
+        session_id: sessionId.value,
+        model: "",
+        question: inputText
+      }
     })
+    const res = { message: response }
     prompt.value = ''
     messages.value.push({
       id: Date.now().toString(),
       role: 'assistant',
       timestamp: new Date(),
-      parts: [{ type: 'text', text: response.message }]
+      parts: [{ type: 'text', text: res.message }]
     })
   } catch (err) {
     const nuxtError = err as NuxtError

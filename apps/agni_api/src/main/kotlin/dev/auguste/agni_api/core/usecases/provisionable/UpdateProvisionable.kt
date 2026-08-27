@@ -14,6 +14,8 @@ import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.CreateScheduleIn
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.SchedulerInvoiceInput
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
 import dev.auguste.agni_api.core.value_objects.ProvisionPayment
+import dev.auguste.agni_api.core.value_objects.Scheduler
+import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
 import org.jetbrains.annotations.Async
 
 class UpdateProvisionable(
@@ -31,8 +33,11 @@ class UpdateProvisionable(
                 provisionable.title = input.title
             }
 
-            if (input.initialCost != null)
-                provisionable.initialCost = input.initialCost
+            if (input.costHT != null)
+                provisionable.costHT = input.costHT
+
+            if (input.costTTC != null)
+                provisionable.costTTC = input.costTTC
 
             if (input.expectedLifespanMonth != null)
                 provisionable.expectedLifespanMonth = input.expectedLifespanMonth
@@ -60,17 +65,30 @@ class UpdateProvisionable(
             if (input.interestLoan != null)
                 provisionable.interestLoan = input.interestLoan
 
-            if (input.loanMonth != null)
+            if (input.loanMonth != null && provisionable.type == ProvisionType.DEPRECIATE_LOAN)
                 provisionable.loanMonth = input.loanMonth.toLong()
 
             val isDepreciateLoan = input.scheduleInvoice != null && input.type == ProvisionType.DEPRECIATE_LOAN
-            val doUpdateLoan = input.initialCost != null || input.loanMonth != null
+            val doUpdateLoan = input.costTTC != null || input.loanMonth != null
 
             if (doUpdateLoan && isDepreciateLoan) {
+                if (input.loanMonth == null)
+                    throw DomainException.Unexpected.Unknown("Unexpected error loanMonth = ${input.loanMonth}")
+
+                val endLoanDate = provisionable.acquisitionDate.plusMonths(input.loanMonth.toLong())
+                val scheduler = Scheduler(
+                    date = provisionable.paymentInfo?.scheduler?.date ?: provisionable.acquisitionDate.atStartOfDay(),
+                    repeater = SchedulerRecurrence(
+                        period = input.scheduleInvoice.paymentPeriod,
+                        interval = input.scheduleInvoice.paymentInterval
+                    )
+                )
+                scheduler.date = scheduler.upgradeDate()
+
                 val loanAmount = ProvisionCommon.determineScheduleInvoiceDepreciateLoan(
                     initialCost = provisionable.calculateTotalCost(),
                     monthlyPayment = provisionable.calculateMonthlyPayment(),
-                    scheduler = input.scheduleInvoice.scheduler
+                    scheduler = scheduler
                 )
 
                 val payment = ProvisionPayment(
@@ -79,8 +97,8 @@ class UpdateProvisionable(
                     budgetIds = input.scheduleInvoice.budgetIds,
                     tagIds = input.scheduleInvoice.tagIds,
                     paymentAmount = loanAmount,
-                    scheduler = input.scheduleInvoice.scheduler,
-                    endDate = input.scheduleInvoice.endDate
+                    scheduler = scheduler,
+                    endDate = endLoanDate
                 )
 
                 provisionable.paymentInfo = payment

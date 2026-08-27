@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { reactive } from "vue";
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
-import { fetchAccounts } from '~/composables/api/accounts';
+import type { CreatedRequest, ListResponse } from '~/types/api';
+import type { GetAccountResponse } from '~/types/api/account';
+import { listAccountsToListAccount } from '~/mappers/account';
 import type { FundForm } from '~/types/form/fund';
 import { fundFormToCreateFundRequest, fundFormToUpdateFundRequest } from "~/mappers/fund";
-import { useCreateFund, useUpdateFund } from "~/composables/api/funds";
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 const { fundId, initData } = defineProps<{
     fundId?: string
@@ -39,10 +42,14 @@ function validate(state: Partial<FundForm>): FormError[] {
 const { data: accounts } = useAsyncData('modal+fund+accounts', async () => {
     isloading.value = true
     const query = { offset: 0, limit: 0, queryAll: true }
-    const accounts = await fetchAccounts(query)
+    const res = await ApiLinkBuilder
+        .route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+        .query(query)
+        .mapper(listAccountsToListAccount)
+        .execute()
     isloading.value = false
 
-    return accounts.items
+    return res.items
 })
 
 
@@ -51,10 +58,17 @@ async function onSubmit(event: FormSubmitEvent<FundForm>) {
     isloading.value = true
     try {
         let id = fundId
-        if (fundId && initData) 
-            await useUpdateFund(fundId, fundFormToUpdateFundRequest(data))
-        else {
-            const res = await useCreateFund(fundFormToCreateFundRequest(data))
+        if (fundId && initData) {
+            await ApiLinkBuilder
+                .route(API_ROUTES.FUNDS.UPDATE_FUND)
+                .params({ id: fundId })
+                .body(fundFormToUpdateFundRequest(data))
+                .execute()
+        } else {
+            const res = await ApiLinkBuilder
+                .route<CreatedRequest>(API_ROUTES.FUNDS.CREATE_FUND)
+                .body(fundFormToCreateFundRequest(data))
+                .execute()
             id = res.newId
         } 
         

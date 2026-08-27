@@ -1,11 +1,3 @@
-export type ScheduelProvisionRequest = {
-    dueDate: string
-    repeater?: {
-        interval: number
-        period: string
-    }
-}
-
 export type ProvisionDepreciateCriteriaRequest = {
     title: string
     description: string
@@ -17,17 +9,19 @@ export type ProvisionDepreciateCriteriaRequest = {
 export type ProvisionScheduleInvoiceRequest = {
     invoiceAccountId: string
     invoiceCategoryId: string
-    scheduler: ScheduelProvisionRequest
-    endDate: string
     tagIds: string[]
     budgetIds: string[]
+    paymentPeriod: string
+    paymentInterval: number
 }
 
 export type CreateProvisionRequest = {
     title: string,
-    initialCost: number,
+    costHT: number,
+    costTTC: number,
     acquisitionDate: string,
     expectedLifespanMonth: number,
+    type: string
     isPatrimony: boolean
     depreciationCriteria: ProvisionDepreciateCriteriaRequest[]
     scheduleInvoice?: ProvisionScheduleInvoiceRequest 
@@ -38,27 +32,53 @@ export type CreateProvisionRequest = {
 
 export type UpdateProvisionRequest = {
     title?: string,
-    initialCost?: number,
+    costHT?: number,
+    costTTC?: number,
     acquisitionDate?: string,
     expectedLifespanMonth?: number,
+    type: string
     isPatrimony?: boolean
     depreciationCriteria?: ProvisionDepreciateCriteriaRequest[]
     scheduleInvoice?: ProvisionScheduleInvoiceRequest 
-    floorValule?: number
+    floorValue?: number
     interestLoan?: number
     loanMonth?: number
+}
+
+export type GetProvisionInvoiceResponse = {
+    accountId: string
+    categoryId: string
+    paymentPeriod: string
+    paymentInterval: number
+    nextPaymentDate: string
+    tagIds: string[]
+    budgetIds: string[]
+}
+
+export type GetProvisionDepreciateCriteriaResponse = {
+    title: string
+    description: string
+    type: string
+    value: number
+    monthRange: number
 }
 
 export type GetProvisionResponse = {
     id: string,
     title: string,
-    initialCost: number,
+    costHT: number,
+    costTTC: number,
     totalCost: number
     acquisitionDate: string,
     expectedLifespanMonth: number,
     costByMonth: number
     monthlyPayment: number
     residualValue: number
-    nextPaymentDate?: string
-    nextPaymnetAmount?: number
+    type: string
+    patrimony: boolean
+    floorValue: number
+    interestLoan: number
+    loanMonth: number
+    depreciationCriteria: GetProvisionDepreciateCriteriaResponse[]
+    scheduleInvoice?: GetProvisionInvoiceResponse
 }
