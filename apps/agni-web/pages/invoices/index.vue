@@ -6,15 +6,22 @@ import { getLocalTimeZone } from "@internationalized/date";
 import type { QueryInvoice } from "~/types/api/transaction";
 import type { QueryFilterRequest } from "~/types/api";
 import { ModalInvoice } from "#components";
-import { fetchAccounts } from "~/composables/api/accounts";
-import { useTreatInvoiceText } from "~/composables/api/agents";
-import { fetchBudgets } from "~/composables/api/budget";
-import { fetchCategories } from "~/composables/api/categories";
-import { fetchDeductions } from "~/composables/api/deductionType";
-import { fetchInvoicePagination, fetchBalance, fetchInvoice, useCompleteInvoice, useDeleteInvoice } from "~/composables/api/invoices";
-import { fetchTags } from "~/composables/api/tag";
+import { listAccountsToListAccount } from "~/mappers/account";
+import { budgetFilterToBudgetQueryRequest, listBudgetsResponseToListBudgets } from "~/mappers/budget";
+import { listCategoriesResponseToListCategories } from "~/mappers/category";
+import { listDeductionsResponseToListDeductions } from "~/mappers/deduction";
+import { invoiceResponseToInvoice, listInvoicesResponseToListInvoices } from "~/mappers/invoice";
+import { listTagsResponseToListTags } from "~/mappers/tag";
 import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
 import { API_ROUTES } from "~/shared/routes";
+import { getApiAgent } from "~/utils/env";
+import type { GetAccountResponse } from "~/types/api/account";
+import type { GetSpendCategoryResponse } from "~/types/api/analytics";
+import type { GetCategoryResponse } from "~/types/api/category";
+import type { GetDeductionResponse } from "~/types/api/deduction";
+import type { GetBalanceResponse, GetInvoiceResponse } from "~/types/api/transaction";
+import type { GetTagResponse } from "~/types/api/tag";
+import type { ListResponse } from "~/types/api";
 
 const { start, stop } = useLoading()
 
@@ -37,11 +44,11 @@ const query = reactive<QueryFilterRequest & QueryInvoice>({
 
 const { data: utils, refresh: refreshUtils, error: errorUtils } = useAsyncData('utils-transactions', async () => {
     const [ accounts, categories, deductions, budgets, tags] = await Promise.all([
-        fetchAccounts({ offset: 0, limit: 0, queryAll: true }),
-        fetchCategories({ offset: 0, limit: 0, queryAll: true }),
-        fetchDeductions({ offset: 0, limit: 0, queryAll: true }),
-        fetchBudgets({ offset: 0, limit: 0, queryAll: true }),
-        fetchTags({ offset: 0, limit: 0, queryAll: true })
+        ApiLinkBuilder.route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS).query({ offset: 0, limit: 0, queryAll: true }).mapper(listAccountsToListAccount).execute(),
+        ApiLinkBuilder.route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES).query({ offset: 0, limit: 0, queryAll: true }).mapper(listCategoriesResponseToListCategories).execute(),
+        ApiLinkBuilder.route<ListResponse<GetDeductionResponse>>(API_ROUTES.DEDUCTIONS.GET_DEDUCTIONS).query({ offset: 0, limit: 0, queryAll: true }).mapper(listDeductionsResponseToListDeductions).execute(),
+        ApiLinkBuilder.route(API_ROUTES.BUDGETS.GET_BUDGETS).query(budgetFilterToBudgetQueryRequest({ offset: 0, limit: 0, queryAll: true })).mapper(listBudgetsResponseToListBudgets).execute(),
+        ApiLinkBuilder.route<ListResponse<GetTagResponse>>(API_ROUTES.TAGS.GET_TAGS).query({ offset: 0, limit: 0, queryAll: true }).mapper(listTagsResponseToListTags).execute()
     ])
 
     return {
@@ -61,8 +68,8 @@ const getDeduction = (id: string) => utils.value?.deductions.find(i => id === i.
 const { data, error, refresh, status } = useAsyncData(`transactions-${JSON.stringify(query)}`, async () => {
 
     const [transactions, balance ] = await Promise.all([
-        fetchInvoicePagination(query),
-        fetchBalance(query),
+        ApiLinkBuilder.route<ListResponse<GetInvoiceResponse>>(API_ROUTES.INVOICES.GET_INVOICES).query(query).mapper(listInvoicesResponseToListInvoices).execute(),
+        ApiLinkBuilder.route<GetBalanceResponse>(API_ROUTES.INVOICES.GET_BALANCES).query(query).execute(),
     ])
 
 
@@ -107,7 +114,7 @@ const modalInvoice = overlay.create(ModalInvoice);
 async function openInvoice(transactionId?: string) {
     let invoice: any | undefined;
     if (transactionId)
-        invoice = await fetchInvoice(transactionId);
+        invoice = await ApiLinkBuilder.route<GetInvoiceResponse>(API_ROUTES.INVOICES.GET_INVOICE).params({id: transactionId}).mapper(invoiceResponseToInvoice).execute();
 
     const instance = modalInvoice.open({
         invoice: invoice,
@@ -142,7 +149,7 @@ async function scanNewTransaction() {
     if (textTransaction.value.trim() !== "") {
         try {
             start()
-            await useTreatInvoiceText(textTransaction.value)
+            await $fetch<string>(`${getApiAgent()}/treat-unformat-transaction`, { method: 'POST', body: { text: textTransaction.value } })
             query.status = "Pending"
             query.offset = 0
             page.value = 1
@@ -159,7 +166,7 @@ async function scanNewTransaction() {
 
 
 const onDelete = async (id: string) => {
-    await useDeleteInvoice(id)
+    await ApiLinkBuilder.route(API_ROUTES.INVOICES.DELETE_INVOICE).params({id}).execute()
     refresh()
 }
 
@@ -332,7 +339,7 @@ function getRowItems(rows: TableRow<InvoiceTableType>) {
             icon: 'i-lucide-check',
             onSelect: async () => {
                 if (confirm("Voulez-vous confirmer cette transaction ?")) {
-                    await useCompleteInvoice(rows.original.id)
+                    await ApiLinkBuilder.route(API_ROUTES.INVOICES.COMPLETE_INVOICE).params({id: rows.original.id}).execute()
                     refresh()
                 }
             }

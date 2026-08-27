@@ -1,12 +1,18 @@
 import type { ListResponse } from "~/types/api";
 import type { GetProvisionResponse } from "~/types/api/provision";
-import type { Provision, ProvisionCard, } from "~/types/ui/provision";
+import type { Provision, ProvisionCard, ProvisionDepreciationCriteria } from "~/types/ui/provision";
+import type { DepreciateType, ProvisionType } from "~/types/constants/provision";
 
 export function provisionResponseToProvision(data: GetProvisionResponse): Provision {
     return {
         ...data,
+        isPatrimony: data.patrimony,
+        type: data.type as ProvisionType,
         acquisitionDate: new Date(data.acquisitionDate),
-        nextPaymentDate: data.nextPaymentDate ? new Date(data.nextPaymentDate) : undefined
+        depreciationCriteria: data.depreciationCriteria.map(c => ({
+            ...c,
+            type: c.type as DepreciateType
+        })) as ProvisionDepreciationCriteria[],
     }
 }
 

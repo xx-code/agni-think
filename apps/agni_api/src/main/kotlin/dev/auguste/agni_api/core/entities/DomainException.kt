@@ -80,4 +80,8 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class ProvisionDepreciateLoanMonthMustBeGreaterThanZero(month: Long): Validation("PROVISION_DEPRECIATE_LOAN_MONTH_MUST_BE_GREATER_THAN_ZERO", "Le nombre de mois $month dois etre supperieur a 0")
         class ProvisionDepreciateCriteriaDecliningBalanceMustHaveRangeGreaterThanZero(montRange: Int): Validation("PROVISION_DEPRECIATE_CRITERIA_DECLINING_BALANCE_MUST_HAVE_RANGE_GREATER_THAN_ZERO", "Un critere degressive doit avoir les paliers mensuels supperieur a zero")
     }
+
+    sealed class Unexpected(code: String, message: String): BusinessLogic(code, message) {
+        class Unknown(message: String): Unexpected("Unknown Error", message)
+    }
 }

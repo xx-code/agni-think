@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { AccountWithDetailType, SlideQuickViewTransactionType } from '~/types/ui/account';
 import ListTransaction from './ListTransaction.vue';
-import type { QueryFilterRequest } from '~/types/api';
-import type { GetBalanceResponse, QueryInvoice } from '~/types/api/transaction';
-import { fetchBalance, fetchInvoice, fetchInvoicePagination, useDeleteInvoice, useFreezeInvoice, useTransfertInvoice } from '~/composables/api/invoices.js';
+import type { QueryFilterRequest, ListResponse } from '~/types/api';
+import type { GetBalanceResponse, GetInvoiceResponse, QueryInvoice, TransferInvoiceRequest, FreezeInvoiceRequest } from '~/types/api/transaction';
+import { invoiceResponseToInvoice, listInvoicesResponseToListInvoices } from '~/mappers/invoice';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 import { useInfiniteScroll } from '@vueuse/core';
 import { ModalEditFreezeInvoice, ModalEditTransfer, ModalInvoice } from '#components';
 import type { EditFreezeInvoiceType, EditTransfertType, InvoiceType } from '~/types/ui/transaction.js';
@@ -66,8 +68,15 @@ async function getAllInvoices(offset: number = 0) {
     try {
         queryAllTrans.offset = offset
 
-        const transactions = await fetchInvoicePagination(queryAllTrans);
-        const res = await fetchBalance(queryAllTrans);
+        const transactions = await ApiLinkBuilder
+            .route<ListResponse<GetInvoiceResponse>>(API_ROUTES.INVOICES.GET_INVOICES)
+            .query(queryAllTrans)
+            .mapper(listInvoicesResponseToListInvoices)
+            .execute();
+        const res = await ApiLinkBuilder
+            .route<GetBalanceResponse>(API_ROUTES.INVOICES.GET_BALANCES)
+            .query(queryAllTrans)
+            .execute();
 
         const resInvoices = transactions.items.map(i => formatInvoiceToSlideItem(i))
 
@@ -94,7 +103,11 @@ async function resetAllInvoices() {
 async function openModalEditInvoice(invoiceId?:string) {
     let invoice;
     if (invoiceId)
-        invoice = await fetchInvoice(invoiceId)
+        invoice = await ApiLinkBuilder
+            .route<GetInvoiceResponse>(API_ROUTES.INVOICES.GET_INVOICE)
+            .params({ id: invoiceId })
+            .mapper(invoiceResponseToInvoice)
+            .execute()
 
     const instance = modalInvoice.open({
         accountSelectedId: account?.id,
@@ -109,12 +122,15 @@ async function openModalEditInvoice(invoiceId?:string) {
 
 async function onTransfertAccount(value: EditTransfertType) {
     try {
-        await useTransfertInvoice({
-            accountIdFrom: value.accountIdFrom,
-            accountIdTo: value.accountIdTo,
-            amount: value.amount,
-            date: value.date.toDate(getLocalTimeZone()).toISOString()
-        })
+        await ApiLinkBuilder
+            .route(API_ROUTES.INVOICES.TRANSFER)
+            .body({
+                accountIdFrom: value.accountIdFrom,
+                accountIdTo: value.accountIdTo,
+                amount: value.amount,
+                date: value.date.toDate(getLocalTimeZone()).toISOString()
+            } as TransferInvoiceRequest)
+            .execute()
 
         resetAllInvoices()
         doRefresh.value = true
@@ -136,13 +152,16 @@ async function openModalTransferAccount (){
 
 async function onFreezeInvoice(value: EditFreezeInvoiceType) {
     try {
-        await useFreezeInvoice({
-            accountId: value.accountId,
-            title: value.title,
-            amount: value.amount,
-            endDate: value.endDate.toDate(getLocalTimeZone()).toISOString(),
-            status: value.status
-        })
+        await ApiLinkBuilder
+            .route(API_ROUTES.INVOICES.CREATE_FREEZE)
+            .body({
+                accountId: value.accountId,
+                title: value.title,
+                amount: value.amount,
+                endDate: value.endDate.toDate(getLocalTimeZone()).toISOString(),
+                status: value.status
+            } as FreezeInvoiceRequest)
+            .execute()
         resetAllInvoices()
         doRefresh.value = true
     } catch(err) {
@@ -167,7 +186,10 @@ async function deleteInvoice(invoiceId: string) {
     try {
         const ok = confirm("Voulez-vous supprimer cette facture ?")
         if (ok) {
-            await useDeleteInvoice(invoiceId)
+            await ApiLinkBuilder
+                .route(API_ROUTES.INVOICES.DELETE_INVOICE)
+                .params({ id: invoiceId })
+                .execute()
 
             resetAllInvoices()
             doRefresh.value = true

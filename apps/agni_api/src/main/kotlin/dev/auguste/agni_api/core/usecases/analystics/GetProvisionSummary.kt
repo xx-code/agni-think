@@ -14,7 +14,7 @@ class GetProvisionSummary(
 
         return GetProvisionSummaryOutput(
             activesProvision = provisions.total.toInt(),
-            initialValue = provisions.items.sumOf { it.initialCost },
+            initialValue = provisions.items.sumOf { it.costHT },
             accountingTotalValue = provisions.items.sumOf { it.calculateResidualValue() },
             costByMonth = provisions.items.sumOf { it.calculateTotalCostPerMonth() },
             monthlyPayment = provisions.items.sumOf { it.calculateMonthlyPayment() }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DepreciateType, ProvisionType } from '~/types/constants/provision';
 import type { ProvisionCard } from '~/types/ui/provision';
 
 
@@ -81,7 +82,8 @@ function getStatusColor(percent: number): string {
         <div class="grid grid-cols-3 gap-2 pt-2 border-t border-gray-50">
             <div class="text-center">
                 <p class="text-xs text-gray-400 mb-0.5">Valeur initiale</p>
-                <p class="text-sm font-semibold text-gray-700">{{ formatCurrency(data.initialCost) }}</p>
+                <p class="text-sm font-semibold text-gray-700">{{ formatCurrency(data.costHT) }}</p>
+                <p class="text-[11px] font-mono text-gray-700" v-if="data.costHT != data.costTTC">{{ formatCurrency(data.costTTC) }} - TTC </p>
             </div>
             <div class="text-center border-x border-gray-100">
                 <p class="text-xs text-gray-400 mb-0.5">Valeur actuelle</p>
@@ -89,9 +91,13 @@ function getStatusColor(percent: number): string {
                     {{ formatCurrency(data.residualValue) }}
                 </p>
             </div>
-            <div class="text-center">
+            <div v-if="data.type == ProvisionType.DepreciateLoan" class="text-center">
                 <p class="text-xs text-gray-400 mb-0.5">Mensualité</p>
                 <p class="text-sm font-semibold text-gray-700">{{ formatCurrency(data.monthlyPayment) }}</p>
+            </div>
+            <div v-else class="text-center">
+                <p class="text-xs text-gray-400 mb-0.5">Coût de détention mensuel</p>
+                <p class="text-sm font-semibold text-gray-700">{{ formatCurrency(data.costByMonth) }}</p>
             </div>
         </div>
 

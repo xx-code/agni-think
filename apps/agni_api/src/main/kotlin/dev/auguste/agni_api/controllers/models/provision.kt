@@ -17,12 +17,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class ApiScheduleProvisionModel(
-    @field:NotNull("Due date must be null or empty")
-    val dueDate: LocalDateTime,
-    val repeater: ApiScheduleRepeaterModel? = null,
-)
-
 data class ApiProvisionDepreciateCriteriaInput(
     @field:NotEmpty(message = "Title depreciate must not be empty")
     val title: String,
@@ -38,8 +32,11 @@ data class ApiCreateProvisionModel(
     @field:NotEmpty(message = "Title must not be empty")
     val title: String,
 
-    @field:DecimalMin(value = "0.0", message = "Initial cost must be positive")
-    val initialCost: Double,
+    @field:DecimalMin(value = "0.0", message = "Cost HT must be positive")
+    val costHT: Double,
+
+    @field:DecimalMin(value = "0.0", message = "Cost TTC must be positive")
+    val costTTC: Double,
 
     @field:NotNull(message = "Acquisition date must be set")
     val acquisitionDate: LocalDate,
@@ -70,8 +67,11 @@ data class ApiCreateProvisionModel(
 data class ApiUpdateProvisionModel(
     val title: String?,
 
-    @field:DecimalMin(value = "0.0", message = "Initial cost must be positive")
-    val initialCost: Double?,
+    @field:DecimalMin(value = "0.0", message = "Cost HT must be positive")
+    val costHT: Double,
+
+    @field:DecimalMin(value = "0.0", message = "Cost TTC must be positive")
+    val costTTC: Double,
 
     val acquisitionDate: LocalDate?,
 
@@ -103,36 +103,28 @@ data class ApiScheduleInvoiceProvisionModel(
     @field:NotNull(message = "Invoice category id must be set")
     val invoiceCategoryId: UUID,
 
-    @field:NotNull(message = "Scheduler must be set")
-    val scheduler: ApiScheduleProvisionModel,
-
-    @field:NotNull(message = "End date must be set")
-    val endDate: LocalDate,
-
     val tagIds: Set<UUID> = setOf(),
-    val budgetIds: Set<UUID> = setOf()
+    val budgetIds: Set<UUID> = setOf(),
+    val paymentPeriod: String,
+    val paymentInterval: Int,
 )
 
 fun mapApiScheduleInvoiceProvision(model: ApiScheduleInvoiceProvisionModel): ScheduleInvoiceProvisionInput {
     return ScheduleInvoiceProvisionInput(
         invoiceAccountId = model.invoiceAccountId,
         invoiceCategoryId = model.invoiceCategoryId,
-        scheduler = Scheduler(model.scheduler.dueDate, model.scheduler.repeater?.let {
-            SchedulerRecurrence(
-                period = PeriodType.fromString(model.scheduler.repeater.period),
-                interval = model.scheduler.repeater.interval
-            )
-        }),
-        endDate = model.endDate,
         tagIds = model.tagIds,
-        budgetIds = model.budgetIds
+        budgetIds = model.budgetIds,
+        paymentPeriod = PeriodType.fromString(model.paymentPeriod),
+        paymentInterval = model.paymentInterval
     )
 }
 
 fun mapApiCreateProvision(model: ApiCreateProvisionModel): CreateProvisionInput {
     return CreateProvisionInput(
         title = model.title,
-        initialCost = model.initialCost,
+        costHT = model.costHT,
+        costTTC = model.costTTC,
         acquisitionDate = model.acquisitionDate,
         expectedLifespanMonth = model.expectedLifespanMonth,
         type = ProvisionType.fromString(model.type),
@@ -157,7 +149,8 @@ fun mapApiUpdateProvision(id: UUID, model: ApiUpdateProvisionModel): UpdateProvi
     return UpdateProvisionInput(
         id = id,
         title = model.title,
-        initialCost = model.initialCost,
+        costHT = model.costHT,
+        costTTC = model.costTTC,
         acquisitionDate = model.acquisitionDate,
         expectedLifespanMonth = model.expectedLifespanMonth,
         isPatrimony = model.isPatrimony,

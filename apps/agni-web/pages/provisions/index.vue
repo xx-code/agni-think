@@ -1,16 +1,28 @@
 <script setup lang="ts">
-import type { NuxtError } from '#app';
 import { ModalEditProvision } from '#components';
-import { deleteProvision, fetchProvision, fetchProvisions } from '~/composables/api/provisions';
 import { provisionSummaryResponseToProvisionSummary } from '~/mappers/analytics';
-import { provisionToProvisionCard } from '~/mappers/provision';
+import { listProvisionsResponseToListProvisions, provisionResponseToProvision, provisionToProvisionCard } from '~/mappers/provision';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
-import type { EditProvisionType, Provision } from '~/types/ui/provision';
+import type { ListResponse } from '~/types/api';
+import type { GetProvisionResponse } from '~/types/api/provision';
+import type { QueryFilterRequest } from '~/types/api';
+import type { Provision } from '~/types/ui/provision';
 
 const isLoadingSummary = ref(false)
+const isLoading = ref(false)
 const overlay = useOverlay();
 const modalProvision = overlay.create(ModalEditProvision);
 const toast = useToast();
+
+const provisions = ref<Provision[]>([])
+const totalProvision = ref(0)
+
+const filter = reactive<QueryFilterRequest>({
+    offset: 0,
+    limit: 5,
+    queryAll: false
+})
 
 const { data: provisionSummary } = useAsyncData('provision-summary', async () => {
     isLoadingSummary.value = true
@@ -20,95 +32,68 @@ const { data: provisionSummary } = useAsyncData('provision-summary', async () =>
     isLoadingSummary.value = false
 
     return res
-}, { watch: []})
+}, { watch: [ provisions ]})
 
-const { data, error, refresh } = useAsyncData('provision+all', async () => {
-    const res = await fetchProvisions({ queryAll: true, offset: 0, limit: 0 })
-    return res
-})
-
-async function onSubmitProvision(value: EditProvisionType, oldValue?: Provision) {
-    try {
-        // if (oldValue) {
-        //     await updateProvision(oldValue.id, {
-        //         title: value.title,
-        //         initialCost: value.initialCost,
-        //         acquisitionDate: value.acquisitionDate?.toDate(getLocalTimeZone()).toISOString(),
-        //         expectedLifespanMonth: value.expectedLifespanMonth,
-        //         residualValue: value.residualValue
-        //     })
-        // } else {
-        //     await createProvision({
-        //         title: value.title,
-        //         initialCost: value.initialCost,
-        //         acquisitionDate: value.acquisitionDate.toDate(getLocalTimeZone()).toISOString(),
-        //         expectedLifespanMonth: value.expectedLifespanMonth,
-        //         residualValue: value.residualValue
-        //     })
-        // }
-        await refresh()
-    } catch (err) {
-        const nuxtError = err as NuxtError
-        toast.add({ title: "Erreur provision", color: 'error' });
-    }
+async function updateProvisionList() {
+    provisions.value = []
+    totalProvision.value = 0
+    await getAllProvisions()
 }
 
 const openModalProvision = async (provisionId?: string) => {
     let provision: Provision | undefined = undefined;
     if (provisionId) {
-        provision = await fetchProvision(provisionId);
+        provision = await ApiLinkBuilder.route<GetProvisionResponse>(API_ROUTES.PROVISIONS.GET_PROVISION).params({id: provisionId}).mapper(provisionResponseToProvision).execute();
     }
     modalProvision.open({
         provision: provision,
-        onSubmit: onSubmitProvision
+        onClose: (refresh) => {
+            if (refresh) {
+                updateProvisionList()
+            }
+        }
     });
 }
 
 const onDeleteProvision = async (id: string) => {
     try {
-        await deleteProvision(id)
-        refresh()
+        await ApiLinkBuilder.route(API_ROUTES.PROVISIONS.DELETE_PROVISION).method('DELETE').params({id}).execute()
+        updateProvisionList()
     } catch (err) {
         toast.add({ title: "Erreur suppression provision", color: 'error' });
     }
 }
 
-// --- Amortization helpers ---
+async function showMoreProvision() {
+    if (provisions.value.length === totalProvision.value)
+        return 
 
-function getElapsedMonths(acquisitionDate: Date): number {
-    const now = new Date()
-    const acq = new Date(acquisitionDate)
-    return Math.max(0, (now.getFullYear() - acq.getFullYear()) * 12 + (now.getMonth() - acq.getMonth()))
+    filter.offset = provisions.value.length
 }
 
-function getAmortizationPercent(provision: Provision): number {
-    const elapsed = getElapsedMonths(provision.acquisitionDate)
-    return Math.min(100, Math.round((elapsed / provision.expectedLifespanMonth) * 100))
+async function getAllProvisions() {
+    isLoading.value = true
+    try {
+        const res = await ApiLinkBuilder.route<ListResponse<GetProvisionResponse>>(API_ROUTES.PROVISIONS.GET_PROVISIONS)
+            .query(filter)
+            .mapper(listProvisionsResponseToListProvisions).execute()
+        provisions.value.push(...res.items) 
+        totalProvision.value = res.total
+    } catch(err: any) {
+        toast.add({
+            title: 'Erreur Provision',
+            description: err.message,
+            color: 'error'
+        })
+    } finally {
+        isLoading.value = false
+    }
 }
 
 
-function getMonthlyProvision(provision: Provision): number {
-    const depreciable = provision.initialCost - provision.residualValue
-    return depreciable / provision.expectedLifespanMonth
-}
-
-function getRemainingMonths(provision: Provision): number {
-    const elapsed = getElapsedMonths(provision.acquisitionDate)
-    return Math.max(0, provision.expectedLifespanMonth - elapsed)
-}
-
-
-
-const provisions = computed(() => data.value?.items ?? [])
-
-const searchQuery = ref('')
-
-const filteredProvisions = computed(() => {
-    if (!searchQuery.value) return provisions.value
-    return provisions.value.filter(p =>
-        p.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-})
+watch(filter, () => {
+    getAllProvisions()
+}, { immediate: true })
 </script>
 
 <template>
@@ -128,50 +113,61 @@ const filteredProvisions = computed(() => {
             <UiBannerAccountant 
                 title="Provisions actives"
                 :amount="provisionSummary?.activesProvision ?? 0"
-                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(168, 85, 247, 0.1)', fontColor: '#a855f7'}"
+                :icon="{ name: 'i-lucide-shield-check', backgroundColor: 'rgba(168, 85, 247, 0.1)', fontColor: '#a855f7' }"
             />
 
             <UiBannerAccountant 
                 title="Valeur initiale totale"
                 :amount="provisionSummary?.initialValue ?? 0"
-                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(23, 85, 247, 0.1)', fontColor: '#a855f7'}"
+                :icon="{ name: 'i-lucide-vault', backgroundColor: 'rgba(59, 130, 246, 0.1)', fontColor: '#3b82f6' }"
             />
 
             <UiBannerAccountant 
                 title="Valeur comptable actuelle"
                 :amount="provisionSummary?.accountingTotalValue ?? 0"
-                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(102, 100, 43, 0.1)', fontColor: '#a855f7'}"
+                :icon="{ name: 'i-lucide-scale', backgroundColor: 'rgba(16, 185, 129, 0.1)', fontColor: '#10b981' }"
             />
 
             <UiBannerAccountant 
                 title="Cout mensuelle"
                 :amount="provisionSummary?.costByMonth ?? 0"
-                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(235, 23, 54, 0.1)', fontColor: '#a855f7'}"
+                :icon="{ name: 'i-lucide-trending-down', backgroundColor: 'rgba(239, 68, 68, 0.1)', fontColor: '#ef4444' }"
             />
 
             <UiBannerAccountant 
                 title="Payment mensuelle"
                 :amount="provisionSummary?.monthlyPayment ?? 0"
-                :icon="{ name: 'i-lucide-target', backgroundColor: 'rgba(168, 245, 247, 0.1)', fontColor: '#a855f7'}"
+                :icon="{ name: 'i-lucide-calendar-check', backgroundColor: 'rgba(14, 165, 233, 0.1)', fontColor: '#0ea5e9' }"
             />
         </div>
 
-                <!-- Cards grid -->
+        <!-- Cards grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             <UiProvisionCard
-                v-for="provision of filteredProvisions"
+                v-for="provision of provisions"
                 :key="provision.id"
                 :data="provisionToProvisionCard(provision)"
+                @update="openModalProvision(provision.id)"
+                @delete="onDeleteProvision(provision.id)"
             />
-        </div>
 
-        <!-- Empty state -->
-        <UiEmptyState 
-            v-if="filteredProvisions.length === 0"
-            icon="i-lucide-package"
-            title="Aucune provision trouvée"
-            description="Ajoutez un équipement pour commencer le suivi"
-            @new="openModalProvision()"
-        />
+            <div 
+                v-if="provisions.length < totalProvision"
+                class="p-5 rounded-xl bg-gray-50 border border-dashed border-gray-300 h-full flex justify-center cursor-pointer hover:shadow-xs"
+                @click="showMoreProvision()" >
+                <div class="flex items-center my-8">
+                    <span>Afficher plus</span> 
+                    <UIcon name="i-lucide-arrow-right" />
+                </div>                
+            </div>
+
+            <UiEmptyState 
+                v-if="provisions?.length === 0 && totalProvision == 0"
+                icon="i-lucide-package"
+                title="Aucune provision trouvée"
+                description="Ajoutez un équipement pour commencer le suivi"
+                @new="openModalProvision()"
+            />
+        </div> 
     </UiPage>
 </template>

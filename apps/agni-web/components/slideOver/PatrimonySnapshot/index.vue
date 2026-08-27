@@ -2,9 +2,13 @@
 import type { NuxtError } from '#app';
 import { ModalEditSnapshotPatrimony } from '#components';
 import { getLocalTimeZone } from '@internationalized/date';
-import { fetchPatrimony, fetchSnapshotsPatrimony, useAddSnapshotPatrimony, useRemoveSnapshotPatrimony, useUpdateSnapshotPatrimony } from '~/composables/api/patrimonies';
+import type { GetPatrimonyResponse, GetSnapshotPatrimonyResponse, ListResponse } from '~/types/api';
+import type { AddSnapshotPatrimonyRequest, UpdateSnapshotPatrimonyRequest } from '~/types/api/patrimony';
+import { patrimonyResponseToPatrimony } from '~/mappers/patrimony';
 import { getLabelPatrimonyType } from '~/types/constants/patrimony';
 import type { EditSnapshotPatrimony, PatrimonyType, SnapshotPatrimonyType } from '~/types/ui/patrimony';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
 
 const { id, isFund } = defineProps<{
     id: string
@@ -22,12 +26,30 @@ const modalEditSnapshotPatrimony = overlay.create(ModalEditSnapshotPatrimony)
 
 const { data, refresh } = useAsyncData(`patrimony-${id}-${isFund}`, async () => {
     isLoading.value = true
-    const resPatrimony = await fetchPatrimony(id, isFund)
-    
-    let snapshots: SnapshotPatrimonyType[] = []
 
-    const resSnapshots = await fetchSnapshotsPatrimony(id, undefined, undefined, isFund)
-    snapshots = resSnapshots.items
+    let resPatrimony: PatrimonyType
+    if (isFund) {
+        resPatrimony = await ApiLinkBuilder
+            .route<GetPatrimonyResponse>(API_ROUTES.PATRIMONIES.TOTAL_FUND)
+            .mapper(patrimonyResponseToPatrimony)
+            .execute()
+    } else {
+        resPatrimony = await ApiLinkBuilder
+            .route<GetPatrimonyResponse>(API_ROUTES.PATRIMONIES.GET_PATRIMONY)
+            .params({ id: id })
+            .mapper(patrimonyResponseToPatrimony)
+            .execute()
+    }
+
+    const resSnapshots = await ApiLinkBuilder
+        .route<ListResponse<GetSnapshotPatrimonyResponse>>(API_ROUTES.PATRIMONIES.GET_SNAPSHOTS)
+        .params({ id: id })
+        .query({ limit: 0, offset: 0, queryAll: true, isFund: isFund })
+        .execute()
+
+    const snapshots: SnapshotPatrimonyType[] = resSnapshots.items.map(i => ({
+        id: i.id, patrimonyId: i.patrimonyId, balance: i.balance, date: new Date(i.date), status: i.status
+    }))
 
     isLoading.value = false
 
@@ -53,17 +75,25 @@ const snaptshotsBalance = computed(() => {
 async function onSubmitSnapshot(snapshot: EditSnapshotPatrimony, oldSnapshot?: SnapshotPatrimonyType) {
     try {
         if (oldSnapshot)
-            await useUpdateSnapshotPatrimony(oldSnapshot.patrimonyId, oldSnapshot.id, {
-                status: snapshot.status,
-                balance: snapshot.balance,
-                date: snapshot.date.toDate(getLocalTimeZone()).toISOString()
-            })
+            await ApiLinkBuilder
+                .route(API_ROUTES.PATRIMONIES.UPDATE_SNAPSHOT)
+                .params({ id: oldSnapshot.id })
+                .body({
+                    status: snapshot.status,
+                    balance: snapshot.balance,
+                    date: snapshot.date.toDate(getLocalTimeZone()).toISOString()
+                } as UpdateSnapshotPatrimonyRequest)
+                .execute()
         else
-            await useAddSnapshotPatrimony(id, {
-                balance: snapshot.balance,
-                status: snapshot.status,
-                date: snapshot.date.toDate(getLocalTimeZone()).toISOString()
-            })
+            await ApiLinkBuilder
+                .route(API_ROUTES.PATRIMONIES.ADD_SNAPSHOT)
+                .params({ id: id })
+                .body({
+                    balance: snapshot.balance,
+                    status: snapshot.status,
+                    date: snapshot.date.toDate(getLocalTimeZone()).toISOString()
+                } as AddSnapshotPatrimonyRequest)
+                .execute()
         doRefresh.value = true
         refresh()
     } catch(err) {
@@ -80,7 +110,10 @@ function openSnapshot(snapshot?: SnapshotPatrimonyType) {
 }
 
 async function removeSnapshot(snapshotId: string) {
-    await useRemoveSnapshotPatrimony(id, snapshotId)
+    await ApiLinkBuilder
+        .route(API_ROUTES.PATRIMONIES.REMOVE_SNAPSHOT)
+        .params({ id: snapshotId })
+        .execute()
     refresh()
 }
 

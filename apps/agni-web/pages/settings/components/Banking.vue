@@ -2,7 +2,8 @@
 import { ModalMatchBankAccount, UButton, USwitch } from '#components';
 import { usePlaidLink, type PlaidLinkOnSuccessMetadata, type PlaidLinkOptions } from '@jcss/vue-plaid-link';
 import type { TableColumn } from '@nuxt/ui';
-import { fetchAllBankRegister } from '~/composables/api/bankRegister';
+import { listBankRegistersResponseToListBankRegisters } from '~/mappers/bankRegister';
+import type { ListResponse } from '~/types/api';
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
 
@@ -17,7 +18,7 @@ const overlay = useOverlay()
 const modalMatchBank = overlay.create(ModalMatchBankAccount)
 
 const { data, refresh } = useAsyncData("banking+all+register", async () => {
-    const res = await fetchAllBankRegister({ offset: 0, limit:1, queryAll: true })
+    const res = await ApiLinkBuilder.route(API_ROUTES.BANK_REGISTERS.GET_BANK_REGISTERS).query({ offset: 0, limit:1, queryAll: true }).mapper(listBankRegistersResponseToListBankRegisters).execute()
 
     return res.items.map(i => ({
         id: i.id,

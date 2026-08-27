@@ -2,15 +2,20 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { formatBudgetDataForChart } from '~/utils/formatBudgetDataForChart'
 import { getListTime } from '~/utils/getListTime'
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder'
+import { API_ROUTES } from '~/shared/routes'
+import { savingAnalyticResponseToSavingAnalytic, patrimonyEvolutionResponseToPatrimonyEvolution } from '~/mappers/analytics'
+import { budgetFilterToBudgetQueryRequest, listBudgetsResponseToListBudgets } from '~/mappers/budget'
+import { listCategoriesResponseToListCategories } from '~/mappers/category'
+import { fundResponseToFund } from '~/mappers/fund'
+import { listInvoicesResponseToListInvoices } from '~/mappers/invoice'
 import type { QueryFilterRequest } from '~/types/api'
-import type { GetSavingAnalysticRequest, GetSpendCategoryRequest } from '~/types/api/analytics'
-import type { GetBalanceResponse, QueryBalanceByPeriod, QueryInvoice } from '~/types/api/transaction'
+import type { ListResponse } from '~/types/api'
+import type { GetSavingAnalysticRequest, GetSavingAnalysticResponse, GetSpendCategoryRequest, GetSpendCategoryResponse } from '~/types/api/analytics'
+import type { GetCategoryResponse } from '~/types/api/category'
+import type { GetFundResponse, QueryFilterFundRequest } from '~/types/api/fund'
+import type { GetBalanceResponse, GetInvoiceResponse, QueryBalanceByPeriod, QueryInvoice } from '~/types/api/transaction'
 import type { SavingAnalysticType } from '~/types/ui/analytics'
-import { fetchAnalyticSavings, fetchSpendByCategoriesAnalytic } from '~/composables/api/analytics'
-import { fetchBudgets } from '~/composables/api/budget'
-import { fetchCategories } from '~/composables/api/categories'
-import { fetchFunds } from '~/composables/api/funds'
-import { fetchBalanceByPeriod, fetchInvoicePagination } from '~/composables/api/invoices'
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
 const calendarSelection = reactive<{
@@ -67,36 +72,36 @@ const spendCategoryData = ref<{ categoryId: string; spends: number[] }[]>([])
 async function fetchBalance() {
   isLoading.value = true
   try {
-    balanceData.value = await fetchBalanceByPeriod({
+    balanceData.value = await ApiLinkBuilder.route<GetBalanceResponse[]>(API_ROUTES.INVOICES.GET_BALANCES_BY_PERIOD).query({
       period: calendarSelection.period.toLowerCase(),
       interval: calendarSelection.interval,
       dateFrom: calendarSelection.startDate,
       isFreeze: false,
-    } as QueryBalanceByPeriod)
+    } as QueryBalanceByPeriod).execute()
   } catch (e) { balanceData.value = [] }
   finally { isLoading.value = false }
 }
 
 async function fetchSavings() {
   try {
-    savingData.value = await fetchAnalyticSavings({
+    savingData.value = await ApiLinkBuilder.route<GetSavingAnalysticResponse>(API_ROUTES.ANALYTICS.SAVINGS).query({
       period: calendarSelection.period.toLowerCase(),
       interval: calendarSelection.interval,
       startDate: calendarSelection.startDate,
-    } as GetSavingAnalysticRequest)
+    } as GetSavingAnalysticRequest).mapper(savingAnalyticResponseToSavingAnalytic).execute()
   } catch (e) { savingData.value = null }
 }
 
 async function fetchSpendCategories() {
   try {
-    const res = await fetchSpendByCategoriesAnalytic({
+    const res = await ApiLinkBuilder.route<ListResponse<GetSpendCategoryResponse>>(API_ROUTES.ANALYTICS.SPEND_CATEGORIES).query({
       period: calendarSelection.period.toLowerCase(),
       interval: calendarSelection.interval,
       startDate: calendarSelection.startDate,
       offset: 0,
       limit: 0,
       queryAll: true
-    } as GetSpendCategoryRequest)
+    } as GetSpendCategoryRequest).execute()
 
     spendCategoryData.value = res.items ?? []
 
@@ -109,9 +114,15 @@ watch(() => calendarSelection.startDate, () => { fetchBalance(); fetchSavings();
 const { data: utils } = useAsyncData('utils+all+dashboard', async () => {
   const query = { limit: 0, offset: 0, queryAll: true}
   const [categories, budgets, goals] = await Promise.all([
-    fetchCategories(query),
-    fetchBudgets(query),
-    fetchFunds(query)
+    ApiLinkBuilder.route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES).query(query).mapper(listCategoriesResponseToListCategories).execute(),
+    ApiLinkBuilder.route(API_ROUTES.BUDGETS.GET_BUDGETS).query(budgetFilterToBudgetQueryRequest(query)).mapper(listBudgetsResponseToListBudgets).execute(),
+    (async () => {
+      const res = await ApiLinkBuilder.route<ListResponse<GetFundResponse>>(API_ROUTES.FUNDS.GET_FUNDS).query(query as QueryFilterFundRequest).execute()
+      return {
+        items: res.items.map(data => fundResponseToFund(data)),
+        total: res.total
+      }
+    })()
   ])
   return {
     categories,
@@ -122,7 +133,7 @@ const { data: utils } = useAsyncData('utils+all+dashboard', async () => {
 
 const paramsTransaction = reactive<QueryFilterRequest & QueryInvoice>({ offset: 0, limit: 5, status: 'Pending' })
 const { data: transactions } = useAsyncData('pagination+dashboard', async () => {
-  const res = await fetchInvoicePagination(paramsTransaction)
+  const res = await ApiLinkBuilder.route<ListResponse<GetInvoiceResponse>>(API_ROUTES.INVOICES.GET_INVOICES).query(paramsTransaction).mapper(listInvoicesResponseToListInvoices).execute()
 
   return res  
 }) 

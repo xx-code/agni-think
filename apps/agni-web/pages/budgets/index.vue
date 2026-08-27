@@ -2,9 +2,12 @@
 import { ModalEditBudget, SlideOverQuickInvoicesView } from "#components"
 import { getLocalTimeZone } from "@internationalized/date"
 import { computed, ref } from "vue"
-import { fetchBudgetTotalSummary } from "~/composables/api/analytics"
-import { fetchBudget, fetchBudgets, useCreateBudget, useDeleteBudget, useUpdateBudget } from "~/composables/api/budget"
-import { budgetToBudgetCard } from "~/mappers/budget"
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder'
+import { API_ROUTES } from '~/shared/routes'
+import { budgetFilterToBudgetQueryRequest, budgetResponseToBudget, listBudgetsResponseToListBudgets, budgetToBudgetCard } from '~/mappers/budget'
+import type { CreatedRequest, ListResponse } from '~/types/api'
+import type { GetBudgetResponse } from '~/types/api/budget'
+import type { BudgetTotalSummaryResponse } from '~/types/api/analytics'
 import type { BudgetFilter, BudgetType, EditBudgetType } from "~/types/ui/budget"
 
 const isLoadingSummary = ref(false)
@@ -22,7 +25,7 @@ const isLoading = ref(false)
 
 const { data: summary } = useAsyncData('page-budget-summary', async () => {
     isLoadingSummary.value = true
-    const res = await fetchBudgetTotalSummary()
+    const res = await ApiLinkBuilder.route<BudgetTotalSummaryResponse>(API_ROUTES.ANALYTICS.BUDGET_TOTAL_SUMMARY).execute()
     isLoadingSummary.value = false
 
     return {
@@ -92,24 +95,24 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
     try {
         let id;
         if (oldValue) {
-            await useUpdateBudget(oldValue.id, {
+            await ApiLinkBuilder.route(API_ROUTES.BUDGETS.UPDATE_BUDGET).params({id: oldValue.id}).body({
                 title: value.title,
                 target: value.target,
                 schedule: {
                     repeater: value.repeater,
                     dueDate: value.dueDate.toDate(getLocalTimeZone()).toISOString(),
                 }
-            })
+            }).execute()
             id = oldValue.id
         } else {
-            const res = await useCreateBudget({
+            const res = await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.BUDGETS.CREATE_BUDGET).body({
                 title: value.title,
                 target: value.target,
                 schedule: {
                     repeater: value.repeater,
                     dueDate: value.dueDate.toDate(getLocalTimeZone()).toISOString(),
                 }
-            })
+            }).execute()
             id = res.newId 
         } 
             
@@ -132,7 +135,7 @@ async function onSubmitBudget(value: EditBudgetType, oldValue?: BudgetType) {
 async function openModalBudget(budgetId?: string) { 
     let budget: BudgetType | undefined
     if (budgetId) {
-        budget = await fetchBudget(budgetId)
+        budget = await ApiLinkBuilder.route<GetBudgetResponse>(API_ROUTES.BUDGETS.GET_BUDGET).params({id: budgetId}).mapper(budgetResponseToBudget).execute()
     }
 
     modalEditBudget.open({
@@ -143,7 +146,7 @@ async function openModalBudget(budgetId?: string) {
 
 const onDeleteBudget = async (budgetId: string) => {
     try {
-        await useDeleteBudget(budgetId)
+        await ApiLinkBuilder.route(API_ROUTES.BUDGETS.DELETE_BUDGET).params({id: budgetId}).execute()
         const indexToRemove = budgets.value.findIndex(i => i.id === budgetId)
         if (indexToRemove >= 0)  {
             budgets.value = budgets.value.filter(i => i.id !== budgetId)
@@ -176,7 +179,7 @@ const openInvoiceView = async (budgetId: string) => {
 }
 
 async function updateBudgetList(id: string) {
-    const budget = await fetchBudget(id)
+    const budget = await ApiLinkBuilder.route<GetBudgetResponse>(API_ROUTES.BUDGETS.GET_BUDGET).params({id}).mapper(budgetResponseToBudget).execute()
     const index = budgets.value.findIndex(i => i.id == id)
     if (index >= 0 ) {
         budgets.value[index] = budget
@@ -195,12 +198,12 @@ async function showMoreBudget() {
 async function getAllBudgets() {
     isLoading.value = true
     try {
-        var res = await fetchBudgets(filter)
+        var res = await ApiLinkBuilder.route(API_ROUTES.BUDGETS.GET_BUDGETS).query(budgetFilterToBudgetQueryRequest(filter)).mapper(listBudgetsResponseToListBudgets).execute()
         budgets.value.push(...res.items) 
         totalBudget.value = res.total
     } catch(err: any) {
         toast.add({
-            title: 'Erreur Funds',
+            title: 'Erreur Budgets',
             description: err.message,
             color: 'error'
         })
@@ -322,6 +325,7 @@ watch(filter, () => {
                     <UIcon name="i-lucide-arrow-right" />
                 </div>                
             </div>
+
             <UiEmptyState 
                 v-if="budgets?.length === 0 && totalBudget == 0"
                 icon="i-lucide-target"

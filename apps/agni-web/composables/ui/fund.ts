@@ -1,6 +1,11 @@
 import type { FundContext } from "~/types/ui/fund"
-import { fetchFund } from "../api/funds"
-import { fetchAllGoal } from "../api/goals"
+import type { GetFundResponse, QueryFilterFundRequest } from "~/types/api/fund"
+import type { ListResponse } from "~/types/api"
+import type { GoalResponse, GoalQueryFilterRequest } from "~/types/api/goal"
+import { fundResponseToFund } from "~/mappers/fund"
+import { goalResponseToGoal } from "~/mappers/goal"
+import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder"
+import { API_ROUTES } from "~/shared/routes"
 
 export function useFundCardContext() {
     const isOpen = useState('fundCardContext:isOpen', () => false)
@@ -12,8 +17,19 @@ export function useFundCardContext() {
         isLoading.value = true
         try {
             const [resFund, resGoals] = await Promise.all([
-                fetchFund(fundId),
-                fetchAllGoal({ limit: 0, offset: 4, queryAll: true, sourceId: fundId })
+                ApiLinkBuilder
+                    .route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND)
+                    .params({ id: fundId })
+                    .mapper(fundResponseToFund)
+                    .execute(),
+                ApiLinkBuilder
+                    .route<ListResponse<GoalResponse>>(API_ROUTES.GOALS.GET_GOALS)
+                    .query({ limit: 0, offset: 4, queryAll: true, sourceId: fundId } as GoalQueryFilterRequest)
+                    .execute()
+                    .then(res => ({
+                        items: res.items.map(i => goalResponseToGoal(i)),
+                        total: res.total
+                    }))
             ])
 
             fund.value = {

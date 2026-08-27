@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { fetchAccounts } from '~/composables/api/accounts';
-import { createBankRegister } from '~/composables/api/bankRegister';
+import type { CreatedRequest, ListResponse } from '~/types/api';
+import type { GetAccountResponse } from '~/types/api/account';
+import { listAccountsToListAccount } from '~/mappers/account';
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
 
@@ -23,7 +24,11 @@ const bankMatching = ref<{
 }[]>(bankAccounts.map(i => ({ name: i.name, bankAccountId: i.id, accountId: '' })))
 
 const { data: accounts } =  useAsyncData('accounts+all', async () => {
-    const res = await fetchAccounts({ queryAll: true, limit: 1, offset: 0})
+    const res = await ApiLinkBuilder
+        .route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+        .query({ queryAll: true, limit: 1, offset: 0 })
+        .mapper(listAccountsToListAccount)
+        .execute()
     return res.items.map(i => ({
         value: i.id,
         label: i.title 
@@ -48,11 +53,14 @@ async function saveBank() {
         if (bankMatching.value.map(i => i.bankAccountId).some(i => i.trim() === ""))
             throw new Error("Aucun account Id selectionner")
 
-        await createBankRegister({
-            title: title,
-            accessCode: accessCode,
-            accounts: bankMatching.value.map(i => ({ accountId: i.accountId, bankAccountId: i.bankAccountId}))
-        })
+        await ApiLinkBuilder
+            .route<CreatedRequest>(API_ROUTES.BANK_REGISTERS.CREATE_BANK_REGISTER)
+            .body({
+                title: title,
+                accessCode: accessCode,
+                accounts: bankMatching.value.map(i => ({ accountId: i.accountId, bankAccountId: i.bankAccountId}))
+            })
+            .execute()
         await ApiLinkBuilder
             .route(API_ROUTES.BANK.INIT_TRANSACTION)
             .execute()

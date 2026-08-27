@@ -2,9 +2,15 @@
 import type { NuxtError } from '#app';
 import { ModalEditInternalLoan } from '#components';
 import { getLocalTimeZone } from '@internationalized/date';
-import { fetchAccounts } from '~/composables/api/accounts';
-import { fetchInternalLoans, useCreateInternalLoan, useDeleteInternalLoan, useAddRefundInternalLoan, useRemoveRefundInternalLoan } from '~/composables/api/internal-loan';
-import { fetchInvoicePagination } from '~/composables/api/invoices';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
+import { listAccountsToListAccount } from '~/mappers/account';
+import { internalLoanResponseToInternalLoan, listInternalLoansResponseToListInternalLoans } from '~/mappers/internalLoan';
+import { listInvoicesResponseToListInvoices } from '~/mappers/invoice';
+import type { CreatedRequest, ListResponse, QueryFilterRequest } from '~/types/api';
+import type { GetAccountResponse } from '~/types/api/account';
+import type { GetInternalLoanResponse, AddRefundInternalRequest, RemoveInternalRequestRequest, CreateInternalLoanRequest } from '~/types/api/internal-loan';
+import type { GetInvoiceResponse, QueryInvoice } from '~/types/api/transaction';
 import type { EditInternalLoanType } from '~/types/ui/internal-loan';
 import type { InvoiceType } from '~/types/ui/transaction';
 
@@ -26,9 +32,9 @@ const modalInternalLoan = overlay.create(ModalEditInternalLoan)
 
 const { data, refresh } = useAsyncData('internal-loans-pages', async () => {
     const [res, accounts, freezeInvoicesRes] = await Promise.all([
-        fetchInternalLoans({ offset: 0, limit: 0, queryAll: true }),
-        fetchAccounts({ offset: 0, limit: 0, queryAll: true }),
-        fetchInvoicePagination({ isFreeze: true, offset: 0, limit: 0, queryAll: true })
+        ApiLinkBuilder.route<ListResponse<GetInternalLoanResponse>>(API_ROUTES.INTERNAL_LOANS.GET_INTERNAL_LOANS).query({ offset: 0, limit: 0, queryAll: true }).mapper(listInternalLoansResponseToListInternalLoans).execute(),
+        ApiLinkBuilder.route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS).query({ offset: 0, limit: 0, queryAll: true }).mapper(listAccountsToListAccount).execute(),
+        ApiLinkBuilder.route<ListResponse<GetInvoiceResponse>>(API_ROUTES.INVOICES.GET_INVOICES).query({ isFreeze: true, offset: 0, limit: 0, queryAll: true } as QueryFilterRequest & QueryInvoice).mapper(listInvoicesResponseToListInvoices).execute()
     ])
     const getAccountName = (id: string) => {
         const acc = accounts.items.find(i => i.id === id)
@@ -76,7 +82,7 @@ async function addRefund(loanId: string) {
         return
     }
     try {
-        await useAddRefundInternalLoan(loanId, { refundAccountId: refundAccountId.value, refundAmount: refundAmount.value })
+        await ApiLinkBuilder.route(API_ROUTES.INTERNAL_LOANS.ADD_FUND).params({id: loanId}).body({ refundAccountId: refundAccountId.value, refundAmount: refundAmount.value } as AddRefundInternalRequest).execute()
         activeRefundLoanId.value = null
         refresh()
         toast.add({ title: 'Succès', description: 'Remboursement ajouté.', color: 'success' })
@@ -88,7 +94,7 @@ async function addRefund(loanId: string) {
 
 async function removeRefund(loanId: string, freezeInvoiceId: string) {
     try {
-        await useRemoveRefundInternalLoan(loanId, { freezeInvoiceRefundId: freezeInvoiceId })
+        await ApiLinkBuilder.route(API_ROUTES.INTERNAL_LOANS.REMOVE_FUND).params({id: loanId}).body({ freezeInvoiceRefundId: freezeInvoiceId } as RemoveInternalRequestRequest).execute()
         refresh()
         toast.add({ title: 'Succès', description: 'Remboursement retiré.', color: 'success' })
     } catch (err) {
@@ -99,7 +105,7 @@ async function removeRefund(loanId: string, freezeInvoiceId: string) {
 
 async function onSubmitInternalLoan(edit: EditInternalLoanType) {
     try {
-        await useCreateInternalLoan({
+        await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.INTERNAL_LOANS.CREATE_INTERNAL_LOAN).body({
             fundAccountId: edit.fundSourceId,
             creditAccountId: edit.creditTargetId,
             transactionDate: edit.transactionDate.toDate(getLocalTimeZone()).toISOString(),
@@ -112,7 +118,7 @@ async function onSubmitInternalLoan(edit: EditInternalLoanType) {
                 tagIds: i.tagIds
             })),
             deductions: edit.deductions.map(i => ({ deductionId: i.deductionId, amount: i.amount }))
-        })
+        } as CreateInternalLoanRequest).execute()
         refresh()
         toast.add({ title: 'Succès', description: 'Prêt interne créé avec succès.', color: 'success' })
     } catch (err) {
@@ -127,7 +133,7 @@ async function onSubmitInternalLoan(edit: EditInternalLoanType) {
 
 async function deleteInternalLoan(id: string) {
     try {
-        await useDeleteInternalLoan(id)
+        await ApiLinkBuilder.route(API_ROUTES.INTERNAL_LOANS.DELETE_INTERNAL_LOAN).params({id}).execute()
         refresh()
         toast.add({ title: 'Succès', description: 'Prêt supprimé.', color: 'success' })
     } catch (err) {

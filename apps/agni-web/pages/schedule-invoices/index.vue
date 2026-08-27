@@ -2,17 +2,22 @@
 import { ModalEditScheduleInvoice } from '#components';
 import type { TableColumn, TableRow } from '#ui/types';
 import { getLocalTimeZone } from '@internationalized/date';
-import { fetchCategories } from '~/composables/api/categories';
-import { fetchScheduleInvoices, useUpdateScheduleInvoice, useCreateScheduleInvoice, fetchScheduleInvoice, useDeleteScheduleInvoice } from '~/composables/api/scheduleTransactions';
-import { fetchTags } from '~/composables/api/tag';
-import type { QueryFilterRequest } from '~/types/api';
+import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
+import { API_ROUTES } from '~/shared/routes';
+import { listCategoriesResponseToListCategories } from '~/mappers/category';
+import { listScheduleInvoicesResponseToListScheduleInvoices, scheduleInvoiceResponseToScheduleInvoice } from '~/mappers/scheduleTransaction';
+import { listTagsResponseToListTags } from '~/mappers/tag';
+import type { CreatedRequest, ListResponse, QueryFilterRequest } from '~/types/api';
+import type { GetCategoryResponse } from '~/types/api/category';
+import type { GetScheduleInvoiceResponse } from '~/types/api/scheduleTransaction';
+import type { GetTagResponse } from '~/types/api/tag';
 import type { EditScheduleInvoiceType, ScheduleInvoiceType, TableScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
 
 const { data: utils } = useAsyncData('utils+schedule-invoices', async () => {
     const query = { offset: 0, limit: 0, queryAll: true}
     const [categories, tags] = await Promise.all([
-        fetchCategories(query),
-        fetchTags(query)
+        ApiLinkBuilder.route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES).query(query).mapper(listCategoriesResponseToListCategories).execute(),
+        ApiLinkBuilder.route<ListResponse<GetTagResponse>>(API_ROUTES.TAGS.GET_TAGS).query(query).mapper(listTagsResponseToListTags).execute()
     ])
 
     return {
@@ -36,7 +41,7 @@ const {
     error: errorTransactions, 
     refresh: refreshScheduleInvoices 
 } = useAsyncData('schedule-invoice-page', async () => {
-    const res = await fetchScheduleInvoices(scheduleFilter)
+    const res = await ApiLinkBuilder.route<ListResponse<GetScheduleInvoiceResponse>>(API_ROUTES.SCHEDULE_INVOICES.GET_SCHEDULE_INVOICES).query(scheduleFilter).mapper(listScheduleInvoicesResponseToListScheduleInvoices).execute()
     return {
         items: res.items.map(i => ({
             id: i.id,
@@ -64,9 +69,9 @@ const {
 
 
 async function togglePauseSchedule(id:string, isPause: boolean) {
-    await useUpdateScheduleInvoice(id, {
+    await ApiLinkBuilder.route(API_ROUTES.SCHEDULE_INVOICES.UPDATE_SCHEDULE_INVOICE).params({id}).body({
         isPause: !isPause,
-    });
+    }).execute();
 
     refreshScheduleInvoices();
 }
@@ -255,7 +260,7 @@ const modalScheduleInvoice = overlay.create(ModalEditScheduleInvoice);
 async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: ScheduleInvoiceType) {
     try {
         if (oldValue)
-            await useUpdateScheduleInvoice(oldValue.id, {
+            await ApiLinkBuilder.route(API_ROUTES.SCHEDULE_INVOICES.UPDATE_SCHEDULE_INVOICE).params({id: oldValue.id}).body({
                 accountId: value.accountId,
                 amount: value.amount,
                 categoryId: value.categoryId,
@@ -267,9 +272,9 @@ async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: Sc
                 name: value.name,
                 tagIds: value.tagIds,
                 type: value.type
-            });
+            }).execute();
         else  {
-            await useCreateScheduleInvoice({
+            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.SCHEDULE_INVOICES.CREATE_SCHEDULE_INVOICE).body({
                 accountId: value.accountId,
                 amount: value.amount,
                 categoryId: value.categoryId,
@@ -282,7 +287,7 @@ async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: Sc
                 name: value.name,
                 tagIds: value.tagIds,
                 type: value.type
-            });
+            }).execute();
         }
 
         refreshScheduleInvoices()
@@ -299,7 +304,7 @@ async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: Sc
 async function openInvoice(id?: string) {
     let scheduleInvoice:ScheduleInvoiceType|undefined;
     if (id)
-        scheduleInvoice = await fetchScheduleInvoice(id);
+        scheduleInvoice = await ApiLinkBuilder.route<GetScheduleInvoiceResponse>(API_ROUTES.SCHEDULE_INVOICES.GET_SCHEDULE_INVOICE).params({id}).mapper(scheduleInvoiceResponseToScheduleInvoice).execute();
 
     modalScheduleInvoice.open({
         scheduleInvoice: scheduleInvoice,
@@ -308,7 +313,7 @@ async function openInvoice(id?: string) {
 };
 
 const onDelete = async (id: string) => {
-    await useDeleteScheduleInvoice(id)
+    await ApiLinkBuilder.route(API_ROUTES.SCHEDULE_INVOICES.DELETE_SCHEDULE_INVOICE).params({id}).execute()
     refreshScheduleInvoices()
 }
 
