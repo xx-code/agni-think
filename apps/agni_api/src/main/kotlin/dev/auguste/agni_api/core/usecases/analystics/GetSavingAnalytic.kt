@@ -15,14 +15,18 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
 
 class GetSavingAnalytic(
     private val accountRepo: IRepository<Account>,
-    private val getBalanceByPeriod : IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
+    private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
 ) : IUseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput> {
+
     override fun execAsync(input: GetSavingAnalyticInput): GetSavingAnalyticOutput {
 
         val accounts = accountRepo.getAll(QueryFilter(0, 0, true))
-        val accountSavingIds = accounts.items.filter { it.detail.getType() == AccountType.SAVING }
-        val accountInvestmentIds = accounts.items.filter { it.detail.getType() == AccountType.BROKING }
+        val accountInvestmentIds = accounts.items
+            .filter { it.detail.getType() == AccountType.BROKING }
+            .map { it.id }
+            .toSet()
 
+        // 1. Entrées d'argent globales (Revenus)
         val balanceIncome = getBalanceByPeriod.execAsync(GetBalancesByPeriodInput(
             period = input.period,
             interval = input.interval,
@@ -30,68 +34,52 @@ class GetSavingAnalytic(
             mouvement = InvoiceMouvementType.CREDIT
         ))
 
-        // Saving
-        val balanceSaving = getBalanceByPeriod.execAsync(GetBalancesByPeriodInput(
+        // 2. Épargne explicite : Uniquement les dépenses avec le Tag/Catégorie Épargne
+        val balanceSavingCategory = getBalanceByPeriod.execAsync(GetBalancesByPeriodInput(
             period = input.period,
             interval = input.interval,
             dateFrom = input.startDate,
             categoryIds = setOf(SAVING_CATEGORY_ID)
         ))
 
-        val balanceSavingAccount = getBalanceByPeriod.execAsync(GetBalancesByPeriodInput(
-            accountIds = accountSavingIds.map { it.id }.toSet(),
+        // 3. Investissement : Uniquement l'argent qui entre sur les comptes de Brokage
+        val balanceInvestmentAccount = getBalanceByPeriod.execAsync(GetBalancesByPeriodInput(
+            accountIds = accountInvestmentIds,
             period = input.period,
             interval = input.interval,
             dateFrom = input.startDate,
             removeSystemCategory = false
         ))
 
-        val balanceInvestment = getBalanceByPeriod.execAsync(GetBalancesByPeriodInput(
-            accountIds = accountInvestmentIds.map { it.id }.toSet(),
-            period = input.period,
-            interval = input.interval,
-            dateFrom = input.startDate,
-            removeSystemCategory = false
-        ))
+        val savingsList = mutableListOf<Double>()
+        val investmentsList = mutableListOf<Double>()
+        val investingRates = mutableListOf<Double>()
+        val savingRates = mutableListOf<Double>()
 
-        val totalSavings = mutableListOf<Double>()
-        balanceSaving.forEachIndexed { index, output ->
-            totalSavings.add(output.spend + balanceSavingAccount[index].income + balanceInvestment[index].income)
-        }
-        //
+        balanceIncome.forEachIndexed { index, incomeOutput ->
+            val income = incomeOutput.income
 
-        val investingRate = mutableListOf<Double>()
-        val savingRate = mutableListOf<Double>()
-        balanceIncome.forEachIndexed { index, output ->
-            val income = output.income
-            val invSpend = balanceInvestment[index].spend
-            val savSpend = balanceSaving[index].spend
+            // Seules les actions explicites sont comptabilisées
+            val savingEffort = balanceSavingCategory[index].spend
+            val investmentEffort = balanceInvestmentAccount[index].income
+
+            savingsList.add(savingEffort)
+            investmentsList.add(investmentEffort)
 
             if (income > 0) {
-                // Handle Investment Rate
-                if (invSpend > 0) {
-                    investingRate.add(invSpend / income)
-                } else {
-                    investingRate.add(0.0)
-                }
-
-                // Handle Saving Rate
-                if (savSpend > 0) {
-                    savingRate.add(savSpend / income)
-                } else {
-                    savingRate.add(0.0)
-                }
+                savingRates.add(savingEffort / income)
+                investingRates.add(investmentEffort / income)
             } else {
-                investingRate.add(0.0)
-                savingRate.add(0.0)
+                savingRates.add(0.0)
+                investingRates.add(0.0)
             }
         }
 
         return GetSavingAnalyticOutput(
-            savings = balanceSaving.map { it.spend },
-            investments = balanceInvestment.map { it.spend },
-            savingRates = savingRate,
-            investmentRate = investingRate,
+            savings = savingsList,
+            investments = investmentsList,
+            savingRates = savingRates,
+            investmentRate = investingRates
         )
     }
 }

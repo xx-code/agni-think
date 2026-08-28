@@ -64,6 +64,7 @@ const { data: kpi } = useAsyncData('cashflow+savingrates', async () => {
 
     const date = new Date()
     date.setDate(1)
+    date.setHours(0, 0, 0, 0)
 
     const [currentBalance, savingBalance] = await Promise.all([        
         ApiLinkBuilder.route<GetBalanceResponse>(API_ROUTES.INVOICES.GET_BALANCES).query({
@@ -81,7 +82,7 @@ const { data: kpi } = useAsyncData('cashflow+savingrates', async () => {
 
     return {
         cashflow: currentBalance.income - currentBalance.spend,
-        savingRate: savingBalance.savingRates[0] ?? 0.0 
+        savingRate: (savingBalance.savingRates[0] ?? 0.0) * 100
     }
 }, { watch: [ accountData ]})
 
