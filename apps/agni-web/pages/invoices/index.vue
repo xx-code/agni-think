@@ -16,7 +16,6 @@ import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
 import { API_ROUTES } from "~/shared/routes";
 import { getApiAgent } from "~/utils/env";
 import type { GetAccountResponse } from "~/types/api/account";
-import type { GetSpendCategoryResponse } from "~/types/api/analytics";
 import type { GetCategoryResponse } from "~/types/api/category";
 import type { GetDeductionResponse } from "~/types/api/deduction";
 import type { GetBalanceResponse, GetInvoiceResponse } from "~/types/api/transaction";
@@ -24,7 +23,8 @@ import type { GetTagResponse } from "~/types/api/tag";
 import type { ListResponse } from "~/types/api";
 
 const { start, stop } = useLoading()
-
+const isLoadingTransactions = ref(false)
+const isLoadingRefs = ref(false)
 const page = ref(1);
 const query = reactive<QueryFilterRequest & QueryInvoice>({
     offset: 0,
@@ -42,7 +42,8 @@ const query = reactive<QueryFilterRequest & QueryInvoice>({
     isFreeze: false
 });
 
-const { data: utils, refresh: refreshUtils, error: errorUtils } = useAsyncData('utils-transactions', async () => {
+const { data: utils } = useAsyncData('utils-transactions', async () => {
+    isLoadingRefs.value = true
     const [ accounts, categories, deductions, budgets, tags] = await Promise.all([
         ApiLinkBuilder.route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS).query({ offset: 0, limit: 0, queryAll: true }).mapper(listAccountsToListAccount).execute(),
         ApiLinkBuilder.route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES).query({ offset: 0, limit: 0, queryAll: true }).mapper(listCategoriesResponseToListCategories).execute(),
@@ -50,6 +51,7 @@ const { data: utils, refresh: refreshUtils, error: errorUtils } = useAsyncData('
         ApiLinkBuilder.route(API_ROUTES.BUDGETS.GET_BUDGETS).query(budgetFilterToBudgetQueryRequest({ offset: 0, limit: 0, queryAll: true })).mapper(listBudgetsResponseToListBudgets).execute(),
         ApiLinkBuilder.route<ListResponse<GetTagResponse>>(API_ROUTES.TAGS.GET_TAGS).query({ offset: 0, limit: 0, queryAll: true }).mapper(listTagsResponseToListTags).execute()
     ])
+    isLoadingRefs.value = false
 
     return {
         accounts: accounts.items, 
@@ -65,13 +67,13 @@ const getTag = (id: string) => utils.value?.tags.find(i => id === i.id)
 const getBudget = (id: string) => utils.value?.budgets.find(i => id === i.id)
 const getDeduction = (id: string) => utils.value?.deductions.find(i => id === i.id)
 
-const { data, error, refresh, status } = useAsyncData(`transactions-${JSON.stringify(query)}`, async () => {
-
+const { data, refresh } = useAsyncData(`transactions-${JSON.stringify(query)}`, async () => {
+    isLoadingTransactions.value = true
     const [transactions, balance ] = await Promise.all([
         ApiLinkBuilder.route<ListResponse<GetInvoiceResponse>>(API_ROUTES.INVOICES.GET_INVOICES).query(query).mapper(listInvoicesResponseToListInvoices).execute(),
         ApiLinkBuilder.route<GetBalanceResponse>(API_ROUTES.INVOICES.GET_BALANCES).query(query).execute(),
     ])
-
+    isLoadingTransactions.value = false
 
     return {
         transactions: transactions.items.map(i => ({
@@ -368,33 +370,42 @@ function getRecordTypeColor(type: string) {
 </script>
 
 <template>
-    <div class="space-y-6 p-5">
+    <UiPage>
+        <UiPageHeader 
+            title="Mes Factures"
+            :button="
+                {
+                    icon: 'i-lucide-plus',
+                    label: 'Ajouter une facture'
+                }
+            "
+            subtitle="Gérez vos factures et consulter les"
+            @click-button="openInvoice()"
+        />
+
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <UiBannerAccountant 
+                title="Solde actuel"
+                :amount="data?.balance ?? 0"
+                :icon="{ name: 'i-lucide-scale', backgroundColor: 'rgba(59, 130, 246, 0.1)', fontColor: '#3b82f6' }"
+            />
+
+            <UiBannerAccountant 
+                title="Revenus"
+                :amount="data?.income ?? 0"
+                :icon="{ name: 'i-lucide-trending-up', backgroundColor: 'rgba(16, 185, 129, 0.1)', fontColor: '#10b981' }"
+            />
+
+            <UiBannerAccountant 
+                title="Dépenses"
+                :amount="data?.spends ?? 0"
+                :icon="{ name: 'i-lucide-trending-down', backgroundColor: 'rgba(239, 68, 68, 0.1)', fontColor: '#ef4444' }"
+            />
+        </div>
+            
         <!-- En-tête avec stats -->
         <div class="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 shadow-sm">
             <div class="flex justify-between items-start flex-wrap gap-4">
-                <div class="space-y-4">
-                    <div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Solde actuel</p>
-                        <p class="text-4xl font-bold text-gray-900 dark:text-white">
-                            {{ formatCurrency(data?.balance ?? 0) }}
-                        </p>
-                    </div>
-                    
-                    <div v-if="data" class="flex gap-6">
-                        <div>
-                            <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Revenus</p>
-                            <p class="text-lg font-semibold text-green-600">
-                                {{ formatCurrency(data.income) }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Dépenses</p>
-                            <p class="text-lg font-semibold text-red-600">
-                                {{ formatCurrency(data.spends) }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="flex items-center gap-3">
                     <FilterTransactionDrawer @submit="onFilter" />
@@ -454,14 +465,14 @@ function getRecordTypeColor(type: string) {
         </div>
 
         <!-- Table des transactions -->
-        <div v-if="status === 'pending'" class="flex justify-center items-center py-12">
+        <div v-if="isLoadingTransactions" class="flex justify-center items-center py-12">
             <div class="flex flex-col items-center gap-3">
                 <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary-500" />
                 <p class="text-gray-600 dark:text-gray-400">Chargement...</p>
             </div>
         </div>
 
-        <div v-else-if="status === 'success'" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800">
+        <div v-else-if="!isLoadingTransactions" class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800">
             <UTable 
                 :data="data?.transactions"
                 v-model:expanded="expandedState"
@@ -610,5 +621,5 @@ function getRecordTypeColor(type: string) {
                 </div>
             </div>
         </div>
-    </div>
+    </UiPage>
 </template>
