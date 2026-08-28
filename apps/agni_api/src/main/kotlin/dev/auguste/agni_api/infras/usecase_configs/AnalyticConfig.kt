@@ -26,6 +26,7 @@ import dev.auguste.agni_api.core.usecases.analystics.GetPatrimonySummary
 import dev.auguste.agni_api.core.usecases.analystics.GetProvisionSummary
 import dev.auguste.agni_api.core.usecases.analystics.GetSavingAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetSavingBalance
+import dev.auguste.agni_api.core.usecases.analystics.GetScheduleInvoiceSummary
 import dev.auguste.agni_api.core.usecases.analystics.GetSpendByCategoryAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetSpendByTagAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetAnnualOutlookOutput
@@ -40,6 +41,7 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.GetProvisionSummaryOutp
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingBalanceInput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetScheduleInvoiceSummaryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagInput
@@ -190,5 +192,11 @@ class AnalyticConfig {
         provisionRepo: IRepository<Provision> ) : IUseCase<Unit, GetProvisionSummaryOutput>
     {
         return GetProvisionSummary(provisionRepo)
+    }
+
+    @Bean fun getScheduleInvoiceSummary(
+        invoiceSummaryRepo: IRepository<ScheduleInvoice>
+    ) : IUseCase<Unit, GetScheduleInvoiceSummaryOutput> {
+        return GetScheduleInvoiceSummary(invoiceSummaryRepo)
     }
 }
