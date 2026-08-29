@@ -1,4 +1,5 @@
 import type { CalendarDate } from "@internationalized/date"
+import type { QueryInvoiceRequest } from "../api/transaction"
 
 export type EditFreezeInvoiceType = {
     accountId: string
@@ -90,3 +91,5 @@ export type InvoiceTableType = {
     transactions: TransactionTableType[]
     deductions: InvoiceDeductionTableType[]
 }
+
+export type InvoiceFilter = QueryInvoiceRequest
