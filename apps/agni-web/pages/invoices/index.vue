@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type { TableColumn, TableRow } from "@nuxt/ui";
-import type { InvoiceTableType, TransactionTableType } from "~/types/ui/transaction";
+import type { DropdownMenuItem, TableColumn, TableRow } from "@nuxt/ui";
+import type { InvoiceFilter, InvoiceTableType, TransactionTableType } from "~/types/ui/transaction";
 import type { FormFilterTransaction } from "~/types/ui/component";
 import { getLocalTimeZone } from "@internationalized/date";
-import type { QueryInvoice } from "~/types/api/transaction";
 import type { QueryFilterRequest } from "~/types/api";
 import { ModalInvoice } from "#components";
 import { listAccountsToListAccount } from "~/mappers/account";
@@ -26,21 +25,35 @@ const { start, stop } = useLoading()
 const isLoadingTransactions = ref(false)
 const isLoadingRefs = ref(false)
 const page = ref(1);
-const query = reactive<QueryFilterRequest & QueryInvoice>({
-    offset: 0,
-    limit: 8,
-    queryAll: false,
-    accountIds: [],
-    categoryIds: [],
-    tagIds: [],
-    budgetIds: [],
-    minAmount: undefined,
-    maxAmount: undefined,
-    mouvement: undefined,
-    endDate: undefined,
-    startDate: undefined,
-    isFreeze: false
-});
+
+const initQueryFilter = (): InvoiceFilter => {
+    return {
+        offset: 0,
+        limit: 8,
+        queryAll: false,
+        accountIds: [],
+        categoryIds: [],
+        tagIds: [],
+        budgetIds: [],
+        isFreeze: false
+    } 
+}
+const query = reactive<InvoiceFilter>(initQueryFilter());
+
+const hasFilters = computed(() => {
+    const ignoredKeys = new Set(['offset', 'limit', 'queryAll'])
+
+    return Object.entries(query).some(([key, value]) => {
+        if (ignoredKeys.has(key)) return false
+
+        if (Array.isArray(value)) return value.length > 0
+        if (typeof value === 'boolean') return value === true
+        if (typeof value === 'string') return value.trim().length > 0
+        if (typeof value === 'number') return value !== 0
+
+        return value !== undefined && value !== null
+    })
+})
 
 const { data: utils } = useAsyncData('utils-transactions', async () => {
     isLoadingRefs.value = true
@@ -172,23 +185,13 @@ const onDelete = async (id: string) => {
     refresh()
 }
 
-function onFilter(value: FormFilterTransaction) {
-    query.categoryIds = value.categoryIds
-    query.tagIds = value.tagIds
-    query.accountIds = value.accountIds
-    query.budgetIds = value.budgetIds
-    query.endDate = value.dateEnd ? value.dateEnd.toDate(getLocalTimeZone()).toISOString() : undefined
-    query.startDate = value.dateStart ? value.dateStart.toDate(getLocalTimeZone()).toISOString() : undefined
-    query.minAmount = value.minPrice
-    query.types = value.types
-    query.maxAmount = value.maxPrice
-    query.status = value.status
+function onFilter() {
     query.offset = 0
     page.value = 1
-
-    expandedState.value = {}
+    
 }
 
+                    
 const UIcon = resolveComponent('UIcon');
 const UButton = resolveComponent('UButton');
 const UDropdownMenu = resolveComponent('UDropdownMenu');
@@ -367,6 +370,9 @@ function getRecordTypeColor(type: string) {
         return '#ef4444'
 }
 
+function cleanQueryFilter(){
+    Object.assign(query, initQueryFilter())
+}
 </script>
 
 <template>
@@ -402,47 +408,20 @@ function getRecordTypeColor(type: string) {
                 :icon="{ name: 'i-lucide-trending-down', backgroundColor: 'rgba(239, 68, 68, 0.1)', fontColor: '#ef4444' }"
             />
         </div>
-            
-        <!-- En-tête avec stats -->
-        <div class="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 shadow-sm">
-            <div class="flex justify-between items-start flex-wrap gap-4">
 
-                <div class="flex items-center gap-3">
-                    <FilterTransactionDrawer @submit="onFilter" />
-                    <UButton 
-                        icon="i-lucide-plus" 
-                        label="Nouvelle transaction" 
-                        size="lg"
-                        @click="openInvoice()" 
-                    />
-                    <UButton 
-                        icon="i-lucide-arrow-down-to-line" 
-                        label="Force Sync Bancaire" 
-                        color="info"
-                        size="lg"
-                        @click="syncBank" 
-                    />
-                    <UModal v-model:open="openScanTransaction">
-                        <UButton 
-                            icon="i-lucide-scan-text" 
-                            label="Scanner un transaction" 
-                            color="info"
-                            size="lg"
-                        />
-                        <template #body>
-                            <div class="flex flex-col">
-                                <UTextarea 
-                                    v-model="textTransaction" 
-                                    :rows="6" /> 
-                                <div class="mt-3">
-                                    <UButton label="Traiter" @click="scanNewTransaction" />
-                                </div>
-                            </div>
-                        </template>
-                    </UModal>
-                </div>
-            </div>
-        </div>
+        <UiInvoiceHeader 
+            :accounts="utils?.accounts.map(i => ({value: i.id, label: i.title})) ?? []"
+            :categories="utils?.categories.map(i => ({value: i.id, label: i.title})) ?? []"
+            v-model="query"
+            @transfer=""
+            @freeze=""
+            @filter="() => { 
+                page = 1
+                console.log(query)
+            }"
+            @scan-invoice="openScanTransaction = true"
+            @sync-bank="syncBank()"
+        />
 
         <!-- Filtres actifs -->
         <div class="flex flex-wrap gap-3 items-center">
