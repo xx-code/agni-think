@@ -12,17 +12,21 @@ import type { GetCategoryResponse } from '~/types/api/category';
 import type { GetScheduleInvoiceResponse } from '~/types/api/scheduleTransaction';
 import type { GetTagResponse } from '~/types/api/tag';
 import type { EditScheduleInvoiceType, ScheduleInvoiceType, TableScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
+import type { GetScheduleInvoiceSummaryResponse } from '~/types/api/analytics';
+import { scheduleInvoiceSummaryResponseToScheduleInvoiceSummary } from '~/mappers/analytics';
 
 const { data: utils } = useAsyncData('utils+schedule-invoices', async () => {
     const query = { offset: 0, limit: 0, queryAll: true}
-    const [categories, tags] = await Promise.all([
+    const [categories, tags, scheduleInvoiceSummary] = await Promise.all([
         ApiLinkBuilder.route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES).query(query).mapper(listCategoriesResponseToListCategories).execute(),
-        ApiLinkBuilder.route<ListResponse<GetTagResponse>>(API_ROUTES.TAGS.GET_TAGS).query(query).mapper(listTagsResponseToListTags).execute()
+        ApiLinkBuilder.route<ListResponse<GetTagResponse>>(API_ROUTES.TAGS.GET_TAGS).query(query).mapper(listTagsResponseToListTags).execute(), 
+        ApiLinkBuilder.route<GetScheduleInvoiceSummaryResponse>(API_ROUTES.ANALYTICS.SCHEDULE_INVOICE).mapper(scheduleInvoiceSummaryResponseToScheduleInvoiceSummary).execute()
     ])
 
     return {
         categories,
-        tags
+        tags,
+        scheduleInvoiceSummary
     }
 })
 
@@ -320,71 +324,46 @@ const onDelete = async (id: string) => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6 lg:p-8">
+    <UiPage>
+        <UiPageHeader 
+            title="Transaction Planifiées"
+            :button="
+                {
+                    icon: 'i-lucide-plus',
+                    label: 'Ajouter une facture planifiée'
+                }
+            "
+            subtitle="Gérez vos transactions récurrentes et planifiées"
+            @click-button="openInvoice()"
+        />
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <UiBannerAccountant 
+                title="Total Planifié"
+                :amount="utils?.scheduleInvoiceSummary.totalPlan ?? 0"
+                :icon="{ name: 'i-lucide-calendar-clock', backgroundColor: 'rgba(59, 130, 246, 0.1)', fontColor: '#3b82f6' }"
+            />
+
+            <UiBannerAccountant 
+                title="Total montant active planifié"
+                :amount="utils?.scheduleInvoiceSummary.totalAmountActive ?? 0"
+                :icon="{ name: 'i-lucide-shield-check', backgroundColor: 'rgba(168, 85, 247, 0.1)', fontColor: '#a855f7' }"
+            />
+
+            <UiBannerAccountant 
+                title="Actives"
+                :amount="utils?.scheduleInvoiceSummary.totalActives ?? 0"
+                :icon="{ name: 'i-lucide-play-circle', backgroundColor: 'rgba(16, 185, 129, 0.1)', fontColor: '#10b981' }"
+            />
+
+            <UiBannerAccountant 
+                title="En Pause"
+                :amount="utils?.scheduleInvoiceSummary.totalPause ?? 0 "
+                :icon="{ name: 'i-lucide-pause-circle', backgroundColor: 'rgb(255, 115, 4, 0.1)', fontColor: '#ff7304' }"
+            />
+        </div>
+
         <div class="max-w-7xl mx-auto">
-            <!-- Header Section -->
-            <div class="mb-8">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900 mb-2">
-                            Transactions Planifiées
-                        </h1>
-                        <p class="text-gray-600 text-sm">
-                            Gérez vos transactions récurrentes et planifiées
-                        </p>
-                    </div>
-                    <UButton
-                        label="Nouvelle Transaction"
-                        icon="i-lucide-plus"
-                        size="lg"
-                        color="primary"
-                        class="shadow-lg hover:shadow-xl transition-shadow"
-                        @click="openInvoice()"
-                    />
-                </div>
-            </div>
-
-            <!-- Stats Cards (Optional Enhancement) -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-                    <div class="flex items-center gap-3">
-                        <div class="p-3 bg-blue-100 rounded-lg">
-                            <UIcon name="i-lucide-calendar-clock" class="text-blue-600 text-xl" />
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-600">Total Planifié</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ scheduleInvoices?.total || 0 }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-                    <div class="flex items-center gap-3">
-                        <div class="p-3 bg-green-100 rounded-lg">
-                            <UIcon name="i-lucide-play-circle" class="text-green-600 text-xl" />
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-600">Actives</p>
-                            <p class="text-2xl font-bold text-gray-900">
-                                {{ scheduleInvoices?.items?.filter(t => !t.isPause).length || 0 }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-                    <div class="flex items-center gap-3">
-                        <div class="p-3 bg-orange-100 rounded-lg">
-                            <UIcon name="i-lucide-pause-circle" class="text-orange-600 text-xl" />
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-600">En Pause</p>
-                            <p class="text-2xl font-bold text-gray-900">
-                                {{ scheduleInvoices?.items?.filter(t => t.isPause).length || 0 }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Table Card -->
             <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
@@ -477,5 +456,5 @@ const onDelete = async (id: string) => {
                 </div>
             </div>
         </div>
-    </div>
+    </UiPage>
 </template>

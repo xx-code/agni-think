@@ -126,6 +126,11 @@ export const API_ROUTES = {
             serverPath: '/api/analytics/provision-summary',
             apiPath: '/analytics/provision-summary',
             method: 'GET'
+        },
+        SCHEDULE_INVOICE: {
+            serverPath: "/api/analytics/schedule-invoice-summary",
+            apiPath: "/analytics/schedule-invoice-summary",
+            method: "GET"
         }
     },
 
