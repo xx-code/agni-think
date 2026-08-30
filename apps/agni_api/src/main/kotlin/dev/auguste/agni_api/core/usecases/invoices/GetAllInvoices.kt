@@ -81,6 +81,7 @@ class GetAllInvoices(
                         total = invoiceTransactions.total,
                         mouvement = invoice.mouvementType.value,
                         date = invoice.date,
+                        isFreeze = invoice.isFreeze,
                         type = invoice.type.value,
                         transactions = invoiceTransactions.transactions,
                         deductions = formatInvoiceDeductionsOutput(invoice, invoiceTransactions, deductions)
@@ -120,6 +121,7 @@ class GetAllInvoices(
                         total = invoiceTransactions.total,
                         mouvement = invoice.mouvementType.value,
                         date = invoice.date,
+                        isFreeze = invoice.isFreeze,
                         type = invoice.type.value,
                         transactions = invoiceTransactions.transactions,
                         deductions = formatInvoiceDeductionsOutput(invoice, invoiceTransactions, deductions)

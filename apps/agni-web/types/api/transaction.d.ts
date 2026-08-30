@@ -23,7 +23,7 @@ export type TransactionResponse = {
     }[]
     budgets: {
         id: string
-        title: string
+        value: string
     }[]
 }
 
@@ -40,6 +40,7 @@ export type GetInvoiceResponse = {
     mouvement: string
     subTotal: number
     total: number
+    freeze: boolean
     date: Date
     transactions: TransactionResponse[]
     deductions: InvoiceDeductionResponse[]

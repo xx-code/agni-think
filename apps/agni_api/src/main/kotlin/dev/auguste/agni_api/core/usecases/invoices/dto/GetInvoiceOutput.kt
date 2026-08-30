@@ -15,6 +15,7 @@ data class GetInvoiceOutput(
     val status: String,
     val subTotal: Double,
     val total: Double,
+    val isFreeze: Boolean,
     val type: String,
     val mouvement: String,
     val date: LocalDateTime,

@@ -1,5 +1,5 @@
 import type { CalendarDate } from "@internationalized/date"
-import type { QueryInvoiceRequest } from "../api/transaction"
+import type { GetInvoiceResponse, QueryInvoiceRequest } from "../api/transaction"
 
 export type EditFreezeInvoiceType = {
     accountId: string
@@ -33,7 +33,7 @@ export type TransactionType = {
     }[]
     budgets: {
         id: string
-        title: string
+        value: string
     }[]
 }
 
@@ -42,17 +42,9 @@ export type TransactionDeductionType = {
     amount: number
 }
 
-export type InvoiceType = {
-    id: string
-    accountId: string
+export type InvoiceType = Omit<GetInvoiceResponse, 'date' | 'freeze'> & {
     date: Date
-    type: string
-    mouvement: string
-    status: string
-    subTotal: number
-    total: number
-    transactions: TransactionType[]
-    deductions: TransactionDeductionType[]
+    isFreeze: boolean
 }
 
 export type TransactionTableType = {

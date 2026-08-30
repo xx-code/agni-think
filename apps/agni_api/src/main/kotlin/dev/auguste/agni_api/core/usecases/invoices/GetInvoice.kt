@@ -39,6 +39,7 @@ class GetInvoice(
             total = invoiceTransactions.first().total,
             mouvement = invoice.mouvementType.value,
             date = invoice.date,
+            isFreeze = invoice.isFreeze,
             transactions = invoiceTransactions.first().transactions,
             deductions = invoice.deductions.map { InvoiceDeductionOutput(
                 it.deductionId, it.amount

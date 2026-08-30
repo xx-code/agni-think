@@ -9,15 +9,30 @@ const props = defineProps<{
     categories: {label: string, value: string}[]
 }>()
 
+const categoryIds = ref<string[]>([])
+const accountIds = ref<string[]>([])
+
 const emit = defineEmits<{
     transfer: []
     freeze: []
     syncBank: []
     scanInvoice: []
-    filter: []
+    filter: [
+        {
+            accountIds?: string[],
+            categoryIds?: string[],
+            budgetIds?: string[],
+            tagIds?: string[],
+            types?: string[],
+            mouvement?: string,
+            maxAmount?: number,
+            minAmount?: number,
+            status?: string
+            startDate?: string,
+            endDate?: string
+        }
+    ]
 }>()
-
-const model = defineModel<InvoiceFilter>()
 
 const actionItems = ref<DropdownMenuItem[][]>([
     [
@@ -53,79 +68,68 @@ const actionItems = ref<DropdownMenuItem[][]>([
 ]) 
 
 const hasFilters = computed(() => {
-    if (!model.value)
-        return 
-
-    const ignoredKeys = new Set(['offset', 'limit', 'queryAll'])
-
-    return Object.entries(model.value).some(([key, value]) => {
-        if (ignoredKeys.has(key)) return false
-
-        if (Array.isArray(value)) return value.length > 0
-        if (typeof value === 'boolean') return value === true
-        if (typeof value === 'string') return value.trim().length > 0
-        if (typeof value === 'number') return value !== 0
-
-        return value !== undefined && value !== null
-    })
+    return categoryIds.value.length > 0 || accountIds.value.length > 0
 })
 
 function onFilter(value: FormFilterTransaction) {
-    if(!model.value)
-        return 
-
-    model.value = Object.assign(model.value, {...model.value, 
+    emit('filter',{ 
         tagIds: value.tagIds,
         budgetIds: value.budgetIds,
         minAmount: value.minPrice,
         types: value.types,
         maxAmount: value.maxPrice,
-        status: value.status,
-        offset: 0,
-        queryAll: false
+        status: value.status
     }) 
 
-    emit('filter')
 }
 
 function cleanQueryFilter(){
-    if(!model.value)
-        return 
-
-    model.value = Object.assign(model.value, {...model.value,
-        startDate: undefined,
-        endDate: undefined,
+    emit('filter', {
         accountIds: [],
         categoryIds: [],
-    }) 
-    emit('filter')
+        tagIds: [],
+        budgetIds: [],
+        types: [],
+        mouvement: undefined,
+        status: undefined,
+        minAmount: undefined,
+        maxAmount: undefined,
+        startDate: undefined,
+        endDate: undefined
+    })
 }
 
 </script>
 
 <template>
-    <div v-if="model">
+    <div>
         <div class="flex items-center">
             <div class="flex-1 flex items-center flex-wrap gap-2">
                 <UiInvoiceSelectMenu 
                     :items="accounts"
                     title="Comptes"
-                    v-model="model.accountIds" 
+                    v-model="accountIds"
+                    v-on:update:model-value="ids => {
+                        emit('filter', {
+                            accountIds: ids
+                        })
+                    }"
                 />
 
                 <UiInvoiceSelectMenu 
                     :items="categories"
                     title="Categories"
-                    v-model="model.categoryIds"
+                    v-model="categoryIds"
+                    v-on:update:model-value="ids => {
+                        emit('filter', {
+                            categoryIds: ids
+                        })
+                    }"
                 />
 
                 <MultiCalendarSelection 
                     @submit="(start, end) => {
-                        if (!model)
-                            return
-
-                        model= Object.assign(model, {
-                            ...model, 
+                        emit('filter', {
                             startDate: start?.toDate(getLocalTimeZone()).toISOString(),
                             endDate: end?.toDate(getLocalTimeZone()).toISOString()  
                         })

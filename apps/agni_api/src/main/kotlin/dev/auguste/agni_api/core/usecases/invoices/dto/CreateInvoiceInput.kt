@@ -20,6 +20,7 @@ data class TransactionInput(
 )
 
 data class CreateInvoiceInput(
+    val persistentInvoiceId: UUID? = null,
     val accountId: UUID,
     val status: InvoiceStatusType,
     val date: LocalDateTime,
