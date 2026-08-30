@@ -82,7 +82,10 @@ class UpdateInvoice(
                     ) }.toSet()
                 }
 
+                deleteInvoice.execInnerAsync(DeleteInvoiceInput(invoice.id))
+
                 createInvoice.execAsync(CreateInvoiceInput(
+                    persistentInvoiceId = invoice.id,
                     accountId = invoice.accountId,
                     status = invoice.statusType,
                     date = invoice.date,
@@ -96,7 +99,6 @@ class UpdateInvoice(
                     ) }.toSet()
                 ))
 
-                deleteInvoice.execInnerAsync(DeleteInvoiceInput(invoice.id))
             }
         }
     }

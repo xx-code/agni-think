@@ -2,13 +2,13 @@
 import type { AccountWithDetailType, SlideQuickViewTransactionType } from '~/types/ui/account';
 import ListTransaction from './ListTransaction.vue';
 import type { QueryFilterRequest, ListResponse } from '~/types/api';
-import type { GetBalanceResponse, GetInvoiceResponse, QueryInvoice, TransferInvoiceRequest, FreezeInvoiceRequest } from '~/types/api/transaction';
+import type { GetBalanceResponse, GetInvoiceResponse, TransferInvoiceRequest, FreezeInvoiceRequest } from '~/types/api/transaction';
 import { invoiceResponseToInvoice, listInvoicesResponseToListInvoices } from '~/mappers/invoice';
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
 import { useInfiniteScroll } from '@vueuse/core';
 import { ModalEditFreezeInvoice, ModalEditTransfer, ModalInvoice } from '#components';
-import type { EditFreezeInvoiceType, EditTransfertType, InvoiceType } from '~/types/ui/transaction.js';
+import type { EditFreezeInvoiceType, EditTransfertType, InvoiceFilter, InvoiceType } from '~/types/ui/transaction.js';
 import { getLocalTimeZone } from '@internationalized/date';
 
 
@@ -41,7 +41,7 @@ const toast = useToast()
 const el = useTemplateRef('el')
 const doRefresh = ref(false)
 
-const queryAllTrans = reactive<QueryFilterRequest & QueryInvoice>({
+const queryAllTrans = reactive<InvoiceFilter>({
     offset: 0,
     limit: 10,
     accountIds: account ? [account.id] : [],
@@ -194,10 +194,10 @@ async function deleteInvoice(invoiceId: string) {
             resetAllInvoices()
             doRefresh.value = true
         }
-    } catch (err) {
+    } catch (err: any) {
         toast.add({
             title: 'Error Freeze',
-            description: 'Error while freeze account',
+            description: err.message,
             color: 'error'
         });
     }
