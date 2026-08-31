@@ -66,9 +66,9 @@ class ApplyScheduleInvoice(
                             status = InvoiceStatusType.PENDING
                         ))
                     } else {
-                        var mouvement = InvoiceMouvementType.CREDIT
+                        var movement = InvoiceMouvementType.CREDIT
                         if (scheduleInvoice.type != InvoiceType.INCOME)
-                            mouvement = InvoiceMouvementType.DEBIT
+                            movement = InvoiceMouvementType.DEBIT
 
 
                         createInvoice.execInnerAsync(CreateInvoiceInput(
@@ -76,7 +76,7 @@ class ApplyScheduleInvoice(
                             status = InvoiceStatusType.PENDING,
                             date = date,
                             type = scheduleInvoice.type,
-                            mouvementType = mouvement,
+                            mouvementType = movement,
                             currency = null,
                             transactions = setOf(
                                 TransactionInput(
@@ -101,10 +101,12 @@ class ApplyScheduleInvoice(
                         )
 
                         if (scheduleInvoice.isFreeze && scheduleInvoice.freezeScheduler != null) {
-                            scheduleInvoice.freezeScheduler = Scheduler(
-                                date = scheduleInvoice.freezeScheduler!!.upgradeDate(),
-                                scheduleInvoice.freezeScheduler!!.repeater,
-                            )
+                            if (scheduleInvoice.freezeScheduler!!.date <= LocalDateTime.now()) {
+                                scheduleInvoice.freezeScheduler = Scheduler(
+                                    date = scheduleInvoice.freezeScheduler!!.upgradeDate(),
+                                    scheduleInvoice.freezeScheduler!!.repeater,
+                                )
+                            }
                         }
                         scheduleInvoiceRepo.update(scheduleInvoice)
                     }
