@@ -7,9 +7,15 @@ export type GetScheduleInvoiceResponse = {
     type: string
     amount: number
     isPause: boolean
-    isFreeze: boolean
-    dueDate: Date
+    freeze: boolean
+    dueDate: string
     repeater?: {
+        periodType: string
+        interval: number
+    }
+    endDate?: string,
+    freezeEndDate?: string
+    freezeRepeater?: {
         periodType: string
         interval: number
     }
@@ -31,6 +37,14 @@ export type CreateScheduleInvoiceRequest = {
         }
         dueDate: string
     } 
+    endDate?: string
+    freezeSchedule?: {
+        repeater?: {
+            period: string
+            interval: number
+        }
+        dueDate: string
+    }
 }
 
 export type UpdateScheduleInvoiceRequest = {
@@ -42,6 +56,14 @@ export type UpdateScheduleInvoiceRequest = {
     type?: string
     isPause?: boolean
     schedule?: {
+        repeater?: {
+            period: string
+            interval: number
+        }
+        dueDate: string
+    }
+    endDate?: string
+    freezeSchedule?: {
         repeater?: {
             period: string
             interval: number

@@ -59,7 +59,7 @@ data class JdbcProvisionModel(
     val depreciateCriteria: String,
 
     @Column("payment_info")
-    val paymentInfo: String,
+    val paymentInfo: String?,
 
     @Column("created_at")
     val createdAt: LocalDateTime,
@@ -83,7 +83,7 @@ class JdbcProvisionMapper(
 
         val paymentInfoJson = if (
             model.paymentInfo == "null" || model.paymentInfo == "[null]" ||
-            model.paymentInfo.isEmpty() || model.paymentInfo == "{}" || model.paymentInfo == "[]"
+            model.paymentInfo.isNullOrEmpty() || model.paymentInfo == "{}" || model.paymentInfo == "[]"
             ) { null }
         else {  jacksonObjectMapper().readValue<Map<String, Any>>(model.paymentInfo) }
 

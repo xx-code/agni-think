@@ -10,6 +10,8 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.stereotype.Component
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Table("schedule_transactions")
@@ -38,8 +40,14 @@ data class JdbcScheduleInvoiceModel(
     val scheduler: String,
 
     @Column("tag_ids")
-    val tagIds: Set<UUID>
-) : JdbcModel() {
+    val tagIds: Set<UUID>,
+
+    @Column("end_date")
+    val endDate: LocalDateTime?,
+
+    @Column("freeze_scheduler")
+    val freezeScheduler: String?
+    ) : JdbcModel() {
     override fun getId(): UUID {
         return id
     }
@@ -51,6 +59,11 @@ class JdbcScheduleInvoiceMapper(
 ): IMapper<JdbcScheduleInvoiceModel, ScheduleInvoice> {
     override fun toDomain(model: JdbcScheduleInvoiceModel): ScheduleInvoice {
         val schedulerJson = jacksonObjectMapper().readValue<Map<String, Any>>(model.scheduler)
+        val freezeSchedulerJson = if (
+            model.freezeScheduler == "null" || model.freezeScheduler == "[null]" ||
+            model.freezeScheduler.isNullOrEmpty() || model.freezeScheduler == "{}" || model.freezeScheduler == "[]"
+        ) { null }
+        else {  jacksonObjectMapper().readValue<Map<String, Any>>(model.freezeScheduler) }
 
         return ScheduleInvoice(
             id = model.id,
@@ -62,7 +75,9 @@ class JdbcScheduleInvoiceMapper(
             categoryId = model.categoryId,
             isPause = model.isPause,
             isFreeze = model.isFreeze,
-            tagIds =  model.tagIds.toMutableSet()
+            tagIds =  model.tagIds.toMutableSet(),
+            endDate = model.endDate,
+            freezeScheduler = freezeSchedulerJson?.let {  Scheduler.fromMap(freezeSchedulerJson) },
         )
     }
 
@@ -77,7 +92,9 @@ class JdbcScheduleInvoiceMapper(
             isPause = entity.isPause,
             isFreeze = entity.isFreeze,
             scheduler = objectMapper.writeValueAsString(entity.scheduler.toMap()),
-            tagIds = entity.tagIds
+            tagIds = entity.tagIds,
+            endDate = entity.endDate,
+            freezeScheduler = objectMapper.writeValueAsString(entity.freezeScheduler?.toMap())
         )
     }
 
