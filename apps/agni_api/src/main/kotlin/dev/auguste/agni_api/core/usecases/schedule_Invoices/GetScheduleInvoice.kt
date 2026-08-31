@@ -31,6 +31,14 @@ class GetScheduleInvoice(
                     periodType = repeater.period.value,
                     interval =  repeater.interval
                 )
+            },
+            endDate = scheduleInvoice.endDate,
+            freezeEndDate = scheduleInvoice.freezeScheduler?.date,
+            freezeRepeater = scheduleInvoice.freezeScheduler?.repeater?.let { repeater ->
+                ScheduleInvoiceRepeaterOutput(
+                    periodType = repeater.period.value,
+                    interval = repeater.interval
+                )
             }
         )
     }

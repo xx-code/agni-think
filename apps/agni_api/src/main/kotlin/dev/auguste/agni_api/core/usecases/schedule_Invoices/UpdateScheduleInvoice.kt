@@ -66,6 +66,19 @@ class UpdateScheduleInvoice(
         if (input.isPause != null)
             scheduleInvoice.isPause = input.isPause
 
+        if (input.endDate != null)
+            scheduleInvoice.endDate = input.endDate
+
+        if (input.freezeSchedule != null) {
+            val newFreezeScheduler = Scheduler(
+                repeater = input.freezeSchedule.repeater?.let { repeater ->
+                    SchedulerRecurrence(period = repeater.period, interval = repeater.interval)
+                },
+                date = input.freezeSchedule.dueDate
+            )
+            scheduleInvoice.freezeScheduler = newFreezeScheduler
+        }
+
         if (scheduleInvoice.hasChanged())
             scheduleInvoiceRepo.update(scheduleInvoice)
     }

@@ -6,6 +6,7 @@ import dev.auguste.agni_api.core.entities.enums.InvoiceType
 
 class QueryScheduleInvoiceExtend(
     val comparatorDueDate: QueryDateComparator? = null,
+    val comparatorEndDate: QueryDateComparator? = null,
     val type: InvoiceType? = null,
 
     ): IQueryExtend<ScheduleInvoice> {
@@ -18,6 +19,19 @@ class QueryScheduleInvoiceExtend(
                 ComparatorType.Lesser -> comparatorDueDate.date < entity.scheduler.date
                 ComparatorType.LesserOrEquals ->  comparatorDueDate.date <= entity.scheduler.date
                 ComparatorType.Equal ->  comparatorDueDate.date == entity.scheduler.date
+            }
+
+            if (!resComp)
+                return false
+        }
+
+        if (comparatorEndDate != null && entity.endDate != null) {
+            val resComp = when(comparatorEndDate.comparator) {
+                ComparatorType.Greater ->  comparatorEndDate.date > entity.endDate
+                ComparatorType.GreaterOrEquals -> comparatorEndDate.date >= entity.endDate
+                ComparatorType.Lesser -> comparatorEndDate.date < entity.endDate
+                ComparatorType.LesserOrEquals ->  comparatorEndDate.date <= entity.endDate
+                ComparatorType.Equal ->  comparatorEndDate.date == entity.endDate
             }
 
             if (!resComp)

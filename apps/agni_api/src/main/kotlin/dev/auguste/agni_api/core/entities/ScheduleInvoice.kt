@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.entities
 
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.value_objects.Scheduler
+import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.properties.Delegates
 
@@ -13,9 +14,11 @@ class ScheduleInvoice(
     amount: Double,
     scheduler: Scheduler,
     categoryId: UUID,
+    freezeScheduler: Scheduler?,
     isPause: Boolean = false,
     isFreeze: Boolean = false,
     tagIds: MutableSet<UUID> = mutableSetOf(),
+    endDate: LocalDateTime? = null
 ): Entity(id = id) {
 
     var title: String by Delegates.observable(title) { prop, old, new ->
@@ -62,4 +65,9 @@ class ScheduleInvoice(
         if (old != new)
             this.markHasChanged()
     }
+
+    var endDate by cleanObservable(endDate, this)
+    var freezeScheduler by cleanObservable(freezeScheduler, this, {
+        it != null && isFreeze
+    }, DomainException.Validation.ScheduleFreezeInvoiceMustHaveAScheduler())
 }

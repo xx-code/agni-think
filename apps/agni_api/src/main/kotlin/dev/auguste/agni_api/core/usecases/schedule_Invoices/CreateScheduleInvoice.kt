@@ -61,7 +61,12 @@ class CreateScheduleInvoice(
                 repeater = repeater,
                 date = input.schedule.dueDate
             ),
-            tagIds = input.tagIds.toMutableSet()
+            endDate = input.endDate,
+            tagIds = input.tagIds.toMutableSet(),
+            freezeScheduler = input.freezeSchedule?.let { Scheduler(
+                repeater = it.repeater?.let { reap -> SchedulerRecurrence( period = reap.period, interval = reap.interval) },
+                date = it.dueDate
+            ) }
         )
 
         scheduleInvoiceRepo.create(newScheduleInvoice)

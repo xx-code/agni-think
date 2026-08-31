@@ -113,7 +113,7 @@ const invoiceIcons = computed(() => {
     return icons
 })
 
-const invoiceColor = computed(() => getMovementColor(data.mouvement))
+const invoiceColor = computed(() => getMovementColor(data.type))
 </script>
 
 <template>

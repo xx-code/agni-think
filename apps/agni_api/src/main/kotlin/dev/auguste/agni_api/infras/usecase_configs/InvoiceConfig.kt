@@ -110,10 +110,12 @@ class InvoiceConfig {
 
     @Bean
     fun createFreezeInvoice(
-        createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>
-    ): IUseCase<CreateFreezeInvoiceInput, CreatedOutput> {
+        unitOfWork: IUnitOfWork,
+        createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>
+    ): IInnerUseCase<CreateFreezeInvoiceInput, CreatedOutput> {
         return CreateFreezeInvoice(
             createInvoice = createInvoice,
+            unitOfWork = unitOfWork
         )
     }
 

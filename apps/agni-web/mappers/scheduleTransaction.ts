@@ -4,20 +4,11 @@ import type { ScheduleInvoiceType } from "~/types/ui/scheduleTransaction";
 
 export function scheduleInvoiceResponseToScheduleInvoice(data: GetScheduleInvoiceResponse): ScheduleInvoiceType {
     return {
-        id: data.id,
-        name: data.name,
-        accountId: data.accountId,
-        categoryId: data.categoryId,
-        tagIds: data.tagIds,
-        type: data.type,
-        amount: data.amount,
-        isPause: data.isPause,
-        isFreeze: data.isFreeze,
-        repeater: data.repeater ? {
-            interval: data.repeater.interval,
-            period: data.repeater.periodType
-        } : undefined,
-        dueDate: new Date(data.dueDate)
+        ...data,
+        dueDate: new Date(data.dueDate),
+        isFreeze: data.freeze,
+        endDate: data.endDate ? new Date(data.endDate) : undefined,
+        freezeEndDate: data.freezeEndDate ? new Date(data.freezeEndDate) : undefined
     }
 }
 

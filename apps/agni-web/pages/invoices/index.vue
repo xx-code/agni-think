@@ -294,51 +294,16 @@ useInfiniteScroll(
                 }"
             />
 
-             <div ref="el" class="py-6">
-                <!-- Limite d'affichage atteinte, mais il reste des articles au-delà -->
-                <div
-                    v-if="hasMore && data.length >= MAX_ITEMS_TO_DISPLAY"
-                    class="flex flex-col items-center gap-3 max-w-sm mx-auto"
-                >
-                    <div class="w-full">
-                        <div class="flex justify-between text-xs text-neutral-400 mb-1.5">
-                            <span>{{ data.length }} sur {{ totalData }} articles</span>
-                            <span>{{ progressPercent }}%</span>
-                        </div>
-                        <div class="h-1.5 w-full rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                            <div
-                                class="h-full rounded-full bg-primary-500 transition-all duration-300"
-                                :style="{ width: `${progressPercent}%` }"
-                            />
-                        </div>
-                    </div>
-        
-                    <p class="text-sm text-neutral-400 text-center">
-                        Affichage limité à {{ MAX_ITEMS_TO_DISPLAY }} articles à la fois.
-                        Continuez ou affinez avec un filtre pour aller plus vite.
-                    </p>
-        
-                    <UButton
-                        label="Afficher plus"
-                        variant="outline"
-                        color="neutral"
-                        icon="i-lucide-chevron-down"
-                        :loading="loading"
-                        :disabled="loading"
-                        @click="() => { query.offset = data.length }"
-                    />
-                </div>
-        
-                <!-- Fin de liste -->
-                <div v-else-if="!hasMore" class="flex flex-col items-center gap-1.5">
-                    <UIcon name="i-lucide-check-circle-2" class="text-lg text-emerald-500" />
-                    <p class="text-sm text-neutral-400 text-center">
-                        Vous avez atteint la fin de la liste 
-                        <span class="font-semibold text-neutral-600 dark:text-neutral-300">{{ totalData }} articles</span>
-                        au total.
-                    </p>
-                </div>
-            </div>
+            <div ref="el">
+                <UiListEndIndicator 
+                    :current-size="data.length"
+                    :total-data="totalData"
+                    :has-more="hasMore"
+                    :max-to-display="MAX_ITEMS_TO_DISPLAY"
+                    :loading="loading"
+                    @show-more="() => { query.offset = data.length }"
+                />
+            </div> 
         </div>
 
         <div  v-if="loading" class="flex justify-center items-center py-12">

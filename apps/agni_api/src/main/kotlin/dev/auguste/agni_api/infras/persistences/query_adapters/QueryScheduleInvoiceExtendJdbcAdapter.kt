@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
+import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.UUID
 
@@ -48,6 +49,20 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
             params.addValue("dueDate", dateToVerify)
         }
 
+        if (extend.comparatorEndDate != null) {
+
+            val operator = when(extend.comparatorEndDate.comparator) {
+                ComparatorType.Greater -> ">"
+                ComparatorType.GreaterOrEquals -> ">="
+                ComparatorType.Lesser -> "<"
+                ComparatorType.LesserOrEquals -> "<="
+                ComparatorType.Equal -> "="
+            }
+
+            sqlBuilder.append(" AND (end_date $operator :endDate OR end_date = NULL)")
+            params.addValue("endDate",extend.comparatorEndDate.date )
+        }
+
         if (extend.type != null) {
             sqlBuilder.append(" AND LOWER(type) = :type")
             params.addValue("type", extend.type.value.lowercase())
@@ -71,7 +86,9 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
                 scheduler = rs.getString("scheduler"),
                 tagIds = rs.getString("tag_ids")?.let {
                     objectMapper.readValue(it, Array<String>::class.java).map { id -> UUID.fromString(id) }.toSet()
-                } ?: emptySet()
+                } ?: emptySet(),
+                endDate = rs.getObject("end_date", OffsetDateTime::class.java).toLocalDateTime(),
+               freezeScheduler = rs.getString("freeze_scheduler"),
             )
         }
     }
