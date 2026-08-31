@@ -32,7 +32,9 @@ data class ApiCreateScheduleInvoiceModel(
     val tagIds: Set<UUID>,
     val type: String?,
     @field:NotNull("schedule must be defined")
-    val schedule: ApiScheduleInvoiceModel
+    val schedule: ApiScheduleInvoiceModel,
+    val freezeSchedule: ApiScheduleInvoiceModel?,
+    val endDate: LocalDateTime?,
 )
 
 data class ApiUpdateScheduleInvoiceModel(
@@ -44,7 +46,9 @@ data class ApiUpdateScheduleInvoiceModel(
     val tagIds: Set<UUID>,
     val type: String?,
     val isPause: Boolean?,
-    val schedule: ApiScheduleInvoiceModel?
+    val schedule: ApiScheduleInvoiceModel?,
+    val freezeSchedule : ApiScheduleInvoiceModel?,
+    val endDate: LocalDateTime?
 )
 
 fun mapApiCreateScheduleInvoice(model: ApiCreateScheduleInvoiceModel): CreateScheduleInvoiceInput {
@@ -66,7 +70,19 @@ fun mapApiCreateScheduleInvoice(model: ApiCreateScheduleInvoiceModel): CreateSch
                     interval = model.schedule.repeater.interval
                 )
             }
-        )
+        ),
+        freezeSchedule = model.freezeSchedule?.let {
+            SchedulerInvoiceInput(
+                dueDate = it.dueDate,
+                repeater = it.repeater?.let { rep ->
+                    ScheduleRepeaterInput(
+                        period = PeriodType.fromString(rep.period),
+                        interval = rep.interval
+                    )
+                }
+            )
+        },
+        endDate = model.endDate,
     )
 }
 
@@ -90,6 +106,18 @@ fun mapApiUpdateScheduleInvoice(id: UUID, model: ApiUpdateScheduleInvoiceModel):
                     )
                 }
             )
-        }
+        },
+        freezeSchedule = model.freezeSchedule?.let {
+            SchedulerInvoiceInput(
+                dueDate = it.dueDate,
+                repeater = it.repeater?.let { rep ->
+                    ScheduleRepeaterInput(
+                        period = PeriodType.fromString(rep.period),
+                        interval = rep.interval
+                    )
+                }
+            )
+        },
+        endDate = model.endDate,
     )
 }

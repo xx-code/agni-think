@@ -20,6 +20,7 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonySummaryOutp
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetProvisionSummaryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetScheduleInvoiceSummaryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagInput
@@ -43,7 +44,8 @@ class AnalyticController(
     private val getBudgetTotalSummary: IUseCase<Unit, GetBudgetTotalSummaryOutput>,
     private val getPatrimonySummary: IUseCase<Unit, GetPatrimonySummaryOutput>,
     private val getPatrimonyEvolution: IUseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput>,
-    private val getProvisionSummary: IUseCase<Unit, GetProvisionSummaryOutput>
+    private val getProvisionSummary: IUseCase<Unit, GetProvisionSummaryOutput>,
+    private val getScheduleInvoiceSummary: IUseCase<Unit, GetScheduleInvoiceSummaryOutput>
 ) {
     @GetMapping("/spend-categories")
     fun getSpendCategoriesAnalytic(query: ApiGetCategoryAnalyticModel) : ResponseEntity<ListOutput<GetSpendByCategoryOutput>> {
@@ -137,5 +139,10 @@ class AnalyticController(
     @GetMapping("/provision-summary")
     fun getProvisionSummary() : ResponseEntity<GetProvisionSummaryOutput> {
         return ResponseEntity.ok(getProvisionSummary.execAsync(Unit))
+    }
+
+    @GetMapping("/schedule-invoice-summary")
+    fun getScheduleInvoiceSummary() : ResponseEntity<GetScheduleInvoiceSummaryOutput> {
+        return ResponseEntity.ok(getScheduleInvoiceSummary.execAsync(Unit))
     }
 }

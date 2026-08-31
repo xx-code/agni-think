@@ -1,3 +1,5 @@
+import type { QueryFilterRequest } from "."
+
 export type GetBalanceResponse = {
     balance: number
     income: number
@@ -21,7 +23,7 @@ export type TransactionResponse = {
     }[]
     budgets: {
         id: string
-        title: string
+        value: string
     }[]
 }
 
@@ -38,6 +40,7 @@ export type GetInvoiceResponse = {
     mouvement: string
     subTotal: number
     total: number
+    freeze: boolean
     date: Date
     transactions: TransactionResponse[]
     deductions: InvoiceDeductionResponse[]
@@ -60,7 +63,7 @@ export type QueryBalanceByPeriod = {
     isFreeze?: boolean
 }
 
-export type QueryInvoice = {
+export type QueryInvoiceRequest = QueryFilterRequest & {
     accountIds?: string[],
     categoryIds?: string[],
     budgetIds?: string[],

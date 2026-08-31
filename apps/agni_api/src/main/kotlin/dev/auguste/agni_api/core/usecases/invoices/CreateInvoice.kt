@@ -18,6 +18,7 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.value_objects.InvoiceDeduction
+import java.util.UUID
 
 // TODO: Refactoring
 class CreateInvoice(
@@ -50,8 +51,10 @@ class CreateInvoice(
                 throw DomainException.NotFound.SomeDeductions(deductionIds)
         }
 
+        val usePersistentId = input.persistentInvoiceId != null && invoiceRepo.get(input.persistentInvoiceId) == null
 
         val newInvoice = Invoice(
+            id = if(usePersistentId) input.persistentInvoiceId else UUID.randomUUID(),
             accountId = input.accountId,
             status = input.status,
             mouvementType = input.mouvementType,

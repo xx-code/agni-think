@@ -24,8 +24,7 @@ const { invoice, accountSelectedId } = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (e: 'submit', value: EditInvoiceType, oldValue?: InvoiceType): void    
-    (e: 'close', close: boolean): void
+    (e: 'close', doRefresh: boolean): void
 }>();
 
 const toast = useToast()

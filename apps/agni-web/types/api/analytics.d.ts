@@ -103,6 +103,13 @@ export type GetProvisionSummaryResponse = {
     monthlyPayment: number
 }
 
+export type GetScheduleInvoiceSummaryResponse = {
+    totalPlan: number,
+    totalActives: number,
+    totalPause: number
+    totalAmountActive: number
+}
+
 type GetSpendTagResponse = {
     tagId: string
     spends: number[]

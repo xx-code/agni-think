@@ -3,11 +3,13 @@ package dev.auguste.agni_api.infras.usecase_configs
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.facades.InvoiceDependencies
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
+import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateFreezeInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
@@ -21,6 +23,7 @@ import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.CreateScheduleIn
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.GetScheduleInvoiceOutput
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
+import dev.auguste.agni_api.infras.persistences.JdbcUnitOfWork
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID
@@ -31,15 +34,17 @@ class ScheduleInvoiceConfig {
     @Bean
     fun applyScheduleInvoice(
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-        createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
-        createFreezeInvoice: IUseCase<CreateFreezeInvoiceInput, CreatedOutput>,
-        eventManger: IEventRegister
+        createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
+        createFreezeInvoice: IInnerUseCase<CreateFreezeInvoiceInput, CreatedOutput>,
+        eventManger: IEventRegister,
+        unitOfWork: IUnitOfWork,
     ): IUseCase<Unit, BackgroundTaskOut> {
         return ApplyScheduleInvoice(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
             createInvoice = createInvoice,
             createFreezeInvoice = createFreezeInvoice,
-            eventManager = eventManger
+            eventManager = eventManger,
+            unitOfWork = unitOfWork
         )
     }
 
