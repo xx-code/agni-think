@@ -22,6 +22,7 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.CreateFreezeInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.TransactionInput
 import dev.auguste.agni_api.core.value_objects.Scheduler
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class ApplyScheduleInvoice(
@@ -39,10 +40,6 @@ class ApplyScheduleInvoice(
                     comparatorDueDate = QueryDateComparator(
                         LocalDateTime.now(),
                         ComparatorType.LesserOrEquals
-                    ),
-                    comparatorEndDate = QueryDateComparator(
-                        date = LocalDateTime.now(),
-                        comparator = ComparatorType.LesserOrEquals
                     )
                 )
             )
@@ -91,8 +88,9 @@ class ApplyScheduleInvoice(
                         ))
                     }
 
-                    if (scheduleInvoice.scheduler.repeater == null)
+                    if (scheduleInvoice.scheduler.repeater == null || (scheduleInvoice.endDate != null && scheduleInvoice.endDate!!.toLocalDate() >= LocalDate.now())) {
                         scheduleInvoiceRepo.delete(scheduleInvoice.id)
+                    }
                     else {
                         val date = scheduleInvoice.scheduler.upgradeDate()
                         scheduleInvoice.scheduler = Scheduler(

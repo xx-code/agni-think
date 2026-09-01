@@ -73,6 +73,7 @@ data class ApiForcastSpendingModel(
     val endDate: LocalDate,
     val wantItems: List<ApiWantItemModel>,
     val savingAdditionalIncome: List<ApiSavingAdditionalIncomeModel>,
+    val budgetIds: List<UUID>,
     val overrideAccountsBalance: Double? = null,
     @field:Range(min = 0, max = 100, message = "Le taux d'épargne doit être compris entre 0 et 100")
     val savingRate: Double? = null,

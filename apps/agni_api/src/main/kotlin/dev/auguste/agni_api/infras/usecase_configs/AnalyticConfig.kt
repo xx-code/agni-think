@@ -211,14 +211,16 @@ class AnalyticConfig {
         accountRepo: IRepository<Account>,
         budgetRepo: IRepository<Budget>,
         profileRepo: IRepository<Profile>,
-        getBudget: IUseCase<UUID, GetBudgetOutput>
+        getBudget: IUseCase<UUID, GetBudgetOutput>,
+        getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     ) : IUseCase<ForcastSpendingInput, ForcastSpendingOutput> {
         return ForcastSpending(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
             accountRepo = accountRepo,
             budgetRepo = budgetRepo,
             profileRepo = profileRepo,
-            getBudget = getBudget
+            getBudget = getBudget,
+            getBalance = getBalance
         )
     }
 }
