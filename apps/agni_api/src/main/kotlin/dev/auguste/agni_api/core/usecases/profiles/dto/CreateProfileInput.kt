@@ -6,3 +6,4 @@ data class CreateProfileInput(
     val varialSpendPercentage: Double,
     val savingPercentage: Double
 )
+

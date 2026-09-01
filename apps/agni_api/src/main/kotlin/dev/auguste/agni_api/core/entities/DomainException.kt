@@ -37,6 +37,9 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class InternalLoanFreezeInvoice(id: UUID): NotFound("INTERNAL_LOAN_FREEZE_NOT_FOUND", "La facture freeze pour le Pret personnel est introuvable $id")
         class Transaction(id: UUID) : NotFound("TRANSACTION_NOT_FOUND", "Transaction not found $id")
         class ScheduleInvoice(id: UUID): NotFound("SCHEDULE_IN_VOICE_NOT_FOUND", "ScheduleInvoice $id est introuvable")
+        class Profile(id: UUID) : NotFound("PROFILE_NOT_FOUND", "Profile not found $id")
+        class SpendingPeriod(id: UUID) : NotFound("SPENDING_PERIOD_NOT_FOUND", "Spending period for $id")
+        class SpendingPeriodTemplate(id: UUID) : NotFound("SPENDING_PERIOD_TEMPLATE_NOT_FOUND", "Spending period template not found $id")
     }
 
     sealed class AlreadyExist(code: String, message: String): DomainException(code, message) {
