@@ -9,6 +9,7 @@ import kotlin.math.roundToInt
 sealed class DomainException(val code: String, message: String): Exception(message) {
     sealed class NotFound(code: String, message: String): DomainException(code, message) {
         class Account(id: UUID) : NotFound("ACCOUNT_NOT_FOUND", "Le compte est introuvable $id")
+        class ManyAccounts(ids: List<UUID>) : NotFound("MANY_ACCOUNT_NOT_FOUND", "Les compte sont introuvable $ids")
         class Category(id: UUID) : NotFound("CATEGORY_NOT_FOUND", "La categorie est introuvable $id")
         class SomeAccounts(ids: Set<UUID>) : NotFound("SOME_ACCOUNT_NOT_FOUND", "Un ou des comptes dans cette liste [${ids.joinToString(", ")}] sont introuvable")
         class Provisionable(id: UUID) : NotFound("PROVISIONABLE_NOT_FOUND", "Provisionable not found $id")
@@ -37,6 +38,9 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class InternalLoanFreezeInvoice(id: UUID): NotFound("INTERNAL_LOAN_FREEZE_NOT_FOUND", "La facture freeze pour le Pret personnel est introuvable $id")
         class Transaction(id: UUID) : NotFound("TRANSACTION_NOT_FOUND", "Transaction not found $id")
         class ScheduleInvoice(id: UUID): NotFound("SCHEDULE_IN_VOICE_NOT_FOUND", "ScheduleInvoice $id est introuvable")
+        class Profile(id: UUID) : NotFound("PROFILE_NOT_FOUND", "Profile not found $id")
+        class SpendingPeriod(id: UUID) : NotFound("SPENDING_PERIOD_NOT_FOUND", "Spending period for $id")
+        class SpendingPeriodTemplate(id: UUID) : NotFound("SPENDING_PERIOD_TEMPLATE_NOT_FOUND", "Spending period template not found $id")
     }
 
     sealed class AlreadyExist(code: String, message: String): DomainException(code, message) {
@@ -72,6 +76,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class GoalTargetAmountMustBeLeastFund(balance: Double, targetAmount: Double): BusinessLogic("GOAL_TARGET_AMOUNT_MUST_LEAST_FUND", "le montant cible $targetAmount doit etre inferieur a $balance$")
         class ProvisionWithLoanMustHaveAScheduleInvoice(): BusinessLogic("PROVISION_WITH_LOAN_MUST_HAVE_AS_SCHEDULE_INVOICE", "Si vous avez un pret sur un actif depreciative il faut un scheduler")
         class ProvisionWithLoanMustHaveCantBeByDay(): BusinessLogic("PROVISION_WITH_LOAN_CANT_BE_BY_DAY", "Les pret sur des actif ne peuvent pas se decomposer par jour")
+        class ForcastAdditionalSavingAmountMustLessThanBalance(balance: Double, amount: Double): BusinessLogic("FORCAST_SAVING_ADDITIONAL_AMOUNT", "Forcast saving amount: $amount doit etre inferieur a $balance")
     }
 
     sealed class Validation(code: String, message: String): DomainException(code, message) {
@@ -80,6 +85,8 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class ProvisionDepreciateLoanMonthMustBeGreaterThanZero(month: Long): Validation("PROVISION_DEPRECIATE_LOAN_MONTH_MUST_BE_GREATER_THAN_ZERO", "Le nombre de mois $month dois etre supperieur a 0")
         class ProvisionDepreciateCriteriaDecliningBalanceMustHaveRangeGreaterThanZero(montRange: Int): Validation("PROVISION_DEPRECIATE_CRITERIA_DECLINING_BALANCE_MUST_HAVE_RANGE_GREATER_THAN_ZERO", "Un critere degressive doit avoir les paliers mensuels supperieur a zero")
         class ScheduleFreezeInvoiceMustHaveAScheduler: Validation("SCHEDULE_FREEZE_INVOICE_SCHEDULER_INVALID", "Une facture scheduler doit poceder un scheduler")
+        class ProfileMaxWishlistAmountMustBePositif: Validation("PROFILE_MAX_WISHLIST_MUST_BE_POSITIF", "Le montant maximun pour la liste de souhait doit etre prositif")
+        class ProfileRulePercentageMustBePositif(rule: String, percentage: Double, total: Double): Validation("PROFILE_BUDGET_RULE_PERCENTAGE_ERROR", "La repartion $rule a un pourcentage $percentage/$total. le repartion doit etre entre 0 et 100 et le total des repartition doit etre a 100%")
     }
 
     sealed class Unexpected(code: String, message: String): BusinessLogic(code, message) {

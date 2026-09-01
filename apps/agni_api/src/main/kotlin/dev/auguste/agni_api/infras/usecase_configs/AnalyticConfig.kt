@@ -11,11 +11,13 @@ import dev.auguste.agni_api.core.entities.FinancePrinciple
 import dev.auguste.agni_api.core.entities.IncomeSource
 import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
+import dev.auguste.agni_api.core.entities.Profile
 import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.usecases.ListOutput
+import dev.auguste.agni_api.core.usecases.analystics.ForcastSpending
 import dev.auguste.agni_api.core.usecases.analystics.GetAnnualOutlook
 import dev.auguste.agni_api.core.usecases.analystics.GetBudgetTotalSummary
 import dev.auguste.agni_api.core.usecases.analystics.GetBudgetingRuleAnalytic
@@ -29,6 +31,8 @@ import dev.auguste.agni_api.core.usecases.analystics.GetSavingBalance
 import dev.auguste.agni_api.core.usecases.analystics.GetScheduleInvoiceSummary
 import dev.auguste.agni_api.core.usecases.analystics.GetSpendByCategoryAnalytic
 import dev.auguste.agni_api.core.usecases.analystics.GetSpendByTagAnalytic
+import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingInput
+import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetAnnualOutlookOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetTotalSummaryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticInput
@@ -58,6 +62,7 @@ import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
 import dev.auguste.agni_api.infras.persistences.AccountRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.util.UUID
 
 
 @Configuration
@@ -198,5 +203,22 @@ class AnalyticConfig {
         invoiceSummaryRepo: IRepository<ScheduleInvoice>
     ) : IUseCase<Unit, GetScheduleInvoiceSummaryOutput> {
         return GetScheduleInvoiceSummary(invoiceSummaryRepo)
+    }
+
+    @Bean
+    fun forcastSpending(
+        scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+        accountRepo: IRepository<Account>,
+        budgetRepo: IRepository<Budget>,
+        profileRepo: IRepository<Profile>,
+        getBudget: IUseCase<UUID, GetBudgetOutput>
+    ) : IUseCase<ForcastSpendingInput, ForcastSpendingOutput> {
+        return ForcastSpending(
+            scheduleInvoiceRepo = scheduleInvoiceRepo,
+            accountRepo = accountRepo,
+            budgetRepo = budgetRepo,
+            profileRepo = profileRepo,
+            getBudget = getBudget
+        )
     }
 }

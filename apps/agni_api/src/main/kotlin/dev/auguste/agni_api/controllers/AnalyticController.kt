@@ -1,5 +1,6 @@
 package dev.auguste.agni_api.controllers
 
+import dev.auguste.agni_api.controllers.models.ApiForcastSpendingModel
 import dev.auguste.agni_api.controllers.models.ApiGetBudgetingRuleModel
 import dev.auguste.agni_api.controllers.models.ApiGetCategoryAnalyticModel
 import dev.auguste.agni_api.controllers.models.ApiGetPatrimonyEvolutionModel
@@ -9,6 +10,8 @@ import dev.auguste.agni_api.core.adapters.dto.FundSummaryOutput
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.ListOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingInput
+import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetAnnualOutlookOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetTotalSummaryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticInput
@@ -25,9 +28,14 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.SavingAdditionalIncomeInput
+import dev.auguste.agni_api.core.usecases.analystics.dto.WantItemOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -45,7 +53,8 @@ class AnalyticController(
     private val getPatrimonySummary: IUseCase<Unit, GetPatrimonySummaryOutput>,
     private val getPatrimonyEvolution: IUseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput>,
     private val getProvisionSummary: IUseCase<Unit, GetProvisionSummaryOutput>,
-    private val getScheduleInvoiceSummary: IUseCase<Unit, GetScheduleInvoiceSummaryOutput>
+    private val getScheduleInvoiceSummary: IUseCase<Unit, GetScheduleInvoiceSummaryOutput>,
+    private val forcastSpending: IUseCase<ForcastSpendingInput, ForcastSpendingOutput>,
 ) {
     @GetMapping("/spend-categories")
     fun getSpendCategoriesAnalytic(query: ApiGetCategoryAnalyticModel) : ResponseEntity<ListOutput<GetSpendByCategoryOutput>> {
@@ -144,5 +153,29 @@ class AnalyticController(
     @GetMapping("/schedule-invoice-summary")
     fun getScheduleInvoiceSummary() : ResponseEntity<GetScheduleInvoiceSummaryOutput> {
         return ResponseEntity.ok(getScheduleInvoiceSummary.execAsync(Unit))
+    }
+
+    @PostMapping("/forcast-spending")
+    private fun forcastSpending(@Valid @RequestBody input: ApiForcastSpendingModel): ResponseEntity<ForcastSpendingOutput>{
+        return ResponseEntity.ok(forcastSpending.execAsync(
+            input = ForcastSpendingInput(
+                startDate = input.startDate,
+                endDate = input.endDate,
+                wantItems = input.wantItems.map {
+                    WantItemOutput(
+                        description = it.description,
+                        amount = it.amount
+                    )
+                },
+                savingAdditionalIncome = input.savingAdditionalIncome.map {
+                    SavingAdditionalIncomeInput(
+                        savingAccountId = it.savingAccountId,
+                        amount = it.amount
+                    )
+                },
+                overrideAccountsBalance = input.overrideAccountsBalance,
+                savingRate = input.savingRate
+            )
+        ))
     }
 }
