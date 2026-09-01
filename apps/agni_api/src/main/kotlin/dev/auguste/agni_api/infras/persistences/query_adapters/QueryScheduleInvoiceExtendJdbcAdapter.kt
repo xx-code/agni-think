@@ -87,8 +87,8 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
                 tagIds = rs.getString("tag_ids")?.let {
                     objectMapper.readValue(it, Array<String>::class.java).map { id -> UUID.fromString(id) }.toSet()
                 } ?: emptySet(),
-                endDate = rs.getObject("end_date", OffsetDateTime::class.java).toLocalDateTime(),
-               freezeScheduler = rs.getString("freeze_scheduler"),
+                endDate = rs.getObject("end_date", OffsetDateTime::class.java)?.toLocalDateTime(),
+                freezeScheduler = rs.getString("freeze_scheduler"),
             )
         }
     }

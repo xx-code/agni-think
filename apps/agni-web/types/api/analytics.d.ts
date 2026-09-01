@@ -110,6 +110,29 @@ export type GetScheduleInvoiceSummaryResponse = {
     totalAmountActive: number
 }
 
+export type ForcastSpendingRequest = {
+    startDate: string
+    endDate: string
+    wantItems: {description: string, amount: number}[],
+    savingAdditionalIncome: {savingAccountId: string, amount: number}[],
+    overrideAccountsBalance?: number,
+    savingRate? :number
+}
+
+export type ForcastSpendingResponse = {
+    remainAmount: number
+    totalExpectedIncome: number
+    totalExpectedExpense: number
+    expectedIncome: number
+    expectedFixExpense: number
+    expectedVariableExpense: number
+    expectedPlanFreezeExpense: number
+    expectedBudgetExpense: number
+    expectedSaving: number
+    itemsApproved: {description: string, amount: number}[],
+    itemsRejected: {description: string, amount: number}[]
+}
+
 type GetSpendTagResponse = {
     tagId: string
     spends: number[]
