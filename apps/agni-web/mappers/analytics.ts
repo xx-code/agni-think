@@ -1,5 +1,5 @@
-import type { GetEstimationLeftAmountResponse, GetProvisionSummaryResponse, GetSavingAnalysticResponse, GetScheduleInvoiceSummaryResponse, PatrimonyEvolutionResponse } from "~/types/api/analytics";
-import type { EstimationLeftAmountType, NetworthPeriod, PatrimonyEvolution, ProvisionSummary, SavingAnalysticType, ScheduleInvoiceSummary } from "~/types/ui/analytics";
+import type { ForcastSpendingRequest, ForcastSpendingResponse, GetEstimationLeftAmountResponse, GetProvisionSummaryResponse, GetSavingAnalysticResponse, GetScheduleInvoiceSummaryResponse, PatrimonyEvolutionResponse } from "~/types/api/analytics";
+import type { EstimationLeftAmountType, ForcastSpending, NetworthPeriod, PatrimonyEvolution, ProvisionSummary, SavingAnalysticType, ScheduleInvoiceSummary } from "~/types/ui/analytics";
 
 export function estimationLeftAmountResponseToEstimationLeftAmount(data: GetEstimationLeftAmountResponse): EstimationLeftAmountType {
     return { estimateAmount: data.estimateAmount };
@@ -35,5 +35,9 @@ export function provisionSummaryResponseToProvisionSummary(data: GetProvisionSum
 }
 
 export function scheduleInvoiceSummaryResponseToScheduleInvoiceSummary(data: GetScheduleInvoiceSummaryResponse): ScheduleInvoiceSummary {
+    return data
+}
+
+export function forcastSpendingResponseToForcastSpending(data: ForcastSpendingResponse): ForcastSpending {
     return data
 }

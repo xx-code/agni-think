@@ -22,6 +22,7 @@ import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Notification
 import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
+import dev.auguste.agni_api.core.entities.Profile
 import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
@@ -44,6 +45,7 @@ import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInvoiceModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcNotificationModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcPatrimonyModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcPatrimonySnapshotModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcProfileModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcProvisionModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcSavingGoalModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcScheduleInvoiceModel
@@ -293,3 +295,12 @@ class GoalRepository(
     goalMapper: IMapper<JdbcGoalModel, Goal>,
     queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcGoalModel, Goal>
 ): JdbcRepository<JdbcGoalModel, Goal>(storage, goalMapper, queryExtendAdapter)
+
+@Repository
+interface ProfileStorage: GenericStorage<JdbcProfileModel, UUID>
+
+@Component
+class ProfileRepository(
+    storage: ProfileStorage,
+    profileMapper: IMapper<JdbcProfileModel, Profile>,
+): JdbcRepository<JdbcProfileModel, Profile>(storage, profileMapper)

@@ -9,13 +9,19 @@ import { budgetFilterToBudgetQueryRequest, listBudgetsResponseToListBudgets } fr
 import { listCategoriesResponseToListCategories } from '~/mappers/category'
 import { fundResponseToFund } from '~/mappers/fund'
 import { listInvoicesResponseToListInvoices } from '~/mappers/invoice'
-import type { QueryFilterRequest } from '~/types/api'
 import type { ListResponse } from '~/types/api'
 import type { GetSavingAnalysticRequest, GetSavingAnalysticResponse, GetSpendCategoryRequest, GetSpendCategoryResponse } from '~/types/api/analytics'
 import type { GetCategoryResponse } from '~/types/api/category'
 import type { GetFundResponse, QueryFilterFundRequest } from '~/types/api/fund'
-import type { GetBalanceResponse, GetInvoiceResponse, QueryBalanceByPeriod, QueryInvoice } from '~/types/api/transaction'
+import type { GetBalanceResponse, GetInvoiceResponse, QueryBalanceByPeriod } from '~/types/api/transaction'
 import type { SavingAnalysticType } from '~/types/ui/analytics'
+import type { InvoiceFilter } from '~/types/ui/transaction'
+import { ModalForecastSpending } from '#components'
+import { listAccountsResponseToListAccountWithDetail, listAccountsToListAccount } from '~/mappers/account'
+import type { GetAccountResponse } from '~/types/api/account'
+
+const overlay = useOverlay()
+const modalForcastSpending = overlay.create(ModalForecastSpending) 
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
 const calendarSelection = reactive<{
@@ -113,9 +119,10 @@ watch(() => calendarSelection.startDate, () => { fetchBalance(); fetchSavings();
 // ─── Supporting data ──────────────────────────────────────────────────────────
 const { data: utils } = useAsyncData('utils+all+dashboard', async () => {
   const query = { limit: 0, offset: 0, queryAll: true}
-  const [categories, budgets, goals] = await Promise.all([
+  const [categories, budgets, accounts, goals] = await Promise.all([
     ApiLinkBuilder.route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES).query(query).mapper(listCategoriesResponseToListCategories).execute(),
     ApiLinkBuilder.route(API_ROUTES.BUDGETS.GET_BUDGETS).query(budgetFilterToBudgetQueryRequest(query)).mapper(listBudgetsResponseToListBudgets).execute(),
+    ApiLinkBuilder.route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS).query({limit: 0, offset: 0, queryAll: true}).mapper(listAccountsToListAccount).execute(),
     (async () => {
       const res = await ApiLinkBuilder.route<ListResponse<GetFundResponse>>(API_ROUTES.FUNDS.GET_FUNDS).query(query as QueryFilterFundRequest).execute()
       return {
@@ -127,11 +134,12 @@ const { data: utils } = useAsyncData('utils+all+dashboard', async () => {
   return {
     categories,
     budgets,
+    accounts,
     goals
   }
 })
 
-const paramsTransaction = reactive<QueryFilterRequest & QueryInvoice>({ offset: 0, limit: 5, status: 'Pending' })
+const paramsTransaction = reactive<InvoiceFilter>({ offset: 0, limit: 5, status: 'Pending' })
 const { data: transactions } = useAsyncData('pagination+dashboard', async () => {
   const res = await ApiLinkBuilder.route<ListResponse<GetInvoiceResponse>>(API_ROUTES.INVOICES.GET_INVOICES).query(paramsTransaction).mapper(listInvoicesResponseToListInvoices).execute()
 
@@ -229,6 +237,12 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
   budget: 'Budgets',
   goals: "Objectifs d'épargne",
 }
+
+function openPrevisionSpending() {
+    modalForcastSpending.open({
+        savingAccounts: utils.value?.accounts.items.map(i => ({ id: i.id, title: i.title})) ?? [] 
+    })
+}
 </script>
 
 <template>
@@ -243,13 +257,22 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
           <p class="text-xs uppercase tracking-widest text-slate-400 font-medium mb-1">Vue d'ensemble</p>
           <h1 class="text-2xl font-bold tracking-tight text-slate-900">Tableau de Bord</h1>
         </div>
-        <UDropdownMenu :items="periodOptions">
-          <button class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-colors cursor-pointer">
-            <UIcon name="i-lucide-calendar-days" class="text-slate-400" />
-            {{ dateDisplayed }}
-            <UIcon name="i-lucide-chevron-down" class="text-slate-400 text-xs" />
-          </button>
-        </UDropdownMenu>
+        <div class="flex items-center gap-2">
+            <UButton
+                label="Prévision de dépenses"
+                icon="i-lucide-sparkles"
+                color="neutral"
+                variant="outline"
+                @click="openPrevisionSpending"
+            />
+            <UDropdownMenu :items="periodOptions">
+                <button class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-colors cursor-pointer">
+                    <UIcon name="i-lucide-calendar-days" class="text-slate-400" />
+                    {{ dateDisplayed }}
+                    <UIcon name="i-lucide-chevron-down" class="text-slate-400 text-xs" />
+                </button>
+            </UDropdownMenu>
+        </div>
       </div>
 
       <!-- ── Loading ── -->

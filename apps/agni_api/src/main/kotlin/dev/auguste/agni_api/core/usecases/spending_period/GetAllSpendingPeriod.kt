@@ -22,7 +22,9 @@ class GetAllSpendingPeriod(
                     startDate = it.startDate,
                     endDate = it.endDate,
                     suggestionAmount = it.suggestionAmount,
-                    amount = it.amount,
+                    savingsTarget = it.savingsTarget,
+                    totalExpectedIncome = it.totalExpectedIncome,
+                    totalExpectedExpenses = it.totalExpectedExpenses,
                     wantSpendingItems = it.wantSpendingItems.map { item ->
                         SpendingPeriodItemOutput(
                             description = item.description,

@@ -9,6 +9,7 @@ import kotlin.math.roundToInt
 sealed class DomainException(val code: String, message: String): Exception(message) {
     sealed class NotFound(code: String, message: String): DomainException(code, message) {
         class Account(id: UUID) : NotFound("ACCOUNT_NOT_FOUND", "Le compte est introuvable $id")
+        class ManyAccounts(ids: List<UUID>) : NotFound("MANY_ACCOUNT_NOT_FOUND", "Les compte sont introuvable $ids")
         class Category(id: UUID) : NotFound("CATEGORY_NOT_FOUND", "La categorie est introuvable $id")
         class SomeAccounts(ids: Set<UUID>) : NotFound("SOME_ACCOUNT_NOT_FOUND", "Un ou des comptes dans cette liste [${ids.joinToString(", ")}] sont introuvable")
         class Provisionable(id: UUID) : NotFound("PROVISIONABLE_NOT_FOUND", "Provisionable not found $id")
@@ -75,6 +76,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class GoalTargetAmountMustBeLeastFund(balance: Double, targetAmount: Double): BusinessLogic("GOAL_TARGET_AMOUNT_MUST_LEAST_FUND", "le montant cible $targetAmount doit etre inferieur a $balance$")
         class ProvisionWithLoanMustHaveAScheduleInvoice(): BusinessLogic("PROVISION_WITH_LOAN_MUST_HAVE_AS_SCHEDULE_INVOICE", "Si vous avez un pret sur un actif depreciative il faut un scheduler")
         class ProvisionWithLoanMustHaveCantBeByDay(): BusinessLogic("PROVISION_WITH_LOAN_CANT_BE_BY_DAY", "Les pret sur des actif ne peuvent pas se decomposer par jour")
+        class ForcastAdditionalSavingAmountMustLessThanBalance(balance: Double, amount: Double): BusinessLogic("FORCAST_SAVING_ADDITIONAL_AMOUNT", "Forcast saving amount: $amount doit etre inferieur a $balance")
     }
 
     sealed class Validation(code: String, message: String): DomainException(code, message) {

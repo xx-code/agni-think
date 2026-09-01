@@ -27,7 +27,9 @@ class CreateSpendingPeriod(
             startDate = template.startDate,
             endDate = scheduler.upgradeDate().toLocalDate(),
             suggestionAmount = input.suggestionAmount,
-            amount = input.amount,
+            savingsTarget = input.savingsTarget,
+            totalExpectedIncome = input.totalExpectedIncome,
+            totalExpectedExpenses = input.totalExpectedExpenses,
             wantSpendingItems = input.wantSpendingItems.map {
                 SpendingPeriodItem(
                     description = it.description,

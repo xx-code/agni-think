@@ -5,7 +5,11 @@ import java.util.UUID
 
 data class CreateSpendingPeriodInput(
     val spendingPeriodTemplateId: UUID,
+    val startDate: LocalDate,
+    val endDate: LocalDate,
     val suggestionAmount: Double,
-    val amount: Double,
+    val savingsTarget: Double,
+    val totalExpectedIncome: Double,
+    val totalExpectedExpenses: Double,
     val wantSpendingItems: List<SpendingPeriodItemInput>
 )

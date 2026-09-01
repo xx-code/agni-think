@@ -19,7 +19,9 @@ class GetSpendingPeriod(
             startDate = spendPeriod.startDate,
             endDate = spendPeriod.endDate,
             suggestionAmount = spendPeriod.suggestionAmount,
-            amount = spendPeriod.amount,
+            savingsTarget = spendPeriod.savingsTarget,
+            totalExpectedIncome = spendPeriod.totalExpectedIncome,
+            totalExpectedExpenses = spendPeriod.totalExpectedExpenses,
             wantSpendingItems = spendPeriod.wantSpendingItems.map {
                 SpendingPeriodItemOutput(
                     description = it.description,

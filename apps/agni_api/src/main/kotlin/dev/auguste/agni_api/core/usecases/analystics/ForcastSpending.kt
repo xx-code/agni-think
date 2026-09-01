@@ -8,12 +8,15 @@ import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateCom
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryScheduleInvoiceExtend
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.Budget
+import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Profile
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.enums.AccountType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.SavingAdditionalIncomeInput
+import dev.auguste.agni_api.core.usecases.analystics.dto.WantItemOutput
 import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import java.time.LocalDate
@@ -28,10 +31,10 @@ class ForcastSpending(
 ): IUseCase<ForcastSpendingInput, ForcastSpendingOutput> {
     override fun execAsync(input: ForcastSpendingInput): ForcastSpendingOutput {
         var currentBalance = 0.0
+        val accounts = accountRepo.getAll(QueryFilter.queryAll())
         if (input.overrideAccountsBalance != null) {
             currentBalance = input.overrideAccountsBalance
         } else {
-            val accounts = accountRepo.getAll(QueryFilter.queryAll())
             currentBalance = getCurrentBalance(accounts.items)
         }
 
@@ -62,11 +65,19 @@ class ForcastSpending(
 
         val saving = income * (savingRate/100.00)
 
-        val totalIncome = income + currentBalance
+        val additionalIncome = getAdditionalSavingAmount(input.savingAdditionalIncome, accounts.items)
+
+        val totalIncome = income + currentBalance + additionalIncome
         val totalExpense = fixExpense + variableExpense + freezeExpense + budgetExpense + saving
 
+        val remain = totalIncome - totalExpense
+        val margeRemain = (remain * (savingRate/100.0))
+        val validItems = input.wantItems.filter { it.amount <= (remain - margeRemain) }
+
+        val acceptedItems = selectItemsWantRecursive(remain - margeRemain, validItems)
+
         return ForcastSpendingOutput(
-            remainAmount = totalIncome - totalExpense,
+            remainAmount = remain,
             totalExpectedIncome = totalIncome,
             totalExpectedExpense = totalExpense,
             expectedIncome = income,
@@ -75,9 +86,53 @@ class ForcastSpending(
             expectedPlanFreezeExpense = freezeExpense,
             expectedBudgetExpense = budgetExpense,
             expectedSaving = saving,
-            itemsApproved = listOf(),
-            itemsRejected = listOf()
+            itemsApproved = acceptedItems,
+            itemsRejected = acceptedItems.filter { !validItems.contains(it) }
         )
+    }
+
+    private fun selectItemsWantRecursive(remain: Double, acceptedItems: List<WantItemOutput>): List<WantItemOutput> {
+        val repartition = remain / acceptedItems.size
+        val validItems = mutableListOf<WantItemOutput>()
+        val rejectedItems = mutableListOf<WantItemOutput>()
+        for (item in acceptedItems) {
+            if (item.amount <= repartition) {
+                validItems.add(item)
+            } else {
+                rejectedItems.add(item)
+            }
+        }
+
+        if (validItems.isNotEmpty())
+            validItems += selectItemsWantRecursive(remain - validItems.sumOf { it.amount }, rejectedItems)
+
+        return validItems
+    }
+
+    private fun getAdditionalSavingAmount(
+        additionalAccounts: List<SavingAdditionalIncomeInput>,
+        accounts: List<Account>
+    ): Double {
+        val savingAccountsById = accounts
+            .filter { it.detail.getType() == AccountType.SAVING }
+            .associateBy { it.id }
+
+        val missingAccountIds = additionalAccounts
+            .map { it.savingAccountId }
+            .filterNot { savingAccountsById.containsKey(it) }
+
+        if (missingAccountIds.isNotEmpty()) {
+            throw DomainException.NotFound.ManyAccounts(missingAccountIds)
+        }
+
+        for (additional in additionalAccounts) {
+            val account = savingAccountsById.getValue(additional.savingAccountId)
+            if (additional.amount > account.balance) {
+                throw DomainException.BusinessLogic.ForcastAdditionalSavingAmountMustLessThanBalance(account.balance, additional.amount)
+            }
+        }
+
+        return additionalAccounts.sumOf { it.amount }
     }
 
     private fun getIncome(scheduleInvoices: List<ScheduleInvoice>): Double {

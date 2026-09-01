@@ -1,4 +1,4 @@
-import type { BudgetTotalSummaryResponse, GetProvisionSummaryResponse, GetScheduleInvoiceSummaryResponse, PatrimonyEvolutionResponse, PatrimonySummaryResponse } from "../api/analytics"
+import type { BudgetTotalSummaryResponse, ForcastSpendingResponse, GetProvisionSummaryResponse, GetScheduleInvoiceSummaryResponse, PatrimonyEvolutionResponse, PatrimonySummaryResponse } from "../api/analytics"
 
 export type EstimationLeftAmountType = {
     estimateAmount: number
@@ -66,3 +66,5 @@ export type PatrimonyEvolution = {
 export type ProvisionSummary = GetProvisionSummaryResponse
 
 export type ScheduleInvoiceSummary = GetScheduleInvoiceSummaryResponse
+
+export type ForcastSpending = ForcastSpendingResponse
