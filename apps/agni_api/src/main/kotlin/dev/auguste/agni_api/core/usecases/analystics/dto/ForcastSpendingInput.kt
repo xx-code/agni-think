@@ -13,6 +13,7 @@ data class ForcastSpendingInput(
     val endDate: LocalDate,
     val wantItems: List<WantItemOutput>,
     val savingAdditionalIncome: List<SavingAdditionalIncomeInput>,
+    val budgetIds: List<UUID>,
     val overrideAccountsBalance: Double? = null,
     val savingRate: Double? = null,
 )

@@ -239,8 +239,10 @@ const modalTitles: Record<NonNullable<ModalType>, string> = {
 }
 
 function openPrevisionSpending() {
+
     modalForcastSpending.open({
-        savingAccounts: utils.value?.accounts.items.map(i => ({ id: i.id, title: i.title})) ?? [] 
+      budgets: utils.value?.budgets.items.map(i => ({ id: i.id, title: i.title})) ?? [], 
+      savingAccounts: utils.value?.accounts.items.map(i => ({ id: i.id, title: i.title})) ?? [] 
     })
 }
 </script>

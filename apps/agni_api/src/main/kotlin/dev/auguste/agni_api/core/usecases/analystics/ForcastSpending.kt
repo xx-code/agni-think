@@ -13,13 +13,17 @@ import dev.auguste.agni_api.core.entities.Profile
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.enums.AccountType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.SavingAdditionalIncomeInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.WantItemOutput
 import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class ForcastSpending(
@@ -28,6 +32,7 @@ class ForcastSpending(
     private val budgetRepo: IRepository<Budget>,
     private val profileRepo: IRepository<Profile>,
     private val getBudget: IUseCase<UUID, GetBudgetOutput>,
+    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
 ): IUseCase<ForcastSpendingInput, ForcastSpendingOutput> {
     override fun execAsync(input: ForcastSpendingInput): ForcastSpendingOutput {
         var currentBalance = 0.0
@@ -38,13 +43,9 @@ class ForcastSpending(
             currentBalance = getCurrentBalance(accounts.items)
         }
 
-        val budgets = budgetRepo.getAll(QueryFilter.queryAll(),
-            QueryBudgetExtend(QueryDateComparator(
-                input.endDate.atStartOfDay(),
-                ComparatorType.LesserOrEquals
-            )))
+        val budgets = budgetRepo.getManyByIds(input.budgetIds.toSet())
 
-        val budgetExpense = getBudgetExpense(budgets.items.filter { !it.isArchived  })
+        val budgetExpense = getBudgetExpense(budgets, input.startDate, input.endDate)
 
         val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), QueryScheduleInvoiceExtend(
             comparatorDueDate = QueryDateComparator(
@@ -53,10 +54,16 @@ class ForcastSpending(
             )
         ))
 
-        val income = getIncome(scheduleInvoices.items)
-        val fixExpense = getFixExpense(scheduleInvoices.items)
-        val variableExpense = getVariableExpense(scheduleInvoices.items)
-        val freezeExpense = getPlanFreezeExpense(scheduleInvoices.items, input.endDate)
+        val income = getIncome(scheduleInvoices.items, input.startDate, input.endDate)
+        val fixExpense = getFixExpense(scheduleInvoices.items, input.startDate, input.endDate)
+        val variableExpense = getVariableExpense(scheduleInvoices.items, input.startDate, input.endDate)
+
+        val freezeBalanceToRemove = getBalance.execAsync(GetBalanceInput(
+            isFreeze = true,
+            startDate = input.startDate.atStartOfDay(),
+            endDate = input.endDate.atStartOfDay()
+        ))
+        val freezeExpense = getPlanFreezeExpense(scheduleInvoices.items, input.startDate, input.endDate) - freezeBalanceToRemove.balance
 
         val profiles = profileRepo.getAll(QueryFilter.queryAll())
         var savingRate = profiles.items.first().savingPercentage ?: 0.0
@@ -135,10 +142,14 @@ class ForcastSpending(
         return additionalAccounts.sumOf { it.amount }
     }
 
-    private fun getIncome(scheduleInvoices: List<ScheduleInvoice>): Double {
-        return scheduleInvoices.filter {
-            it.type == InvoiceType.INCOME
-        }.sumOf { it.amount }
+    private fun getIncome(scheduleInvoices: List<ScheduleInvoice>, startDate: LocalDate, endDate: LocalDate): Double {
+        var totalIncome = 0.0
+        for (schedule in scheduleInvoices.filter { it.type == InvoiceType.INCOME }) {
+            val occurrence = schedule.scheduler.repeater?.computeOccurrences(startDate, endDate) ?: 1
+            totalIncome += schedule.amount * occurrence
+        }
+
+        return totalIncome
     }
 
     private fun getCurrentBalance(accounts: List<Account>): Double {
@@ -147,30 +158,70 @@ class ForcastSpending(
         }.sumOf { it.balance }
     }
 
-    private fun getFixExpense(scheduleInvoices: List<ScheduleInvoice>): Double {
-        return scheduleInvoices.filter {
-            it.type == InvoiceType.FIXEDCOST
-        }.sumOf { it.amount }
-    }
-
-    private fun getVariableExpense(scheduleInvoices: List<ScheduleInvoice>): Double {
-        return scheduleInvoices.filter {
-            it.type == InvoiceType.VARIABLECOST
-        }.sumOf { it.amount }
-    }
-
-    private fun getPlanFreezeExpense(scheduleInvoices: List<ScheduleInvoice>, endDate: LocalDate): Double {
-        return scheduleInvoices.filter {
-            it.isFreeze && it.getFreezeEndDate() > endDate
-        }.sumOf { it.amount }
-    }
-
-    private fun getBudgetExpense(budgets: List<Budget>): Double {
+    private fun getFixExpense(scheduleInvoices: List<ScheduleInvoice>, startDate: LocalDate, endDate: LocalDate): Double {
         var total = 0.0
-        for (budget in budgets) {
-            val resBudget = getBudget.execAsync(budget.id)
-            total += resBudget.target - resBudget.currentBalance
+        for (schedule in scheduleInvoices.filter { it.type == InvoiceType.FIXEDCOST } ) {
+            val occurrence = schedule.scheduler.repeater?.computeOccurrences(startDate, endDate) ?: 1
+            total += schedule.amount * occurrence
         }
+
+        return total
+    }
+
+    private fun getVariableExpense(scheduleInvoices: List<ScheduleInvoice>, startDate: LocalDate, endDate: LocalDate): Double {
+        var total = 0.0
+        for (schedule in scheduleInvoices.filter { it.type == InvoiceType.VARIABLECOST } ) {
+            val occurrence = schedule.scheduler.repeater?.computeOccurrences(startDate, endDate) ?: 1
+            total += schedule.amount * occurrence
+        }
+
+        return total
+    }
+
+    private fun getPlanFreezeExpense(scheduleInvoices: List<ScheduleInvoice>, startDate: LocalDate, endDate: LocalDate): Double {
+        var total = 0.0
+        for (schedule in scheduleInvoices.filter { it.isFreeze && it.getFreezeEndDate() > endDate } ) {
+            val occurrence = schedule.scheduler.repeater?.computeOccurrences(startDate, endDate) ?: 1
+            total += schedule.amount * occurrence
+        }
+
+        return total
+    }
+
+    private fun getBudgetExpense(
+        budgets: List<Budget>,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): Double {
+        var total = 0.0
+        val startOfDay = startDate.atStartOfDay()
+
+        for (budget in budgets) {
+            val currentBalance = if (budget.scheduler.date >= startOfDay) {
+                getBudget.execAsync(budget.id).currentBalance
+            } else {
+                0.0
+            }
+
+            val numberOfDayBudget = ChronoUnit.DAYS.between(budget.scheduler.date.toLocalDate(), endDate).toDouble()
+            val repeater = budget.scheduler.repeater
+
+            val target = if (repeater != null && repeater.interval > 0) {
+                val periodDays = when (repeater.period) {
+                    PeriodType.DAY -> 1.0
+                    PeriodType.WEEK -> 7.0 * repeater.interval
+                    PeriodType.MONTH -> 30.4167 * repeater.interval
+                    PeriodType.YEAR -> 365.0 * repeater.interval
+                }
+
+                budget.target * (numberOfDayBudget / periodDays)
+            } else {
+                budget.target
+            }
+
+            total += (target - currentBalance)
+        }
+
         return total
     }
 }
