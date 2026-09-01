@@ -83,6 +83,8 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class ProvisionDepreciateLoanMonthMustBeGreaterThanZero(month: Long): Validation("PROVISION_DEPRECIATE_LOAN_MONTH_MUST_BE_GREATER_THAN_ZERO", "Le nombre de mois $month dois etre supperieur a 0")
         class ProvisionDepreciateCriteriaDecliningBalanceMustHaveRangeGreaterThanZero(montRange: Int): Validation("PROVISION_DEPRECIATE_CRITERIA_DECLINING_BALANCE_MUST_HAVE_RANGE_GREATER_THAN_ZERO", "Un critere degressive doit avoir les paliers mensuels supperieur a zero")
         class ScheduleFreezeInvoiceMustHaveAScheduler: Validation("SCHEDULE_FREEZE_INVOICE_SCHEDULER_INVALID", "Une facture scheduler doit poceder un scheduler")
+        class ProfileMaxWishlistAmountMustBePositif: Validation("PROFILE_MAX_WISHLIST_MUST_BE_POSITIF", "Le montant maximun pour la liste de souhait doit etre prositif")
+        class ProfileRulePercentageMustBePositif(rule: String, percentage: Double, total: Double): Validation("PROFILE_BUDGET_RULE_PERCENTAGE_ERROR", "La repartion $rule a un pourcentage $percentage/$total. le repartion doit etre entre 0 et 100 et le total des repartition doit etre a 100%")
     }
 
     sealed class Unexpected(code: String, message: String): BusinessLogic(code, message) {

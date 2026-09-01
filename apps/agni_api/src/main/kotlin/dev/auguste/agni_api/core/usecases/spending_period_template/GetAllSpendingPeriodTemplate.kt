@@ -1,0 +1,33 @@
+package dev.auguste.agni_api.core.usecases.spending_period_template
+
+import dev.auguste.agni_api.core.adapters.dto.QueryFilter
+import dev.auguste.agni_api.core.adapters.dto.ScheduleRepeaterOutput
+import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
+import dev.auguste.agni_api.core.usecases.ListOutput
+import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.spending_period_template.dto.GetSpendingPeriodOutput
+
+class GetAllSpendingPeriodTemplate(
+    private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
+): IUseCase<QueryFilter, ListOutput<GetSpendingPeriodOutput>> {
+    override fun execAsync(input: QueryFilter): ListOutput<GetSpendingPeriodOutput> {
+        val spendingPeriodTemplate = spendingPeriodTemplateRepo.getAll(input)
+
+        return ListOutput(
+            items = spendingPeriodTemplate.items.map {
+                GetSpendingPeriodOutput(
+                    id = it.id,
+                    recurrence = ScheduleRepeaterOutput(
+                        period = it.recurrence.period.value,
+                        interval = it.recurrence.interval,
+                    ),
+                    isActive = it.isActive,
+                    startDate = it.startDate,
+                    endDate = it.endDate
+                )
+            },
+            total = spendingPeriodTemplate.total
+        )
+    }
+}
