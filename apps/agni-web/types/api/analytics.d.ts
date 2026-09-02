@@ -117,6 +117,7 @@ export type ForcastSpendingRequest = {
     savingAdditionalIncome: {savingAccountId: string, amount: number}[],
     overrideAccountsBalance?: number,
     savingRate? :number
+    budgetIds: string[]
 }
 
 export type ForcastSpendingResponse = {

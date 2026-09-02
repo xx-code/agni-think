@@ -174,6 +174,7 @@ class AnalyticController(
                     )
                 },
                 overrideAccountsBalance = input.overrideAccountsBalance,
+                budgetIds = input.budgetIds,
                 savingRate = input.savingRate
             )
         ))

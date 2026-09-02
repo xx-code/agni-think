@@ -8,6 +8,7 @@ import { forcastSpendingResponseToForcastSpending } from '~/mappers/analytics';
 
 const props = defineProps<{
     savingAccounts: { id: string, title: string }[]
+    budgets: { id: string, title: string}[]
 }>()
 
 const emit = defineEmits<{
@@ -31,6 +32,7 @@ const endDate = shallowRef(toCalendarDate(inOneMonth))
 
 const wantItems = reactive<{ description: string, amount: number }[]>([])
 const savingAdditionalIncome = reactive<{ savingAccountId: string, amount: number }[]>([])
+const addBudgets = ref<string[]>([])
 
 const showAdvanced = ref(false)
 const overrideAccountsBalance = ref<number>()
@@ -69,7 +71,8 @@ async function runForecast() {
                 wantItems: wantItems.map(i => ({ ...i })),
                 savingAdditionalIncome: savingAdditionalIncome.map(i => ({ ...i })),
                 overrideAccountsBalance: overrideAccountsBalance.value,
-                savingRate: savingRate.value
+                savingRate: savingRate.value,
+                budgetIds: addBudgets.value
             } as ForcastSpendingRequest)
             .mapper(forcastSpendingResponseToForcastSpending)
             .execute()
@@ -126,6 +129,25 @@ function reset() {
                         </UPopover>
                     </UFormField>
                 </div>
+
+                <USeparator />
+
+                <!-- Budget added -->
+                <div class="space-y-3 w-full">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-highlighted">Budgets a tracker</p>
+                        <UButton size="xs" variant="ghost" icon="i-lucide-plus" label="Ajouter" @click="addSavingIncome" />
+                    </div>
+                    <div class="flex">
+                        <UInputMenu
+                            multiple
+                            v-model="addBudgets"
+                            value-key="value"
+                            :items="budgets.map(a => ({ label: a.title, value: a.id }))"
+                            class="flex-1" />
+                    </div>
+                </div>
+
 
                 <USeparator />
 

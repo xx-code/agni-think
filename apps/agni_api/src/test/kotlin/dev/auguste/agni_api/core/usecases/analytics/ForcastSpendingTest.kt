@@ -12,6 +12,7 @@ import dev.auguste.agni_api.core.entities.enums.AccountType
 import dev.auguste.agni_api.core.entities.enums.ContributionAccountType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.entities.enums.ManagementAccountType
+import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.usecases.analystics.ForcastSpending
 import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingOutput
@@ -19,17 +20,21 @@ import dev.auguste.agni_api.core.usecases.analystics.dto.SavingAdditionalIncomeI
 import dev.auguste.agni_api.core.usecases.analystics.dto.WantItemOutput
 import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.value_objects.BrokingAccountDetail
 import dev.auguste.agni_api.core.value_objects.BusinessAccountDetail
 import dev.auguste.agni_api.core.value_objects.CheckingAccountDetail
 import dev.auguste.agni_api.core.value_objects.CreditCardAccountDetail
 import dev.auguste.agni_api.core.value_objects.SavingAccountDetail
 import dev.auguste.agni_api.core.value_objects.Scheduler
+import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -42,16 +47,23 @@ class ForcastSpendingTest {
     private val budgetRepo = mockk<IRepository<Budget>>(relaxed = true)
     private val profileRepo = mockk<IRepository<Profile>>(relaxed = true)
     private val getBudget = mockk<IUseCase<UUID, GetBudgetOutput>>(relaxed = true)
+    private val getBalance = mockk<IUseCase<GetBalanceInput, GetBalanceOutput>>(relaxed = true)
 
     private val forcastSpending = ForcastSpending(
         scheduleInvoiceRepo = scheduleInvoiceRepo,
         accountRepo = accountRepo,
         budgetRepo = budgetRepo,
         profileRepo = profileRepo,
-        getBudget = getBudget
+        getBudget = getBudget,
+        getBalance = getBalance
     )
 
     private val endDate = LocalDate.of(2026, Month.AUGUST, 27)
+
+    @BeforeEach
+    fun stubDefaultGetBalance() {
+        every { getBalance.execAsync(any()) } returns GetBalanceOutput(balance = 0.0, income = 0.0, spend = 0.0)
+    }
 
     private fun stubProfile(savingRate: Double) {
         every { profileRepo.getAll(any()) } returns RepoList(
@@ -97,7 +109,7 @@ class ForcastSpendingTest {
     }
 
     private fun stubNoBudgets() {
-        every { budgetRepo.getAll(any(), any()) } returns RepoList(emptyList(), 0L)
+        every { budgetRepo.getManyByIds(any()) } returns emptyList()
     }
 
     private fun scheduleInvoice(
@@ -122,7 +134,8 @@ class ForcastSpendingTest {
         startDate = LocalDate.of(2026, Month.AUGUST, 13),
         endDate = endDate,
         wantItems = listOf(),
-        savingAdditionalIncome = listOf()
+        savingAdditionalIncome = listOf(),
+        budgetIds = listOf()
     )
 
     @Test
@@ -200,9 +213,40 @@ class ForcastSpendingTest {
     }
 
     @Test
+    fun `multiplies recurring schedule invoices by number of occurrences`() {
+        stubNoBudgets()
+        stubProfile(0.0)
+        stubScheduleInvoices(
+            ScheduleInvoice(
+                title = "weekly income",
+                accountId = UUID.randomUUID(),
+                type = InvoiceType.INCOME,
+                amount = 100.0,
+                scheduler = Scheduler(
+                    date = LocalDateTime.of(2026, Month.AUGUST, 13, 0, 0),
+                    repeater = SchedulerRecurrence(PeriodType.WEEK, 1)
+                ),
+                categoryId = UUID.randomUUID(),
+                freezeScheduler = null,
+                isFreeze = false
+            )
+        )
+
+        val result = forcastSpending.execAsync(
+            emptyInput().copy(overrideAccountsBalance = 0.0, savingRate = 0.0)
+        )
+
+        assertEquals(200.0, result.expectedIncome)
+        assertEquals(200.0, result.totalExpectedIncome)
+        assertEquals(0.0, result.totalExpectedExpense)
+        assertEquals(200.0, result.remainAmount)
+    }
+
+    @Test
     fun `counts only freeze invoices whose freeze end date is after the forecast end date`() {
         stubNoBudgets()
         stubProfile(0.0)
+        every { getBalance.execAsync(any()) } returns GetBalanceOutput(balance = 100.0, income = 0.0, spend = 0.0)
         stubScheduleInvoices(
             scheduleInvoice(InvoiceType.FIXEDCOST, 200.0),
             scheduleInvoice(
@@ -224,25 +268,33 @@ class ForcastSpendingTest {
         )
 
         assertEquals(400.0, result.expectedVariableExpense)
-        assertEquals(300.0, result.expectedPlanFreezeExpense)
+        assertEquals(200.0, result.expectedPlanFreezeExpense)
         assertEquals(200.0, result.expectedFixExpense)
-        assertEquals(900.0, result.totalExpectedExpense)
-        assertEquals(100.0, result.remainAmount)
+        assertEquals(800.0, result.totalExpectedExpense)
+        assertEquals(200.0, result.remainAmount)
     }
 
     @Test
-    fun `adds budget expenses from non archived budgets only`() {
+    fun `adds budget expenses for requested budget ids`() {
         stubNoScheduleInvoices()
         stubProfile(0.0)
 
         val aId = UUID.randomUUID()
-        val archivedId = UUID.randomUUID()
-        val archivedBudget = Budget(id = archivedId, title = "archived", target = 9999.0, scheduler = Scheduler(LocalDateTime.now()), isArchived = true)
-        val a = Budget(id = aId, title = "a", target = 1000.0, scheduler = Scheduler(LocalDateTime.now()))
         val bId = UUID.randomUUID()
-        val b = Budget(id = bId, title = "b", target = 500.0, scheduler = Scheduler(LocalDateTime.now()))
+        val a = Budget(
+            id = aId,
+            title = "a",
+            target = 1000.0,
+            scheduler = Scheduler(LocalDateTime.of(2026, Month.AUGUST, 20, 0, 0))
+        )
+        val b = Budget(
+            id = bId,
+            title = "b",
+            target = 500.0,
+            scheduler = Scheduler(LocalDateTime.of(2026, Month.AUGUST, 20, 0, 0))
+        )
 
-        every { budgetRepo.getAll(any(), any()) } returns RepoList(listOf(a, b, archivedBudget), 3L)
+        every { budgetRepo.getManyByIds(any()) } returns listOf(a, b)
         every { getBudget.execAsync(aId) } returns GetBudgetOutput(
             id = aId, title = "a", target = 1000.0, currentBalance = 300.0,
             dueDate = LocalDateTime.now(), repeater = null
@@ -253,13 +305,16 @@ class ForcastSpendingTest {
         )
 
         val result = forcastSpending.execAsync(
-            emptyInput().copy(overrideAccountsBalance = 0.0, savingRate = 0.0)
+            emptyInput().copy(
+                overrideAccountsBalance = 0.0,
+                savingRate = 0.0,
+                budgetIds = listOf(aId, bId)
+            )
         )
 
         assertEquals(1100.0, result.expectedBudgetExpense)
         verify(exactly = 1) { getBudget.execAsync(aId) }
         verify(exactly = 1) { getBudget.execAsync(bId) }
-        verify(exactly = 0) { getBudget.execAsync(archivedId) }
     }
 
     @Test
