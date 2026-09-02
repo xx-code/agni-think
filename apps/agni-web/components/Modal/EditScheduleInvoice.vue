@@ -199,7 +199,10 @@ async function onSubmit(event: FormSubmitEvent<EditScheduleInvoiceType>) {
                     </UFormField>
 
                     <UFormField label="Montant" name="amount">
-                        <UInput v-model="form.amount" type="number" :min="0" class="w-full" />
+                        <UInput 
+                            v-model="form.amount" 
+                            type="number" 
+                            class="w-full" />
                     </UFormField>
 
                     <UFormField label="Description" name="name">
