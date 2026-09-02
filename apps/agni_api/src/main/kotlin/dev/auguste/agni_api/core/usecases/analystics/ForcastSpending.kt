@@ -56,9 +56,9 @@ class ForcastSpending(
             )
         ))
 
-        val income = getIncome(scheduleInvoices.items, input.startDate, input.endDate)
-        val fixExpense = getFixExpense(scheduleInvoices.items, input.startDate, input.endDate)
-        val variableExpense = getVariableExpense(scheduleInvoices.items, input.startDate, input.endDate)
+        val income = getIncome(scheduleInvoices.items.filter{ it.scheduler.date.toLocalDate() >= input.startDate}, input.startDate, input.endDate)
+        val fixExpense = getFixExpense(scheduleInvoices.items.filter {  it.scheduler.date.toLocalDate() >= input.startDate} , input.startDate, input.endDate)
+        val variableExpense = getVariableExpense(scheduleInvoices.items.filter {  it.scheduler.date.toLocalDate() >= input.startDate} , input.startDate, input.endDate)
 
         val freezeBalanceToRemove = getBalance.execAsync(GetBalanceInput(
             isFreeze = true,
