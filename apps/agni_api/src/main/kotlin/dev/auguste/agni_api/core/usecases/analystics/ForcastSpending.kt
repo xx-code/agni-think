@@ -25,6 +25,7 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
+import kotlin.math.abs
 
 class ForcastSpending(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
@@ -63,7 +64,7 @@ class ForcastSpending(
             startDate = input.startDate.atStartOfDay(),
             endDate = input.endDate.atStartOfDay()
         ))
-        val freezeExpense = getPlanFreezeExpense(scheduleInvoices.items, input.startDate, input.endDate) - freezeBalanceToRemove.balance
+        val freezeExpense = getPlanFreezeExpense(scheduleInvoices.items, input.startDate, input.endDate)
 
         val profiles = profileRepo.getAll(QueryFilter.queryAll())
         var savingRate = profiles.items.first().savingPercentage ?: 0.0
@@ -74,7 +75,7 @@ class ForcastSpending(
 
         val additionalIncome = getAdditionalSavingAmount(input.savingAdditionalIncome, accounts.items)
 
-        val totalIncome = income + currentBalance + additionalIncome
+        val totalIncome = income + currentBalance + additionalIncome + abs(freezeBalanceToRemove.balance)
         val totalExpense = fixExpense + variableExpense + freezeExpense + budgetExpense + saving
 
         val remain = totalIncome - totalExpense
@@ -203,7 +204,13 @@ class ForcastSpending(
                 0.0
             }
 
-            val numberOfDayBudget = ChronoUnit.DAYS.between(budget.scheduler.date.toLocalDate(), endDate).toDouble()
+            val debutCountDate = if (budget.scheduler.date >= startOfDay) {
+                startDate
+            } else {
+                budget.scheduler.date
+            }
+
+            val numberOfDayBudget = ChronoUnit.DAYS.between(debutCountDate, endDate).toDouble()
             val repeater = budget.scheduler.repeater
 
             val target = if (repeater != null && repeater.interval > 0) {

@@ -11,13 +11,22 @@ data class SchedulerRecurrence(val period: PeriodType, val interval: Int) {
     }
 
     fun computeOccurrences(startDate: LocalDate, endDate: LocalDate): Int {
-        val occurrences = when (period) {
-            PeriodType.YEAR -> ChronoUnit.YEARS.between(startDate, endDate)
-            PeriodType.MONTH -> ChronoUnit.MONTHS.between(startDate, endDate)
-            PeriodType.WEEK -> ChronoUnit.WEEKS.between(startDate, endDate)
-            PeriodType.DAY -> ChronoUnit.DAYS.between(startDate, endDate)
+        if (startDate.isAfter(endDate)) return 0
+
+        var count = 0
+        var current = startDate
+
+        while (!current.isAfter(endDate)) {
+            count++
+            current = when (period) {
+                PeriodType.YEAR -> current.plusYears(interval.toLong())
+                PeriodType.MONTH -> current.plusMonths(interval.toLong())
+                PeriodType.WEEK -> current.plusWeeks(interval.toLong())
+                PeriodType.DAY -> current.plusDays(interval.toLong())
+            }
         }
-        return (occurrences / interval).toInt()
+
+        return count
     }
 
     companion object {
