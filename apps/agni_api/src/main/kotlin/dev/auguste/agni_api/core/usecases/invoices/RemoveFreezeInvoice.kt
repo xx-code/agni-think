@@ -12,6 +12,7 @@ import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
+import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.DeleteInvoiceInput
 import java.time.LocalDateTime
@@ -21,8 +22,8 @@ class RemoveFreezeInvoice(
     private val accountRepo: IRepository<Account>,
     private val deleteInvoice: IInnerUseCase<DeleteInvoiceInput, Unit>,
     private val eventRegister: IEventRegister
-): IUseCase<Unit, BackgroundTaskOut> {
-    override fun execAsync(input: Unit): BackgroundTaskOut {
+): ISuspendableUseCase<Unit, BackgroundTaskOut> {
+    override suspend fun execAsync(input: Unit): BackgroundTaskOut {
         try {
             val freezeInvoice = invoiceRepo.getAll(
                 query = QueryFilter(0, 0, true),

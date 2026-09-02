@@ -11,6 +11,7 @@ import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateCom
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInternalLoanExtend
 import dev.auguste.agni_api.core.entities.InternalLoan
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
+import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.CompleteInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
@@ -22,8 +23,8 @@ class AutoCompleteInternalLoan(
     private val getInvoice: IUseCase<UUID, GetInvoiceOutput>,
     private val completeInvoice: IUseCase<CompleteInvoiceInput, Unit>,
     private val eventRegister: IEventRegister
-): IUseCase<Unit, BackgroundTaskOut> {
-    override fun execAsync(input: Unit): BackgroundTaskOut {
+): ISuspendableUseCase<Unit, BackgroundTaskOut> {
+    override suspend fun execAsync(input: Unit): BackgroundTaskOut {
         try {
             val internalLoans = internalLoanRepo.getAll(
                 query = QueryFilter(0, 0, true),

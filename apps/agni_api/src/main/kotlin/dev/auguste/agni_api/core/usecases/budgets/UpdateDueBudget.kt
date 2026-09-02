@@ -11,6 +11,7 @@ import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryBudgetE
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateComparator
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
+import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import java.time.LocalDateTime
@@ -18,8 +19,8 @@ import java.time.LocalDateTime
 class UpdateDueBudget(
     private val budgetRepo: IRepository<Budget>,
     private val eventRegister: IEventRegister
-): IUseCase<Unit, BackgroundTaskOut> {
-    override fun execAsync(input: Unit): BackgroundTaskOut {
+): ISuspendableUseCase<Unit, BackgroundTaskOut> {
+    override suspend fun execAsync(input: Unit): BackgroundTaskOut {
         try {
             val budgets = budgetRepo.getAll(
                 query = QueryFilter(0, 0, true),
