@@ -24,6 +24,7 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 import kotlin.math.abs
 
@@ -55,9 +56,9 @@ class ForcastSpending(
             )
         ))
 
-        val income = getIncome(scheduleInvoices.items, input.startDate, input.endDate)
-        val fixExpense = getFixExpense(scheduleInvoices.items, input.startDate, input.endDate)
-        val variableExpense = getVariableExpense(scheduleInvoices.items, input.startDate, input.endDate)
+        val income = getIncome(scheduleInvoices.items.filter{ it.scheduler.date.toLocalDate() >= input.startDate}, input.startDate, input.endDate)
+        val fixExpense = getFixExpense(scheduleInvoices.items.filter {  it.scheduler.date.toLocalDate() >= input.startDate} , input.startDate, input.endDate)
+        val variableExpense = getVariableExpense(scheduleInvoices.items.filter {  it.scheduler.date.toLocalDate() >= input.startDate} , input.startDate, input.endDate)
 
         val freezeBalanceToRemove = getBalance.execAsync(GetBalanceInput(
             isFreeze = true,
@@ -195,19 +196,20 @@ class ForcastSpending(
         endDate: LocalDate
     ): Double {
         var total = 0.0
-        val startOfDay = startDate.atStartOfDay()
 
         for (budget in budgets) {
-            val currentBalance = if (budget.scheduler.date >= startOfDay) {
-                getBudget.execAsync(budget.id).currentBalance
-            } else {
-                0.0
-            }
+            val spend =getBalance.execAsync(GetBalanceInput(
+                startDate = startDate.atStartOfDay(),
+                endDate = endDate.atStartOfDay(),
+                budgetIds = setOf(budget.id)
+            )).spend
 
-            val debutCountDate = if (budget.scheduler.date >= startOfDay) {
+            val currentBalance = abs(spend)
+
+            val debutCountDate = if (budget.scheduler.date.toLocalDate() >= startDate) {
                 startDate
             } else {
-                budget.scheduler.date
+                budget.scheduler.date.toLocalDate()
             }
 
             val numberOfDayBudget = ChronoUnit.DAYS.between(debutCountDate, endDate).toDouble()
@@ -226,7 +228,10 @@ class ForcastSpending(
                 budget.target
             }
 
-            total += (target - currentBalance)
+            val budgetTotal = (target - currentBalance)
+            if (budgetTotal > 0.0)
+                total += budgetTotal
+
         }
 
         return total
