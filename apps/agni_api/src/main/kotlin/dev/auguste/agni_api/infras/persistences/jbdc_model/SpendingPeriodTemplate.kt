@@ -23,6 +23,9 @@ data class JdbcSpendingPeriodTemplateModel(
     @Column("start_date")
     val startDate: LocalDate,
     val recurrence: String,
+
+    @Column("target_budget_ids")
+    val targetBudgetIds: Set<UUID>,
     @Column("created_date")
     var createdDate: LocalDateTime,
     @Column("updated_date")
@@ -61,6 +64,7 @@ class JdbcSpendingPeriodTemplateMapper(
             recurrence = objectMapper.writeValueAsString(entity.recurrence.toMap()),
             createdDate = entity.createdAt,
             updatedDate = entity.updatedAt,
+            targetBudgetIds = entity.targetBudgetIds,
             endDate = entity.endDate
         )
     }
@@ -72,7 +76,9 @@ class JdbcSpendingPeriodTemplateMapper(
         "recurrence.period" to "recurrence->>'period'",
         "recurrence.interval" to "recurrence->>'interval'",
         "createdDate" to "created_date",
-        "updatedDate" to "updated_date"
+        "updatedDate" to "updated_date",
+        "endDate" to "end_date",
+        "targetBudgetIds" to "target_budget_ids"
     )
 
     override fun getTableName(): String = "spending_period_templates"

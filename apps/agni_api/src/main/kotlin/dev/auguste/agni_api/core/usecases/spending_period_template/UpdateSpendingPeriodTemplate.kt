@@ -3,6 +3,7 @@ package dev.auguste.agni_api.core.usecases.spending_period_template
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.QueryExtendBuilder
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
+import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -11,6 +12,7 @@ import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
 
 class UpdateSpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
+    private val budgetRepo: IRepository<Budget>,
 ): IUseCase<UpdateSpendingPeriodTemplateInput, Unit> {
     override fun execAsync(input: UpdateSpendingPeriodTemplateInput) {
         val spendPeriodTemplate = spendingPeriodTemplateRepo.get(input.id) ?: throw DomainException.NotFound.SpendingPeriodTemplate(input.id)
@@ -35,6 +37,12 @@ class UpdateSpendingPeriodTemplate(
 
         if (input.endDate != null) {
             spendPeriodTemplate.endDate = input.endDate
+        }
+
+        if (input.targetBudgetIds != null) {
+            if (budgetRepo.getManyByIds(input.targetBudgetIds).isEmpty())
+                throw DomainException.NotFound.SomeBudgets(input.targetBudgetIds)
+            spendPeriodTemplate.targetBudgetIds = input.targetBudgetIds
         }
 
         if (input.isActive != null) {

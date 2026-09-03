@@ -8,6 +8,7 @@ data class UpdateSpendingPeriodTemplateInput(
     val id: UUID,
     val startDate: LocalDate?,
     val isActive: Boolean?,
+    val targetBudgetIds: Set<UUID>? = null,
     val recurrence: ScheduleRepeaterInput? = null,
     val endDate: LocalDate? = null
 )
