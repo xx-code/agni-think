@@ -1,6 +1,5 @@
 package dev.auguste.agni_api.core.usecases.spending_period_template
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.QueryExtendBuilder
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
@@ -8,16 +7,16 @@ import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.spending_period_template.dto.CreateSpendingPeriodInput
+import dev.auguste.agni_api.core.usecases.spending_period_template.dto.CreateSpendingPeriodTemplateInput
 import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
 import java.time.LocalDate
 
 class CreateSpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
-): IUseCase<CreateSpendingPeriodInput, CreatedOutput> {
-    override fun execAsync(input: CreateSpendingPeriodInput): CreatedOutput {
+): IUseCase<CreateSpendingPeriodTemplateInput, CreatedOutput> {
+    override fun execAsync(input: CreateSpendingPeriodTemplateInput): CreatedOutput {
         val conditionExistBuilder = QueryExtendBuilder<SpendingPeriodTemplate>()
-            .addCondition("recurrence.period", QueryComparator.Equal, input.recurrence.period)
+            .addCondition("recurrence.period", QueryComparator.Equal, input.recurrence.period.value)
             .addCondition("recurrence.interval", QueryComparator.Equal, input.recurrence.interval)
 
         if (spendingPeriodTemplateRepo.exist(conditionExistBuilder))

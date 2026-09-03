@@ -17,9 +17,8 @@ import java.util.UUID
 data class JdbcSpendingPeriodTemplateModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("spending_period_template_id")
-    val id: UUID,
-    @Column("isActive")
+    val spendingPeriodTemplateId: UUID,
+    @Column("is_active")
     val isActive: Boolean,
     @Column("start_date")
     val startDate: LocalDate,
@@ -32,7 +31,7 @@ data class JdbcSpendingPeriodTemplateModel(
     val endDate: LocalDate? = null,
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return spendingPeriodTemplateId
     }
 }
 
@@ -56,10 +55,10 @@ class JdbcSpendingPeriodTemplateMapper(
 
     override fun toModel(entity: SpendingPeriodTemplate): JdbcSpendingPeriodTemplateModel {
         return JdbcSpendingPeriodTemplateModel(
-            id = entity.id,
+            spendingPeriodTemplateId = entity.id,
             isActive = entity.isActive,
             startDate = entity.startDate,
-            recurrence = objectMapper.writeValueAsString(entity.recurrence),
+            recurrence = objectMapper.writeValueAsString(entity.recurrence.toMap()),
             createdDate = entity.createdAt,
             updatedDate = entity.updatedAt,
             endDate = entity.endDate
@@ -67,11 +66,11 @@ class JdbcSpendingPeriodTemplateMapper(
     }
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
-        "id" to "id",
+        "id" to "spending_period_template_id",
         "isActive" to "is_active",
         "startDate" to "start_date",
-        "recurrence.period" to "recurrence.period",
-        "recurrence.interval" to "recurrence.interval",
+        "recurrence.period" to "recurrence->>'period'",
+        "recurrence.interval" to "recurrence->>'interval'",
         "createdDate" to "created_date",
         "updatedDate" to "updated_date"
     )

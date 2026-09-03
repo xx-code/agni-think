@@ -6,13 +6,13 @@ import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryCompara
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.spending_period_template.dto.UpdateSpendingPeriodInput
+import dev.auguste.agni_api.core.usecases.spending_period_template.dto.UpdateSpendingPeriodTemplateInput
 import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
 
 class UpdateSpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
-): IUseCase<UpdateSpendingPeriodInput, Unit> {
-    override fun execAsync(input: UpdateSpendingPeriodInput) {
+): IUseCase<UpdateSpendingPeriodTemplateInput, Unit> {
+    override fun execAsync(input: UpdateSpendingPeriodTemplateInput) {
         val spendPeriodTemplate = spendingPeriodTemplateRepo.get(input.id) ?: throw DomainException.NotFound.SpendingPeriodTemplate(input.id)
 
         if (input.recurrence != null) {

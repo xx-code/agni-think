@@ -4,7 +4,7 @@ import dev.auguste.agni_api.core.adapters.dto.ScheduleRepeaterOutput
 import java.time.LocalDate
 import java.util.UUID
 
-data class GetSpendingPeriodOutput(
+data class GetSpendingPeriodTemplateOutput(
     val id: UUID,
     val recurrence: ScheduleRepeaterOutput,
     val isActive: Boolean,

@@ -5,15 +5,15 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.spending_period_template.dto.GetSpendingPeriodOutput
+import dev.auguste.agni_api.core.usecases.spending_period_template.dto.GetSpendingPeriodTemplateOutput
 import java.util.UUID
 
 class GetSpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
-): IUseCase<UUID, GetSpendingPeriodOutput>{
-    override fun execAsync(input: UUID): GetSpendingPeriodOutput {
+): IUseCase<UUID, GetSpendingPeriodTemplateOutput>{
+    override fun execAsync(input: UUID): GetSpendingPeriodTemplateOutput {
         val spendPeriodTemplate = spendingPeriodTemplateRepo.get(input) ?: throw DomainException.NotFound.SpendingPeriodTemplate(input)
-        return GetSpendingPeriodOutput(
+        return GetSpendingPeriodTemplateOutput(
             id = spendPeriodTemplate.id,
             recurrence = ScheduleRepeaterOutput(
                 spendPeriodTemplate.recurrence.period.value,
