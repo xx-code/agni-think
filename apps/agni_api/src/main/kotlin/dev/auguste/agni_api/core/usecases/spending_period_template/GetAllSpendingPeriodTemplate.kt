@@ -22,7 +22,7 @@ class GetAllSpendingPeriodTemplate(
                         period = it.recurrence.period.value,
                         interval = it.recurrence.interval,
                     ),
-                    isActive = it.isActive,
+                    isActive = it.checkIsActive(),
                     startDate = it.startDate,
                     endDate = it.endDate
                 )

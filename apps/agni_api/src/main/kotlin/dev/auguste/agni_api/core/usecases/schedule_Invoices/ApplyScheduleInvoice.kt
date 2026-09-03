@@ -7,7 +7,7 @@ import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventConte
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationType
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryScheduleInvoiceExtend
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
@@ -18,7 +18,6 @@ import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateFreezeInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.TransactionInput
@@ -40,7 +39,7 @@ class ApplyScheduleInvoice(
                 QueryScheduleInvoiceExtend(
                     comparatorDueDate = QueryDateComparator(
                         LocalDateTime.now(),
-                        ComparatorType.LesserOrEquals
+                        comparator = QueryComparator.LesserOrEquals,
                     )
                 )
             )

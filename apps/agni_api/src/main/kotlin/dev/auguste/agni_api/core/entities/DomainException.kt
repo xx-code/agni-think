@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.entities
 
 import dev.auguste.agni_api.core.entities.DomainException.Validation
 import dev.auguste.agni_api.core.entities.enums.GoalEvaluationType
+import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -57,6 +58,8 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class AllExternalTransactions(): AlreadyExist("ALL_EXTERNAL_TRANSACTION_ALREADY_EXISTS", "All external transactions already")
         class SavingGoal(name: String): AlreadyExist("SAVING_GOAL_ALREADY_EXISTS", "Saving goal $name exist deja")
         class ScheduleInvoice(name: String): AlreadyExist("SCHEDULE_IN_VOICE_EXISTS", "Schedule in voice $name exist deja")
+        class SpendingPeriodTemplateAlreadyActive: AlreadyExist("SPENDING_PERIOD_ALREADY_ACTIVE", "Il y a deja une period de depense active")
+        class SpendingPeriodTemplateExist(period: PeriodType, interval: Int): AlreadyExist("SPENDING_PERIOD_TEMPLATE_ALREADY_EXIST", "Il y a deja une period de ce type existant period $period - interval $interval")
     }
 
     sealed class BusinessLogic(code: String, message: String): DomainException(code, message) {

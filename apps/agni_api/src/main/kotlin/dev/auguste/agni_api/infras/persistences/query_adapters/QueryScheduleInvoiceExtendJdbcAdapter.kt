@@ -3,7 +3,7 @@ package dev.auguste.agni_api.infras.persistences.query_adapters
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryScheduleInvoiceExtend
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.infras.persistences.IMapper
@@ -38,11 +38,12 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
             val dateToVerify = extend.comparatorDueDate.date.atOffset(ZoneOffset.UTC).toString()
 
             val operator = when(extend.comparatorDueDate.comparator) {
-                ComparatorType.Greater -> ">"
-                ComparatorType.GreaterOrEquals -> ">="
-                ComparatorType.Lesser -> "<"
-                ComparatorType.LesserOrEquals -> "<="
-                ComparatorType.Equal -> "="
+                QueryComparator.Greater -> ">"
+                QueryComparator.GreaterOrEquals -> ">="
+                QueryComparator.Lesser -> "<"
+                QueryComparator.LesserOrEquals -> "<="
+                QueryComparator.Equal -> "="
+                else -> {}
             }
 
             sqlBuilder.append(" AND (scheduler->>'due_date')::timestamptz $operator :dueDate::timestamptz")
@@ -52,11 +53,12 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
         if (extend.comparatorEndDate != null) {
 
             val operator = when(extend.comparatorEndDate.comparator) {
-                ComparatorType.Greater -> ">"
-                ComparatorType.GreaterOrEquals -> ">="
-                ComparatorType.Lesser -> "<"
-                ComparatorType.LesserOrEquals -> "<="
-                ComparatorType.Equal -> "="
+                QueryComparator.Greater -> ">"
+                QueryComparator.GreaterOrEquals -> ">="
+                QueryComparator.Lesser -> "<"
+                QueryComparator.LesserOrEquals -> "<="
+                QueryComparator.Equal -> "="
+                else -> {}
             }
 
             sqlBuilder.append(" AND (end_date $operator :endDate OR end_date = NULL)")

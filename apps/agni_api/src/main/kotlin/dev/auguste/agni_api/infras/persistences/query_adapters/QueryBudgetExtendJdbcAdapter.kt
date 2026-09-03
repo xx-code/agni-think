@@ -3,7 +3,7 @@ package dev.auguste.agni_api.infras.persistences.query_adapters
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryBudgetExtend
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.infras.persistences.IMapper
@@ -37,11 +37,12 @@ class QueryBudgetExtendJdbcAdapter(
             val dateToVerify = extend.scheduleDueDateComparator.date.atOffset(ZoneOffset.UTC).toString()
 
             val operator = when(extend.scheduleDueDateComparator.comparator) {
-                ComparatorType.Greater -> ">"
-                ComparatorType.GreaterOrEquals -> ">="
-                ComparatorType.Lesser -> "<"
-                ComparatorType.LesserOrEquals -> "<="
-                ComparatorType.Equal -> "="
+                QueryComparator.Greater -> ">"
+                QueryComparator.GreaterOrEquals -> ">="
+                QueryComparator.Lesser -> "<"
+                QueryComparator.LesserOrEquals -> "<="
+                QueryComparator.Equal -> "="
+                else -> {}
             }
 
             sqlBuilder.append(" AND (scheduler->>'due_date')::timestamptz $operator :dueDate::timestamptz")

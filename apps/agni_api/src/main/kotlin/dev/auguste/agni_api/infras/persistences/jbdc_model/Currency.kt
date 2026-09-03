@@ -53,7 +53,19 @@ class JdbcCurrencyModelMapper: IMapper<JdbcCurrencyModel, Currency> {
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTableName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getSortField(): Set<String> {
         return setOf("rate_to_base")
+    }
+
+    override fun getModelClass(): Class<JdbcCurrencyModel> {
+        TODO("Not yet implemented")
     }
 }

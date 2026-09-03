@@ -25,11 +25,12 @@ class QueryGoalExtend(
 
         if (dueDateComparator != null) {
             val resComp = when(dueDateComparator.comparator) {
-                ComparatorType.Greater ->  dueDateComparator.date > entity.dueDate.atStartOfDay()
-                ComparatorType.GreaterOrEquals -> dueDateComparator.date >= entity.dueDate.atStartOfDay()
-                ComparatorType.Lesser -> dueDateComparator.date < entity.dueDate.atStartOfDay()
-                ComparatorType.LesserOrEquals ->  dueDateComparator.date <= entity.dueDate.atStartOfDay()
-                ComparatorType.Equal ->  dueDateComparator.date == entity.dueDate.atStartOfDay()
+                QueryComparator.Greater ->  dueDateComparator.date > entity.dueDate.atStartOfDay()
+                QueryComparator.GreaterOrEquals -> dueDateComparator.date >= entity.dueDate.atStartOfDay()
+                QueryComparator.Lesser -> dueDateComparator.date < entity.dueDate.atStartOfDay()
+                QueryComparator.LesserOrEquals ->  dueDateComparator.date <= entity.dueDate.atStartOfDay()
+                QueryComparator.Equal ->  dueDateComparator.date == entity.dueDate.atStartOfDay()
+                else -> {false}
             }
 
             if (!resComp)

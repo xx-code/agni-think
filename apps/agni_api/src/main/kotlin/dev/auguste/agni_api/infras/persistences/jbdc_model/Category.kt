@@ -53,7 +53,19 @@ class JdbcCategoryModelMapper: IMapper<JdbcCategoryModel, Category> {
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTableName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getSortField(): Set<String> {
         return setOf("title")
+    }
+
+    override fun getModelClass(): Class<JdbcCategoryModel> {
+        TODO("Not yet implemented")
     }
 }

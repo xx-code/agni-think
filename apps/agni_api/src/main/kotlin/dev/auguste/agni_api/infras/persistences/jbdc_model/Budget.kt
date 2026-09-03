@@ -68,7 +68,19 @@ class JdbcBudgetModelMapper(
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTableName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getSortField(): Set<String> {
         return setOf("target", "created_at", "updated_at")
+    }
+
+    override fun getModelClass(): Class<JdbcBudgetModel> {
+        TODO("Not yet implemented")
     }
 }

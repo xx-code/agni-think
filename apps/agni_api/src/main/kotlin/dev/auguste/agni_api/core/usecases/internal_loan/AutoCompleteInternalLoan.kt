@@ -6,7 +6,7 @@ import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventContent
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationType
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInternalLoanExtend
 import dev.auguste.agni_api.core.entities.InternalLoan
@@ -31,7 +31,7 @@ class AutoCompleteInternalLoan(
                 QueryInternalLoanExtend(
                     scheduleDueDateComparator = QueryDateComparator(
                         date = LocalDateTime.now(),
-                        comparator = ComparatorType.LesserOrEquals
+                        comparator = QueryComparator.LesserOrEquals
                     )
                 )
             )

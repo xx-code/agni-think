@@ -7,7 +7,7 @@ import kotlin.properties.Delegates
 
 abstract class Entity {
     val id: UUID
-    val createdAt: LocalDateTime
+    var createdAt: LocalDateTime private set
     var updatedAt: LocalDateTime private set
     var change: Boolean private set
 
@@ -29,6 +29,11 @@ abstract class Entity {
     fun markHasChanged() {
         this.change = true
         this.updatedAt = LocalDateTime.now()
+    }
+
+    fun initDate(startDate: LocalDateTime, endDate: LocalDateTime) {
+        createdAt = startDate
+        updatedAt = endDate
     }
 }
 

@@ -1,6 +1,8 @@
 package dev.auguste.agni_api.core.usecases.spending_period_template
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.adapters.repositories.QueryExtendBuilder
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -14,6 +16,13 @@ class UpdateSpendingPeriodTemplate(
         val spendPeriodTemplate = spendingPeriodTemplateRepo.get(input.id) ?: throw DomainException.NotFound.SpendingPeriodTemplate(input.id)
 
         if (input.recurrence != null) {
+            val conditionExistBuilder = QueryExtendBuilder<SpendingPeriodTemplate>()
+                .addCondition("recurrence.period", QueryComparator.Equal, input.recurrence.period)
+                .addCondition("recurrence.interval", QueryComparator.Equal, input.recurrence.interval)
+
+            if (spendingPeriodTemplateRepo.exist(conditionExistBuilder))
+                throw DomainException.AlreadyExist.SpendingPeriodTemplateExist(input.recurrence.period, input.recurrence.interval)
+
             spendPeriodTemplate.recurrence = SchedulerRecurrence(
                 period = input.recurrence.period,
                 interval = input.recurrence.interval,
@@ -28,8 +37,13 @@ class UpdateSpendingPeriodTemplate(
             spendPeriodTemplate.endDate = input.endDate
         }
 
-        if (input.isActive != null)
+        if (input.isActive != null) {
+            val condBuilder = QueryExtendBuilder<SpendingPeriodTemplate>().addCondition("isActive", QueryComparator.Equal, input.isActive)
+            if (input.isActive && spendingPeriodTemplateRepo.exist(condBuilder))
+                throw DomainException.AlreadyExist.SpendingPeriodTemplateAlreadyActive()
+
             spendPeriodTemplate.isActive = input.isActive
+        }
 
         if (spendPeriodTemplate.hasChanged())
             spendingPeriodTemplateRepo.update(spendPeriodTemplate)

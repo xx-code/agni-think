@@ -98,7 +98,19 @@ class JdbcScheduleInvoiceMapper(
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTableName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getSortField(): Set<String> {
         return setOf()
+    }
+
+    override fun getModelClass(): Class<JdbcScheduleInvoiceModel> {
+        TODO("Not yet implemented")
     }
 }

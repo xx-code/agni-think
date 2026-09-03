@@ -19,7 +19,7 @@ class GetSpendingPeriodTemplate(
                 spendPeriodTemplate.recurrence.period.value,
                 spendPeriodTemplate.recurrence.interval
             ),
-            isActive = spendPeriodTemplate.isActive,
+            isActive = spendPeriodTemplate.checkIsActive(),
             startDate = spendPeriodTemplate.startDate,
             endDate = spendPeriodTemplate.endDate
         )

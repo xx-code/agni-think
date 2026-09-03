@@ -11,11 +11,12 @@ class QueryBudgetExtend(
     override fun isStatisfy(entity: Budget): Boolean {
         if (scheduleDueDateComparator != null) {
             val resComp = when(scheduleDueDateComparator.comparator) {
-                ComparatorType.Greater ->  scheduleDueDateComparator.date > entity.scheduler.date
-                ComparatorType.GreaterOrEquals -> scheduleDueDateComparator.date >= entity.scheduler.date
-                ComparatorType.Lesser -> scheduleDueDateComparator.date < entity.scheduler.date
-                ComparatorType.LesserOrEquals ->  scheduleDueDateComparator.date <= entity.scheduler.date
-                ComparatorType.Equal ->  scheduleDueDateComparator.date == entity.scheduler.date
+                QueryComparator.Greater ->  scheduleDueDateComparator.date > entity.scheduler.date
+                QueryComparator.GreaterOrEquals -> scheduleDueDateComparator.date >= entity.scheduler.date
+                QueryComparator.Lesser -> scheduleDueDateComparator.date < entity.scheduler.date
+                QueryComparator.LesserOrEquals ->  scheduleDueDateComparator.date <= entity.scheduler.date
+                QueryComparator.Equal ->  scheduleDueDateComparator.date == entity.scheduler.date
+                else -> {false}
             }
 
             if (!resComp)

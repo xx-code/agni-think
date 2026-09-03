@@ -2,7 +2,7 @@ package dev.auguste.agni_api.core.usecases.analystics
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryCategoryExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryScheduleInvoiceExtend
@@ -36,7 +36,7 @@ class GetAnnualOutlook(
         val scheduleInvoices = scheduleRepo.getAll(
             QueryFilter(0, 0, true),
             QueryScheduleInvoiceExtend(
-                QueryDateComparator(LocalDateTime.now(), ComparatorType.Greater)),
+                QueryDateComparator(LocalDateTime.now(), comparator = QueryComparator.Greater)),
         )
         val currentDateTime = LocalDateTime.now()
         val currentBalance = getBalance.execAsync(GetBalanceInput(

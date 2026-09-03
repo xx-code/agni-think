@@ -55,7 +55,19 @@ class JdbcInternalLoanMapper: IMapper<JdbcInternalLoanModal, InternalLoan> {
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTableName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getSortField(): Set<String> {
         return setOf("dueDate")
+    }
+
+    override fun getModelClass(): Class<JdbcInternalLoanModal> {
+        TODO("Not yet implemented")
     }
 }

@@ -9,7 +9,7 @@ import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcModel
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 
-internal fun <M, E> addPaginationSqlStringBuilder(
+internal fun <M: JdbcModel, E> addPaginationSqlStringBuilder(
     sql: StringBuilder,
     params: MapSqlParameterSource,
     queryFilter: QueryFilter,
