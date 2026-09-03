@@ -56,7 +56,19 @@ class JdbcAgentSuggestionModelMapper: IMapper<JdbcAgentSuggestionModel, AgentSug
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTableName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getSortField(): Set<String> {
         return setOf("agentId", "agentName", "confidenceScore", "status")
+    }
+
+    override fun getModelClass(): Class<JdbcAgentSuggestionModel> {
+        TODO("Not yet implemented")
     }
 }

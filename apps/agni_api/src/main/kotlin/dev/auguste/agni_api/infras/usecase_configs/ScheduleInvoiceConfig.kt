@@ -10,6 +10,7 @@ import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
+import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateFreezeInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
@@ -38,7 +39,7 @@ class ScheduleInvoiceConfig {
         createFreezeInvoice: IInnerUseCase<CreateFreezeInvoiceInput, CreatedOutput>,
         eventManger: IEventRegister,
         unitOfWork: IUnitOfWork,
-    ): IUseCase<Unit, BackgroundTaskOut> {
+    ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
         return ApplyScheduleInvoice(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
             createInvoice = createInvoice,

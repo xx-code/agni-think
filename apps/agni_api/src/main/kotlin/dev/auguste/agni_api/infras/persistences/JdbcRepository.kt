@@ -3,14 +3,17 @@ package dev.auguste.agni_api.infras.persistences
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.dto.RepoList
 import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
+import dev.auguste.agni_api.core.adapters.repositories.IQueryExtendBuilder
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Entity
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcModel
 import dev.auguste.agni_api.infras.persistences.query_adapters.IQueryExtendJdbcAdapter
+import dev.auguste.agni_api.infras.persistences.query_adapters.JdbcQueryAdapter
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.data.relational.core.query.Query.query
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.support.TransactionTemplate
@@ -19,8 +22,10 @@ import java.util.UUID
 abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
     protected val storage: GenericStorage<TModel, UUID>,
     protected val modelMapper: IMapper<TModel, TEntity>,
+    private val queryAdapter: JdbcQueryAdapter,
     protected val queryExtendAdapter: IQueryExtendJdbcAdapter<TModel, TEntity>? = null,
 ): IRepository<TEntity> {
+
 
     override fun create(entity: TEntity) {
         val model = modelMapper.toModel(entity)
@@ -55,6 +60,40 @@ abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
                 throw Error("Query Adapter not setup")
 
             val results = queryExtendAdapter.filter(query, queryExtend)
+
+            return RepoList(
+                items = results.items.map { modelMapper.toDomain(it) },
+                total = results.total
+            )
+        }
+
+        val results = storage.findAll(pageable)
+            .map(modelMapper::toDomain)
+            .content
+
+        return RepoList(
+            items = results.toList(),
+            total = storage.count()
+        )
+    }
+
+    override fun getAll(query: QueryFilter, queryExtend: IQueryExtendBuilder<TEntity>): RepoList<TEntity> {
+        var sort = Sort.unsorted()
+        if (modelMapper.getSortField().isNotEmpty()) {
+            if (query.sortBy.by.isNotBlank() && modelMapper.getSortField().contains(query.sortBy.by)) {
+                val direction = if (query.sortBy.ascending) Sort.Direction.ASC else Sort.Direction.DESC
+                sort = Sort.by(direction, query.sortBy.by)
+            }
+        }
+
+        var pageable = Pageable.unpaged()
+        if (!query.queryAll && query.offset >= 0 && query.limit > 0) {
+            val pageIndex = query.offset / query.limit
+            pageable = PageRequest.of(pageIndex, query.limit, sort)
+        }
+
+        if (queryExtend != null) {
+            val results = queryAdapter.toSpecification(queryExtend, modelMapper, query)
 
             return RepoList(
                 items = results.items.map { modelMapper.toDomain(it) },
@@ -113,6 +152,11 @@ abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
 
     override fun existsByName(name: String): Boolean {
         return false
+    }
+
+    override fun exist(queryExtend: IQueryExtendBuilder<TEntity>): Boolean {
+        val res = queryAdapter.toSpecification(queryExtend, modelMapper, null)
+        return res.items.isNotEmpty()
     }
 }
 

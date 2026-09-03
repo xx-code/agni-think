@@ -30,6 +30,7 @@ class CreateSpendingPeriod(
             savingsTarget = input.savingsTarget,
             totalExpectedIncome = input.totalExpectedIncome,
             totalExpectedExpenses = input.totalExpectedExpenses,
+            state = input.state,
             wantSpendingItems = input.wantSpendingItems.map {
                 SpendingPeriodItem(
                     description = it.description,

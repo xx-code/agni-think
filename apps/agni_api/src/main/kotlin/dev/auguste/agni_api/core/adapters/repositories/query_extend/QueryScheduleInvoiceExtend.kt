@@ -14,11 +14,12 @@ class QueryScheduleInvoiceExtend(
     override fun isStatisfy(entity: ScheduleInvoice): Boolean {
         if (comparatorDueDate != null) {
             val resComp = when(comparatorDueDate.comparator) {
-                ComparatorType.Greater ->  comparatorDueDate.date > entity.scheduler.date
-                ComparatorType.GreaterOrEquals -> comparatorDueDate.date >= entity.scheduler.date
-                ComparatorType.Lesser -> comparatorDueDate.date < entity.scheduler.date
-                ComparatorType.LesserOrEquals ->  comparatorDueDate.date <= entity.scheduler.date
-                ComparatorType.Equal ->  comparatorDueDate.date == entity.scheduler.date
+                QueryComparator.Greater ->  comparatorDueDate.date > entity.scheduler.date
+                QueryComparator.GreaterOrEquals -> comparatorDueDate.date >= entity.scheduler.date
+                QueryComparator.Lesser -> comparatorDueDate.date < entity.scheduler.date
+                QueryComparator.LesserOrEquals ->  comparatorDueDate.date <= entity.scheduler.date
+                QueryComparator.Equal ->  comparatorDueDate.date == entity.scheduler.date
+                else -> {false}
             }
 
             if (!resComp)
@@ -27,11 +28,12 @@ class QueryScheduleInvoiceExtend(
 
         if (comparatorEndDate != null && entity.endDate != null) {
             val resComp = when(comparatorEndDate.comparator) {
-                ComparatorType.Greater ->  comparatorEndDate.date > entity.endDate
-                ComparatorType.GreaterOrEquals -> comparatorEndDate.date >= entity.endDate
-                ComparatorType.Lesser -> comparatorEndDate.date < entity.endDate
-                ComparatorType.LesserOrEquals ->  comparatorEndDate.date <= entity.endDate
-                ComparatorType.Equal ->  comparatorEndDate.date == entity.endDate
+                QueryComparator.Greater ->  comparatorEndDate.date > entity.endDate
+                QueryComparator.GreaterOrEquals -> comparatorEndDate.date >= entity.endDate
+                QueryComparator.Lesser -> comparatorEndDate.date < entity.endDate
+                QueryComparator.LesserOrEquals ->  comparatorEndDate.date <= entity.endDate
+                QueryComparator.Equal ->  comparatorEndDate.date == entity.endDate
+                else -> {false}
             }
 
             if (!resComp)

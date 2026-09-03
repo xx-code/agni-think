@@ -1,9 +1,9 @@
 package dev.auguste.agni_api.infras
 
-import org.slf4j.LoggerFactory
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.internal_loan.AutoCompleteInternalLoan
+import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
+import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
@@ -13,42 +13,44 @@ import org.springframework.stereotype.Service
 @Service
 class CronJobOrchestratorEach12h(
     @Qualifier("applyScheduleInvoice")
-    private val applyScheduleInvoiceUseCase: IUseCase<Unit, BackgroundTaskOut>,
+    private val applyScheduleInvoiceUseCase: ISuspendableUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("removeFreezeInvoice")
-    private val removeFreezeInvoice: IUseCase<Unit, BackgroundTaskOut>,
+    private val removeFreezeInvoice: ISuspendableUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("updateDueBudget")
-    private val updateBudgetDueDate: IUseCase<Unit, BackgroundTaskOut>,
+    private val updateBudgetDueDate: ISuspendableUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("autoCompleteInternalLoan")
-    private val autoCompleteInternalLoan: IUseCase<Unit, BackgroundTaskOut>
+    private val autoCompleteInternalLoan: ISuspendableUseCase<Unit, BackgroundTaskOut>,
+    @Qualifier("applySpendingPeriodTemplate")
+    private val applySpendingPeriodTemplate: ISuspendableUseCase<Unit, BackgroundTaskOut>
 ) : ApplicationRunner {
+
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private fun execute() {
+    private suspend fun executeTask(taskName: String, action: suspend () -> BackgroundTaskOut) {
         try {
-            var res = applyScheduleInvoiceUseCase.execAsync(input = Unit)
-            logger.info("[*] Finished cron schedule invoice: ${res.message}")
-
-            res = removeFreezeInvoice.execAsync(input = Unit)
-            logger.info("[*] Finished cron remove freeze invoice: ${res.message}")
-
-            res = updateBudgetDueDate.execAsync(input = Unit)
-            logger.info("[*] Finished cron update budget due date: ${res.message}")
-
-            res = autoCompleteInternalLoan.execAsync(input = Unit)
-            logger.info("[*] Finished cron update internal loan due date: ${res.message}")
+            val res = action()
+            logger.info("[*] Finished cron $taskName: ${res.message}")
         } catch (e: Exception) {
-            logger.info("[!] Error while executing task: ${e.message}")
+            logger.error("[!] Error while executing $taskName", e)
         }
+    }
+
+    private suspend fun executeAll() {
+        executeTask("schedule invoice") { applyScheduleInvoiceUseCase.execAsync(Unit) }
+        executeTask("remove freeze invoice") { removeFreezeInvoice.execAsync(Unit) }
+        executeTask("update budget due date") { updateBudgetDueDate.execAsync(Unit) }
+        executeTask("update internal loan due date") { autoCompleteInternalLoan.execAsync(Unit) }
+        executeTask("spending period template") { applySpendingPeriodTemplate.execAsync(Unit) }
     }
 
     @Scheduled(cron = "0 0 */12 * * *")
     fun schedule() {
-        logger.info("[SCHEDULE] Cron schedule each 12h")
-        execute()
+        logger.info("[SCHEDULE] Running 12-hour cron schedule")
+        runBlocking { executeAll() }
     }
 
     override fun run(args: ApplicationArguments) {
-        logger.info("[STARTUP] Apply Cron")
-        execute()
+        logger.info("[STARTUP] Applying initial startup cron tasks")
+        runBlocking { executeAll() }
     }
 }

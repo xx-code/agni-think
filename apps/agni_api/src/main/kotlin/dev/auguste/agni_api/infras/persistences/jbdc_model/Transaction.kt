@@ -63,7 +63,19 @@ class JdbcTransactionModelMapper: IMapper<JdbcTransactionModel, Transaction> {
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTableName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getSortField(): Set<String> {
         return setOf("money_amount", "category_id")
+    }
+
+    override fun getModelClass(): Class<JdbcTransactionModel> {
+        TODO("Not yet implemented")
     }
 }

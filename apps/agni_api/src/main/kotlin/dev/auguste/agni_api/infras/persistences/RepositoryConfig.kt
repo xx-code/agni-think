@@ -26,6 +26,8 @@ import dev.auguste.agni_api.core.entities.Profile
 import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
+import dev.auguste.agni_api.core.entities.SpendingPeriod
+import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
 import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.entities.Transaction
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JbdcAccountModel
@@ -49,9 +51,12 @@ import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcProfileModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcProvisionModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcSavingGoalModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcScheduleInvoiceModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcSpendingPeriodModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcSpendingPeriodTemplateModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTagModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTransactionModel
 import dev.auguste.agni_api.infras.persistences.query_adapters.IQueryExtendJdbcAdapter
+import dev.auguste.agni_api.infras.persistences.query_adapters.JdbcQueryAdapter
 import dev.auguste.agni_api.infras.persistences.query_adapters.QueryCategoryExtendJdbcAdapter
 import dev.auguste.agni_api.infras.persistences.query_adapters.QueryTagExtendJdbcAdapter
 import org.springframework.context.annotation.Bean
@@ -78,8 +83,9 @@ interface AccountStorage: GenericStorage<JbdcAccountModel, UUID>
 @Component
 class AccountRepository(
     storage: AccountStorage,
-    accountModelMapper: IMapper<JbdcAccountModel, Account>
-): JdbcRepository<JbdcAccountModel, Account>(storage = storage, accountModelMapper)
+    accountModelMapper: IMapper<JbdcAccountModel, Account>,
+    queryAdapter: JdbcQueryAdapter
+): JdbcRepository<JbdcAccountModel, Account>(storage = storage, accountModelMapper, queryAdapter = queryAdapter)
 
 // Category
 @Repository
@@ -89,8 +95,9 @@ interface CategoryStorage: GenericStorage<JdbcCategoryModel, UUID>
 class CategoryRepository(
     storage: CategoryStorage,
     categoryModelMapper: IMapper<JdbcCategoryModel, Category>,
-    queryExtendJdbcAdapter: QueryCategoryExtendJdbcAdapter
-): JdbcRepository<JdbcCategoryModel, Category>(storage = storage, categoryModelMapper, queryExtendJdbcAdapter)
+    queryAdapter: JdbcQueryAdapter,
+    queryExtendJdbcAdapter: QueryCategoryExtendJdbcAdapter,
+): JdbcRepository<JdbcCategoryModel, Category>(storage = storage, categoryModelMapper, queryAdapter, queryExtendJdbcAdapter)
 
 // Currency
 @Repository
@@ -100,7 +107,9 @@ interface CurrencyStorage: GenericStorage<JdbcCurrencyModel, UUID>
 class CurrencyRepository(
     storage: CurrencyStorage,
     currencyModelMapper: IMapper<JdbcCurrencyModel, Currency>,
-): JdbcRepository<JdbcCurrencyModel, Currency>(storage = storage, currencyModelMapper)
+    queryAdapter: JdbcQueryAdapter,
+    queryExtendJdbcAdapter: QueryCategoryExtendJdbcAdapter,
+): JdbcRepository<JdbcCurrencyModel, Currency>(storage = storage, currencyModelMapper, queryAdapter)
 
 // Deduction
 @Repository
@@ -109,8 +118,9 @@ interface DeductionStorage: GenericStorage<JdbcDeductionModel, UUID>
 @Component
 class DeductionRepository(
     storage: DeductionStorage,
-    deductionModelMapper: IMapper<JdbcDeductionModel, Deduction>
-): JdbcRepository<JdbcDeductionModel, Deduction>(storage = storage, deductionModelMapper)
+    deductionModelMapper: IMapper<JdbcDeductionModel, Deduction>,
+    queryAdapter: JdbcQueryAdapter,
+): JdbcRepository<JdbcDeductionModel, Deduction>(storage = storage, deductionModelMapper, queryAdapter,)
 
 // Invoice
 @Repository
@@ -120,8 +130,9 @@ interface InvoiceStorage: GenericStorage<JdbcInvoiceModel, UUID>
 class InvoiceRepository(
     storage: InvoiceStorage,
     invoiceModelMapper: IMapper<JdbcInvoiceModel, Invoice>,
+    queryAdapter: JdbcQueryAdapter,
     queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcInvoiceModel, Invoice>
-): JdbcRepository<JdbcInvoiceModel, Invoice>(storage = storage, invoiceModelMapper, queryExtendAdapter)
+): JdbcRepository<JdbcInvoiceModel, Invoice>(storage = storage, invoiceModelMapper, queryAdapter, queryExtendAdapter)
 
 // Notification
 @Repository
@@ -130,8 +141,9 @@ interface NotificationStorage: GenericStorage<JdbcNotificationModel, UUID>
 @Component
 class NotificationRepository(
     storage: NotificationStorage,
-    notificationModelMapper: IMapper<JdbcNotificationModel, Notification>
-): JdbcRepository<JdbcNotificationModel, Notification>(storage = storage, notificationModelMapper)
+    notificationModelMapper: IMapper<JdbcNotificationModel, Notification>,
+    queryAdapter: JdbcQueryAdapter,
+): JdbcRepository<JdbcNotificationModel, Notification>(storage = storage, notificationModelMapper, queryAdapter)
 
 // Patrimony
 @Repository
@@ -141,7 +153,8 @@ interface PatrimonyStorage: GenericStorage<JdbcPatrimonyModel, UUID>
 class PatrimonyRepository(
     storage: PatrimonyStorage,
     patrimonyModelMapper: IMapper<JdbcPatrimonyModel, Patrimony>,
-): JdbcRepository<JdbcPatrimonyModel, Patrimony>(storage = storage, patrimonyModelMapper)
+    queryAdapter: JdbcQueryAdapter,
+): JdbcRepository<JdbcPatrimonyModel, Patrimony>(storage = storage, patrimonyModelMapper, queryAdapter)
 
 // PatrimonySnapshot
 @Repository
@@ -151,8 +164,9 @@ interface PatrimonySnapshotStorage: GenericStorage<JdbcPatrimonySnapshotModel, U
 class PatrimonySnapshotRepository(
     storage: PatrimonySnapshotStorage,
     patrimonySnapshotMapper: IMapper<JdbcPatrimonySnapshotModel, PatrimonySnapshot>,
-    queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcPatrimonySnapshotModel, PatrimonySnapshot>
-): JdbcRepository<JdbcPatrimonySnapshotModel, PatrimonySnapshot>(storage, patrimonySnapshotMapper, queryExtendAdapter)
+    queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcPatrimonySnapshotModel, PatrimonySnapshot>,
+    queryAdapter: JdbcQueryAdapter,
+): JdbcRepository<JdbcPatrimonySnapshotModel, PatrimonySnapshot>(storage, patrimonySnapshotMapper, queryAdapter, queryExtendAdapter)
 
 // Proisionable
 @Repository
@@ -161,8 +175,9 @@ interface ProvisionableStorage: GenericStorage<JdbcProvisionModel, UUID>
 @Component
 class ProvisionableRepository(
     storage: ProvisionableStorage,
-    provisionModlModelMapper: IMapper<JdbcProvisionModel, Provision>
-): JdbcRepository<JdbcProvisionModel, Provision>(storage = storage, provisionModlModelMapper)
+    provisionModlModelMapper: IMapper<JdbcProvisionModel, Provision>,
+    queryAdapter: JdbcQueryAdapter,
+): JdbcRepository<JdbcProvisionModel, Provision>(storage = storage, provisionModlModelMapper, queryAdapter)
 
 //Saving Goal
 @Repository
@@ -172,8 +187,9 @@ interface SavingGoalStorage: GenericStorage<JdbcSavingGoalModel, UUID>
 class SavingGoalRepository(
     storage: SavingGoalStorage,
     storageModelMapper: IMapper<JdbcSavingGoalModel, SavingGoal>,
-    queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcSavingGoalModel, SavingGoal>
-): JdbcRepository<JdbcSavingGoalModel, SavingGoal>(storage = storage, modelMapper = storageModelMapper, queryExtendAdapter)
+    queryAdapter: JdbcQueryAdapter,
+    queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcSavingGoalModel, SavingGoal>,
+): JdbcRepository<JdbcSavingGoalModel, SavingGoal>(storage = storage, modelMapper = storageModelMapper, queryAdapter, queryExtendAdapter)
 
 // ScheduleInvoice
 @Repository
@@ -183,8 +199,9 @@ interface ScheduleInvoiceStorage: GenericStorage<JdbcScheduleInvoiceModel, UUID>
 class ScheduleInvoiceRepository(
     storage: ScheduleInvoiceStorage,
     scheduleModelMapper: IMapper<JdbcScheduleInvoiceModel, ScheduleInvoice>,
+    queryAdapter: JdbcQueryAdapter,
     queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcScheduleInvoiceModel, ScheduleInvoice>
-): JdbcRepository<JdbcScheduleInvoiceModel, ScheduleInvoice>( storage = storage, scheduleModelMapper, queryExtendAdapter)
+): JdbcRepository<JdbcScheduleInvoiceModel, ScheduleInvoice>( storage = storage, scheduleModelMapper, queryAdapter, queryExtendAdapter)
 
 // Tag
 @Repository
@@ -194,8 +211,9 @@ interface TagStorage: GenericStorage<JdbcTagModel, UUID>
 class TagRepository(
     storage: TagStorage,
     tagModelMapper: IMapper<JdbcTagModel, Tag>,
+    queryAdapter: JdbcQueryAdapter,
     queryExtendAdapter: QueryTagExtendJdbcAdapter
-): JdbcRepository<JdbcTagModel, Tag>(storage = storage, tagModelMapper, queryExtendAdapter)
+): JdbcRepository<JdbcTagModel, Tag>(storage = storage, tagModelMapper, queryAdapter, queryExtendAdapter)
 
 // Transaction
 @Repository
@@ -205,8 +223,9 @@ interface TransactionStorage: GenericStorage<JdbcTransactionModel, UUID>
 class TransactionRepository(
     storage: TransactionStorage,
     transactionModelMapper: IMapper<JdbcTransactionModel, Transaction>,
+    queryAdapter: JdbcQueryAdapter,
     queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcTransactionModel, Transaction>
-): JdbcRepository<JdbcTransactionModel, Transaction>( storage = storage, transactionModelMapper, queryExtendAdapter)
+): JdbcRepository<JdbcTransactionModel, Transaction>( storage = storage, transactionModelMapper, queryAdapter, queryExtendAdapter)
 
 // Budget
 @Repository
@@ -216,8 +235,9 @@ interface BudgetStorage: GenericStorage<JdbcBudgetModel, UUID>
 class BudgetRepository(
     storage: BudgetStorage,
     budgetModelMapper: IMapper<JdbcBudgetModel, Budget>,
+    queryAdapter: JdbcQueryAdapter,
     queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcBudgetModel, Budget>
-): JdbcRepository<JdbcBudgetModel, Budget>(storage, budgetModelMapper, queryExtendAdapter)
+): JdbcRepository<JdbcBudgetModel, Budget>(storage, budgetModelMapper, queryAdapter, queryExtendAdapter)
 
 @Repository
 interface FinancePrincipleStorage: GenericStorage<JdbcFinancePrincipleModel, UUID>
@@ -225,8 +245,9 @@ interface FinancePrincipleStorage: GenericStorage<JdbcFinancePrincipleModel, UUI
 @Component
 class FinancePrincipleRepository(
     storage: FinancePrincipleStorage,
-    financePrincipleMapper: IMapper<JdbcFinancePrincipleModel, FinancePrinciple>
-) : JdbcRepository<JdbcFinancePrincipleModel, FinancePrinciple>(storage, financePrincipleMapper)
+    financePrincipleMapper: IMapper<JdbcFinancePrincipleModel, FinancePrinciple>,
+    queryAdapter: JdbcQueryAdapter,
+) : JdbcRepository<JdbcFinancePrincipleModel, FinancePrinciple>(storage, financePrincipleMapper, queryAdapter)
 
 @Repository
 interface IncomeSourceStorage: GenericStorage<JdbcIncomeSourceModel, UUID>
@@ -234,8 +255,9 @@ interface IncomeSourceStorage: GenericStorage<JdbcIncomeSourceModel, UUID>
 @Component
 class IncomeSourceRepository(
     storage: IncomeSourceStorage,
-    incomeSourceMapper: IMapper<JdbcIncomeSourceModel, IncomeSource>
-) : JdbcRepository<JdbcIncomeSourceModel, IncomeSource>(storage, incomeSourceMapper)
+    incomeSourceMapper: IMapper<JdbcIncomeSourceModel, IncomeSource>,
+    queryAdapter: JdbcQueryAdapter,
+) : JdbcRepository<JdbcIncomeSourceModel, IncomeSource>(storage, incomeSourceMapper, queryAdapter)
 
 @Repository
 interface AgentSuggestionStorage: GenericStorage<JdbcAgentSuggestionModel, UUID>
@@ -244,8 +266,9 @@ interface AgentSuggestionStorage: GenericStorage<JdbcAgentSuggestionModel, UUID>
 class AgentSuggestionRepository(
     storage: AgentSuggestionStorage,
     agentSuggestionMapper: IMapper<JdbcAgentSuggestionModel, AgentSuggestion>,
+    queryAdapter: JdbcQueryAdapter,
     queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcAgentSuggestionModel, AgentSuggestion>
-): JdbcRepository<JdbcAgentSuggestionModel, AgentSuggestion>(storage, agentSuggestionMapper, queryExtendAdapter)
+): JdbcRepository<JdbcAgentSuggestionModel, AgentSuggestion>(storage, agentSuggestionMapper, queryAdapter, queryExtendAdapter)
 
 @Repository
 interface BankRegisterStorage: GenericStorage<JdbcBankRegisterModel, UUID>
@@ -253,8 +276,9 @@ interface BankRegisterStorage: GenericStorage<JdbcBankRegisterModel, UUID>
 @Component
 class BankRegisterRepository(
     storage: BankRegisterStorage,
-    bankRegisterMapper: IMapper<JdbcBankRegisterModel, BankRegister>
-): JdbcRepository<JdbcBankRegisterModel, BankRegister>(storage, bankRegisterMapper)
+    bankRegisterMapper: IMapper<JdbcBankRegisterModel, BankRegister>,
+    queryAdapter: JdbcQueryAdapter,
+): JdbcRepository<JdbcBankRegisterModel, BankRegister>(storage, bankRegisterMapper, queryAdapter)
 
 @Repository
 interface ExternalTransactionStorage: GenericStorage<JdbcExternalTransactionModel, UUID>
@@ -263,8 +287,9 @@ interface ExternalTransactionStorage: GenericStorage<JdbcExternalTransactionMode
 class ExternalBankRegisterRepository(
     storage: ExternalTransactionStorage,
     externalTransactionModelMapper: IMapper<JdbcExternalTransactionModel, ExternalTransaction>,
+    queryAdapter: JdbcQueryAdapter,
     queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcExternalTransactionModel, ExternalTransaction>
-): JdbcRepository<JdbcExternalTransactionModel, ExternalTransaction>(storage, externalTransactionModelMapper, queryExtendAdapter)
+): JdbcRepository<JdbcExternalTransactionModel, ExternalTransaction>(storage, externalTransactionModelMapper, queryAdapter,queryExtendAdapter)
 
 @Repository
 interface FinanceReportStorage: GenericStorage<JdbcFinanceReportModel, UUID>
@@ -272,8 +297,9 @@ interface FinanceReportStorage: GenericStorage<JdbcFinanceReportModel, UUID>
 @Component
 class FinanceReportRepository(
     storage: FinanceReportStorage,
-    financeReportModelMapper: IMapper<JdbcFinanceReportModel, FinanceReport>
-): JdbcRepository<JdbcFinanceReportModel, FinanceReport>(storage, financeReportModelMapper)
+    financeReportModelMapper: IMapper<JdbcFinanceReportModel, FinanceReport>,
+    queryAdapter: JdbcQueryAdapter,
+): JdbcRepository<JdbcFinanceReportModel, FinanceReport>(storage, financeReportModelMapper, queryAdapter)
 
 @Repository
 interface InternalLoanStorage: GenericStorage<JdbcInternalLoanModal, UUID>
@@ -282,8 +308,9 @@ interface InternalLoanStorage: GenericStorage<JdbcInternalLoanModal, UUID>
 class InternalLoanRepository(
     storage: InternalLoanStorage,
     internalLoanMapper: IMapper<JdbcInternalLoanModal, InternalLoan>,
-    queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcInternalLoanModal, InternalLoan>
-): JdbcRepository<JdbcInternalLoanModal, InternalLoan>(storage, internalLoanMapper, queryExtendAdapter)
+    queryAdapter: JdbcQueryAdapter,
+    queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcInternalLoanModal, InternalLoan>,
+): JdbcRepository<JdbcInternalLoanModal, InternalLoan>(storage, internalLoanMapper, queryAdapter,queryExtendAdapter)
 
 
 @Repository
@@ -293,8 +320,9 @@ interface GoalStorage: GenericStorage<JdbcGoalModel, UUID>
 class GoalRepository(
     storage: GoalStorage,
     goalMapper: IMapper<JdbcGoalModel, Goal>,
+    queryAdapter: JdbcQueryAdapter,
     queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcGoalModel, Goal>
-): JdbcRepository<JdbcGoalModel, Goal>(storage, goalMapper, queryExtendAdapter)
+): JdbcRepository<JdbcGoalModel, Goal>(storage, goalMapper, queryAdapter, queryExtendAdapter)
 
 @Repository
 interface ProfileStorage: GenericStorage<JdbcProfileModel, UUID>
@@ -303,4 +331,25 @@ interface ProfileStorage: GenericStorage<JdbcProfileModel, UUID>
 class ProfileRepository(
     storage: ProfileStorage,
     profileMapper: IMapper<JdbcProfileModel, Profile>,
-): JdbcRepository<JdbcProfileModel, Profile>(storage, profileMapper)
+    queryAdapter: JdbcQueryAdapter,
+): JdbcRepository<JdbcProfileModel, Profile>(storage, profileMapper, queryAdapter)
+
+@Repository
+interface SpendingPeriodTemplateStorage: GenericStorage<JdbcSpendingPeriodTemplateModel, UUID>
+
+@Component
+class SpendingPeriodTemplateRepository(
+    storage: SpendingPeriodTemplateStorage,
+    mapper: IMapper<JdbcSpendingPeriodTemplateModel, SpendingPeriodTemplate>,
+    queryAdapter: JdbcQueryAdapter,
+): JdbcRepository<JdbcSpendingPeriodTemplateModel, SpendingPeriodTemplate>(storage, mapper, queryAdapter)
+
+@Repository
+interface SpendingPeriodStorage: GenericStorage<JdbcSpendingPeriodModel, UUID>
+
+@Component
+class SpendingPeriodRepository(
+    storage: SpendingPeriodStorage,
+    mapper: IMapper<JdbcSpendingPeriodModel, SpendingPeriod>,
+    queryAdapter: JdbcQueryAdapter,
+): JdbcRepository<JdbcSpendingPeriodModel, SpendingPeriod>(storage, mapper, queryAdapter)

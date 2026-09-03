@@ -25,11 +25,12 @@ class QueryInternalLoanExtend(
 
         if (scheduleDueDateComparator != null) {
             val isValid = when(scheduleDueDateComparator.comparator) {
-                ComparatorType.Greater ->  scheduleDueDateComparator.date > entity.dueDate.atStartOfDay()
-                ComparatorType.GreaterOrEquals -> scheduleDueDateComparator.date >= entity.dueDate.atStartOfDay()
-                ComparatorType.Lesser -> scheduleDueDateComparator.date < entity.dueDate.atStartOfDay()
-                ComparatorType.LesserOrEquals ->  scheduleDueDateComparator.date <= entity.dueDate.atStartOfDay()
-                ComparatorType.Equal ->  scheduleDueDateComparator.date == entity.dueDate.atStartOfDay()
+                QueryComparator.Greater ->  scheduleDueDateComparator.date > entity.dueDate.atStartOfDay()
+                QueryComparator.GreaterOrEquals -> scheduleDueDateComparator.date >= entity.dueDate.atStartOfDay()
+                QueryComparator.Lesser -> scheduleDueDateComparator.date < entity.dueDate.atStartOfDay()
+                QueryComparator.LesserOrEquals ->  scheduleDueDateComparator.date <= entity.dueDate.atStartOfDay()
+                QueryComparator.Equal ->  scheduleDueDateComparator.date == entity.dueDate.atStartOfDay()
+                else -> {false}
             }
 
             if (!isValid)

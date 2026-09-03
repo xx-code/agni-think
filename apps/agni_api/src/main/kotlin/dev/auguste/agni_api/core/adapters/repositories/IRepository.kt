@@ -9,6 +9,7 @@ interface IRepository<T: Entity> {
     fun create(entity: T)
     fun createMany(entities: List<T>)
     fun getAll(query: QueryFilter, queryExtend: IQueryExtend<T>? = null): RepoList<T>
+    fun getAll(query: QueryFilter, queryExtend: IQueryExtendBuilder<T>): RepoList<T>
     fun getManyByIds(ids: Set<UUID>): List<T>
     fun get(id: UUID): T?
     fun delete(id: UUID)
@@ -16,4 +17,5 @@ interface IRepository<T: Entity> {
     fun deleteManyBy(queryExtend: IQueryExtend<T>)
     fun update(entity: T)
     fun existsByName(name: String): Boolean
+    fun exist(queryExtend: IQueryExtendBuilder<T>): Boolean
 }

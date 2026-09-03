@@ -23,6 +23,7 @@ import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
+import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.AddExternalTransaction
 import dev.auguste.agni_api.core.usecases.invoices.AddManyExternalTransactions
@@ -207,7 +208,7 @@ class InvoiceConfig {
         accountRepo: IRepository<Account>,
         deleteInvoice: IInnerUseCase<DeleteInvoiceInput, Unit>,
         eventRegister: IEventRegister
-    ): IUseCase<Unit, BackgroundTaskOut> {
+    ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
         return RemoveFreezeInvoice(
             invoiceRepo = invoiceRepo,
             accountRepo = accountRepo,
