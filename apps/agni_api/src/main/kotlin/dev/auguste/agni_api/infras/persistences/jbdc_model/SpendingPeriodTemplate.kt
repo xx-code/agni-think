@@ -25,7 +25,7 @@ data class JdbcSpendingPeriodTemplateModel(
     val recurrence: String,
 
     @Column("target_budget_ids")
-    val targetBudgetIds: Set<UUID>,
+    val targetBudgetIds: String,
     @Column("created_date")
     var createdDate: LocalDateTime,
     @Column("updated_date")
@@ -44,11 +44,19 @@ class JdbcSpendingPeriodTemplateMapper(
 ): IMapper<JdbcSpendingPeriodTemplateModel, SpendingPeriodTemplate> {
     override fun toDomain(model: JdbcSpendingPeriodTemplateModel): SpendingPeriodTemplate {
         val recurrenceJson = objectMapper.readValue<Map<String, Any>>(model.recurrence)
+
+        val budgetIdsSet: Set<UUID> = model.targetBudgetIds?.let { json ->
+            objectMapper.readValue<List<String>>(json)
+                .map { UUID.fromString(it) }
+                .toSet()
+        } ?: emptySet()
+
         val entity = SpendingPeriodTemplate(
             id = model.id,
             startDate = model.startDate,
             recurrence = SchedulerRecurrence.fromMap(recurrenceJson),
             isActive = model.isActive,
+            targetBudgetIds = budgetIdsSet,
             endDate = model.endDate
         )
         entity.initDate(model.createdDate, model.updatedDate)
@@ -64,7 +72,7 @@ class JdbcSpendingPeriodTemplateMapper(
             recurrence = objectMapper.writeValueAsString(entity.recurrence.toMap()),
             createdDate = entity.createdAt,
             updatedDate = entity.updatedAt,
-            targetBudgetIds = entity.targetBudgetIds,
+            targetBudgetIds = entity.targetBudgetIds.toString(),
             endDate = entity.endDate
         )
     }

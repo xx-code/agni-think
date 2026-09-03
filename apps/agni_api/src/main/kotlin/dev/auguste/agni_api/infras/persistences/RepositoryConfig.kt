@@ -26,6 +26,7 @@ import dev.auguste.agni_api.core.entities.Profile
 import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
+import dev.auguste.agni_api.core.entities.SpendingPeriod
 import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
 import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.entities.Transaction
@@ -50,6 +51,7 @@ import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcProfileModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcProvisionModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcSavingGoalModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcScheduleInvoiceModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcSpendingPeriodModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcSpendingPeriodTemplateModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTagModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTransactionModel
@@ -336,8 +338,18 @@ class ProfileRepository(
 interface SpendingPeriodTemplateStorage: GenericStorage<JdbcSpendingPeriodTemplateModel, UUID>
 
 @Component
-class SpendingPeriodRepository(
+class SpendingPeriodTemplateRepository(
     storage: SpendingPeriodTemplateStorage,
     mapper: IMapper<JdbcSpendingPeriodTemplateModel, SpendingPeriodTemplate>,
     queryAdapter: JdbcQueryAdapter,
 ): JdbcRepository<JdbcSpendingPeriodTemplateModel, SpendingPeriodTemplate>(storage, mapper, queryAdapter)
+
+@Repository
+interface SpendingPeriodStorage: GenericStorage<JdbcSpendingPeriodModel, UUID>
+
+@Component
+class SpendingPeriodRepository(
+    storage: SpendingPeriodStorage,
+    mapper: IMapper<JdbcSpendingPeriodModel, SpendingPeriod>,
+    queryAdapter: JdbcQueryAdapter,
+): JdbcRepository<JdbcSpendingPeriodModel, SpendingPeriod>(storage, mapper, queryAdapter)

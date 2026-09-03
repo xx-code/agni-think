@@ -22,6 +22,7 @@ class GetSpendingPeriod(
             savingsTarget = spendPeriod.savingsTarget,
             totalExpectedIncome = spendPeriod.totalExpectedIncome,
             totalExpectedExpenses = spendPeriod.totalExpectedExpenses,
+            state = spendPeriod.state,
             wantSpendingItems = spendPeriod.wantSpendingItems.map {
                 SpendingPeriodItemOutput(
                     description = it.description,

@@ -35,7 +35,7 @@ class ApplySpendingPeriodTemplate(
             val spendingPeriodTemps = spendingPeriodTemplateRepo.getAll(QueryFilter.queryAll(), condition)
 
             for (spendingPeriodTemp in spendingPeriodTemps.items.filter { it.checkIsActive() }) {
-                if (spendingPeriodTemp.startDate >= LocalDate.now()) {
+                if (spendingPeriodTemp.startDate <= LocalDate.now()) {
                     val scheduler = Scheduler(
                         date = spendingPeriodTemp.startDate.atStartOfDay(),
                         repeater = SchedulerRecurrence(

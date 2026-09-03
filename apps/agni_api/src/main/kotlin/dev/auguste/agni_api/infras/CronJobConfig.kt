@@ -19,7 +19,9 @@ class CronJobOrchestratorEach12h(
     @Qualifier("updateDueBudget")
     private val updateBudgetDueDate: ISuspendableUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("autoCompleteInternalLoan")
-    private val autoCompleteInternalLoan: ISuspendableUseCase<Unit, BackgroundTaskOut>
+    private val autoCompleteInternalLoan: ISuspendableUseCase<Unit, BackgroundTaskOut>,
+    @Qualifier("applySpendingPeriodTemplate")
+    private val applySpendingPeriodTemplate: ISuspendableUseCase<Unit, BackgroundTaskOut>
 ) : ApplicationRunner {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -38,6 +40,7 @@ class CronJobOrchestratorEach12h(
         executeTask("remove freeze invoice") { removeFreezeInvoice.execAsync(Unit) }
         executeTask("update budget due date") { updateBudgetDueDate.execAsync(Unit) }
         executeTask("update internal loan due date") { autoCompleteInternalLoan.execAsync(Unit) }
+        executeTask("spending period template") { applySpendingPeriodTemplate.execAsync(Unit) }
     }
 
     @Scheduled(cron = "0 0 */12 * * *")
