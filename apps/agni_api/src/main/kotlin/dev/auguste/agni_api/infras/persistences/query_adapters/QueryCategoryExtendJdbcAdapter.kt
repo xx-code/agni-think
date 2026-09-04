@@ -43,7 +43,7 @@ class QueryCategoryExtendJdbcAdapter(
                 categoryId = rs.getObject("category_id", UUID::class.java),
                 title = rs.getString("title"),
                 color = rs.getString("color"),
-                icon = rs.getString("icon_id"),
+                iconId = rs.getString("icon_id"),
                 isSystem = rs.getBoolean("is_system"),
                 isArchive = rs.getBoolean("is_archive"),
                 createdAt = rs.getObject("created_at", OffsetDateTime::class.java).toLocalDateTime(),

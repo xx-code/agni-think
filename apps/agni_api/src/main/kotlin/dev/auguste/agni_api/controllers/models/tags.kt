@@ -16,6 +16,10 @@ data class ApiUpdateTagModel(
     val color: String?,
 )
 
+data class ApiArchiveTagModel(
+    val archive: Boolean,
+)
+
 fun mapApiCreateTag(model: ApiCreateTagModel): CreateTagInput {
     return CreateTagInput(
         model.value,

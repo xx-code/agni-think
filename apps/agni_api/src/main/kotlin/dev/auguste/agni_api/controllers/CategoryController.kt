@@ -69,10 +69,11 @@ class CategoryController(
     }
 
     @GetMapping
-    fun getAllCategories(queryFilter: QueryFilter, isSystem: Boolean? = null): ResponseEntity<ListOutput<GetCategoryOutput>> {
+    fun getAllCategories(queryFilter: QueryFilter, isSystem: Boolean? = null, isArchived: Boolean? = null): ResponseEntity<ListOutput<GetCategoryOutput>> {
         return ResponseEntity.ok(getAllCategoryUseCase.execAsync(GetAllCategoryInput(
             queryFilter,
-            isSystem
+            isSystem,
+            isArchived
         )))
     }
 

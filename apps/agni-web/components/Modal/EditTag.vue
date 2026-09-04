@@ -1,35 +1,56 @@
 <script setup lang="ts">
-import * as z from 'zod'
 import { reactive } from "vue";
-import type { FormSubmitEvent } from '@nuxt/ui';
+import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import type { EditTagType, TagType } from '~/types/ui/tag';
+import { API_ROUTES } from '~/shared/routes';
+import type { CreatedRequest } from '~/types/api';
 
 const { tag } = defineProps<{
     tag?: TagType
 }>();
 const emit = defineEmits<{
-    (e: 'submit', value: EditTagType, oldValue?: TagType): void    
-    (e: 'close', close: boolean): void
+    (e: 'close', refresh: boolean): void
 }>();
 
-const schema = z.object({
-    value: z.string().nonempty('Vous devez ajouter une valeur'),
-    color: z.string().nonempty('Vous devez ajouter une icon'),
-})
+const toast = useToast()
 
-type Schema = z.output<typeof schema>;
 
-const form = reactive({
-    value: tag?.value || '',
-    color: tag?.color || ''
+function validate(data: Partial<EditTagType>): FormError[] {
+    const errors: FormError[] = []
+
+    if (!data.value) errors.push({ name: '', message: 'Vous devez ajouter une valeur'})
+    if (!data.color) errors.push({ name: '', message: 'Vous devez ajouter une color'})
+
+    return errors
+}
+
+const form = reactive<Partial<EditTagType>>({
+    value: tag?.value,
+    color: tag?.color
 });
 
-async function onSubmit(event: FormSubmitEvent<Schema>) {
+async function onSubmit(event: FormSubmitEvent<EditTagType>) {
     const data = event.data;
-    emit('submit', {
-        value: data.value,
-        color: data.color
-    }, tag);
+    try {
+        if(tag) {
+            await ApiLinkBuilder.route(API_ROUTES.TAGS.UPDATE_TAG).params({id: tag.id}).body({
+                value: data.value,
+                color: data.color
+            }).execute();
+        } else {
+            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.TAGS.CREATE_TAG).body({
+                value: data.value,
+                color: data.color
+            }).execute();
+        }
+    } catch(err) {
+        toast.add({
+            title: "Error tag",
+            description:`Error while submit tag`, 
+            color: 'error'
+        });
+    }
+
     form.value = ''
     form.color = ''
     emit('close', true);
@@ -39,7 +60,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 <template>
     <UModal title="Edit Tag">
         <template #body>
-            <UForm :schema="schema" :state="form" @submit="onSubmit" class=" space-y-4">
+            <UForm :validate="validate" :state="form" @submit="onSubmit" class=" space-y-4">
                 <UFormField label="Nom" name="value">
                     <UInput v-model="form.value" />
                 </UFormField>

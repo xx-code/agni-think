@@ -4,9 +4,9 @@ import type { TagType } from "~/types/ui/tag";
 
 export function tagResponseToTag(data: GetTagResponse): TagType {
     return {
-        id: data.id,
-        value: data.value,
-        color: data.color
+        ...data,
+        isArchived: data.archived,
+        isSystem: data.system
     }
 }
 

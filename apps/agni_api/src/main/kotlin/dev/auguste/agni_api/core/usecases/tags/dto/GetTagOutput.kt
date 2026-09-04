@@ -6,5 +6,6 @@ data class GetTagOutput(
     val id: UUID,
     val value: String,
     val color: String?,
-    val isSystem: Boolean
+    val isSystem: Boolean,
+    val isArchived: Boolean
 )

@@ -1,8 +1,10 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
+import dev.auguste.agni_api.core.adapters.IChecker
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.usecases.CreatedOutput
+import dev.auguste.agni_api.core.usecases.DeleteOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.tags.CreateTag
@@ -42,10 +44,12 @@ class TagConfig {
 
     @Bean
     fun deleteTag(
-        tagRepository: IRepository<Tag>
-    ): IUseCase<DeleteTagInput, Unit> {
+        tagRepository: IRepository<Tag>,
+        checker: IChecker<Tag>
+    ): IUseCase<DeleteTagInput, DeleteOutput> {
         return DeleteTag(
             tagRepo = tagRepository,
+            checker = checker
         )
     }
 
