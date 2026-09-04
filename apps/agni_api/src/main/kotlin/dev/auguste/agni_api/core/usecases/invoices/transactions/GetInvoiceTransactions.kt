@@ -135,7 +135,11 @@ class GetInvoiceTransactions(
 
         val getTag = { id: UUID ->
             tags.find { it.id == id }?.let {
-                TransactionTagOutput(it.id, it.value, it.color)
+                TransactionTagOutput(
+                    it.id,
+                    it.value + if (it.isArchived) " (Archiver)" else "",
+                    it.color
+                )
             } ?: TransactionTagOutput(UUID.randomUUID(), "", "")
         }
 

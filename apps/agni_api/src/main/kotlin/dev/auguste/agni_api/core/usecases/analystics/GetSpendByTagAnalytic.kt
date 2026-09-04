@@ -1,7 +1,10 @@
 package dev.auguste.agni_api.core.usecases.analystics
 
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.adapters.repositories.QueryExtendBuilder
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryTagExtend
+import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.entities.Tag
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagInput
@@ -17,7 +20,9 @@ class GetSpendByTagAnalytic(
 ) : IUseCase<GetSpendByTagInput, ListOutput<GetSpendByTagOutput>> {
 
     override fun execAsync(input: GetSpendByTagInput): ListOutput<GetSpendByTagOutput> {
-        val tags = tagRepo.getAll(input.query, QueryTagExtend(false))
+        val condition = QueryExtendBuilder<Tag>()
+            .addCondition("is_system", QueryComparator.Equal, false)
+        val tags = tagRepo.getAll(input.query, condition)
 
         val result = mutableListOf<GetSpendByTagOutput>()
         for (tag in tags.items) {

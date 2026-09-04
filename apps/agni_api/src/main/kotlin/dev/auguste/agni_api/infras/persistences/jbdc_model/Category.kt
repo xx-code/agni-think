@@ -19,8 +19,7 @@ data class JdbcCategoryModel(
 
     val color: String?,
 
-    @Column("icon_id")
-    val icon: String,
+    val iconId: String,
 
     @Column("is_system")
     val isSystem: Boolean,
@@ -41,7 +40,7 @@ class JdbcCategoryModelMapper: IMapper<JdbcCategoryModel, Category> {
         val category = Category(
             id = model.categoryId,
             title = model.title,
-            icon = model.icon,
+            icon = model.iconId,
             isSystem = model.isSystem,
             color = model.color ?: "",
             isArchived = model.isArchive
@@ -55,7 +54,7 @@ class JdbcCategoryModelMapper: IMapper<JdbcCategoryModel, Category> {
             categoryId = entity.id,
             title = entity.title,
             color = entity.color,
-            icon = entity.icon,
+            iconId = entity.icon,
             isSystem = entity.isSystem,
             isArchive = entity.isArchived,
             createdAt = entity.createdAt,
@@ -77,7 +76,7 @@ class JdbcCategoryModelMapper: IMapper<JdbcCategoryModel, Category> {
     override fun getTableName(): String = "categories"
 
     override fun getSortField(): Set<String> {
-        return setOf("is_system", "name", "created_date", "updated_date")
+        return setOf("is_system", "name", "created_at", "updated_at")
     }
 
     override fun getModelClass(): Class<JdbcCategoryModel> = JdbcCategoryModel::class.java

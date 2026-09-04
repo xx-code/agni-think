@@ -768,6 +768,11 @@ export const API_ROUTES = {
             serverPath: '/api/tags/:id',
             apiPath: '/tags/:id',
             method: 'DELETE'
-        }
+        },
+        ARCHIVE_TAG: {
+            serverPath: '/api/tags/:id/archive',
+            apiPath: '/tags/:id/archive',
+            method: 'PUT'
+        },
     }
 } satisfies Record<string, Record<string, ApiRouteDefinition>>

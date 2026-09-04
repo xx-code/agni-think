@@ -4,5 +4,6 @@ import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 
 data class GetAllTagInput(
     val query: QueryFilter,
-    val isSystem: Boolean? = null
+    val isSystem: Boolean? = null,
+    val isArchived: Boolean? = null,
 )

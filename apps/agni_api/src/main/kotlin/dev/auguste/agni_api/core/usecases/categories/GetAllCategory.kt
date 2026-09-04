@@ -20,7 +20,7 @@ class GetAllCategory(private val categoryRepo: IRepository<Category>): IUseCase<
         if (input.isSystem != null)
             condition.addCondition("isSystem", QueryComparator.Equal, input.isSystem)
 
-        if (input.isSystem != null)
+        if (input.isArchived != null)
             condition.addCondition("isArchived", QueryComparator.Equal, input.isArchived)
 
         val categories = categoryRepo.getAll(
