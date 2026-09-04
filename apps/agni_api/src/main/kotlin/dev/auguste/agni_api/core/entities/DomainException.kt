@@ -80,6 +80,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class ProvisionWithLoanMustHaveAScheduleInvoice(): BusinessLogic("PROVISION_WITH_LOAN_MUST_HAVE_AS_SCHEDULE_INVOICE", "Si vous avez un pret sur un actif depreciative il faut un scheduler")
         class ProvisionWithLoanMustHaveCantBeByDay(): BusinessLogic("PROVISION_WITH_LOAN_CANT_BE_BY_DAY", "Les pret sur des actif ne peuvent pas se decomposer par jour")
         class ForcastAdditionalSavingAmountMustLessThanBalance(balance: Double, amount: Double): BusinessLogic("FORCAST_SAVING_ADDITIONAL_AMOUNT", "Forcast saving amount: $amount doit etre inferieur a $balance")
+        class CantDeleteSystemCategory(title: String): BusinessLogic("CANT_DELETE_SYSTEM_CATEGORY", "Vous ne pouvez pas supprimer cette categorie systeme $title")
     }
 
     sealed class Validation(code: String, message: String): DomainException(code, message) {

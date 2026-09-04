@@ -69,7 +69,7 @@ const onDeleteDeductionType = async (id: string) => {
 </script>
 
 <template>
-    <UCard>
+    <UiCard>
         <div class="space-y-6">
             <div class="flex items-end justify-between">
                 <div>
@@ -82,14 +82,6 @@ const onDeleteDeductionType = async (id: string) => {
                     size="md"
                     color="primary"
                     @click="openModalDeductionType()"
-                />
-            </div>
-
-            <div class="max-w-md">
-                <UInput 
-                    icon="i-lucide-search" 
-                    placeholder="Rechercher une déduction..." 
-                    size="md"
                 />
             </div>
 
@@ -185,6 +177,6 @@ const onDeleteDeductionType = async (id: string) => {
                 />
             </div>
         </div>
-    </UCard>
+    </UiCard>
 
 </template>

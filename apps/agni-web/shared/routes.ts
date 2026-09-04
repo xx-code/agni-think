@@ -245,6 +245,11 @@ export const API_ROUTES = {
             apiPath: '/categories/:id',
             method: 'PUT'
         },
+        ARCHIVE_CATEGORY: {
+            serverPath: '/api/categories/:id/archive',
+            apiPath: '/categories/:id/archive',
+            method: 'PUT'
+        },
         DELETE_CATEGORY: {
             serverPath: '/api/categories/:id',
             apiPath: '/categories/:id',

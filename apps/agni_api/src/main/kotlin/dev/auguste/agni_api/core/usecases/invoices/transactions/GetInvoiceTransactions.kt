@@ -124,7 +124,12 @@ class GetInvoiceTransactions(
 
         val getCategory = { id: UUID ->
             categories.find { it.id == id }?.let {
-                TransactionCategoryOutput(it.id, it.title, it.icon, it.color)
+                TransactionCategoryOutput(
+                    it.id,
+                    it.title + if (it.isArchived) " (Archiver)" else "",
+                    it.icon,
+                    it.color
+                )
             } ?:TransactionCategoryOutput(UUID.randomUUID(), "", "", "")
         }
 

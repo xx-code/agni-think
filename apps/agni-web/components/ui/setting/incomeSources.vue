@@ -96,7 +96,7 @@ const onDeleteIncomeSource = async (id: string) => {
 </script>
 
 <template>
-    <UCard>
+    <UiCard>
         <div class="space-y-6">
             <div class="flex items-end justify-between">
                 <div>
@@ -109,14 +109,6 @@ const onDeleteIncomeSource = async (id: string) => {
                     size="md"
                     color="primary"
                     @click="openModalIncomeSource()"
-                />
-            </div>
-
-            <div class="max-w-md">
-                <UInput 
-                    icon="i-lucide-search" 
-                    placeholder="Rechercher une source..." 
-                    size="md"
                 />
             </div>
 
@@ -241,5 +233,5 @@ const onDeleteIncomeSource = async (id: string) => {
                 />
             </div>
         </div>
-    </UCard>
+    </UiCard>
 </template>

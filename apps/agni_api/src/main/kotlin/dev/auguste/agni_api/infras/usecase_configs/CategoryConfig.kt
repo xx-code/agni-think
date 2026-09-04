@@ -1,8 +1,10 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
+import dev.auguste.agni_api.core.adapters.IChecker
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Category
 import dev.auguste.agni_api.core.usecases.CreatedOutput
+import dev.auguste.agni_api.core.usecases.DeleteOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.categories.CreateCategory
 import dev.auguste.agni_api.core.usecases.categories.DeleteCategory
@@ -33,10 +35,12 @@ class CategoryConfig {
 
     @Bean
     fun deleteCategory(
-        categoryRepository: IRepository<Category>
-    ): IUseCase<DeleteCategoryInput, Unit> {
+        categoryRepository: IRepository<Category>,
+        checker: IChecker<Category>
+    ): IUseCase<DeleteCategoryInput, DeleteOutput> {
         return DeleteCategory(
-            categoryRepo = categoryRepository
+            categoryRepo = categoryRepository,
+             checker
         )
     }
 

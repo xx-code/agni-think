@@ -92,7 +92,7 @@ abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
             pageable = PageRequest.of(pageIndex, query.limit, sort)
         }
 
-        if (queryExtend != null) {
+        if (queryExtend != null && queryExtend.getConditions().isNotEmpty()) {
             val results = queryAdapter.toSpecification(queryExtend, modelMapper, query)
 
             return RepoList(

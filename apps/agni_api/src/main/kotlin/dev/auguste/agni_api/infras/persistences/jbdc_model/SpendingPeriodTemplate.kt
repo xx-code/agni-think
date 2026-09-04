@@ -52,7 +52,7 @@ class JdbcSpendingPeriodTemplateMapper(
         } ?: emptySet()
 
         val entity = SpendingPeriodTemplate(
-            id = model.id,
+            id = model.spendingPeriodTemplateId,
             startDate = model.startDate,
             recurrence = SchedulerRecurrence.fromMap(recurrenceJson),
             isActive = model.isActive,
