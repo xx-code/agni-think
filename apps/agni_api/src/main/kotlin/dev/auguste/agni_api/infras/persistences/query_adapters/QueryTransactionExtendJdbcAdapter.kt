@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.infras.persistences.query_adapters
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryTransactionExtend
@@ -67,17 +68,13 @@ class QueryTransactionExtendJdbcAdapter(
     override fun getRawMapper(): RowMapper<JdbcTransactionModel> {
         return RowMapper { rs, _ ->
             JdbcTransactionModel(
-                id = rs.getObject("record_id", UUID::class.java),
-                invoiceId = rs.getObject("transaction_id" , UUID::class.java),
-                amount = rs.getDouble("money_amount"),
+                recordId = rs.getObject("record_id", UUID::class.java),
+                transactionId = rs.getObject("transaction_id" , UUID::class.java),
+                moneyAmount = rs.getDouble("money_amount"),
                 categoryId = rs.getObject("category_id", UUID::class.java),
                 description = rs.getString("description"),
-                tagIds = rs.getString("tag_ids")?.let {
-                    objectMapper.readValue(it, Array<String>::class.java).map { id -> UUID.fromString(id) }.toSet()
-                } ?: emptySet(),
-                budgetIds = rs.getString("budget_ids")?.let {
-                    objectMapper.readValue(it, Array<String>::class.java).map { id -> UUID.fromString(id) }.toSet()
-                } ?: emptySet()
+                tagIds = rs.getString("tag_ids"),
+                budgetIds = rs.getString("budget_ids")
             )
         }
     }

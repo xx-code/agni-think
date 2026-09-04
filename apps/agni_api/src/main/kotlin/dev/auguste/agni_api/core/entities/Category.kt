@@ -8,7 +8,8 @@ class Category(
     title: String,
     icon: String,
     color: String,
-    isSystem: Boolean = false
+    isSystem: Boolean = false,
+    isArchived: Boolean = false
 ): Entity(id = id) {
     var title: String by Delegates.observable(title) { prop, old, new ->
         if (old != new)
@@ -29,4 +30,6 @@ class Category(
         if (old != new)
             this.markHasChanged()
     }
+
+    var isArchived: Boolean by cleanObservable(isArchived, this)
 }

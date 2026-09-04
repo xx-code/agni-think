@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
+import java.time.OffsetDateTime
 import java.util.UUID
 
 @Component
@@ -39,11 +40,14 @@ class QueryCategoryExtendJdbcAdapter(
     override fun getRawMapper(): RowMapper<JdbcCategoryModel> {
         return RowMapper { rs, _ ->
             JdbcCategoryModel(
-                id = rs.getObject("category_id", UUID::class.java),
-                name = rs.getString("title"),
+                categoryId = rs.getObject("category_id", UUID::class.java),
+                title = rs.getString("title"),
                 color = rs.getString("color"),
                 icon = rs.getString("icon_id"),
                 isSystem = rs.getBoolean("is_system"),
+                isArchive = rs.getBoolean("is_archive"),
+                createdAt = rs.getObject("created_at", OffsetDateTime::class.java).toLocalDateTime(),
+                updatedAt = rs.getObject("updated_at", OffsetDateTime::class.java).toLocalDateTime(),
             )
         }
     }

@@ -31,9 +31,9 @@ abstract class Entity {
         this.updatedAt = LocalDateTime.now()
     }
 
-    fun initDate(startDate: LocalDateTime, endDate: LocalDateTime) {
-        createdAt = startDate
-        updatedAt = endDate
+    fun initDate(createDate: LocalDateTime, updateDate: LocalDateTime) {
+        createdAt = createDate
+        updatedAt = updateDate
     }
 }
 

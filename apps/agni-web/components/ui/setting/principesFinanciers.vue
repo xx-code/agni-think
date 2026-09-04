@@ -87,7 +87,7 @@ const onDeletePrinciple = async (id: string) => {
 </script>
 
 <template>
-    <UCard>
+    <UiCard>
         <div class="space-y-6">
             <div class="flex items-end justify-between">
                 <div>
@@ -100,14 +100,6 @@ const onDeletePrinciple = async (id: string) => {
                     size="md"
                     color="primary"
                     @click="openModalFinancePrinciple()"
-                />
-            </div>
-
-            <div class="max-w-md">
-                <UInput 
-                    icon="i-lucide-search" 
-                    placeholder="Rechercher un principe..." 
-                    size="md"
                 />
             </div>
 
@@ -218,5 +210,5 @@ const onDeletePrinciple = async (id: string) => {
                 />
             </div>
         </div>
-    </UCard>
+    </UiCard>
 </template>

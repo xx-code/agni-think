@@ -7,5 +7,6 @@ data class GetCategoryOutput(
     val title: String,
     val icon: String,
     val color: String,
+    val isArchive: Boolean,
     val isSystem: Boolean?
 )

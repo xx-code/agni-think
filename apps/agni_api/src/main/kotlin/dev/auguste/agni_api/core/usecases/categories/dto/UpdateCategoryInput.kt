@@ -4,7 +4,8 @@ import java.util.UUID
 
 data class UpdateCategoryInput(
     val id: UUID,
-    val title: String?,
-    val icon: String?,
-    val color: String?
+    val title: String? = null,
+    val icon: String? = null,
+    val color: String? = null,
+    val isArchived: Boolean? = null
 )

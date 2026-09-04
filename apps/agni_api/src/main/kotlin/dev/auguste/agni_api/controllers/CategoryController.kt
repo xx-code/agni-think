@@ -1,11 +1,13 @@
 package dev.auguste.agni_api.controllers
 
+import dev.auguste.agni_api.controllers.models.ApiArchiveCategoryModel
 import dev.auguste.agni_api.controllers.models.ApiCreateCategoryModel
 import dev.auguste.agni_api.controllers.models.ApiUpdateCategoryModel
 import dev.auguste.agni_api.controllers.models.mapApiCreateCategoryModel
 import dev.auguste.agni_api.controllers.models.mapApiUpdateCategoryModel
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.usecases.CreatedOutput
+import dev.auguste.agni_api.core.usecases.DeleteOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.categories.dto.CreateCategoryInput
 import dev.auguste.agni_api.core.usecases.categories.dto.DeleteCategoryInput
@@ -33,7 +35,7 @@ class CategoryController(
     private val updateCategoryUseCase: IUseCase<UpdateCategoryInput, Unit>,
     private val getCategoryUseCase: IUseCase<UUID, GetCategoryOutput>,
     private val getAllCategoryUseCase: IUseCase<GetAllCategoryInput, ListOutput<GetCategoryOutput>>,
-    private val deleteCategoryUseCase: IUseCase<DeleteCategoryInput, Unit>
+    private val deleteCategoryUseCase: IUseCase<DeleteCategoryInput, DeleteOutput>
 ) {
 
     @PostMapping
@@ -50,6 +52,17 @@ class CategoryController(
         ))
     }
 
+
+    @PutMapping("/{id}/archive")
+    fun archiveCategory(@PathVariable id: UUID, @Valid @RequestBody request: ApiArchiveCategoryModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateCategoryUseCase.execAsync(
+            input = UpdateCategoryInput(
+                id = id,
+                isArchived = request.archive
+            )
+        ))
+    }
+
     @GetMapping("/{id}")
     fun getCategory(@PathVariable id: UUID): ResponseEntity<GetCategoryOutput> {
         return ResponseEntity.ok(getCategoryUseCase.execAsync(id))
@@ -63,8 +76,8 @@ class CategoryController(
         )))
     }
 
-    @DeleteMapping
-    fun deleteCategory(@RequestParam id: UUID): ResponseEntity<Unit> {
+    @DeleteMapping("/{id}")
+    fun deleteCategory(@PathVariable id: UUID): ResponseEntity<DeleteOutput> {
         return ResponseEntity.ok(deleteCategoryUseCase.execAsync(
             DeleteCategoryInput(id)
         ))

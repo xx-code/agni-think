@@ -134,7 +134,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <UCard>
+    <UiCard>
         <div class="space-y-6">
             <div class="flex items-end justify-between">
                 <div>
@@ -167,5 +167,5 @@ onMounted(async () => {
                 :data="data"
             />
         </div>
-    </UCard>
+    </UiCard>
 </template>

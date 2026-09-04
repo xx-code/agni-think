@@ -54,7 +54,7 @@ async function onSubmitTag(value: EditTagType, oldValue?: TagType) {
 </script>
 
 <template>
-    <UCard>
+    <UiCard>
         <div class="space-y-6">
             <div class="flex items-end justify-between">
                 <div>
@@ -66,14 +66,6 @@ async function onSubmitTag(value: EditTagType, oldValue?: TagType) {
                     icon="i-lucide-plus" 
                     size="md"
                     @click="openModalTag()"
-                />
-            </div>
-
-            <div class="max-w-md">
-                <UInput 
-                    icon="i-lucide-search" 
-                    placeholder="Rechercher un tag..." 
-                    size="md"
                 />
             </div>
 
@@ -103,5 +95,5 @@ async function onSubmitTag(value: EditTagType, oldValue?: TagType) {
                 </div>
             </div>
         </div>
-    </UCard>
+    </UiCard>
 </template>
