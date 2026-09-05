@@ -3,7 +3,6 @@ import { ModalMatchBankAccount, UButton, USwitch } from '#components';
 import { usePlaidLink, type PlaidLinkOnSuccessMetadata, type PlaidLinkOptions } from '@jcss/vue-plaid-link';
 import type { TableColumn } from '@nuxt/ui';
 import { listBankRegistersResponseToListBankRegisters } from '~/mappers/bankRegister';
-import type { ListResponse } from '~/types/api';
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
 
@@ -18,7 +17,10 @@ const overlay = useOverlay()
 const modalMatchBank = overlay.create(ModalMatchBankAccount)
 
 const { data, refresh } = useAsyncData("banking+all+register", async () => {
-    const res = await ApiLinkBuilder.route(API_ROUTES.BANK_REGISTERS.GET_BANK_REGISTERS).query({ offset: 0, limit:1, queryAll: true }).mapper(listBankRegistersResponseToListBankRegisters).execute()
+    const res = await ApiLinkBuilder
+            .route(API_ROUTES.BANK_REGISTERS.GET_BANK_REGISTERS)
+            .query({ offset: 0, limit:1, queryAll: true })
+            .mapper(listBankRegistersResponseToListBankRegisters).execute()
 
     return res.items.map(i => ({
         id: i.id,
@@ -89,6 +91,7 @@ const columns: TableColumn<BankRow>[] = [
     },
     {
         accessorKey: 'active',
+        header: 'En Activite',
         cell: ({ row }) => {
             return h('div', { }, [
                 h(USwitch, { disabled: true, defaultValue: row.original.active })
@@ -97,10 +100,11 @@ const columns: TableColumn<BankRow>[] = [
     }, 
     {
         accessorKey: 'numAccount',
-        header: 'Number Account'
+        header: 'Nombre de compte'
     },
     {
         accessorKey: 'id',
+        header: '',
         cell: ({ row }) => {
             return h('div', {}, [
                 h(UButton, { onClick: forceInitTransaction }, "Force Initializaiton transactions")

@@ -1,69 +1,37 @@
 <script setup lang="ts">
-import { ModalEditDeductionType } from '#components';
-import { deductionResponseToDeduction, listDeductionsResponseToListDeductions } from '~/mappers/deduction';
+import { useDeductionModal } from '~/composables/modal/deduction';
+import useConfirmModal from '~/composables/modal/useConfirmModal';
+import { listDeductionsResponseToListDeductions } from '~/mappers/deduction';
 import { API_ROUTES } from '~/shared/routes';
-import type { CreatedRequest, ListResponse } from '~/types/api';
+import type { ListResponse } from '~/types/api';
 import type { GetDeductionResponse } from '~/types/api/deduction';
-import type { DeductionType, EditDeduction } from '~/types/ui/deduction';
-
 
 const overlay = useOverlay()
 const toast = useToast()
-const modalEditDeductionType = overlay.create(ModalEditDeductionType);
-const { data: deductionTypes, error: errorDeductionType, refresh: refreshDeductionTypes } = useAsyncData('settings+deduction-types', async () => {
+const { open } = useDeductionModal(overlay)
+const { open: openConfirm } = useConfirmModal(overlay)
+const { data: deductionTypes, refresh: refreshDeductionTypes } = useAsyncData('settings+deduction-types', async () => {
     const res = await ApiLinkBuilder.route<ListResponse<GetDeductionResponse>>(API_ROUTES.DEDUCTIONS.GET_DEDUCTIONS).query({ queryAll: true, limit: 0, offset: 0}).mapper(listDeductionsResponseToListDeductions).execute()
 
     return res.items
 })
 
-async function onSubmitDeductionType(value: EditDeduction, oldValue?: DeductionType) {
-    try {
-        if(oldValue) {
-            await ApiLinkBuilder.route(API_ROUTES.DEDUCTIONS.UPDATE_DEDUCTION).params({id: oldValue.id}).body({
-                description: value.description,
-                title: value.title
-            }).execute();
-        } else {
-            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.DEDUCTIONS.CREATE_DEDUCTION).body({
-                title: value.title,
-                description: value.description,
-                mode: value.mode,
-                base: value.base
-            }).execute();
+const onDeleteDeductionType = async (id: string, title: string) => {
+    openConfirm({
+        title: `Voulez vous supprimer ${title}?`,
+        description: ''
+    }, async () => {
+        try {
+            await ApiLinkBuilder.route(API_ROUTES.DEDUCTIONS.DELETE_DEDUCTION).params({id}).execute()
+            refreshDeductionTypes()
+        } catch(err) {
+            toast.add({
+                title: "Error delete deduction type",
+                description:`Error while delete deduction type`, 
+                color: 'error'
+            });       
         }
-        await refreshDeductionTypes();
-    } catch(err) {
-        toast.add({
-            title: "Error Deduction type",
-            description:`Error while submit deduction type`, 
-            color: 'error'
-        });
-    }
-}
-
-const openModalDeductionType = async (id?: string) => {  
-    let type:DeductionType|undefined=undefined;
-    if (id) {
-        type = await ApiLinkBuilder.route<GetDeductionResponse>(API_ROUTES.DEDUCTIONS.GET_DEDUCTION).params({id}).mapper(deductionResponseToDeduction).execute(); 
-    }
-
-    modalEditDeductionType.open({
-        deductionType: type, 
-        onSubmit: onSubmitDeductionType
-    });
-}
-
-const onDeleteDeductionType = async (id: string) => {
-    try {
-        await ApiLinkBuilder.route(API_ROUTES.DEDUCTIONS.DELETE_DEDUCTION).params({id}).execute()
-        refreshDeductionTypes()
-    } catch(err) {
-        toast.add({
-            title: "Error delete deduction type",
-            description:`Error while delete deduction type`, 
-            color: 'error'
-        });       
-    }
+    }) 
 }
 
 </script>
@@ -81,7 +49,7 @@ const onDeleteDeductionType = async (id: string) => {
                     icon="i-lucide-plus" 
                     size="md"
                     color="primary"
-                    @click="openModalDeductionType()"
+                    @click="open(refreshDeductionTypes)"
                 />
             </div>
 
@@ -148,14 +116,14 @@ const onDeleteDeductionType = async (id: string) => {
                                         color="neutral" 
                                         icon="i-lucide-pencil" 
                                         size="xs"
-                                        @click="openModalDeductionType(deduction.id)" 
+                                        @click="open(refreshDeductionTypes, deduction.id)" 
                                     />
                                     <UButton 
                                         variant="ghost" 
                                         color="error" 
                                         icon="i-lucide-trash-2" 
                                         size="xs" 
-                                        @click="onDeleteDeductionType(deduction.id)"
+                                        @click="onDeleteDeductionType(deduction.id, deduction.title)"
                                     />
                                 </div>
                             </td>
@@ -173,7 +141,7 @@ const onDeleteDeductionType = async (id: string) => {
                     label="Créer la première déduction" 
                     size="sm" 
                     class="mt-3"
-                    @click="openModalDeductionType()"
+                    @click="open(refreshDeductionTypes)"
                 />
             </div>
         </div>
