@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { UKbd } from '#components';
 import { useTagModal } from '~/composables/modal/tag';
 import useConfirmModal from '~/composables/modal/useConfirmModal';
 import { deletedResponseToDeleted } from '~/mappers';

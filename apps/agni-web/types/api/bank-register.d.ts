@@ -19,7 +19,7 @@ export type UpdateBankRegisterRequest = {
 export type GetBankRegisterResponse = {
     bankRegisterId: string
     title: string
-    isActive: boolean
+    active: boolean
     accounts: {
         accountId: string    
         bankAccountId: string

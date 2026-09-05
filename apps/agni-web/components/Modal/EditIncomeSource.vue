@@ -4,7 +4,7 @@ import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date';
 import type { EditIncomeSourceType, IncomeSourceType } from '~/types/ui/incomeSource';
 import type { GetInternalTypeResponse } from '~/types/api/internal';
-import type { ListResponse } from '~/types/api';
+import type { CreatedRequest, ListResponse } from '~/types/api';
 import type { GetAccountResponse } from '~/types/api/account';
 import { listAccountsToListAccount } from '~/mappers/account';
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
@@ -15,9 +15,10 @@ const { incomeSource } = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (e: 'submit', value: EditIncomeSourceType, oldValue?: IncomeSourceType): void    
     (e: 'close', close: boolean): void
 }>();
+
+const toast = useToast()
 
 const { data: utils } = useAsyncData('principle-types', async () => {
     const res = await Promise.all([
@@ -93,20 +94,43 @@ const form = reactive<Partial<EditIncomeSourceType>>({
 });
 
 async function onSubmit(event: FormSubmitEvent<EditIncomeSourceType>) {
-    const data = event.data;
-    emit('submit', {
-        title: data.title, 
-        type: data.type,
-        otherRate: data.otherRate,
-        taxRate: data.taxRate,
-        payFrequencyType: data.payFrequencyType,
-        reliabilityLevel: data.reliabilityLevel,
-        startDate: startDate.value,
-        annualGrossAmount: data.annualGrossAmount,
-        endDate: endDate.value,
-        linkedAccountId: data.linkedAccountId
-    }, incomeSource);
+    const data = event.data
 
+    try {
+        if (incomeSource) {
+            await ApiLinkBuilder.route(API_ROUTES.INCOME_SOURCES.UPDATE_INCOME_SOURCE).params({id: incomeSource.id}).body({
+                title: data.title,
+                annualGrossAmount: data.annualGrossAmount,
+                endDate: data.endDate?.toDate(getLocalTimeZone()).toISOString(),
+                linkedAccountId: data.linkedAccountId,
+                otherRate: data.otherRate,
+                payFrequencyType: data.payFrequencyType,
+                reliabilityLevel: data.reliabilityLevel,
+                startDate: data.startDate.toDate(getLocalTimeZone()).toISOString(),
+                taxRate: data.taxRate,
+                type: data.type
+            }).execute()
+        } else {
+            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.INCOME_SOURCES.CREATE_INCOME_SOURCE).body({
+                title: data.title,
+                annualGrossAmount: data.annualGrossAmount,
+                endDate: data.endDate?.toDate(getLocalTimeZone()).toISOString(),
+                linkedAccountId: data.linkedAccountId,
+                otherRate: data.otherRate,
+                payFrequencyType: data.payFrequencyType,
+                reliabilityLevel: data.reliabilityLevel,
+                startDate: data.startDate.toDate(getLocalTimeZone()).toISOString(),
+                taxRate: data.taxRate,
+                type: data.type
+            }).execute()
+        }
+    } catch(err: any) {
+        toast.add({
+            title: "Error income source",
+            description: err?.message, 
+            color: 'error'
+        });
+    }
 
     emit('close', true)
 }

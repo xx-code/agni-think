@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import type { NuxtError } from '#app';
-import { ModalEditFinancePrinciple } from '#components';
+import { useFinancePrincipeModal } from '~/composables/modal/principesFinancier';
 import { listFinancePrinciplesResponseToListFinancePrinciples, financePrincipleResponseToFinancePrinciple } from '~/mappers/financePrinciple';
 import { API_ROUTES } from '~/shared/routes';
-import type { CreatedRequest, ListResponse } from '~/types/api';
+import type { ListResponse } from '~/types/api';
 import type { GetFinancePrincipleResponse } from '~/types/api/financePrinciple';
 import type { GetInternalTypeResponse } from '~/types/api/internal';
-import type { FinancePrincipleType, EditFinancePrincipleType } from '~/types/ui/financePrinciple';
 
 const toast = useToast()
 const overlay = useOverlay()
-const modalEditFinancePrinciple = overlay.create(ModalEditFinancePrinciple)
+const { open } = useFinancePrincipeModal(overlay)
 
-const { data, error: errorFinancePrinciples, refresh: refreshPrinciples } = useAsyncData('finance-principles+all+setting', async () => {
+const { data, refresh: refreshPrinciples } = useAsyncData('finance-principles+all+setting', async () => {
 
     const [ principleTypes, financePrinciples ] = await Promise.all([
         ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.PRINCIPLE_TYPE).execute(),
@@ -26,50 +24,6 @@ const { data, error: errorFinancePrinciples, refresh: refreshPrinciples } = useA
         financePrinciples: financePrinciples.items
     }
 })
-
-const openModalFinancePrinciple = async (id?: string) => {  
-    let principe:FinancePrincipleType|undefined=undefined;
-    if (id) {
-        principe = await ApiLinkBuilder.route<GetFinancePrincipleResponse>(API_ROUTES.FINANCE_PRINCIPLES.GET_FINANCE_PRINCIPLE).params({id}).mapper(financePrincipleResponseToFinancePrinciple).execute(); 
-    }
-
-    modalEditFinancePrinciple.open({
-        financePrinciple: principe,
-        onSubmit: onSubmitFinancePrinciple
-    });
-}
-
-
-async function onSubmitFinancePrinciple(value: EditFinancePrincipleType, oldValue?: FinancePrincipleType) {
-    try {
-        if (oldValue) {
-            await ApiLinkBuilder.route(API_ROUTES.FINANCE_PRINCIPLES.UPDATE_FINANCE_PRINCIPLE).params({id: oldValue.id}).body({
-                name: value.name,
-                strictness: value.strictness,
-                targetType: value.targetType,
-                description: value.description,             
-                logicRules: value.logicRules
-            }).execute()
-        } else {
-            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.FINANCE_PRINCIPLES.CREATE_FINANCE_PRINCIPLE).body({
-                name: value.name,
-                strictness: value.strictness,
-                targetType: value.targetType,
-                description: value.description,             
-                logicRules: value.logicRules
-            }).execute()
-        }
-
-        await refreshPrinciples()
-    } catch(err) {
-        const nuxtError = err as NuxtError
-        toast.add({
-            title: "Error finance principle",
-            // description: nuxtError.data, 
-            color: 'error'
-        });
-    }
-}
 
 const onDeletePrinciple = async (id: string) => {
     try {
@@ -99,7 +53,7 @@ const onDeletePrinciple = async (id: string) => {
                     icon="i-lucide-plus" 
                     size="md"
                     color="primary"
-                    @click="openModalFinancePrinciple()"
+                    @click="open(refreshPrinciples)"
                 />
             </div>
 
@@ -181,7 +135,7 @@ const onDeletePrinciple = async (id: string) => {
                                         color="neutral" 
                                         icon="i-lucide-pencil" 
                                         size="xs"
-                                        @click="openModalFinancePrinciple(principle.id)" 
+                                        @click="open(refreshPrinciples, principle.id)" 
                                     />
                                     <UButton 
                                         variant="ghost" 
@@ -206,7 +160,7 @@ const onDeletePrinciple = async (id: string) => {
                     label="Créer le premier principe" 
                     size="sm" 
                     class="mt-3"
-                    @click="openModalFinancePrinciple()"
+                    @click="open(refreshPrinciples)"
                 />
             </div>
         </div>

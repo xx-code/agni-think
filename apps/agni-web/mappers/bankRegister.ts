@@ -4,14 +4,9 @@ import type { BankRegisterType } from "~/types/ui/bank-register";
 
 export function bankRegisterResponseToBankRegister(data: GetBankRegisterResponse): BankRegisterType {
     return {
+        ...data,
         id: data.bankRegisterId,
-        title: data.title,
-        active: data.isActive,
-        accounts: data.accounts.map(i => ({
-            accountId: i.accountId,
-            bankAccountId: i.bankAccountId,
-            accountName: i.accountName
-        }))
+        isActive: data.active
     }
 }
 

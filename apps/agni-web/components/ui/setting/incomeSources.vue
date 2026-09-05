@@ -1,19 +1,16 @@
 <script setup lang="ts">
-import type { NuxtError } from '#app'
-import { ModalEditIncomeSource } from '#components'
-import { getLocalTimeZone } from '@internationalized/date'
-import { incomeSourceResponseToIncomeSource, listIncomeSourcesResponseToListIncomeSources } from '~/mappers/incomeSource'
+import { useIncomeSourceModel } from '~/composables/modal/incomeSource'
+import { listIncomeSourcesResponseToListIncomeSources } from '~/mappers/incomeSource'
 import { API_ROUTES } from '~/shared/routes'
-import type { ListResponse, CreatedRequest } from '~/types/api'
+import type { ListResponse } from '~/types/api'
 import type { GetIncomeSourceResponse } from '~/types/api/incomeSource'
 import type { GetInternalTypeResponse } from '~/types/api/internal'
-import type { EditIncomeSourceType, IncomeSourceType } from '~/types/ui/incomeSource'
 
 const overlay = useOverlay()
 const toast = useToast()
-const modalEditIncomeSource = overlay.create(ModalEditIncomeSource) 
+const { open } = useIncomeSourceModel(overlay)
 
-const { data, error: errorIncomeSources, refresh: refreshIncomeSources } = useAsyncData('income-sources+all+setting', async () => {
+const { data, refresh: refreshIncomeSources } = useAsyncData('income-sources+all+setting', async () => {
     const [ incomeSourceFrequencyTypes, incomeSourceTypes,  incomeSources] = await Promise.all([
         ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.INCOME_SOURCE_FREQUENCY_TYPE).execute(),
         ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.INCOME_SOURCE_TYPE).execute(),
@@ -26,60 +23,6 @@ const { data, error: errorIncomeSources, refresh: refreshIncomeSources } = useAs
         incomeSources: incomeSources.items
     }
 })
-
-const openModalIncomeSource = async (id?: string) => {  
-    let source:IncomeSourceType|undefined=undefined;
-    if (id) {
-        source = await ApiLinkBuilder.route<GetIncomeSourceResponse>(API_ROUTES.INCOME_SOURCES.GET_INCOME_SOURCE).params({id}).mapper(incomeSourceResponseToIncomeSource).execute(); 
-    }
-
-    modalEditIncomeSource.open({
-        incomeSource: source, 
-        onSubmit: onSubmitIncomeSource
-    });
-}
-
-
-
-async function onSubmitIncomeSource(value: EditIncomeSourceType, oldValue?: IncomeSourceType) {
-    try {
-        if (oldValue) {
-            await ApiLinkBuilder.route(API_ROUTES.INCOME_SOURCES.UPDATE_INCOME_SOURCE).params({id: oldValue.id}).body({
-                title: value.title,
-                annualGrossAmount: value.annualGrossAmount,
-                endDate: value.endDate?.toDate(getLocalTimeZone()).toISOString(),
-                linkedAccountId: value.linkedAccountId,
-                otherRate: value.otherRate,
-                payFrequencyType: value.payFrequencyType,
-                reliabilityLevel: value.reliabilityLevel,
-                startDate: value.startDate.toDate(getLocalTimeZone()).toISOString(),
-                taxRate: value.taxRate,
-                type: value.type
-            }).execute()
-        } else {
-            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.INCOME_SOURCES.CREATE_INCOME_SOURCE).body({
-                title: value.title,
-                annualGrossAmount: value.annualGrossAmount,
-                endDate: value.endDate?.toDate(getLocalTimeZone()).toISOString(),
-                linkedAccountId: value.linkedAccountId,
-                otherRate: value.otherRate,
-                payFrequencyType: value.payFrequencyType,
-                reliabilityLevel: value.reliabilityLevel,
-                startDate: value.startDate.toDate(getLocalTimeZone()).toISOString(),
-                taxRate: value.taxRate,
-                type: value.type
-            }).execute()
-        }
-        await refreshIncomeSources()
-    } catch(err) {
-        const nuxtError = err as NuxtError
-        toast.add({
-            title: "Error income source",
-            // description: nuxtError.data, 
-            color: 'error'
-        });
-    }
-}
 
 const onDeleteIncomeSource = async (id: string) => {
     try {
@@ -108,7 +51,7 @@ const onDeleteIncomeSource = async (id: string) => {
                     icon="i-lucide-plus" 
                     size="md"
                     color="primary"
-                    @click="openModalIncomeSource()"
+                    @click="open(refreshIncomeSources)"
                 />
             </div>
 
@@ -204,7 +147,7 @@ const onDeleteIncomeSource = async (id: string) => {
                                         color="neutral" 
                                         icon="i-lucide-pencil" 
                                         size="xs"
-                                        @click="openModalIncomeSource(source.id)" 
+                                        @click="open(refreshIncomeSources, source.id)" 
                                     />
                                     <UButton 
                                         variant="ghost" 
@@ -229,7 +172,7 @@ const onDeleteIncomeSource = async (id: string) => {
                     label="Créer la première source" 
                     size="sm" 
                     class="mt-3"
-                    @click="openModalIncomeSource()"
+                    @click="open(refreshIncomeSources)"
                 />
             </div>
         </div>
