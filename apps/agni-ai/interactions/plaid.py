@@ -200,7 +200,7 @@ def batch_fetch_transactions(bank_register_id: str, access_code: str, start_date
                 categoryDetail=(trans.get("personal_finance_category") or {}).get("primary", "UNCATEGORIZED"),
                 isTreated=True
             ) 
-            for trans in transactions
+            for trans in filter(lambda x: x.get("account_id") != None, transactions)
         ]
 
         res = create_external_transactions(external_transaction_fmt)

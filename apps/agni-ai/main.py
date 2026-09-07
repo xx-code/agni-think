@@ -227,7 +227,8 @@ def init_transactions(start_date: date | None = None):
             newTransactionIds += batch_fetch_transactions(
                 bank_register_id=bank.id, 
                 access_code=bank.accessCode, 
-                start_date=start_date, end_date=date.today())
+                start_date=start_date, end_date=date.today()
+            )
     
     if len(newTransactionIds) == 0:
         return []

@@ -14,14 +14,21 @@ class CreateBankRegister(
     private val accountRepo: IRepository<Account>,
 ): IUseCase<CreateBankRegisterInput, CreatedOutput> {
     override fun execAsync(input: CreateBankRegisterInput): CreatedOutput {
-        val accountIds = input.accounts.map { it.accountId }.toSet()
+        val accountIds = input.accounts.mapNotNull { it.accountId }.toSet()
         val accounts = accountRepo.getManyByIds(accountIds)
-        if (accounts.size != input.accounts.size)
+        if (accountIds.isNotEmpty() && accounts.size != input.accounts.size)
                 throw DomainException.NotFound.SomeAccounts(accountIds)
         val newBankRegister = BankRegister(
+            institutionId = input.institutionId,
             title = input.title,
             accessCode = input.accessCode,
-            accountsLinked = input.accounts.map { AccountLinked(it.accountId, it.bankAccountId) }.toSet(),
+            accountsLinked = input.accounts.map {
+                AccountLinked(
+                    it.accountId,
+                    it.bankAccountId,
+                    it.bankName
+                )
+            }.toSet(),
         )
 
         bankRegisterRepo.create(newBankRegister)

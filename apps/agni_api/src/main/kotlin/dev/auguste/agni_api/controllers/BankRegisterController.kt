@@ -10,6 +10,7 @@ import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.bank_registers.dto.CreateBankRegisterInput
+import dev.auguste.agni_api.core.usecases.bank_registers.dto.GetBankRegisterByAccessCodeInput
 import dev.auguste.agni_api.core.usecases.bank_registers.dto.GetBankRegisterOutput
 import dev.auguste.agni_api.core.usecases.bank_registers.dto.UpdateBankRegisterInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -28,7 +29,9 @@ import java.util.UUID
 class BankRegisterController(
     private val createBankRegister: IUseCase<CreateBankRegisterInput, CreatedOutput>,
     private val updateBankRegister: IUseCase<UpdateBankRegisterInput, Unit>,
-    private val getAllBankRegisters: IUseCase<QueryFilter, ListOutput<GetBankRegisterOutput>>) {
+    private val getAllBankRegisters: IUseCase<QueryFilter, ListOutput<GetBankRegisterOutput>>,
+    private val getBankRegisterByAccess: IUseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput>
+    ) {
     @PostMapping
     fun createBankRegister(@RequestBody input: ApiCreateBankRegisterModel): ResponseEntity<CreatedOutput> {
         return ResponseEntity.ok(
@@ -58,6 +61,15 @@ class BankRegisterController(
                 items= result.items.map { mapBankRegisterToSecure(it) },
                 total=result.total
             )
+        )
+    }
+
+    @GetMapping("/institution/{institutionId}")
+    fun getBankRegisterByAccessCode(@PathVariable institutionId: String): ResponseEntity<GetBankRegisterOutput> {
+        return ResponseEntity.ok(
+            getBankRegisterByAccess.execAsync(GetBankRegisterByAccessCodeInput(
+                institutionId = institutionId
+            ))
         )
     }
 }

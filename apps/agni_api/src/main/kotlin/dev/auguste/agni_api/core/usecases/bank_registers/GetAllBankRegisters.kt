@@ -15,22 +15,28 @@ class GetAllBankRegisters(
 ): IUseCase<QueryFilter, ListOutput<GetBankRegisterOutput>> {
     override fun execAsync(input: QueryFilter): ListOutput<GetBankRegisterOutput> {
         val res = bankRegisterRepo.getAll(input)
-        val accounts = accountRepo.getManyByIds(res.items.flatMap { it.accountslinked.map { acc -> acc.accountId } }.toSet())
+        val accounts = accountRepo.getManyByIds(
+            res.items.flatMap {
+                it.accountslinked.filter{ acc -> acc.accountId != null
+            }.map { acc -> acc.accountId!! } }.toSet()
+        )
 
         return ListOutput(
             res.items.map {
                 GetBankRegisterOutput(
                     id = it.id,
+                    institutionId = it.institutionId,
                     title = it.title,
                     accessCode = it.accessCode,
                     cursor = it.cursor,
                     isActive = it.isActive,
                     accounts = it.accountslinked.map { accLink ->
-                        val accountName = accounts.first { acc -> acc.id == accLink.accountId }.title
+                        val accountName = accounts.find { acc -> acc.id == accLink.accountId }?.title
                         AccountLinkerOutput(
                             accountId =  accLink.accountId,
                             bankRegisterId = accLink.bankAccountId,
-                            accountName = accountName,
+                            accountName = accountName ?: "__NULL__",
+                            bankAccountName = accLink.bankName
                         )
                     }
                 )

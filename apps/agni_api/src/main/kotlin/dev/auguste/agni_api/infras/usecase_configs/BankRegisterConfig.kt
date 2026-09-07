@@ -9,9 +9,11 @@ import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.bank_registers.CreateBankRegister
 import dev.auguste.agni_api.core.usecases.bank_registers.DeleteBankRegister
 import dev.auguste.agni_api.core.usecases.bank_registers.GetAllBankRegisters
+import dev.auguste.agni_api.core.usecases.bank_registers.GetBankRegisterByAccess
 import dev.auguste.agni_api.core.usecases.bank_registers.UpdateBankRegister
 import dev.auguste.agni_api.core.usecases.bank_registers.dto.CreateBankRegisterInput
 import dev.auguste.agni_api.core.usecases.bank_registers.dto.DeleteBankRegisterInput
+import dev.auguste.agni_api.core.usecases.bank_registers.dto.GetBankRegisterByAccessCodeInput
 import dev.auguste.agni_api.core.usecases.bank_registers.dto.GetBankRegisterOutput
 import dev.auguste.agni_api.core.usecases.bank_registers.dto.UpdateBankRegisterInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
@@ -42,6 +44,17 @@ class BankRegisterConfig {
         accountRepo: IRepository<Account>
     ): IUseCase<QueryFilter, ListOutput<GetBankRegisterOutput>> {
         return GetAllBankRegisters(
+            bankRegisterRepo,
+            accountRepo
+        )
+    }
+
+    @Bean
+    fun getBankRegisterByAccessCode(
+        accountRepo: IRepository<Account>,
+        bankRegisterRepo: IRepository<BankRegister>
+    ): IUseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput> {
+        return GetBankRegisterByAccess(
             bankRegisterRepo,
             accountRepo
         )

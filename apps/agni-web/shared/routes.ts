@@ -189,6 +189,11 @@ export const API_ROUTES = {
             apiPath: '/bank-registers',
             method: 'GET'
         },
+        GET_BANK_REGISTER_ACCESS_CODE: {
+            serverPath: '/api/bank-registers/institution/:id',
+            apiPath: '/bank-registers/institution/:id',
+            method: 'GET'
+        },
         UPDATE_BANK_REGISTER: {
             serverPath: '/api/bank-registers/:id',
             apiPath: '/bank-registers/:id',

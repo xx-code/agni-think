@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ModalMatchBankAccount, UButton, USwitch } from '#components';
-import { usePlaidLink, type PlaidLinkOnSuccessMetadata, type PlaidLinkOptions } from '@jcss/vue-plaid-link';
+import { UButton, USwitch } from '#components';
+import { usePlaidLink } from '@jcss/vue-plaid-link';
 import type { TableColumn } from '@nuxt/ui';
 import { listBankRegistersResponseToListBankRegisters } from '~/mappers/bankRegister';
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
+import { useLinkAccountWithBankModal } from '~/composables/modal/bankLinker';
 
 type BankRow = {
     id: string
@@ -14,61 +15,26 @@ type BankRow = {
 }
 
 const overlay = useOverlay()
-const modalMatchBank = overlay.create(ModalMatchBankAccount)
+const { start, stop } = useLoading()
 
 const { data, refresh } = useAsyncData("banking+all+register", async () => {
     const res = await ApiLinkBuilder
-            .route(API_ROUTES.BANK_REGISTERS.GET_BANK_REGISTERS)
-            .query({ offset: 0, limit:1, queryAll: true })
-            .mapper(listBankRegistersResponseToListBankRegisters).execute()
+        .route(API_ROUTES.BANK_REGISTERS.GET_BANK_REGISTERS)
+        .query({ offset: 0, limit:1, queryAll: true })
+        .mapper(listBankRegistersResponseToListBankRegisters).execute()
 
     return res.items.map(i => ({
         id: i.id,
         name: i.title,
         active: i.active,
-        numAccount: i.accounts.length
+        numAccount: i.accounts.filter(i => i.isActive).length
     } satisfies BankRow))
 })
 
-const token = ref<string|null>(null)
-const createLink = async () => {
-    const res = await ApiLinkBuilder
-        .route<{ link_token: string }>(API_ROUTES.BANK.CREATE_TOKEN)
-        .execute()
-    //@ts-ignore
-    token.value = res.link_token
-}
+const { isReady, createLink, config } = useBankLinker(refresh)
+const { open: openBankModel } = useLinkAccountWithBankModal(overlay)
 
-const propsRegisterBank = ref<{
-    accessCode: string,
-    title: string,
-    bankAccounts: {id: string, name: string }[]
-}|undefined>()
-
-const config = computed(() => {
-  const config: PlaidLinkOptions = {
-    token: token.value,
-        onSuccess: async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
-            try {
-                const res = await ApiLinkBuilder
-                    .route<{ code: string }>(API_ROUTES.BANK.EXCHANGE_TOKEN)
-                    .body({ public_token: public_token })
-                    .execute()
-                propsRegisterBank.value = {
-                    accessCode: res.code,
-                    title: metadata.institution?.name ?? "",
-                    bankAccounts: metadata.accounts.map(i => ({id: i.id, name: i.name }))
-                }
-            } catch(err) {
-                console.log(err)
-            }
-        },
-  };
-  return config;
-})
-
-
-const { start, stop } = useLoading()
+const { open } = usePlaidLink(config)
 
 async function forceInitTransaction() {
     try {
@@ -100,39 +66,22 @@ const columns: TableColumn<BankRow>[] = [
     }, 
     {
         accessorKey: 'numAccount',
-        header: 'Nombre de compte'
+        header: 'Nombre de compte actif'
     },
     {
         accessorKey: 'id',
         header: '',
         cell: ({ row }) => {
-            return h('div', {}, [
+            return h('div', { class: 'flex items-center gap-2'}, [
+                h(UButton, { onClick: () => openBankModel(refresh) }, "Lien compte bancaire"),
                 h(UButton, { onClick: forceInitTransaction }, "Force Initializaiton transactions")
             ])
         }
     },
 ]
 
-const { open, ready } = usePlaidLink(config)
-
-async function openModelRegister() {
-    const props = propsRegisterBank.value
-    if (props) {
-        const instant = modalMatchBank.open({
-            accessCode: props.accessCode,
-            title: props.title,
-            bankAccounts: props.bankAccounts
-        })
-
-        await instant.result
-
-        propsRegisterBank.value = undefined
-        refresh()
-    }
-} 
-
-onMounted(async () => {
-    await createLink()
+onMounted(() => {
+    createLink()
 })
 
 </script>
@@ -148,19 +97,12 @@ onMounted(async () => {
 
                 <div class="flex items-center space-x-2">
                     <UButton 
+                        v-if="isReady"
                         label="Connect Bank" 
                         icon="i-lucide-plus" 
                         size="md"
                         color="primary"
                         @click="open"
-                    />
-                    <UButton 
-                        :disabled="propsRegisterBank === undefined"
-                        label="Register Bank" 
-                        icon="i-lucide-plus" 
-                        size="md"
-                        color="secondary"
-                        @click="openModelRegister"
                     />
                 </div>
                 

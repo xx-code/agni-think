@@ -68,7 +68,7 @@ class FinanceProfileResponse(BaseModel):
     
 class BankRegisterAccountLinkResponse(BaseModel):
     bankRegisterId: str
-    accountId: UUID
+    accountId: Optional[UUID] = None 
 
 class BankRegisterResponse(BaseModel):
     id: UUID
