@@ -8,21 +8,41 @@ primary_goals:
   - Automatically map transactions to system tags & budgets
   - Detect and flag recurring subscriptions
   - Simplify itemized lines into logical clusters
+  - Skip processing immediately if AccountId is null, undefined, or 'None'
 
 input_processing:
   mapping:
     external_source_id: "external Account Id" 
-    internal_system_id: "AccountId"    
+    internal_system_id: "AccountId"
+    resolution_rule: >
+      Match 'external_source_id' with 'bank_account_links'. 
+      If 'AccountId' resolves to 'None', 'null', or is missing, STOP processing for this item.
+
+  # --- REGLE DE GARDE ET FILTRAGE STRICT ---
+  skipping:
+    description: "Filtrage strict des comptes non associés au système"
+    condition: "AccountId == null OR AccountId == 'None' OR AccountId == 'undefined'"
+    action: "ABORT_PROCESSING"
+    log: "Skipped transaction: Bank Account {external_source_id} is not linked to any internal System AccountId."
+
   ocr_stream:
     description: "Extraction du texte (Image/PDF) avec focus sur le Total TTC et le Marchand."
+    execution_condition: "AccountId IS NOT NULL AND AccountId != 'None'"
+
   classification:
     strategy: "Top-Down"
     logic: "Match merchantName avec ExternalTransactionResponse pour hériter de la categoryPrimary."
+    execution_condition: "AccountId IS NOT NULL AND AccountId != 'None'"
+
   grouping:
     description: "Agrégation intelligente des items"
     logic: "Si plusieurs items appartiennent à la même catégorie système, fusionner en une seule TransactionRequest pour éviter le bruit."
+    execution_condition: "AccountId IS NOT NULL AND AccountId != 'None'"
 
 validation_logic:
+  unlinked_account:
+    condition: "AccountId == 'None' OR AccountId == null"
+    action: "Ignore transaction immediately. Do NOT map, do NOT extract OCR, do NOT generate CreateInvoiceRequest."
   unknown_merchant:
     condition: "Marchand absent de l'historique"
     action: "Assigner une catégorie 'Unknow' par défaut et demander confirmation pour le tag."
@@ -36,7 +56,6 @@ validation_logic:
 output:
   model: "CreateInvoiceRequest"
   language: "French"
-
 
 context_schema:
   external_transactions:

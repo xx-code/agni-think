@@ -191,6 +191,7 @@ def batch_fetch_transactions(bank_register_id: str, access_code: str, start_date
         external_transaction_fmt = [
             ExternalTransactionRequest(
                 accountId=trans.get("account_id"),
+                transactionId=trans.get("transaction_id"),
                 amount=trans.get("amount", 0),
                 dateTransaction=trans.get("date"),
                 # Fallback to "name" if "merchant_name" is null
@@ -200,7 +201,7 @@ def batch_fetch_transactions(bank_register_id: str, access_code: str, start_date
                 categoryDetail=(trans.get("personal_finance_category") or {}).get("primary", "UNCATEGORIZED"),
                 isTreated=True
             ) 
-            for trans in filter(lambda x: x.get("account_id") != None, transactions)
+            for trans in transactions
         ]
 
         res = create_external_transactions(external_transaction_fmt)
