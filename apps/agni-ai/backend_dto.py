@@ -15,15 +15,19 @@ class BudgetResponse(BaseModel):
     currentBalance: float
     dueDate: datetime
 
+class GoalResponse(BaseModel):
+    id: UUID
+    title: str
+    dueDate: date
+
 class SavingGoalResponse(BaseModel):
     id: UUID
     title: str
     description: str
     target: float
     balance: float
-    desirValue: int
-    importance: int
-    wishDueDate: Optional[date]
+    accountId: Optional[UUID] = Field(default=None)
+    goals: List[GoalResponse] 
 
 class NotificationRequest(BaseModel):
     title: str
@@ -201,3 +205,37 @@ class InternalLoanResponse(BaseModel):
     invoiceId:str
     fundSourceId: str
     dueDate: date
+
+class WantItemResponse(BaseModel):
+    description: str
+    amount: float
+
+class WantItemRequest(BaseModel):
+    description: str
+    amount: float
+
+class SavingAdditionalIncome(BaseModel):
+    savingAccountId: UUID
+    amount: float
+
+class ForcastSpendingResponse(BaseModel):
+    remainAmount: float
+    totalExpectedIncome: float
+    totalExpectedExpense: float
+    expectedIncome: float
+    expectedFixExpense: float
+    expectedVariableExpense: float
+    expectedPlanFreezeExpense: float
+    expectedBudgetExpense: float
+    expectedSaving: float
+    itemsApproved: List[WantItemResponse]
+    itemsRejected: List[WantItemResponse]
+
+class ForcastSpendingRequest(BaseModel):
+    startDate: date
+    endDate: date
+    wantItems: List[WantItemRequest]
+    savingAdditionalIncome: List[WantItemRequest]
+    budgetIds: List[UUID]
+    overrideAccountsBalance: Optional[float] = Field(default=None) 
+    savingRate: Optional[float] = Field(default=None)
