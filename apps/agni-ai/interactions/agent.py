@@ -63,6 +63,10 @@ def treat_new_bank_transaction(model: str="google_genai:gemini-2.5-flash-lite"):
             task = f"Traite la transaction bancaire: {trans}"
             output = clerk.run(task, [pre_prompt.fmt_categories, pre_prompt.fmt_tags, pre_prompt.fmt_deductions, pre_prompt.fmt_budgets, 
                                       pre_prompt.fmt_system_accounts])
+
+            if output.accountId is None:
+                continue
+
             if (isinstance(output, CreateInvoiceRequest)):
                 output.status = InvoiceStatusRequestType.Pending
                 res_created = create_transaction(input=output)

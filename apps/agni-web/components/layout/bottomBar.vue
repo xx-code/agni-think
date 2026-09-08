@@ -1,20 +1,32 @@
 <script lang="ts" setup>
-    const message = ref({ message: 'Message au comptable'})
+const open = ref(false)
 </script>
 
 <template>
-    <div class="p-1.5 flex justify-end">
-        <UPopover :dismissible="false" :content="{ side: 'top', align: 'center' }">
-            <UButton 
-                size="sm" 
+    <div class="flex justify-end p-1.5">
+        <UPopover :open="open" :dismissible="false" :content="{ side: 'top', align: 'end' }">
+            <UButton
+                size="sm"
                 variant="ghost"
-                leading-icon="i-lucide-calculator">
+                leading-icon="i-lucide-calculator"
+                @click="() => { open = !open }"
+            >
                 Demander
             </UButton>
-
             <template #content>
-                <FormAccountingChat v-model="message" />
+                <div class="relative">
+                    <UButton
+                        variant="ghost"
+                        color="neutral"
+                        size="xs"
+                        icon="i-lucide-x"
+                        class="absolute right-1 top-1 z-10"
+                        aria-label="Fermer"
+                        @click="() => { open = false }"
+                    />
+                    <FormAccountingChat />
+                </div>
             </template>
-        </UPopover> 
+        </UPopover>
     </div>
 </template>

@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '#ui/types';
+import { API_ROUTES } from '~/shared/routes';
+import type { CreatedRequest } from '~/types/api';
 import type { DeductionType, EditDeduction } from '~/types/ui/deduction';
 
 const { deductionType } = defineProps<{
     deductionType?: DeductionType
 }>();
+
 const emit = defineEmits<{
-    (e: 'submit', value: EditDeduction, oldValue?: DeductionType): void    
-    (e: 'close', close: boolean): void
+    (e: 'close', refresh: boolean): void
 }>();
+
+const toast = useToast()
 
 const form = reactive<Partial<EditDeduction>>({
     title: deductionType?.title || undefined,
@@ -35,14 +39,29 @@ function validation(state: Partial<EditDeduction>): FormError[]  {
 async function onSubmit(event: FormSubmitEvent<EditDeduction>) {
     const data = event.data;
 
-    emit('submit', { 
-        title: data.title,
-        description: data.description,
-        base: data.base, 
-        mode: data.mode
-    }, deductionType);
-    
-    emit('close', false);
+    try {
+        if(deductionType) {
+            await ApiLinkBuilder.route(API_ROUTES.DEDUCTIONS.UPDATE_DEDUCTION).params({id: deductionType.id}).body({
+                description: data.description,
+                title: data.title
+            }).execute();
+        } else {
+            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.DEDUCTIONS.CREATE_DEDUCTION).body({
+                title: data.title,
+                description: data.description,
+                mode: data.mode,
+                base: data.base
+            }).execute();
+        }
+    } catch(err) {
+        toast.add({
+            title: "Error Deduction type",
+            description:`Error while submit deduction type`, 
+            color: 'error'
+        });
+    }
+
+    emit('close', true);
 }
 
 </script>

@@ -3,7 +3,7 @@ package dev.auguste.agni_api.core.usecases.internal_loan
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInternalLoanExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryScheduleInvoiceExtend
@@ -57,7 +57,7 @@ class CreateInternalLoan(
             val scheduleInvoice = scheduleInvoiceRepo.getAll(QueryFilter(queryAll = true),
                 QueryScheduleInvoiceExtend(
                     type = InvoiceType.INCOME,
-                    comparatorDueDate = QueryDateComparator(input.dueDate.atStartOfDay() , ComparatorType.LesserOrEquals)
+                    comparatorDueDate = QueryDateComparator(input.dueDate.atStartOfDay() , comparator = QueryComparator.LesserOrEquals)
                 )
             )
 

@@ -1,7 +1,8 @@
 import { ModalConfirm } from "#components";
+import type { ModalOverlayInstance } from "~/types/ui";
 import type { ConfirmDialog } from "~/types/ui/confirm";
 
-export default function  useConfirmModal(overlay: any) {
+export default function  useConfirmModal(overlay: ModalOverlayInstance) {
     const confirmDialog = overlay.create(ModalConfirm)
 
     const open = (confirm: ConfirmDialog, callBack: () => void) => {

@@ -19,6 +19,7 @@ class UpdateSpendingPeriod(
         input.savingsTarget?.let { spendPeriod.savingsTarget = it }
         input.totalExpectedIncome?.let { spendPeriod.totalExpectedIncome = it }
         input.totalExpectedExpenses?.let { spendPeriod.totalExpectedExpenses = it }
+        input.state?.let { spendPeriod.state = it }
         input.wantSpendingItems?.let {
             spendPeriod.wantSpendingItems = it.map { item ->
                 SpendingPeriodItem(

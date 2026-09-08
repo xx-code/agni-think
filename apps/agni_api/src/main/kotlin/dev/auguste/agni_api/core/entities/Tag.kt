@@ -7,7 +7,8 @@ class Tag(
     id: UUID = UUID.randomUUID(),
     value: String,
     color: String,
-    isSystem: Boolean = false
+    isSystem: Boolean = false,
+    isArchived: Boolean = false
 ) : Entity(id = id) {
 
     var value: String  by Delegates.observable(value) { prop, old, new ->
@@ -24,4 +25,6 @@ class Tag(
         if (old != new)
             this.markHasChanged()
     }
+
+    var isArchived by cleanObservable(isArchived, this)
 }

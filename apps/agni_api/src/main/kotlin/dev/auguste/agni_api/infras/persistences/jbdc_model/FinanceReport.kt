@@ -44,7 +44,19 @@ class JdbcFinanceReportModelMapper: IMapper<JdbcFinanceReportModel, FinanceRepor
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTableName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getSortField(): Set<String> {
         return setOf("date")
+    }
+
+    override fun getModelClass(): Class<JdbcFinanceReportModel> {
+        TODO("Not yet implemented")
     }
 }

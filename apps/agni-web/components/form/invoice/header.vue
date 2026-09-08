@@ -107,6 +107,7 @@ function onInvoiceMouvement() {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <UFormField label="Compte" name="accountId" required>
                 <USelect 
+                    class="w-full"
                     v-model="model.accountId" 
                     value-key="value" 
                     :items="accounts.map(i => ({ value: i.id, label: i.title }))" 
@@ -118,6 +119,7 @@ function onInvoiceMouvement() {
             <UFormField label="Date" name="date" required>
                 <UPopover>
                     <UButton 
+                        class="w-full"
                         color="neutral" 
                         variant="outline" 
                         icon="i-lucide-calendar"

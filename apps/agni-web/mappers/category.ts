@@ -4,11 +4,9 @@ import type { CategoryType } from "~/types/ui/category";
 
 export function categoryResponseToCategory(data: GetCategoryResponse): CategoryType {
     return {
-        id: data.id,
-        title: data.title,
-        icon: data.icon,
-        color: data.color,
-        isSystem: data.isSystem ?? false
+        ...data, 
+        isSystem: data.system ?? false,
+        isArchive: data.archive
     }
 }
 

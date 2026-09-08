@@ -126,7 +126,19 @@ class JdbcProvisionMapper(
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTableName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getSortField(): Set<String> {
         return setOf("acquisition_date", "updated_at")
+    }
+
+    override fun getModelClass(): Class<JdbcProvisionModel> {
+        TODO("Not yet implemented")
     }
 }

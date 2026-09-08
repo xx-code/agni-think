@@ -14,9 +14,10 @@ class GetTag(private val tagRepo: IRepository<Tag>): IUseCase<UUID, GetTagOutput
 
         return GetTagOutput(
             id = tag.id,
-            value = tag.value,
+            value = tag.value + if (tag.isArchived) " (Archiver)" else "",
             color = tag.color,
-            isSystem = tag.isSystem
+            isSystem = tag.isSystem,
+            isArchived = tag.isArchived,
         )
     }
 }

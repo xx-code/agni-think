@@ -14,10 +14,11 @@ class GetCategory(private val categoryRepo: IRepository<Category>): IUseCase<UUI
 
         return GetCategoryOutput(
             id = category.id,
-            title = category.title,
+            title = category.title + if (category.isArchived) " (Archiver)" else "",
             color = category.color,
             icon = category.icon,
             isSystem = category.isSystem,
-            )
+            isArchive = category.isArchived
+        )
     }
 }

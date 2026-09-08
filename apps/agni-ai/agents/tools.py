@@ -1,11 +1,12 @@
+from datetime import date
 import os
 
 from dotenv import load_dotenv
 from langchain.tools import tool
 from typing import List  
-from backend_dto import FinanceProfileResponse, BudgetResponse, SavingGoalResponse, AnnualOutlookResponse, AccountResponse,InternalLoanResponse
+from backend_dto import FinanceProfileResponse, BudgetResponse, SavingGoalResponse, AnnualOutlookResponse, AccountResponse,InternalLoanResponse, ForcastSpendingResponse, ForcastSpendingRequest
 from backend import get_finance_profile, query_rag, get_budgets, get_saving_goals, get_annual_outlook, \
-    get_account_with_detail, get_internal_loans
+    get_account_with_detail, get_internal_loans, forcast_spending
 
 load_dotenv()
 
@@ -93,3 +94,45 @@ def wrap_tool_get_internal_loans() -> InternalLoanResponse:
     Indispensable pour Agni_Controller (Audit de risque) et Agni_Treasurer (Optimisation cash-flow).
     """
     return get_internal_loans()
+
+@tool
+def wrap_tool_forcast_spending(start_date: str, end_date: str) -> ForcastSpendingResponse:
+    """Calcule et prévoit les projections financières (revenus, dépenses, épargne) sur une période donnée.
+
+    Cette fonction analyse la situation financière prévisionnelle entre deux dates en combinant 
+    le solde actuel des comptes, les échéances de factures/revenus planifiés (ScheduleInvoices), 
+    les dépenses budgétisées et la cible d'épargne définie. Elle effectue également une évaluation 
+    récursive des envies d'achats (wantItems) pour déterminer quels articles peuvent être approuvés.
+
+    Args:
+        startDate (date): Date de début de la période de prévision.
+        endDate (date): Date de fin de la période de prévision.
+
+    Returns:
+        ForcastSpendingResponse: Un objet contenant le détail des prévisions financières :
+            - remainAmount (float): Solde restant disponible après toutes les dépenses et l'épargne.
+            - totalExpectedIncome (float): Total des revenus prévus (revenus planifiés + solde initial + déblocages).
+            - totalExpectedExpense (float): Total des charges prévues (fixes, variables, budgets, gelées et épargne).
+            - expectedIncome (float): Montant total des revenus récurrents planifiés sur la période.
+            - expectedFixExpense (float): Montant total des charges fixes planifiées.
+            - expectedVariableExpense (float): Montant total des charges variables planifiées.
+            - expectedPlanFreezeExpense (float): Dépenses liées aux échéances gelées ou bloquées.
+            - expectedBudgetExpense (float): Ajustement des budgets récurrents sur la période.
+            - expectedSaving (float): Montant calculé mis de côté pour l'épargne.
+            - itemsApproved (List[WantItemResponse]): Liste des éléments d'achat optionnels ("wants") validés par le calcul.
+            - itemsRejected (List[WantItemResponse]): Liste des éléments d'achat optionnels refusés par manque de budget.
+    """
+    parsed_start = date.fromisoformat(start_date)
+    parsed_end = date.fromisoformat(end_date)
+
+    return forcast_spending(
+        ForcastSpendingRequest(
+            startDate=parsed_start,
+            endDate=parsed_end,
+            budgetIds=[],
+            overrideAccountsBalance=None,
+            savingAdditionalIncome=[],
+            savingRate=None,
+            wantItems=[]
+        )
+    )

@@ -12,6 +12,7 @@ import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
+import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.internal_loan.AddRefundInternalLoan
 import dev.auguste.agni_api.core.usecases.internal_loan.AutoCompleteInternalLoan
@@ -142,7 +143,7 @@ class InternalLoanConfig {
         completeInvoice: IUseCase<CompleteInvoiceInput, Unit>,
         getInvoice: IUseCase<UUID, GetInvoiceOutput>,
         eventRegister: IEventRegister
-    ): IUseCase<Unit, BackgroundTaskOut> {
+    ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
         return AutoCompleteInternalLoan(
             internalLoanRepo = internalLoanRepo,
             getInvoice = getInvoice,

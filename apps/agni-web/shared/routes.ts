@@ -189,6 +189,11 @@ export const API_ROUTES = {
             apiPath: '/bank-registers',
             method: 'GET'
         },
+        GET_BANK_REGISTER_ACCESS_CODE: {
+            serverPath: '/api/bank-registers/institution/:id',
+            apiPath: '/bank-registers/institution/:id',
+            method: 'GET'
+        },
         UPDATE_BANK_REGISTER: {
             serverPath: '/api/bank-registers/:id',
             apiPath: '/bank-registers/:id',
@@ -243,6 +248,11 @@ export const API_ROUTES = {
         UPDATE_CATEGORY: {
             serverPath: '/api/categories/:id',
             apiPath: '/categories/:id',
+            method: 'PUT'
+        },
+        ARCHIVE_CATEGORY: {
+            serverPath: '/api/categories/:id/archive',
+            apiPath: '/categories/:id/archive',
             method: 'PUT'
         },
         DELETE_CATEGORY: {
@@ -763,6 +773,11 @@ export const API_ROUTES = {
             serverPath: '/api/tags/:id',
             apiPath: '/tags/:id',
             method: 'DELETE'
-        }
+        },
+        ARCHIVE_TAG: {
+            serverPath: '/api/tags/:id/archive',
+            apiPath: '/tags/:id/archive',
+            method: 'PUT'
+        },
     }
 } satisfies Record<string, Record<string, ApiRouteDefinition>>

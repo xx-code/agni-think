@@ -11,3 +11,4 @@ export type PlanningAgentAdvisorType = {
     suggestGoalPlanning: AgentSavegoalAdviceType[] 
 }
 
+export type ChatPersonnalFinanceAdvisor = ChatPersonnalFinanceAdvisorResponse

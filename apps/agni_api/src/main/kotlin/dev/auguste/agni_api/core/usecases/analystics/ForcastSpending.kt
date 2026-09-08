@@ -2,8 +2,7 @@ package dev.auguste.agni_api.core.usecases.analystics
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryBudgetExtend
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryScheduleInvoiceExtend
 import dev.auguste.agni_api.core.entities.Account
@@ -52,7 +51,7 @@ class ForcastSpending(
         val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), QueryScheduleInvoiceExtend(
             comparatorDueDate = QueryDateComparator(
                 input.endDate.atStartOfDay(),
-                ComparatorType.LesserOrEquals
+                comparator = QueryComparator.LesserOrEquals,
             )
         ))
 

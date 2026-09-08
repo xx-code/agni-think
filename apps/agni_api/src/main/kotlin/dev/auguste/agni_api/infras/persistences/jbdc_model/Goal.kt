@@ -61,7 +61,19 @@ class JdbcGoalModelMapper: IMapper<JdbcGoalModel, Goal> {
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTableName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getSortField(): Set<String> {
         return setOf("due_date", "target_amount", "status", "type")
+    }
+
+    override fun getModelClass(): Class<JdbcGoalModel> {
+        TODO("Not yet implemented")
     }
 }

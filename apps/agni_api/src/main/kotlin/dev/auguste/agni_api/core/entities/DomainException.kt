@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.entities
 
 import dev.auguste.agni_api.core.entities.DomainException.Validation
 import dev.auguste.agni_api.core.entities.enums.GoalEvaluationType
+import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -41,6 +42,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class Profile(id: UUID) : NotFound("PROFILE_NOT_FOUND", "Profile not found $id")
         class SpendingPeriod(id: UUID) : NotFound("SPENDING_PERIOD_NOT_FOUND", "Spending period for $id")
         class SpendingPeriodTemplate(id: UUID) : NotFound("SPENDING_PERIOD_TEMPLATE_NOT_FOUND", "Spending period template not found $id")
+        class BankRegisterCodeAccess(accessCode: String): NotFound("BANK_REGISTER_ACCESS_NOT_FOUND", "Bank register code not found $accessCode")
     }
 
     sealed class AlreadyExist(code: String, message: String): DomainException(code, message) {
@@ -57,6 +59,8 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class AllExternalTransactions(): AlreadyExist("ALL_EXTERNAL_TRANSACTION_ALREADY_EXISTS", "All external transactions already")
         class SavingGoal(name: String): AlreadyExist("SAVING_GOAL_ALREADY_EXISTS", "Saving goal $name exist deja")
         class ScheduleInvoice(name: String): AlreadyExist("SCHEDULE_IN_VOICE_EXISTS", "Schedule in voice $name exist deja")
+        class SpendingPeriodTemplateAlreadyActive: AlreadyExist("SPENDING_PERIOD_ALREADY_ACTIVE", "Il y a deja une period de depense active")
+        class SpendingPeriodTemplateExist(period: PeriodType, interval: Int): AlreadyExist("SPENDING_PERIOD_TEMPLATE_ALREADY_EXIST", "Il y a deja une period de ce type existant period $period - interval $interval")
     }
 
     sealed class BusinessLogic(code: String, message: String): DomainException(code, message) {
@@ -77,6 +81,8 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class ProvisionWithLoanMustHaveAScheduleInvoice(): BusinessLogic("PROVISION_WITH_LOAN_MUST_HAVE_AS_SCHEDULE_INVOICE", "Si vous avez un pret sur un actif depreciative il faut un scheduler")
         class ProvisionWithLoanMustHaveCantBeByDay(): BusinessLogic("PROVISION_WITH_LOAN_CANT_BE_BY_DAY", "Les pret sur des actif ne peuvent pas se decomposer par jour")
         class ForcastAdditionalSavingAmountMustLessThanBalance(balance: Double, amount: Double): BusinessLogic("FORCAST_SAVING_ADDITIONAL_AMOUNT", "Forcast saving amount: $amount doit etre inferieur a $balance")
+        class CantDeleteSystemCategory(title: String): BusinessLogic("CANT_DELETE_SYSTEM_CATEGORY", "Vous ne pouvez pas supprimer cette categorie systeme $title")
+        class CantDeleteSystemTag(title: String): BusinessLogic("CANT_DELETE_SYSTEM_TAG", "Vous ne pouvez pas supprimer cette tag systeme $title")
     }
 
     sealed class Validation(code: String, message: String): DomainException(code, message) {
@@ -87,6 +93,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class ScheduleFreezeInvoiceMustHaveAScheduler: Validation("SCHEDULE_FREEZE_INVOICE_SCHEDULER_INVALID", "Une facture scheduler doit poceder un scheduler")
         class ProfileMaxWishlistAmountMustBePositif: Validation("PROFILE_MAX_WISHLIST_MUST_BE_POSITIF", "Le montant maximun pour la liste de souhait doit etre prositif")
         class ProfileRulePercentageMustBePositif(rule: String, percentage: Double, total: Double): Validation("PROFILE_BUDGET_RULE_PERCENTAGE_ERROR", "La repartion $rule a un pourcentage $percentage/$total. le repartion doit etre entre 0 et 100 et le total des repartition doit etre a 100%")
+        class GetBankRegisterAccessCodeEmpty: Validation("GET_BANK_REGISTER_ACCESS_CODE_EMPTY", "Le code d'access pour la bank est vide")
     }
 
     sealed class Unexpected(code: String, message: String): BusinessLogic(code, message) {

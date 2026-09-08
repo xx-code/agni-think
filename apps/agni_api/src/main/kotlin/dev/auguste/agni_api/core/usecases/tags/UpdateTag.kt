@@ -17,6 +17,9 @@ class UpdateTag(private val tagRepo: IRepository<Tag>): IUseCase<UpdateTagInput,
         if (input.color != null)
             tag.color = input.color
 
+        if (input.archive != null)
+            tag.isArchived = input.archive
+
         if (tag.hasChanged())
             tagRepo.update(tag)
     }

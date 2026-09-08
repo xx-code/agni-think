@@ -1,9 +1,11 @@
 export type CreateBankRegisterRequest = {
     title: string
+    institutionId: string
     accessCode: string
     accounts: {
-        accountId: string    
+        accountId?: string    
         bankAccountId: string
+        bankName: string
     }[]
 }
 
@@ -11,19 +13,22 @@ export type UpdateBankRegisterRequest = {
     title?: string
     accessCode?: string
     accounts?: {
-        accountId: string    
+        accountId?: string    
         bankAccountId: string
+        bankName: string
     }[]
 }
 
 export type GetBankRegisterResponse = {
-    bankRegisterId: string
+    id: string
+    institutionId: string
     title: string
-    isActive: boolean
+    active: boolean
     accounts: {
-        accountId: string    
-        bankAccountId: string
+        accountId?: string    
+        bankRegisterId: string
         accountName: string
+        bankAccountName: string
     }[]
 }
 

@@ -19,6 +19,7 @@ import dev.auguste.agni_api.core.usecases.budgets.dto.DeleteBudgetInput
 import dev.auguste.agni_api.core.usecases.budgets.dto.GetAllBudgetInput
 import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
 import dev.auguste.agni_api.core.usecases.budgets.dto.UpdateBudgetInput
+import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
@@ -84,7 +85,7 @@ class BudgetConfig {
     fun updateDueBudget(
         budgetRepo : IRepository<Budget>,
         eventRegister: IEventRegister
-    ): IUseCase<Unit, BackgroundTaskOut> {
+    ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
         return UpdateDueBudget(
             budgetRepo = budgetRepo,
             eventRegister = eventRegister,

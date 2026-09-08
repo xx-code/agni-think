@@ -23,10 +23,8 @@ import java.util.UUID
 data class JbdcAccountModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("account_id")
-    val id: UUID,
-    @Column("title")
-    val name: String,
+    val accountId: UUID,
+    val title: String,
     val balance: Double,
     val type: String,
     @Column("currency_id")
@@ -35,7 +33,7 @@ data class JbdcAccountModel(
     val color: String
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return accountId
     }
 }
 
@@ -63,7 +61,7 @@ class JdbcAccountModelMapper(
 
         return Account(
             id = model.id,
-            title = model.name,
+            title = model.title,
             balance = model.balance,
             currencyId = model.currencyId,
             detail = detail,
@@ -75,8 +73,8 @@ class JdbcAccountModelMapper(
         val detailJson = jacksonObjectMapper().writeValueAsString(entity.detail.toMap())
 
         return JbdcAccountModel(
-            id = entity.id,
-            name = entity.title,
+            accountId = entity.id,
+            title = entity.title,
             type = entity.detail.getType().value,
             balance = entity.balance,
             currencyId = entity.currencyId,
@@ -85,7 +83,21 @@ class JdbcAccountModelMapper(
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "account_id",
+        "title" to "title",
+        "type" to "type",
+        "balance" to "balance",
+        "currencyId" to "currency_id",
+        "detail" to "detail",
+        "color" to "color"
+    )
+
+    override fun getTableName(): String = "accounts"
+
     override fun getSortField(): Set<String> {
         return setOf("title")
     }
+
+    override fun getModelClass(): Class<JbdcAccountModel> = JbdcAccountModel::class.java
 }

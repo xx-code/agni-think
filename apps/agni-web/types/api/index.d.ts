@@ -1,6 +1,11 @@
 export type CreatedRequest =  {
     newId: string
-};
+}
+
+export type DeletedResponse = {
+    inUse: boolean
+    success: boolean
+}
 
 export type ListResponse<T> = {
     items: T[]

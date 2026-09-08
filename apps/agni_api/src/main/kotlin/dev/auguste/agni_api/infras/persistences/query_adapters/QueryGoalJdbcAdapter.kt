@@ -2,7 +2,7 @@ package dev.auguste.agni_api.infras.persistences.query_adapters
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryGoalExtend
 import dev.auguste.agni_api.core.entities.Goal
 import dev.auguste.agni_api.infras.persistences.IMapper
@@ -52,11 +52,12 @@ class QueryGoalJdbcAdapter(
             val dateToVerify = extend.dueDateComparator.date.atOffset(ZoneOffset.UTC).toString()
 
             val operator = when(extend.dueDateComparator.comparator) {
-                ComparatorType.Greater -> ">"
-                ComparatorType.GreaterOrEquals -> ">="
-                ComparatorType.Lesser -> "<"
-                ComparatorType.LesserOrEquals -> "<="
-                ComparatorType.Equal -> "="
+                QueryComparator.Greater -> ">"
+                QueryComparator.GreaterOrEquals -> ">="
+                QueryComparator.Lesser -> "<"
+                QueryComparator.LesserOrEquals -> "<="
+                QueryComparator.Equal -> "="
+                else -> {}
             }
 
             sqlBuilder.append(" AND due_date::timestamptz $operator :dueDate::timestamptz")

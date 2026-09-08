@@ -1,13 +1,12 @@
+import type { GetCategoryResponse } from "../api/category"
+
 export type EditCategoryType = {
     title: string
     icon: string
     color: string
 }
 
-export type CategoryType = {
-    id: string
-    title: string
-    icon: string
-    color: string 
-    isSystem: boolean
-}
+export type CategoryType = Omit<GetCategoryResponse, 'system' | 'archive'> & {
+    isSystem: boolean,
+    isArchive: boolean
+}  

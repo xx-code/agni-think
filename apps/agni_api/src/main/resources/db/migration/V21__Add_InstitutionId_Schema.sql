@@ -1,0 +1,2 @@
+ALTER TABLE bank_registers
+ADD COLUMN IF NOT EXISTS institution_id VARCHAR(255) NOT NULL DEFAULT '';

@@ -10,11 +10,14 @@ import jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle
 import java.util.UUID
 
 data class ApiAccountLinkerModel(
-    val accountId: UUID,
+    val accountId: UUID? = null,
+    val bankName: String,
     val bankAccountId: String
 )
 
 data class ApiCreateBankRegisterModel(
+    @field:NotEmpty("Institution ID must not be empty")
+    val institutionId: String,
     @field:NotEmpty("Access Code must not be empty")
     val accessCode: String,
     @field:NotEmpty("Title must not be empty")
@@ -30,15 +33,15 @@ data class ApiUpdateBankRegisterModel(
 )
 
 data class ApiSecureBankRegisterOutput(
+    val id: UUID,
     val title: String,
-    val bankRegisterId: UUID,
     val isActive: Boolean,
     val accounts: List<AccountLinkerOutput>
 )
 
 fun mapBankRegisterToSecure(bankRegister: GetBankRegisterOutput): ApiSecureBankRegisterOutput {
     return ApiSecureBankRegisterOutput(
-        bankRegisterId = bankRegister.id,
+        id = bankRegister.id,
         title = bankRegister.title,
         isActive = bankRegister.isActive,
         accounts = bankRegister.accounts
@@ -47,9 +50,16 @@ fun mapBankRegisterToSecure(bankRegister: GetBankRegisterOutput): ApiSecureBankR
 
 fun mapApiCreateBankRegister(model: ApiCreateBankRegisterModel): CreateBankRegisterInput{
     return CreateBankRegisterInput(
+        institutionId = model.institutionId,
         accessCode = model.accessCode,
         title = model.title,
-        accounts = model.accounts.map { AccountLinkerInput(it.accountId, it.bankAccountId) }
+        accounts = model.accounts.map {
+            AccountLinkerInput(
+                it.accountId,
+                it.bankName,
+                it.bankAccountId
+            )
+        }
     )
 }
 
@@ -59,6 +69,12 @@ fun mapApiUpdateBankRegister(id: UUID, model: ApiUpdateBankRegisterModel): Updat
         title = model.title,
         accessCode = model.accessCode,
         cursor = model.cursor,
-        accounts = model.accounts?.map { AccountLinkerInput(it.accountId, it.bankAccountId) }
+        accounts = model.accounts?.map {
+            AccountLinkerInput(
+                it.accountId,
+                it.bankName,
+                it.bankAccountId
+            )
+        }
     )
 }

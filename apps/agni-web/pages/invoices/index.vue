@@ -23,7 +23,7 @@ import useConfirmModal from "~/composables/modal/useConfirmModal";
 
 const MAX_ITEMS_TO_DISPLAY=250
 
-const { start, stop } = useLoading()
+const { start, stop, isLoading } = useLoading()
 const isLoadingBalance = ref(false)
 const isLoadingRefs = ref(false)
 const el = useTemplateRef('el')
@@ -118,8 +118,9 @@ async function syncBank() {
         await ApiLinkBuilder
             .route(API_ROUTES.BANK.SYNC_TRANSACTION)
             .execute()
-        query.status = "Pending"
-        query.offset = 0
+        
+        reset()
+        Object.assign(query, { status: "Pending", offset: 0})
     } catch(err) {
         stop()
         console.log(err)
@@ -216,6 +217,12 @@ useInfiniteScroll(
             subtitle="Gérez vos factures et consulter les"
             @click-button="openInvoice()"
         />
+
+        <UModal :open="isLoading" dismissible>
+            <template #content>
+                <LoadingIndicator />
+            </template>
+        </UModal>
 
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <UiBannerAccountant 

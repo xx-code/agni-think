@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
+import java.time.OffsetDateTime
 import java.util.UUID
 import kotlin.jvm.java
 
@@ -40,10 +41,14 @@ class QueryTagExtendJdbcAdapter(
     override fun getRawMapper(): RowMapper<JdbcTagModel> {
         return RowMapper { rs, _ ->
             JdbcTagModel(
-                id = rs.getObject("tag_id", UUID::class.java),
-                name = rs.getString("value"),
+                tagId = rs.getObject("tag_id", UUID::class.java),
+                value = rs.getString("value"),
                 color = rs.getString("color"),
                 isSystem = rs.getBoolean("is_system"),
+                isArchived = rs.getBoolean("is_archived"),
+                createdAt = rs.getObject("created_at", OffsetDateTime::class.java).toLocalDateTime(),
+                updatedAt = rs.getObject("updated_at", OffsetDateTime::class.java).toLocalDateTime(),
+
             )
         }
     }

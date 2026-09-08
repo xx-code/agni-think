@@ -67,7 +67,19 @@ class JdbcIncomeSourceMapper: IMapper<JdbcIncomeSourceModel, IncomeSource> {
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTableName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getSortField(): Set<String> {
         return setOf("startDate", "endDate", "taxRate", "otherRate")
+    }
+
+    override fun getModelClass(): Class<JdbcIncomeSourceModel> {
+        TODO("Not yet implemented")
     }
 }

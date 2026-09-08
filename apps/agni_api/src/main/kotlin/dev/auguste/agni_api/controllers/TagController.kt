@@ -1,13 +1,17 @@
 package dev.auguste.agni_api.controllers
 
+import dev.auguste.agni_api.controllers.models.ApiArchiveCategoryModel
+import dev.auguste.agni_api.controllers.models.ApiArchiveTagModel
 import dev.auguste.agni_api.controllers.models.ApiCreateTagModel
 import dev.auguste.agni_api.controllers.models.ApiUpdateTagModel
 import dev.auguste.agni_api.controllers.models.mapApiCreateTag
 import dev.auguste.agni_api.controllers.models.mapApiUpdateTag
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.usecases.CreatedOutput
+import dev.auguste.agni_api.core.usecases.DeleteOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.categories.dto.GetAllCategoryInput
+import dev.auguste.agni_api.core.usecases.categories.dto.UpdateCategoryInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.tags.dto.CreateTagInput
 import dev.auguste.agni_api.core.usecases.tags.dto.DeleteTagInput
@@ -32,7 +36,7 @@ import java.util.UUID
 class TagController(
     private val createTagUseCase: IUseCase<CreateTagInput, CreatedOutput>,
     private val updateTagUseCase: IUseCase<UpdateTagInput, Unit>,
-    private val deleteTagUseCase: IUseCase<DeleteTagInput, Unit>,
+    private val deleteTagUseCase: IUseCase<DeleteTagInput, DeleteOutput>,
     private val getTagUseCase: IUseCase<UUID, GetTagOutput>,
     private val getAllTagUseCase: IUseCase<GetAllTagInput, ListOutput<GetTagOutput>>
 ) {
@@ -51,8 +55,18 @@ class TagController(
         ))
     }
 
+    @PutMapping("/{id}/archive")
+    fun archiveCategory(@PathVariable id: UUID, @Valid @RequestBody request: ApiArchiveTagModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateTagUseCase.execAsync(
+            input = UpdateTagInput(
+                id = id,
+                archive = request.archive
+            )
+        ))
+    }
+
     @DeleteMapping("/{id}")
-    fun deleteTag(@PathVariable id: UUID): ResponseEntity<Unit> {
+    fun deleteTag(@PathVariable id: UUID): ResponseEntity<DeleteOutput> {
         return ResponseEntity.ok(deleteTagUseCase.execAsync(
             DeleteTagInput(id)
         ))
@@ -66,9 +80,13 @@ class TagController(
     }
 
     @GetMapping
-    fun getAllTags(query: QueryFilter, isSystem: Boolean? = null): ResponseEntity<ListOutput<GetTagOutput>> {
+    fun getAllTags(query: QueryFilter, isSystem: Boolean? = null, isArchived: Boolean? = null): ResponseEntity<ListOutput<GetTagOutput>> {
         return ResponseEntity.ok(getAllTagUseCase.execAsync(
-            GetAllTagInput(query, isSystem)
+            GetAllTagInput(
+                query,
+                isSystem,
+                isArchived
+            )
         ))
     }
 }

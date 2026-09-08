@@ -52,6 +52,14 @@ class SetUUIDToPGobjectConverter(
     }
 }
 
+@ReadingConverter
+class PGobjectToUuidSetConverter : Converter<JdbcValue, Set<UUID>> {
+    override fun convert(source: JdbcValue): Set<UUID> {
+        val array = source as? Array<*> ?: return emptySet()
+        return array.filterIsInstance<UUID>().toSet()
+    }
+}
+
 @Configuration
 class JdbcPersistenceConfig : AbstractJdbcConfiguration() {
     private val mapper = jacksonObjectMapper()
@@ -60,9 +68,9 @@ class JdbcPersistenceConfig : AbstractJdbcConfiguration() {
         return listOf(
             PGobjectToStringConverter(),
             StringToPGobjectConvert(),
+            PGobjectToUuidSetConverter(),
             PGobjectToSetUUIDConverter(mapper),
-            SetUUIDToPGobjectConverter(mapper)
+            SetUUIDToPGobjectConverter(mapper),
         )
-
     }
 }

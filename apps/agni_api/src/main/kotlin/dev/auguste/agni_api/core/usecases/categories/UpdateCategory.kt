@@ -24,6 +24,9 @@ class UpdateCategory(private val categoryRepo: IRepository<Category>): IUseCase<
         if (input.color != null)
             category.color = input.color
 
+        if (input.isArchived != null)
+            category.isArchived = input.isArchived
+
         if (category.hasChanged())
             categoryRepo.update(category)
     }

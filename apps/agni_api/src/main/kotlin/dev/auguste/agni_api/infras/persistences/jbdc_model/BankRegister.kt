@@ -15,9 +15,8 @@ import java.util.UUID
 data class JdbcBankRegisterModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("bank_register_id")
-    val id: UUID,
-    @Column("access_code")
+    val bankRegisterId: UUID,
+    val institutionId: String,
     val accessCode: String,
     val title: String,
     val cursor: String,
@@ -27,7 +26,7 @@ data class JdbcBankRegisterModel(
     val accountsLinked: String
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return bankRegisterId
     }
 }
 
@@ -41,7 +40,8 @@ class JdbcBankRegisterModelMapper(
         }.toSet()
 
         return BankRegister(
-            id = model.id,
+            id = model.bankRegisterId,
+            institutionId = model.institutionId,
             accessCode = model.accessCode,
             title = model.title,
             accountsLinked = accountsLinkedJson.map { AccountLinked.fromMap(it) }.toSet(),
@@ -52,8 +52,9 @@ class JdbcBankRegisterModelMapper(
 
     override fun toModel(entity: BankRegister): JdbcBankRegisterModel {
         return JdbcBankRegisterModel(
-            id = entity.id,
+            bankRegisterId = entity.id,
             title = entity.title,
+            institutionId = entity.institutionId,
             accessCode = entity.accessCode,
             cursor = entity.cursor,
             isActive = entity.isActive,
@@ -61,7 +62,21 @@ class JdbcBankRegisterModelMapper(
         )
     }
 
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "bankRegisterId" to "bank_register_id",
+        "institutionId" to "institution_id",
+        "accessCode" to "access_code",
+        "title" to "title",
+        "cursor" to "cursor",
+        "isActive" to "is_active",
+        "accountsLinked" to "accounts_linked"
+    )
+
+    override fun getTableName(): String = "bank_registers"
+
     override fun getSortField(): Set<String> {
-        return setOf()
+        return setOf("isActive", "cursor")
     }
+
+    override fun getModelClass(): Class<JdbcBankRegisterModel> = JdbcBankRegisterModel::class.java
 }

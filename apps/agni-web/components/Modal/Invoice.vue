@@ -4,8 +4,8 @@ import type { InvoiceType } from '~/types/ui/transaction';
 import type { FormError, FormSubmitEvent } from '#ui/types';
 import type { NuxtError } from "#app";
 import type { CreatedRequest, ErrorResponse, ListResponse } from '~/types/api';
-import type { GetCategoryResponse } from '~/types/api/category';
-import type { GetTagResponse } from '~/types/api/tag';
+import type { GetCategoryResponse, QueryFilterCategoryRequest } from '~/types/api/category';
+import type { GetTagResponse, QueryFilterTagRequest } from '~/types/api/tag';
 import type { GetAccountResponse } from '~/types/api/account';
 import type { GetInternalTypeResponse } from '~/types/api/internal';
 import type { GetDeductionResponse } from '~/types/api/deduction';
@@ -37,12 +37,12 @@ const { data: utils } = useAsyncData('utils+deduction+edit-invoices', async () =
     const [ categories, tags, budgets, accounts, invoiceTypes, deductions ] = await Promise.all([
         ApiLinkBuilder
             .route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES)
-            .query(query)
+            .query({ offset: 0, limit: 0, queryAll: true, isArchived: false, isSystem: false } as QueryFilterCategoryRequest)
             .mapper(listCategoriesResponseToListCategories)
             .execute(),
         ApiLinkBuilder
             .route<ListResponse<GetTagResponse>>(API_ROUTES.TAGS.GET_TAGS)
-            .query(query)
+            .query({ offset: 0, limit: 0, queryAll: true, isArchived: false, isSystem: false } as QueryFilterTagRequest)
             .mapper(listTagsResponseToListTags)
             .execute(),
         ApiLinkBuilder

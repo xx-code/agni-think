@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import * as z from 'zod'
 import { reactive } from "vue";
-import type { FormSubmitEvent } from '@nuxt/ui';
+import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import type { EditFinancePrincipleType, FinancePrincipleType } from '~/types/ui/financePrinciple';
 import type { GetInternalTypeResponse } from '~/types/api/internal';
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
+import type { CreatedRequest } from '~/types/api';
 
 const { financePrinciple } = defineProps<{
     financePrinciple?: FinancePrincipleType
 }>();
 
 const emit = defineEmits<{
-    (e: 'submit', value: EditFinancePrincipleType, oldValue?: FinancePrincipleType): void    
-    (e: 'close', close: boolean): void
+    (e: 'close', refresh: boolean): void
 }>();
+
+const toast = useToast()
 
 const { data: principleTypes } = useAsyncData('principle-types', async () => {
     return await ApiLinkBuilder
@@ -22,17 +24,19 @@ const { data: principleTypes } = useAsyncData('principle-types', async () => {
         .execute()
 })
 
-const schema = z.object({
-    name: z.string().nonempty("Name must not be empty"),
-    description: z.string().nonempty("Descrpition must not be empty"),
-    targetType: z.string().nonempty("Target type must not be empty"),
-    strictness: z.number().min(1, "Strictness must be equale 1").max(10, "Strictness less or equale to 10"),
-    logicRules: z.string().optional()
-})
+function validate(data: Partial<EditFinancePrincipleType>): FormError[] {
+    const errors: FormError[] = []
 
-type Schema = z.output<typeof schema>
+    if (!data.name) errors.push({ name: 'name', message: 'les noms sont vide'})
+    if (!data.description) errors.push({ name: 'description', message: 'description ne doit pas etre vide'})
+    if (!data.targetType) errors.push({ name: 'targetType', message: 'type target ne doit pas etre vide'})
+    if (!data.strictness || (data.strictness <= 1 && data.strictness >= 10)) errors.push({ name: 'strictness', message: 'Strictness doit etre entre 1 et 10'})
 
-const form = reactive({
+    return errors
+}
+
+
+const form = reactive<Partial<EditFinancePrincipleType>>({
     name: financePrinciple?.name,
     description: financePrinciple?.description,
     targetType: financePrinciple?.targetType,
@@ -40,16 +44,34 @@ const form = reactive({
     logicRules: financePrinciple?.logicRules
 });
 
-async function onSubmit(event: FormSubmitEvent<Schema>) {
+async function onSubmit(event: FormSubmitEvent<FinancePrincipleType>) {
     const data = event.data;
-    emit('submit', {
-        name: data.name,
-        description: data.description,
-        targetType: data.targetType,
-        strictness: data.strictness,
-        logicRules: data.logicRules
-    }, financePrinciple);
+    try {
+        if (financePrinciple) {
+            await ApiLinkBuilder.route(API_ROUTES.FINANCE_PRINCIPLES.UPDATE_FINANCE_PRINCIPLE).params({id: financePrinciple.id}).body({
+                name: data.name,
+                strictness: data.strictness,
+                targetType: data.targetType,
+                description: data.description,             
+                logicRules: data.logicRules
+            }).execute()
+        } else {
+            await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.FINANCE_PRINCIPLES.CREATE_FINANCE_PRINCIPLE).body({
+                name: data.name,
+                strictness: data.strictness,
+                targetType: data.targetType,
+                description: data.description,             
+                logicRules: data.logicRules
+            }).execute()
+        }
 
+    } catch(err: any) {
+        toast.add({
+            title: "Error finance principle",
+            description: err?.message, 
+            color: 'error'
+        });
+    }
     form.name = ''
     form.description = ''
     form.targetType =''
@@ -63,7 +85,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 <template>
     <UModal title="Edit Principe financier">
         <template #body>
-            <UForm :schema="schema" :state="form" @submit="onSubmit" class=" space-y-4">
+            <UForm :valide="validate" :state="form" @submit="onSubmit" class=" space-y-4">
                 <UFormField label="Name" name="name">
                     <UInput v-model="form.name" />
                 </UFormField>

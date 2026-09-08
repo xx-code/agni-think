@@ -6,26 +6,26 @@ import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationEventContent
 import dev.auguste.agni_api.core.adapters.events.contents.NotificationType
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.ComparatorType
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryBudgetExtend
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateComparator
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import java.time.LocalDateTime
 
 class UpdateDueBudget(
     private val budgetRepo: IRepository<Budget>,
     private val eventRegister: IEventRegister
-): IUseCase<Unit, BackgroundTaskOut> {
-    override fun execAsync(input: Unit): BackgroundTaskOut {
+): ISuspendableUseCase<Unit, BackgroundTaskOut> {
+    override suspend fun execAsync(input: Unit): BackgroundTaskOut {
         try {
             val budgets = budgetRepo.getAll(
                 query = QueryFilter(0, 0, true),
                 QueryBudgetExtend(QueryDateComparator(
                     LocalDateTime.now(),
-                    ComparatorType.LesserOrEquals
+                    comparator = QueryComparator.LesserOrEquals
                 )))
 
             for (budget in budgets.items.filter { !it.isArchived }) {

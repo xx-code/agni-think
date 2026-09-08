@@ -16,6 +16,10 @@ data class ApiUpdateCategoryModel(
     val color: String?
 )
 
+data class ApiArchiveCategoryModel(
+    val archive: Boolean,
+)
+
 fun mapApiCreateCategoryModel(model: ApiCreateCategoryModel): CreateCategoryInput {
    return CreateCategoryInput(
        title = model.title,
