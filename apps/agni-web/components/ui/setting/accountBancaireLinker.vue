@@ -1,90 +1,164 @@
 <script setup lang="ts">
-import { ModalMatchBankAccount, UButton, USwitch } from '#components';
-import { usePlaidLink, type PlaidLinkOnSuccessMetadata, type PlaidLinkOptions } from '@jcss/vue-plaid-link';
+import { UButton, USwitch, USelectMenu } from '#components';
+import { usePlaidLink } from '@jcss/vue-plaid-link';
 import type { TableColumn } from '@nuxt/ui';
+import { listAccountsToListAccount } from '~/mappers/account';
 import { listBankRegistersResponseToListBankRegisters } from '~/mappers/bankRegister';
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
+import type { ListResponse } from '~/types/api';
+import type { GetAccountResponse } from '~/types/api/account';
+import type { UpdateBankRegisterRequest } from '~/types/api/bank-register';
+
+type BankAccountRow = {
+    bankAccountId: string
+    bankName: string
+    accountId?: string
+    isActive: boolean
+}
 
 type BankRow = {
     id: string
     name: string
     active: boolean
     numAccount: number
+    accounts: BankAccountRow[]
 }
 
-const overlay = useOverlay()
-const modalMatchBank = overlay.create(ModalMatchBankAccount)
+const toast = useToast()
+const { start, stop } = useLoading()
+const expanded = ref<Record<string, boolean>>({})
+
+const { data: appAccounts } = useAsyncData("banking+app+accounts", async () => {
+    const res = await ApiLinkBuilder
+        .route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
+        .query({ offset: 0, limit: 1, queryAll: true })
+        .mapper(listAccountsToListAccount)
+        .execute()
+    return res.items
+})
 
 const { data, refresh } = useAsyncData("banking+all+register", async () => {
     const res = await ApiLinkBuilder
-            .route(API_ROUTES.BANK_REGISTERS.GET_BANK_REGISTERS)
-            .query({ offset: 0, limit:1, queryAll: true })
-            .mapper(listBankRegistersResponseToListBankRegisters).execute()
+        .route(API_ROUTES.BANK_REGISTERS.GET_BANK_REGISTERS)
+        .query({ offset: 0, limit: 1, queryAll: true })
+        .mapper(listBankRegistersResponseToListBankRegisters)
+        .execute()
 
     return res.items.map(i => ({
         id: i.id,
         name: i.title,
         active: i.active,
-        numAccount: i.accounts.length
+        numAccount: i.accounts.filter(a => a.isActive).length,
+        accounts: i.accounts.map(a => ({
+            bankAccountId: a.bankAccountId,
+            bankName: a.bankName,
+            accountId: a.accountId ?? undefined,
+            isActive: a.isActive
+        }))
     } satisfies BankRow))
 })
 
-const token = ref<string|null>(null)
-const createLink = async () => {
-    const res = await ApiLinkBuilder
-        .route<{ link_token: string }>(API_ROUTES.BANK.CREATE_TOKEN)
-        .execute()
-    //@ts-ignore
-    token.value = res.link_token
-}
-
-const propsRegisterBank = ref<{
-    accessCode: string,
-    title: string,
-    bankAccounts: {id: string, name: string }[]
-}|undefined>()
-
-const config = computed(() => {
-  const config: PlaidLinkOptions = {
-    token: token.value,
-        onSuccess: async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
-            try {
-                const res = await ApiLinkBuilder
-                    .route<{ code: string }>(API_ROUTES.BANK.EXCHANGE_TOKEN)
-                    .body({ public_token: public_token })
-                    .execute()
-                propsRegisterBank.value = {
-                    accessCode: res.code,
-                    title: metadata.institution?.name ?? "",
-                    bankAccounts: metadata.accounts.map(i => ({id: i.id, name: i.name }))
-                }
-            } catch(err) {
-                console.log(err)
-            }
-        },
-  };
-  return config;
+const accountOptions = computed(() => {
+    return  [
+        { label: 'Aucun', value: undefined },
+        ...(appAccounts.value?.map(a => ({ label: a.title, value: a.id })) ?? [])
+    ]
 })
 
-
-const { start, stop } = useLoading()
+const { isReady, createLink, config } = useBankLinker(refresh)
+const { open } = usePlaidLink(config)
 
 async function forceInitTransaction() {
     try {
         start()
-        await ApiLinkBuilder
-            .route(API_ROUTES.BANK.INIT_TRANSACTION)
-            .execute()
-        stop()
-    } catch(err) {
-        stop()
+        await ApiLinkBuilder.route(API_ROUTES.BANK.INIT_TRANSACTION).execute()
+        toast.add({
+            title: "Transaction initialiser",
+            color: 'success'
+        })
+    } catch (err) {
         console.log(err)
         alert(err)
+    } finally {
+        stop()
+    }
+}
+
+async function persistAccounts(bankRegisterId: string, accounts: BankAccountRow[]) {
+    await ApiLinkBuilder
+        .route(API_ROUTES.BANK_REGISTERS.UPDATE_BANK_REGISTER)
+        .params({ id: bankRegisterId })
+        .body({
+            accounts: accounts.map(a => ({
+                accountId: a.accountId ?? null,
+                bankName: a.bankName,
+                bankAccountId: a.bankAccountId
+            }))
+        } as UpdateBankRegisterRequest)
+        .execute()
+}
+
+function findAccount(registerId: string, bankAccountId: string) {
+    const register = data.value?.find(r => r.id === registerId)
+    if (!register) return null
+    const index = register.accounts.findIndex(a => a.bankAccountId === bankAccountId)
+    if (index < 0) return null
+    return { register, index }
+}
+
+async function onToggleActive(registerId: string, bankAccountId: string, value: boolean) {
+    const found = findAccount(registerId, bankAccountId)
+    if (!found) return
+    const { register, index } = found
+    const previous = register.accounts[index]!.isActive
+    register.accounts[index]!.isActive = value
+
+    try {
+        start()
+        await persistAccounts(registerId, register.accounts)
+    } catch (err: any) {
+        register.accounts[index]!.isActive = previous
+        toast.add({ title: err?.error, description: err?.message, color: 'error' })
+    } finally {
+        stop()
+    }
+}
+
+async function onChangeLinkedAccount(registerId: string, bankAccountId: string, newAccountId?: string) {
+    const found = findAccount(registerId, bankAccountId)
+    if (!found) return
+    const { register, index } = found
+    const previous = register.accounts[index]!.accountId
+    register.accounts[index]!.accountId = newAccountId
+
+    try {
+        start()
+        await persistAccounts(registerId, register.accounts)
+        await ApiLinkBuilder.route(API_ROUTES.BANK.INIT_TRANSACTION).execute()
+        await refresh()
+    } catch (err: any) {
+        register.accounts[index]!.accountId = previous
+        toast.add({ title: err?.error, description: err?.message, color: 'error' })
+    } finally {
+        stop()
     }
 }
 
 const columns: TableColumn<BankRow>[] = [
+    {
+        id: 'expand',
+        cell: ({ row }) =>
+            h(UButton, {
+                color: 'neutral',
+                variant: 'ghost',
+                icon: 'i-lucide-chevron-down',
+                square: true,
+                'aria-label': 'Expand',
+                ui: { leadingIcon: [row.getIsExpanded() ? 'rotate-180' : '', 'transition-transform'].join(' ') },
+                onClick: () => row.toggleExpanded()
+            })
+    },
     {
         accessorKey: 'name',
         header: 'Name',
@@ -92,49 +166,26 @@ const columns: TableColumn<BankRow>[] = [
     {
         accessorKey: 'active',
         header: 'En Activite',
-        cell: ({ row }) => {
-            return h('div', { }, [
-                h(USwitch, { disabled: true, defaultValue: row.original.active })
-            ])
-        }     
-    }, 
+        cell: ({ row }) => h('div', {}, [
+            h(USwitch, { disabled: true, defaultValue: row.original.active })
+        ])
+    },
     {
         accessorKey: 'numAccount',
-        header: 'Nombre de compte'
+        header: 'Nombre de compte actif'
     },
     {
         accessorKey: 'id',
         header: '',
-        cell: ({ row }) => {
-            return h('div', {}, [
-                h(UButton, { onClick: forceInitTransaction }, "Force Initializaiton transactions")
-            ])
-        }
+        cell: ({ row }) => h('div', { class: 'flex items-center gap-2' }, [
+            h(UButton, { onClick: forceInitTransaction }, "Force Initializaiton transactions")
+        ])
     },
 ]
 
-const { open, ready } = usePlaidLink(config)
-
-async function openModelRegister() {
-    const props = propsRegisterBank.value
-    if (props) {
-        const instant = modalMatchBank.open({
-            accessCode: props.accessCode,
-            title: props.title,
-            bankAccounts: props.bankAccounts
-        })
-
-        await instant.result
-
-        propsRegisterBank.value = undefined
-        refresh()
-    }
-} 
-
-onMounted(async () => {
-    await createLink()
+onMounted(() => {
+    createLink()
 })
-
 </script>
 
 <template>
@@ -147,29 +198,51 @@ onMounted(async () => {
                 </div>
 
                 <div class="flex items-center space-x-2">
-                    <UButton 
-                        label="Connect Bank" 
-                        icon="i-lucide-plus" 
+                    <UButton
+                        v-if="isReady"
+                        label="Connect Bank"
+                        icon="i-lucide-plus"
                         size="md"
                         color="primary"
                         @click="open"
                     />
-                    <UButton 
-                        :disabled="propsRegisterBank === undefined"
-                        label="Register Bank" 
-                        icon="i-lucide-plus" 
-                        size="md"
-                        color="secondary"
-                        @click="openModelRegister"
-                    />
                 </div>
-                
             </div>
 
-            <UTable  
+            <UTable
                 :columns="columns"
                 :data="data"
-            />
+                v-model:expanded="expanded"
+            >
+                <template #expanded="{ row }">
+                    <div class="space-y-2 py-2 pl-10">
+                        <div
+                            v-for="account in row.original.accounts"
+                            :key="account.bankAccountId"
+                            class="flex items-center gap-4 border-b border-gray-100 py-2 last:border-none"
+                        >
+                            <span class="w-48 truncate text-sm font-medium">{{ account.bankName }}</span>
+
+                            <USelectMenu
+                                class="w-56"
+                                :items="accountOptions"
+                                value-key="value"
+                                :model-value="account.accountId"
+                                @update:model-value="(v: string | undefined) => onChangeLinkedAccount(row.original.id, account.bankAccountId, v)"
+                            />
+
+                            <!-- <USwitch
+                                :model-value="account.isActive"
+                                @update:model-value="(v: boolean) => onToggleActive(row.original.id, account.bankAccountId, v)"
+                            /> -->
+                        </div>
+
+                        <p v-if="!row.original.accounts.length" class="text-sm text-gray-400">
+                            Aucun compte bancaire pour cette institution.
+                        </p>
+                    </div>
+                </template>
+            </UTable>
         </div>
     </UiCard>
 </template>

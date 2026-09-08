@@ -16,6 +16,9 @@ In my culture, the Agni ethnic group is often stereotyped as stingy. However, I 
 **Backend**
 - Kotlin with Spring Boot
 
+**Backend AI**
+- Python FastApi
+
 **Database**
 - PostgreSQL 17
 
@@ -26,9 +29,6 @@ In my culture, the Agni ethnic group is often stereotyped as stingy. However, I 
 ## Architecture
 
 The backend (Kotlin with Spring Boot) follows **Clean Architecture** principles combined with a **Domain-Driven Design (DDD)** approach for modeling business logic.
-
-## Features
-<!--TODO: list features and future features-->
 
 ---
 

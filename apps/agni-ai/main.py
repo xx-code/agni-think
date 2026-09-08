@@ -11,11 +11,13 @@ from fastapi.concurrency import asynccontextmanager
 from fastapi import FastAPI
 from apscheduler.schedulers.background import BackgroundScheduler
 from backend import get_budgets, get_finance_profile, get_saving_goals, query_rag, get_bank_registers, \
-    get_bank_transaction_untreated
-from agents.dto import ChatFinancialAdvisorAgentInput
+    get_bank_transaction_untreated, forcast_spending
+from backend_dto import ForcastSpendingRequest
+from agents.dto import ChatFinancialAdvisorAgentInput, ChatAgentOutput
 from agents.agent import Chat
 from agents.tools import wrap_tool_annual_outlook, wrap_tool_get_budgets,\
-    wrap_tool_get_finance_profile, wrap_tool_query_rag_invoice, wrap_tool_get_internal_loans, wrap_tool_get_account_by_id, wrap_tool_get_saving_goals
+        wrap_tool_get_finance_profile, wrap_tool_query_rag_invoice, wrap_tool_get_internal_loans, wrap_tool_get_account_by_id, wrap_tool_get_saving_goals, \
+        wrap_tool_forcast_spending
 
 from storages.dto import QdrantAddDocumentInput
 from storages.qdrant import QdrantClientService
@@ -134,13 +136,13 @@ def list_models() -> List[str]:
     return result 
 
 @app.post("/chat")
-def chat_with_advisor(request: ChatFinancialAdvisorAgentInput) -> str:
+def chat_with_advisor(request: ChatFinancialAdvisorAgentInput) -> ChatAgentOutput:
     session_id = request.session_id 
     if session_id not in sessions_db:
         sessions_db[session_id] = []
     model = request.model
 
-    if request.model == "":
+    if request.model == "" or request.model.lower() == "default":
         model = "google_genai:gemini-2.5-flash-lite" 
 
     chat = Chat(
@@ -149,10 +151,16 @@ def chat_with_advisor(request: ChatFinancialAdvisorAgentInput) -> str:
         history=sessions_db[session_id], 
         tools=[wrap_tool_query_rag_invoice, wrap_tool_annual_outlook, 
                wrap_tool_get_finance_profile, wrap_tool_get_budgets, 
-               wrap_tool_get_saving_goals, wrap_tool_get_account_by_id, wrap_tool_get_internal_loans])
+               wrap_tool_get_saving_goals, 
+               wrap_tool_get_account_by_id, 
+               wrap_tool_get_internal_loans,
+               wrap_tool_forcast_spending
+        ])
     response = chat.ask(request.question)
 
-    return response
+    print(response)
+
+    return ChatAgentOutput(message=response)
 
 @app.post("/treat-unformat-transaction")
 def clerk_treat_trans(request: TreatInvoiceDto) -> str:
@@ -182,6 +190,18 @@ def test_tool(tool: str):
             return query_rag(invoice_collections, "spend high spend invoice")
         case "finance_profile":
             return get_finance_profile()
+        case "forcast":
+            return forcast_spending(
+                ForcastSpendingRequest(
+                    startDate=date(2026, 9, 10),
+                    endDate=date(2026, 9, 24),
+                    budgetIds=[],
+                    overrideAccountsBalance=None,
+                    savingAdditionalIncome=[],
+                    savingRate=None,
+                    wantItems=[]
+                )
+            )
         case _:
             return "Unknow tool in the system"
 
@@ -227,7 +247,8 @@ def init_transactions(start_date: date | None = None):
             newTransactionIds += batch_fetch_transactions(
                 bank_register_id=bank.id, 
                 access_code=bank.accessCode, 
-                start_date=start_date, end_date=date.today())
+                start_date=start_date, end_date=date.today()
+            )
     
     if len(newTransactionIds) == 0:
         return []

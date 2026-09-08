@@ -4,24 +4,23 @@ import type { GetAccountResponse } from '~/types/api/account';
 import { listAccountsToListAccount } from '~/mappers/account';
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
+import type { EditBankLinker } from '~/types/ui/bank-register';
 
 
 const { start, stop } = useLoading()
-const { title, accessCode, bankAccounts } = defineProps<{
-    title: string
-    accessCode: string
-    bankAccounts: {id: string, name: string }[]
+const { data } = defineProps<{
+    data: EditBankLinker
 }>()
 
 const emit = defineEmits<{
-    (e: 'close', close: boolean): void
+    (e: 'close', refresh: boolean): void
 }>();
 
 const bankMatching = ref<{
     name: string
     bankAccountId: string
     accountId: string
-}[]>(bankAccounts.map(i => ({ name: i.name, bankAccountId: i.id, accountId: '' })))
+}[]>(data.bankAccounts.map(i => ({ name: i.name, bankAccountId: i.id, accountId: '' })))
 
 const { data: accounts } =  useAsyncData('accounts+all', async () => {
     const res = await ApiLinkBuilder
@@ -29,13 +28,12 @@ const { data: accounts } =  useAsyncData('accounts+all', async () => {
         .query({ queryAll: true, limit: 1, offset: 0 })
         .mapper(listAccountsToListAccount)
         .execute()
+
     return res.items.map(i => ({
         value: i.id,
         label: i.title 
     }))
 })
-
-
 
 function onSelectBank(bankId: string, id: string) {
     const index = bankMatching.value.findIndex(i => i.bankAccountId === bankId)
@@ -56,8 +54,8 @@ async function saveBank() {
         await ApiLinkBuilder
             .route<CreatedRequest>(API_ROUTES.BANK_REGISTERS.CREATE_BANK_REGISTER)
             .body({
-                title: title,
-                accessCode: accessCode,
+                title: data.title,
+                accessCode: data.accessCode,
                 accounts: bankMatching.value.map(i => ({ accountId: i.accountId, bankAccountId: i.bankAccountId}))
             })
             .execute()
@@ -77,16 +75,16 @@ async function saveBank() {
 </script>
 
 <template>
-    <UModal :title="title" :dismissible="false">
+    <UModal :title="data.title" :dismissible="false">
         <template #body>
             <div>
                 <div v-for="bank in bankMatching" :key="bank.bankAccountId">
-                    <div class="flex space-x-2 items-center">
-                        <p class="font-bold">{{ bank.name }}</p>
+                    <div class="flex space-x-2 items-center gap-4">
+                        <p class="font-bold w-full">{{ bank.name }}</p>
                         <USelect 
+                            class="w-full"
                             :items="accounts"
                             placeholder="Select Account"
-                            class="w-min-50"
                             value-key="value" 
                             label-key="label"
                             @update:model-value="val => onSelectBank(bank.bankAccountId, val)"

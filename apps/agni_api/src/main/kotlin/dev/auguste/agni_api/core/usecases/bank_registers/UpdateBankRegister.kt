@@ -20,12 +20,18 @@ class UpdateBankRegister(
         }
 
         if (!input.accounts.isNullOrEmpty()) {
-            val accountIds = input.accounts.map { it.accountId }.toSet()
+            val accountIds = input.accounts.mapNotNull { it.accountId }.toSet()
             val accounts = accountRepo.getManyByIds(accountIds)
-            if (accounts.size != input.accounts.size)
+            if (accountIds.isNotEmpty() && accounts.size != accountIds.size)
                 throw DomainException.NotFound.SomeAccounts(accountIds)
 
-            bankRegister.accountslinked = input.accounts.map { AccountLinked(it.accountId, it.bankAccountId) }.toSet()
+            bankRegister.accountslinked = input.accounts.map {
+                AccountLinked(
+                    it.accountId,
+                    it.bankAccountId,
+                    it.bankName
+                )
+            }.toSet()
         }
 
         if (!input.title.isNullOrEmpty()) {

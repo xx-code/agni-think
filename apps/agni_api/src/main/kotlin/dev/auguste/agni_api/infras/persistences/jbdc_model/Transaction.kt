@@ -41,17 +41,30 @@ data class JdbcTransactionModel(
 class JdbcTransactionModelMapper(
     private val objectMapper: ObjectMapper
 ): IMapper<JdbcTransactionModel, Transaction> {
+    private fun parseUuidSet(json: String?): Set<UUID> {
+        if (json.isNullOrBlank()) return emptySet()
+
+        return runCatching {
+            // Lecture du tableau JSON sous forme de List<String>
+            objectMapper.readValue<List<String>>(json)
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .map { UUID.fromString(it) }
+                .toSet()
+        }.getOrElse {
+            // Sécurité de secours au cas où la BDD contient des formats mal formés ou entre crochet sans guillemets JSON
+            json.trim('[', ']', ' ', '\n', '\r')
+                .split(",")
+                .map { it.replace("\"", "").trim() }
+                .filter { it.isNotEmpty() }
+                .map { UUID.fromString(it) }
+                .toSet()
+        }
+    }
+
     override fun toDomain(model: JdbcTransactionModel): Transaction {
-        val budgetIdsSet: Set<UUID> = model.budgetIds?.let { json ->
-            objectMapper.readValue<List<String>>(json)
-                .map { UUID.fromString(it) }
-                .toSet()
-        } ?: emptySet()
-        val tagIdsSet: Set<UUID> = model.tagIds?.let { json ->
-            objectMapper.readValue<List<String>>(json)
-                .map { UUID.fromString(it) }
-                .toSet()
-        } ?: emptySet()
+        val budgetIdsSet: Set<UUID> = parseUuidSet(model.budgetIds)
+        val tagIdsSet: Set<UUID> = parseUuidSet(model.tagIds)
 
         return Transaction(
             id = model.transactionId,
@@ -71,8 +84,8 @@ class JdbcTransactionModelMapper(
             moneyAmount = entity.amount,
             categoryId = entity.categoryId,
             description = entity.description,
-            tagIds = entity.tagIds.toString(),
-            budgetIds = entity.budgetIds.toString()
+            tagIds = objectMapper.writeValueAsString(entity.tagIds.map { it.toString() }) ,
+            budgetIds = objectMapper.writeValueAsString(entity.budgetIds.map {it.toString()})
         )
     }
 

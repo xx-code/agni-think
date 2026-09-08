@@ -42,6 +42,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class Profile(id: UUID) : NotFound("PROFILE_NOT_FOUND", "Profile not found $id")
         class SpendingPeriod(id: UUID) : NotFound("SPENDING_PERIOD_NOT_FOUND", "Spending period for $id")
         class SpendingPeriodTemplate(id: UUID) : NotFound("SPENDING_PERIOD_TEMPLATE_NOT_FOUND", "Spending period template not found $id")
+        class BankRegisterCodeAccess(accessCode: String): NotFound("BANK_REGISTER_ACCESS_NOT_FOUND", "Bank register code not found $accessCode")
     }
 
     sealed class AlreadyExist(code: String, message: String): DomainException(code, message) {
@@ -92,6 +93,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class ScheduleFreezeInvoiceMustHaveAScheduler: Validation("SCHEDULE_FREEZE_INVOICE_SCHEDULER_INVALID", "Une facture scheduler doit poceder un scheduler")
         class ProfileMaxWishlistAmountMustBePositif: Validation("PROFILE_MAX_WISHLIST_MUST_BE_POSITIF", "Le montant maximun pour la liste de souhait doit etre prositif")
         class ProfileRulePercentageMustBePositif(rule: String, percentage: Double, total: Double): Validation("PROFILE_BUDGET_RULE_PERCENTAGE_ERROR", "La repartion $rule a un pourcentage $percentage/$total. le repartion doit etre entre 0 et 100 et le total des repartition doit etre a 100%")
+        class GetBankRegisterAccessCodeEmpty: Validation("GET_BANK_REGISTER_ACCESS_CODE_EMPTY", "Le code d'access pour la bank est vide")
     }
 
     sealed class Unexpected(code: String, message: String): BusinessLogic(code, message) {

@@ -25,6 +25,10 @@ const navbarItems: TabsItem[] = [
     {
         label: 'Compte Bancaire Linker',
         slot: 'bankLinker' as const
+    },
+    {
+        label: 'Profile',
+        slot: 'profile' as const
     }
 ]
 
@@ -60,6 +64,10 @@ const navbarItems: TabsItem[] = [
 
             <template #bankLinker>
                 <UiSettingAccountBancaireLinker />
+            </template>
+
+            <template #profile>
+                <UiSettingProfile />
             </template>
         </UTabs>
 

@@ -5,7 +5,7 @@ from qdrant_client import QdrantClient
 from backend_dto import FinanceProfileResponse, BudgetResponse, SavingGoalResponse, \
     BankRegisterResponse, TagResponse, CategoryResponse, CreateInvoiceRequest, \
     ExternalTransactionRequest, CreatedResponse, ExternalTransactionResponse, DeductionResponse, \
-    NotificationRequest, AnnualOutlookResponse, AccountResponse, InternalLoanResponse
+    NotificationRequest, AnnualOutlookResponse, AccountResponse, InternalLoanResponse, ForcastSpendingRequest, ForcastSpendingResponse
 from dotenv import load_dotenv
  
 load_dotenv()
@@ -49,7 +49,7 @@ def get_budgets() -> list[BudgetResponse]:
     return res
 
 def get_saving_goals() -> list[SavingGoalResponse]:
-    response = requests.get(f"{api_link}/saving-goals?limit=0&offset=0&queryAll=true")
+    response = requests.get(f"{api_link}/funds?limit=0&offset=0&queryAll=true")
 
     response.raise_for_status()
 
@@ -192,3 +192,9 @@ def update_cursor(bank_register_id: str, cursor: str):
 def treat_external_transaction(id: str):
     res = requests.post(f"{api_link}/external-transactions/treat/{id}")
     res.raise_for_status()
+
+def forcast_spending(request: ForcastSpendingRequest) -> ForcastSpendingResponse:
+    res = requests.post(f"{api_link}/analytics/forcast-spending", json=request.model_dump(mode="json"))
+    res.raise_for_status()
+
+    return ForcastSpendingResponse(**res.json())
