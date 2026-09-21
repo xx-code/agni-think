@@ -96,7 +96,7 @@ class JdbcAccountModelMapper(
     override fun getTableName(): String = "accounts"
 
     override fun getSortField(): Set<String> {
-        return setOf("title")
+        return setOf("title", "balance")
     }
 
     override fun getModelClass(): Class<JbdcAccountModel> = JbdcAccountModel::class.java

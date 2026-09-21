@@ -6,7 +6,7 @@ import { ModalEditAccount, SlideOverQuickInvoicesView } from "#components";
 import { accountWithDetailResponseToAccountWithDetail, accountWithDetailToAccountCard, listAccountsResponseToListAccountWithDetail } from "~/mappers/account";
 import { savingAnalyticResponseToSavingAnalytic } from "~/mappers/analytics";
 import { goalResponseToGoal, goalToFundGoalCards } from "~/mappers/goal";
-import { getOrderAccountType } from "~/types/constants/account";
+import { AccountType, getOrderAccountType } from "~/types/constants/account";
 import type { CreatedRequest, ListResponse } from "~/types/api";
 import type { GetAccountWithDetailResponse } from "~/types/api/account";
 import type { GetSavingAnalysticResponse, GetSpendCategoryResponse } from "~/types/api/analytics";
@@ -20,6 +20,16 @@ const isLoadingAccount = ref(false)
 const isKpiLoading = ref(false)
 const isLoadingTopSpend = ref(false)
 const isLoadingGoal = ref(false)
+
+function groupAndSortAccount(a: AccountWithDetailType, b: AccountWithDetailType) {
+    const typeDiff = getOrderAccountType(a.type) - getOrderAccountType(b.type);
+  
+    if (typeDiff !== 0) {
+        return typeDiff;
+    }
+
+  return a.title.localeCompare(b.title);
+}
 
 const { data: accountData, refresh: refreshAccounts } = useAsyncData(
     'accounts+categories+tags+budgets',
@@ -50,7 +60,7 @@ const { data: accountData, refresh: refreshAccounts } = useAsyncData(
         isLoadingAccount.value = false
 
         return {
-            accounts: res.items.sort((a, b) => getOrderAccountType(a.type) - getOrderAccountType(b.type)),
+            accounts: res.items.sort((a, b) => groupAndSortAccount(a, b)),
             balanceHistories: accIds.map((id, index) => ({
                 id,
                 histories: balancesByPeriod[index]?.map(i => i.balance) ?? []
