@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import { getLocalTimeZone } from '@internationalized/date';
 import type { DropdownMenuItem } from '@nuxt/ui';
-import type { FormFilterTransaction } from '~/types/ui/component';
-import type { InvoiceFilter } from '~/types/ui/transaction';
+import type { FormFilterTransaction, MultiCalendarSelection } from '~/types/ui/component';
 
 const props = defineProps<{
     accounts: {label: string, value: string}[],
@@ -11,6 +10,10 @@ const props = defineProps<{
 
 const categoryIds = ref<string[]>([])
 const accountIds = ref<string[]>([])
+const dateRange = shallowRef<MultiCalendarSelection>({
+    start: undefined,
+    end: undefined
+});
 
 const emit = defineEmits<{
     transfer: []
@@ -68,14 +71,18 @@ const actionItems = ref<DropdownMenuItem[][]>([
 ]) 
 
 const hasFilters = computed(() => {
-    return categoryIds.value.length > 0 || accountIds.value.length > 0
+    return categoryIds.value.length > 0 || accountIds.value.length > 0  || dateRange.value.start !== undefined || dateRange.value.end !== undefined
 })
 
 function onFilter(value: FormFilterTransaction) {
     emit('filter',{ 
+        categoryIds: categoryIds.value,
+        accountIds: accountIds.value,
         tagIds: value.tagIds,
         budgetIds: value.budgetIds,
         minAmount: value.minPrice,
+        startDate: dateRange.value.start?.toDate(getLocalTimeZone()).toISOString(),
+        endDate: dateRange.value.end?.toDate(getLocalTimeZone()).toISOString(),
         types: value.types,
         maxAmount: value.maxPrice,
         status: value.status
@@ -84,6 +91,12 @@ function onFilter(value: FormFilterTransaction) {
 }
 
 function cleanQueryFilter(){
+    categoryIds.value = []
+    accountIds.value = []
+    dateRange.value = {
+        start: undefined,
+        end: undefined
+    }
     emit('filter', {
         accountIds: [],
         categoryIds: [],
@@ -128,12 +141,13 @@ function cleanQueryFilter(){
                 />
 
                 <MultiCalendarSelection 
-                    @submit="(start, end) => {
+                    v-model="dateRange"
+                    v-on:update:model-value="dateRange => {
                         emit('filter', {
-                            startDate: start?.toDate(getLocalTimeZone()).toISOString(),
-                            endDate: end?.toDate(getLocalTimeZone()).toISOString()  
+                            startDate: dateRange?.start?.toDate(getLocalTimeZone()).toISOString(),
+                            endDate: dateRange?.end?.toDate(getLocalTimeZone()).toISOString(),
                         })
-                    }"
+                    }" 
                 />
             </div> 
             <div class="flex items-center gap-2">
