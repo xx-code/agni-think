@@ -62,7 +62,7 @@ const { data: utils } = useAsyncData('utils-transactions', async () => {
     }
 })
 
-const { data, query, loading, hasMore, totalData, loadData, reset, updateData, removeData  } = useLazyInifinteScroll<InvoiceFilter, GetInvoiceResponse, InvoiceType>(
+const { data, query, loading, hasMore, totalData, loadData, reset, emptyData, updateData, removeData  } = useLazyInifinteScroll<InvoiceFilter, GetInvoiceResponse, InvoiceType>(
     API_ROUTES.INVOICES.GET_INVOICES, 
     API_ROUTES.INVOICES.GET_INVOICE, 
     listInvoicesResponseToListInvoices, 
@@ -251,7 +251,7 @@ useInfiniteScroll(
             @transfer=""
             @freeze=""
             @filter="(filter) => { 
-                reset()
+                emptyData()
                 Object.assign(query, {
                     ...query, 
                     offset: 0,
