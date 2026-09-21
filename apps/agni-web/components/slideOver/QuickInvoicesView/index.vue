@@ -10,6 +10,8 @@ import { useInfiniteScroll } from '@vueuse/core';
 import { ModalEditFreezeInvoice, ModalEditTransfer, ModalInvoice } from '#components';
 import type { EditFreezeInvoiceType, EditTransfertType, InvoiceFilter, InvoiceType } from '~/types/ui/transaction.js';
 import { getLocalTimeZone } from '@internationalized/date';
+import type { GetAccountWithDetailResponse } from '~/types/api/account.js';
+import { accountWithDetailResponseToAccountWithDetail } from '~/mappers/account.ts';
 
 
 function formatInvoiceToSlideItem(invoice: InvoiceType): SlideQuickViewTransactionType {
@@ -27,8 +29,8 @@ function formatInvoiceToSlideItem(invoice: InvoiceType): SlideQuickViewTransacti
     } 
 }
 
-const { account, budgetIds, tagIds, categoryIds } = defineProps<{
-    account?: AccountWithDetailType,
+const { accountId, budgetIds, tagIds, categoryIds } = defineProps<{
+    accountId?: string,
     budgetIds?: string[],
     tagIds?: string[]
     categoryIds?: string[]
@@ -44,7 +46,7 @@ const doRefresh = ref(false)
 const queryAllTrans = reactive<InvoiceFilter>({
     offset: 0,
     limit: 10,
-    accountIds: account ? [account.id] : [],
+    accountIds: accountId ? [accountId] : [],
     categoryIds: categoryIds || [],
     tagIds: tagIds || [],
     budgetIds: budgetIds || [],
@@ -52,6 +54,7 @@ const queryAllTrans = reactive<InvoiceFilter>({
 });
 const balance = ref<GetBalanceResponse>()
 const loading = ref(false);
+const { isLoading: isAccountLoading, start: startLoadingAccount, stop:stopLoadingAccount } = useLoading()
 const totalInvoices = ref(0)
 const invoices = ref<SlideQuickViewTransactionType[]>([])
 const hasMore = computed(() => invoices.value.length < totalInvoices.value)
@@ -61,6 +64,26 @@ const overlay = useOverlay()
 const modalTransfer = overlay.create(ModalEditTransfer);
 const modalInvoice = overlay.create(ModalInvoice);
 const modalFreezeInvoice = overlay.create(ModalEditFreezeInvoice);
+
+const { data: account, refresh: refreshAccount } = useAsyncData(`accounting+slideover+${accountId}`, async () => {
+    startLoadingAccount()
+    if (accountId) {
+        const account = await ApiLinkBuilder
+            .route<GetAccountWithDetailResponse>(API_ROUTES.ACCOUNTS.GET_ACCOUNT)
+            .query({withDetail: true})
+            .params({ id: accountId })
+            .mapper(accountWithDetailResponseToAccountWithDetail)
+            .execute();   
+        
+        stopLoadingAccount()
+        
+        return account
+    }
+
+    stopLoadingAccount()
+
+    return undefined
+})
 
 async function getAllInvoices(offset: number = 0) {
     if (loading.value) return
@@ -82,6 +105,7 @@ async function getAllInvoices(offset: number = 0) {
 
         invoices.value.push(...resInvoices)
 
+        await refreshAccount()
         balance.value = res
         totalInvoices.value = transactions.total
 
@@ -109,14 +133,15 @@ async function openModalEditInvoice(invoiceId?:string) {
             .mapper(invoiceResponseToInvoice)
             .execute()
 
-    const instance = modalInvoice.open({
-        accountSelectedId: account?.id,
-        invoice: invoice
+    modalInvoice.open({
+        accountSelectedId: accountId,
+        invoice: invoice,
+        onClose: doRefresh => {
+            if (doRefresh)
+                resetAllInvoices()
+        }
     })
 
-    await instance.result 
-
-    resetAllInvoices()
     doRefresh.value = true
 } 
 
@@ -145,7 +170,7 @@ async function onTransfertAccount(value: EditTransfertType) {
 
 async function openModalTransferAccount (){ 
     modalTransfer.open({
-        accountId: account?.id,
+        accountId: accountId,
         onSubmit: onTransfertAccount 
     });
 }
@@ -175,7 +200,7 @@ async function onFreezeInvoice(value: EditFreezeInvoiceType) {
 
 async function openModalEditFreeze() {
     const instance = modalFreezeInvoice.open({
-        accountId: account?.id,
+        accountId: accountId,
         onSubmit: onFreezeInvoice
     });
 
@@ -239,7 +264,9 @@ useInfiniteScroll(
                         @click="emit('close', doRefresh)"
                     />
                 </div>
+                
                 <SlideOverQuickInvoicesViewHeader 
+                    v-if="!isAccountLoading"
                     :account-info="account"
                     :gains="balance?.income ?? 0"
                     :spend="balance?.spend ?? 0"
@@ -247,6 +274,7 @@ useInfiniteScroll(
                     @transfer="() => openModalTransferAccount()"
                     @freeze="() => openModalEditFreeze()"
                 />
+                <LoadingIndicator v-else />
 
                 <div class="flex items-center gap-1 w-fit rounded-xl bg-neutral-100 dark:bg-neutral-800 p-1">
                     <button

@@ -222,9 +222,8 @@ const onDeleteAccount = async (accountId: string) => {
 
 const openTransactionViews = async (accountId: string) => {
     try {
-        let account = await ApiLinkBuilder.route<GetAccountWithDetailResponse>(API_ROUTES.ACCOUNTS.GET_ACCOUNT).params({id: accountId}).query({withDetail: true}).mapper(accountWithDetailResponseToAccountWithDetail).execute();
         const instance = slideOverQuickInvoices.open({
-            account: account,
+            accountId: accountId,
             onClose: (refresh) => {
                 if (refresh)
                     refreshAccounts()
@@ -241,7 +240,7 @@ const openTransactionViews = async (accountId: string) => {
 }
 
 const availableBalance = computed(() => {
-    return totalAccountBalance.value.totalBalance + Math.abs(totalAccountBalance.value.totalFreezedBalance + totalAccountBalance.value.totalLockedBalance) 
+    return totalAccountBalance.value.totalBalance - Math.abs(totalAccountBalance.value.totalFreezedBalance + totalAccountBalance.value.totalLockedBalance) 
 })
 
 function goalStatusBadge(goal: FundCardGoal) {
