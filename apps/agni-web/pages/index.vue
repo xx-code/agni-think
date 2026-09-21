@@ -222,9 +222,8 @@ const onDeleteAccount = async (accountId: string) => {
 
 const openTransactionViews = async (accountId: string) => {
     try {
-        let account = await ApiLinkBuilder.route<GetAccountWithDetailResponse>(API_ROUTES.ACCOUNTS.GET_ACCOUNT).params({id: accountId}).query({withDetail: true}).mapper(accountWithDetailResponseToAccountWithDetail).execute();
         const instance = slideOverQuickInvoices.open({
-            account: account,
+            accountId: accountId,
             onClose: (refresh) => {
                 if (refresh)
                     refreshAccounts()
