@@ -8,7 +8,10 @@ data class InvoiceDeductionOutput(
     val id: UUID,
     val amount: Double
 )
-
+data class InvoiceModuleLinkerOutput(
+    val sourceId: UUID,
+    val module: String
+)
 data class GetInvoiceOutput(
     val id: UUID,
     val accountId: UUID,
@@ -20,5 +23,6 @@ data class GetInvoiceOutput(
     val mouvement: String,
     val date: LocalDateTime,
     val transactions: List<TransactionOutput>,
-    val deductions: List<InvoiceDeductionOutput>
+    val deductions: List<InvoiceDeductionOutput>,
+    val moduleLinkers: List<InvoiceModuleLinkerOutput>
 )

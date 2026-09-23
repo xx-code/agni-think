@@ -14,8 +14,10 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.InvoiceDeductionOutput
+import dev.auguste.agni_api.core.usecases.invoices.dto.InvoiceModuleLinkerOutput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
+import dev.auguste.agni_api.core.value_objects.InvoiceModuleLinker
 
 class GetAllInvoices(
     private val invoiceRepo: IRepository<Invoice>,
@@ -84,7 +86,8 @@ class GetAllInvoices(
                         isFreeze = invoice.isFreeze,
                         type = invoice.type.value,
                         transactions = invoiceTransactions.transactions,
-                        deductions = formatInvoiceDeductionsOutput(invoice, invoiceTransactions, deductions)
+                        deductions = formatInvoiceDeductionsOutput(invoice, invoiceTransactions, deductions),
+                        moduleLinkers = invoice.moduleLinkers.map { InvoiceModuleLinkerOutput(it.sourceId, it.module.value) }
                     )
                 )
             }
@@ -124,7 +127,8 @@ class GetAllInvoices(
                         isFreeze = invoice.isFreeze,
                         type = invoice.type.value,
                         transactions = invoiceTransactions.transactions,
-                        deductions = formatInvoiceDeductionsOutput(invoice, invoiceTransactions, deductions)
+                        deductions = formatInvoiceDeductionsOutput(invoice, invoiceTransactions, deductions),
+                        moduleLinkers = invoice.moduleLinkers.map { InvoiceModuleLinkerOutput(it.sourceId, it.module.value) }
                     )
                 )
             }

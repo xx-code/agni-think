@@ -12,6 +12,7 @@ import type { EditFreezeInvoiceType, EditTransfertType, InvoiceFilter, InvoiceTy
 import { getLocalTimeZone } from '@internationalized/date';
 import type { GetAccountWithDetailResponse } from '~/types/api/account.js';
 import { accountWithDetailResponseToAccountWithDetail } from '~/mappers/account.ts';
+import useConfirmModal from '~/composables/modal/useConfirmModal.ts';
 
 
 function formatInvoiceToSlideItem(invoice: InvoiceType): SlideQuickViewTransactionType {
@@ -39,6 +40,9 @@ const emit = defineEmits<{
     close: [refresh: boolean]
 }>();
 
+
+const overlay = useOverlay()
+const { open: openConfirmDialog } = useConfirmModal(overlay)
 const toast = useToast()
 const el = useTemplateRef('el')
 const doRefresh = ref(false)
@@ -60,7 +64,6 @@ const invoices = ref<SlideQuickViewTransactionType[]>([])
 const hasMore = computed(() => invoices.value.length < totalInvoices.value)
 const showFreeze = ref(false)
 
-const overlay = useOverlay()
 const modalTransfer = overlay.create(ModalEditTransfer);
 const modalInvoice = overlay.create(ModalInvoice);
 const modalFreezeInvoice = overlay.create(ModalEditFreezeInvoice);
@@ -229,6 +232,29 @@ async function deleteInvoice(invoiceId: string) {
     
 }
 
+async function onCancelTransfer(id: string) {
+    openConfirmDialog(
+        {
+            title: 'Voulez vous annuler le transfer?',
+            description: ''
+        },
+        async () => {
+            try {
+                await ApiLinkBuilder.route(API_ROUTES.INVOICES.CANCEL_TRANSFER).params({id}).execute()
+
+                resetAllInvoices()
+                doRefresh.value = true
+            } catch (err: any) {
+                toast.add({
+                    title: 'Error Freeze',
+                    description: err.message,
+                    color: 'error'
+                });
+            }
+        }
+    )
+}
+
 watch(showFreeze, (val) => {
     queryAllTrans.isFreeze = val
     invoices.value = []
@@ -310,6 +336,7 @@ useInfiniteScroll(
                         :has-more="hasMore"  
                         @update="id => openModalEditInvoice(id)"
                         @delete="id => deleteInvoice(id)"
+                        @cancel-transfer="id => onCancelTransfer(id)"
                     />
                 </div>
 

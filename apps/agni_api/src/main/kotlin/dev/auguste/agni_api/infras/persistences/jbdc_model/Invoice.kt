@@ -7,6 +7,7 @@ import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.value_objects.InvoiceDeduction
+import dev.auguste.agni_api.core.value_objects.InvoiceModuleLinker
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
@@ -33,7 +34,8 @@ data class JdbcInvoiceModel(
     @Column("is_freeze")
     val isFreeze: Boolean,
 
-    val deductions: String
+    val deductions: String,
+    val invoiceModuleLinkers: String
 ) : JdbcModel() {
     override fun getId(): UUID {
         return id
@@ -49,6 +51,10 @@ class JdbcInvoiceModelMapper(
             objectMapper.readValue<Map<String, Any>>(it)
         }.toSet()
 
+        val moduleLinkersJson = objectMapper.readValue(model.invoiceModuleLinkers, Array<String>::class.java).map {
+            objectMapper.readValue<Map<String, Any>>(it)
+        }.toList()
+
         return Invoice(
             id = model.id,
             accountId = model.accountId,
@@ -56,6 +62,7 @@ class JdbcInvoiceModelMapper(
             mouvementType = InvoiceMouvementType.fromString(model.mouvement),
             type = InvoiceType.fromString(model.type),
             deductions = deductionsJson.map { InvoiceDeduction.fromMap(it) }.toMutableSet(),
+            moduleLinkers = moduleLinkersJson.map { InvoiceModuleLinker.fromMap(it) }.toMutableList(),
             date = model.date,
             isFreeze = model.isFreeze,
         )
@@ -70,7 +77,8 @@ class JdbcInvoiceModelMapper(
             mouvement = entity.mouvementType.value,
             date = entity.date,
             isFreeze = entity.isFreeze,
-            deductions = objectMapper.writeValueAsString(entity.deductions.map { objectMapper.writeValueAsString(it.toMap()) })
+            deductions = objectMapper.writeValueAsString(entity.deductions.map { objectMapper.writeValueAsString(it.toMap()) }),
+            invoiceModuleLinkers = objectMapper.writeValueAsString(entity.moduleLinkers.map { objectMapper.writeValueAsString(it) })
         )
     }
 

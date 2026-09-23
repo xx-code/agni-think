@@ -3,7 +3,9 @@ package dev.auguste.agni_api.core.entities
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.SchedulerInvoiceInput
 import dev.auguste.agni_api.core.value_objects.InvoiceDeduction
+import dev.auguste.agni_api.core.value_objects.InvoiceModuleLinker
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.properties.Delegates
@@ -17,7 +19,8 @@ class Invoice(
     deductions: MutableSet<InvoiceDeduction> = mutableSetOf(),
     date: LocalDateTime = LocalDateTime.now(),
     isFreeze: Boolean = false,
-): Entity(id = id) {
+    moduleLinkers: MutableList<InvoiceModuleLinker> = mutableListOf(),
+    ): Entity(id = id) {
     var accountId: UUID by Delegates.observable(accountId) { prop, old, new ->
         if (old != new)
             this.markHasChanged()
@@ -52,4 +55,6 @@ class Invoice(
         if (old != new)
             this.markHasChanged()
     }
+    
+    var moduleLinkers by cleanObservable(moduleLinkers, this)
 }

@@ -7,11 +7,14 @@ import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Transaction
+import dev.auguste.agni_api.core.entities.enums.InvoiceModuleLinkerType
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.TransferInvoiceInput
+import dev.auguste.agni_api.core.value_objects.InvoiceModuleLinker
+import java.util.UUID
 
 class TransferInvoice(
     private val invoiceRepo: IRepository<Invoice>,
@@ -27,20 +30,32 @@ class TransferInvoice(
             if (input.amount < 0)
                 throw DomainException.BusinessLogic.Validation("Amount must be non-negative")
 
+            val invoiceFromId = UUID.randomUUID()
+            val invoiceToId = UUID.randomUUID()
+
+            val invoiceFromModuleLinkers = input.moduleSourcesLinker.toMutableList()
+                invoiceFromModuleLinkers.add(InvoiceModuleLinker(invoiceToId, InvoiceModuleLinkerType.TRANSFER))
+            val invoiceToModuleLinkers = input.moduleSourcesLinker.toMutableList()
+                invoiceToModuleLinkers.add(InvoiceModuleLinker(invoiceFromId, InvoiceModuleLinkerType.TRANSFER))
+
             val invoiceFrom = Invoice(
+                id=invoiceFromId,
                 accountId = accountFrom.id,
                 status = InvoiceStatusType.COMPLETED,
                 date = input.date,
                 type = InvoiceType.OTHER,
                 mouvementType = InvoiceMouvementType.DEBIT,
+                moduleLinkers = invoiceFromModuleLinkers
             )
 
             val invoiceTo = Invoice(
+                id=invoiceToId,
                 accountId = accountTo.id,
                 status = InvoiceStatusType.COMPLETED,
                 date = input.date,
                 type = InvoiceType.OTHER,
-                mouvementType = InvoiceMouvementType.CREDIT
+                mouvementType = InvoiceMouvementType.CREDIT,
+                moduleLinkers = invoiceToModuleLinkers
             )
 
             invoiceRepo.create(invoiceFrom)

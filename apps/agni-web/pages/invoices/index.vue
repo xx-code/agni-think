@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, TableColumn, TableRow } from "@nuxt/ui";
-import type { InvoiceFilter, InvoiceTableType, InvoiceType, TransactionTableType } from "~/types/ui/transaction";
+import type { InvoiceFilter, InvoiceModuleLinker, InvoiceTableType, InvoiceType, TransactionTableType } from "~/types/ui/transaction";
 import { ModalInvoice } from "#components";
 import { listAccountsToListAccount } from "~/mappers/account";
 import { budgetFilterToBudgetQueryRequest, listBudgetsResponseToListBudgets } from "~/mappers/budget";
@@ -14,12 +14,13 @@ import { getApiAgent } from "~/utils/env";
 import type { GetAccountResponse } from "~/types/api/account";
 import type { GetCategoryResponse } from "~/types/api/category";
 import type { GetDeductionResponse } from "~/types/api/deduction";
-import type { GetBalanceResponse, GetInvoiceResponse } from "~/types/api/transaction";
+import type { GetBalanceResponse, GetInvoiceResponse, InvoiceModuleLinkerResponse } from "~/types/api/transaction";
 import type { GetTagResponse } from "~/types/api/tag";
 import type { ListResponse } from "~/types/api";
 import useLazyInifinteScroll from "~/composables/ui/useLazyInfiniteScroll";
 import { useInfiniteScroll } from "@vueuse/core";
 import useConfirmModal from "~/composables/modal/useConfirmModal";
+import { InvoiceModuleLinkerType } from "~/types/constants/invoice";
 
 const MAX_ITEMS_TO_DISPLAY=250
 
@@ -168,6 +169,38 @@ const onDelete = async (id: string) => {
     )
 }
 
+const onCancelTransfer = async (id: string) => {
+    openConfirmDialog(
+        {
+            title: 'Voulez vous annuler le transfer?',
+            description: ''
+        },
+        async () => {
+            const index = data.value.findIndex(i => i.id === id)
+            if (index >= 0) {
+                await ApiLinkBuilder.route(API_ROUTES.INVOICES.CANCEL_TRANSFER).params({id}).execute()
+                const valueToRemove = data.value.at(index)
+
+                removeData(index)
+
+                let indexesToRemove = (valueToRemove?.moduleLinkers || [])
+                    .filter((i: InvoiceModuleLinker) => i.module === InvoiceModuleLinkerType.Transfer)
+                    .map((i: any) => {
+                        // Khud sourceId aw sourecId (ila kayn typo f-l-backend) aw id
+                        const targetId = i.sourceId || i.sourecId || i.id
+                        return data.value.findIndex(d => d.id === targetId)
+                    })
+                    .filter(i => i >= 0)
+
+                for (const innerIndex of indexesToRemove)
+                    removeData(innerIndex)
+               
+                refresh()
+            } 
+        }
+    )
+}
+
 async function valid(id: string) {
     start()
     try {
@@ -290,6 +323,9 @@ useInfiniteScroll(
                 :key="invoice.id"
                 :data="invoice"
                 :deductions="utils?.deductions ?? []"
+                @cancel-transfert="id => {
+                    onCancelTransfer(id)
+                }"
                 @delete="id => {
                     onDelete(id)
                 }"

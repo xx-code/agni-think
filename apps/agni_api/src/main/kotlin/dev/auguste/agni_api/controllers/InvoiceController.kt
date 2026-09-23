@@ -32,6 +32,7 @@ import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.TransferInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.UpdateInvoiceInput
 import jakarta.validation.Valid
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -57,6 +58,8 @@ class InvoiceController(
     private val getBalanceByPeriodUseCase: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
     private val createFreezeInvoiceUseCase: IUseCase<CreateFreezeInvoiceInput, CreatedOutput>,
     private val completeInvoiceUseCase: IUseCase<CompleteInvoiceInput, Unit>,
+    @Qualifier("cancelTransferInvoice")
+    private val cancelTransfer: IUseCase<UUID, Unit>
 ) {
 
     @PostMapping
@@ -169,5 +172,10 @@ class InvoiceController(
         return ResponseEntity.ok(transferInvoiceUseCase.execAsync(
             mapApiTransfer(request)
         ))
+    }
+
+    @DeleteMapping("transfer/{id}")
+    fun cancelTransfer(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(cancelTransfer.execAsync(id))
     }
 }

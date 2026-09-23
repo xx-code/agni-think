@@ -27,6 +27,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.AddExternalTransaction
 import dev.auguste.agni_api.core.usecases.invoices.AddManyExternalTransactions
+import dev.auguste.agni_api.core.usecases.invoices.CancelTransfer
 import dev.auguste.agni_api.core.usecases.invoices.CompleteInvoice
 import dev.auguste.agni_api.core.usecases.invoices.CreateExternalTransaction
 import dev.auguste.agni_api.core.usecases.invoices.CreateFreezeInvoice
@@ -228,6 +229,21 @@ class InvoiceConfig {
             invoiceRepo = invoiceRepo,
             accountRepo = accountRepo,
             transactionRepo = transactionRepo,
+            unitOfWork = unitOfWork
+        )
+    }
+
+    @Bean
+    fun cancelTransferInvoice(
+        invoiceRepo: IRepository<Invoice>,
+        transactionRepo: IRepository<Transaction>,
+        deleteInvoice: IInnerUseCase<DeleteInvoiceInput, Unit>,
+        unitOfWork: IUnitOfWork
+    ): IUseCase<UUID, Unit> {
+        return CancelTransfer(
+            invoiceRepo = invoiceRepo,
+            transactionRepo = transactionRepo,
+            deleteInvoice = deleteInvoice,
             unitOfWork = unitOfWork
         )
     }
