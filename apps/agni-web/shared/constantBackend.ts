@@ -1,0 +1,1 @@
+export const TRANSFER_CATEGORY_ID = "6e57b8ed-2111-45d3-b55f-3994a40e7630"

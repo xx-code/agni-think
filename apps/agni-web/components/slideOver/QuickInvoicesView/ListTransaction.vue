@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui';
+import { color } from 'chart.js/helpers';
+import { TRANSFER_CATEGORY_ID } from '~/shared/constantBackend';
 import type { SlideQuickViewTransactionType } from '~/types/ui/account';
 
 const { invoices, hasMore, loading } = defineProps<{
@@ -11,25 +13,57 @@ const { invoices, hasMore, loading } = defineProps<{
 const emit = defineEmits<{
     update: [id: string]
     delete: [id: string]
+    valid: [id: string]
+    cancelTransfer: [id: string]
 }>()
 
-function getDropdownItems(invoiceId: string): DropdownMenuItem[][] {
+function getDropdownItems(invoice: SlideQuickViewTransactionType): DropdownMenuItem[][] {
+    const editActions = 
+        {
+            class: 'items-center',
+            label: 'Modifier',
+            icon: 'i-lucide-square-pen',
+            onSelect: () => emit('update', invoice.id)
+        }
+    const completeAction =
+        {
+            class: 'items-center',
+            label: 'Valider',
+            icon: 'i-lucide-check',
+            onSelect: () => emit('valid', invoice.id)
+        }
+
+    const cancelActions= {
+            class: 'items-center',
+            label: 'Annuler transfert',
+            icon: 'i-lucide-trash',
+            onSelect: () => emit('cancelTransfer', invoice.id)
+    }
+    const deletAction = {
+            class: 'items-center',
+            label: 'Supprimer',
+            icon: 'i-lucide-trash',
+            color: 'error',
+            onSelect: () => emit('delete', invoice.id)
+        }
+    
+    const listEdit = [editActions]
+    const listRemove = [deletAction]
+
+    // if (invoice.isFreeze) {
+    //     listEdit.splice(0, 1)
+    // }
+
+    if (invoice.status.toLowerCase() === 'pending') {
+        listEdit.push(completeAction)
+    }
+
+    if (invoice.category === 'Transfert')
+        return [ [ cancelActions ] ]
+
     return [
-        [
-            {
-                label: 'Modifier',
-                icon: 'i-lucide-square-pen',
-                onSelect: () => emit('update', invoiceId)
-            },
-        ],
-        [
-            {
-                label: 'Supprimer',
-                icon: 'i-lucide-trash',
-                color: 'error',
-                onSelect: () => emit('delete', invoiceId)
-            }
-        ]
+        listEdit,
+        listRemove
     ]
 }
 
@@ -63,7 +97,7 @@ function getTypeColor(type: string) {
 
                 <div class="flex items-center">
                     <p class="font-semibold mr-1" :style="{ color: getTypeColor(invoice.type)}">{{ formatCurrency(invoice.total) }}</p>
-                    <UDropdownMenu :ui=" {item: 'items-center font-semibold'}" :items="getDropdownItems(invoice.id)">
+                    <UDropdownMenu :ui=" {item: 'items-center font-semibold'}" :items="getDropdownItems(invoice)">
                         <UButton 
                             size="xs"
                             icon="i-lucide-ellipsis"

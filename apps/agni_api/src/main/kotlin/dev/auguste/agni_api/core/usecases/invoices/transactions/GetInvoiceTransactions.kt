@@ -110,7 +110,7 @@ class GetInvoiceTransactions(
                 invoiceId = invoice.id,
                 total = 0.0,
                 subTotal = 0.0,
-                transactions = emptyList()
+                transactions = emptyList(),
             )
 
         val subTotal = transactions.sumOf { transaction -> transaction.amount }

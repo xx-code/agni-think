@@ -609,6 +609,11 @@ export const API_ROUTES = {
             serverPath: '/api/invoices/transfer',
             apiPath: '/invoices/transfer',
             method: 'POST'
+        },
+        CANCEL_TRANSFER: {
+            serverPath: '/api/invoices/transfer/:id',
+            apiPath: '/invoices/transfer/:id',
+            method: 'DELETE'
         }
     },
 
