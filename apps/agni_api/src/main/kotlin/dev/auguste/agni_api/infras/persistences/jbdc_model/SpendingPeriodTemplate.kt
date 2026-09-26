@@ -72,7 +72,7 @@ class JdbcSpendingPeriodTemplateMapper(
             recurrence = objectMapper.writeValueAsString(entity.recurrence.toMap()),
             createdDate = entity.createdAt,
             updatedDate = entity.updatedAt,
-            targetBudgetIds = entity.targetBudgetIds.toString(),
+            targetBudgetIds = objectMapper.writeValueAsString(entity.targetBudgetIds.map { it.toString() }),
             endDate = entity.endDate
         )
     }

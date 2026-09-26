@@ -10,6 +10,7 @@ import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.spending_period.dto.CreateSpendingPeriodInput
 import dev.auguste.agni_api.core.usecases.spending_period.dto.GetAllSpendingPeriodInput
+import dev.auguste.agni_api.core.usecases.spending_period.dto.GetAllSpendingPeriodOutput
 import dev.auguste.agni_api.core.usecases.spending_period.dto.GetSpendingPeriodOutput
 import dev.auguste.agni_api.core.usecases.spending_period.dto.UpdateSpendingPeriodInput
 import jakarta.validation.Valid
@@ -31,7 +32,8 @@ class SpendingPeriodController(
     val createSpendingPeriodUc: IUseCase<CreateSpendingPeriodInput, CreatedOutput>,
     val updateSpendingPeriodUc: IUseCase<UpdateSpendingPeriodInput, Unit>,
     val getSpendingPeriodUc: IUseCase<UUID, GetSpendingPeriodOutput>,
-    val getAllSpendingPeriodUc: IUseCase<GetAllSpendingPeriodInput, ListOutput<GetSpendingPeriodOutput>>,
+    val getAllSpendingPeriodUc: IUseCase<GetAllSpendingPeriodInput, ListOutput<GetAllSpendingPeriodOutput>>,
+    @Qualifier("completeSpendingPeriod") val completeSpendingPeriodUc: IUseCase<UUID, Unit>,
     @Qualifier("deleteSpendingPeriod") val deleteSpendingPeriodUc: IUseCase<UUID, Unit>
 ) {
 
@@ -62,9 +64,14 @@ class SpendingPeriodController(
     }
 
     @GetMapping
-    fun getAllSpendingPeriods(query: GetAllSpendingPeriodInput): ResponseEntity<ListOutput<GetSpendingPeriodOutput>> {
+    fun getAllSpendingPeriods(query: GetAllSpendingPeriodInput): ResponseEntity<ListOutput<GetAllSpendingPeriodOutput>> {
         return ResponseEntity.ok(getAllSpendingPeriodUc.execAsync(
             query
         ))
+    }
+
+    @PostMapping("/{id}/complete")
+    fun completeSpendingPeriod(@PathVariable id: UUID): ResponseEntity<Unit> {
+        return ResponseEntity.ok(completeSpendingPeriodUc.execAsync(id))
     }
 }

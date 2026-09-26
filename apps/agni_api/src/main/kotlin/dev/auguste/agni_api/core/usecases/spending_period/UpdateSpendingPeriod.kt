@@ -15,8 +15,8 @@ class UpdateSpendingPeriod(
 
         input.startDate?.let { spendPeriod.startDate = it }
         input.endDate?.let { spendPeriod.endDate = it }
-        input.suggestionAmount?.let { spendPeriod.suggestionAmount = it }
-        input.savingsTarget?.let { spendPeriod.savingsTarget = it }
+        input.freeAmount?.let { spendPeriod.freeAmount = it }
+        input.savingRateTarget?.let { spendPeriod.savingRateTarget = it }
         input.totalExpectedIncome?.let { spendPeriod.totalExpectedIncome = it }
         input.totalExpectedExpenses?.let { spendPeriod.totalExpectedExpenses = it }
         input.state?.let { spendPeriod.state = it }

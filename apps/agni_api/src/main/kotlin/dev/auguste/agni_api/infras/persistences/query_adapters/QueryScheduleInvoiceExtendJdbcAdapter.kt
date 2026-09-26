@@ -77,7 +77,7 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
     override fun getRawMapper(): RowMapper<JdbcScheduleInvoiceModel> {
         return  RowMapper { rs, _ ->
             JdbcScheduleInvoiceModel(
-                id = rs.getObject("schedule_transaction_id", UUID::class.java),
+                scheduleTransactionId = rs.getObject("schedule_transaction_id", UUID::class.java),
                 accountId = rs.getObject("account_id", UUID::class.java),
                 categoryId = rs.getObject("category_id", UUID::class.java),
                 amount = rs.getDouble("amount"),
@@ -86,9 +86,7 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
                 isPause = rs.getBoolean("is_pause"),
                 isFreeze = rs.getBoolean("is_freeze"),
                 scheduler = rs.getString("scheduler"),
-                tagIds = rs.getString("tag_ids")?.let {
-                    objectMapper.readValue(it, Array<String>::class.java).map { id -> UUID.fromString(id) }.toSet()
-                } ?: emptySet(),
+                tagIds = rs.getString("tag_ids"),
                 endDate = rs.getObject("end_date", OffsetDateTime::class.java)?.toLocalDateTime(),
                 freezeScheduler = rs.getString("freeze_scheduler"),
             )

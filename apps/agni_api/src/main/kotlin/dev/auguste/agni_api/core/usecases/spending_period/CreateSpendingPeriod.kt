@@ -8,7 +8,9 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.spending_period.dto.CreateSpendingPeriodInput
 import dev.auguste.agni_api.core.value_objects.Scheduler
+import dev.auguste.agni_api.core.value_objects.SnapshotForcastSpendingPeriod
 import dev.auguste.agni_api.core.value_objects.SpendingPeriodItem
+import kotlin.collections.map
 
 class CreateSpendingPeriod(
     private val spendingPeriodRepo: IRepository<SpendingPeriod>,
@@ -26,8 +28,8 @@ class CreateSpendingPeriod(
             spendingPeriodTemplateId = input.spendingPeriodTemplateId,
             startDate = template.startDate,
             endDate = scheduler.upgradeDate().toLocalDate(),
-            suggestionAmount = input.suggestionAmount,
-            savingsTarget = input.savingsTarget,
+            freeAmount = input.freeAmount,
+            savingRateTarget = input.savingRateTarget,
             totalExpectedIncome = input.totalExpectedIncome,
             totalExpectedExpenses = input.totalExpectedExpenses,
             state = input.state,
@@ -36,7 +38,14 @@ class CreateSpendingPeriod(
                     description = it.description,
                     amount = it.amount
                 )
-            }
+            },
+            snapshot = SnapshotForcastSpendingPeriod(
+                income = 0.0,
+                fixExpenses = 0.0,
+                variableExpenses = 0.0,
+                budgetExpenses = 0.0,
+                saving = 0.0
+            )
         )
 
         spendingPeriodRepo.create(newSpendingPeriod)

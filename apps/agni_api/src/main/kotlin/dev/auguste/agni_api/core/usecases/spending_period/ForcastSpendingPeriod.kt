@@ -2,18 +2,19 @@ package dev.auguste.agni_api.core.usecases.spending_period
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.adapters.repositories.QueryExtendBuilder
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateComparator
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryScheduleInvoiceExtend
-import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.Profile
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
-import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingInput
-import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingOutput
-import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
+import dev.auguste.agni_api.core.entities.enums.InvoiceModuleLinkerType
+import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
+import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.usecases.ListOutput
+import dev.auguste.agni_api.core.usecases.analystics.ForcastSpending
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingBalanceInput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.GetInvoice
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
@@ -21,49 +22,105 @@ import dev.auguste.agni_api.core.usecases.spending_period.dto.ForcastSpendingAch
 import dev.auguste.agni_api.core.usecases.spending_period.dto.ForcastSpendingPeriodInput
 import dev.auguste.agni_api.core.usecases.spending_period.dto.ForcastSpendingPeriodOutput
 import java.time.LocalDate
-import java.util.UUID
 
 class ForcastSpendingPeriod(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-    private val accountRepo: IRepository<Account>,
     private val budgetRepo: IRepository<Budget>,
     private val profileRepo: IRepository<Profile>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    private val getInvoice: IUseCase<GetInvoice, GetInvoiceOutput>,
+    private val getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
+    private val getInvoices: IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>>
 ): IUseCase<ForcastSpendingPeriodInput, ForcastSpendingPeriodOutput> {
     override fun execAsync(input: ForcastSpendingPeriodInput): ForcastSpendingPeriodOutput {
         val budgets = budgetRepo.getManyByIds(input.budgetIds.toSet())
-        val accounts = accountRepo.getAll(QueryFilter.queryAll())
-        val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), QueryScheduleInvoiceExtend(
-            comparatorDueDate = QueryDateComparator(
-                input.endDate.atStartOfDay(),
-                comparator = QueryComparator.LesserOrEquals,
-            )
+
+        val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
+            .addCondition("isPause", QueryComparator.Equal, false)
+            .addCondition("scheduler.date", QueryComparator.LesserOrEquals, input.endDate.atStartOfDay())
+        val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
+
+        val invoices = getInvoices.execAsync(GetAllInvoiceInput(
+            startDate = input.startDate.atStartOfDay(),
+            endDate = input.endDate.atStartOfDay(),
+            status = InvoiceStatusType.COMPLETED,
+            queryFilter = QueryFilter.queryAll()
         ))
 
-        val incomes = getIncomes(scheduleInvoices.items.filter{ it.scheduler.date.toLocalDate() >= input.startDate}, input.startDate, input.endDate)
-        val fixExpenses = getFixExpenses(scheduleInvoices.items.filter {  it.scheduler.date.toLocalDate() >= input.startDate} , input.startDate, input.endDate)
-        val variableExpenses = getVariableExpenses(scheduleInvoices.items.filter {  it.scheduler.date.toLocalDate() >= input.startDate} , input.startDate, input.endDate)
+        val currentBalance = getBalance.execAsync(GetBalanceInput(
+            startDate = input.startDate.atStartOfDay(),
+            endDate = input.endDate.atStartOfDay(),
+            removeSystemCategory = true
+        ))
+
+        val savingBalance = getSavingBalance.execAsync(GetSavingBalanceInput(
+            startDate = input.startDate.atStartOfDay(),
+            endDate = input.endDate.atStartOfDay()
+        ))
+
+        val budgetExpenses = ForcastSpending.getBudgetExpense(budgets, input.startDate, input.endDate, getBalance)
+        val totalBudgetExpense = budgets.sumOf { it.target }
+        val totalBudgetBalance = budgetExpenses.sumOf { it.balance }
+
+        val incomes = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.INCOME, invoices.items, input.startDate, input.endDate)
+        val totalIncome = incomes.sumOf { it.amount }
+        val fixExpenses = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.FIXEDCOST, invoices.items, input.startDate, input.endDate)
+        val totalFixedExpenses = incomes.sumOf { it.amount }
+        val variableExpenses = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.VARIABLECOST, invoices.items, input.startDate, input.endDate)
+        val totalVariableExpenses = variableExpenses.sumOf { it.amount }
 
         val profiles = profileRepo.getAll(QueryFilter.queryAll())
         var savingRate = profiles.items.firstOrNull()?.savingPercentage ?: 0.0
         if (input.savingRate != null)
             savingRate = input.savingRate
 
-        return ForcastSpendingPeriodOutput(
+        val expectedSaving = savingBalance * (savingRate/100)
+        val totalExpectedSpending = (totalFixedExpenses + totalVariableExpenses + expectedSaving + totalBudgetExpense)
+        val expectedRemain = totalIncome - totalExpectedSpending
 
+
+        return ForcastSpendingPeriodOutput(
+            expectedRemainAmount = expectedRemain,
+            currentRemainAmount = currentBalance.balance,
+            totalExpectedIncome = totalIncome,
+            totalExpectedExpense = totalExpectedSpending,
+            expectedFixExpense = totalFixedExpenses,
+            expectedVariableExpense = totalVariableExpenses,
+            expectedBudgetExpense = totalBudgetExpense,
+            currentBudgetExpense = totalBudgetBalance,
+            expectedSaving = expectedSaving,
+            currentSaving = savingBalance,
+            currentIncome = currentBalance.income,
+            incomeItems = incomes,
+            fixExpenseItems = fixExpenses,
+            variableExpenseItems = variableExpenses,
+            achievedWishedItems = listOf()
         )
     }
 
-    fun getIncomes(scheduleInvoices: List<ScheduleInvoice>, startDate: LocalDate, endDate: LocalDate): List<ForcastSpendingAchieveItemOutput> {
+    private fun getForcastScheduleInvoice(
+        scheduleInvoices: List<ScheduleInvoice>,
+        invoiceType: InvoiceType,
+        invoices: List<GetInvoiceOutput>,
+        startDate: LocalDate, endDate: LocalDate): List<ForcastSpendingAchieveItemOutput> {
+        var scheduleInvoices = scheduleInvoices.filter { it.type == invoiceType }
+        scheduleInvoices = scheduleInvoices.filter {
+            scheduleInvoice -> scheduleInvoice.scheduler.upgradeDate(startDate.atStartOfDay()) <= startDate.atStartOfDay()
+        }
 
-    }
+        val filterInvoices = invoices.filter { it.type == InvoiceType.INCOME.value && it.moduleLinkers.find { linker -> linker.module == InvoiceModuleLinkerType.SCHEDULE_INVOICE.value } != null }
 
-    fun getFixExpenses(scheduleInvoices: List<ScheduleInvoice>, startDate: LocalDate, endDate: LocalDate): List<ForcastSpendingAchieveItemOutput>  {
+        return scheduleInvoices.map { schedule ->
+            val occurrence = schedule.scheduler.repeater?.computeOccurrences(startDate, endDate) ?: 1
+            val invoice = filterInvoices.filter { schedule.id == it.moduleLinkers.first({ linker -> linker.module == InvoiceModuleLinkerType.SCHEDULE_INVOICE.value }).sourceId  }
+            val totalAmount = occurrence * schedule.amount
+            val currentAmount = invoice.sumOf { it.total }
 
-    }
-
-    fun getVariableExpenses(scheduleInvoices: List<ScheduleInvoice>, startDate: LocalDate, endDate: LocalDate): List<ForcastSpendingAchieveItemOutput>  {
-
+            ForcastSpendingAchieveItemOutput(
+                description = schedule.title,
+                amount = totalAmount,
+                validAmount = invoice.sumOf { it.total },
+                isAchieved =  currentAmount >= totalAmount ,
+            )
+        }
     }
 }
