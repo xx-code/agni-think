@@ -5,6 +5,8 @@ import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Budget
+import dev.auguste.agni_api.core.entities.Profile
+import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.SpendingPeriod
 
 import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
@@ -13,8 +15,16 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingOutput
+import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingBalanceInput
 import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllInvoiceInput
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
+import dev.auguste.agni_api.core.usecases.spending_period.ForcastSpendingPeriod
+import dev.auguste.agni_api.core.usecases.spending_period.dto.ForcastSpendingPeriodInput
+import dev.auguste.agni_api.core.usecases.spending_period.dto.ForcastSpendingPeriodOutput
 import dev.auguste.agni_api.core.usecases.spending_period.dto.GetAllSpendingPeriodInput
 import dev.auguste.agni_api.core.usecases.spending_period_template.ApplySpendingPeriodTemplate
 import dev.auguste.agni_api.core.usecases.spending_period_template.CreateSpendingPeriodTemplate
@@ -89,7 +99,8 @@ class SpendingPeriodTemplateConfig {
     fun applySpendingPeriodTemplate(
         spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
         spendingPeriodRepo: IRepository<SpendingPeriod>,
-        foreCastSpending: IUseCase<ForcastSpendingInput, ForcastSpendingOutput>,
+        profileRepo: IRepository<Profile>,
+        foreCastSpending: IUseCase<ForcastSpendingPeriodInput, ForcastSpendingPeriodOutput>,
         eventRegister: IEventRegister,
         unitOfWork: IUnitOfWork,
     ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
@@ -97,8 +108,9 @@ class SpendingPeriodTemplateConfig {
             spendingPeriodTemplateRepo = spendingPeriodTemplateRepo,
             spendingPeriodRepo = spendingPeriodRepo,
             forecastSpendingPeriod = foreCastSpending,
+            profileRepo = profileRepo,
             unitOfWork = unitOfWork,
-            eventRegister = eventRegister
+            eventRegister = eventRegister,
         )
     }
 }

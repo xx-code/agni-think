@@ -24,7 +24,7 @@ class CreateSpendingPeriodTemplate(
         if (spendingPeriodTemplateRepo.exist(conditionExistBuilder))
             throw DomainException.AlreadyExist.SpendingPeriodTemplateExist(input.recurrence.period, input.recurrence.interval)
 
-        if (budgetRepo.getManyByIds(input.targetBudgetIds).isEmpty())
+        if (input.targetBudgetIds.isNotEmpty() && budgetRepo.getManyByIds(input.targetBudgetIds).size != input.targetBudgetIds.size)
             throw DomainException.NotFound.SomeBudgets(input.targetBudgetIds)
 
         val newSpendingPeriodTemplate = SpendingPeriodTemplate(

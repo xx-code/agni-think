@@ -1,9 +1,11 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import dev.auguste.agni_api.core.entities.SpendingPeriod
 import dev.auguste.agni_api.core.entities.enums.SpendingPeriodStateType
+import dev.auguste.agni_api.core.value_objects.SnapshotForcastSpendingPeriod
 import dev.auguste.agni_api.core.value_objects.SpendingPeriodItem
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
@@ -27,10 +29,11 @@ data class JdbcSpendingPeriodModel(
     val endDate: LocalDate,
 
     @Column("suggestion_amount")
-    val suggestionAmount: Double,
+    val freeAmount: Double,
 
-    @Column("savings_target")
-    val savingsTarget: Double,
+    val closeBalance: Double,
+
+    val savingRateTarget: Double,
     @Column("total_expected_income")
     val totalExpectedIncome: Double,
     @Column("total_expected_expenses")
@@ -38,6 +41,7 @@ data class JdbcSpendingPeriodModel(
     val state: String,
     @Column("want_spending_items")
     val wantSpendingItems: String,
+    val forcastSnapshot: String,
     @Column("created_date")
     var createdDate: LocalDateTime,
     @Column("updated_date")
@@ -56,20 +60,23 @@ class JdbcSpendingPeriodMapper(
         val spendingItemsJson = objectMapper.readValue(model.wantSpendingItems, Array<String>::class.java).map {
             objectMapper.readValue<Map<String, Any>>(it)
         }.toSet()
+        val snapshotJson = jacksonObjectMapper().readValue<Map<String, Any>>(model.forcastSnapshot)
 
         val entity = SpendingPeriod(
             id = model.spendingPeriodId,
             spendingPeriodTemplateId = model.spendingPeriodTemplateId,
             startDate = model.startDate,
             endDate = model.endDate,
-            suggestionAmount = model.suggestionAmount,
-            savingsTarget = model.savingsTarget,
+            freeAmount = model.freeAmount,
+            closeBalance = model.closeBalance,
+            savingRateTarget = model.savingRateTarget,
             totalExpectedIncome = model.totalExpectedIncome,
             totalExpectedExpenses = model.totalExpectedExpenses,
             state = SpendingPeriodStateType.fromString(model.state),
             wantSpendingItems = spendingItemsJson.map {
                 SpendingPeriodItem.fromMap(it)
-            }
+            },
+            snapshot = SnapshotForcastSpendingPeriod.fromMap(snapshotJson)
         )
         entity.initDate(model.createdDate, model.updatedDate)
 
@@ -82,29 +89,39 @@ class JdbcSpendingPeriodMapper(
             spendingPeriodTemplateId = entity.spendingPeriodTemplateId,
             startDate = entity.startDate,
             endDate = entity.endDate,
-            suggestionAmount = entity.suggestionAmount,
-            savingsTarget = entity.savingsTarget,
+            freeAmount = entity.freeAmount,
+            savingRateTarget = entity.savingRateTarget,
             totalExpectedIncome = entity.totalExpectedIncome,
             totalExpectedExpenses = entity.totalExpectedExpenses,
             state = entity.state.value,
+            closeBalance = entity.closedBalance,
             wantSpendingItems = objectMapper.writeValueAsString(entity.wantSpendingItems),
             createdDate = entity.createdAt,
-            updatedDate = entity.updatedAt
+            updatedDate = entity.updatedAt,
+            forcastSnapshot = objectMapper.writeValueAsString(entity.snapshot.toMap())
         )
     }
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "spending_period_id",
         "spendingPeriodTemplateId" to "spending_period_template_id",
-        "suggestionAmount" to "suggestion_amount",
-        "savingsTarget" to "savings_target",
+        "freeAmount" to "free_amount",
+        "closeBalance" to "close_balance",
+        "savingRateTarget" to "saving_rate_target",
         "totalExpectedIncome" to "total_expected_income",
         "totalExpectedExpenses" to "total_expected_expenses",
         "state" to "state",
         "startDate" to "start_date",
         "endDate" to "end_date",
-        "wantSpendingItems.description" to "want_spending_items->>description",
-        "wantSpendingItems.amount" to "want_spending_items->>amount",
+
+        "snapshot.income" to "forcast_snapshot->>'income'",
+        "snapshot.fixExpenses" to "forcast_snapshot->>'fixedExpenses'",
+        "snapshot.variableExpenses" to "forcast_snapshot->>'variableExpenses'",
+        "snapshot.budgetExpenses" to "forcast_snapshot->>'budgetExpenses'",
+        "snapshot.saving" to "forcast_snapshot->>'saving'",
+
+        "wantSpendingItems.description" to "want_spending_items->>'description'",
+        "wantSpendingItems.amount" to "want_spending_items->>'amount'",
         "createdDate" to "created_date",
         "updatedDate" to "updated_date",
     )

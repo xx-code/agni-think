@@ -13,6 +13,7 @@ import dev.auguste.agni_api.core.usecases.profiles.dto.UpdateProfileInput
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -35,12 +36,12 @@ class ProfileController(
     }
 
     @GetMapping("/{id}")
-    fun getProfile(id: UUID): ResponseEntity<GetProfileOutput> {
+    fun getProfile(@PathVariable id: UUID): ResponseEntity<GetProfileOutput> {
         return ResponseEntity.ok(getProfileUseCase.execAsync(tempPrivateProfileKey))
     }
 
     @PutMapping("/{id}")
-    fun updateProfile(id: UUID, @Valid @RequestBody request: ApiUpdateProfileModel) : ResponseEntity<Unit> {
+    fun updateProfile(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateProfileModel) : ResponseEntity<Unit> {
         return ResponseEntity.ok(updateProfileUseCase.execAsync(mapApiUpdateProfileToUpdateProfile(id, request)))
     }
 }

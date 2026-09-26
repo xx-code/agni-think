@@ -697,6 +697,19 @@ export const API_ROUTES = {
         }
     },
 
+    PROFILE: {
+        GET_PROFILE: {
+            serverPath: '/api/profiles/:id',
+            apiPath: '/profiles/:id',
+            method: 'GET'
+        },
+        UPDATE_PROFILE: {
+            serverPath: '/api/profiles/:id',
+            apiPath: '/profiles/:id',
+            method: 'PUT'
+        }
+    },
+
     PROVISIONS: {
         CREATE_PROVISION: {
             serverPath: '/api/provisions',
@@ -784,5 +797,54 @@ export const API_ROUTES = {
             apiPath: '/tags/:id/archive',
             method: 'PUT'
         },
-    }
+    },
+    SPENDING_PERIOD_TEMPLATES: {
+        CREATE_SPENDING_PERIOD_TEMPLATE: {
+            serverPath: '/api/spending-period-templates',
+            apiPath: '/spending-period-templates',
+            method: 'POST'
+        },
+        GET_SPENDING_PERIOD_TEMPLATE: {
+            serverPath: '/api/spending-period-templates/:id',
+            apiPath: '/spending-period-templates/:id',
+            method: 'GET'
+        },
+        PUT_SPENDING_PERIOD_TEMPLATE: {
+            serverPath: '/api/spending-period-templates/:id',
+            apiPath: '/spending-period-templates/:id',
+            method: 'PUT'
+        },
+        DELETE_SPENDING_PERIOD_TEMPLATE: {
+            serverPath: '/api/spending-period-templates/:id',
+            apiPath: '/spending-period-templates/:id',
+            method: 'DELETE'
+        },
+        GET_ALL_SPENDING_PERIOD_TEMPLATE: {
+            serverPath: '/api/spending-period-templates',
+            apiPath: '/spending-period-templates',
+            method: 'GET'
+        },
+    },
+    SPENDING_PERIOD: {
+        GET_SPENDING_PERIOD: {
+            serverPath: '/api/spending-periods/:id',
+            apiPath: '/spending-periods/:id',
+            method: 'GET'
+        },
+        COMPELETE_SPENDING_PERIOD: {
+            serverPath: '/api/spending-periods/:id/complete',
+            apiPath: '/spending-period-templates/:id/complete',
+            method: 'POST'
+        },
+        DELETE_SPENDING_PERIOD: {
+            serverPath: '/api/spending-period-templates/:id',
+            apiPath: '/spending-period-templates/:id',
+            method: 'DELETE'
+        },
+        GET_ALL_SPENDING_PERIOD: {
+            serverPath: '/api/spending-period-templates',
+            apiPath: '/spending-period-templates',
+            method: 'GET'
+        },
+    } 
 } satisfies Record<string, Record<string, ApiRouteDefinition>>

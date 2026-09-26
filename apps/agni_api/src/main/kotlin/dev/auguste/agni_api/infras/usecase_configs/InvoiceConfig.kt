@@ -41,6 +41,7 @@ import dev.auguste.agni_api.core.usecases.invoices.GetAllInvoices
 import dev.auguste.agni_api.core.usecases.invoices.GetBalance
 import dev.auguste.agni_api.core.usecases.invoices.GetBalancesByPeriod
 import dev.auguste.agni_api.core.usecases.invoices.GetInvoice
+import dev.auguste.agni_api.core.usecases.invoices.GetManyInvoices
 import dev.auguste.agni_api.core.usecases.invoices.RemoveFreezeInvoice
 import dev.auguste.agni_api.core.usecases.invoices.TransferInvoice
 import dev.auguste.agni_api.core.usecases.invoices.TreatAnExternalTransaction
@@ -178,6 +179,17 @@ class InvoiceConfig {
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
     ): IUseCase<UUID, GetInvoiceOutput> {
         return GetInvoice(
+            invoiceRepo = invoiceRepo,
+            getInvoiceTransactions = getInvoiceTransactions
+        )
+    }
+
+    @Bean
+    fun getManyInvoice(
+        invoiceRepo: IRepository<Invoice>,
+        getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+    ): IUseCase<Set<UUID>, List<GetInvoiceOutput>> {
+        return GetManyInvoices(
             invoiceRepo = invoiceRepo,
             getInvoiceTransactions = getInvoiceTransactions
         )
