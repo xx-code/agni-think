@@ -19,7 +19,7 @@ class GetSpendByCategoryAnalytic(
 
     override fun execAsync(input: GetSpendByCategoryInput): ListOutput<GetSpendByCategoryOutput> {
         val condition = QueryExtendBuilder<Category>()
-            .addCondition("is_system", QueryComparator.Equal, false)
+            .addCondition("isSystem", QueryComparator.Equal, false)
         val categories = categoryRepo.getAll(input.query, condition)
 
         val result = mutableListOf<GetSpendByCategoryOutput>()

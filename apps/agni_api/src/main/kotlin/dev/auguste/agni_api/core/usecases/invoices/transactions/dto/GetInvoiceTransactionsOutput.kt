@@ -33,5 +33,5 @@ data class GetInvoiceTransactionsOutput(
     val invoiceId: UUID,
     val transactions: List<TransactionOutput>,
     val total: Double,
-    val subTotal: Double
+    val subTotal: Double,
 )

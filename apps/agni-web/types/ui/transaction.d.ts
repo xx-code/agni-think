@@ -42,9 +42,10 @@ export type TransactionDeductionType = {
     amount: number
 }
 
-export type InvoiceType = Omit<GetInvoiceResponse, 'date' | 'freeze'> & {
+export type InvoiceType = Omit<GetInvoiceResponse, 'date' | 'freeze', | 'moduleLinkers'> & {
     date: Date
     isFreeze: boolean
+    moduleLinkers: InvoiceModuleLinker[]
 }
 
 export type TransactionTableType = {
@@ -68,6 +69,11 @@ export type TransactionTableType = {
 export type InvoiceDeductionTableType = {
     name: string
     amount: number
+}
+
+export type InvoiceModuleLinker = {
+    sourceId: string
+    module: InvoiceModuleLinkerType 
 }
 
 export type InvoiceTableType = {

@@ -55,6 +55,12 @@ export default function useLazyInifinteScroll<TQuery, TResponse, TMapped>(
         totalData.value -= 1
     }
 
+    function emptyData() {
+        totalData.value = 0
+        data.value = []
+        Object.assign(query, {...query, offset: 0})
+    }
+
     async function updateData(index:number, id: string) {
         if (index < 0)
             return 
@@ -88,5 +94,5 @@ export default function useLazyInifinteScroll<TQuery, TResponse, TMapped>(
         loadData()
     }, { immediate: true})
 
-    return { data, query, totalData, hasMore, loading, loadData, reset, removeData, updateData }
+    return { data, query, totalData, hasMore, loading, loadData, reset, emptyData, removeData, updateData }
 }

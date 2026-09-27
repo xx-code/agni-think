@@ -18,8 +18,7 @@ import java.util.UUID
 data class JdbcScheduleInvoiceModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("schedule_transaction_id")
-    val id: UUID,
+    val scheduleTransactionId: UUID,
 
     @Column("account_id")
     val accountId: UUID,
@@ -40,7 +39,7 @@ data class JdbcScheduleInvoiceModel(
     val scheduler: String,
 
     @Column("tag_ids")
-    val tagIds: Set<UUID>,
+    val tagIds: String,
 
     @Column("end_date")
     val endDate: LocalDateTime?,
@@ -49,7 +48,7 @@ data class JdbcScheduleInvoiceModel(
     val freezeScheduler: String?
     ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return scheduleTransactionId
     }
 }
 
@@ -57,6 +56,29 @@ data class JdbcScheduleInvoiceModel(
 class JdbcScheduleInvoiceMapper(
     private val objectMapper: com.fasterxml.jackson.databind.ObjectMapper
 ): IMapper<JdbcScheduleInvoiceModel, ScheduleInvoice> {
+
+    // TODO: Refactor to make the more resiliant an not duplacte
+    private fun parseUuidSet(json: String?): Set<UUID> {
+        if (json.isNullOrBlank()) return emptySet()
+
+        return runCatching {
+            // Lecture du tableau JSON sous forme de List<String>
+            objectMapper.readValue<List<String>>(json)
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .map { UUID.fromString(it) }
+                .toSet()
+        }.getOrElse {
+            // Sécurité de secours au cas où la BDD contient des formats mal formés ou entre crochet sans guillemets JSON
+            json.trim('[', ']', ' ', '\n', '\r')
+                .split(",")
+                .map { it.replace("\"", "").trim() }
+                .filter { it.isNotEmpty() }
+                .map { UUID.fromString(it) }
+                .toSet()
+        }
+    }
+
     override fun toDomain(model: JdbcScheduleInvoiceModel): ScheduleInvoice {
         val schedulerJson = jacksonObjectMapper().readValue<Map<String, Any>>(model.scheduler)
         val freezeSchedulerJson = if (
@@ -64,6 +86,8 @@ class JdbcScheduleInvoiceMapper(
             model.freezeScheduler.isNullOrEmpty() || model.freezeScheduler == "{}" || model.freezeScheduler == "[]"
         ) { null }
         else {  jacksonObjectMapper().readValue<Map<String, Any>>(model.freezeScheduler) }
+
+        val tagIdsSet: Set<UUID> = parseUuidSet(model.tagIds)
 
         return ScheduleInvoice(
             id = model.id,
@@ -75,7 +99,7 @@ class JdbcScheduleInvoiceMapper(
             categoryId = model.categoryId,
             isPause = model.isPause,
             isFreeze = model.isFreeze,
-            tagIds =  model.tagIds.toMutableSet(),
+            tagIds =  tagIdsSet.toMutableSet(),
             endDate = model.endDate,
             freezeScheduler = freezeSchedulerJson?.let {  Scheduler.fromMap(freezeSchedulerJson) },
         )
@@ -83,7 +107,7 @@ class JdbcScheduleInvoiceMapper(
 
     override fun toModel(entity: ScheduleInvoice): JdbcScheduleInvoiceModel {
         return JdbcScheduleInvoiceModel(
-            id = entity.id,
+            scheduleTransactionId = entity.id,
             accountId = entity.accountId,
             categoryId = entity.categoryId,
             amount = entity.amount,
@@ -92,25 +116,38 @@ class JdbcScheduleInvoiceMapper(
             isPause = entity.isPause,
             isFreeze = entity.isFreeze,
             scheduler = objectMapper.writeValueAsString(entity.scheduler.toMap()),
-            tagIds = entity.tagIds,
+            tagIds = objectMapper.writeValueAsString(entity.tagIds.map { it.toString() }) ,
             endDate = entity.endDate,
             freezeScheduler = objectMapper.writeValueAsString(entity.freezeScheduler?.toMap())
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "schedule_transaction_id",
+        "accountId" to "account_id",
+        "categoryId" to "category_id",
+        "amount" to "amount",
+        "title" to "name",
+        "type" to "type",
+        "isPause" to "is_pause",
+        "isFreeze" to "is_freeze",
+        "tagIds" to "tag_ids",
+        "endDate" to "end_date",
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+        "scheduler.date" to "scheduler->>'due_date'",
+        "scheduler.recurrence.period" to "scheduler->>'recurrence'->>'period'",
+        "scheduler.recurrence.interval" to "scheduler->>'recurrence'->>'interval'",
+
+        "freezeScheduler.date" to "freezeScheduler->>'due_date'",
+        "freezeScheduler.recurrence.period" to "freezeScheduler->>'recurrence'->>'period'",
+        "freezeScheduler.recurrence.interval" to "freezeScheduler->>'recurrence'->>'interval'",
+    )
+
+    override fun getTableName(): String = "schedule_transactions"
 
     override fun getSortField(): Set<String> {
         return setOf()
     }
 
-    override fun getModelClass(): Class<JdbcScheduleInvoiceModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcScheduleInvoiceModel> = JdbcScheduleInvoiceModel::class.java
 }

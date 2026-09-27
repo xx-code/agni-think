@@ -79,6 +79,15 @@ class JdbcQueryAdapter(
                     }
                 }
 
+                QueryComparator.NotEqual -> {
+                    if (formattedValue == null) {
+                        "$mappedColumn IS NULL"
+                    } else {
+                        params.addValue(rawParamName, formattedValue)
+                        "${formatSqlColumn(mappedColumn, formattedValue)} != :$rawParamName"
+                    }
+                }
+
                 QueryComparator.In -> {
                     val collection = (condition.value as? Collection<*>)?.map { formatConditionValue(it) }
                     if (!collection.isNullOrEmpty()) {
@@ -111,7 +120,6 @@ class JdbcQueryAdapter(
      */
     private fun formatConditionValue(value: Any?): Any? {
         return when (value) {
-            is LocalDate -> value.atStartOfDay().atOffset(ZoneOffset.UTC).toString()
             is LocalDateTime -> value.atOffset(ZoneOffset.UTC).toString()
             is Instant -> value.atOffset(ZoneOffset.UTC).toString()
             is OffsetDateTime -> value.toInstant().atOffset(ZoneOffset.UTC).toString()
@@ -124,22 +132,21 @@ class JdbcQueryAdapter(
      *  applies a dynamic cast when necessary.
      */
     private fun formatSqlColumn(mappedColumn: String, sampleValue: Any?): String {
-        if (!mappedColumn.contains("->>")) return mappedColumn
+        val isTemporal = sampleValue is LocalDate ||
+                sampleValue is LocalDateTime ||
+                sampleValue is Instant ||
+                sampleValue is OffsetDateTime
 
-        // Cast automatique selon la valeur passée
-        return when (sampleValue) {
-            is String -> {
-                // Tente de vérifier si la string est une Date ISO
-                if (sampleValue.matches(Regex("^\\d{4}-\\d{2}-\\d{2}.*"))) {
-                    "($mappedColumn)::timestamptz"
-                } else {
-                    mappedColumn
-                }
+        if (mappedColumn.contains("->>")) {
+            return when {
+                isTemporal -> "($mappedColumn)::timestamptz"
+                sampleValue is Number -> "($mappedColumn)::numeric"
+                sampleValue is Boolean -> "($mappedColumn)::boolean"
+                else -> mappedColumn
             }
-            is Number -> "($mappedColumn)::numeric"
-            is Boolean -> "($mappedColumn)::boolean"
-            else -> mappedColumn
         }
+
+        return mappedColumn
     }
 
     /**

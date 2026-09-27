@@ -1,40 +1,28 @@
 <script setup lang="ts">
-import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
+import { CalendarDate, DateFormatter, getLocalTimeZone, toCalendar, toCalendarDate } from '@internationalized/date'
+import type { MultiCalendarSelection } from '~/types/ui/component';
 
-const { 
-    disabled, 
-    initialStartDate,
-    initialEndDate } = defineProps<{ 
+const { disabled } = defineProps<{ 
     disabled?: boolean
-    initialStartDate?: Date
-    initialEndDate?: Date
 }>();
-
-const emit = defineEmits<{
-    (e: 'submit', startDate?: CalendarDate, endDate?: CalendarDate): void
-}>(); 
 
 const df = new DateFormatter('en-US', {
     dateStyle: 'medium'
 });
 
-const modelValue = shallowRef({
-    start: initialStartDate ? new CalendarDate(initialStartDate.getFullYear(), initialStartDate.getMonth() + 1, initialStartDate.getDate()) : undefined,
-    end: initialEndDate ? new CalendarDate(initialEndDate.getFullYear(), initialEndDate.getMonth() + 1, initialEndDate.getDate()) : undefined
-});
+const modelValue = defineModel<MultiCalendarSelection>();
 
 function clean() {
     modelValue.value = {
         start: undefined,
         end: undefined
     }
-    emit("submit", undefined, undefined)
 }
 
 </script>
 
 <template>
-    <UPopover>
+    <UPopover v-if="modelValue">
         <UButton :disabled="disabled" color="neutral" variant="subtle" icon="i-lucide-calendar">
         <template v-if="modelValue.start">
             <template v-if="modelValue.end">
@@ -52,11 +40,12 @@ function clean() {
 
         <template #content>
             <div>
+                <!--@vue-ignore-->
                 <UCalendar 
                     v-model="modelValue" 
                     class="p-2" 
                     range 
-                    v-on:update:model-value="emit('submit', modelValue.start, modelValue.end)"/>
+                />
                 <div class="flex justify-end p-2">
                     <UButton 
                         label="Nettoyer" 

@@ -27,6 +27,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.AddExternalTransaction
 import dev.auguste.agni_api.core.usecases.invoices.AddManyExternalTransactions
+import dev.auguste.agni_api.core.usecases.invoices.CancelTransfer
 import dev.auguste.agni_api.core.usecases.invoices.CompleteInvoice
 import dev.auguste.agni_api.core.usecases.invoices.CreateExternalTransaction
 import dev.auguste.agni_api.core.usecases.invoices.CreateFreezeInvoice
@@ -40,6 +41,7 @@ import dev.auguste.agni_api.core.usecases.invoices.GetAllInvoices
 import dev.auguste.agni_api.core.usecases.invoices.GetBalance
 import dev.auguste.agni_api.core.usecases.invoices.GetBalancesByPeriod
 import dev.auguste.agni_api.core.usecases.invoices.GetInvoice
+import dev.auguste.agni_api.core.usecases.invoices.GetManyInvoices
 import dev.auguste.agni_api.core.usecases.invoices.RemoveFreezeInvoice
 import dev.auguste.agni_api.core.usecases.invoices.TransferInvoice
 import dev.auguste.agni_api.core.usecases.invoices.TreatAnExternalTransaction
@@ -183,6 +185,17 @@ class InvoiceConfig {
     }
 
     @Bean
+    fun getManyInvoice(
+        invoiceRepo: IRepository<Invoice>,
+        getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+    ): IUseCase<Set<UUID>, List<GetInvoiceOutput>> {
+        return GetManyInvoices(
+            invoiceRepo = invoiceRepo,
+            getInvoiceTransactions = getInvoiceTransactions
+        )
+    }
+
+    @Bean
     fun getBalance(
         invoiceRepo: IRepository<Invoice>,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
@@ -228,6 +241,21 @@ class InvoiceConfig {
             invoiceRepo = invoiceRepo,
             accountRepo = accountRepo,
             transactionRepo = transactionRepo,
+            unitOfWork = unitOfWork
+        )
+    }
+
+    @Bean
+    fun cancelTransferInvoice(
+        invoiceRepo: IRepository<Invoice>,
+        transactionRepo: IRepository<Transaction>,
+        deleteInvoice: IInnerUseCase<DeleteInvoiceInput, Unit>,
+        unitOfWork: IUnitOfWork
+    ): IUseCase<UUID, Unit> {
+        return CancelTransfer(
+            invoiceRepo = invoiceRepo,
+            transactionRepo = transactionRepo,
+            deleteInvoice = deleteInvoice,
             unitOfWork = unitOfWork
         )
     }

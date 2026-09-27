@@ -609,6 +609,11 @@ export const API_ROUTES = {
             serverPath: '/api/invoices/transfer',
             apiPath: '/invoices/transfer',
             method: 'POST'
+        },
+        CANCEL_TRANSFER: {
+            serverPath: '/api/invoices/transfer/:id',
+            apiPath: '/invoices/transfer/:id',
+            method: 'DELETE'
         }
     },
 
@@ -688,6 +693,19 @@ export const API_ROUTES = {
         UPDATE_SNAPSHOT: {
             serverPath: '/api/patrimonies/update-snapshot/:id',
             apiPath: '/patrimonies/update-snapshot/:id',
+            method: 'PUT'
+        }
+    },
+
+    PROFILE: {
+        GET_PROFILE: {
+            serverPath: '/api/profiles/:id',
+            apiPath: '/profiles/:id',
+            method: 'GET'
+        },
+        UPDATE_PROFILE: {
+            serverPath: '/api/profiles/:id',
+            apiPath: '/profiles/:id',
             method: 'PUT'
         }
     },
@@ -779,5 +797,59 @@ export const API_ROUTES = {
             apiPath: '/tags/:id/archive',
             method: 'PUT'
         },
-    }
+    },
+    SPENDING_PERIOD_TEMPLATES: {
+        CREATE_SPENDING_PERIOD_TEMPLATE: {
+            serverPath: '/api/spending-period-templates',
+            apiPath: '/spending-period-templates',
+            method: 'POST'
+        },
+        GET_SPENDING_PERIOD_TEMPLATE: {
+            serverPath: '/api/spending-period-templates/:id',
+            apiPath: '/spending-period-templates/:id',
+            method: 'GET'
+        },
+        PUT_SPENDING_PERIOD_TEMPLATE: {
+            serverPath: '/api/spending-period-templates/:id',
+            apiPath: '/spending-period-templates/:id',
+            method: 'PUT'
+        },
+        DELETE_SPENDING_PERIOD_TEMPLATE: {
+            serverPath: '/api/spending-period-templates/:id',
+            apiPath: '/spending-period-templates/:id',
+            method: 'DELETE'
+        },
+        GET_ALL_SPENDING_PERIOD_TEMPLATE: {
+            serverPath: '/api/spending-period-templates',
+            apiPath: '/spending-period-templates',
+            method: 'GET'
+        },
+    },
+    SPENDING_PERIOD: {
+        GET_SPENDING_PERIOD: {
+            serverPath: '/api/spending-periods/:id',
+            apiPath: '/spending-periods/:id',
+            method: 'GET'
+        },
+        UPDATE_SPENDING_PERIOD: {
+            serverPath: '/api/spending-periods/:id',
+            apiPath: '/spending-periods/:id',
+            method: 'PUT'
+        },
+        COMPELETE_SPENDING_PERIOD: {
+            serverPath: '/api/spending-periods/:id/complete',
+            apiPath: '/spending-periods/:id/complete',
+            method: 'POST'
+        },
+        DELETE_SPENDING_PERIOD: {
+            serverPath: '/api/spending-periods/:id',
+            apiPath: '/spending-periods/:id',
+            method: 'DELETE'
+        },
+        GET_ALL_SPENDING_PERIOD: {
+            serverPath: '/api/spending-periods',
+            apiPath: '/spending-periods',
+            method: 'GET'
+        },
+    } 
 } satisfies Record<string, Record<string, ApiRouteDefinition>>

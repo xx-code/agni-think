@@ -1,5 +1,6 @@
 package dev.auguste.agni_api.core.usecases.invoices
 
+import dev.auguste.agni_api.core.TRANSFERT_CATEGORY_ID
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.events.EventType
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
@@ -60,6 +61,11 @@ class DeleteInvoice(
             minAmount = null,
             maxAmount = null,
         ))
+
+        if (invoiceTransactions.first().transactions.first().category.id == TRANSFERT_CATEGORY_ID &&
+            input.checkTransfer)
+            throw DomainException.BusinessLogic.CanOnlyCancelTransfer()
+
 
         transactionRepo.deleteManyByIds(invoiceTransactions.flatMap { it.transactions }.map { it.id }.toSet())
 

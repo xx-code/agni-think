@@ -10,6 +10,7 @@ import java.util.UUID
 data class ApiCreateSpendingPeriodTemplateModel(
     val startDate: LocalDate,
     val recurrence: ApiScheduleRepeaterModel,
+    val targetBudgetIds: Set<UUID>,
     val endDate: LocalDate?
 )
 
@@ -17,7 +18,8 @@ data class ApiUpdateSpendingPeriodTemplateModel(
     val startDate: LocalDate?,
     val isActive: Boolean?,
     val recurrence: ApiScheduleRepeaterModel?,
-    val endDate: LocalDate?
+    val endDate: LocalDate?,
+    val targetBudgetIds: Set<UUID>?,
 )
 
 fun mapApiCreateSpendingPeriodTemplateToSpendingPeriodTemplate(request: ApiCreateSpendingPeriodTemplateModel) : CreateSpendingPeriodTemplateInput {
@@ -26,6 +28,7 @@ fun mapApiCreateSpendingPeriodTemplateToSpendingPeriodTemplate(request: ApiCreat
             period = PeriodType.fromString(request.recurrence.period),
             interval = request.recurrence.interval
         ),
+        targetBudgetIds = request.targetBudgetIds,
         startDate = request.startDate,
         endDate = request.endDate
     )
@@ -40,6 +43,7 @@ fun mapApiUpdateSpendingPeriodTemplateToSpendingPeriodTemplate(id: UUID, request
                 interval = it.interval
             )
         },
+        targetBudgetIds = request.targetBudgetIds,
         isActive = request.isActive,
         startDate = request.startDate,
         endDate = request.endDate,

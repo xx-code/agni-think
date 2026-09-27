@@ -65,6 +65,7 @@ class QueryExtendBuilder<T>: IQueryExtendBuilder<T> {
                 QueryComparator.Lesser -> a < b
                 QueryComparator.LesserOrEquals -> a <= b
                 QueryComparator.Equal -> a == b
+                QueryComparator.NotEqual -> a != b
                 QueryComparator.In -> (value as? Collection<*>)?.contains(entityValue) == true
             }
         }

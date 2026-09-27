@@ -9,27 +9,41 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.adapters.repositories.QueryExtendBuilder
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
+import dev.auguste.agni_api.core.entities.Profile
 import dev.auguste.agni_api.core.entities.SpendingPeriod
 import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
 import dev.auguste.agni_api.core.entities.enums.SpendingPeriodStateType
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
-import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingInput
-import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingOutput
 import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.spending_period.dto.ForcastSpendingPeriodInput
+import dev.auguste.agni_api.core.usecases.spending_period.dto.ForcastSpendingPeriodOutput
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
+import dev.auguste.agni_api.core.value_objects.SnapshotForcastSpendingPeriod
 import java.time.LocalDate
 
 class ApplySpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
     private val spendingPeriodRepo: IRepository<SpendingPeriod>,
-    private val forecastSpendingPeriod: IUseCase<ForcastSpendingInput, ForcastSpendingOutput>,
+    private val forecastSpendingPeriod: IUseCase<ForcastSpendingPeriodInput, ForcastSpendingPeriodOutput>,
+    private val profileRepo: IRepository<Profile>,
     private val unitOfWork: IUnitOfWork,
     private val eventRegister: IEventRegister,
 ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
     override suspend fun execAsync(input: Unit): BackgroundTaskOut {
         try {
+            val conditionSpendingPeriod = QueryExtendBuilder<SpendingPeriod>()
+                .addCondition("state", QueryComparator.NotEqual, SpendingPeriodStateType.COMPLETE.value)
+                .addCondition("endDate", QueryComparator.Lesser, LocalDate.now())
+            val spendingPeriods = spendingPeriodRepo.getAll(QueryFilter.queryAll(), conditionSpendingPeriod)
+
+            // spending period whose end date has passed becomes in progress
+            for (spendingPeriod in spendingPeriods.items) {
+                spendingPeriod.state = SpendingPeriodStateType.IN_PROGRESS
+                spendingPeriodRepo.update(spendingPeriod)
+            }
+
             val condition = QueryExtendBuilder<SpendingPeriodTemplate>()
                 .addCondition("isActive", QueryComparator.Equal, true)
             val spendingPeriodTemps = spendingPeriodTemplateRepo.getAll(QueryFilter.queryAll(), condition)
@@ -47,28 +61,37 @@ class ApplySpendingPeriodTemplate(
                     unitOfWork.execute {
                         val updateDate = scheduler.upgradeDate().toLocalDate()
 
+                        val profiles = profileRepo.getAll(QueryFilter.queryAll())
+                        val savingRate = profiles.items.firstOrNull()?.savingPercentage ?: 0.0
+
                         val forecastRes = forecastSpendingPeriod.execAsync(
-                            input = ForcastSpendingInput(
+                            input = ForcastSpendingPeriodInput(
                                 startDate = spendingPeriodTemp.startDate,
                                 endDate = updateDate,
-                                wantItems = listOf(),
-                                savingAdditionalIncome = listOf(),
-                                budgetIds = listOf()
+                                budgetIds = spendingPeriodTemp.targetBudgetIds.toList(),
+                                savingRate = savingRate,
                             )
                         )
+
 
                         spendingPeriodRepo.create(SpendingPeriod(
                             spendingPeriodTemplateId = spendingPeriodTemp.id,
                             startDate = spendingPeriodTemp.startDate,
                             endDate = updateDate,
-                            suggestionAmount = forecastRes.remainAmount,
-                            savingsTarget = forecastRes.expectedSaving,
+                            freeAmount = forecastRes.expectedRemainAmount,
+                            savingRateTarget = savingRate,
                             totalExpectedIncome = forecastRes.totalExpectedIncome,
                             totalExpectedExpenses = forecastRes.totalExpectedExpense,
-                            state = SpendingPeriodStateType.PENDING,
-                            wantSpendingItems = listOf()
+                            state = SpendingPeriodStateType.DRAFT,
+                            wantSpendingItems = listOf(),
+                            snapshot = SnapshotForcastSpendingPeriod(
+                                income = 0.0,
+                                fixExpenses = 0.0,
+                                variableExpenses = 0.0,
+                                budgetExpenses = 0.0,
+                                saving = 0.0
+                            )
                         ))
-
 
                         spendingPeriodTemp.startDate = updateDate
                         spendingPeriodTemplateRepo.update(spendingPeriodTemp)

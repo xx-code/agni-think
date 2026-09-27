@@ -8,3 +8,8 @@ export type FormFilterTransaction = {
     minPrice?: number
     maxPrice?: number
 }
+
+export type MultiCalendarSelection = {
+    start?: CalendarDate
+    end?: CalendarDate
+}

@@ -78,6 +78,7 @@ class QueryInvoiceExtendJdbcAdapter(
                 mouvement = rs.getString("mouvement"),
                 date = rs.getObject("date", OffsetDateTime::class.java).toLocalDateTime(),
                 deductions = rs.getString("deductions"),
+                invoiceModuleLinkers = rs.getString("invoice_module_linkers"),
             )
         }
     }

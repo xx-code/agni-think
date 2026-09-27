@@ -19,10 +19,12 @@ class UpdateSpendingPeriodTemplate(
 
         if (input.recurrence != null) {
             val conditionExistBuilder = QueryExtendBuilder<SpendingPeriodTemplate>()
-                .addCondition("recurrence.period", QueryComparator.Equal, input.recurrence.period)
+                .addCondition("recurrence.period", QueryComparator.Equal, input.recurrence.period.value)
                 .addCondition("recurrence.interval", QueryComparator.Equal, input.recurrence.interval)
 
-            if (spendingPeriodTemplateRepo.exist(conditionExistBuilder))
+            if (spendPeriodTemplate.recurrence.period != input.recurrence.period &&
+                spendPeriodTemplate.recurrence.interval != input.recurrence.interval &&
+                spendingPeriodTemplateRepo.exist(conditionExistBuilder))
                 throw DomainException.AlreadyExist.SpendingPeriodTemplateExist(input.recurrence.period, input.recurrence.interval)
 
             spendPeriodTemplate.recurrence = SchedulerRecurrence(
@@ -40,14 +42,15 @@ class UpdateSpendingPeriodTemplate(
         }
 
         if (input.targetBudgetIds != null) {
-            if (budgetRepo.getManyByIds(input.targetBudgetIds).isEmpty())
+            if (input.targetBudgetIds.isNotEmpty() && budgetRepo.getManyByIds(input.targetBudgetIds).size != input.targetBudgetIds.size)
                 throw DomainException.NotFound.SomeBudgets(input.targetBudgetIds)
+
             spendPeriodTemplate.targetBudgetIds = input.targetBudgetIds
         }
 
         if (input.isActive != null) {
             val condBuilder = QueryExtendBuilder<SpendingPeriodTemplate>().addCondition("isActive", QueryComparator.Equal, input.isActive)
-            if (input.isActive && spendingPeriodTemplateRepo.exist(condBuilder))
+            if (!spendPeriodTemplate.isActive && input.isActive && spendingPeriodTemplateRepo.exist(condBuilder))
                 throw DomainException.AlreadyExist.SpendingPeriodTemplateAlreadyActive()
 
             spendPeriodTemplate.isActive = input.isActive

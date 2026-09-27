@@ -6,6 +6,7 @@ import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.InvoiceDeductionOutput
+import dev.auguste.agni_api.core.usecases.invoices.dto.InvoiceModuleLinkerOutput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 import java.util.UUID
@@ -43,7 +44,8 @@ class GetInvoice(
             transactions = invoiceTransactions.first().transactions,
             deductions = invoice.deductions.map { InvoiceDeductionOutput(
                 it.deductionId, it.amount
-            ) }
+            ) },
+            moduleLinkers = invoice.moduleLinkers.map { InvoiceModuleLinkerOutput(it.sourceId, it.module.value) }
         )
     }
 }

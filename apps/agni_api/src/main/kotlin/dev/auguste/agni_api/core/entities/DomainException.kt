@@ -33,6 +33,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class Snapshot(id: UUID) : NotFound("SNAPSHOT_NOT_FOUND", "Snapshot not found $id")
         class BankRegister(id: UUID) : NotFound("BANK_REGISTER_NOT_FOUND", "Bank Register not found $id")
         class Invoice(id: UUID) : NotFound("INVOICE_NOT_FOUND", "Invoice not found $id")
+        class TransferInvoice(id: UUID) : NotFound("TRANSFERT_INVOICE_NOT_FOUND", "Invoice not found $id. transactions is empty")
         class FinancePrinciple(id: UUID) : NotFound("FINANCE_PRINCIPLE_NOT_FOUND", "FinancePrinciple not found $id")
         class AgentSuggestion(id: UUID): NotFound("AGENT_SUGGEST_NOT_FOUND", "La suggestion de l'agent $id est introuvable")
         class InternalLoan(id: UUID): NotFound("INTERNAL_LOAN_NOT_FOUND", "Pret personnel est introuvable $id")
@@ -83,6 +84,8 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class ForcastAdditionalSavingAmountMustLessThanBalance(balance: Double, amount: Double): BusinessLogic("FORCAST_SAVING_ADDITIONAL_AMOUNT", "Forcast saving amount: $amount doit etre inferieur a $balance")
         class CantDeleteSystemCategory(title: String): BusinessLogic("CANT_DELETE_SYSTEM_CATEGORY", "Vous ne pouvez pas supprimer cette categorie systeme $title")
         class CantDeleteSystemTag(title: String): BusinessLogic("CANT_DELETE_SYSTEM_TAG", "Vous ne pouvez pas supprimer cette tag systeme $title")
+        class CanOnlyCancelTransfer: BusinessLogic("CAN_ONLY_CANCEL_TRANSFER", "Vous ne pouvez annuler que facture de transfert")
+        class CantDeleteTransfer: BusinessLogic("CAN_DELETE_TRANSFER", "Vous ne pouvez supprimer une facture de transfert")
     }
 
     sealed class Validation(code: String, message: String): DomainException(code, message) {

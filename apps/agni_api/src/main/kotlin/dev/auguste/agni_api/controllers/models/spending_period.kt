@@ -24,10 +24,10 @@ data class ApiCreateSpendingPeriodModel(
     val spendingPeriodTemplateId: UUID,
     @field:NotNull("Suggestion amount must be defined")
     @field:Min(0, "Suggestion amount must be greater than or equal to 0")
-    val suggestionAmount: Double,
+    val freeAmount: Double,
     @field:NotNull("Savings target must be defined")
     @field:Min(0, "Savings target must be greater than or equal to 0")
-    val savingsTarget: Double,
+    val savingRateTarget: Double,
     @field:NotNull("Total expected income must be defined")
     @field:Min(0, "Total expected income must be greater than or equal to 0")
     val totalExpectedIncome: Double,
@@ -42,8 +42,8 @@ data class ApiCreateSpendingPeriodModel(
 
 data class ApiUpdateSpendingPeriodModel(
     val spendingPeriodTemplateId: UUID?,
-    val suggestionAmount: Double?,
-    val savingsTarget: Double?,
+    val freeAmount: Double?,
+    val savingRateTarget: Double?,
     val totalExpectedIncome: Double?,
     val totalExpectedExpenses: Double?,
     val state: String?,
@@ -56,8 +56,8 @@ fun mapApiCreateSpendingPeriodToSpendingPeriod(request: ApiCreateSpendingPeriodM
         spendingPeriodTemplateId = request.spendingPeriodTemplateId,
         startDate = LocalDate.now(),
         endDate = LocalDate.now(),
-        suggestionAmount = request.suggestionAmount,
-        savingsTarget = request.savingsTarget,
+        freeAmount = request.freeAmount,
+        savingRateTarget = request.savingRateTarget,
         totalExpectedIncome = request.totalExpectedIncome,
         totalExpectedExpenses = request.totalExpectedExpenses,
         state = SpendingPeriodStateType.fromString(request.state),
@@ -74,8 +74,8 @@ fun mapApiUpdateSpendingPeriodToSpendingPeriod(id: UUID, request: ApiUpdateSpend
     return UpdateSpendingPeriodInput(
         id = id,
         spendingPeriodTemplateId = request.spendingPeriodTemplateId,
-        suggestionAmount = request.suggestionAmount,
-        savingsTarget = request.savingsTarget,
+        freeAmount = request.freeAmount,
+        savingRateTarget = request.savingRateTarget,
         state = request.state?.let { SpendingPeriodStateType.fromString(it) },
         totalExpectedIncome = request.totalExpectedIncome,
         totalExpectedExpenses = request.totalExpectedExpenses,

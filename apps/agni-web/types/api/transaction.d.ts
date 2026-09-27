@@ -32,6 +32,11 @@ export type InvoiceDeductionResponse = {
     amount: number
 }
 
+export type InvoiceModuleLinkerResponse = {
+    sourceId: string
+    module: string
+}
+
 export type GetInvoiceResponse = {
     id: string
     accountId: string
@@ -44,6 +49,7 @@ export type GetInvoiceResponse = {
     date: Date
     transactions: TransactionResponse[]
     deductions: InvoiceDeductionResponse[]
+    moduleLinkers: InvoiceModuleLinkerResponse[]
 }
 
 export type QueryBalanceByPeriod = {

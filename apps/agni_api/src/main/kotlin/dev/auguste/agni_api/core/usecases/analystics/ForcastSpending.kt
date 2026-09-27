@@ -2,9 +2,8 @@ package dev.auguste.agni_api.core.usecases.analystics
 
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.adapters.repositories.QueryExtendBuilder
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateComparator
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryScheduleInvoiceExtend
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.DomainException
@@ -32,7 +31,6 @@ class ForcastSpending(
     private val accountRepo: IRepository<Account>,
     private val budgetRepo: IRepository<Budget>,
     private val profileRepo: IRepository<Profile>,
-    private val getBudget: IUseCase<UUID, GetBudgetOutput>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
 ): IUseCase<ForcastSpendingInput, ForcastSpendingOutput> {
     override fun execAsync(input: ForcastSpendingInput): ForcastSpendingOutput {
@@ -46,18 +44,17 @@ class ForcastSpending(
 
         val budgets = budgetRepo.getManyByIds(input.budgetIds.toSet())
 
-        val budgetExpense = getBudgetExpense(budgets, input.startDate, input.endDate)
+        val budgetExpenses = getBudgetExpense(budgets, input.startDate, input.endDate, getBalance)
+        val totalBudgetExpense = budgetExpenses.sumOf { it.remaining }
 
-        val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), QueryScheduleInvoiceExtend(
-            comparatorDueDate = QueryDateComparator(
-                input.endDate.atStartOfDay(),
-                comparator = QueryComparator.LesserOrEquals,
-            )
-        ))
+        val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
+            .addCondition("isPause", QueryComparator.Equal, false)
+            .addCondition("scheduler.date", QueryComparator.LesserOrEquals, input.endDate.atStartOfDay())
+        val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
 
-        val income = getIncome(scheduleInvoices.items.filter{ it.scheduler.date.toLocalDate() >= input.startDate}, input.startDate, input.endDate)
-        val fixExpense = getFixExpense(scheduleInvoices.items.filter {  it.scheduler.date.toLocalDate() >= input.startDate} , input.startDate, input.endDate)
-        val variableExpense = getVariableExpense(scheduleInvoices.items.filter {  it.scheduler.date.toLocalDate() >= input.startDate} , input.startDate, input.endDate)
+        val income = getScheduleTotal(scheduleInvoices.items, InvoiceType.INCOME, input.startDate, input.endDate)
+        val fixExpense = getScheduleTotal(scheduleInvoices.items, InvoiceType.FIXEDCOST, input.startDate, input.endDate)
+        val variableExpense = getScheduleTotal(scheduleInvoices.items, InvoiceType.VARIABLECOST, input.startDate, input.endDate)
 
         val freezeBalanceToRemove = getBalance.execAsync(GetBalanceInput(
             isFreeze = true,
@@ -76,7 +73,7 @@ class ForcastSpending(
         val additionalIncome = getAdditionalSavingAmount(input.savingAdditionalIncome, accounts.items)
 
         val totalIncome = income + currentBalance + additionalIncome + abs(freezeBalanceToRemove.balance)
-        val totalExpense = fixExpense + variableExpense + freezeExpense + budgetExpense + saving
+        val totalExpense = fixExpense + variableExpense + freezeExpense + totalBudgetExpense + saving
 
         val remain = totalIncome - totalExpense
         val margeRemain = (remain * (savingRate/100.0))
@@ -92,7 +89,7 @@ class ForcastSpending(
             expectedFixExpense = fixExpense,
             expectedVariableExpense = variableExpense,
             expectedPlanFreezeExpense = freezeExpense,
-            expectedBudgetExpense = budgetExpense,
+            expectedBudgetExpense = totalBudgetExpense,
             expectedSaving = saving,
             itemsApproved = acceptedItems,
             itemsRejected = acceptedItems.filter { !validItems.contains(it) }
@@ -143,10 +140,18 @@ class ForcastSpending(
         return additionalAccounts.sumOf { it.amount }
     }
 
-    private fun getIncome(scheduleInvoices: List<ScheduleInvoice>, startDate: LocalDate, endDate: LocalDate): Double {
+    private fun getScheduleTotal(scheduleInvoices: List<ScheduleInvoice>, invoiceType: InvoiceType, startDate: LocalDate, endDate: LocalDate): Double {
         var totalIncome = 0.0
-        for (schedule in scheduleInvoices.filter { it.type == InvoiceType.INCOME }) {
-            val occurrence = schedule.scheduler.repeater?.computeOccurrences(startDate, endDate) ?: 1
+        var scheduleInvoices = scheduleInvoices.filter { it.type == invoiceType }
+        scheduleInvoices = scheduleInvoices.filter {
+            scheduleInvoice -> scheduleInvoice.scheduler.upgradeDate(startDate.atStartOfDay()) >= startDate.atStartOfDay()
+        }
+
+        for (schedule in scheduleInvoices) {
+            var scheduleStartDate = schedule.scheduler.date
+            if (scheduleStartDate < startDate.atStartOfDay())
+                scheduleStartDate = schedule.scheduler.upgradeDate(startDate.atStartOfDay())
+            val occurrence = schedule.scheduler.repeater?.computeOccurrences(scheduleStartDate.toLocalDate(), endDate) ?: 1
             totalIncome += schedule.amount * occurrence
         }
 
@@ -159,26 +164,6 @@ class ForcastSpending(
         }.sumOf { it.balance }
     }
 
-    private fun getFixExpense(scheduleInvoices: List<ScheduleInvoice>, startDate: LocalDate, endDate: LocalDate): Double {
-        var total = 0.0
-        for (schedule in scheduleInvoices.filter { it.type == InvoiceType.FIXEDCOST } ) {
-            val occurrence = schedule.scheduler.repeater?.computeOccurrences(startDate, endDate) ?: 1
-            total += schedule.amount * occurrence
-        }
-
-        return total
-    }
-
-    private fun getVariableExpense(scheduleInvoices: List<ScheduleInvoice>, startDate: LocalDate, endDate: LocalDate): Double {
-        var total = 0.0
-        for (schedule in scheduleInvoices.filter { it.type == InvoiceType.VARIABLECOST } ) {
-            val occurrence = schedule.scheduler.repeater?.computeOccurrences(startDate, endDate) ?: 1
-            total += schedule.amount * occurrence
-        }
-
-        return total
-    }
-
     private fun getPlanFreezeExpense(scheduleInvoices: List<ScheduleInvoice>, startDate: LocalDate, endDate: LocalDate): Double {
         var total = 0.0
         for (schedule in scheduleInvoices.filter { it.isFreeze && it.getFreezeEndDate() > endDate } ) {
@@ -189,50 +174,68 @@ class ForcastSpending(
         return total
     }
 
-    private fun getBudgetExpense(
-        budgets: List<Budget>,
-        startDate: LocalDate,
-        endDate: LocalDate
-    ): Double {
-        var total = 0.0
+    companion object {
+        data class ForcastBudget(
+            val budgetId: UUID,
+            val title: String,
+            val target: Double,
+            val balance: Double,
+            val remaining: Double
+        )
+        fun getBudgetExpense(
+            budgets: List<Budget>,
+            startDate: LocalDate,
+            endDate: LocalDate,
+            getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
+        ): List<ForcastBudget> {
+            val totals = mutableListOf<ForcastBudget>()
 
-        for (budget in budgets) {
-            val spend =getBalance.execAsync(GetBalanceInput(
-                startDate = startDate.atStartOfDay(),
-                endDate = endDate.atStartOfDay(),
-                budgetIds = setOf(budget.id)
-            )).spend
+            for (budget in budgets) {
+                if (
+                    budget.scheduler.upgradeDate(startDate.atStartOfDay()) <= startDate.atStartOfDay() ||
+                    budget.isArchived) {
+                    continue
+                }
+                val spend = getBalance.execAsync(GetBalanceInput(
+                    startDate = startDate.atStartOfDay(),
+                    endDate = endDate.atStartOfDay(),
+                    budgetIds = setOf(budget.id)
+                )).spend
 
-            val currentBalance = abs(spend)
+                val currentBalance = abs(spend)
 
-            val debutCountDate = if (budget.scheduler.date.toLocalDate() >= startDate) {
-                startDate
-            } else {
-                budget.scheduler.date.toLocalDate()
-            }
-
-            val numberOfDayBudget = ChronoUnit.DAYS.between(debutCountDate, endDate).toDouble()
-            val repeater = budget.scheduler.repeater
-
-            val target = if (repeater != null && repeater.interval > 0) {
-                val periodDays = when (repeater.period) {
-                    PeriodType.DAY -> 1.0
-                    PeriodType.WEEK -> 7.0 * repeater.interval
-                    PeriodType.MONTH -> 30.4167 * repeater.interval
-                    PeriodType.YEAR -> 365.0 * repeater.interval
+                val debutCountDate = if (budget.scheduler.date.toLocalDate() >= startDate) {
+                    startDate
+                } else {
+                    budget.scheduler.date.toLocalDate()
                 }
 
-                budget.target * (numberOfDayBudget / periodDays)
-            } else {
-                budget.target
+                val numberOfDayBudget = ChronoUnit.DAYS.between(debutCountDate, endDate).toDouble()
+                val repeater = budget.scheduler.repeater
+
+                val target = if (repeater != null && repeater.interval > 0) {
+                    val periodDays = when (repeater.period) {
+                        PeriodType.DAY -> 1.0
+                        PeriodType.WEEK -> 7.0 * repeater.interval
+                        PeriodType.MONTH -> 30.4167 * repeater.interval
+                        PeriodType.YEAR -> 365.0 * repeater.interval
+                    }
+
+                    budget.target * (numberOfDayBudget / periodDays)
+                } else {
+                    budget.target
+                }
+
+                totals.add(ForcastBudget(
+                    budgetId = budget.id,
+                    title = budget.title,
+                    target = target,
+                    balance = currentBalance,
+                    remaining = (target - currentBalance)
+                ))
             }
 
-            val budgetTotal = (target - currentBalance)
-            if (budgetTotal > 0.0)
-                total += budgetTotal
-
+            return totals
         }
-
-        return total
     }
 }

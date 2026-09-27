@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { DropdownMenuItem } from '@nuxt/ui';
+import { TRANSFER_CATEGORY_ID } from '~/shared/constantBackend';
 import type { DeductionType } from '~/types/ui/deduction';
 import type { InvoiceType } from '~/types/ui/transaction';
 
@@ -58,6 +59,9 @@ const formatActionItems = () => {
     if (data.status.toLowerCase() === 'pending') {
         listEdit.push(completeAction)
     }
+
+    if (data.transactions.length > 0 && data.transactions.at(0)?.category.id === TRANSFER_CATEGORY_ID)
+        return [ [ cancelActions ] ]
 
     return [
         listEdit,

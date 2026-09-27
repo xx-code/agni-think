@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { getSpendingPeriodAnalyticRange, useInProgressSpendingPeriod } from '~/composables/spendingPeriod';
 import type { Account, AccountWithDetailType, EditAccount } from "~/types/ui/account";
 import { getLocalTimeZone } from "@internationalized/date";
 import { ModalEditAccount, SlideOverQuickInvoicesView } from "#components";
 import { accountWithDetailResponseToAccountWithDetail, accountWithDetailToAccountCard, listAccountsResponseToListAccountWithDetail } from "~/mappers/account";
 import { savingAnalyticResponseToSavingAnalytic } from "~/mappers/analytics";
 import { goalResponseToGoal, goalToFundGoalCards } from "~/mappers/goal";
-import { getOrderAccountType } from "~/types/constants/account";
+import { AccountType, getOrderAccountType } from "~/types/constants/account";
 import type { CreatedRequest, ListResponse } from "~/types/api";
 import type { GetAccountWithDetailResponse } from "~/types/api/account";
 import type { GetSavingAnalysticResponse, GetSpendCategoryResponse } from "~/types/api/analytics";
@@ -20,6 +21,16 @@ const isLoadingAccount = ref(false)
 const isKpiLoading = ref(false)
 const isLoadingTopSpend = ref(false)
 const isLoadingGoal = ref(false)
+
+function groupAndSortAccount(a: AccountWithDetailType, b: AccountWithDetailType) {
+    const typeDiff = getOrderAccountType(a.type) - getOrderAccountType(b.type);
+  
+    if (typeDiff !== 0) {
+        return typeDiff;
+    }
+
+  return a.title.localeCompare(b.title);
+}
 
 const { data: accountData, refresh: refreshAccounts } = useAsyncData(
     'accounts+categories+tags+budgets',
@@ -50,7 +61,7 @@ const { data: accountData, refresh: refreshAccounts } = useAsyncData(
         isLoadingAccount.value = false
 
         return {
-            accounts: res.items.sort((a, b) => getOrderAccountType(a.type) - getOrderAccountType(b.type)),
+            accounts: res.items.sort((a, b) => groupAndSortAccount(a, b)),
             balanceHistories: accIds.map((id, index) => ({
                 id,
                 histories: balancesByPeriod[index]?.map(i => i.balance) ?? []
@@ -59,22 +70,25 @@ const { data: accountData, refresh: refreshAccounts } = useAsyncData(
     }
 )
 
+const { data: inProgressSpendingPeriod } = await useInProgressSpendingPeriod()
+
+const analyticRange = computed(() => getSpendingPeriodAnalyticRange(inProgressSpendingPeriod.value))
+
 const { data: kpi } = useAsyncData('cashflow+savingrates', async () => {
     isKpiLoading.value = true
 
-    const date = new Date()
-    date.setDate(1)
-    date.setHours(0, 0, 0, 0)
+    const range = analyticRange.value
 
     const [currentBalance, savingBalance] = await Promise.all([        
         ApiLinkBuilder.route<GetBalanceResponse>(API_ROUTES.INVOICES.GET_BALANCES).query({
-            startDate: date.toISOString(),
+            startDate: range.startDate,
+            endDate: range.endDate,
             isFreeze: false
         }).execute(),
         ApiLinkBuilder.route<GetSavingAnalysticResponse>(API_ROUTES.ANALYTICS.SAVINGS).query({
-            period: 'Month',
-            interval: 1,
-            startDate: date.toISOString(),
+            period: range.period,
+            interval: range.interval,
+            startDate: range.startDate,
         }).mapper(savingAnalyticResponseToSavingAnalytic).execute()
     ])
 
@@ -89,13 +103,10 @@ const { data: kpi } = useAsyncData('cashflow+savingrates', async () => {
 const { data: topSpendByCategories } = useAsyncData('top-spend-categories', async () => {
     isLoadingTopSpend.value = true
 
-    const date = new Date()
-    date.setDate(1)
-    
     const res = await ApiLinkBuilder.route<ListResponse<GetSpendCategoryResponse>>(API_ROUTES.ANALYTICS.SPEND_CATEGORIES).query({
-        period: 'Month',
-        interval: 1,
-        startDate: date.toISOString(),
+        period: analyticRange.value.period,
+        interval: analyticRange.value.interval,
+        startDate: analyticRange.value.startDate,
         offset: 0,
         limit: 0,
         queryAll: true
@@ -106,7 +117,7 @@ const { data: topSpendByCategories } = useAsyncData('top-spend-categories', asyn
     return res.items
             .map(item => ({ 
                 ...item,
-                spend: item.spends.at(-1) ?? 0,
+                spend: item.spends?.at(-1) ?? 0,
             }))
             .filter(i => i.spend > 0).sort((a, b) => b.spend - a.spend).slice(0, 4)
 
@@ -222,9 +233,8 @@ const onDeleteAccount = async (accountId: string) => {
 
 const openTransactionViews = async (accountId: string) => {
     try {
-        let account = await ApiLinkBuilder.route<GetAccountWithDetailResponse>(API_ROUTES.ACCOUNTS.GET_ACCOUNT).params({id: accountId}).query({withDetail: true}).mapper(accountWithDetailResponseToAccountWithDetail).execute();
         const instance = slideOverQuickInvoices.open({
-            account: account,
+            accountId: accountId,
             onClose: (refresh) => {
                 if (refresh)
                     refreshAccounts()
@@ -241,7 +251,7 @@ const openTransactionViews = async (accountId: string) => {
 }
 
 const availableBalance = computed(() => {
-    return totalAccountBalance.value.totalBalance + Math.abs(totalAccountBalance.value.totalFreezedBalance + totalAccountBalance.value.totalLockedBalance) 
+    return totalAccountBalance.value.totalBalance - Math.abs(totalAccountBalance.value.totalFreezedBalance + totalAccountBalance.value.totalLockedBalance) 
 })
 
 function goalStatusBadge(goal: FundCardGoal) {
@@ -299,10 +309,12 @@ function goalStatusBadge(goal: FundCardGoal) {
             </div>
             
             <div class="flex flex-col gap-4">
+                <UiOverviewSpendingPeriodRemain />
+
                 <div v-if="!isKpiLoading" class="grid grid-cols-2">
                     <div>
                         <h4 class="text-gray-500 font-semibold">
-                            Cashflow ce mois
+                            {{ analyticRange.isSpendingPeriod ? 'Cashflow de la periode' : 'Cashflow ce mois' }}
                         </h4>
                         <h1 
                             :class="[
@@ -339,7 +351,9 @@ function goalStatusBadge(goal: FundCardGoal) {
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <h1 class="font-bold">Top dépenses</h1>
+                    <h1 class="font-bold">
+                        {{ analyticRange.isSpendingPeriod ? 'Top dépenses de la periode' : 'Top dépenses' }}
+                    </h1>
                     <div v-if="!isLoadingTopSpend" class="flex flex-col gap-2">
                         <div 
                             v-for="catSpend in topSpendByCategories" 

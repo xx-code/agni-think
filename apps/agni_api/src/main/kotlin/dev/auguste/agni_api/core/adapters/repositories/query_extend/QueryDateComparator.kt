@@ -8,6 +8,7 @@ enum class QueryComparator {
     Lesser,
     LesserOrEquals,
     Equal,
+    NotEqual,
     In
 }
 
@@ -23,6 +24,7 @@ data class QueryDateComparator(
             QueryComparator.Lesser -> date < compareDate
             QueryComparator.LesserOrEquals ->  date <= compareDate
             QueryComparator.Equal ->  date == compareDate
+            QueryComparator.NotEqual -> date != compareDate
             QueryComparator.In ->  {
                 if (endDate == null)
                     false

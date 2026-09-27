@@ -8,16 +8,18 @@ import dev.auguste.agni_api.core.entities.SpendingPeriod
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.spending_period.dto.GetAllSpendingPeriodInput
+import dev.auguste.agni_api.core.usecases.spending_period.dto.GetAllSpendingPeriodOutput
 import dev.auguste.agni_api.core.usecases.spending_period.dto.GetSpendingPeriodOutput
 import dev.auguste.agni_api.core.usecases.spending_period.dto.SpendingPeriodItemOutput
+import dev.auguste.agni_api.core.usecases.spending_period.dto.SpendingPeriodSnapShotOutput
 
 class GetAllSpendingPeriod(
     private val spendingPeriodRepo: IRepository<SpendingPeriod>,
-): IUseCase<GetAllSpendingPeriodInput, ListOutput<GetSpendingPeriodOutput>> {
-    override fun execAsync(input: GetAllSpendingPeriodInput): ListOutput<GetSpendingPeriodOutput> {
+): IUseCase<GetAllSpendingPeriodInput, ListOutput<GetAllSpendingPeriodOutput>> {
+    override fun execAsync(input: GetAllSpendingPeriodInput): ListOutput<GetAllSpendingPeriodOutput> {
         val condition = QueryExtendBuilder<SpendingPeriod>()
-        if (input.spendingPeriodId != null)
-            condition.addCondition("spendingPeriodId", QueryComparator.Equal, input.spendingPeriodId)
+        if (input.spendingPeriodTemplateId != null)
+            condition.addCondition("spendingPeriodTemplateId", QueryComparator.Equal, input.spendingPeriodTemplateId)
 
 //        if (input.startDate != null)
 //            condition.addCondition("startDate", QueryComparator.Equal, input.startDate)
@@ -32,16 +34,23 @@ class GetAllSpendingPeriod(
 
         return ListOutput(
             items = spendingPeriods.items.map {
-                GetSpendingPeriodOutput(
+                GetAllSpendingPeriodOutput(
                     id = it.id,
                     spendingPeriodTemplateId = it.spendingPeriodTemplateId,
                     startDate = it.startDate,
                     endDate = it.endDate,
-                    suggestionAmount = it.suggestionAmount,
-                    savingsTarget = it.savingsTarget,
+                    freeAmount = it.freeAmount,
+                    savingRateTarget = it.savingRateTarget,
                     totalExpectedIncome = it.totalExpectedIncome,
                     totalExpectedExpenses = it.totalExpectedExpenses,
                     state = it.state,
+                    snapshot = SpendingPeriodSnapShotOutput(
+                        income = it.snapshot.income,
+                        fixExpenses = it.snapshot.fixExpenses,
+                        variableExpenses = it.snapshot.variableExpenses,
+                        budgetExpenses = it.snapshot.budgetExpenses,
+                        saving = it.snapshot.saving
+                    ),
                     wantSpendingItems = it.wantSpendingItems.map { item ->
                         SpendingPeriodItemOutput(
                             description = item.description,
