@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useIncomeSourceModel } from '~/composables/modal/incomeSource'
+import { listCategoriesResponseToListCategories } from '~/mappers/category'
 import { listIncomeSourcesResponseToListIncomeSources } from '~/mappers/incomeSource'
 import { API_ROUTES } from '~/shared/routes'
 import type { ListResponse } from '~/types/api'
+import type { GetCategoryResponse, QueryFilterCategoryRequest } from '~/types/api/category'
 import type { GetIncomeSourceResponse } from '~/types/api/incomeSource'
 import type { GetInternalTypeResponse } from '~/types/api/internal'
 
@@ -14,7 +16,7 @@ const { data, refresh: refreshIncomeSources } = useAsyncData('income-sources+all
     const [ incomeSourceFrequencyTypes, incomeSourceTypes,  incomeSources] = await Promise.all([
         ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.INCOME_SOURCE_FREQUENCY_TYPE).execute(),
         ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.INCOME_SOURCE_TYPE).execute(),
-        ApiLinkBuilder.route<ListResponse<GetIncomeSourceResponse>>(API_ROUTES.INCOME_SOURCES.GET_INCOME_SOURCES).query({ queryAll: true, limit: 0, offset: 0}).mapper(listIncomeSourcesResponseToListIncomeSources).execute()
+        ApiLinkBuilder.route<ListResponse<GetIncomeSourceResponse>>(API_ROUTES.INCOME_SOURCES.GET_INCOME_SOURCES).query({ queryAll: true, limit: 0, offset: 0}).mapper(listIncomeSourcesResponseToListIncomeSources).execute(),
     ])
 
     return {

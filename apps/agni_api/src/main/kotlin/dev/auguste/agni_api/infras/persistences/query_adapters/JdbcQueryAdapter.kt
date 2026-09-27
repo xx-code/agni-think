@@ -16,6 +16,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import java.util.UUID
 
 @Component
 class JdbcQueryAdapter(
@@ -140,6 +141,7 @@ class JdbcQueryAdapter(
         if (mappedColumn.contains("->>")) {
             return when {
                 isTemporal -> "($mappedColumn)::timestamptz"
+                sampleValue is UUID -> "($mappedColumn)::uuid"
                 sampleValue is Number -> "($mappedColumn)::numeric"
                 sampleValue is Boolean -> "($mappedColumn)::boolean"
                 else -> mappedColumn

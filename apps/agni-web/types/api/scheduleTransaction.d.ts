@@ -9,6 +9,7 @@ export type GetScheduleInvoiceResponse = {
     isPause: boolean
     freeze: boolean
     dueDate: string
+    editable: boolean
     repeater?: {
         periodType: string
         interval: number

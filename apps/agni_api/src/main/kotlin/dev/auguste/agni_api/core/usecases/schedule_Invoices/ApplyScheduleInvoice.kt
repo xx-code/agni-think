@@ -11,9 +11,11 @@ import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryCompara
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryDateComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryScheduleInvoiceExtend
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
+import dev.auguste.agni_api.core.entities.enums.InvoiceModuleLinkerType
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.entities.enums.ScheduleInvoiceModuleLinkerType
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
@@ -21,6 +23,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateFreezeInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.TransactionInput
+import dev.auguste.agni_api.core.value_objects.InvoiceModuleLinker
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -67,6 +70,25 @@ class ApplyScheduleInvoice(
                         if (scheduleInvoice.type != InvoiceType.INCOME)
                             movement = InvoiceMouvementType.DEBIT
 
+                        val invoiceModuleLinkers = mutableListOf<InvoiceModuleLinker>()
+                        invoiceModuleLinkers.add(InvoiceModuleLinker(
+                            scheduleInvoice.id,
+                            InvoiceModuleLinkerType.SCHEDULE_INVOICE
+                        ))
+
+                        if (scheduleInvoice.moduleLinker != null) {
+                            val matchModuleType = when(scheduleInvoice.moduleLinker!!.module) {
+                                ScheduleInvoiceModuleLinkerType.INCOME_SOURCE -> InvoiceModuleLinkerType.INCOME_SOURCE
+                                ScheduleInvoiceModuleLinkerType.PROVISION -> InvoiceModuleLinkerType.PROVISION
+                                else -> null
+                            }
+                            if (matchModuleType != null) {
+                                invoiceModuleLinkers.add(InvoiceModuleLinker(
+                                    scheduleInvoice.moduleLinker!!.sourceId,
+                                    matchModuleType,
+                                ))
+                            }
+                        }
 
                         createInvoice.execInnerAsync(CreateInvoiceInput(
                             accountId = scheduleInvoice.accountId,
@@ -84,6 +106,7 @@ class ApplyScheduleInvoice(
                                     budgetIds = setOf()
                                 )
                             ),
+                            moduleSourcesLinker = invoiceModuleLinkers,
                             deductions = setOf()
                         ))
                     }

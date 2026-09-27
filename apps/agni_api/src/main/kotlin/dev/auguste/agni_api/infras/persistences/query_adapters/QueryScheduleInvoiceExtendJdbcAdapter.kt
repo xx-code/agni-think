@@ -88,6 +88,7 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
                 scheduler = rs.getString("scheduler"),
                 tagIds = rs.getString("tag_ids"),
                 endDate = rs.getObject("end_date", OffsetDateTime::class.java)?.toLocalDateTime(),
+                moduleLinker = rs.getString("module_linker"),
                 freezeScheduler = rs.getString("freeze_scheduler"),
             )
         }

@@ -35,6 +35,7 @@ data class ApiCreateIncomeSourceModel(
     @field:NotNull(message = "End date must be set")
     val endDate: LocalDate?,
 
+    val invoiceIncomeCategoryId: UUID?,
     val linkedAccountId: UUID?,
     val annualGrossAmount: Double?
 )
@@ -55,6 +56,7 @@ data class ApiUpdateIncomeSourceModel(
 
     val startDate: LocalDate?,
     val endDate: LocalDate?,
+    val invoiceIncomeCategoryId: UUID?,
     val linkedAccountId: UUID?,
     val annualGrossAmount: Double?
 )
@@ -70,6 +72,7 @@ fun mapApiCreateIncomeSourceTo(model: ApiCreateIncomeSourceModel) : CreateIncome
         startDate = model.startDate,
         linkedAccountId = model.linkedAccountId,
         annualGrossAmount = model.annualGrossAmount,
+        invoiceIncomeCategoryId = model.invoiceIncomeCategoryId,
         endDate = model.endDate
     )
 }
@@ -86,6 +89,7 @@ fun mapApiUpdateIncomeSourceTo(id: UUID, model: ApiUpdateIncomeSourceModel) : Up
         startDate = model.startDate,
         linkedAccountId = model.linkedAccountId,
         annualGrossAmount = model.annualGrossAmount,
+        invoiceIncomeCategoryId = model.invoiceIncomeCategoryId,
         endDate = model.endDate
     )
 }

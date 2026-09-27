@@ -12,7 +12,7 @@ import dev.auguste.agni_api.core.value_objects.Scheduler
 import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
 
 class CreateProvisionable(
-    private val provisionRepo: IRepository<Provision>
+    private val provisionRepo: IRepository<Provision>,
 ) : IUseCase<CreateProvisionInput, CreatedOutput> {
     override fun execAsync(input: CreateProvisionInput): CreatedOutput {
         if (provisionRepo.existsByName(input.title))

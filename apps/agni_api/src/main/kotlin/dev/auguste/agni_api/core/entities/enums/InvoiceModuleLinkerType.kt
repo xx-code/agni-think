@@ -4,6 +4,7 @@ enum class InvoiceModuleLinkerType(val value: String) {
     FUND("Fund"),
     SCHEDULE_INVOICE("ScheduleInvoice"),
     PROVISION("Provision"),
+    INCOME_SOURCE("IncomeSource"),
     TRANSFER("Transfer");
 
     companion object {

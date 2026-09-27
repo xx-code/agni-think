@@ -86,6 +86,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class CantDeleteSystemTag(title: String): BusinessLogic("CANT_DELETE_SYSTEM_TAG", "Vous ne pouvez pas supprimer cette tag systeme $title")
         class CanOnlyCancelTransfer: BusinessLogic("CAN_ONLY_CANCEL_TRANSFER", "Vous ne pouvez annuler que facture de transfert")
         class CantDeleteTransfer: BusinessLogic("CAN_DELETE_TRANSFER", "Vous ne pouvez supprimer une facture de transfert")
+        class CanNotEditSchedulerInvoiceWithModuleLinkDirectly: BusinessLogic("CANNOT_EDIT_SCHEDULE_INVOICE_WITH_MODULE_LINKER_DIRECTLY", "Vous ne pouvez pas modifier un facture future qui est lie a un module directement")
     }
 
     sealed class Validation(code: String, message: String): DomainException(code, message) {

@@ -77,7 +77,7 @@ class JdbcInvoiceModelMapper(
             date = entity.date,
             isFreeze = entity.isFreeze,
             deductions = objectMapper.writeValueAsString(entity.deductions.map { objectMapper.writeValueAsString(it.toMap()) }),
-            invoiceModuleLinkers = objectMapper.writeValueAsString(entity.moduleLinkers.map { objectMapper.writeValueAsString(it) })
+            invoiceModuleLinkers = objectMapper.writeValueAsString(entity.moduleLinkers.map { objectMapper.writeValueAsString(it.toMap()) })
         )
     }
 
@@ -89,7 +89,7 @@ class JdbcInvoiceModelMapper(
         "mouvementType" to "mouvement",
         "date" to "date",
         "isFreeze" to "is_freeze",
-        "invoiceModuleLinkers.sourceId" to "invoice_module_linkers->>'sourceId'",
+        "invoiceModuleLinkers.sourceId" to "invoice_module_linkers->>'source_id'",
         "invoiceModuleLinkers.module" to "invoice_module_linkers->>'module'",
         "deductions.amount" to "deductions->>'amount'",
         "deductions.deductionId" to "deductions->>'deduction_id'",
