@@ -34,13 +34,13 @@ class ApplySpendingPeriodTemplate(
     override suspend fun execAsync(input: Unit): BackgroundTaskOut {
         try {
             val conditionSpendingPeriod = QueryExtendBuilder<SpendingPeriod>()
-                .addCondition("state", QueryComparator.Equal, SpendingPeriodStateType.COMPLETE)
-                .addCondition("endDate", QueryComparator.Greater, LocalDate.now())
+                .addCondition("state", QueryComparator.NotEqual, SpendingPeriodStateType.COMPLETE.value)
+                .addCondition("endDate", QueryComparator.Lesser, LocalDate.now())
             val spendingPeriods = spendingPeriodRepo.getAll(QueryFilter.queryAll(), conditionSpendingPeriod)
 
-            // spending period to review state
+            // spending period whose end date has passed becomes in progress
             for (spendingPeriod in spendingPeriods.items) {
-                spendingPeriod.state = SpendingPeriodStateType.TO_REVIEW
+                spendingPeriod.state = SpendingPeriodStateType.IN_PROGRESS
                 spendingPeriodRepo.update(spendingPeriod)
             }
 

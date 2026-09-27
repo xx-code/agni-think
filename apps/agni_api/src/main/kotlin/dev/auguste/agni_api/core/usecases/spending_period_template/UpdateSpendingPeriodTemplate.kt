@@ -50,7 +50,7 @@ class UpdateSpendingPeriodTemplate(
 
         if (input.isActive != null) {
             val condBuilder = QueryExtendBuilder<SpendingPeriodTemplate>().addCondition("isActive", QueryComparator.Equal, input.isActive)
-            if (input.isActive && spendingPeriodTemplateRepo.exist(condBuilder))
+            if (!spendPeriodTemplate.isActive && input.isActive && spendingPeriodTemplateRepo.exist(condBuilder))
                 throw DomainException.AlreadyExist.SpendingPeriodTemplateAlreadyActive()
 
             spendPeriodTemplate.isActive = input.isActive

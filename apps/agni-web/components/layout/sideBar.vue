@@ -54,6 +54,11 @@ const items: NavigationMenuItem[][] = [
                     to: '/trends', 
                 },
                 {
+                    label: 'Periode de depenses',
+                    icon: 'i-lucide-calendar-sync',
+                    to: '/spending-periods'
+                },
+                {
                     label: 'Analytique',
                     icon: 'i-lucide-chart-candlestick',
                     to: '/analytics', 

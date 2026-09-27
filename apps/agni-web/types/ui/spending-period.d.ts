@@ -1,26 +1,26 @@
-import type { ForcastSpendingAchieveItemResponse, GetForcastSpendingPeriodResponse, GetSpendingPeriodResponse, GetSpendingPeriodSnapshotResponse } from "../api/spending-period"
+import type { SpendingPeriodType } from "../constants/spendingPeriod"
+import type { ForcastSpendingAchieveItemResponse, GetForcastSpendingPeriodResponse, GetSpendingPeriodResponse, GetSpendingPeriodSnapshotResponse, GetSpendingPeriodItemResponse } from "../api/spending-period"
 
 export type SpendingPeriodSnapshot = GetSpendingPeriodSnapshotResponse
 
-export type ForcastSpendingAchieveItem = Omit<ForcastSpendingAchieveItemResponse, 'achieved'> & {
-    isAchieved: boolean
-}
+export type ForcastSpendingAchieveItem = ForcastSpendingAchieveItemResponse
 
-export type ForcastSpendingPeriod = Omit< GetForcastSpendingPeriodResponse, 
-    'incomeItems' | 'fixExpenseItems' | 'variableExpenseItems' | 'achievedWishedItems'> & {
-    incomeItems: ForcastSpendingAchieveItem[]
-    fixExpenseItems: ForcastSpendingAchieveItem[]
-    variableExpenseItems: ForcastSpendingAchieveItem[]
-    achievedWishedItems: ForcastSpendingAchieveItem[]
-} 
+export type ForcastSpendingPeriod = GetForcastSpendingPeriodResponse
 
+export type SpendingPeriodItem = GetSpendingPeriodItemResponse
 
-
-export type SpendingPeriod = Omit<GetSpendingPeriodResponse, 'startDate' | 'endDate' | 'snapshot' | 'forcast'> & {
+export type SpendingPeriod = Omit<GetSpendingPeriodResponse, 'startDate' | 'endDate' | 'state'> & {
     startDate: Date
     endDate: Date
-    snapshot: SpendingPeriodSnapshot
-    forcast: ForcastSpendingPeriod
+    state: SpendingPeriodType
 }
 
 export type AllSpendingPeriod = Omit<SpendingPeriod, 'forcast'>
+
+export type EditSpendingPeriodType = {
+    freeAmount: number
+    savingRateTarget: number
+    totalExpectedIncome: number
+    totalExpectedExpenses: number
+    wantSpendingItems: SpendingPeriodItem[]
+}

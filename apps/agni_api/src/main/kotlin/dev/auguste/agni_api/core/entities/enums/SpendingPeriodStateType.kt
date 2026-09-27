@@ -3,6 +3,7 @@ package dev.auguste.agni_api.core.entities.enums
 enum class SpendingPeriodStateType(val value: String) {
     DRAFT("Draft"),
     TO_REVIEW("ToReview"),
+    IN_PROGRESS("InProgress"),
     COMPLETE("Complete");
 
     companion object {

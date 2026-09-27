@@ -79,6 +79,15 @@ class JdbcQueryAdapter(
                     }
                 }
 
+                QueryComparator.NotEqual -> {
+                    if (formattedValue == null) {
+                        "$mappedColumn IS NULL"
+                    } else {
+                        params.addValue(rawParamName, formattedValue)
+                        "${formatSqlColumn(mappedColumn, formattedValue)} != :$rawParamName"
+                    }
+                }
+
                 QueryComparator.In -> {
                     val collection = (condition.value as? Collection<*>)?.map { formatConditionValue(it) }
                     if (!collection.isNullOrEmpty()) {
@@ -111,7 +120,6 @@ class JdbcQueryAdapter(
      */
     private fun formatConditionValue(value: Any?): Any? {
         return when (value) {
-            is LocalDate -> value.atStartOfDay().atOffset(ZoneOffset.UTC).toString()
             is LocalDateTime -> value.atOffset(ZoneOffset.UTC).toString()
             is Instant -> value.atOffset(ZoneOffset.UTC).toString()
             is OffsetDateTime -> value.toInstant().atOffset(ZoneOffset.UTC).toString()

@@ -143,11 +143,14 @@ class ForcastSpending(
         var totalIncome = 0.0
         var scheduleInvoices = scheduleInvoices.filter { it.type == invoiceType }
         scheduleInvoices = scheduleInvoices.filter {
-            scheduleInvoice -> scheduleInvoice.scheduler.upgradeDate(startDate.atStartOfDay()) <= startDate.atStartOfDay()
+            scheduleInvoice -> scheduleInvoice.scheduler.upgradeDate(startDate.atStartOfDay()) >= startDate.atStartOfDay()
         }
 
         for (schedule in scheduleInvoices) {
-            val occurrence = schedule.scheduler.repeater?.computeOccurrences(startDate, endDate) ?: 1
+            var scheduleStartDate = schedule.scheduler.date
+            if (scheduleStartDate < startDate.atStartOfDay())
+                scheduleStartDate = schedule.scheduler.upgradeDate(startDate.atStartOfDay())
+            val occurrence = schedule.scheduler.repeater?.computeOccurrences(scheduleStartDate.toLocalDate(), endDate) ?: 1
             totalIncome += schedule.amount * occurrence
         }
 
@@ -187,6 +190,11 @@ class ForcastSpending(
             val totals = mutableListOf<ForcastBudget>()
 
             for (budget in budgets) {
+                if (
+                    budget.scheduler.upgradeDate(startDate.atStartOfDay()) <= startDate.atStartOfDay() ||
+                    budget.isArchived) {
+                    continue
+                }
                 val spend = getBalance.execAsync(GetBalanceInput(
                     startDate = startDate.atStartOfDay(),
                     endDate = endDate.atStartOfDay(),
@@ -220,7 +228,7 @@ class ForcastSpending(
                 totals.add(ForcastBudget(
                     budgetId = budget.id,
                     title = budget.title,
-                    target = budget.target,
+                    target = target,
                     balance = currentBalance,
                     remaining = (target - currentBalance)
                 ))

@@ -18,8 +18,8 @@ class GetAllSpendingPeriod(
 ): IUseCase<GetAllSpendingPeriodInput, ListOutput<GetAllSpendingPeriodOutput>> {
     override fun execAsync(input: GetAllSpendingPeriodInput): ListOutput<GetAllSpendingPeriodOutput> {
         val condition = QueryExtendBuilder<SpendingPeriod>()
-        if (input.spendingPeriodId != null)
-            condition.addCondition("spendingPeriodId", QueryComparator.Equal, input.spendingPeriodId)
+        if (input.spendingPeriodTemplateId != null)
+            condition.addCondition("spendingPeriodTemplateId", QueryComparator.Equal, input.spendingPeriodTemplateId)
 
 //        if (input.startDate != null)
 //            condition.addCondition("startDate", QueryComparator.Equal, input.startDate)
