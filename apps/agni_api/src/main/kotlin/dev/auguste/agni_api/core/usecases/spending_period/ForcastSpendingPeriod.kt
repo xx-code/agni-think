@@ -58,7 +58,7 @@ class ForcastSpendingPeriod(
         ))
 
         val budgetExpenses = ForcastSpending.getBudgetExpense(budgets, input.startDate, input.endDate, getBalance)
-        val totalBudgetExpense = budgets.sumOf { it.target }
+        val totalBudgetExpense = budgetExpenses.sumOf { it.target }
         val totalBudgetBalance = budgetExpenses.sumOf { it.balance }
 
         val incomes = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.INCOME, invoices.items, input.startDate, input.endDate)
@@ -73,7 +73,7 @@ class ForcastSpendingPeriod(
         if (input.savingRate != null)
             savingRate = input.savingRate
 
-        val expectedSaving = savingBalance * (savingRate/100)
+        val expectedSaving = totalIncome * (savingRate/100)
         val totalExpectedSpending = (totalFixedExpenses + totalVariableExpenses + expectedSaving + totalBudgetExpense)
         val expectedRemain = totalIncome - totalExpectedSpending
 
@@ -104,13 +104,17 @@ class ForcastSpendingPeriod(
         startDate: LocalDate, endDate: LocalDate): List<ForcastSpendingAchieveItemOutput> {
         var scheduleInvoices = scheduleInvoices.filter { it.type == invoiceType }
         scheduleInvoices = scheduleInvoices.filter {
-            scheduleInvoice -> scheduleInvoice.scheduler.upgradeDate(startDate.atStartOfDay()) <= startDate.atStartOfDay()
+            scheduleInvoice -> scheduleInvoice.scheduler.upgradeDate(startDate.atStartOfDay()) >= startDate.atStartOfDay()
         }
 
         val filterInvoices = invoices.filter { it.type == InvoiceType.INCOME.value && it.moduleLinkers.find { linker -> linker.module == InvoiceModuleLinkerType.SCHEDULE_INVOICE.value } != null }
 
         return scheduleInvoices.map { schedule ->
-            val occurrence = schedule.scheduler.repeater?.computeOccurrences(startDate, endDate) ?: 1
+            var scheduleStartDate = schedule.scheduler.date
+            if (scheduleStartDate < startDate.atStartOfDay())
+                scheduleStartDate = schedule.scheduler.upgradeDate(startDate.atStartOfDay())
+
+            val occurrence = schedule.scheduler.repeater?.computeOccurrences(scheduleStartDate.toLocalDate(), endDate) ?: 1
             val invoice = filterInvoices.filter { schedule.id == it.moduleLinkers.first({ linker -> linker.module == InvoiceModuleLinkerType.SCHEDULE_INVOICE.value }).sourceId  }
             val totalAmount = occurrence * schedule.amount
             val currentAmount = invoice.sumOf { it.total }

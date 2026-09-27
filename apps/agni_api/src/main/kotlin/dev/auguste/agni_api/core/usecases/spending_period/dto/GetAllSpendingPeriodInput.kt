@@ -7,6 +7,6 @@ import java.util.UUID
 
 data class GetAllSpendingPeriodInput(
     val queryFilter: QueryFilter,
-    val spendingPeriodId: UUID? = null,
+    val spendingPeriodTemplateId: UUID? = null,
     val state: SpendingPeriodStateType? = null,
 )

@@ -831,19 +831,24 @@ export const API_ROUTES = {
             apiPath: '/spending-periods/:id',
             method: 'GET'
         },
+        UPDATE_SPENDING_PERIOD: {
+            serverPath: '/api/spending-periods/:id',
+            apiPath: '/spending-periods/:id',
+            method: 'PUT'
+        },
         COMPELETE_SPENDING_PERIOD: {
             serverPath: '/api/spending-periods/:id/complete',
-            apiPath: '/spending-period-templates/:id/complete',
+            apiPath: '/spending-periods/:id/complete',
             method: 'POST'
         },
         DELETE_SPENDING_PERIOD: {
-            serverPath: '/api/spending-period-templates/:id',
-            apiPath: '/spending-period-templates/:id',
+            serverPath: '/api/spending-periods/:id',
+            apiPath: '/spending-periods/:id',
             method: 'DELETE'
         },
         GET_ALL_SPENDING_PERIOD: {
-            serverPath: '/api/spending-period-templates',
-            apiPath: '/spending-period-templates',
+            serverPath: '/api/spending-periods',
+            apiPath: '/spending-periods',
             method: 'GET'
         },
     } 

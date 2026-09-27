@@ -28,7 +28,6 @@ data class JdbcSpendingPeriodModel(
     @Column("end_date")
     val endDate: LocalDate,
 
-    @Column("suggestion_amount")
     val freeAmount: Double,
 
     val closeBalance: Double,
