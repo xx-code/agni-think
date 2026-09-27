@@ -1,6 +1,7 @@
 import type { FundForm } from "~/types/form/fund"
 import type { CreatedRequest } from "~/types/api"
 import type { CreateFundRequest } from "~/types/api/fund"
+import { FundType } from "~/types/constants/fund"
 import { fundFormToCreateFundRequest } from "~/mappers/fund"
 import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder"
 import { API_ROUTES } from "~/shared/routes"
@@ -13,7 +14,8 @@ export const useFundModal = () => {
     const formState = reactive<FundForm>({
         target: 0,
         title: "",
-        description: ""
+        description: "",
+        type: FundType.SavingsGeneral
     })
 
     const openFund = (initialData?: Partial<FundForm>) => {

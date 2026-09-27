@@ -38,6 +38,11 @@ class UpdateSavingGoal(
             }
         }
 
+        if (input.type != null) {
+            if (input.type != savingGoal.type)
+                savingGoal.type = input.type
+        }
+
         if (savingGoal.hasChanged())
             savingGoalRepo.update(savingGoal)
     }

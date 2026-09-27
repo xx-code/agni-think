@@ -70,7 +70,7 @@ class QueryInvoiceExtendJdbcAdapter(
     override fun getRawMapper(): RowMapper<JdbcInvoiceModel> {
         return RowMapper { rs, _ ->
             JdbcInvoiceModel(
-                id = rs.getObject("transaction_id", UUID::class.java),
+                transactionId = rs.getObject("transaction_id", UUID::class.java),
                 accountId = rs.getObject("account_id", UUID::class.java),
                 isFreeze = rs.getBoolean("is_freeze"),
                 status = rs.getString("status"),

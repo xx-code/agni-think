@@ -1,27 +1,32 @@
 import type { CalendarDate } from "@internationalized/date"
 import type { GetFundResponse } from "../api/fund"
+import type { FundType } from "../constants/fund"
 
 export type EditFund = {
-    title: string,
-    accountId?: string,
-    description: string,
-    target: number,
+    title: string
+    accountId?: string
+    type: string
+    description: string
+    target: number
 }
 
-export type Fund = GetFundResponse
+export type Fund = Omit<GetFundResponse, 'type'> & {
+    type: FundType
+}
 
-export type FundCard = GetFundResponse & { goalSummary?: { numberGoal: number, nextDueDate: Date }  }
+export type FundCard = Fund & { goalSummary?: { numberGoal: number, nextDueDate: Date }  }
 
-export type FundContext = Omit<Fund, 'goals'> & { goals: { 
+export type FundContext = Omit<Fund, 'goals' | 'type'> & { goals: { 
     id: string, 
-    title: string, 
-    description: string,  
+    title: string 
+    type: string 
+    description: string  
     evaluation: {
-        targetAmount: number, 
-        currentBalance: number,
-        percentage: number,
+        targetAmount: number 
+        currentBalance: number
+        percentage: number
     }
-    dueDate: Date, 
+    dueDate: Date 
 }[] }
 
 export type FundGoalState = 'ACHIEVED' | 'EXPIRED' | 'IN_PROGRESS'

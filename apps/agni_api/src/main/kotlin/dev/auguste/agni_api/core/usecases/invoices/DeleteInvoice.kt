@@ -66,8 +66,8 @@ class DeleteInvoice(
             input.checkTransfer)
             throw DomainException.BusinessLogic.CanOnlyCancelTransfer()
 
-
-        transactionRepo.deleteManyByIds(invoiceTransactions.flatMap { it.transactions }.map { it.id }.toSet())
+        val transactionIds = invoiceTransactions.flatMap { it.transactions }.map { it.id }.toSet()
+        transactionRepo.deleteManyByIds(transactionIds)
 
         invoiceRepo.delete(input.invoiceId)
 

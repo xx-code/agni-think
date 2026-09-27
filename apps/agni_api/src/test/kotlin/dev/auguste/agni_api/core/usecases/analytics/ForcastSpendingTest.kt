@@ -54,7 +54,6 @@ class ForcastSpendingTest {
         accountRepo = accountRepo,
         budgetRepo = budgetRepo,
         profileRepo = profileRepo,
-        getBudget = getBudget,
         getBalance = getBalance
     )
 
@@ -98,14 +97,14 @@ class ForcastSpendingTest {
     }
 
     private fun stubScheduleInvoices(vararg invoices: ScheduleInvoice) {
-        every { scheduleInvoiceRepo.getAll(any(), any()) } returns RepoList(
-            items = invoices.toList(),
-            total = invoices.size.toLong()
-        )
+//        every { scheduleInvoiceRepo.getAll(any(), any()) } returns RepoList(
+//            items = invoices.toList(),
+//            total = invoices.size.toLong()
+//        )
     }
 
     private fun stubNoScheduleInvoices() {
-        every { scheduleInvoiceRepo.getAll(any(), any()) } returns RepoList(emptyList(), 0L)
+        //every { scheduleInvoiceRepo.getAll(any(), any()) } returns RepoList(emptyList(), -1L)
     }
 
     private fun stubNoBudgets() {
