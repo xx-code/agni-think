@@ -27,6 +27,7 @@ class CreateSavingGoal(
             description = input.description,
             accountId = input.accountId,
             target = input.target,
+            type = input.type,
             balance = 0.0
         )
 

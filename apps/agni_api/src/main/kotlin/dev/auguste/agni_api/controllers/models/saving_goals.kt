@@ -1,5 +1,6 @@
 package dev.auguste.agni_api.controllers.models
 
+import dev.auguste.agni_api.core.entities.enums.FundType
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.CreateSavingGoalInput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.UpdateSavingGoalInput
 import java.time.LocalDate
@@ -14,6 +15,7 @@ data class ApiUpgradeSavingGoalModel(
 data class ApiCreateSavingGoalModel(
     val title: String,
     val target: Double,
+    val type: String,
     val description: String,
     val accountId: UUID?
 )
@@ -21,6 +23,7 @@ data class ApiCreateSavingGoalModel(
 data class ApiUpdateSavingGoalModel(
     val title: String?,
     val target: Double?,
+    val type: String?,
     val description: String?,
     val accountId: UUID?,
 )
@@ -35,6 +38,7 @@ fun mapApiCreateSavingGoal(model: ApiCreateSavingGoalModel): CreateSavingGoalInp
         target = model.target,
         title = model.title,
         description = model.description,
+        type = FundType.fromString(model.type),
         accountId = model.accountId
     )
 }
@@ -45,6 +49,7 @@ fun mapApiUpdateSavingGoal(id: UUID, model: ApiUpdateSavingGoalModel): UpdateSav
         target = model.target,
         title = model.title,
         description = model.description,
+        type = model.type?.let { FundType.fromString(model.type) },
         accountId = model.accountId
     )
 }

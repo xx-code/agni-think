@@ -20,8 +20,7 @@ import java.util.UUID
 data class JdbcInvoiceModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("transaction_id")
-    val id: UUID,
+    val transactionId: UUID,
 
     @Column("account_id")
     val accountId: UUID,
@@ -38,7 +37,7 @@ data class JdbcInvoiceModel(
     val invoiceModuleLinkers: String
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return transactionId
     }
 }
 
@@ -70,7 +69,7 @@ class JdbcInvoiceModelMapper(
 
     override fun toModel(entity: Invoice): JdbcInvoiceModel {
         return JdbcInvoiceModel(
-            id = entity.id,
+            transactionId = entity.id,
             accountId = entity.accountId,
             status = entity.statusType.value,
             type = entity.type.value,
@@ -82,19 +81,25 @@ class JdbcInvoiceModelMapper(
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "transaction_id",
+        "accountId" to "account_id",
+        "statusType" to "status",
+        "type" to "type",
+        "mouvementType" to "mouvement",
+        "date" to "date",
+        "isFreeze" to "is_freeze",
+        "invoiceModuleLinkers.sourceId" to "invoice_module_linkers->>'sourceId'",
+        "invoiceModuleLinkers.module" to "invoice_module_linkers->>'module'",
+        "deductions.amount" to "deductions->>'amount'",
+        "deductions.deductionId" to "deductions->>'deduction_id'",
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "transactions"
 
     override fun getSortField(): Set<String> {
         return setOf("date")
     }
 
-    override fun getModelClass(): Class<JdbcInvoiceModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcInvoiceModel> = JdbcInvoiceModel::class.java
 }

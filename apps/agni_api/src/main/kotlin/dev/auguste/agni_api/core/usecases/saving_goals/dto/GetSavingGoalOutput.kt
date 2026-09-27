@@ -13,6 +13,7 @@ data class GetSavingGoalOutput(
     val id: UUID,
     val title: String,
     val description: String,
+    val type: String,
     val target: Double,
     val balance: Double,
     val accountId: UUID?,

@@ -21,6 +21,7 @@ import dev.auguste.agni_api.core.usecases.saving_goals.UpdateSavingGoal
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.CreateSavingGoalInput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.DecreaseSavingGoalInput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.DeleteSavingGoalInput
+import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetAllSavingGoalInput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetSavingGoalOutput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.IncreaseSavingGoalInput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.UpdateSavingGoalInput
@@ -104,7 +105,7 @@ class SavingGoalConfig {
     fun getAllSavingGoals(
         savingGoalRepo: IRepository<SavingGoal>,
         goalRepo: IRepository<Goal>
-    ): IUseCase<QueryFilter, ListOutput<GetSavingGoalOutput>> {
+    ): IUseCase<GetAllSavingGoalInput, ListOutput<GetSavingGoalOutput>> {
         return GetAllSavingGoal(
             savingGoalRepo = savingGoalRepo,
             goalRepo = goalRepo

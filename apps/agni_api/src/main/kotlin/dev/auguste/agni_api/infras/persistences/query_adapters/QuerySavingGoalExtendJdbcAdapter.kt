@@ -40,10 +40,11 @@ class QuerySavingGoalExtendJdbcAdapter(
     override fun getRawMapper(): RowMapper<JdbcSavingGoalModel> {
         return RowMapper { rs, _ ->
             JdbcSavingGoalModel(
-                id = rs.getObject("fund_id", UUID::class.java),
-                name = rs.getObject("title", String::class.java),
+                fundId = rs.getObject("fund_id", UUID::class.java),
+                title = rs.getObject("title", String::class.java),
                 target = rs.getDouble("target"),
                 balance = rs.getDouble("balance"),
+                type = rs.getObject("type", String::class.java),
                 description = rs.getString("description"),
                 accountId = rs.getObject("account_id", UUID::class.java),
                 createdAt = rs.getObject("created_at", OffsetDateTime::class.java).toLocalDateTime(),

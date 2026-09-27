@@ -7,12 +7,14 @@ import dev.auguste.agni_api.controllers.models.ApiUpgradeSavingGoalModel
 import dev.auguste.agni_api.controllers.models.mapApiCreateSavingGoal
 import dev.auguste.agni_api.controllers.models.mapApiUpdateSavingGoal
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
+import dev.auguste.agni_api.core.entities.enums.FundType
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.CreateSavingGoalInput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.DecreaseSavingGoalInput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.DeleteSavingGoalInput
+import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetAllSavingGoalInput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetSavingGoalOutput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.IncreaseSavingGoalInput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.UpdateSavingGoalInput
@@ -36,7 +38,7 @@ class SavingGoalController (
     private val updateSavingGoalUseCase: IUseCase<UpdateSavingGoalInput, Unit>,
     private val deleteSavingGoalUseCase: IUseCase<DeleteSavingGoalInput, Unit>,
     private val getSavingGoalUseCase: IUseCase<UUID, GetSavingGoalOutput>,
-    private val getAllSavingGoalUseCase: IUseCase<QueryFilter, ListOutput<GetSavingGoalOutput>>,
+    private val getAllSavingGoalUseCase: IUseCase<GetAllSavingGoalInput, ListOutput<GetSavingGoalOutput>>,
     private val increaseSavingGoalUseCase: IUseCase<IncreaseSavingGoalInput, Unit>,
     private val decreaseSavingGoalUseCase: IUseCase<DecreaseSavingGoalInput, Unit>,
 ){
@@ -70,8 +72,11 @@ class SavingGoalController (
     }
 
     @GetMapping
-    fun getAllSavingGoal(@ModelAttribute query: QueryFilter): ResponseEntity<ListOutput<GetSavingGoalOutput>> {
-        return ResponseEntity.ok(getAllSavingGoalUseCase.execAsync(query))
+    fun getAllSavingGoal(query: QueryFilter, type: String? = null): ResponseEntity<ListOutput<GetSavingGoalOutput>> {
+        return ResponseEntity.ok(getAllSavingGoalUseCase.execAsync(GetAllSavingGoalInput(
+            query,
+            if (!type.isNullOrEmpty()) FundType.fromString(type) else null
+        )))
     }
 
     @PutMapping("/{id}/increase")

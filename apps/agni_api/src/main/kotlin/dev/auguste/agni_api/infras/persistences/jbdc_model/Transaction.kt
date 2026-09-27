@@ -67,7 +67,7 @@ class JdbcTransactionModelMapper(
         val tagIdsSet: Set<UUID> = parseUuidSet(model.tagIds)
 
         return Transaction(
-            id = model.transactionId,
+            id = model.recordId,
             invoiceId = model.transactionId,
             categoryId = model.categoryId,
             amount = model.moneyAmount,

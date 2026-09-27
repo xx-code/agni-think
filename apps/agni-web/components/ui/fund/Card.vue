@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { FundCard } from '~/types/ui/fund';
+import { getClassFundType, getIconFundType, getLabelFundType } from '~/types/constants/fund';
 
 const { fund } = defineProps<{
     fund: FundCard
@@ -64,6 +65,12 @@ const actionItems = ref<DropdownMenuItem[][]>([
                     <h3 class="font-bold text-lg truncate" :title="fund.title">{{ fund.title }}</h3>
                     <p class="truncate text-sm text-neutral-700 tracking-tighter" 
                         :title="fund.description">{{ fund.description }}</p>
+                    <span 
+                        class="mt-2 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[0.70rem] font-medium" 
+                        :class="getClassFundType(fund.type)">
+                        <UIcon :name="getIconFundType(fund.type)" class="w-3 h-3" />
+                        {{ getLabelFundType(fund.type) }}
+                    </span>
                 </div>
                 <span 
                     class="px-2.5 py-1 font-medium text-[0.70rem] text-primary-700 rounded-full" 

@@ -65,22 +65,33 @@ class UpdateInvoice(
             val anyTransactionChange = input.addTransactions.isNotEmpty() || input.removeTransactionIds.isNotEmpty()
 
             if (invoice.hasChanged() || anyTransactionChange) {
-                val transactions = input.addTransactions.ifEmpty {
-                    getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
+                // 1. Récupérer les transactions existantes
+                val existingTransactionsOutput = getInvoiceTransactions.execAsync(
+                    GetInvoiceTransactionsInput(
                         invoiceIds = setOf(invoice.id),
                         categoryIds = null,
                         tagIds = null,
                         budgetIds = null,
                         minAmount = null,
                         maxAmount = null
-                    )).first().transactions.map { TransactionInput(
-                        amount = it.amount,
-                        categoryId = it.category.id,
-                        description = it.description,
-                        tagIds = it.tags.map { tag -> tag.id }.toSet(),
-                        budgetIds = it.budgets.map { budget -> budget.id }.toSet(),
-                    ) }.toSet()
-                }
+                    )
+                ).firstOrNull()?.transactions ?: emptyList()
+
+                // 2. Filtrer les transactions supprimées et les convertir en TransactionInput
+                val remainingTransactions = existingTransactionsOutput
+                    .filterNot { it.id in input.removeTransactionIds }
+                    .map { it ->
+                        TransactionInput(
+                            amount = it.amount,
+                            categoryId = it.category.id,
+                            description = it.description,
+                            tagIds = it.tags.map { tag -> tag.id }.toSet(),
+                            budgetIds = it.budgets.map { budget -> budget.id }.toSet(),
+                        )
+                    }
+
+                // 3. Fusionner les transactions conservées avec les nouvelles
+                val finalTransactions = (remainingTransactions + input.addTransactions).toSet()
 
                 deleteInvoice.execInnerAsync(DeleteInvoiceInput(invoice.id))
 
@@ -93,7 +104,7 @@ class UpdateInvoice(
                     mouvementType = invoice.mouvementType,
                     currency = null,
                     isFreeze = invoice.isFreeze,
-                    transactions = transactions,
+                    transactions = finalTransactions,
                     deductions = invoice.deductions.map { InvoiceDeductionInput(
                         it.deductionId, it.amount
                     ) }.toSet()
@@ -102,5 +113,4 @@ class UpdateInvoice(
             }
         }
     }
-
 }

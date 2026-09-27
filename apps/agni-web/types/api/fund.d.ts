@@ -1,4 +1,5 @@
 import type { QueryFilterRequest } from "."
+import type { FundType } from "../constants/fund"
 
 export type GetFundResponse = {
     id: string,
@@ -6,6 +7,7 @@ export type GetFundResponse = {
     description: string,
     target: number,
     balance: number
+    type: FundType
     accountId?: string
     goals: {
         id: string,
@@ -19,6 +21,7 @@ export type CreateFundRequest = {
     title: string;
     accountId?: string
     description: string
+    type: FundType
 }
 
 export type UpdateFundRequest = {
@@ -26,6 +29,7 @@ export type UpdateFundRequest = {
     title?: string
     accountId?: string
     description?: string
+    type?: FundType
 }
 
 export type UpgradeFundRequest = {
@@ -38,4 +42,5 @@ export type DeleteFundRequest = {
 }
 
 export type QueryFilterFundRequest = QueryFilterRequest & {
+    type?: FundType
 }
