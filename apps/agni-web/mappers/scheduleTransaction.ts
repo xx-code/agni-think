@@ -7,6 +7,7 @@ export function scheduleInvoiceResponseToScheduleInvoice(data: GetScheduleInvoic
         ...data,
         dueDate: new Date(data.dueDate),
         isFreeze: data.freeze,
+        isEditable: data.editable,
         endDate: data.endDate ? new Date(data.endDate) : undefined,
         freezeEndDate: data.freezeEndDate ? new Date(data.freezeEndDate) : undefined
     }

@@ -16,7 +16,10 @@ data class ApiCreateProfileModel(
     val varialSpendPercentage: Double,
 
     @field:Min(0,"variable percentage should be greater or equal to 0")
-    val savingPercentage: Double
+    val savingPercentage: Double,
+
+    @field:Min(0,"variable percentage should be greater or equal to 0")
+    val balanceBuffer: Double
 )
 
 data class ApiUpdateProfileModel(
@@ -30,7 +33,10 @@ data class ApiUpdateProfileModel(
     val varialSpendPercentage: Double?,
 
     @field:Min(0,"variable percentage should be greater or equal to 0")
-    val savingPercentage: Double?
+    val savingPercentage: Double?,
+
+    @field:Min(0,"variable percentage should be greater or equal to 0")
+    val balanceBuffer: Double?
 )
 
 // by pass single app user
@@ -41,7 +47,8 @@ fun mapApiCreateProfileToCreateProfile(input: ApiCreateProfileModel) : CreatePro
         maxWishlistAmount = input.maxWishlistAmount,
         fixSpendPercentage = input.fixSpendPercentage,
         varialSpendPercentage = input.varialSpendPercentage,
-        savingPercentage = input.savingPercentage
+        savingPercentage = input.savingPercentage,
+        balanceBuffer = input.balanceBuffer
     )
 }
 
@@ -52,6 +59,7 @@ fun mapApiUpdateProfileToUpdateProfile(id: UUID, input: ApiUpdateProfileModel) :
         maxWishlistAmount = input.maxWishlistAmount,
         fixSpendPercentage = input.fixSpendPercentage,
         varialSpendPercentage = input.varialSpendPercentage,
-        savingPercentage = input.savingPercentage
+        savingPercentage = input.savingPercentage,
+        balanceBuffer = input.balanceBuffer
     )
 }

@@ -6,6 +6,7 @@ import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SavingGoal
+import dev.auguste.agni_api.core.entities.enums.InvoiceModuleLinkerType
 import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
@@ -15,6 +16,7 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.TransactionInput
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.IncreaseSavingGoalInput
+import dev.auguste.agni_api.core.value_objects.InvoiceModuleLinker
 import java.time.LocalDateTime
 
 class IncreaseSavingGoal(
@@ -51,6 +53,10 @@ class IncreaseSavingGoal(
                     description = "Argent plan d'epargne ${savingGoal.title}",
                     tagIds = setOf(),
                     budgetIds = setOf()
+                )),
+                moduleSourcesLinker = listOf(InvoiceModuleLinker(
+                    sourceId = savingGoal.id,
+                    module = InvoiceModuleLinkerType.FUND
                 )),
                 deductions = setOf()
             ))

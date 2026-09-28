@@ -1,6 +1,7 @@
 package dev.auguste.agni_api.core.entities
 
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.value_objects.ScheduleInvoiceModuleLinker
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -15,6 +16,7 @@ class ScheduleInvoice(
     amount: Double,
     scheduler: Scheduler,
     categoryId: UUID,
+    moduleLinker: ScheduleInvoiceModuleLinker?,
     freezeScheduler: Scheduler?,
     isPause: Boolean = false,
     isFreeze: Boolean = false,
@@ -72,6 +74,8 @@ class ScheduleInvoice(
         it != null && isFreeze
     }, DomainException.Validation.ScheduleFreezeInvoiceMustHaveAScheduler())
 
+    var moduleLinker by cleanObservable(moduleLinker, this)
+
     fun getFreezeEndDate(): LocalDate {
         if (!isFreeze)
             throw DomainException.Validation.ScheduleFreezeInvoiceMustHaveAScheduler()
@@ -81,4 +85,6 @@ class ScheduleInvoice(
 
         return freezeScheduler!!.date.toLocalDate()
     }
+
+    fun isContextEditable(): Boolean = moduleLinker != null
 }

@@ -16,6 +16,7 @@ import type { GetFundTotalSummary } from '~/types/api/analytics'
 import type { Fund } from "~/types/ui/fund"
 import type { Goal } from "~/types/ui/goal"
 import { fundResponseToFund, fundToFundCard, fundToFundForm } from "~/mappers/fund"
+import { FUND_TYPE_LIST, FundType, getIconFundType, getLabelFundType } from '~/types/constants/fund'
 
 const loadingSummary = ref(false)
 const isLoading = ref(false)
@@ -25,6 +26,7 @@ const filter = reactive<QueryFilterFundRequest>({
     limit: 5,
     queryAll: false
 })
+const selectedType = ref<FundType | undefined>(undefined)
 
 const filterGoal = reactive<GoalQueryFilterRequest>({
     offset: 0,
@@ -171,10 +173,29 @@ async function showMoreGoalSummary() {
     filterGoal.offset = goalSummaries.value.length
 }
 
+const fundTypeFilters = computed(() => [
+    { value: undefined, label: 'Tous', icon: 'i-lucide-wallet' },
+    ...FUND_TYPE_LIST.map(i => ({ value: i, label: getLabelFundType(i), icon: getIconFundType(i) }))
+])
+
+function setFundType(type?: FundType) {
+    if (selectedType.value === type)
+        return
+
+    funds.value = []
+    filter.offset = 0
+    selectedType.value = type
+    filter.type = type
+}
+
 async function getAllFunds() {
     isLoading.value = true
     try {
-        const raw = await ApiLinkBuilder.route<ListResponse<GetFundResponse>>(API_ROUTES.FUNDS.GET_FUNDS).query(filter).execute()
+        const query = {
+            ...filter,
+            type: filter.type ? filter.type : undefined
+        }
+        const raw = await ApiLinkBuilder.route<ListResponse<GetFundResponse>>(API_ROUTES.FUNDS.GET_FUNDS).query(query).execute()
         var res = {
             items: raw.items.map(data => fundResponseToFund(data)),
             total: raw.total
@@ -276,6 +297,20 @@ watch(filterGoal, () => {
             </div>
         </div>
 
+        <!-- Type Filter -->
+        <div class="flex flex-wrap items-center gap-1.5 mb-4">
+            <UButton
+                v-for="item in fundTypeFilters"
+                :key="item.value ?? 'ALL_FUND_TYPE'"
+                :label="item.label"
+                :icon="item.icon"
+                :variant="selectedType == item.value ? 'soft' : 'ghost'"
+                :color="selectedType == item.value ? 'primary' : 'neutral'"
+                size="xs"
+                @click="setFundType(item.value)"
+            />
+        </div>
+
         <!-- Cards View -->
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] md:gap-6">
             <UiFundCard 
@@ -308,7 +343,7 @@ watch(filterGoal, () => {
                 v-if="funds.length === 0 && totalFund == 0"
                 icon="i-lucide-target"
                 title="Aucun fond"
-                description="Commencez par créer votre premier fond"
+                :description="selectedType ? `Aucun fond de type ${getLabelFundType(selectedType)}` : 'Commencez par créer votre premier fond'"
                 @new="openModalFund()"
             />
         </div>

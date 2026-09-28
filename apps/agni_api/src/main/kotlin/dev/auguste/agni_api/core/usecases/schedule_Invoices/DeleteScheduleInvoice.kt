@@ -10,8 +10,12 @@ class DeleteScheduleInvoice(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>
 ): IUseCase<DeleteScheduleInvoiceInput, Unit> {
     override fun execAsync(input: DeleteScheduleInvoiceInput) {
-        if (scheduleInvoiceRepo.get(input.scheduleInvoiceId) == null)
-            throw DomainException.NotFound.ScheduleInvoice(input.scheduleInvoiceId)
+        val scheduleInvoice = scheduleInvoiceRepo.get(input.scheduleInvoiceId)
+            ?: throw DomainException.NotFound.ScheduleInvoice(input.scheduleInvoiceId)
+
+        if (input.passContextEdit && !scheduleInvoice.isContextEditable())
+            throw DomainException.BusinessLogic.CanNotEditSchedulerInvoiceWithModuleLinkDirectly()
+
 
         scheduleInvoiceRepo.delete(input.scheduleInvoiceId)
     }

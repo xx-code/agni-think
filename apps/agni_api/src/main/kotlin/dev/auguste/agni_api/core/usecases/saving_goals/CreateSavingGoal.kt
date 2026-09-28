@@ -4,6 +4,7 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SavingGoal
+import dev.auguste.agni_api.core.entities.enums.FundType
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.CreateSavingGoalInput
@@ -22,11 +23,15 @@ class CreateSavingGoal(
         if (savingGoalRepo.existsByName(input.title))
             throw DomainException.AlreadyExist.SavingGoal(input.title)
 
+        if (input.type == FundType.AMORTIZATION && input.accountId != null)
+            throw DomainException.BusinessLogic.Validation("You must not select an accountId for amortization fund")
+
         val newSavingGoal = SavingGoal(
             title = input.title,
             description = input.description,
             accountId = input.accountId,
             target = input.target,
+            type = input.type,
             balance = 0.0
         )
 

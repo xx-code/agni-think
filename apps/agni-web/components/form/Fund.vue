@@ -2,6 +2,7 @@
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import type { FundForm } from '~/types/form/fund';
 import type { Account } from '~/types/ui/account';
+import { FUND_TYPE_LIST, FundType, getLabelFundType } from '~/types/constants/fund';
 
 const form = defineModel<Partial<FundForm>>()
 const { accounts, validate } = defineProps<{
@@ -22,12 +23,21 @@ const emit = defineEmits<{
         <UFormField label="Petit description" name="description">
             <UTextarea v-model="form.description" autoresize class="w-full" />
         </UFormField>
+        <UFormField label="Type de fond" name="type" required>
+            <USelect 
+                v-model="form.type" 
+                value-key="value" 
+                :placeholder="'Sélectionner un type'"
+                :items="FUND_TYPE_LIST.map(i => ({value: i, label: getLabelFundType(i)}))" 
+                class="w-full" />
+        </UFormField>
         <UFormField label="Montant du fond" name="targetAmount">
             <UInput v-model="form.target" class="w-full" type="number" />
         </UFormField>
 
 
-        <UFormField label="Compte lie au fond" name="accountId" >
+        <UFormField v-if="form.type != FundType.Amortization" 
+            label="Compte lie au fond" name="accountId" >
             <USelect 
                 v-model="form.accountId" 
                 value-key="value" 

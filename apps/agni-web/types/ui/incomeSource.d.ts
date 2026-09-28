@@ -9,6 +9,7 @@ export type EditIncomeSourceType = {
     otherRate: number
     startDate: CalendarDate
     endDate?: CalendarDate
+    invoiceIncomeCategoryId?: string
     linkedAccountId?: string
     annualGrossAmount?: number
 }
@@ -23,6 +24,7 @@ export type IncomeSourceType = {
     otherRate: number
     payFrequencyType: string
     estimatedFutureOccurrences: number
+    invoiceIncomeCategoryId?: string
     estimateNextNetAmount?: number
     linkedAccountId?: string
     annualGrossAmount?: number

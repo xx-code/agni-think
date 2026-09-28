@@ -27,6 +27,7 @@ class GetSavingGoal(
             target = savingGoal.target,
             balance = savingGoal.balance,
             accountId = savingGoal.accountId,
+            type = savingGoal.type.value,
             goals = goals.items.map {
                 FundGoalOutput(
                     id = it.id,

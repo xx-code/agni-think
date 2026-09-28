@@ -8,7 +8,7 @@ data class InvoiceModuleLinker(
     val module: InvoiceModuleLinkerType): IValueObject {
     override fun toMap(): Map<String, Any> {
         return mapOf(
-            "sourceId" to sourceId.toString(),
+            "source_id" to sourceId.toString(),
             "module" to module.value,
         )
     }
@@ -18,10 +18,10 @@ data class InvoiceModuleLinker(
             if (map == null)
                 return InvoiceModuleLinker(UUID.randomUUID(), InvoiceModuleLinkerType.SCHEDULE_INVOICE)
 
-            if (!map.containsKey("sourceId") && !map.containsKey("module"))
+            if (!map.containsKey("source_id") && !map.containsKey("module"))
                 return InvoiceModuleLinker(UUID.randomUUID(), InvoiceModuleLinkerType.SCHEDULE_INVOICE)
 
-            val sourceId = UUID.fromString(map["sourceId"] as String)
+            val sourceId = UUID.fromString(map["source_id"] as String)
             val module = InvoiceModuleLinkerType.fromString(map["module"] as String)
 
             return InvoiceModuleLinker(

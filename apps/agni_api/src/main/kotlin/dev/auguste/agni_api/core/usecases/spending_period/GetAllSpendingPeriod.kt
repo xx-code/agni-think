@@ -28,7 +28,7 @@ class GetAllSpendingPeriod(
 //            condition.addCondition("endDate", QueryComparator.Equal, input.endDate)
 //
         if (input.state != null)
-            condition.addCondition("state", QueryComparator.Equal, input.state)
+            condition.addCondition("state", QueryComparator.Equal, input.state.value)
 
         val spendingPeriods = spendingPeriodRepo.getAll(input.queryFilter, condition)
 

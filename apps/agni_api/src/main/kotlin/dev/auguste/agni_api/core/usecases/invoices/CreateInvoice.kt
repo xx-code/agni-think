@@ -18,6 +18,7 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
 import dev.auguste.agni_api.core.value_objects.InvoiceDeduction
+import dev.auguste.agni_api.core.value_objects.InvoiceModuleLinker
 import java.util.UUID
 
 // TODO: Refactoring
@@ -51,6 +52,8 @@ class CreateInvoice(
                 throw DomainException.NotFound.SomeDeductions(deductionIds)
         }
 
+        // TODO have sa vrification for modeleLinkers type
+
         val usePersistentId = input.persistentInvoiceId != null && invoiceRepo.get(input.persistentInvoiceId) == null
 
         val newInvoice = Invoice(
@@ -61,7 +64,8 @@ class CreateInvoice(
             type = input.type,
             deductions = input.deductions.map { InvoiceDeduction(it.deductionId, it.amount) }.toMutableSet(),
             date = input.date,
-            isFreeze = input.isFreeze
+            isFreeze = input.isFreeze,
+            moduleLinkers = input.moduleSourcesLinker.toMutableList()
         )
 
         var totalBeforeDeduction = 0.0

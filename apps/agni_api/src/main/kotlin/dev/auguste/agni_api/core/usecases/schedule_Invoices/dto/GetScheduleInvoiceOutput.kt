@@ -16,6 +16,7 @@ data class GetScheduleInvoiceOutput(
     val isPause: Boolean,
     val isFreeze: Boolean,
     val dueDate: LocalDateTime,
+    val isEditable: Boolean,
     val repeater: ScheduleInvoiceRepeaterOutput?,
     val endDate: LocalDateTime?,
     val freezeEndDate: LocalDateTime?,

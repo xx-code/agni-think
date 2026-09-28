@@ -60,8 +60,11 @@ const actionItems = computed<DropdownMenuItem[][]>(() => [
 <template>
     <UiListCard
         class="group flex items-center gap-3 p-4 cursor-pointer select-none hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
-        @click="emit('update', data.id)"
-    >
+        @click="() => {
+            if (data.isEditable)
+                emit('update', data.id)
+        }"
+        >
         <div
             class="flex items-center justify-center rounded-full shrink-0"
             :style="{ background: withAlpha(category.color), width: '40px', height: '40px' }"
@@ -83,6 +86,7 @@ const actionItems = computed<DropdownMenuItem[][]>(() => [
         </div>
 
         <UButton
+            :disabled="!data.isEditable"
             variant="ghost"
             :icon="data.isPause ? 'i-lucide-play-circle' : 'i-lucide-pause-circle'"
             :class="data.isPause ? 'text-emerald-500' : 'text-amber-500'"
@@ -97,7 +101,7 @@ const actionItems = computed<DropdownMenuItem[][]>(() => [
             {{ formatCurrency(data.amount) }}
         </p>
 
-        <UDropdownMenu :items="actionItems">
+        <UDropdownMenu v-if="data.isEditable" :items="actionItems">
             <UButton
                 icon="i-lucide-ellipsis-vertical"
                 variant="ghost"

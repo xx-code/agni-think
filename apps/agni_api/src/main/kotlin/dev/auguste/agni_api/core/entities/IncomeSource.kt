@@ -2,7 +2,11 @@ package dev.auguste.agni_api.core.entities
 
 import dev.auguste.agni_api.core.entities.enums.IncomeSourceFrequencyType
 import dev.auguste.agni_api.core.entities.enums.IncomeSourceType
+import dev.auguste.agni_api.core.entities.enums.PeriodType
+import dev.auguste.agni_api.core.value_objects.Scheduler
+import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.properties.Delegates
@@ -52,10 +56,7 @@ class IncomeSource(
             markHasChanged()
     }
 
-    var linkedAccountId by Delegates.observable(linkedAccountId) { _, old, new ->
-        if (old != new)
-            markHasChanged()
-    }
+    var linkedAccountId by cleanObservable(linkedAccountId, this)
 
     var annualGrossAmount by Delegates.observable(annualGrossAmount) { _, old, new ->
         if (old != new)
@@ -97,6 +98,28 @@ class IncomeSource(
 
             else -> 0
         }
+    }
+
+    fun getEstimateNextDate(date: LocalDateTime = LocalDateTime.now()): LocalDate {
+        val recurrence = SchedulerRecurrence(
+            period = when(payFrequency) {
+                IncomeSourceFrequencyType.BIWEEKLY -> PeriodType.WEEK
+                IncomeSourceFrequencyType.MONTHLY -> PeriodType.MONTH
+                IncomeSourceFrequencyType.YEARLY -> PeriodType.YEAR
+                else -> PeriodType.MONTH
+            },
+            interval = when(payFrequency) {
+                IncomeSourceFrequencyType.BIWEEKLY -> 2
+                else -> 1
+            }
+        )
+
+        val scheduler = Scheduler(
+            date = startDate.atStartOfDay(),
+            repeater = recurrence
+        )
+
+        return scheduler.upgradeDate(date).toLocalDate()
     }
 
     fun getEstimateNextNetAmount() : Double {

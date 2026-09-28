@@ -211,6 +211,8 @@ class AnalyticConfig {
         accountRepo: IRepository<Account>,
         budgetRepo: IRepository<Budget>,
         profileRepo: IRepository<Profile>,
+        provisionRepo: IRepository<Provision>,
+        fundRepo: IRepository<SavingGoal>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     ) : IUseCase<ForcastSpendingInput, ForcastSpendingOutput> {
         return ForcastSpending(
@@ -218,7 +220,9 @@ class AnalyticConfig {
             accountRepo = accountRepo,
             budgetRepo = budgetRepo,
             profileRepo = profileRepo,
-            getBalance = getBalance
+            getBalance = getBalance,
+            provisionRepo = provisionRepo,
+            fundRepo = fundRepo,
         )
     }
 }

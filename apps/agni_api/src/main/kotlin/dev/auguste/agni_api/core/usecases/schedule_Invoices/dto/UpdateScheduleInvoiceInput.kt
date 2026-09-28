@@ -1,19 +1,22 @@
 package dev.auguste.agni_api.core.usecases.schedule_Invoices.dto
 
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.value_objects.ScheduleInvoiceModuleLinker
 import java.time.LocalDateTime
 import java.util.UUID
 
 data class UpdateScheduleInvoiceInput(
     val id: UUID,
-    val name: String?,
-    val accountId: UUID?,
-    val amount: Double?,
-    val categoryId: UUID?,
-    val tagIds: Set<UUID>?,
-    val type: InvoiceType?,
-    val isPause: Boolean?,
-    val schedule: SchedulerInvoiceInput?,
-    val freezeSchedule: SchedulerInvoiceInput?,
-    val endDate: LocalDateTime? = null
+    val name: String? = null,
+    val accountId: UUID? = null,
+    val amount: Double? = null,
+    val categoryId: UUID? = null,
+    val tagIds: Set<UUID>? = null,
+    val type: InvoiceType? = null,
+    val isPause: Boolean? = null,
+    val schedule: SchedulerInvoiceInput? = null,
+    val freezeSchedule: SchedulerInvoiceInput? = null,
+    val moduleLinker: ScheduleInvoiceModuleLinker? = null,
+    val endDate: LocalDateTime? = null,
+    val passContextEdit: Boolean = false
 )

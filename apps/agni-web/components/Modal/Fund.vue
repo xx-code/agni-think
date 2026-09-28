@@ -36,6 +36,9 @@ function validate(state: Partial<FundForm>): FormError[] {
     if (state.target && state.target <= 0)
         errors.push({name: 'targetAmount', message: 'La somme d\'argent doit etre superieux a zero'})
 
+    if (!state.type) 
+        errors.push({name: 'type', message: 'Require'})
+
     return errors
 }
 

@@ -4,6 +4,10 @@ import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.events.IEventRegister
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
+import dev.auguste.agni_api.core.entities.DomainException
+import dev.auguste.agni_api.core.entities.IncomeSource
+import dev.auguste.agni_api.core.entities.Provision
+import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.facades.InvoiceDependencies
 import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
@@ -20,10 +24,12 @@ import dev.auguste.agni_api.core.usecases.schedule_Invoices.DeleteScheduleInvoic
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.GetAllScheduleInvoice
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.GetScheduleInvoice
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.UpdateScheduleInvoice
+import dev.auguste.agni_api.core.usecases.schedule_Invoices.VerifyScheduleModuleLinker
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.GetScheduleInvoiceOutput
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
+import dev.auguste.agni_api.core.value_objects.ScheduleInvoiceModuleLinker
 import dev.auguste.agni_api.infras.persistences.JdbcUnitOfWork
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -50,13 +56,28 @@ class ScheduleInvoiceConfig {
     }
 
     @Bean
+    fun verifyScheduleModuleLinker(
+        provisionRepo: IRepository<Provision>,
+        incomeSourceRepo: IRepository<IncomeSource>,
+        fundsSourceRepo: IRepository<SavingGoal>,
+        ): IUseCase<ScheduleInvoiceModuleLinker, Unit> {
+        return VerifyScheduleModuleLinker(
+            incomeSourceRepo = incomeSourceRepo,
+            fundSourceRepo = fundsSourceRepo,
+            provisionRepo = provisionRepo,
+        )
+    }
+
+    @Bean
     fun createScheduleInvoice(
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-        invoiceDependencies: InvoiceDependencies
+        invoiceDependencies: InvoiceDependencies,
+        verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>,
     ): IUseCase<CreateScheduleInvoiceInput, CreatedOutput> {
         return CreateScheduleInvoice(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
-            invoiceDependencies = invoiceDependencies
+            invoiceDependencies = invoiceDependencies,
+            verifyScheduleModuleLinker = verifyScheduleModuleLinker,
         )
     }
 
@@ -91,10 +112,12 @@ class ScheduleInvoiceConfig {
     fun updateScheduleInvoice(
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         invoiceDependencies: InvoiceDependencies,
+        verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>,
     ): IUseCase<UpdateScheduleInvoiceInput, Unit> {
         return UpdateScheduleInvoice(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
-            invoiceDependencies = invoiceDependencies
+            invoiceDependencies = invoiceDependencies,
+            verifyScheduleModuleLinker = verifyScheduleModuleLinker
         )
     }
 }
