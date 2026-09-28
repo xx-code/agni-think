@@ -34,10 +34,12 @@ data class GetProvisionOutput(
     val monthlyPayment: Double,
     val residualValue: Double,
     val isPatrimony: Boolean,
+    val isInstallmentOnTTC: Boolean,
     val type: String,
     val floorValue: Double,
     val interestLoan: Double,
     val loanMonth: Int,
     val depreciationCriteria: List<ProvisionDepreciateCriteriaOutput>,
+    val fundAmortizationId: UUID?,
     val scheduleInvoice: ProvisionInvoiceOutput?
 )

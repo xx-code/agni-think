@@ -6,16 +6,21 @@ import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.facades.InvoiceDependencies
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
+import dev.auguste.agni_api.core.value_objects.ScheduleInvoiceModuleLinker
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
 
 class UpdateScheduleInvoice(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-    private val invoiceDependencies: InvoiceDependencies
+    private val invoiceDependencies: InvoiceDependencies,
+    private val verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>
 ): IUseCase<UpdateScheduleInvoiceInput, Unit> {
 
     override fun execAsync(input: UpdateScheduleInvoiceInput) {
         val scheduleInvoice = scheduleInvoiceRepo.get(input.id) ?: throw DomainException.NotFound.ScheduleInvoice(input.id)
+
+        if (input.passContextEdit && !scheduleInvoice.isContextEditable())
+            throw DomainException.BusinessLogic.CanNotEditSchedulerInvoiceWithModuleLinkDirectly()
 
         if (input.name != null) {
             if (input.name != scheduleInvoice.title && scheduleInvoiceRepo.existsByName(input.name))
@@ -68,6 +73,11 @@ class UpdateScheduleInvoice(
 
         if (input.endDate != null)
             scheduleInvoice.endDate = input.endDate
+
+        if (input.moduleLinker != null) {
+            verifyScheduleModuleLinker.execAsync(input.moduleLinker)
+            scheduleInvoice.moduleLinker = input.moduleLinker
+        }
 
         if (input.freezeSchedule != null) {
             val newFreezeScheduler = Scheduler(

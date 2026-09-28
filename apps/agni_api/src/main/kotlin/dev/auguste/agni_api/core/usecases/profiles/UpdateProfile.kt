@@ -28,6 +28,10 @@ class UpdateProfile(
             profile.savingPercentage = input.savingPercentage
         }
 
+        if (input.balanceBuffer != null) {
+            profile.balanceBuffer = input.balanceBuffer
+        }
+
         if (profile.hasChanged())
             profileRepo.update(profile)
     }

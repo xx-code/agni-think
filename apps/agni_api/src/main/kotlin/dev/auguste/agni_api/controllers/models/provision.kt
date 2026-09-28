@@ -52,7 +52,9 @@ data class ApiCreateProvisionModel(
     @field:NotEmpty(message = "Depreciation criteria must not be empty")
     val depreciationCriteria: List<ApiProvisionDepreciateCriteriaInput>,
 
+    val fundAmortizationId: UUID? = null,
     val scheduleInvoice: ApiScheduleInvoiceProvisionModel? = null,
+    val isInstallmentOnTTC: Boolean = true,
 
     @field:DecimalMin(value = "0.0", message = "Floor value must be positive")
     val floorValue: Double = 0.0,
@@ -79,11 +81,13 @@ data class ApiUpdateProvisionModel(
     val expectedLifespanMonth: Int?,
 
     val isPatrimony: Boolean?,
+    val isInstallmentOnTTC: Boolean = true,
 
     val scheduleInvoice: ApiScheduleInvoiceProvisionModel?,
 
     val depreciationCriteria: List<ApiProvisionDepreciateCriteriaInput>?,
 
+    val fundAmortizationId: UUID? = null,
     val type: String?,
 
     @field:DecimalMin(value = "0.0", message = "Floor value must be positive")
@@ -116,7 +120,7 @@ fun mapApiScheduleInvoiceProvision(model: ApiScheduleInvoiceProvisionModel): Sch
         tagIds = model.tagIds,
         budgetIds = model.budgetIds,
         paymentPeriod = PeriodType.fromString(model.paymentPeriod),
-        paymentInterval = model.paymentInterval
+        paymentInterval = model.paymentInterval,
     )
 }
 
@@ -126,9 +130,11 @@ fun mapApiCreateProvision(model: ApiCreateProvisionModel): CreateProvisionInput 
         costHT = model.costHT,
         costTTC = model.costTTC,
         acquisitionDate = model.acquisitionDate,
+        isInstallmentOnTTC = model.isInstallmentOnTTC,
         expectedLifespanMonth = model.expectedLifespanMonth,
         type = ProvisionType.fromString(model.type),
         isPatrimony = model.isPatrimony,
+        fundAmortizationId = model.fundAmortizationId,
         depreciationCriteria = model.depreciationCriteria.map {
             ProvisionDepreciateCriteria(
                 title = it.title,
@@ -154,6 +160,8 @@ fun mapApiUpdateProvision(id: UUID, model: ApiUpdateProvisionModel): UpdateProvi
         acquisitionDate = model.acquisitionDate,
         expectedLifespanMonth = model.expectedLifespanMonth,
         isPatrimony = model.isPatrimony,
+        isInstallmentOnTTC = model.isInstallmentOnTTC,
+        fundAmortizationId = model.fundAmortizationId,
         scheduleInvoice = model.scheduleInvoice?.let { mapApiScheduleInvoiceProvision(it) },
         depreciationCriteria = model.depreciationCriteria?.map {
             ProvisionDepreciateCriteria(

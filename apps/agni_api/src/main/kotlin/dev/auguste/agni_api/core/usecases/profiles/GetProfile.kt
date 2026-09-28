@@ -16,7 +16,8 @@ class GetProfile(
             maxWishlistAmount = profile.maxWishlistAmount,
             fixSpendPercentage = profile.fixSpendPercentage,
             varialSpendPercentage = profile.varialSpendPercentage,
-            savingPercentage = profile.savingPercentage
+            savingPercentage = profile.savingPercentage,
+            balanceBuffer = profile.balanceBuffer
         )
     }
 }

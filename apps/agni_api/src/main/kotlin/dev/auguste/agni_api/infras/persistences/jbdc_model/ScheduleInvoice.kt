@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.value_objects.ScheduleInvoiceModuleLinker
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
@@ -44,6 +45,7 @@ data class JdbcScheduleInvoiceModel(
     @Column("end_date")
     val endDate: LocalDateTime?,
 
+    val moduleLinker: String?,
     @Column("freeze_scheduler")
     val freezeScheduler: String?
     ) : JdbcModel() {
@@ -87,6 +89,13 @@ class JdbcScheduleInvoiceMapper(
         ) { null }
         else {  jacksonObjectMapper().readValue<Map<String, Any>>(model.freezeScheduler) }
 
+        val moduleLinkerJson = if (
+            model.moduleLinker == "null" || model.moduleLinker == "[null]" ||
+            model.moduleLinker.isNullOrEmpty() || model.moduleLinker == "{}" || model.freezeScheduler == "[]"
+        ) { null }
+        else {  jacksonObjectMapper().readValue<Map<String, Any>>(model.moduleLinker) }
+
+
         val tagIdsSet: Set<UUID> = parseUuidSet(model.tagIds)
 
         return ScheduleInvoice(
@@ -101,6 +110,7 @@ class JdbcScheduleInvoiceMapper(
             isFreeze = model.isFreeze,
             tagIds =  tagIdsSet.toMutableSet(),
             endDate = model.endDate,
+            moduleLinker = moduleLinkerJson.let { ScheduleInvoiceModuleLinker.fromMap(it) },
             freezeScheduler = freezeSchedulerJson?.let {  Scheduler.fromMap(freezeSchedulerJson) },
         )
     }
@@ -118,6 +128,7 @@ class JdbcScheduleInvoiceMapper(
             scheduler = objectMapper.writeValueAsString(entity.scheduler.toMap()),
             tagIds = objectMapper.writeValueAsString(entity.tagIds.map { it.toString() }) ,
             endDate = entity.endDate,
+            moduleLinker = objectMapper.writeValueAsString(entity.moduleLinker?.toMap()),
             freezeScheduler = objectMapper.writeValueAsString(entity.freezeScheduler?.toMap())
         )
     }
@@ -138,9 +149,12 @@ class JdbcScheduleInvoiceMapper(
         "scheduler.recurrence.period" to "scheduler->>'recurrence'->>'period'",
         "scheduler.recurrence.interval" to "scheduler->>'recurrence'->>'interval'",
 
-        "freezeScheduler.date" to "freezeScheduler->>'due_date'",
-        "freezeScheduler.recurrence.period" to "freezeScheduler->>'recurrence'->>'period'",
-        "freezeScheduler.recurrence.interval" to "freezeScheduler->>'recurrence'->>'interval'",
+        "freezeScheduler.date" to "freeze_scheduler->>'due_date'",
+        "freezeScheduler.recurrence.period" to "freeze_scheduler->>'recurrence'->>'period'",
+        "freezeScheduler.recurrence.interval" to "freeze_scheduler->>'recurrence'->>'interval'",
+
+        "moduleLinker.sourceId" to "module_linker->>'source_id'",
+        "moduleLinker.module" to "module_linker->>'module'",
     )
 
     override fun getTableName(): String = "schedule_transactions"

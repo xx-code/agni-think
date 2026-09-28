@@ -24,48 +24,53 @@ class DecreaseSavingGoal(
     private val accountRepo: IRepository<Account>,
     private val createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
     private val unitOfWork: IUnitOfWork
-): IUseCase<DecreaseSavingGoalInput, Unit> {
+): IInnerUseCase<DecreaseSavingGoalInput, Unit> {
+
     override fun execAsync(input: DecreaseSavingGoalInput) {
         unitOfWork.execute {
-            val savingGoal = savingGoalRepo.get(input.savingGoalId) ?: throw DomainException.NotFound.SavingGoal(input.savingGoalId)
-
-            if (input.amount <= 0)
-                throw DomainException.BusinessLogic.Validation("Amount must be greater than zero")
-
-            if (savingGoal.balance < input.amount)
-                throw DomainException.BusinessLogic.Validation("Balance must be greater than amount.")
-
-            if (savingGoal.accountId != null && input.accountId != savingGoal.accountId)
-                throw DomainException.BusinessLogic.Validation("Account ID must Not match.")
-
-
-            val account = accountRepo.get(input.accountId) ?: throw DomainException.NotFound.Account(input.accountId)
-            if (account.balance < input.amount)
-                throw DomainException.BusinessLogic.Validation("Balance must be greater than amount.")
-
-            createInvoice.execInnerAsync(CreateInvoiceInput(
-                accountId = input.accountId,
-                status = InvoiceStatusType.COMPLETED,
-                date = LocalDateTime.now(),
-                type = InvoiceType.OTHER,
-                mouvementType = InvoiceMouvementType.CREDIT,
-                currency = null,
-                transactions = setOf(TransactionInput(
-                    amount = input.amount,
-                    categoryId = SAVING_CATEGORY_ID,
-                    description = "Argent plan d'epargne ${savingGoal.title}",
-                    tagIds = setOf(),
-                    budgetIds = setOf()
-                )),
-                moduleSourcesLinker = listOf(InvoiceModuleLinker(
-                    sourceId = savingGoal.id,
-                    module = InvoiceModuleLinkerType.FUND
-                )),
-                deductions = setOf()
-            ))
-
-            savingGoal.balance -= input.amount
-            savingGoalRepo.update(savingGoal)
+            execInnerAsync(input)
         }
+    }
+
+    override fun execInnerAsync(input: DecreaseSavingGoalInput) {
+        val savingGoal = savingGoalRepo.get(input.savingGoalId) ?: throw DomainException.NotFound.SavingGoal(input.savingGoalId)
+
+        if (input.amount <= 0)
+            throw DomainException.BusinessLogic.Validation("Amount must be greater than zero")
+
+        if (savingGoal.balance < input.amount)
+            throw DomainException.BusinessLogic.Validation("Balance must be greater than amount.")
+
+        if (savingGoal.accountId != null && input.accountId != savingGoal.accountId)
+            throw DomainException.BusinessLogic.Validation("Account ID must Not match.")
+
+
+        val account = accountRepo.get(input.accountId) ?: throw DomainException.NotFound.Account(input.accountId)
+        if (account.balance < input.amount)
+            throw DomainException.BusinessLogic.Validation("Balance must be greater than amount.")
+
+        createInvoice.execInnerAsync(CreateInvoiceInput(
+            accountId = input.accountId,
+            status = InvoiceStatusType.COMPLETED,
+            date = LocalDateTime.now(),
+            type = InvoiceType.OTHER,
+            mouvementType = InvoiceMouvementType.CREDIT,
+            currency = null,
+            transactions = setOf(TransactionInput(
+                amount = input.amount,
+                categoryId = SAVING_CATEGORY_ID,
+                description = "Argent plan d'epargne ${savingGoal.title}",
+                tagIds = setOf(),
+                budgetIds = setOf()
+            )),
+            moduleSourcesLinker = listOf(InvoiceModuleLinker(
+                sourceId = savingGoal.id,
+                module = InvoiceModuleLinkerType.FUND
+            )),
+            deductions = setOf()
+        ))
+
+        savingGoal.balance -= input.amount
+        savingGoalRepo.update(savingGoal)
     }
 }

@@ -40,6 +40,8 @@ class GetProvision(
                     monthRange = it.monthRange
                 )
             },
+            fundAmortizationId = provisional.fundAmortizationId,
+            isInstallmentOnTTC = provisional.isInstallmentOnTTC,
             scheduleInvoice = provisional.paymentInfo?.let {
                 ProvisionInvoiceOutput(
                     accountId = it.accountId,

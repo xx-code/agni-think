@@ -34,6 +34,7 @@ class GetAllScheduleInvoice(
                         )
                     },
                     endDate = it.endDate,
+                    isEditable = !it.isContextEditable(),
                     freezeEndDate = it.freezeScheduler?.date,
                     freezeRepeater = it.freezeScheduler?.repeater?.let { repeater ->
                         ScheduleInvoiceRepeaterOutput(

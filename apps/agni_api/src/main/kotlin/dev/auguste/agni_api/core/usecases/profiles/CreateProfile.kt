@@ -14,7 +14,8 @@ class CreateProfile(
             fixSpendPercentage = input.fixSpendPercentage,
             maxWishlistAmount = input.maxWishlistAmount,
             savingPercentage = input.savingPercentage,
-            varialSpendPercentage = input.varialSpendPercentage
+            varialSpendPercentage = input.varialSpendPercentage,
+            balanceBuffer = input.balanceBuffer
         )
 
         profileRepo.create(newProfile)

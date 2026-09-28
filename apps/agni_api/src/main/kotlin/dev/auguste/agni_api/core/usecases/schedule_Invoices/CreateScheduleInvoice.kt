@@ -9,12 +9,14 @@ import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.facades.InvoiceDependencies
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
+import dev.auguste.agni_api.core.value_objects.ScheduleInvoiceModuleLinker
 import dev.auguste.agni_api.core.value_objects.Scheduler
 import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
 
 class CreateScheduleInvoice(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-    private val invoiceDependencies: InvoiceDependencies
+    private val invoiceDependencies: InvoiceDependencies,
+    private val verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>
 ): IUseCase<CreateScheduleInvoiceInput, CreatedOutput> {
     override fun execAsync(input: CreateScheduleInvoiceInput): CreatedOutput {
         if (scheduleInvoiceRepo.existsByName(input.description))
@@ -49,6 +51,9 @@ class CreateScheduleInvoice(
         if (input.schedule.repeater != null)
             repeater = SchedulerRecurrence( period = input.schedule.repeater.period, interval = input.schedule.repeater.interval)
 
+        if (input.moduleLinker != null)
+            verifyScheduleModuleLinker.execAsync(input.moduleLinker)
+
         val newScheduleInvoice = ScheduleInvoice(
             accountId = input.accountId,
             amount = input.amount,
@@ -63,6 +68,7 @@ class CreateScheduleInvoice(
             ),
             endDate = input.endDate,
             tagIds = input.tagIds.toMutableSet(),
+            moduleLinker = input.moduleLinker,
             freezeScheduler = input.freezeSchedule?.let { Scheduler(
                 repeater = it.repeater?.let { reap -> SchedulerRecurrence( period = reap.period, interval = reap.interval) },
                 date = it.dueDate

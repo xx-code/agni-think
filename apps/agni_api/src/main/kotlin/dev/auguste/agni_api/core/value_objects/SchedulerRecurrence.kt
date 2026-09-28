@@ -11,7 +11,7 @@ data class SchedulerRecurrence(val period: PeriodType, val interval: Int) {
     }
 
     fun computeOccurrences(startDate: LocalDate, endDate: LocalDate): Int {
-        if (startDate.isAfter(endDate)) return 0
+        if (startDate.isAfter(endDate) || interval <= 0) return 0
 
         var count = 0
         var current = startDate

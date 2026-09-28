@@ -2,6 +2,7 @@ package dev.auguste.agni_api.core.usecases.schedule_Invoices.dto
 
 import dev.auguste.agni_api.core.adapters.dto.ScheduleRepeaterInput
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.value_objects.ScheduleInvoiceModuleLinker
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -20,5 +21,6 @@ data class CreateScheduleInvoiceInput(
     val schedule: SchedulerInvoiceInput,
     val isFreeze: Boolean?,
     val freezeSchedule: SchedulerInvoiceInput?,
+    val moduleLinker: ScheduleInvoiceModuleLinker? = null,
     val endDate: LocalDateTime? = null
 )

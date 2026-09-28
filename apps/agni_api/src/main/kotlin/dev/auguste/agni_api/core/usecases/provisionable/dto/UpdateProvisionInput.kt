@@ -13,6 +13,8 @@ data class UpdateProvisionInput(
     val acquisitionDate: LocalDate?,
     val expectedLifespanMonth: Int?,
     val isPatrimony: Boolean?,
+    val fundAmortizationId: UUID?,
+    val isInstallmentOnTTC: Boolean = true,
     val scheduleInvoice: ScheduleInvoiceProvisionInput?,
     val depreciationCriteria: List<ProvisionDepreciateCriteria>?,
     val type: ProvisionType?,

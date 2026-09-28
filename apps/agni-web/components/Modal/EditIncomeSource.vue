@@ -9,6 +9,8 @@ import type { GetAccountResponse } from '~/types/api/account';
 import { listAccountsToListAccount } from '~/mappers/account';
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
+import type { GetCategoryResponse, QueryFilterCategoryRequest } from "~/types/api/category";
+import { listCategoriesResponseToListCategories } from "~/mappers/category";
 
 const { incomeSource } = defineProps<{
     incomeSource?: IncomeSourceType
@@ -27,13 +29,18 @@ const { data: utils } = useAsyncData('principle-types', async () => {
         ApiLinkBuilder.route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
             .query({ offset: 0, limit: 0, queryAll: true })
             .mapper(listAccountsToListAccount)
+            .execute(),
+        ApiLinkBuilder.route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES)
+            .query({ offset: 0, limit: 0, queryAll: true, isArchived: false, isSystem: false } as QueryFilterCategoryRequest)
+            .mapper(listCategoriesResponseToListCategories)
             .execute()
     ])
 
     return {
         incomeSourceFrequencyTypes: res[0],
         incomeSourceTypes: res[1],
-        accounts: res[2]
+        accounts: res[2],
+        categories: res[3].items
     }
 })
 
@@ -68,6 +75,10 @@ function validate(state: Partial<EditIncomeSourceType>): FormError[] {
             errors.push({ name: 'otherRate', message: 'Other rate must be positive' })
     }
 
+    if (state.linkedAccountId && state.invoiceIncomeCategoryId == undefined) {
+        errors.push({ name: 'invoiceIncomeCategoryId', message: 'You have to select an invoice categoryId for income source when select link'})
+    }
+
   return errors
 }
 
@@ -85,6 +96,7 @@ const df = new DateFormatter('en-Us', {
 const form = reactive<Partial<EditIncomeSourceType>>({
     title: incomeSource?.title,
     otherRate: incomeSource?.otherRate,
+    invoiceIncomeCategoryId: incomeSource?.invoiceIncomeCategoryId,
     payFrequencyType: incomeSource?.payFrequencyType,
     reliabilityLevel: incomeSource?.reliabilityLevel,
     taxRate: incomeSource?.taxRate,
@@ -101,12 +113,13 @@ async function onSubmit(event: FormSubmitEvent<EditIncomeSourceType>) {
             await ApiLinkBuilder.route(API_ROUTES.INCOME_SOURCES.UPDATE_INCOME_SOURCE).params({id: incomeSource.id}).body({
                 title: data.title,
                 annualGrossAmount: data.annualGrossAmount,
-                endDate: data.endDate?.toDate(getLocalTimeZone()).toISOString(),
+                endDate: endDate.value?.toDate(getLocalTimeZone()).toISOString(),
                 linkedAccountId: data.linkedAccountId,
+                invoiceIncomeCategoryId: data?.invoiceIncomeCategoryId,
                 otherRate: data.otherRate,
                 payFrequencyType: data.payFrequencyType,
                 reliabilityLevel: data.reliabilityLevel,
-                startDate: data.startDate.toDate(getLocalTimeZone()).toISOString(),
+                startDate: startDate.value.toDate(getLocalTimeZone()).toISOString(),
                 taxRate: data.taxRate,
                 type: data.type
             }).execute()
@@ -114,12 +127,13 @@ async function onSubmit(event: FormSubmitEvent<EditIncomeSourceType>) {
             await ApiLinkBuilder.route<CreatedRequest>(API_ROUTES.INCOME_SOURCES.CREATE_INCOME_SOURCE).body({
                 title: data.title,
                 annualGrossAmount: data.annualGrossAmount,
-                endDate: data.endDate?.toDate(getLocalTimeZone()).toISOString(),
+                endDate: endDate.value?.toDate(getLocalTimeZone()).toISOString(),
                 linkedAccountId: data.linkedAccountId,
+                invoiceIncomeCategoryId: data?.invoiceIncomeCategoryId,
                 otherRate: data.otherRate,
                 payFrequencyType: data.payFrequencyType,
                 reliabilityLevel: data.reliabilityLevel,
-                startDate: data.startDate.toDate(getLocalTimeZone()).toISOString(),
+                startDate: startDate.value.toDate(getLocalTimeZone()).toISOString(),
                 taxRate: data.taxRate,
                 type: data.type
             }).execute()
@@ -218,6 +232,41 @@ async function onSubmit(event: FormSubmitEvent<EditIncomeSourceType>) {
                         label-key="value"
                         value-key="id"
                         v-model="form.linkedAccountId" />
+                </UFormField>
+
+                <UFormField v-if="form.linkedAccountId" label="Category de Facture" name="invoiceIncomeCategoryId">
+                    <USelectMenu 
+                        v-if="utils"
+                        v-model="form.invoiceIncomeCategoryId" 
+                        value-key="value"
+                        :items="utils.categories.map(i => ({ 
+                            value: i.id, 
+                            label: i.title,
+                            icon: i.icon,
+                            color: i.color
+                        }))"
+                        placeholder="Sélectionner une catégorie"
+                    >
+                    <template #item="{ item }">
+                        <div class="flex items-center gap-2">
+                            <div 
+                                class="flex items-center justify-center rounded-full"
+                                :style="{
+                                    background: `${item.color}22`,
+                                    width: '24px',
+                                    height: '24px',
+                                }"
+                            >
+                                <UIcon 
+                                    :name="item.icon" 
+                                    class="text-sm"
+                                    :style="{ color: item.color }" 
+                                />
+                            </div>
+                            <span>{{ item.label }}</span>
+                        </div>
+                    </template>
+                </USelectMenu>
                 </UFormField>
                
                 <UFormField>

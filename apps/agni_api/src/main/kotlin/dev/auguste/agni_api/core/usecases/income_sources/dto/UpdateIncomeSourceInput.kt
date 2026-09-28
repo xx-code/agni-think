@@ -7,14 +7,15 @@ import java.util.UUID
 
 data class UpdateIncomeSourceInput(
     val id: UUID,
-    val title: String?,
-    val type: IncomeSourceType?,
-    val payFrequencyType: IncomeSourceFrequencyType?,
-    val reliabilityLevel: Int?,
-    val taxRate: Double?,
-    val otherRate: Double?,
-    val startDate: LocalDate?,
-    val linkedAccountId: UUID?,
-    val annualGrossAmount: Double?,
-    val endDate: LocalDate?
+    val invoiceIncomeCategoryId: UUID? = null,
+    val title: String? = null,
+    val type: IncomeSourceType? = null,
+    val payFrequencyType: IncomeSourceFrequencyType? = null,
+    val reliabilityLevel: Int? = null,
+    val taxRate: Double? = null,
+    val otherRate: Double? = null,
+    val startDate: LocalDate? = null,
+    val linkedAccountId: UUID? = null,
+    val annualGrossAmount: Double? = null,
+    val endDate: LocalDate? = null
 )

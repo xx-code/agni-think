@@ -8,10 +8,14 @@ import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Profile
+import dev.auguste.agni_api.core.entities.Provision
+import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.enums.AccountType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.entities.enums.PeriodType
+import dev.auguste.agni_api.core.entities.enums.ProvisionType
+import dev.auguste.agni_api.core.entities.enums.ScheduleInvoiceModuleLinkerType
 import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingInput
 import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingOutput
 import dev.auguste.agni_api.core.usecases.analystics.dto.SavingAdditionalIncomeInput
@@ -30,6 +34,8 @@ class ForcastSpending(
     private val accountRepo: IRepository<Account>,
     private val budgetRepo: IRepository<Budget>,
     private val profileRepo: IRepository<Profile>,
+    private val provisionRepo: IRepository<Provision>,
+    private val fundRepo: IRepository<SavingGoal>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
 ): IUseCase<ForcastSpendingInput, ForcastSpendingOutput> {
     override fun execAsync(input: ForcastSpendingInput): ForcastSpendingOutput {
@@ -51,9 +57,17 @@ class ForcastSpending(
             .addCondition("scheduler.date", QueryComparator.LesserOrEquals, input.endDate.atStartOfDay())
         val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
 
-        val income = getScheduleTotal(scheduleInvoices.items, InvoiceType.INCOME, input.startDate, input.endDate)
-        val fixExpense = getScheduleTotal(scheduleInvoices.items, InvoiceType.FIXEDCOST, input.startDate, input.endDate)
-        val variableExpense = getScheduleTotal(scheduleInvoices.items, InvoiceType.VARIABLECOST, input.startDate, input.endDate)
+        val provisionIds = scheduleInvoices.items.filter { it.moduleLinker?.module == ScheduleInvoiceModuleLinkerType.PROVISION  }.mapNotNull { it.moduleLinker?.sourceId }
+        val provisions = provisionRepo.getManyByIds(provisionIds.toSet()).filter { it.paymentInfo != null && it.paymentInfo!!.endDate >= LocalDate.now() }
+        val fundIds = provisions.mapNotNull { it.fundAmortizationId }
+        val funds = fundRepo.getManyByIds(fundIds.toSet())
+
+        val provisionsById = provisions.associateBy { it.id }
+        val fundsById = funds.associateBy { it.id }
+
+        val income = getScheduleTotal(scheduleInvoices.items, fundsById, provisionsById, InvoiceType.INCOME, input.startDate, input.endDate)
+        val fixExpense = getScheduleTotal(scheduleInvoices.items, fundsById, provisionsById, InvoiceType.FIXEDCOST, input.startDate, input.endDate)
+        val variableExpense = getScheduleTotal(scheduleInvoices.items, fundsById, provisionsById, InvoiceType.VARIABLECOST, input.startDate, input.endDate)
 
         val freezeBalanceToRemove = getBalance.execAsync(GetBalanceInput(
             isFreeze = true,
@@ -139,8 +153,8 @@ class ForcastSpending(
         return additionalAccounts.sumOf { it.amount }
     }
 
-    private fun getScheduleTotal(scheduleInvoices: List<ScheduleInvoice>, invoiceType: InvoiceType, startDate: LocalDate, endDate: LocalDate): Double {
-        var totalIncome = 0.0
+    private fun getScheduleTotal(scheduleInvoices: List<ScheduleInvoice>, fundsById: Map<UUID, SavingGoal>, provisionsById: Map<UUID, Provision>, invoiceType: InvoiceType, startDate: LocalDate, endDate: LocalDate): Double {
+        var total = 0.0
         var scheduleInvoices = scheduleInvoices.filter { it.type == invoiceType }
         scheduleInvoices = scheduleInvoices.filter {
             scheduleInvoice -> scheduleInvoice.scheduler.upgradeDate(startDate.atStartOfDay()) >= startDate.atStartOfDay()
@@ -151,10 +165,27 @@ class ForcastSpending(
             if (scheduleStartDate < startDate.atStartOfDay())
                 scheduleStartDate = schedule.scheduler.upgradeDate(startDate.atStartOfDay())
             val occurrence = schedule.scheduler.repeater?.computeOccurrences(scheduleStartDate.toLocalDate(), endDate) ?: 1
-            totalIncome += schedule.amount * occurrence
+
+            val provision = provisionsById[schedule.moduleLinker?.sourceId]
+            val fund = provision?.fundAmortizationId?.let(fundsById::get)
+            var coveredAmount = 0.0
+
+            if (fund != null) {
+                val paymentAmount = provision.paymentInfo?.paymentAmount ?: 0.0
+                val installmentCount =
+                    provision.paymentInfo?.scheduler?.repeater
+                        ?.computeOccurrences(scheduleStartDate.toLocalDate(), endDate)
+                        ?: occurrence
+
+                val totalInstallment = installmentCount * paymentAmount
+                coveredAmount = minOf(fund.balance, totalInstallment)
+            }
+
+            total += schedule.amount * occurrence
+            total -= coveredAmount
         }
 
-        return totalIncome
+        return total
     }
 
     private fun getCurrentBalance(accounts: List<Account>): Double {

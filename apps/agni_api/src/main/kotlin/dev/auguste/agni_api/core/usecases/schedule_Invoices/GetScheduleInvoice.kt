@@ -32,6 +32,7 @@ class GetScheduleInvoice(
                     interval =  repeater.interval
                 )
             },
+            isEditable = !scheduleInvoice.isContextEditable(),
             endDate = scheduleInvoice.endDate,
             freezeEndDate = scheduleInvoice.freezeScheduler?.date,
             freezeRepeater = scheduleInvoice.freezeScheduler?.repeater?.let { repeater ->

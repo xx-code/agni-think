@@ -16,6 +16,10 @@ import type { GetBalanceResponse } from "~/types/api/transaction";
 import type { FundCardGoal } from "~/types/ui/fund";
 import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
 import { API_ROUTES } from "~/shared/routes";
+import type { GetProfileResponse } from "~/types/api/profile";
+import { profileResponseToProfile } from "~/mappers/profile";
+import type { TotalBalanceBufferIndicator } from "~/types/ui/overview";
+import { getBalanceBufferLevel } from "~/utils/getBalanceBufferLevel";
 
 const isLoadingAccount = ref(false)
 const isKpiLoading = ref(false)
@@ -42,6 +46,12 @@ const { data: accountData, refresh: refreshAccounts } = useAsyncData(
                         .query({offest: 0, limit: 0, queryAll: true, withDetail: true})
                         .execute()
 
+        const profile = await ApiLinkBuilder
+            .route<GetProfileResponse>(API_ROUTES.PROFILE.GET_PROFILE)
+            .params({ id: "457ae73e-8124-4d3b-ab2b-d6a404c6b4d3" })
+            .mapper(profileResponseToProfile)
+            .execute()
+
         const accIds = res.items.map(account => account.id)
 
         const dateFrom = new Date()
@@ -61,6 +71,7 @@ const { data: accountData, refresh: refreshAccounts } = useAsyncData(
         isLoadingAccount.value = false
 
         return {
+            profile,
             accounts: res.items.sort((a, b) => groupAndSortAccount(a, b)),
             balanceHistories: accIds.map((id, index) => ({
                 id,
@@ -157,7 +168,10 @@ const totalAccountBalance = computed(() => {
         totalCreditUsage = roundNumber(sum/creditCardAccount.length)
     }  
 
+    // use the total
+
     return { 
+        // add indication
         totalBalance: total, 
         totalFreezedBalance: totalFreezed, 
         totalLockedBalance: totalLocked,
@@ -254,6 +268,28 @@ const availableBalance = computed(() => {
     return totalAccountBalance.value.totalBalance - Math.abs(totalAccountBalance.value.totalFreezedBalance + totalAccountBalance.value.totalLockedBalance) 
 })
 
+const balanceBufferIndicator = computed<TotalBalanceBufferIndicator>(() => {
+    const buffer = accountData.value?.profile.balanceBuffer ?? 0
+    const totalBalance = totalAccountBalance.value.totalBalance
+    const diffBalance = roundNumber(totalBalance - buffer)
+    const isUnderBuffer = diffBalance < 0
+    const missingBalance = Math.abs(diffBalance)
+    const coverage = buffer > 0
+        ? Math.max(0, Math.min(100, roundNumber((totalBalance / buffer) * 100)))
+        : (totalBalance > 0 ? 100 : 0)
+
+    return {
+        buffer,
+        diffBalance,
+        coverage,
+        isUnderBuffer,
+        level: getBalanceBufferLevel(buffer, totalBalance),
+        description: isUnderBuffer
+            ? `Il manque ${formatCurrency(missingBalance)} pour atteindre le buffer`
+            : `Buffer atteint avec ${formatCurrency(diffBalance)} de marge`
+    }
+})
+
 function goalStatusBadge(goal: FundCardGoal) {
     if (goal.status === 'EXPIRED') {
         return { label: 'Expiré', class: 'bg-red-100 text-red-700', progressColor: 'bg-red-500' };
@@ -285,6 +321,7 @@ function goalStatusBadge(goal: FundCardGoal) {
 
         <UiOverviewAccountSummary 
             v-if="!isLoadingAccount"
+            :indicator-balance-buffer="balanceBufferIndicator"
             :total-balance="totalAccountBalance.totalBalance"
             :disponible="availableBalance"
             :freeze="totalAccountBalance.totalFreezedBalance"

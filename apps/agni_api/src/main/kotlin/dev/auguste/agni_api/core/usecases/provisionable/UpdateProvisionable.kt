@@ -1,12 +1,21 @@
 package dev.auguste.agni_api.core.usecases.provisionable
 
+import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.dto.ScheduleRepeaterInput
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
+import dev.auguste.agni_api.core.adapters.repositories.QueryExtendBuilder
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.Provision
+import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
+import dev.auguste.agni_api.core.entities.enums.FundType
+import dev.auguste.agni_api.core.entities.enums.IncomeSourceFrequencyType
+import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.entities.enums.PeriodType
 import dev.auguste.agni_api.core.entities.enums.ProvisionType
+import dev.auguste.agni_api.core.entities.enums.ScheduleInvoiceModuleLinkerType
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.provisionable.dto.UpdateProvisionInput
@@ -20,7 +29,10 @@ import org.jetbrains.annotations.Async
 
 class UpdateProvisionable(
     private val unitOfWork: IUnitOfWork,
-    private val provisionRepo: IRepository<Provision>
+    private val provisionRepo: IRepository<Provision>,
+    private val fundRepo: IRepository<SavingGoal>,
+    private val updateScheduleInvoice: IUseCase<UpdateScheduleInvoiceInput, Unit>,
+    private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
 ): IUseCase<UpdateProvisionInput, Unit> {
     override fun execAsync(input: UpdateProvisionInput) {
         unitOfWork.let {
@@ -51,6 +63,9 @@ class UpdateProvisionable(
             if (input.acquisitionDate != null)
                 provisionable.acquisitionDate = input.acquisitionDate
 
+            if (input.fundAmortizationId != null)
+                provisionable.fundAmortizationId = input.fundAmortizationId
+
             if (input.depreciationCriteria != null) {
                 val criteriaToAdd = input.depreciationCriteria.filter { criteria -> provisionable.depreciationCriteria.find { it == criteria } == null }
                 val criteriaToRemove = provisionable.depreciationCriteria.filter { criteria -> input.depreciationCriteria.find { it == criteria } == null }
@@ -68,10 +83,19 @@ class UpdateProvisionable(
             if (input.loanMonth != null && provisionable.type == ProvisionType.DEPRECIATE_LOAN)
                 provisionable.loanMonth = input.loanMonth.toLong()
 
-            val isDepreciateLoan = input.scheduleInvoice != null && input.type == ProvisionType.DEPRECIATE_LOAN
-            val doUpdateLoan = input.costTTC != null || input.loanMonth != null
+            if (input.isInstallmentOnTTC != null)
+                provisionable.isInstallmentOnTTC = input.isInstallmentOnTTC
 
-            if (doUpdateLoan && isDepreciateLoan) {
+            val isDepreciateLoan = input.scheduleInvoice != null && provisionable.type == ProvisionType.DEPRECIATE_LOAN
+            // val doUpdateLoan = input.costTTC != null || input.loanMonth != null || input.interestLoan != null || input.scheduleInvoice != null
+
+            if (isDepreciateLoan && input.fundAmortizationId != null) {
+                val fund = fundRepo.get(input.fundAmortizationId) ?: throw DomainException.NotFound.SavingGoal(input.fundAmortizationId)
+                if (fund.type != FundType.AMORTIZATION)
+                    throw DomainException.BusinessLogic.YouHaveToSelectOnlyAmortizationFund()
+            }
+
+            if (isDepreciateLoan) {
                 if (input.loanMonth == null)
                     throw DomainException.Unexpected.Unknown("Unexpected error loanMonth = ${input.loanMonth}")
 
@@ -106,6 +130,34 @@ class UpdateProvisionable(
 
             if (provisionable.hasChanged())
                 provisionRepo.update(provisionable)
+
+            if (provisionable.type == ProvisionType.DEPRECIATE_LOAN && provisionable.paymentInfo != null) {
+                val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
+                    .addCondition("moduleLinker.sourceId", QueryComparator.Equal, provisionable.id)
+                    .addCondition("moduleLinker.module", QueryComparator.Equal, ScheduleInvoiceModuleLinkerType.PROVISION.value)
+
+                val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
+                if (scheduleInvoices.items.isNotEmpty()) {
+                    updateScheduleInvoice.execAsync(UpdateScheduleInvoiceInput(
+                        id = scheduleInvoices.items.first().id,
+                        name = provisionable.title,
+                        amount = provisionable.paymentInfo!!.paymentAmount,
+                        categoryId = provisionable.paymentInfo!!.categoryId,
+                        tagIds = provisionable.paymentInfo!!.tagIds,
+                        schedule = SchedulerInvoiceInput(
+                            dueDate = provisionable.paymentInfo!!.scheduler.date,
+                            repeater = provisionable.paymentInfo!!.scheduler.repeater?.let {
+                                ScheduleRepeaterInput(
+                                    period = it.period,
+                                    interval = it.interval,
+                                )
+                            }
+                        ),
+                        endDate = provisionable.paymentInfo!!.endDate.atStartOfDay(),
+                        passContextEdit = true,
+                    ))
+                }
+            }
         }
     }
 }

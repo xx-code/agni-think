@@ -236,7 +236,7 @@ class InvoiceConfig {
         accountRepo: IRepository<Account>,
         transactionRepo: IRepository<Transaction>,
         unitOfWork: IUnitOfWork
-    ): IUseCase<TransferInvoiceInput, Unit> {
+    ): IInnerUseCase<TransferInvoiceInput, Unit> {
         return TransferInvoice(
             invoiceRepo = invoiceRepo,
             accountRepo = accountRepo,

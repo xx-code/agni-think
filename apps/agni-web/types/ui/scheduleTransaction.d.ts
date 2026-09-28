@@ -47,10 +47,11 @@ export type TableScheduleInvoiceType = {
     dueDate: Date
 }
 
-export type ScheduleInvoiceType = Omit<GetScheduleInvoiceResponse, 'dueDate' | 'endDate' | 'freezeEndDate' | 'freeze'> & {
+export type ScheduleInvoiceType = Omit<GetScheduleInvoiceResponse, 'dueDate' | 'endDate' | 'freezeEndDate' | 'freeze' | 'editable'> & {
     dueDate: Date
     endDate?: Date
     freezeEndDate?: Date
     isFreeze: boolean
+    isEditable: boolean
 }
 

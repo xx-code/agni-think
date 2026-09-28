@@ -6,21 +6,23 @@ export type CreateIncomeSourceRequest = {
     taxRate: number,
     otherRate: number,
     startDate: string,
+    invoiceIncomeCategoryId?: string
     endDate?: string,
     linkedAccountId?: string,
     annualGrossAmount?: number
 }
 
 export type UpdateIncomeSourceRequest = {
-    title?: string,
-    type?: string,
-    payFrequencyType?: string,
-    reliabilityLevel?: number,
-    taxRate?: number,
-    otherRate?: number,
-    startDate?: string,
-    endDate?: string,
-    linkedAccountId?: string,
+    title?: string
+    type?: string
+    payFrequencyType?: string
+    reliabilityLevel?: number
+    taxRate?: number
+    otherRate?: number
+    startDate?: string
+    endDate?: string
+    invoiceIncomeCategoryId?: string
+    linkedAccountId?: string
     annualGrossAmount?: number
 }
 

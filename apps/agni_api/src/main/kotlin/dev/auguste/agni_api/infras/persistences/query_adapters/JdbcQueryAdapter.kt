@@ -16,6 +16,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import java.util.UUID
 
 @Component
 class JdbcQueryAdapter(
@@ -123,6 +124,7 @@ class JdbcQueryAdapter(
             is LocalDateTime -> value.atOffset(ZoneOffset.UTC).toString()
             is Instant -> value.atOffset(ZoneOffset.UTC).toString()
             is OffsetDateTime -> value.toInstant().atOffset(ZoneOffset.UTC).toString()
+            is Enum<*> -> value.name // Pour éviter les erreurs avec les enums
             else -> value
         }
     }
@@ -140,6 +142,7 @@ class JdbcQueryAdapter(
         if (mappedColumn.contains("->>")) {
             return when {
                 isTemporal -> "($mappedColumn)::timestamptz"
+                sampleValue is UUID -> "($mappedColumn)::uuid"
                 sampleValue is Number -> "($mappedColumn)::numeric"
                 sampleValue is Boolean -> "($mappedColumn)::boolean"
                 else -> mappedColumn
