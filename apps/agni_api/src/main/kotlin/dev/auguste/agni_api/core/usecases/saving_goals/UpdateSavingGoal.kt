@@ -4,6 +4,7 @@ import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Account
 import dev.auguste.agni_api.core.entities.DomainException
 import dev.auguste.agni_api.core.entities.SavingGoal
+import dev.auguste.agni_api.core.entities.enums.FundType
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.saving_goals.dto.UpdateSavingGoalInput
 
@@ -38,9 +39,10 @@ class UpdateSavingGoal(
             }
         }
 
-        if (input.type != null) {
-            if (input.type != savingGoal.type)
-                savingGoal.type = input.type
+        if (input.type != null && input.type != savingGoal.type ) {
+            savingGoal.type = input.type
+            if (input.type == FundType.AMORTIZATION)
+                savingGoal.accountId = null
         }
 
         if (savingGoal.hasChanged())

@@ -17,6 +17,9 @@ import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalize
 import { ProvisionType, DEPRECIATE_TYPE_CONFIG, DepreciateType } from '~/types/constants/provision';
 import type { EditProvision, Provision } from '~/types/ui/provision';
 import type { CreateProvisionRequest, UpdateProvisionRequest } from "~/types/api/provision";
+import type { GetFundResponse, QueryFilterFundRequest } from "~/types/api/fund";
+import { FundType } from "~/types/constants/fund";
+import { listFundResponseTolistFund } from "~/mappers/fund";
 
 
 const { provision } = defineProps<{
@@ -36,7 +39,7 @@ const isUpdate = !!provision
 const { data: utils } = useAsyncData('provision-utils', async () => {
     isLoading.value = true
     const query = { offset: 0, limit: 0, queryAll: true, isSystem: false }
-    const [accounts, categories, tags, periodTypes] = await Promise.all([
+    const [accounts, categories, tags, periodTypes, funds] = await Promise.all([
         ApiLinkBuilder
             .route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS)
             .query(query)
@@ -52,14 +55,19 @@ const { data: utils } = useAsyncData('provision-utils', async () => {
             .query(query)
             .mapper(listTagsResponseToListTags)
             .execute(),
-        ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.PERIOD_TYPE).execute()
+        ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.PERIOD_TYPE).execute(),
+        ApiLinkBuilder.route<ListResponse<GetFundResponse>>(API_ROUTES.FUNDS.GET_FUNDS)
+            .query({ queryAll: true, offset:0, limit: 1, type: FundType.Amortization} as QueryFilterFundRequest)
+            .mapper(listFundResponseTolistFund)
+            .execute()
     ])
     isLoading.value = false
     return {
         accounts: accounts.items,
         categories: categories.items,
         tags: tags.items,
-        periodTypes: periodTypes
+        periodTypes: periodTypes,
+        amortizeFunds: funds.items
     }
 })
 
@@ -67,12 +75,14 @@ const form = reactive<Partial<EditProvision>>({
     title: provision?.title || '',
     costHT: provision?.costHT || 0,
     costTTC: provision?.costTTC || 0,
+    fundAmortizationId: provision?.fundAmortizationId,
     expectedLifespanMonth: provision?.expectedLifespanMonth || 0,
     isPatrimony: provision?.isPatrimony ?? false,
     floorValue: provision?.floorValue || 0,
     interestLoan: provision?.interestLoan || 0,
     loanMonth: provision?.loanMonth || 0,
     type: provision?.type || ProvisionType.Depreciate,
+    isInstallmentOnTTC: provision?.isInstallmentOnTTC,
     depreciationCriteria: (provision?.depreciationCriteria as any[] || []).map((c: any) => ({
         title: c.title,
         description: c.description,
@@ -165,8 +175,6 @@ function validate(state: Partial<EditProvision>): FormError[] {
         }
     }
 
-    console.log(errors)
-
     return errors
 }
 
@@ -186,11 +194,13 @@ async function onSubmit(event: FormSubmitEvent<EditProvision>) {
             costTTC: data.costTTC,
             acquisitionDate: acquisitionDateStr,
             expectedLifespanMonth: data.expectedLifespanMonth,
+            fundAmortizationId: data.fundAmortizationId,
             type: data.type,
             isPatrimony: data.isPatrimony,
             floorValue: data.floorValue,
             interestLoan: data.interestLoan,
             loanMonth: data.loanMonth,
+            isInstallmentOnTTC: data.isInstallmentOnTTC,
             depreciationCriteria: (data.depreciationCriteria || []).map(c => ({
                 title: c.title,
                 description: c.description,
@@ -201,16 +211,14 @@ async function onSubmit(event: FormSubmitEvent<EditProvision>) {
         }
 
         if (data.type === ProvisionType.DepreciateLoan && data.scheduleInvoice) {
-            const doUpdateLoan = data.costTTC !== provision?.costTTC || data.loanMonth !== provision?.loanMonth
-            if (doUpdateLoan || !provision?.scheduleInvoice) {
-                body.scheduleInvoice = {
-                    invoiceAccountId: data.scheduleInvoice.accountId,
-                    invoiceCategoryId: data.scheduleInvoice.categoryId,
-                    tagIds: data.scheduleInvoice.tagIds,
-                    budgetIds: data.scheduleInvoice.budgetIds,
-                    paymentPeriod: data.scheduleInvoice.paymentPeriod,
-                    paymentInterval: data.scheduleInvoice.paymentInterval
-                }
+            //const doUpdateLoan = data.costTTC !== provision?.costTTC || data.loanMonth !== provision?.loanMonth || data.interestLoan !== provision.interestLoan
+            body.scheduleInvoice = {
+                invoiceAccountId: data.scheduleInvoice.accountId,
+                invoiceCategoryId: data.scheduleInvoice.categoryId,
+                tagIds: data.scheduleInvoice.tagIds,
+                budgetIds: data.scheduleInvoice.budgetIds,
+                paymentPeriod: data.scheduleInvoice.paymentPeriod,
+                paymentInterval: data.scheduleInvoice.paymentInterval
             }
         }
 
@@ -235,7 +243,9 @@ async function onSubmit(event: FormSubmitEvent<EditProvision>) {
             isPatrimony: data.isPatrimony,
             floorValue: data.floorValue,
             interestLoan: data.interestLoan,
+            fundAmortizationId: data.fundAmortizationId,
             loanMonth: data.loanMonth,
+            isInstallmentOnTTC: data.isInstallmentOnTTC,
             depreciationCriteria: (data.depreciationCriteria || []).map(c => ({
                 title: c.title,
                 description: c.description,
@@ -299,6 +309,7 @@ async function onSubmit(event: FormSubmitEvent<EditProvision>) {
 
                 <UFormField label="Type de provision" name="type">
                     <USelect
+                        :disabled="provision != undefined"
                         v-model="form.type"
                         value-key="value"
                         :items="[
@@ -352,6 +363,10 @@ async function onSubmit(event: FormSubmitEvent<EditProvision>) {
 
                     <UDivider label="Facturation du pret" />
 
+                    <UFormField label="Compute sur le TTC" name="isInstallmentOnTTC">
+                        <USwitch v-model="form.isInstallmentOnTTC" />
+                    </UFormField>
+
                     <UFormField label="Compte" name="accountId">
                         <USelect
                             v-model="form.scheduleInvoice!.accountId"
@@ -374,6 +389,15 @@ async function onSubmit(event: FormSubmitEvent<EditProvision>) {
                             multiple
                             value-key="value"
                             :items="utils?.tags.map(i => ({ value: i.id, label: i.value }))"
+                        />
+                    </UFormField>
+
+                    <UFormField label="Fond d'armtissement" name="fundAmortizationId">
+                        <USelectMenu 
+                            v-model="form.fundAmortizationId"
+                            :items="utils?.amortizeFunds.map(i => ({ value: i.id, label: i.title }))"
+                            label-key="label"
+                            value-key="value"
                         />
                     </UFormField>
 

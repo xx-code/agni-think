@@ -7,7 +7,8 @@ class Profile(
     maxWishlistAmount: Double = 0.0,
     fixSpendPercentage: Double = 0.0,
     varialSpendPercentage: Double = 0.0,
-    savingPercentage: Double = 0.0
+    savingPercentage: Double = 0.0,
+    balanceBuffer: Double = 0.0,
 ): Entity(id) {
     var maxWishlistAmount by cleanObservable(maxWishlistAmount, this, {
         it >= 0.0
@@ -21,4 +22,7 @@ class Profile(
     var savingPercentage by cleanObservable(savingPercentage, this, {
         it in 0.0..100.0 && (it + fixSpendPercentage + varialSpendPercentage) <= 100.0
     }, DomainException.Validation.ProfileRulePercentageMustBePositif("Fix", savingPercentage, (fixSpendPercentage + savingPercentage + varialSpendPercentage)))
+    var balanceBuffer by cleanObservable(balanceBuffer, this, {
+        it >= 0.0
+    }, DomainException.Validation.BalanceBufferMustBeGreaterOrEqualToZero(balanceBuffer))
 }

@@ -7,7 +7,10 @@ import java.time.ZoneOffset
 
 
 data class Scheduler(var date: LocalDateTime, val repeater: SchedulerRecurrence? = null) {
-    fun isDueDate(): Boolean = date.isBefore(LocalDateTime.now())
+    fun isDueDate(): Boolean {
+        val now = LocalDateTime.now()
+        return !date.isAfter(now)
+    }
 
     fun upgradeDate(toDate: LocalDateTime = LocalDateTime.now()): LocalDateTime {
         if (repeater == null)

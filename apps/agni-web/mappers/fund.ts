@@ -1,6 +1,8 @@
+import type { ListResponse } from "~/types/api";
 import type { UpdateAccountRequest } from "~/types/api/account";
 import type { CreateFundRequest, GetFundResponse } from "~/types/api/fund";
 import type { FundForm } from "~/types/form/fund";
+import type { List } from "~/types/ui";
 import type { Fund, FundCard, FundCardGoal, FundContext, FundGoalState } from "~/types/ui/fund";
 
 export function fundFormToCreateFundRequest(form: FundForm): CreateFundRequest {
@@ -16,6 +18,10 @@ export function fundToFundForm(data: Fund): FundForm {
 }
 
 export function fundResponseToFund(api: GetFundResponse): Fund {
+    return api
+}
+
+export function listFundResponseTolistFund(api: ListResponse<GetFundResponse>): List<Fund> {
     return api
 }
 

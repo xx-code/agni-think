@@ -4,6 +4,8 @@ import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.Profile
+import dev.auguste.agni_api.core.entities.Provision
+import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.SpendingPeriod
 import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
@@ -75,6 +77,8 @@ class SpendingPeriodConfig {
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         budgetRepo: IRepository<Budget>,
         profileRepo: IRepository<Profile>,
+        provisionRepo: IRepository<Provision>,
+        fundRepo: IRepository<SavingGoal>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
         getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
         getInvoice: IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>>
@@ -85,7 +89,9 @@ class SpendingPeriodConfig {
             profileRepo = profileRepo,
             getBalance = getBalance,
             getSavingBalance = getSavingBalance,
-            getInvoices = getInvoice
+            getInvoices = getInvoice,
+            provisionRepo = provisionRepo,
+            fundRepo = fundRepo,
         )
     }
 

@@ -3,6 +3,7 @@ export type UpdateProfileRequest = {
     fixSpendPercentage?: number
     varialSpendPercentage?: number
     savingPercentage?: number
+    balanceBuffer?: number
 }
 
 export type GetProfileResponse = {
@@ -10,4 +11,5 @@ export type GetProfileResponse = {
     fixSpendPercentage: number
     varialSpendPercentage: number
     savingPercentage: number
+    balanceBuffer: number
 }

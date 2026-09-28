@@ -6,10 +6,13 @@ import dev.auguste.agni_api.core.adapters.repositories.QueryExtendBuilder
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.entities.Budget
 import dev.auguste.agni_api.core.entities.Profile
+import dev.auguste.agni_api.core.entities.Provision
+import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.entities.ScheduleInvoice
 import dev.auguste.agni_api.core.entities.enums.InvoiceModuleLinkerType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.InvoiceType
+import dev.auguste.agni_api.core.entities.enums.ScheduleInvoiceModuleLinkerType
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.analystics.ForcastSpending
 import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingBalanceInput
@@ -22,11 +25,14 @@ import dev.auguste.agni_api.core.usecases.spending_period.dto.ForcastSpendingAch
 import dev.auguste.agni_api.core.usecases.spending_period.dto.ForcastSpendingPeriodInput
 import dev.auguste.agni_api.core.usecases.spending_period.dto.ForcastSpendingPeriodOutput
 import java.time.LocalDate
+import java.util.UUID
 
 class ForcastSpendingPeriod(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
     private val budgetRepo: IRepository<Budget>,
     private val profileRepo: IRepository<Profile>,
+    private val provisionRepo: IRepository<Provision>,
+    private val fundRepo: IRepository<SavingGoal>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     private val getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
     private val getInvoices: IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>>
@@ -61,11 +67,20 @@ class ForcastSpendingPeriod(
         val totalBudgetExpense = budgetExpenses.sumOf { it.target }
         val totalBudgetBalance = budgetExpenses.sumOf { it.balance }
 
-        val incomes = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.INCOME, invoices.items, input.startDate, input.endDate)
+
+        val provisionIds = scheduleInvoices.items.filter { it.moduleLinker?.module == ScheduleInvoiceModuleLinkerType.PROVISION  }.mapNotNull { it.moduleLinker?.sourceId }
+        val provisions = provisionRepo.getManyByIds(provisionIds.toSet()).filter { it.paymentInfo != null && it.paymentInfo!!.endDate >= LocalDate.now() }
+        val fundIds = provisions.mapNotNull { it.fundAmortizationId }
+        val funds = fundRepo.getManyByIds(fundIds.toSet())
+
+        val provisionsById = provisions.associateBy { it.id }
+        val fundsById = funds.associateBy { it.id }
+
+        val incomes = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.INCOME, invoices.items, fundsById, provisionsById, input.startDate, input.endDate)
         val totalIncome = incomes.sumOf { it.amount }
-        val fixExpenses = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.FIXEDCOST, invoices.items, input.startDate, input.endDate)
-        val totalFixedExpenses = incomes.sumOf { it.amount }
-        val variableExpenses = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.VARIABLECOST, invoices.items, input.startDate, input.endDate)
+        val fixExpenses = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.FIXEDCOST, invoices.items, fundsById, provisionsById, input.startDate, input.endDate)
+        val totalFixedExpenses = fixExpenses.sumOf { it.amount }
+        val variableExpenses = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.VARIABLECOST, invoices.items, fundsById, provisionsById, input.startDate, input.endDate)
         val totalVariableExpenses = variableExpenses.sumOf { it.amount }
 
         val profiles = profileRepo.getAll(QueryFilter.queryAll())
@@ -101,7 +116,10 @@ class ForcastSpendingPeriod(
         scheduleInvoices: List<ScheduleInvoice>,
         invoiceType: InvoiceType,
         invoices: List<GetInvoiceOutput>,
-        startDate: LocalDate, endDate: LocalDate): List<ForcastSpendingAchieveItemOutput> {
+        fundsById: Map<UUID, SavingGoal>,
+        provisionsById: Map<UUID, Provision>,
+        startDate: LocalDate, endDate: LocalDate,
+    ): List<ForcastSpendingAchieveItemOutput> {
         var scheduleInvoices = scheduleInvoices.filter { it.type == invoiceType }
         scheduleInvoices = scheduleInvoices.filter {
             scheduleInvoice -> scheduleInvoice.scheduler.upgradeDate(startDate.atStartOfDay()) >= startDate.atStartOfDay()
@@ -116,14 +134,38 @@ class ForcastSpendingPeriod(
 
             val occurrence = schedule.scheduler.repeater?.computeOccurrences(scheduleStartDate.toLocalDate(), endDate) ?: 1
             val invoice = filterInvoices.filter { schedule.id == it.moduleLinkers.first({ linker -> linker.module == InvoiceModuleLinkerType.SCHEDULE_INVOICE.value }).sourceId  }
-            val totalAmount = occurrence * schedule.amount
             val currentAmount = invoice.sumOf { it.total }
+
+            val totalAmount = occurrence * schedule.amount
+
+            val adjustedAmount = when {
+                schedule.moduleLinker?.module != ScheduleInvoiceModuleLinkerType.PROVISION ->  totalAmount
+                else -> {
+                    val provision = provisionsById[schedule.moduleLinker?.sourceId]
+                    val fund = provision?.fundAmortizationId?.let(fundsById::get)
+                    val payment = provision?.paymentInfo
+
+                    if (fund == null || payment == null) {
+                        totalAmount
+                    } else {
+                        val installmentCount =
+                            payment.scheduler.repeater
+                                ?.computeOccurrences(scheduleStartDate.toLocalDate(), endDate)
+                                ?: occurrence
+
+                        val payable = installmentCount * payment.paymentAmount
+                        val covered = minOf(fund.balance, payable)
+
+                        totalAmount - covered
+                    }
+                }
+            }
 
             ForcastSpendingAchieveItemOutput(
                 description = schedule.title,
-                amount = totalAmount,
+                amount = adjustedAmount,
                 validAmount = invoice.sumOf { it.total },
-                isAchieved =  currentAmount >= totalAmount ,
+                isAchieved =  currentAmount >= adjustedAmount ,
             )
         }
     }

@@ -80,6 +80,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class GoalStrategyNotExist(type: GoalEvaluationType): BusinessLogic("GOAL_STRATEGY_NOT_EXIST", "Goal strategy not exist $type")
         class GoalTargetAmountMustBeLeastFund(balance: Double, targetAmount: Double): BusinessLogic("GOAL_TARGET_AMOUNT_MUST_LEAST_FUND", "le montant cible $targetAmount doit etre inferieur a $balance$")
         class ProvisionWithLoanMustHaveAScheduleInvoice(): BusinessLogic("PROVISION_WITH_LOAN_MUST_HAVE_AS_SCHEDULE_INVOICE", "Si vous avez un pret sur un actif depreciative il faut un scheduler")
+        class ProvisionWithoutLoanMustNotHaveFundAmortization(): BusinessLogic("PROVISION_WITHOUT_LOAN_MUST_HAVE_NOT_FUND_AMORTIZATION", "Vous ne pouvez pas lier un fond a une actif non depreciative")
         class ProvisionWithLoanMustHaveCantBeByDay(): BusinessLogic("PROVISION_WITH_LOAN_CANT_BE_BY_DAY", "Les pret sur des actif ne peuvent pas se decomposer par jour")
         class ForcastAdditionalSavingAmountMustLessThanBalance(balance: Double, amount: Double): BusinessLogic("FORCAST_SAVING_ADDITIONAL_AMOUNT", "Forcast saving amount: $amount doit etre inferieur a $balance")
         class CantDeleteSystemCategory(title: String): BusinessLogic("CANT_DELETE_SYSTEM_CATEGORY", "Vous ne pouvez pas supprimer cette categorie systeme $title")
@@ -87,6 +88,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class CanOnlyCancelTransfer: BusinessLogic("CAN_ONLY_CANCEL_TRANSFER", "Vous ne pouvez annuler que facture de transfert")
         class CantDeleteTransfer: BusinessLogic("CAN_DELETE_TRANSFER", "Vous ne pouvez supprimer une facture de transfert")
         class CanNotEditSchedulerInvoiceWithModuleLinkDirectly: BusinessLogic("CANNOT_EDIT_SCHEDULE_INVOICE_WITH_MODULE_LINKER_DIRECTLY", "Vous ne pouvez pas modifier un facture future qui est lie a un module directement")
+        class YouHaveToSelectOnlyAmortizationFund: BusinessLogic("SELECT_ONLY_AMORTIZATION_FUND", "Vous ne pouvez que selectionner uniquement des fond d'armotissement")
     }
 
     sealed class Validation(code: String, message: String): DomainException(code, message) {
@@ -98,6 +100,7 @@ sealed class DomainException(val code: String, message: String): Exception(messa
         class ProfileMaxWishlistAmountMustBePositif: Validation("PROFILE_MAX_WISHLIST_MUST_BE_POSITIF", "Le montant maximun pour la liste de souhait doit etre prositif")
         class ProfileRulePercentageMustBePositif(rule: String, percentage: Double, total: Double): Validation("PROFILE_BUDGET_RULE_PERCENTAGE_ERROR", "La repartion $rule a un pourcentage $percentage/$total. le repartion doit etre entre 0 et 100 et le total des repartition doit etre a 100%")
         class GetBankRegisterAccessCodeEmpty: Validation("GET_BANK_REGISTER_ACCESS_CODE_EMPTY", "Le code d'access pour la bank est vide")
+        class BalanceBufferMustBeGreaterOrEqualToZero(value: Double): Validation("BALANCE_BUFFER_MUST_BE_GREATER_OR_EQUAL_ZERO", "Vous devez une blance plafont plus grand ou equale a zero. Vous avez $value")
     }
 
     sealed class Unexpected(code: String, message: String): BusinessLogic(code, message) {

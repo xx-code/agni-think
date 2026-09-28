@@ -23,8 +23,10 @@ export type CreateProvisionRequest = {
     expectedLifespanMonth: number,
     type: string
     isPatrimony: boolean
+    isInstallmentOnTTC: boolean
     depreciationCriteria: ProvisionDepreciateCriteriaRequest[]
     scheduleInvoice?: ProvisionScheduleInvoiceRequest 
+    fundAmortizationId?: string
     floorValue: number
     interestLoan: number
     loanMonth: number
@@ -36,6 +38,8 @@ export type UpdateProvisionRequest = {
     costTTC?: number,
     acquisitionDate?: string,
     expectedLifespanMonth?: number,
+    fundAmortizationId?: string
+    isInstallmentOnTTC?: boolean
     type: string
     isPatrimony?: boolean
     depreciationCriteria?: ProvisionDepreciateCriteriaRequest[]
@@ -80,5 +84,7 @@ export type GetProvisionResponse = {
     interestLoan: number
     loanMonth: number
     depreciationCriteria: GetProvisionDepreciateCriteriaResponse[]
+    installmentOnTTC: boolean,
+    fundAmortizationId?: string
     scheduleInvoice?: GetProvisionInvoiceResponse
 }

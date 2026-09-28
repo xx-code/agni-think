@@ -15,12 +15,14 @@ class Provision(
     title: String,
     costHT: Double,
     costTTC: Double,
+    isInstallmentOnTTC: Boolean = true,
     isPatrimony: Boolean,
     acquisitionDate: LocalDate,
     expectedLifespanMonth: Int,
     depreciationCriteria: MutableList<ProvisionDepreciateCriteria>,
     floorValue: Double,
     val type: ProvisionType = ProvisionType.DEPRECIATE,
+    fundAmortizationId: UUID? = null,
     paymentInfo: ProvisionPayment? = null,
     interestLoan: Double = 0.0,
     loanMonth: Long = 0,
@@ -53,6 +55,12 @@ class Provision(
         it != null && type == ProvisionType.DEPRECIATE_LOAN
     }, DomainException.BusinessLogic.ProvisionWithLoanMustHaveAScheduleInvoice())
 
+    var fundAmortizationId by cleanObservable(fundAmortizationId, this, {
+        it != null && type == ProvisionType.DEPRECIATE_LOAN
+    }, DomainException.BusinessLogic.ProvisionWithoutLoanMustNotHaveFundAmortization())
+    var isInstallmentOnTTC by cleanObservable(isInstallmentOnTTC, this)
+
+    fun isAmortize(): Boolean  = fundAmortizationId != null && type == ProvisionType.DEPRECIATE_LOAN
 
     fun calculateTotalCost(): Double {
         if (type != ProvisionType.DEPRECIATE_LOAN)
@@ -68,12 +76,16 @@ class Provision(
     }
 
     fun calculateMonthlyPayment(): Double {
+        var cost = costHT
+        if (isInstallmentOnTTC)
+            cost = costTTC
+
         if (type != ProvisionType.DEPRECIATE_LOAN || interestLoan <= 0.0 || loanMonth <= 0)
-            return costTTC / loanMonth.coerceAtLeast(1)
+            return cost / loanMonth.coerceAtLeast(1)
 
         val monthlyRate = (interestLoan / 100.0) / 12.0
         val n = loanMonth.toDouble()
-        return costTTC * monthlyRate / (1.0 - (1.0 + monthlyRate).pow(-n))
+        return cost * monthlyRate / (1.0 - (1.0 + monthlyRate).pow(-n))
     }
 
     fun calculateTotalCostPerMonth(): Double {

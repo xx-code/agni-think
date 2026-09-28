@@ -48,7 +48,8 @@ const form = reactive<Profile>({
     maxWishlistAmount: 0,
     fixSpendPercentage: 0,
     varialSpendPercentage: 0,
-    savingPercentage: 0
+    savingPercentage: 0,
+    balanceBuffer: 0
 })
 
 watch(profile, (value) => {
@@ -63,6 +64,9 @@ function validate(state: Profile): FormError[] {
 
     if (state.maxWishlistAmount < 0)
         errors.push({ name: 'maxWishlistAmount', message: 'Le montant doit etre positif' })
+
+    if (state.balanceBuffer < 0)
+        errors.push({ name: 'balanceBuffer', message: 'Le plafond de la balance doit etre positif'})
 
     if (state.fixSpendPercentage < 0 || state.fixSpendPercentage > 100)
         errors.push({ name: 'fixSpendPercentage', message: 'Le pourcentage doit etre compris entre 0 et 100' })
@@ -89,7 +93,8 @@ async function onSubmitProfile(event: FormSubmitEvent<Profile>) {
         maxWishlistAmount: data.maxWishlistAmount,
         fixSpendPercentage: data.fixSpendPercentage,
         varialSpendPercentage: data.varialSpendPercentage,
-        savingPercentage: data.savingPercentage
+        savingPercentage: data.savingPercentage,
+        balanceBuffer: data.balanceBuffer
     }
 
     try {
@@ -195,6 +200,10 @@ function onDeleteTemplate(id: string, recurrence: string) {
 
                         <UFormField label="Depenses variables (%)" name="varialSpendPercentage">
                             <UInput type="number" v-model="form.varialSpendPercentage" />
+                        </UFormField>
+
+                        <UFormField label="Somme plateau de la balance" name="buffer">
+                            <UInput type="number" v-model="form.balanceBuffer" />
                         </UFormField>
                     </div>
 

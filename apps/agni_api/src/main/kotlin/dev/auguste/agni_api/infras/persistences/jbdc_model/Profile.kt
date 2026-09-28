@@ -27,7 +27,8 @@ data class JdbcProfileModel(
     val varialSpendPercentage: Double,
 
     @Column("saving_percentage")
-    val savingPercentage: Double
+    val savingPercentage: Double,
+    val balanceBuffer: Double
 ) : JdbcModel() {
     override fun getId(): UUID {
         return id
@@ -43,6 +44,7 @@ class JdbcProfileMapper: IMapper<JdbcProfileModel, Profile> {
             fixSpendPercentage = model.fixSpendPercentage,
             varialSpendPercentage = model.varialSpendPercentage,
             savingPercentage = model.savingPercentage,
+            balanceBuffer = model.balanceBuffer
         )
     }
 
@@ -52,6 +54,7 @@ class JdbcProfileMapper: IMapper<JdbcProfileModel, Profile> {
             maxWishlistAmount = entity.maxWishlistAmount,
             fixSpendPercentage = entity.fixSpendPercentage,
             varialSpendPercentage = entity.varialSpendPercentage,
+            balanceBuffer = entity.balanceBuffer,
             savingPercentage = entity.savingPercentage
         )
     }

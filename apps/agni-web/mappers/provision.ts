@@ -9,6 +9,7 @@ export function provisionResponseToProvision(data: GetProvisionResponse): Provis
         isPatrimony: data.patrimony,
         type: data.type as ProvisionType,
         acquisitionDate: new Date(data.acquisitionDate),
+        isInstallmentOnTTC: data.installmentOnTTC,
         depreciationCriteria: data.depreciationCriteria.map(c => ({
             ...c,
             type: c.type as DepreciateType

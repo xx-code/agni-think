@@ -27,18 +27,21 @@ export type EditProvision = {
     expectedLifespanMonth: number
     acquisitionDate: CalendarDate
     isPatrimony: boolean
+    isInstallmentOnTTC: boolean
     floorValue: number
     interestLoan: number
     loanMonth: number
     type: ProvisionType
     depreciationCriteria: ProvisionDepreciationCriteria[]
+    fundAmortizationId?: string
     scheduleInvoice?: ProvisionScheduleInvoiceForm
 }
 
-export type Provision = Omit<GetProvisionResponse, 'acquisitionDate' | 'type' | 'patrimony' | 'depreciationCriteria'> & {
+export type Provision = Omit<GetProvisionResponse, 'acquisitionDate' | 'type' | 'patrimony' | 'depreciationCriteria'| 'installmentOnTTC'> & {
     acquisitionDate: Date
     type: ProvisionType
     isPatrimony: boolean
+    isInstallmentOnTTC: boolean
     depreciationCriteria: ProvisionDepreciationCriteria[]
 }
 

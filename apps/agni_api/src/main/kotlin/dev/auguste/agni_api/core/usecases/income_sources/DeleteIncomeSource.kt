@@ -28,9 +28,10 @@ class DeleteIncomeSource(
                 .addCondition("moduleLinker.module", QueryComparator.Equal, ScheduleInvoiceModuleLinkerType.INCOME_SOURCE.value)
 
             val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
-            if (scheduleInvoices.items.isNotEmpty()) {
+            for (scheduleInvoice in scheduleInvoices.items) {
                 deleteScheduleInvoice.execAsync(DeleteScheduleInvoiceInput(
-                    scheduleInvoiceId = scheduleInvoices.items.first().id,
+                    scheduleInvoiceId = scheduleInvoice.id,
+                    passContextEdit = true
                 ))
             }
         }

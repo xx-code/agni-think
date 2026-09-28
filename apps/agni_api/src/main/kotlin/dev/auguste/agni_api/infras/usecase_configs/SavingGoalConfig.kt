@@ -60,7 +60,7 @@ class SavingGoalConfig {
         accountRepo: IRepository<Account>,
         createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork,
-    ): IUseCase<DecreaseSavingGoalInput, Unit> {
+    ): IInnerUseCase<DecreaseSavingGoalInput, Unit> {
         return DecreaseSavingGoal(
             savingGoalRepo = savingGoalRepo,
             accountRepo = accountRepo,

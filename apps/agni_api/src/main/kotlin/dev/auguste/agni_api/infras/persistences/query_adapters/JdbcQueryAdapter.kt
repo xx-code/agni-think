@@ -124,6 +124,7 @@ class JdbcQueryAdapter(
             is LocalDateTime -> value.atOffset(ZoneOffset.UTC).toString()
             is Instant -> value.atOffset(ZoneOffset.UTC).toString()
             is OffsetDateTime -> value.toInstant().atOffset(ZoneOffset.UTC).toString()
+            is Enum<*> -> value.name // Pour éviter les erreurs avec les enums
             else -> value
         }
     }

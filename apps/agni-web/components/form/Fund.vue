@@ -2,7 +2,7 @@
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import type { FundForm } from '~/types/form/fund';
 import type { Account } from '~/types/ui/account';
-import { FUND_TYPE_LIST, getLabelFundType } from '~/types/constants/fund';
+import { FUND_TYPE_LIST, FundType, getLabelFundType } from '~/types/constants/fund';
 
 const form = defineModel<Partial<FundForm>>()
 const { accounts, validate } = defineProps<{
@@ -36,7 +36,8 @@ const emit = defineEmits<{
         </UFormField>
 
 
-        <UFormField label="Compte lie au fond" name="accountId" >
+        <UFormField v-if="form.type != FundType.Amortization" 
+            label="Compte lie au fond" name="accountId" >
             <USelect 
                 v-model="form.accountId" 
                 value-key="value" 
