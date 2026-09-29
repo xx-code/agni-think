@@ -89,8 +89,8 @@ class JdbcInvoiceModelMapper(
         "mouvementType" to "mouvement",
         "date" to "date",
         "isFreeze" to "is_freeze",
-        "invoiceModuleLinkers.sourceId" to "invoice_module_linkers->>'source_id'",
-        "invoiceModuleLinkers.module" to "invoice_module_linkers->>'module'",
+        "moduleLinkers.sourceId" to "invoice_module_linkers->>'source_id'",
+        "moduleLinkers.module" to "invoice_module_linkers->>'module'",
         "deductions.amount" to "deductions->>'amount'",
         "deductions.deductionId" to "deductions->>'deduction_id'",
     )

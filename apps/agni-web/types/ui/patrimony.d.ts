@@ -1,5 +1,5 @@
 import type {  CalendarDate } from "@internationalized/date"
-import type { TypePatrimony } from "../constants/patrimony"
+import type { SourcePatrimonyType, TypePatrimony } from "../constants/patrimony"
 import type { GetPatrimonyResponse } from "../api/patrimony"
 
 
@@ -18,8 +18,9 @@ export type EditSnapshotPatrimony = {
     status: string
 }
 
-export type PatrimonyType = Omit<GetPatrimonyResponse, 'type'> & {
+export type PatrimonyType = Omit<GetPatrimonyResponse, 'sourceType' | 'type'> & {
     evolution: number
+    sourceType: SourcePatrimonyType
     type: TypePatrimony
 }
 
@@ -37,6 +38,6 @@ export type PatrimonyCard = {
     description: string
     balance: number
     evolution: number,
-    isFund: boolean
+    sourceType: SourcePatrimonyType
     type: TypePatrimony
 }

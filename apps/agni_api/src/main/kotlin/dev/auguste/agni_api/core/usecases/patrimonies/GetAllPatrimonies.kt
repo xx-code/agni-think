@@ -4,11 +4,16 @@ import dev.auguste.agni_api.core.SAVING_CATEGORY_ID
 import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.dto.QuerySortBy
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
+import dev.auguste.agni_api.core.adapters.repositories.QueryExtendBuilder
+import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
 import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryPatrimonySnapshotExtend
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
+import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.entities.SavingGoal
+import dev.auguste.agni_api.core.entities.enums.InvoiceModuleLinkerType
 import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
 import dev.auguste.agni_api.core.entities.enums.PatrimonyType
 import dev.auguste.agni_api.core.entities.enums.PeriodType
@@ -17,7 +22,11 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
+import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
+import dev.auguste.agni_api.core.usecases.patrimonies.dto.SourcePatrimonyType
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
@@ -27,10 +36,17 @@ class GetAllPatrimonies(
     private val accountRepo: IRepository<Account>,
     private val patrimonySnapshotRepo: IRepository<PatrimonySnapshot>,
     private val savingGoalRepo: IRepository<SavingGoal>,
-    private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>): IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>> {
+    private val provisionRepo: IRepository<Provision>,
+    private val invoiceRepo: IRepository<Invoice>,
+    private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
+    private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>): IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>> {
 
     override fun execAsync(input: QueryFilter): ListOutput<GetPatrimonyOutput> {
         val patrimonies = patrimonyRepo.getAll(input)
+
+        val conditionProvision = QueryExtendBuilder<Provision>()
+        conditionProvision.addCondition("isPatrimony", QueryComparator.Equal, true)
+        val provisions = provisionRepo.getAll(QueryFilter.queryAll(), conditionProvision)
 
         val snapshots = patrimonySnapshotRepo.getAll(
             QueryFilter(0,0,true, QuerySortBy("date")),
@@ -72,7 +88,8 @@ class GetAllPatrimonies(
                 accountIds = patrimony.accountIds.toList(),
                 currentBalance = currentSnapshot,
                 pastBalance = pastSnapshot,
-                type = patrimony.type.value
+                type = patrimony.type.value,
+                sourceType = SourcePatrimonyType.PATRIMONY.value,
             ))
         }
 
@@ -102,8 +119,84 @@ class GetAllPatrimonies(
             pastBalance = if (passSavingGoalBalance > 0) passSavingGoalBalance else 0.0,
             type = PatrimonyType.ASSET.value,
             accountIds = listOf(),
-            isTotalFund = true
+            sourceType = SourcePatrimonyType.FUND.value
         ))
+
+        // Provision compute
+        val now = LocalDateTime.now()
+        val currentMonthStart = now.with(TemporalAdjusters.firstDayOfMonth())
+        val previousMonthStart = currentMonthStart.minusMonths(1)
+
+        val provisionIds = provisions.items.map { it.id }.toSet()
+
+        val conditionInvoice = QueryExtendBuilder<Invoice>()
+            .addCondition(
+                "moduleLinkers.module",
+                QueryComparator.Equal,
+                InvoiceModuleLinkerType.PROVISION.value
+            )
+            .addCondition(
+                "moduleLinkers.sourceId",
+                QueryComparator.In,
+                provisionIds
+            )
+
+        val invoices = invoiceRepo.getAll(
+            QueryFilter.queryAll(),
+            conditionInvoice
+        )
+
+        // Last invoice of each provision from the previous month
+        val lastMonthInvoices = invoices.items
+            .filter { it.date >= previousMonthStart && it.date < currentMonthStart }
+            .groupBy { invoice ->
+                invoice.moduleLinkers
+                    ?.firstOrNull { it.module == InvoiceModuleLinkerType.PROVISION }
+                    ?.sourceId
+            }
+            .mapNotNull { (provisionId, invoices) ->
+                provisionId?.let { id ->
+                    id to invoices.maxByOrNull { it.date }
+                }
+            }
+            .toMap()
+
+        var detailInvoiceTransactions = mutableListOf<GetInvoiceOutput>()
+        if (lastMonthInvoices.isNotEmpty()) {
+            detailInvoiceTransactions = getManyInvoices.execAsync(
+            lastMonthInvoices.values
+                .filterNotNull()
+                .map { it.id }
+                .toSet()
+            ).toMutableList()
+        }
+
+        for (provision in provisions.items) {
+            val transactionsByInvoiceId = detailInvoiceTransactions
+                .associateBy { it.id }
+
+            val currentResidual = provision.calculateResidualValue()
+
+            val lastMonthInvoiceAmount =
+                lastMonthInvoices[provision.id]?.let { transactionsByInvoiceId[it.id] }?.total ?: 0.0
+
+            val pastResidual = currentResidual + lastMonthInvoiceAmount
+
+            results.add(
+                GetPatrimonyOutput(
+                    id = provision.id,
+                    title = provision.title,
+                    accountIds = provision.paymentInfo
+                        ?.let { listOf(it.accountId) }
+                        ?: listOf(),
+                    amount = provision.calculateTotalCost(),
+                    currentBalance = currentResidual,
+                    pastBalance = pastResidual,
+                    type = PatrimonyType.LIABILITY.value,
+                    sourceType = SourcePatrimonyType.PROVISION.value
+                )
+            )
+        }
 
         return ListOutput(
             items = results,

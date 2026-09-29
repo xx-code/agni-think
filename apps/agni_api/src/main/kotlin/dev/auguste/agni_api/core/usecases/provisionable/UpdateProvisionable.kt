@@ -101,7 +101,7 @@ class UpdateProvisionable(
 
                 val endLoanDate = provisionable.acquisitionDate.plusMonths(input.loanMonth.toLong())
                 val scheduler = Scheduler(
-                    date = provisionable.paymentInfo?.scheduler?.date ?: provisionable.acquisitionDate.atStartOfDay(),
+                    date = provisionable.acquisitionDate.atStartOfDay(),
                     repeater = SchedulerRecurrence(
                         period = input.scheduleInvoice.paymentPeriod,
                         interval = input.scheduleInvoice.paymentInterval
