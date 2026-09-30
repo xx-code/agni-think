@@ -82,7 +82,7 @@ const form = reactive<Partial<EditProvision>>({
     interestLoan: provision?.interestLoan || 0,
     loanMonth: provision?.loanMonth || 0,
     type: provision?.type || ProvisionType.Depreciate,
-    isInstallmentOnTTC: provision?.isInstallmentOnTTC,
+    isInstallmentOnTTC: provision?.isInstallmentOnTTC ?? true,
     depreciationCriteria: (provision?.depreciationCriteria as any[] || []).map((c: any) => ({
         title: c.title,
         description: c.description,

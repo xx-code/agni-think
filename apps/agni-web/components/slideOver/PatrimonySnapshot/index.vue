@@ -2,17 +2,17 @@
 import type { NuxtError } from '#app';
 import { ModalEditSnapshotPatrimony } from '#components';
 import { getLocalTimeZone } from '@internationalized/date';
-import type { GetPatrimonyResponse, GetSnapshotPatrimonyResponse, ListResponse } from '~/types/api';
-import type { AddSnapshotPatrimonyRequest, UpdateSnapshotPatrimonyRequest } from '~/types/api/patrimony';
+import type { AddSnapshotPatrimonyRequest, GetPatrimonyResponse, GetSnapshotPatrimonyResponse, UpdateSnapshotPatrimonyRequest } from '~/types/api/patrimony';
 import { patrimonyResponseToPatrimony } from '~/mappers/patrimony';
-import { getLabelPatrimonyType } from '~/types/constants/patrimony';
+import { getLabelPatrimonyType, SourcePatrimonyType } from '~/types/constants/patrimony';
 import type { EditSnapshotPatrimony, PatrimonyType, SnapshotPatrimonyType } from '~/types/ui/patrimony';
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
+import type { ListResponse } from '~/types/api';
 
-const { id, isFund } = defineProps<{
+const { id, sourceType } = defineProps<{
     id: string
-    isFund?: boolean
+    sourceType: SourcePatrimonyType
 }>()
 
 const emit = defineEmits<{
@@ -24,11 +24,11 @@ const doRefresh = ref(false)
 const overlay = useOverlay()
 const modalEditSnapshotPatrimony = overlay.create(ModalEditSnapshotPatrimony)
 
-const { data, refresh } = useAsyncData(`patrimony-${id}-${isFund}`, async () => {
+const { data, refresh } = useAsyncData(`patrimony-${id}-${sourceType}`, async () => {
     isLoading.value = true
 
     let resPatrimony: PatrimonyType
-    if (isFund) {
+    if (sourceType === SourcePatrimonyType.Fund) {
         resPatrimony = await ApiLinkBuilder
             .route<GetPatrimonyResponse>(API_ROUTES.PATRIMONIES.TOTAL_FUND)
             .mapper(patrimonyResponseToPatrimony)
@@ -37,6 +37,7 @@ const { data, refresh } = useAsyncData(`patrimony-${id}-${isFund}`, async () => 
         resPatrimony = await ApiLinkBuilder
             .route<GetPatrimonyResponse>(API_ROUTES.PATRIMONIES.GET_PATRIMONY)
             .params({ id: id })
+            .query({ sourceType: sourceType })
             .mapper(patrimonyResponseToPatrimony)
             .execute()
     }
@@ -44,7 +45,7 @@ const { data, refresh } = useAsyncData(`patrimony-${id}-${isFund}`, async () => 
     const resSnapshots = await ApiLinkBuilder
         .route<ListResponse<GetSnapshotPatrimonyResponse>>(API_ROUTES.PATRIMONIES.GET_SNAPSHOTS)
         .params({ id: id })
-        .query({ limit: 0, offset: 0, queryAll: true, isFund: isFund })
+        .query({ limit: 0, offset: 0, queryAll: true, sourceType: sourceType })
         .execute()
 
     const snapshots: SnapshotPatrimonyType[] = resSnapshots.items.map(i => ({
@@ -159,7 +160,7 @@ async function removeSnapshot(snapshotId: string) {
                     <div class="flex items-center">
                         <h2 class="flex-1 text-lg font-semibold">Historique des snapshots</h2>
                         <UButton 
-                            :disabled="isFund"
+                            :disabled="sourceType != SourcePatrimonyType.Patrimony"
                             icon="i-lucide-plus"
                             label="Snapshot"
                             @click="openSnapshot()"
@@ -180,7 +181,7 @@ async function removeSnapshot(snapshotId: string) {
                                 <span class="text-gray-500 text-sm">{{ formatDate(value.date) }}</span>
                             </div>
 
-                            <div class="flex items-center gap-2" :style="{display: isFund ? 'none' : 'flex'}">
+                            <div class="flex items-center gap-2" :style="{display: sourceType !== SourcePatrimonyType.Patrimony ? 'none' : 'flex'}">
                                 <span 
                                     :class="[
                                         'px-2.5 py-0.5 font-medium text-[0.70rem]  rounded-full',

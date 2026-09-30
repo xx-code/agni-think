@@ -9,6 +9,7 @@ import { patrimonyEvolutionResponseToPatrimonyEvolution } from '~/mappers/analyt
 import type { CreatedRequest, ListResponse, QueryFilterRequest } from '~/types/api';
 import type { GetPatrimonyResponse } from '~/types/api/patrimony';
 import type { QueryPatrimonyEvolution, PatrimonySummaryResponse } from '~/types/api/analytics';
+import { SourcePatrimonyType } from '~/types/constants/patrimony';
 
 const isLoadingSummary = ref(false)
 const isLoadingEvolution = ref(false)
@@ -94,10 +95,10 @@ async function openPatrimony(id?: string) {
 
 
 
-async function onClickPatrimonyCard(id: string, isFund: boolean) {
+async function onClickPatrimonyCard(id: string, sourceType: SourcePatrimonyType) {
     const instance = slideOverSnapshot.open({
         id: id,
-        isFund: isFund,
+        sourceType: sourceType,
         onClose: (doRefresh) => {
             if (doRefresh) {
                 refresh()
@@ -163,7 +164,7 @@ async function deletePatrimony(patrimonyId: string) {
                     v-for="asset in patrimonies?.assets"
                     :key="asset.id"
                     :patrimony="patrimonyToPatrimonyCard(asset)"
-                    @click="onClickPatrimonyCard(asset.id, asset.totalFund)"
+                    @click="onClickPatrimonyCard(asset.id, asset.sourceType)"
                     @update="openPatrimony(asset.id)"
                     @delete="deletePatrimony(asset.id)"
                 />
@@ -181,7 +182,7 @@ async function deletePatrimony(patrimonyId: string) {
                     v-for="liability in patrimonies?.liabilities"
                     :key="liability.id"
                     :patrimony="patrimonyToPatrimonyCard(liability)"
-                    @click="onClickPatrimonyCard(liability.id, liability.totalFund)"
+                    @click="onClickPatrimonyCard(liability.id, liability.sourceType)"
                     @update="openPatrimony(liability.id)"
                     @delete="deletePatrimony(liability.id)"
                 />

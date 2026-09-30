@@ -4,5 +4,5 @@ import java.util.UUID
 
 data class GetPatrimonyInput(
     val id: UUID,
-    val isTotalFund: Boolean = false
+    val sourceType: SourcePatrimonyType = SourcePatrimonyType.PATRIMONY
 )

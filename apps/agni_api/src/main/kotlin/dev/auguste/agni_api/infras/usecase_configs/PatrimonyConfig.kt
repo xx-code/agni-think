@@ -4,15 +4,20 @@ import dev.auguste.agni_api.core.adapters.dto.QueryFilter
 import dev.auguste.agni_api.core.adapters.repositories.IRepository
 import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
 import dev.auguste.agni_api.core.entities.Account
+import dev.auguste.agni_api.core.entities.Invoice
 import dev.auguste.agni_api.core.entities.Patrimony
 import dev.auguste.agni_api.core.entities.PatrimonySnapshot
+import dev.auguste.agni_api.core.entities.Provision
 import dev.auguste.agni_api.core.entities.SavingGoal
 import dev.auguste.agni_api.core.usecases.CreatedOutput
 import dev.auguste.agni_api.core.usecases.ListOutput
 import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import dev.auguste.agni_api.core.usecases.invoices.GetManyInvoices
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
+import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
+import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 import dev.auguste.agni_api.core.usecases.patrimonies.CreatePatrimony
 import dev.auguste.agni_api.core.usecases.patrimonies.DeletePatrimony
 import dev.auguste.agni_api.core.usecases.patrimonies.GetAllPatrimonies
@@ -73,14 +78,20 @@ class PatrimonyConfig {
         accountRepo: IRepository<Account>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
         savingGoalRepo: IRepository<SavingGoal>,
-        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
+        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
+        provisionRepo: IRepository<Provision>,
+        invoiceRepo: IRepository<Invoice>,
+        getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
     ): IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>> {
         return GetAllPatrimonies(
             patrimonyRepo = patrimonyRepo,
             accountRepo = accountRepo,
             patrimonySnapshotRepo = snapshotRepo,
             getBalanceByPeriod = getBalanceByPeriod,
-            savingGoalRepo = savingGoalRepo
+            savingGoalRepo = savingGoalRepo,
+            provisionRepo = provisionRepo,
+            invoiceRepo = invoiceRepo,
+            getManyInvoices = getManyInvoices,
         )
     }
 
@@ -90,7 +101,10 @@ class PatrimonyConfig {
         accountRepo: IRepository<Account>,
         savingGoalRepo: IRepository<SavingGoal>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
-        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
+        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
+        provisionRepo: IRepository<Provision>,
+        invoiceRepo: IRepository<Invoice>,
+        getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
     ): IUseCase<GetPatrimonyInput, GetPatrimonyOutput> {
         return GetPatrimony(
             patrimonyRepo = patrimonyRepo,
@@ -98,6 +112,9 @@ class PatrimonyConfig {
             patrimonySnapshotRepo = snapshotRepo,
             savingGoalRepo = savingGoalRepo,
             getBalancesByPeriod = getBalanceByPeriod,
+            provisionRepo = provisionRepo,
+            invoiceRepo = invoiceRepo,
+            getManyInvoices = getManyInvoices
         )
     }
 
@@ -145,12 +162,18 @@ class PatrimonyConfig {
     fun getAllSnapshotsFromPatrimonies(
        snapshotRepo: IRepository<PatrimonySnapshot>,
        savingGoalRepo: IRepository<SavingGoal>,
-       getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
+       getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
+       provisionRepo: IRepository<Provision>,
+       invoiceRepo: IRepository<Invoice>,
+       getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
     ) : IUseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>> {
         return GetAllSnapshotFromPatrimony(
             snapshotPatrimonyRepo = snapshotRepo,
             savingGoalRepo = savingGoalRepo,
             getBalanceByPeriod = getBalanceByPeriod,
+            provisionRepo = provisionRepo,
+            invoiceRepo = invoiceRepo,
+            getManyInvoices = getManyInvoices
         )
     }
 }

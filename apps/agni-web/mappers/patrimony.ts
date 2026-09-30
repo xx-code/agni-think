@@ -1,5 +1,5 @@
 import type { GetPatrimonyResponse } from "~/types/api/patrimony";
-import type { TypePatrimony } from "~/types/constants/patrimony";
+import type { SourcePatrimonyType, TypePatrimony } from "~/types/constants/patrimony";
 import type { PatrimonyCard, PatrimonyType } from "~/types/ui/patrimony";
 
 const computeEvolution = (pastBalance: number, currentBalance: number) => {
@@ -13,6 +13,7 @@ export function patrimonyResponseToPatrimony(data: GetPatrimonyResponse): Patrim
     return {
         ...data, 
         type: data.type as TypePatrimony,
+        sourceType: data.sourceType as SourcePatrimonyType,
         evolution: computeEvolution(data.pastBalance, data.currentBalance)
     }
 }
@@ -24,7 +25,7 @@ export function patrimonyToPatrimonyCard(data: PatrimonyType): PatrimonyCard {
         description: "",
         balance: data.currentBalance,
         evolution: computeEvolution(data.pastBalance, data.currentBalance),
-        isFund: data.totalFund,
+        sourceType: data.sourceType,
         type: data.type,
     }
 }

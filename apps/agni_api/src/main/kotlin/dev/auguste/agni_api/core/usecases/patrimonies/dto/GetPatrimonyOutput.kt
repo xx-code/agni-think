@@ -10,5 +10,5 @@ data class GetPatrimonyOutput(
     val currentBalance: Double,
     val pastBalance: Double,
     val type: String,
-    val isTotalFund: Boolean = false
+    val sourceType: String
 )
