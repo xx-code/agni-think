@@ -16,6 +16,7 @@ import dev.auguste.agni_api.core.usecases.patrimonies.dto.CreatePatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.DeletePatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
+import dev.auguste.agni_api.core.usecases.patrimonies.dto.SourcePatrimonyType
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.UpdatePatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.AddSnapshotToPatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.GetAllSnapshotPatrimonyInput
@@ -72,15 +73,15 @@ class PatrimonyController(
     }
 
     @GetMapping("/{id}")
-    fun getPatrimony(@PathVariable id: UUID) : ResponseEntity<GetPatrimonyOutput> {
+    fun getPatrimony(@PathVariable id: UUID, sourceType: String = SourcePatrimonyType.PATRIMONY.value) : ResponseEntity<GetPatrimonyOutput> {
         return ResponseEntity.ok(getPatrimonyUseCase.execAsync(
-            GetPatrimonyInput(id)
+            GetPatrimonyInput(id, SourcePatrimonyType.fromString(sourceType))
         ))
     }
     @GetMapping("/total-fund")
     fun getPatrimony() : ResponseEntity<GetPatrimonyOutput> {
         return ResponseEntity.ok(getPatrimonyUseCase.execAsync(
-            GetPatrimonyInput(UUID.randomUUID(), true)
+            GetPatrimonyInput(UUID.randomUUID(), SourcePatrimonyType.FUND)
         ))
     }
 
@@ -113,9 +114,9 @@ class PatrimonyController(
     }
 
     @GetMapping("/{id}/snapshots")
-    fun getSnapshotsFromPatrimony(@PathVariable id: UUID, query: QueryFilter, isFund: Boolean = false) : ResponseEntity<ListOutput<GetSnapshotPatrimonyOutput>> {
+    fun getSnapshotsFromPatrimony(@PathVariable id: UUID, query: QueryFilter, sourceType: String = SourcePatrimonyType.PATRIMONY.value) : ResponseEntity<ListOutput<GetSnapshotPatrimonyOutput>> {
         return ResponseEntity.ok(getAllPatrimonySnapshotUseCase.execAsync(
-            GetAllSnapshotPatrimonyInput(id, query, isFund = isFund)
+            GetAllSnapshotPatrimonyInput(id, query, SourcePatrimonyType.fromString(sourceType))
         ))
     }
 }

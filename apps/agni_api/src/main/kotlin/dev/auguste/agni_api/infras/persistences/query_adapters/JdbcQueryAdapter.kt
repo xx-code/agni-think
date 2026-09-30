@@ -40,71 +40,31 @@ class JdbcQueryAdapter(
         for (condition in queryBuilder.getConditions()) {
             val mappedColumn = fieldNameMapper[condition.fieldName] ?: continue
             val rawParamName = condition.fieldName.replace(".", "_")
-
-            // Formatage de la valeur (gestion spécifique des dates/instants)
             val formattedValue = formatConditionValue(condition.value)
 
-            // Détection si la colonne est un accès JSONB (ex: scheduler->>'due_date')
             val isJsonPath = mappedColumn.contains("->>") || mappedColumn.contains("->")
+            val isJsonArray = mappedColumn.startsWith("jsonb_array:") // ou convention de mapping personnalisée
 
-            // Préparation des vérifications JSONB null
-            val jsonExistPredicate = if (isJsonPath) buildJsonbExistsPredicate(mappedColumn) else null
-
-            val predicate = when (condition.operator) {
-                QueryComparator.Greater -> {
+            val predicate = when {
+                isJsonArray -> {
                     params.addValue(rawParamName, formattedValue)
-                    "${formatSqlColumn(mappedColumn, formattedValue)} > :$rawParamName"
+                    buildJsonArrayPredicate(condition.operator, mappedColumn, rawParamName, params,formattedValue)
                 }
 
-                QueryComparator.GreaterOrEquals -> {
-                    params.addValue(rawParamName, formattedValue)
-                    "${formatSqlColumn(mappedColumn, formattedValue)} >= :$rawParamName"
-                }
+                else -> {
+                    val jsonExistPredicate = if (isJsonPath) buildJsonbExistsPredicate(mappedColumn) else null
+                    val basePredicate = buildStandardPredicate(condition.operator, mappedColumn, rawParamName, formattedValue, params)
 
-                QueryComparator.Lesser -> {
-                    params.addValue(rawParamName, formattedValue)
-                    "${formatSqlColumn(mappedColumn, formattedValue)} < :$rawParamName"
-                }
-
-                QueryComparator.LesserOrEquals -> {
-                    params.addValue(rawParamName, formattedValue)
-                    "${formatSqlColumn(mappedColumn, formattedValue)} <= :$rawParamName"
-                }
-
-                QueryComparator.Equal -> {
-                    if (formattedValue == null) {
-                        "$mappedColumn IS NULL"
+                    if (basePredicate != null && jsonExistPredicate != null) {
+                        "($jsonExistPredicate AND $basePredicate)"
                     } else {
-                        params.addValue(rawParamName, formattedValue)
-                        "${formatSqlColumn(mappedColumn, formattedValue)} = :$rawParamName"
+                        basePredicate
                     }
-                }
-
-                QueryComparator.NotEqual -> {
-                    if (formattedValue == null) {
-                        "$mappedColumn IS NULL"
-                    } else {
-                        params.addValue(rawParamName, formattedValue)
-                        "${formatSqlColumn(mappedColumn, formattedValue)} != :$rawParamName"
-                    }
-                }
-
-                QueryComparator.In -> {
-                    val collection = (condition.value as? Collection<*>)?.map { formatConditionValue(it) }
-                    if (!collection.isNullOrEmpty()) {
-                        params.addValue(rawParamName, collection)
-                        "${formatSqlColumn(mappedColumn, collection.first())} IN (:$rawParamName)"
-                    } else null
                 }
             }
 
             if (predicate != null) {
-                if (jsonExistPredicate != null) {
-                    // Combine jsonb_exists avec la condition
-                    predicates.add("($jsonExistPredicate AND $predicate)")
-                } else {
-                    predicates.add(predicate)
-                }
+                predicates.add(predicate)
             }
         }
 
@@ -113,6 +73,83 @@ class JdbcQueryAdapter(
         }
 
         return SqlQueryBuilder(sqlBuilder, params)
+    }
+
+    /**
+     * Génère un prédicat d'inclusion JSONB avec l'opérateur @> pour un tableau JSONB
+     */
+    private fun buildJsonArrayPredicate(
+        operator: QueryComparator,
+        rawMapping: String,
+        rawParamName: String,
+        params: MapSqlParameterSource,
+        formattedValue: Any?,
+    ): String? {
+        val parsed = parseJsonArrayMapping(rawMapping)
+        if (parsed != null && formattedValue != null) {
+            val (columnName, jsonKey) = parsed
+            return when (operator) {
+                QueryComparator.Equal -> {
+                    params.addValue(rawParamName, formattedValue.toString())
+                    "$columnName @> jsonb_build_array(jsonb_build_object('$jsonKey', :$rawParamName))"
+                }
+                else -> null
+            }
+        }
+        return null
+    }
+
+    /**
+     * Construit les prédicats de comparaison standards (=, >, <, IN, etc.)
+     */
+    private fun buildStandardPredicate(
+        operator: QueryComparator,
+        mappedColumn: String,
+        rawParamName: String,
+        formattedValue: Any?,
+        params: MapSqlParameterSource
+    ): String? {
+        return when (operator) {
+            QueryComparator.Greater -> {
+                params.addValue(rawParamName, formattedValue)
+                "${formatSqlColumn(mappedColumn, formattedValue)} > :$rawParamName"
+            }
+            QueryComparator.GreaterOrEquals -> {
+                params.addValue(rawParamName, formattedValue)
+                "${formatSqlColumn(mappedColumn, formattedValue)} >= :$rawParamName"
+            }
+            QueryComparator.Lesser -> {
+                params.addValue(rawParamName, formattedValue)
+                "${formatSqlColumn(mappedColumn, formattedValue)} < :$rawParamName"
+            }
+            QueryComparator.LesserOrEquals -> {
+                params.addValue(rawParamName, formattedValue)
+                "${formatSqlColumn(mappedColumn, formattedValue)} <= :$rawParamName"
+            }
+            QueryComparator.Equal -> {
+                if (formattedValue == null) {
+                    "$mappedColumn IS NULL"
+                } else {
+                    params.addValue(rawParamName, formattedValue)
+                    "${formatSqlColumn(mappedColumn, formattedValue)} = :$rawParamName"
+                }
+            }
+            QueryComparator.NotEqual -> {
+                if (formattedValue == null) {
+                    "$mappedColumn IS NOT NULL"
+                } else {
+                    params.addValue(rawParamName, formattedValue)
+                    "${formatSqlColumn(mappedColumn, formattedValue)} != :$rawParamName"
+                }
+            }
+            QueryComparator.In -> {
+                val collection = (formattedValue as? Collection<*>)?.map { formatConditionValue(it) }
+                if (!collection.isNullOrEmpty()) {
+                    params.addValue(rawParamName, collection)
+                    "${formatSqlColumn(mappedColumn, collection.first())} IN (:$rawParamName)"
+                } else null
+            }
+        }
     }
 
     /**
@@ -164,6 +201,18 @@ class JdbcQueryAdapter(
         val jsonField = parts[1].trim().replace("'", "")
 
         return "jsonb_exists($jsonColumn, '$jsonField')"
+    }
+
+    private fun parseJsonArrayMapping(mappedColumn: String): Pair<String, String>? {
+        // Reçoit par ex: "jsonb_array:invoice_module_linkers->>'source_id'"
+        val clean = mappedColumn.removePrefix("jsonb_array:")
+        val parts = clean.split("->>")
+        if (parts.size != 2) return null
+
+        val columnName = parts[0].trim()
+        val jsonKey = parts[1].trim().replace("'", "")
+
+        return Pair(columnName, jsonKey)
     }
 
     fun <M : JdbcModel, E : Entity> toSpecification(

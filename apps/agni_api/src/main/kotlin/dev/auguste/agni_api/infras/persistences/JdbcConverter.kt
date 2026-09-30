@@ -60,6 +60,20 @@ class PGobjectToUuidSetConverter : Converter<JdbcValue, Set<UUID>> {
     }
 }
 
+@WritingConverter
+class DomainListToPGobjectConverter(
+    private val objectMapper: ObjectMapper
+) : Converter<List<Any>, JdbcValue> {
+
+    override fun convert(source: List<Any>): JdbcValue {
+        val pgObject = PGobject().apply {
+            type = "jsonb"
+            value = objectMapper.writeValueAsString(source)
+        }
+        return JdbcValue.of(pgObject, JDBCType.OTHER)
+    }
+}
+
 @Configuration
 class JdbcPersistenceConfig : AbstractJdbcConfiguration() {
     private val mapper = jacksonObjectMapper()
@@ -71,6 +85,7 @@ class JdbcPersistenceConfig : AbstractJdbcConfiguration() {
             PGobjectToUuidSetConverter(),
             PGobjectToSetUUIDConverter(mapper),
             SetUUIDToPGobjectConverter(mapper),
+            DomainListToPGobjectConverter(mapper)
         )
     }
 }
