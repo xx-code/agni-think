@@ -9,6 +9,7 @@ import dev.auguste.agni_api.core.entities.enums.InvoiceType
 import dev.auguste.agni_api.core.value_objects.InvoiceDeduction
 import dev.auguste.agni_api.core.value_objects.InvoiceModuleLinker
 import dev.auguste.agni_api.infras.persistences.IMapper
+import org.postgresql.util.PGobject
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -46,13 +47,8 @@ class JdbcInvoiceModelMapper(
     private val objectMapper: ObjectMapper
 ): IMapper<JdbcInvoiceModel, Invoice> {
     override fun toDomain(model: JdbcInvoiceModel): Invoice {
-        val deductionsJson = objectMapper.readValue(model.deductions, Array<String>::class.java).map {
-            objectMapper.readValue<Map<String, Any>>(it)
-        }.toSet()
-
-        val moduleLinkersJson = objectMapper.readValue(model.invoiceModuleLinkers, Array<String>::class.java).map {
-            objectMapper.readValue<Map<String, Any>>(it)
-        }.toList()
+        val deductionsJson: Set<Map<String, Any>> = objectMapper.readValue<List<Map<String, Any>>>(model.deductions).toSet()
+        val moduleLinkersJson: Set<Map<String, Any>> = objectMapper.readValue<List<Map<String, Any>>>(model.invoiceModuleLinkers).toSet()
 
         return Invoice(
             id = model.id,
