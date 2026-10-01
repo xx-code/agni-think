@@ -28,6 +28,7 @@ import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.SourcePatrimonyType
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
@@ -148,7 +149,6 @@ class GetAllPatrimonies(
 
         // Last invoice of each provision from the previous month
         val lastMonthInvoices = invoices.items
-            .filter { it.date >= previousMonthStart && it.date < currentMonthStart }
             .groupBy { invoice ->
                 invoice.moduleLinkers
                     ?.firstOrNull { it.module == InvoiceModuleLinkerType.PROVISION }
@@ -156,7 +156,7 @@ class GetAllPatrimonies(
             }
             .mapNotNull { (provisionId, invoices) ->
                 provisionId?.let { id ->
-                    id to invoices.maxByOrNull { it.date }
+                    id to invoices
                 }
             }
             .toMap()
@@ -165,22 +165,27 @@ class GetAllPatrimonies(
         if (lastMonthInvoices.isNotEmpty()) {
             detailInvoiceTransactions = getManyInvoices.execAsync(
             lastMonthInvoices.values
-                .filterNotNull()
-                .map { it.id }
+                .flatMap { it.map { inv -> inv.id } }
                 .toSet()
             ).toMutableList()
         }
 
         for (provision in provisions.items) {
-            val transactionsByInvoiceId = detailInvoiceTransactions
-                .associateBy { it.id }
-
             val currentResidual = provision.calculateResidualValue()
 
-            val lastMonthInvoiceAmount =
-                lastMonthInvoices[provision.id]?.let { transactionsByInvoiceId[it.id] }?.total ?: 0.0
+            val notRegisterAmount = provision.paymentInfo?.let { paymentInfo ->
+                val occurrencePayment = paymentInfo.scheduler.repeater?.computeOccurrences(provision.acquisitionDate, previousMonthStart.toLocalDate()) ?: 0
+                return@let occurrencePayment * paymentInfo.paymentAmount
+            } ?: 0.0
 
-            val pastResidual = currentResidual + lastMonthInvoiceAmount
+            val detailInvoices = detailInvoiceTransactions.filter { lastMonthInvoices[provision.id]?.map { inv -> inv.id }?.contains(it.id) ?: false }
+            val passInvoicePayment = detailInvoices.sumOf { it.total } + notRegisterAmount
+            val lastMonthInvoiceAmount = detailInvoices.filter { it.date <= previousMonthStart } .sumOf { it.total }
+
+            val totalCost = provision.calculateTotalCost()
+
+            val passAsset = provision.calculateResidualValue(previousMonthStart.toLocalDate())
+            val passLiability = totalCost - (lastMonthInvoiceAmount + notRegisterAmount)
 
             results.add(
                 GetPatrimonyOutput(
@@ -189,9 +194,24 @@ class GetAllPatrimonies(
                     accountIds = provision.paymentInfo
                         ?.let { listOf(it.accountId) }
                         ?: listOf(),
-                    amount = provision.calculateTotalCost(),
+                    amount = 0.0,
                     currentBalance = currentResidual,
-                    pastBalance = pastResidual,
+                    pastBalance = passAsset,
+                    type = PatrimonyType.ASSET.value,
+                    sourceType = SourcePatrimonyType.PROVISION.value
+                )
+            )
+
+            results.add(
+                GetPatrimonyOutput(
+                    id = provision.id,
+                    title = provision.title,
+                    accountIds = provision.paymentInfo
+                        ?.let { listOf(it.accountId) }
+                        ?: listOf(),
+                    amount = totalCost,
+                    currentBalance = totalCost - passInvoicePayment,
+                    pastBalance = passLiability,
                     type = PatrimonyType.LIABILITY.value,
                     sourceType = SourcePatrimonyType.PROVISION.value
                 )

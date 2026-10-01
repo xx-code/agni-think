@@ -70,7 +70,7 @@ fun mapApiAddSnapshotToPatrimony(id: UUID, model: ApiAddSnapshotToPatrimonyModel
         patrimonyId = id,
         balance = model.balance,
         status = PatrimonySnapshotStatusType.fromString(model.status) ,
-        date = model.date
+        date = model.date,
     )
 }
 

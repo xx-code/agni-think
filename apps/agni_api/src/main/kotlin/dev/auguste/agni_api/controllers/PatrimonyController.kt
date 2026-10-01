@@ -73,9 +73,9 @@ class PatrimonyController(
     }
 
     @GetMapping("/{id}")
-    fun getPatrimony(@PathVariable id: UUID, sourceType: String = SourcePatrimonyType.PATRIMONY.value) : ResponseEntity<GetPatrimonyOutput> {
+    fun getPatrimony(@PathVariable id: UUID, sourceType: String = SourcePatrimonyType.PATRIMONY.value, isAsset: Boolean = false) : ResponseEntity<GetPatrimonyOutput> {
         return ResponseEntity.ok(getPatrimonyUseCase.execAsync(
-            GetPatrimonyInput(id, SourcePatrimonyType.fromString(sourceType))
+            GetPatrimonyInput(id, SourcePatrimonyType.fromString(sourceType), isAsset)
         ))
     }
     @GetMapping("/total-fund")
@@ -114,9 +114,9 @@ class PatrimonyController(
     }
 
     @GetMapping("/{id}/snapshots")
-    fun getSnapshotsFromPatrimony(@PathVariable id: UUID, query: QueryFilter, sourceType: String = SourcePatrimonyType.PATRIMONY.value) : ResponseEntity<ListOutput<GetSnapshotPatrimonyOutput>> {
+    fun getSnapshotsFromPatrimony(@PathVariable id: UUID, query: QueryFilter, sourceType: String = SourcePatrimonyType.PATRIMONY.value, isAsset: Boolean = false) : ResponseEntity<ListOutput<GetSnapshotPatrimonyOutput>> {
         return ResponseEntity.ok(getAllPatrimonySnapshotUseCase.execAsync(
-            GetAllSnapshotPatrimonyInput(id, query, SourcePatrimonyType.fromString(sourceType))
+            GetAllSnapshotPatrimonyInput(id, query, SourcePatrimonyType.fromString(sourceType), isAsset)
         ))
     }
 }
