@@ -20,12 +20,12 @@ import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
 import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
-import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 import dev.auguste.agni_api.core.usecases.patrimonies.dto.SourcePatrimonyType
 import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.GetAllSnapshotPatrimonyInput
 import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.GetSnapshotPatrimonyOutput
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
@@ -102,37 +102,86 @@ class GetAllSnapshotFromPatrimony(
             }
             SourcePatrimonyType.PROVISION -> {
                 val provision = provisionRepo.get(input.patrimonyId) ?: throw DomainException.NotFound.Provisionable(input.patrimonyId)
-                val conditionInvoice = QueryExtendBuilder<Invoice>()
-                    .addCondition(
-                        "moduleLinkers.module",
-                        QueryComparator.Equal,
-                        InvoiceModuleLinkerType.PROVISION.value
-                    )
-                    .addCondition(
-                        "moduleLinkers.sourceId",
-                        QueryComparator.Equal,
-                        provision.id
+
+                val snapshots = mutableListOf<GetSnapshotPatrimonyOutput>()
+                if (!input.isAsset) {
+                    val conditionInvoice = QueryExtendBuilder<Invoice>()
+                        .addCondition(
+                            "moduleLinkers.module",
+                            QueryComparator.Equal,
+                            InvoiceModuleLinkerType.PROVISION.value
+                        )
+                        .addCondition(
+                            "moduleLinkers.sourceId",
+                            QueryComparator.Equal,
+                            provision.id
+                        )
+
+
+                    val invoices = invoiceRepo.getAll(
+                        input.query,
+                        conditionInvoice
                     )
 
-                val invoices = invoiceRepo.getAll(
-                    QueryFilter.queryAll(),
-                    conditionInvoice
-                )
-                var detailInvoices = mutableListOf<GetInvoiceOutput>()
-                if (invoices.items.isNotEmpty()) {
-                    detailInvoices = getManyInvoices.execAsync(
-                    invoices.items.map { it.id }.toSet(),
-                    ).toMutableList()
-                }
-                return ListOutput(
-                    items = detailInvoices.map { GetSnapshotPatrimonyOutput(
+                    val firstInvoiceMonthStart = invoices.items.minOf{ it.date }.with(TemporalAdjusters.firstDayOfMonth())
+                    val notRegisterAmount = provision.paymentInfo?.let { paymentInfo ->
+                        val occurrencePayment = paymentInfo.scheduler.repeater?.computeOccurrences(provision.acquisitionDate, firstInvoiceMonthStart.toLocalDate()) ?: 0
+                        return@let occurrencePayment * paymentInfo.paymentAmount
+                    } ?: 0.0
+
+                    val totalCost = provision.calculateTotalCost()
+
+                    snapshots.add(GetSnapshotPatrimonyOutput(
                         id = UUID.randomUUID(),
                         patrimonyId = provision.id,
-                        balance = it.total,
-                        date = it.date.toLocalDate(),
+                        balance = totalCost,
+                        date = provision.acquisitionDate,
                         status = PatrimonySnapshotStatusType.COMPLETED.value
-                    )},
-                    total = detailInvoices.size.toLong()
+                    ))
+
+                    if (notRegisterAmount > 0)
+                        snapshots.add(GetSnapshotPatrimonyOutput(
+                            id = UUID.randomUUID(),
+                            patrimonyId = provision.id,
+                            balance = notRegisterAmount,
+                            date = firstInvoiceMonthStart.toLocalDate(),
+                            status = PatrimonySnapshotStatusType.COMPLETED.value
+                        ))
+
+                    if (invoices.items.isNotEmpty()) {
+                        val invoices = getManyInvoices.execAsync(
+                            invoices.items.map { it.id }.toSet(),
+                        ).toMutableList()
+
+                        invoices.forEach {
+                            snapshots.add(
+                                GetSnapshotPatrimonyOutput(
+                                    id = UUID.randomUUID(),
+                                    patrimonyId = provision.id,
+                                    balance = totalCost - it.total + notRegisterAmount,
+                                    date = it.date.toLocalDate(),
+                                    status = PatrimonySnapshotStatusType.COMPLETED.value
+                                )
+                            )
+                        }
+                    }
+                } else {
+                    val monthsBetween = ChronoUnit.MONTHS.between(provision.acquisitionDate, LocalDate.now())
+                    for (i in 0..monthsBetween) {
+                        val date = provision.acquisitionDate.plusMonths(i)
+                        snapshots.add(GetSnapshotPatrimonyOutput(
+                            id = UUID.randomUUID(),
+                            patrimonyId = provision.id,
+                            balance = provision.calculateResidualValue(date),
+                            date = date,
+                            status = PatrimonySnapshotStatusType.COMPLETED.value
+                        ))
+                    }
+                }
+
+                return ListOutput(
+                    items = snapshots.sortedByDescending { it.date },
+                    total = snapshots.size.toLong()
                 )
             }
         }

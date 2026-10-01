@@ -62,20 +62,29 @@ class GetPatrimony(
                     QueryFilter.queryAll(),
                     conditionInvoice
                 )
+
                 val now = LocalDateTime.now()
                 val currentMonthStart = now.with(TemporalAdjusters.firstDayOfMonth())
                 val previousMonthStart = currentMonthStart.minusMonths(1)
+                val firstInvoiceMonthStart = invoices.items.minOf{ it.date }.with(TemporalAdjusters.firstDayOfMonth())
+                val notRegisterAmount = provision.paymentInfo?.let { paymentInfo ->
+                    val occurrencePayment = paymentInfo.scheduler.repeater?.computeOccurrences(provision.acquisitionDate, firstInvoiceMonthStart.toLocalDate()) ?: 0
+                    return@let occurrencePayment * paymentInfo.paymentAmount
+                } ?: 0.0
                 val lastMonthInvoices = invoices.items
-                    .filter { it.date >= previousMonthStart && it.date < currentMonthStart }
                 var detailInvoices = mutableListOf<GetInvoiceOutput>()
                 if (lastMonthInvoices.isNotEmpty()) {
                     detailInvoices = getManyInvoices.execAsync(
                     lastMonthInvoices.map { it.id }.toSet(),
                     ).toMutableList()
                 }
-                val currentResidual = provision.calculateResidualValue()
-                val lastMonthInvoiceAmount = detailInvoices.sumOf { it.total }
-                val pastResidual = currentResidual + lastMonthInvoiceAmount
+
+                val totalCost = provision.calculateTotalCost()
+
+                val passInvoicePayment = detailInvoices.sumOf { it.total } + notRegisterAmount
+                val lastMonthInvoiceAmount = detailInvoices.filter{ it.date <= previousMonthStart }.sumOf { it.total } + notRegisterAmount
+                val pastBalance = if (input.isAsset) provision.calculateResidualValue(previousMonthStart.toLocalDate()) else totalCost - lastMonthInvoiceAmount
+                val currentBalance = if (input.isAsset) provision.calculateResidualValue() else totalCost - passInvoicePayment
 
                 return GetPatrimonyOutput(
                     id = provision.id,
@@ -83,9 +92,9 @@ class GetPatrimony(
                     accountIds = provision.paymentInfo
                         ?.let { listOf(it.accountId) }
                         ?: listOf(),
-                    amount = provision.calculateTotalCost(),
-                    currentBalance = currentResidual,
-                    pastBalance = pastResidual,
+                    amount = if (input.isAsset) 0.0 else provision.calculateTotalCost(),
+                    currentBalance = currentBalance,
+                    pastBalance = pastBalance,
                     type = PatrimonyType.LIABILITY.value,
                     sourceType = SourcePatrimonyType.PROVISION.value
                 )

@@ -132,11 +132,11 @@ class PatrimonyConfig {
     @Bean
     fun addSnapshotToPatrimonies(
        patrimonyRepo: IRepository<Patrimony>,
-       snapshotRepo: IRepository<PatrimonySnapshot>
+       snapshotRepo: IRepository<PatrimonySnapshot>,
     ) : IUseCase<AddSnapshotToPatrimonyInput, CreatedOutput> {
         return AddSnapshotToPatrimony(
             patrimonyRepo = patrimonyRepo,
-            snapshotPatrimonyRepo = snapshotRepo
+            snapshotPatrimonyRepo = snapshotRepo,
         )
     }
 

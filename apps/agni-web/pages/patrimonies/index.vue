@@ -95,10 +95,11 @@ async function openPatrimony(id?: string) {
 
 
 
-async function onClickPatrimonyCard(id: string, sourceType: SourcePatrimonyType) {
+async function onClickPatrimonyCard(id: string, sourceType: SourcePatrimonyType, isAsset: boolean=false) {
     const instance = slideOverSnapshot.open({
         id: id,
         sourceType: sourceType,
+        isAsset: isAsset,
         onClose: (doRefresh) => {
             if (doRefresh) {
                 refresh()
@@ -164,7 +165,7 @@ async function deletePatrimony(patrimonyId: string) {
                     v-for="asset in patrimonies?.assets"
                     :key="asset.id"
                     :patrimony="patrimonyToPatrimonyCard(asset)"
-                    @click="onClickPatrimonyCard(asset.id, asset.sourceType)"
+                    @click="onClickPatrimonyCard(asset.id, asset.sourceType, true)"
                     @update="openPatrimony(asset.id)"
                     @delete="deletePatrimony(asset.id)"
                 />
@@ -182,7 +183,7 @@ async function deletePatrimony(patrimonyId: string) {
                     v-for="liability in patrimonies?.liabilities"
                     :key="liability.id"
                     :patrimony="patrimonyToPatrimonyCard(liability)"
-                    @click="onClickPatrimonyCard(liability.id, liability.sourceType)"
+                    @click="onClickPatrimonyCard(liability.id, liability.sourceType, false)"
                     @update="openPatrimony(liability.id)"
                     @delete="deletePatrimony(liability.id)"
                 />

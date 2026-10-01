@@ -10,9 +10,10 @@ import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
 import type { ListResponse } from '~/types/api';
 
-const { id, sourceType } = defineProps<{
+const { id, sourceType, isAsset } = defineProps<{
     id: string
     sourceType: SourcePatrimonyType
+    isAsset: boolean
 }>()
 
 const emit = defineEmits<{
@@ -24,7 +25,7 @@ const doRefresh = ref(false)
 const overlay = useOverlay()
 const modalEditSnapshotPatrimony = overlay.create(ModalEditSnapshotPatrimony)
 
-const { data, refresh } = useAsyncData(`patrimony-${id}-${sourceType}`, async () => {
+const { data, refresh } = useAsyncData(`patrimony-${id}-${sourceType}-${isAsset}`, async () => {
     isLoading.value = true
 
     let resPatrimony: PatrimonyType
@@ -37,7 +38,7 @@ const { data, refresh } = useAsyncData(`patrimony-${id}-${sourceType}`, async ()
         resPatrimony = await ApiLinkBuilder
             .route<GetPatrimonyResponse>(API_ROUTES.PATRIMONIES.GET_PATRIMONY)
             .params({ id: id })
-            .query({ sourceType: sourceType })
+            .query({ sourceType, isAsset })
             .mapper(patrimonyResponseToPatrimony)
             .execute()
     }
@@ -45,7 +46,7 @@ const { data, refresh } = useAsyncData(`patrimony-${id}-${sourceType}`, async ()
     const resSnapshots = await ApiLinkBuilder
         .route<ListResponse<GetSnapshotPatrimonyResponse>>(API_ROUTES.PATRIMONIES.GET_SNAPSHOTS)
         .params({ id: id })
-        .query({ limit: 0, offset: 0, queryAll: true, sourceType: sourceType })
+        .query({ limit: 0, offset: 0, queryAll: true, sourceType: sourceType, isAsset })
         .execute()
 
     const snapshots: SnapshotPatrimonyType[] = resSnapshots.items.map(i => ({
@@ -118,7 +119,13 @@ async function removeSnapshot(snapshotId: string) {
     refresh()
 }
 
+const allowAddSnapshot = () => {
+    if (sourceType === SourcePatrimonyType.Patrimony)
+        return true
 
+
+    return sourceType === SourcePatrimonyType.Provision && isAsset === false
+} 
 
 </script>
 
@@ -160,7 +167,7 @@ async function removeSnapshot(snapshotId: string) {
                     <div class="flex items-center">
                         <h2 class="flex-1 text-lg font-semibold">Historique des snapshots</h2>
                         <UButton 
-                            :disabled="sourceType != SourcePatrimonyType.Patrimony"
+                            :disabled="!allowAddSnapshot()"
                             icon="i-lucide-plus"
                             label="Snapshot"
                             @click="openSnapshot()"
