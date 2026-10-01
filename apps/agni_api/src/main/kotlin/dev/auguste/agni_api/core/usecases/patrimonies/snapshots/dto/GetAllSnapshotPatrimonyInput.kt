@@ -7,5 +7,6 @@ import java.util.UUID
 data class GetAllSnapshotPatrimonyInput(
     val patrimonyId: UUID,
     val query: QueryFilter,
-    val sourcePatrimonyType: SourcePatrimonyType = SourcePatrimonyType.PATRIMONY
+    val sourcePatrimonyType: SourcePatrimonyType = SourcePatrimonyType.PATRIMONY,
+    val isAsset: Boolean = false
 )
