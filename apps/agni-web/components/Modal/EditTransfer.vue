@@ -12,7 +12,7 @@ import { API_ROUTES } from '~/shared/routes';
 const schema = z.object({
     accountIdFrom: z.string().nonempty('Vous devez selectionner un compte d\'origne'),
     accountIdTo: z.string().nonempty('Vous devez selectionner un compte recepteur'),
-    amount: z.number().min(1, 'La somme doit etre plus grand que zero')
+    amount: z.number().min(0, 'La somme doit etre plus grand que zero')
 })
 
 type Schema = z.output<typeof schema>
