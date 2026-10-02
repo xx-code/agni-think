@@ -1,14 +1,14 @@
 package dev.auguste.agni_api.infras.persistences.readers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.readers.IInvoicetransactionCountReader
-import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInvoiceExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryTransactionExtend
-import dev.auguste.agni_api.core.entities.Invoice
-import dev.auguste.agni_api.core.entities.Transaction
-import dev.auguste.agni_api.core.usecases.ListOutput
+import adapters.dto.QueryFilter
+import adapters.readers.IInvoicetransactionCountReader
+import adapters.repositories.IQueryExtend
+import adapters.repositories.query_extend.QueryInvoiceExtend
+import adapters.repositories.query_extend.QueryTransactionExtend
+import domain.entities.Invoice
+import domain.entities.Transaction
+import usecases.ListOutput
 import dev.auguste.agni_api.infras.persistences.IMapper
 import dev.auguste.agni_api.infras.persistences.query_adapters.addPaginationSqlStringBuilder
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInvoiceModel
@@ -40,9 +40,10 @@ class JdbcInvoiceTransactionCountReader(
             params.addValue("accounts", queryInvoiceExtend.accountIds)
         }
 
-        if (!queryInvoiceExtend.types.isNullOrEmpty()) {
+        val invoiceTypes = queryInvoiceExtend.types
+        if (!invoiceTypes.isNullOrEmpty()) {
             sql.append(" AND t.type IN (:types)")
-            params.addValue("types", queryInvoiceExtend.types.map { it.value })
+            params.addValue("types", invoiceTypes.map { it.value })
         }
 
         queryInvoiceExtend.status?.let {
@@ -70,14 +71,16 @@ class JdbcInvoiceTransactionCountReader(
             params.addValue("categories", queryTransactionExtend.categoryIds)
         }
 
-        if (!queryTransactionExtend.tagIds.isNullOrEmpty()) {
+        val transactionTagIds = queryTransactionExtend.tagIds
+        if (!transactionTagIds.isNullOrEmpty()) {
             sql.append(" AND r.tag_ids ??| CAST(:tagIds AS text[])")
-            params.addValue("tagIds", queryTransactionExtend.tagIds.toTypedArray())
+            params.addValue("tagIds", transactionTagIds.toTypedArray())
         }
 
-        if (!queryTransactionExtend.budgetIds.isNullOrEmpty()) {
+        val transactionBudgetIds = queryTransactionExtend.budgetIds
+        if (!transactionBudgetIds.isNullOrEmpty()) {
             sql.append(" AND r.budget_ids ??| CAST(:budgetIds AS text[])")
-            params.addValue("budgetIds", queryTransactionExtend.budgetIds.toTypedArray())
+            params.addValue("budgetIds", transactionBudgetIds.toTypedArray())
         }
 
         return addPaginationSqlStringBuilder(sql, params, queryFilter, mapper, true)

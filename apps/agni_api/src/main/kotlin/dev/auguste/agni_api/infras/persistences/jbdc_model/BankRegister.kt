@@ -2,8 +2,8 @@ package dev.auguste.agni_api.infras.persistences.jbdc_model
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import dev.auguste.agni_api.core.entities.BankRegister
-import dev.auguste.agni_api.core.value_objects.AccountLinked
+import domain.entities.BankRegister
+import domain.value_objects.AccountLinked
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
@@ -58,7 +58,7 @@ class JdbcBankRegisterModelMapper(
             accessCode = entity.accessCode,
             cursor = entity.cursor,
             isActive = entity.isActive,
-            accountsLinked = objectMapper.writeValueAsString(entity.accountslinked.map { objectMapper.writeValueAsString(it.toMap()) })
+            accountsLinked = objectMapper.writeValueAsString(entity.accountsLinked.map { objectMapper.writeValueAsString(it.toMap()) })
         )
     }
 

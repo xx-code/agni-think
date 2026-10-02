@@ -2,8 +2,8 @@ package dev.auguste.agni_api.infras.persistences.jbdc_model
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
-import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
+import domain.entities.SpendingPeriodTemplate
+import domain.value_objects.SchedulerRecurrence
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column

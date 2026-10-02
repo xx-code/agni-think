@@ -1,35 +1,32 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.events.IEventRegister
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
-import dev.auguste.agni_api.core.entities.Provision
-import dev.auguste.agni_api.core.entities.SavingGoal
-import dev.auguste.agni_api.core.entities.ScheduleInvoice
-import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
-import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.dto.CreateFreezeInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
-import dev.auguste.agni_api.core.usecases.provisionable.CreateProvisionable
-import dev.auguste.agni_api.core.usecases.provisionable.DeleteProvisionable
-import dev.auguste.agni_api.core.usecases.provisionable.GetAllProvisionable
-import dev.auguste.agni_api.core.usecases.provisionable.GetProvision
-import dev.auguste.agni_api.core.usecases.provisionable.MakePaymentInstallment
-import dev.auguste.agni_api.core.usecases.provisionable.UpdateProvisionable
-import dev.auguste.agni_api.core.usecases.provisionable.dto.CreateProvisionInput
-import dev.auguste.agni_api.core.usecases.provisionable.dto.DeleteProvisionInput
-import dev.auguste.agni_api.core.usecases.provisionable.dto.GetProvisionOutput
-import dev.auguste.agni_api.core.usecases.provisionable.dto.UpdateProvisionInput
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.DecreaseSavingGoalInput
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.ApplyScheduleInvoice
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
+import adapters.dto.QueryFilter
+import adapters.events.IEventRegister
+import adapters.repositories.IRepository
+import adapters.repositories.IUnitOfWork
+import domain.entities.Provision
+import domain.entities.Fund
+import domain.entities.ScheduleInvoice
+import usecases.BackgroundTaskOut
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.interfaces.IInnerUseCase
+import usecases.interfaces.ISuspendableUseCase
+import usecases.interfaces.IUseCase
+import usecases.provisionable.CreateProvisionable
+import usecases.provisionable.DeleteProvisionable
+import usecases.provisionable.GetAllProvisionable
+import usecases.provisionable.GetProvision
+import usecases.provisionable.MakePaymentInstallment
+import usecases.provisionable.UpdateProvisionable
+import usecases.provisionable.dto.CreateProvisionInput
+import usecases.provisionable.dto.DeleteProvisionInput
+import usecases.provisionable.dto.GetProvisionOutput
+import usecases.provisionable.dto.UpdateProvisionInput
+import usecases.saving_goals.dto.DecreaseSavingGoalInput
+import usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
+import usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
+import usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID
@@ -40,7 +37,7 @@ class ProvisionConfig {
     @Bean
     fun createProvision(
         provisionRepo: IRepository<Provision>,
-        fundRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         createSchedulerInvoice: IUseCase<CreateScheduleInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork
     ): IUseCase<CreateProvisionInput, CreatedOutput> {
@@ -56,7 +53,7 @@ class ProvisionConfig {
     fun updateProvision(
         unitOfWork: IUnitOfWork,
         provisionRepo: IRepository<Provision>,
-        fundRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         updateSchedulerInvoice: IUseCase<UpdateScheduleInvoiceInput, Unit>,
     ): IUseCase<UpdateProvisionInput, Unit> {
@@ -106,7 +103,7 @@ class ProvisionConfig {
     @Bean
     fun makeProvisionInstallment(
         provisionRepo: IRepository<Provision>,
-        fundRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         decreaseFund: IInnerUseCase<DecreaseSavingGoalInput, Unit>,
         eventManager: IEventRegister,
         unitOfWork: IUnitOfWork

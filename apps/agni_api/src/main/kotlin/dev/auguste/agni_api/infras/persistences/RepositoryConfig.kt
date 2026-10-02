@@ -5,31 +5,31 @@ import com.fasterxml.jackson.databind.util.StdDateFormat
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import dev.auguste.agni_api.core.entities.Account
-import dev.auguste.agni_api.core.entities.AgentSuggestion
-import dev.auguste.agni_api.core.entities.BankRegister
-import dev.auguste.agni_api.core.entities.Budget
-import dev.auguste.agni_api.core.entities.Category
-import dev.auguste.agni_api.core.entities.Currency
-import dev.auguste.agni_api.core.entities.Deduction
-import dev.auguste.agni_api.core.entities.ExternalTransaction
-import dev.auguste.agni_api.core.entities.FinancePrinciple
-import dev.auguste.agni_api.core.entities.FinanceReport
-import dev.auguste.agni_api.core.entities.Goal
-import dev.auguste.agni_api.core.entities.IncomeSource
-import dev.auguste.agni_api.core.entities.InternalLoan
-import dev.auguste.agni_api.core.entities.Invoice
-import dev.auguste.agni_api.core.entities.Notification
-import dev.auguste.agni_api.core.entities.Patrimony
-import dev.auguste.agni_api.core.entities.PatrimonySnapshot
-import dev.auguste.agni_api.core.entities.Profile
-import dev.auguste.agni_api.core.entities.Provision
-import dev.auguste.agni_api.core.entities.SavingGoal
-import dev.auguste.agni_api.core.entities.ScheduleInvoice
-import dev.auguste.agni_api.core.entities.SpendingPeriod
-import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
-import dev.auguste.agni_api.core.entities.Tag
-import dev.auguste.agni_api.core.entities.Transaction
+import domain.entities.Account
+import domain.entities.AgentSuggestion
+import domain.entities.BankRegister
+import domain.entities.Budget
+import domain.entities.Category
+import domain.entities.Currency
+import domain.entities.Deduction
+import domain.entities.ExternalTransaction
+import domain.entities.FinancePrinciple
+import domain.entities.FinanceReport
+import domain.entities.Goal
+import domain.entities.IncomeSource
+import domain.entities.InternalLoan
+import domain.entities.Invoice
+import domain.entities.Notification
+import domain.entities.Patrimony
+import domain.entities.PatrimonySnapshot
+import domain.entities.Profile
+import domain.entities.Provision
+import domain.entities.Fund
+import domain.entities.ScheduleInvoice
+import domain.entities.SpendingPeriod
+import domain.entities.SpendingPeriodTemplate
+import domain.entities.Tag
+import domain.entities.Transaction
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JbdcAccountModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcAgentSuggestionModel
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcBankRegisterModel
@@ -186,10 +186,10 @@ interface SavingGoalStorage: GenericStorage<JdbcSavingGoalModel, UUID>
 @Component
 class SavingGoalRepository(
     storage: SavingGoalStorage,
-    storageModelMapper: IMapper<JdbcSavingGoalModel, SavingGoal>,
+    storageModelMapper: IMapper<JdbcSavingGoalModel, Fund>,
     queryAdapter: JdbcQueryAdapter,
-    queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcSavingGoalModel, SavingGoal>,
-): JdbcRepository<JdbcSavingGoalModel, SavingGoal>(storage = storage, modelMapper = storageModelMapper, queryAdapter, queryExtendAdapter)
+    queryExtendAdapter: IQueryExtendJdbcAdapter<JdbcSavingGoalModel, Fund>,
+): JdbcRepository<JdbcSavingGoalModel, Fund>(storage = storage, modelMapper = storageModelMapper, queryAdapter, queryExtendAdapter)
 
 // ScheduleInvoice
 @Repository

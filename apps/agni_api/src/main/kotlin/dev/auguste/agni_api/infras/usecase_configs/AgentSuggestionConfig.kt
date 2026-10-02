@@ -1,17 +1,17 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.entities.AgentSuggestion
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.agent_suggestions.AddSuggestion
-import dev.auguste.agni_api.core.usecases.agent_suggestions.ConfirmSuggestion
-import dev.auguste.agni_api.core.usecases.agent_suggestions.GetAllSuggestions
-import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.AddSuggestionInput
-import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.ConfirmSuggestionInput
-import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.GetAllSuggestionInput
-import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.GetSuggestionOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import adapters.repositories.IRepository
+import domain.entities.AgentSuggestion
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.agent_suggestions.AddSuggestion
+import usecases.agent_suggestions.ConfirmSuggestion
+import usecases.agent_suggestions.GetAllSuggestions
+import usecases.agent_suggestions.dto.AddSuggestionInput
+import usecases.agent_suggestions.dto.ConfirmSuggestionInput
+import usecases.agent_suggestions.dto.GetAllSuggestionInput
+import usecases.agent_suggestions.dto.GetSuggestionOutput
+import usecases.interfaces.IUseCase
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 

@@ -2,14 +2,14 @@ package dev.auguste.agni_api.controllers
 
 import dev.auguste.agni_api.controllers.models.ApiCreateFinanceReportModel
 import dev.auguste.agni_api.controllers.models.mapApiCreateFinanceReportModel
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.finance_reports.dto.CreateFinanceReportInput
-import dev.auguste.agni_api.core.usecases.finance_reports.dto.DeleteFinanceReportInput
-import dev.auguste.agni_api.core.usecases.finance_reports.dto.GetFinanceReportInput
-import dev.auguste.agni_api.core.usecases.finance_reports.dto.GetFinanceReportOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import adapters.dto.QueryFilter
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.finance_reports.dto.CreateFinanceReportInput
+import usecases.finance_reports.dto.DeleteFinanceReportInput
+import usecases.finance_reports.dto.GetFinanceReportInput
+import usecases.finance_reports.dto.GetFinanceReportOutput
+import usecases.interfaces.IUseCase
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping

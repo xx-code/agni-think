@@ -1,8 +1,8 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
-import dev.auguste.agni_api.core.entities.IncomeSource
-import dev.auguste.agni_api.core.entities.enums.IncomeSourceFrequencyType
-import dev.auguste.agni_api.core.entities.enums.IncomeSourceType
+import domain.entities.IncomeSource
+import domain.enums.IncomeSourceFrequencyType
+import domain.enums.IncomeSourceType
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column

@@ -1,11 +1,11 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.adapters.dto.ScheduleRepeaterInput
-import dev.auguste.agni_api.core.entities.enums.InvoiceType
-import dev.auguste.agni_api.core.entities.enums.PeriodType
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.SchedulerInvoiceInput
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
+import adapters.dto.ScheduleRepeaterInput
+import domain.enums.InvoiceType
+import domain.enums.PeriodType
+import usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
+import usecases.schedule_Invoices.dto.SchedulerInvoiceInput
+import usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull

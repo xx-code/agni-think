@@ -1,9 +1,9 @@
 package dev.auguste.agni_api.infras
 
-import dev.auguste.agni_api.core.adapters.events.EventType
-import dev.auguste.agni_api.core.adapters.events.IEventContent
-import dev.auguste.agni_api.core.adapters.events.IEventListener
-import dev.auguste.agni_api.core.adapters.events.IEventRegister
+import adapters.events.EventType
+import adapters.events.IEventContent
+import adapters.events.IEventListener
+import adapters.events.IEventRegister
 import org.springframework.stereotype.Component
 
 @Component

@@ -1,14 +1,14 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
-import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
-import dev.auguste.agni_api.core.entities.enums.InvoiceType
-import dev.auguste.agni_api.core.usecases.invoices.dto.CreateFreezeInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.InvoiceDeductionInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.TransactionInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.TransferInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.UpdateInvoiceInput
+import domain.enums.InvoiceMovementType
+import domain.enums.InvoiceStatusType
+import domain.enums.InvoiceType
+import usecases.invoices.dto.CreateFreezeInvoiceInput
+import usecases.invoices.dto.CreateInvoiceInput
+import usecases.invoices.dto.InvoiceDeductionInput
+import usecases.invoices.dto.TransactionInput
+import usecases.invoices.dto.TransferInvoiceInput
+import usecases.invoices.dto.UpdateInvoiceInput
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
@@ -124,7 +124,7 @@ fun mapApiCreateInvoice(model: ApiCreateInvoiceModel): CreateInvoiceInput {
         status = InvoiceStatusType.fromString(model.status)  ,
         date = model.date,
         type = InvoiceType.fromString(model.type),
-        mouvementType = InvoiceMouvementType.fromString(model.mouvement) ,
+        mouvementType = InvoiceMovementType.fromString(model.mouvement) ,
         currency = model.currencyId,
         transactions = model.transactions.map {
             TransactionInput(
@@ -150,7 +150,7 @@ fun mapApiUpdateInvoice(id: UUID, model: ApiUpdateInvoiceModel): UpdateInvoiceIn
         accountId = model.accountId,
         date = model.date,
         type = InvoiceType.fromString(model.type),
-        mouvementType = model.mouvement?.let { InvoiceMouvementType.fromString(model.mouvement) } ,
+        mouvementType = model.mouvement?.let { InvoiceMovementType.fromString(model.mouvement) } ,
         currency = model.currencyId,
         removeTransactionIds = model.removeTransactionIds,
         addTransactions = model.addTransactions.map {

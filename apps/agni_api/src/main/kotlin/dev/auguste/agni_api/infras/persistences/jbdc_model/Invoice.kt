@@ -2,14 +2,13 @@ package dev.auguste.agni_api.infras.persistences.jbdc_model
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import dev.auguste.agni_api.core.entities.Invoice
-import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
-import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
-import dev.auguste.agni_api.core.entities.enums.InvoiceType
-import dev.auguste.agni_api.core.value_objects.InvoiceDeduction
-import dev.auguste.agni_api.core.value_objects.InvoiceModuleLinker
+import domain.entities.Invoice
+import domain.enums.InvoiceMovementType
+import domain.enums.InvoiceStatusType
+import domain.enums.InvoiceType
+import domain.value_objects.InvoiceDeduction
+import domain.value_objects.InvoiceModuleLinker
 import dev.auguste.agni_api.infras.persistences.IMapper
-import org.postgresql.util.PGobject
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -54,7 +53,7 @@ class JdbcInvoiceModelMapper(
             id = model.id,
             accountId = model.accountId,
             status = InvoiceStatusType.fromString(model.status),
-            mouvementType = InvoiceMouvementType.fromString(model.mouvement),
+            movementType = InvoiceMovementType.fromString(model.mouvement),
             type = InvoiceType.fromString(model.type),
             deductions = deductionsJson.map { InvoiceDeduction.fromMap(it) }.toMutableSet(),
             moduleLinkers = moduleLinkersJson.map { InvoiceModuleLinker.fromMap(it) }.toMutableList(),
@@ -69,7 +68,7 @@ class JdbcInvoiceModelMapper(
             accountId = entity.accountId,
             status = entity.statusType.value,
             type = entity.type.value,
-            mouvement = entity.mouvementType.value,
+            mouvement = entity.movementType.value,
             date = entity.date,
             isFreeze = entity.isFreeze,
             deductions = objectMapper.writeValueAsString(entity.deductions.map { it.toMap() }),
@@ -82,7 +81,7 @@ class JdbcInvoiceModelMapper(
         "accountId" to "account_id",
         "statusType" to "status",
         "type" to "type",
-        "mouvementType" to "mouvement",
+        "mouvementType" to "movement",
         "date" to "date",
         "isFreeze" to "is_freeze",
         "moduleLinkers.sourceId" to "jsonb_array:invoice_module_linkers->>'source_id'",

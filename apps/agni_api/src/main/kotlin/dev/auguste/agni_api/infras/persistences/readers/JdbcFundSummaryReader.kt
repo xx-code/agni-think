@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.infras.persistences.readers
 
-import dev.auguste.agni_api.core.adapters.dto.FundSummaryOutput
-import dev.auguste.agni_api.core.adapters.readers.IFundSummaryReader
+import adapters.dto.FundSummaryOutput
+import adapters.readers.IFundSummaryReader
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
 

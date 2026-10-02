@@ -1,8 +1,8 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
-import dev.auguste.agni_api.core.entities.Goal
-import dev.auguste.agni_api.core.entities.enums.GoalEvaluationType
-import dev.auguste.agni_api.core.entities.enums.GoalStatusType
+import domain.entities.Goal
+import domain.enums.GoalEvaluationType
+import domain.enums.GoalStatusType
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column

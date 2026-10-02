@@ -1,8 +1,8 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
-import dev.auguste.agni_api.core.entities.Deduction
-import dev.auguste.agni_api.core.entities.enums.DeductionBaseType
-import dev.auguste.agni_api.core.entities.enums.DeductionModeType
+import domain.entities.Deduction
+import domain.enums.DeductionBaseType
+import domain.enums.DeductionModeType
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column

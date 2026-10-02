@@ -2,16 +2,15 @@ package dev.auguste.agni_api.infras.persistences.jbdc_model
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import dev.auguste.agni_api.core.entities.ScheduleInvoice
-import dev.auguste.agni_api.core.entities.enums.InvoiceType
-import dev.auguste.agni_api.core.value_objects.ScheduleInvoiceModuleLinker
-import dev.auguste.agni_api.core.value_objects.Scheduler
+import domain.entities.ScheduleInvoice
+import domain.enums.InvoiceType
+import domain.value_objects.ScheduleInvoiceModuleLinker
+import domain.value_objects.Scheduler
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.stereotype.Component
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 

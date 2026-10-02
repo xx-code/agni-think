@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.usecases.profiles.dto.CreateProfileInput
-import dev.auguste.agni_api.core.usecases.profiles.dto.UpdateProfileInput
+import usecases.profiles.dto.CreateProfileInput
+import usecases.profiles.dto.UpdateProfileInput
 import jakarta.validation.constraints.Min
 import java.util.UUID
 

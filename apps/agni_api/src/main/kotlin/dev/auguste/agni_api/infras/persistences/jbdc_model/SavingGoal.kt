@@ -1,15 +1,14 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.auguste.agni_api.core.entities.SavingGoal
-import dev.auguste.agni_api.core.entities.enums.FundType
+import domain.entities.Fund
+import domain.enums.FundType
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
 import java.util.UUID
 
 @Table("funds")
@@ -37,9 +36,9 @@ data class JdbcSavingGoalModel(
 @Component
 class JdbcSavingGoalMapper(
     private val objectMapper: ObjectMapper
-): IMapper<JdbcSavingGoalModel, SavingGoal> {
-    override fun toDomain(model: JdbcSavingGoalModel): SavingGoal {
-        return SavingGoal(
+): IMapper<JdbcSavingGoalModel, Fund> {
+    override fun toDomain(model: JdbcSavingGoalModel): Fund {
+        return Fund(
             id = model.id,
             title = model.title,
             description = model.description,
@@ -50,7 +49,7 @@ class JdbcSavingGoalMapper(
         )
     }
 
-    override fun toModel(entity: SavingGoal): JdbcSavingGoalModel {
+    override fun toModel(entity: Fund): JdbcSavingGoalModel {
         return JdbcSavingGoalModel(
             fundId = entity.id,
             title = entity.title,

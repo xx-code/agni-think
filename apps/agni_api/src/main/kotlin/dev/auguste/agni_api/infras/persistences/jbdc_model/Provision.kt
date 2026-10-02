@@ -3,10 +3,10 @@ package dev.auguste.agni_api.infras.persistences.jbdc_model
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import dev.auguste.agni_api.core.entities.Provision
-import dev.auguste.agni_api.core.entities.enums.ProvisionType
-import dev.auguste.agni_api.core.value_objects.ProvisionDepreciateCriteria
-import dev.auguste.agni_api.core.value_objects.ProvisionPayment
+import domain.entities.Provision
+import domain.enums.ProvisionType
+import domain.value_objects.ProvisionDepreciateCriteria
+import domain.value_objects.ProvisionPayment
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column

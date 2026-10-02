@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.infras
 
-import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
-import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
+import usecases.BackgroundTaskOut
+import usecases.interfaces.ISuspendableUseCase
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier

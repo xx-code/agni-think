@@ -1,0 +1,9 @@
+package usecases.budgets.dto
+
+import adapters.dto.QueryFilter
+import domain.enums.PeriodType
+
+data class GetAllBudgetInput(
+    val query: QueryFilter,
+    val periodTypes: Set<domain.enums.PeriodType>? = null
+)

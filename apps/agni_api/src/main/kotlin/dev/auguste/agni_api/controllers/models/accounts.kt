@@ -1,16 +1,16 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.AccountType
-import dev.auguste.agni_api.core.entities.enums.ContributionAccountType
-import dev.auguste.agni_api.core.entities.enums.ManagementAccountType
-import dev.auguste.agni_api.core.entities.interfaces.IAccountDetail
-import dev.auguste.agni_api.core.usecases.accounts.dto.CreateAccountInput
-import dev.auguste.agni_api.core.usecases.accounts.dto.UpdateAccountInput
-import dev.auguste.agni_api.core.value_objects.BrokingAccountDetail
-import dev.auguste.agni_api.core.value_objects.BusinessAccountDetail
-import dev.auguste.agni_api.core.value_objects.CheckingAccountDetail
-import dev.auguste.agni_api.core.value_objects.CreditCardAccountDetail
-import dev.auguste.agni_api.core.value_objects.SavingAccountDetail
+import domain.enums.AccountType
+import domain.enums.ContributionAccountType
+import domain.enums.ManagementAccountType
+import domain.interfaces.IAccountDetail
+import usecases.accounts.dto.CreateAccountInput
+import usecases.accounts.dto.UpdateAccountInput
+import domain.value_objects.BrokingAccountDetail
+import domain.value_objects.BusinessAccountDetail
+import domain.value_objects.CheckingAccountDetail
+import domain.value_objects.CreditCardAccountDetail
+import domain.value_objects.SavingAccountDetail
 import jakarta.validation.constraints.Min
 import org.apache.coyote.BadRequestException
 import java.time.LocalDate

@@ -1,9 +1,9 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.SpendingPeriodStateType
-import dev.auguste.agni_api.core.usecases.spending_period.dto.CreateSpendingPeriodInput
-import dev.auguste.agni_api.core.usecases.spending_period.dto.SpendingPeriodItemInput
-import dev.auguste.agni_api.core.usecases.spending_period.dto.UpdateSpendingPeriodInput
+import domain.enums.SpendingPeriodStateType
+import usecases.spending_period.dto.CreateSpendingPeriodInput
+import usecases.spending_period.dto.SpendingPeriodItemInput
+import usecases.spending_period.dto.UpdateSpendingPeriodInput
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank

@@ -1,6 +1,6 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.AddSuggestionInput
+import usecases.agent_suggestions.dto.AddSuggestionInput
 
 data class ApiAddSuggestionModel(
     val agentId: String,

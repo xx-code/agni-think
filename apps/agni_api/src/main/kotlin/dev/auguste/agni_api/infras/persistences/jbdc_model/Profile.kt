@@ -1,8 +1,8 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
-import dev.auguste.agni_api.core.entities.PatrimonySnapshot
-import dev.auguste.agni_api.core.entities.Profile
-import dev.auguste.agni_api.core.entities.enums.PatrimonySnapshotStatusType
+import domain.entities.PatrimonySnapshot
+import domain.entities.Profile
+import domain.enums.PatrimonySnapshotStatusType
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column

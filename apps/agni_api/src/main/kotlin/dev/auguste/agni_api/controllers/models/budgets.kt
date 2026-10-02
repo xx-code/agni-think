@@ -1,10 +1,10 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.adapters.dto.ScheduleRepeaterInput
-import dev.auguste.agni_api.core.entities.enums.PeriodType
-import dev.auguste.agni_api.core.usecases.budgets.dto.BudgetScheduleInput
-import dev.auguste.agni_api.core.usecases.budgets.dto.CreateBudgetInput
-import dev.auguste.agni_api.core.usecases.budgets.dto.UpdateBudgetInput
+import adapters.dto.ScheduleRepeaterInput
+import domain.enums.PeriodType
+import usecases.budgets.dto.BudgetScheduleInput
+import usecases.budgets.dto.CreateBudgetInput
+import usecases.budgets.dto.UpdateBudgetInput
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty

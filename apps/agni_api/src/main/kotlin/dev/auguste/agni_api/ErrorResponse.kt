@@ -12,8 +12,7 @@ data class ErrorResponse(
 
 data class ValidationErrorResponse(
     val status: Int = 400,
-    val error: String = "Validation Error",
-    val message: String = "La validation des données a échoué",
+    val error: String = "VALIDATION_ERROR",
     val errors: Map<String, String?>,
     val timestamp: Instant = Instant.now()
 )

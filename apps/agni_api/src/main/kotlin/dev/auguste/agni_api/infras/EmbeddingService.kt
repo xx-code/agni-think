@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.infras
 
-import dev.auguste.agni_api.core.adapters.EmbeddingDocument
-import dev.auguste.agni_api.core.adapters.IEmbeddingService
+import adapters.EmbeddingDocument
+import adapters.IEmbeddingService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.util.UUID

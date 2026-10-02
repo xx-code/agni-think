@@ -2,13 +2,13 @@ package dev.auguste.agni_api.controllers
 
 import dev.auguste.agni_api.controllers.models.ApiPushNotificationInput
 import dev.auguste.agni_api.controllers.models.mapApiPushNotification
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.notifications.PushNotification
-import dev.auguste.agni_api.core.usecases.notifications.dto.DeleteNotificationInput
-import dev.auguste.agni_api.core.usecases.notifications.dto.GetNotificationOutput
+import adapters.dto.QueryFilter
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.interfaces.IUseCase
+import usecases.notifications.PushNotification
+import usecases.notifications.dto.DeleteNotificationInput
+import usecases.notifications.dto.GetNotificationOutput
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.ResponseEntity

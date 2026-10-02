@@ -1,9 +1,9 @@
 package dev.auguste.agni_api.infras.persistences.query_adapters
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryExternalTransactionExtend
-import dev.auguste.agni_api.core.entities.ExternalTransaction
+import adapters.dto.QueryFilter
+import adapters.repositories.IQueryExtend
+import adapters.repositories.query_extend.QueryExternalTransactionExtend
+import domain.entities.ExternalTransaction
 import dev.auguste.agni_api.infras.persistences.IMapper
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcExternalTransactionModel
 import org.springframework.jdbc.core.RowMapper

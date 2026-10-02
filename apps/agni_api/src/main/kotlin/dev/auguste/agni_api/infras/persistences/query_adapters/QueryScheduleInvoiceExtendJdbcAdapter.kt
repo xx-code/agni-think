@@ -1,11 +1,11 @@
 package dev.auguste.agni_api.infras.persistences.query_adapters
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryScheduleInvoiceExtend
-import dev.auguste.agni_api.core.entities.ScheduleInvoice
+import adapters.dto.QueryFilter
+import adapters.repositories.IQueryExtend
+import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.query_extend.QueryScheduleInvoiceExtend
+import domain.entities.ScheduleInvoice
 import dev.auguste.agni_api.infras.persistences.IMapper
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcScheduleInvoiceModel
 import org.springframework.jdbc.core.RowMapper
@@ -33,11 +33,12 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
         val extend = query as QueryScheduleInvoiceExtend
         val params = MapSqlParameterSource()
 
-        if (extend.comparatorDueDate != null) {
+        val comparatorDueDate = extend.comparatorDueDate
+        if (comparatorDueDate != null) {
             sqlBuilder.append(" AND jsonb_exists(scheduler, 'due_date')")
-            val dateToVerify = extend.comparatorDueDate.date.atOffset(ZoneOffset.UTC).toString()
+            val dateToVerify = comparatorDueDate.date.atOffset(ZoneOffset.UTC).toString()
 
-            val operator = when(extend.comparatorDueDate.comparator) {
+            val operator = when(comparatorDueDate.comparator) {
                 QueryComparator.Greater -> ">"
                 QueryComparator.GreaterOrEquals -> ">="
                 QueryComparator.Lesser -> "<"
@@ -50,9 +51,10 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
             params.addValue("dueDate", dateToVerify)
         }
 
-        if (extend.comparatorEndDate != null) {
+        val comparatorEndDate = extend.comparatorEndDate
+        if (comparatorEndDate != null) {
 
-            val operator = when(extend.comparatorEndDate.comparator) {
+            val operator = when(comparatorEndDate.comparator) {
                 QueryComparator.Greater -> ">"
                 QueryComparator.GreaterOrEquals -> ">="
                 QueryComparator.Lesser -> "<"
@@ -62,12 +64,13 @@ class QueryScheduleInvoiceExtendJdbcAdapter(
             }
 
             sqlBuilder.append(" AND (end_date $operator :endDate OR end_date = NULL)")
-            params.addValue("endDate",extend.comparatorEndDate.date )
+            params.addValue("endDate",comparatorEndDate.date )
         }
 
-        if (extend.type != null) {
+        val type = extend.type
+        if (type != null) {
             sqlBuilder.append(" AND LOWER(type) = :type")
-            params.addValue("type", extend.type.value.lowercase())
+            params.addValue("type", type.value.lowercase())
         }
 
 

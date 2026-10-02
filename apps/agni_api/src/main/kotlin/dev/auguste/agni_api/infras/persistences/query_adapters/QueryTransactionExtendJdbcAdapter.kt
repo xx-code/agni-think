@@ -2,10 +2,10 @@ package dev.auguste.agni_api.infras.persistences.query_adapters
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryTransactionExtend
-import dev.auguste.agni_api.core.entities.Transaction
+import adapters.dto.QueryFilter
+import adapters.repositories.IQueryExtend
+import adapters.repositories.query_extend.QueryTransactionExtend
+import domain.entities.Transaction
 import dev.auguste.agni_api.infras.persistences.IMapper
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTransactionModel
 import org.springframework.jdbc.core.RowMapper
@@ -32,14 +32,16 @@ class QueryTransactionExtendJdbcAdapter(
         val extend = query as QueryTransactionExtend
         val params = MapSqlParameterSource()
 
-        if (!extend.budgetIds.isNullOrEmpty()) {
+        val budgetIds = extend.budgetIds
+        if (!budgetIds.isNullOrEmpty()) {
             sqlBuilder.append(" AND r.tag_ids ??| CAST(:tagIds AS text[])")
-            params.addValue("budgetIds", extend.budgetIds.toTypedArray())
+            params.addValue("budgetIds", budgetIds.toTypedArray())
         }
 
-        if (!extend.tagIds.isNullOrEmpty()) {
+        val tagIds = extend.tagIds
+        if (!tagIds.isNullOrEmpty()) {
             sqlBuilder.append(" AND r.tag_ids ??| CAST(:tagIds AS text[])")
-            params.addValue("tagIds", extend.tagIds.toTypedArray())
+            params.addValue("tagIds", tagIds.toTypedArray())
         }
 
         if (!extend.invoiceIds.isNullOrEmpty()) {

@@ -1,7 +1,8 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
-import dev.auguste.agni_api.core.entities.Category
+import domain.entities.Category
 import dev.auguste.agni_api.infras.persistences.IMapper
+import domain.entities.Color
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -42,7 +43,7 @@ class JdbcCategoryModelMapper: IMapper<JdbcCategoryModel, Category> {
             title = model.title,
             icon = model.iconId,
             isSystem = model.isSystem,
-            color = model.color ?: "",
+            color = if (!model.color.isNullOrBlank()) Color(model.color) else Color("#FFF"),
             isArchived = model.isArchive
         )
         category.initDate(model.createdAt, model.createdAt)
@@ -53,7 +54,7 @@ class JdbcCategoryModelMapper: IMapper<JdbcCategoryModel, Category> {
         return JdbcCategoryModel(
             categoryId = entity.id,
             title = entity.title,
-            color = entity.color,
+            color = entity.color.toString(),
             iconId = entity.icon,
             isSystem = entity.isSystem,
             isArchive = entity.isArchived,

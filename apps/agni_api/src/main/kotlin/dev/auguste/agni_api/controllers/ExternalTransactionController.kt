@@ -2,14 +2,14 @@ package dev.auguste.agni_api.controllers
 
 import dev.auguste.agni_api.controllers.models.ApiAppExternalTransactionModel
 import dev.auguste.agni_api.controllers.models.mapApiExternalTransactionModel
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.dto.AddExternalTransactionInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllExternalTransactionInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetExternalTransactionOutput
-import dev.auguste.agni_api.core.usecases.invoices.dto.TreatAnExternalTransactionInput
+import adapters.dto.QueryFilter
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.interfaces.IUseCase
+import usecases.invoices.dto.AddExternalTransactionInput
+import usecases.invoices.dto.GetAllExternalTransactionInput
+import usecases.invoices.dto.GetExternalTransactionOutput
+import usecases.invoices.dto.TreatAnExternalTransactionInput
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable

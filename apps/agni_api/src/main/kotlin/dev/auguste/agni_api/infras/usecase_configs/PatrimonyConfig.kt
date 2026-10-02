@@ -1,42 +1,39 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
-import dev.auguste.agni_api.core.entities.Account
-import dev.auguste.agni_api.core.entities.Invoice
-import dev.auguste.agni_api.core.entities.Patrimony
-import dev.auguste.agni_api.core.entities.PatrimonySnapshot
-import dev.auguste.agni_api.core.entities.Provision
-import dev.auguste.agni_api.core.entities.SavingGoal
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.GetManyInvoices
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
-import dev.auguste.agni_api.core.usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
-import dev.auguste.agni_api.core.usecases.patrimonies.CreatePatrimony
-import dev.auguste.agni_api.core.usecases.patrimonies.DeletePatrimony
-import dev.auguste.agni_api.core.usecases.patrimonies.GetAllPatrimonies
-import dev.auguste.agni_api.core.usecases.patrimonies.GetPatrimony
-import dev.auguste.agni_api.core.usecases.patrimonies.UpdatePatrimony
-import dev.auguste.agni_api.core.usecases.patrimonies.dto.CreatePatrimonyInput
-import dev.auguste.agni_api.core.usecases.patrimonies.dto.DeletePatrimonyInput
-import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyInput
-import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
-import dev.auguste.agni_api.core.usecases.patrimonies.dto.UpdatePatrimonyInput
-import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.AddSnapshotToPatrimony
-import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.GetAllSnapshotFromPatrimony
-import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.RemoveSnapshotFromPatrimony
-import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.UpdateSnapshotFromPatrimony
-import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.AddSnapshotToPatrimonyInput
-import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.GetAllSnapshotPatrimonyInput
-import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.GetSnapshotPatrimonyOutput
-import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.RemoveSnapshotFromPatrimonyInput
-import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.UpdateSnapshotFromPatrimonyInput
+import adapters.dto.QueryFilter
+import adapters.repositories.IRepository
+import adapters.repositories.IUnitOfWork
+import domain.entities.Account
+import domain.entities.Invoice
+import domain.entities.Patrimony
+import domain.entities.PatrimonySnapshot
+import domain.entities.Provision
+import domain.entities.Fund
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.interfaces.IUseCase
+import usecases.invoices.dto.GetBalanceByPeriodOutput
+import usecases.invoices.dto.GetBalancesByPeriodInput
+import usecases.invoices.dto.GetInvoiceOutput
+import usecases.patrimonies.CreatePatrimony
+import usecases.patrimonies.DeletePatrimony
+import usecases.patrimonies.GetAllPatrimonies
+import usecases.patrimonies.GetPatrimony
+import usecases.patrimonies.UpdatePatrimony
+import usecases.patrimonies.dto.CreatePatrimonyInput
+import usecases.patrimonies.dto.DeletePatrimonyInput
+import usecases.patrimonies.dto.GetPatrimonyInput
+import usecases.patrimonies.dto.GetPatrimonyOutput
+import usecases.patrimonies.dto.UpdatePatrimonyInput
+import usecases.patrimonies.snapshots.AddSnapshotToPatrimony
+import usecases.patrimonies.snapshots.GetAllSnapshotFromPatrimony
+import usecases.patrimonies.snapshots.RemoveSnapshotFromPatrimony
+import usecases.patrimonies.snapshots.UpdateSnapshotFromPatrimony
+import usecases.patrimonies.snapshots.dto.AddSnapshotToPatrimonyInput
+import usecases.patrimonies.snapshots.dto.GetAllSnapshotPatrimonyInput
+import usecases.patrimonies.snapshots.dto.GetSnapshotPatrimonyOutput
+import usecases.patrimonies.snapshots.dto.RemoveSnapshotFromPatrimonyInput
+import usecases.patrimonies.snapshots.dto.UpdateSnapshotFromPatrimonyInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID
@@ -77,7 +74,7 @@ class PatrimonyConfig {
         patrimonyRepo: IRepository<Patrimony>,
         accountRepo: IRepository<Account>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
-        savingGoalRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
         provisionRepo: IRepository<Provision>,
         invoiceRepo: IRepository<Invoice>,
@@ -88,7 +85,7 @@ class PatrimonyConfig {
             accountRepo = accountRepo,
             patrimonySnapshotRepo = snapshotRepo,
             getBalanceByPeriod = getBalanceByPeriod,
-            savingGoalRepo = savingGoalRepo,
+            fundRepo = fundRepo,
             provisionRepo = provisionRepo,
             invoiceRepo = invoiceRepo,
             getManyInvoices = getManyInvoices,
@@ -99,7 +96,7 @@ class PatrimonyConfig {
     fun getPatrimony(
         patrimonyRepo: IRepository<Patrimony>,
         accountRepo: IRepository<Account>,
-        savingGoalRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
         provisionRepo: IRepository<Provision>,
@@ -110,7 +107,7 @@ class PatrimonyConfig {
             patrimonyRepo = patrimonyRepo,
             accountRepo = accountRepo,
             patrimonySnapshotRepo = snapshotRepo,
-            savingGoalRepo = savingGoalRepo,
+            fundRepo = fundRepo,
             getBalancesByPeriod = getBalanceByPeriod,
             provisionRepo = provisionRepo,
             invoiceRepo = invoiceRepo,
@@ -160,16 +157,16 @@ class PatrimonyConfig {
 
     @Bean
     fun getAllSnapshotsFromPatrimonies(
-       snapshotRepo: IRepository<PatrimonySnapshot>,
-       savingGoalRepo: IRepository<SavingGoal>,
-       getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
-       provisionRepo: IRepository<Provision>,
-       invoiceRepo: IRepository<Invoice>,
-       getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
+        snapshotRepo: IRepository<PatrimonySnapshot>,
+        fundRepo: IRepository<Fund>,
+        getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
+        provisionRepo: IRepository<Provision>,
+        invoiceRepo: IRepository<Invoice>,
+        getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
     ) : IUseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>> {
         return GetAllSnapshotFromPatrimony(
             snapshotPatrimonyRepo = snapshotRepo,
-            savingGoalRepo = savingGoalRepo,
+            fundRepo = fundRepo,
             getBalanceByPeriod = getBalanceByPeriod,
             provisionRepo = provisionRepo,
             invoiceRepo = invoiceRepo,

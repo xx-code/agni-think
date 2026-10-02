@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.usecases.tags.dto.CreateTagInput
-import dev.auguste.agni_api.core.usecases.tags.dto.UpdateTagInput
+import usecases.tags.dto.CreateTagInput
+import usecases.tags.dto.UpdateTagInput
 import jakarta.validation.constraints.NotEmpty
 import java.util.UUID
 

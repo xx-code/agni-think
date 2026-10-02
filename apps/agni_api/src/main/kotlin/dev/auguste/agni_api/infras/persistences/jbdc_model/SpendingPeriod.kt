@@ -3,10 +3,10 @@ package dev.auguste.agni_api.infras.persistences.jbdc_model
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import dev.auguste.agni_api.core.entities.SpendingPeriod
-import dev.auguste.agni_api.core.entities.enums.SpendingPeriodStateType
-import dev.auguste.agni_api.core.value_objects.SnapshotForcastSpendingPeriod
-import dev.auguste.agni_api.core.value_objects.SpendingPeriodItem
+import domain.entities.SpendingPeriod
+import domain.enums.SpendingPeriodStateType
+import domain.value_objects.SnapshotForcastSpendingPeriod
+import domain.value_objects.SpendingPeriodItem
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column

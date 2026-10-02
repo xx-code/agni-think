@@ -1,9 +1,9 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.IncomeSourceFrequencyType
-import dev.auguste.agni_api.core.entities.enums.IncomeSourceType
-import dev.auguste.agni_api.core.usecases.income_sources.dto.CreateIncomeSourceInput
-import dev.auguste.agni_api.core.usecases.income_sources.dto.UpdateIncomeSourceInput
+import domain.enums.IncomeSourceFrequencyType
+import domain.enums.IncomeSourceType
+import usecases.income_sources.dto.CreateIncomeSourceInput
+import usecases.income_sources.dto.UpdateIncomeSourceInput
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull

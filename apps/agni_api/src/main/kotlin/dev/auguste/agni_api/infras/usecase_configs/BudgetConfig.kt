@@ -1,28 +1,27 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.events.IEventRegister
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.entities.Budget
-import dev.auguste.agni_api.core.entities.SavingGoal
-import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.budgets.CreateBudget
-import dev.auguste.agni_api.core.usecases.budgets.DeleteBudget
-import dev.auguste.agni_api.core.usecases.budgets.GetAllBudgets
-import dev.auguste.agni_api.core.usecases.budgets.GetBudget
-import dev.auguste.agni_api.core.usecases.budgets.UpdateBudget
-import dev.auguste.agni_api.core.usecases.budgets.UpdateDueBudget
-import dev.auguste.agni_api.core.usecases.budgets.dto.CreateBudgetInput
-import dev.auguste.agni_api.core.usecases.budgets.dto.DeleteBudgetInput
-import dev.auguste.agni_api.core.usecases.budgets.dto.GetAllBudgetInput
-import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
-import dev.auguste.agni_api.core.usecases.budgets.dto.UpdateBudgetInput
-import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
+import adapters.events.IEventRegister
+import adapters.repositories.IRepository
+import domain.entities.Budget
+import domain.entities.Fund
+import usecases.BackgroundTaskOut
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.budgets.CreateBudget
+import usecases.budgets.DeleteBudget
+import usecases.budgets.GetAllBudgets
+import usecases.budgets.GetBudget
+import usecases.budgets.UpdateBudget
+import usecases.budgets.UpdateDueBudget
+import usecases.budgets.dto.CreateBudgetInput
+import usecases.budgets.dto.DeleteBudgetInput
+import usecases.budgets.dto.GetAllBudgetInput
+import usecases.budgets.dto.GetBudgetOutput
+import usecases.budgets.dto.UpdateBudgetInput
+import usecases.interfaces.ISuspendableUseCase
+import usecases.interfaces.IUseCase
+import usecases.invoices.dto.GetBalanceInput
+import usecases.invoices.dto.GetBalanceOutput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID
@@ -33,11 +32,11 @@ class BudgetConfig {
     @Bean
     fun createBudget(
         budgetRepo: IRepository<Budget>,
-        savingGoalRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
     ) : IUseCase<CreateBudgetInput, CreatedOutput> {
         return CreateBudget(
             budgetRepo = budgetRepo,
-            savingGoalRepo = savingGoalRepo,
+            fundRepo = fundRepo,
         )
     }
     

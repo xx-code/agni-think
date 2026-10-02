@@ -1,10 +1,10 @@
 package dev.auguste.agni_api.infras.persistences.query_adapters
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryGoalExtend
-import dev.auguste.agni_api.core.entities.Goal
+import adapters.dto.QueryFilter
+import adapters.repositories.IQueryExtend
+import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.query_extend.QueryGoalExtend
+import domain.entities.Goal
 import dev.auguste.agni_api.infras.persistences.IMapper
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcGoalModel
 import org.springframework.jdbc.core.RowMapper
@@ -37,21 +37,24 @@ class QueryGoalJdbcAdapter(
             params.addValue("sourceIds", extend.sourceIds)
         }
 
-        if (extend.status != null) {
+        val status = extend.status
+        if (status != null) {
             sqlBuilder.append(" AND status = :status")
-            params.addValue("status", extend.status.ordinal)
+            params.addValue("status", status.ordinal)
         }
 
-        if (extend.type != null) {
+        val type = extend.type
+        if (type != null) {
             sqlBuilder.append(" AND type = :type")
-            params.addValue("type", extend.type.value)
+            params.addValue("type", type.value)
         }
 
-        if (extend.dueDateComparator != null) {
+        val dueDateComparator = extend.dueDateComparator
+        if (dueDateComparator != null) {
             // sqlBuilder.append(" AND jsonb_exists(scheduler, 'due_date')")
-            val dateToVerify = extend.dueDateComparator.date.atOffset(ZoneOffset.UTC).toString()
+            val dateToVerify = dueDateComparator.date.atOffset(ZoneOffset.UTC).toString()
 
-            val operator = when(extend.dueDateComparator.comparator) {
+            val operator = when(dueDateComparator.comparator) {
                 QueryComparator.Greater -> ">"
                 QueryComparator.GreaterOrEquals -> ">="
                 QueryComparator.Lesser -> "<"

@@ -1,9 +1,9 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.GoalEvaluationType
-import dev.auguste.agni_api.core.entities.enums.GoalStatusType
-import dev.auguste.agni_api.core.usecases.goals.dto.CreateGoalInput
-import dev.auguste.agni_api.core.usecases.goals.dto.UpdateGoalInput
+import domain.enums.GoalEvaluationType
+import domain.enums.GoalStatusType
+import usecases.goals.dto.CreateGoalInput
+import usecases.goals.dto.UpdateGoalInput
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.String

@@ -1,68 +1,66 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.dto.FundSummaryOutput
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.readers.IFundSummaryReader
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.entities.Account
-import dev.auguste.agni_api.core.entities.Budget
-import dev.auguste.agni_api.core.entities.Category
-import dev.auguste.agni_api.core.entities.FinancePrinciple
-import dev.auguste.agni_api.core.entities.IncomeSource
-import dev.auguste.agni_api.core.entities.Patrimony
-import dev.auguste.agni_api.core.entities.PatrimonySnapshot
-import dev.auguste.agni_api.core.entities.Profile
-import dev.auguste.agni_api.core.entities.Provision
-import dev.auguste.agni_api.core.entities.SavingGoal
-import dev.auguste.agni_api.core.entities.ScheduleInvoice
-import dev.auguste.agni_api.core.entities.Tag
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.analystics.ForcastSpending
-import dev.auguste.agni_api.core.usecases.analystics.GetAnnualOutlook
-import dev.auguste.agni_api.core.usecases.analystics.GetBudgetTotalSummary
-import dev.auguste.agni_api.core.usecases.analystics.GetBudgetingRuleAnalytic
-import dev.auguste.agni_api.core.usecases.analystics.GetFinanceProfile
-import dev.auguste.agni_api.core.usecases.analystics.GetFundTotalSummary
-import dev.auguste.agni_api.core.usecases.analystics.GetPatrimonyEvolution
-import dev.auguste.agni_api.core.usecases.analystics.GetPatrimonySummary
-import dev.auguste.agni_api.core.usecases.analystics.GetProvisionSummary
-import dev.auguste.agni_api.core.usecases.analystics.GetSavingAnalytic
-import dev.auguste.agni_api.core.usecases.analystics.GetSavingBalance
-import dev.auguste.agni_api.core.usecases.analystics.GetScheduleInvoiceSummary
-import dev.auguste.agni_api.core.usecases.analystics.GetSpendByCategoryAnalytic
-import dev.auguste.agni_api.core.usecases.analystics.GetSpendByTagAnalytic
-import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingInput
-import dev.auguste.agni_api.core.usecases.analystics.dto.ForcastSpendingOutput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetAnnualOutlookOutput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetTotalSummaryOutput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticInput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetBudgetingRuleAnalyticOutput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetFinanceProfileOutput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonyEvolutionInput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonyEvolutionOutput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetPatrimonySummaryOutput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetProvisionSummaryOutput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticInput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingAnalyticOutput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingBalanceInput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetScheduleInvoiceSummaryOutput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryInput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByCategoryOutput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagInput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetSpendByTagOutput
-import dev.auguste.agni_api.core.usecases.budgets.dto.GetAllBudgetInput
-import dev.auguste.agni_api.core.usecases.budgets.dto.GetBudgetOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
-import dev.auguste.agni_api.core.usecases.patrimonies.GetAllPatrimonies
-import dev.auguste.agni_api.core.usecases.patrimonies.dto.GetPatrimonyOutput
+import adapters.dto.FundSummaryOutput
+import adapters.dto.QueryFilter
+import adapters.readers.IFundSummaryReader
+import adapters.repositories.IRepository
+import domain.entities.Account
+import domain.entities.Budget
+import domain.entities.Category
+import domain.entities.FinancePrinciple
+import domain.entities.IncomeSource
+import domain.entities.Patrimony
+import domain.entities.PatrimonySnapshot
+import domain.entities.Profile
+import domain.entities.Provision
+import domain.entities.Fund
+import domain.entities.ScheduleInvoice
+import domain.entities.Tag
+import usecases.ListOutput
+import usecases.analystics.ForcastSpending
+import usecases.analystics.GetAnnualOutlook
+import usecases.analystics.GetBudgetTotalSummary
+import usecases.analystics.GetBudgetingRuleAnalytic
+import usecases.analystics.GetFinanceProfile
+import usecases.analystics.GetFundTotalSummary
+import usecases.analystics.GetPatrimonyEvolution
+import usecases.analystics.GetPatrimonySummary
+import usecases.analystics.GetProvisionSummary
+import usecases.analystics.GetSavingAnalytic
+import usecases.analystics.GetSavingBalance
+import usecases.analystics.GetScheduleInvoiceSummary
+import usecases.analystics.GetSpendByCategoryAnalytic
+import usecases.analystics.GetSpendByTagAnalytic
+import usecases.analystics.dto.ForcastSpendingInput
+import usecases.analystics.dto.ForcastSpendingOutput
+import usecases.analystics.dto.GetAnnualOutlookOutput
+import usecases.analystics.dto.GetBudgetTotalSummaryOutput
+import usecases.analystics.dto.GetBudgetingRuleAnalyticInput
+import usecases.analystics.dto.GetBudgetingRuleAnalyticOutput
+import usecases.analystics.dto.GetFinanceProfileOutput
+import usecases.analystics.dto.GetPatrimonyEvolutionInput
+import usecases.analystics.dto.GetPatrimonyEvolutionOutput
+import usecases.analystics.dto.GetPatrimonySummaryOutput
+import usecases.analystics.dto.GetProvisionSummaryOutput
+import usecases.analystics.dto.GetSavingAnalyticInput
+import usecases.analystics.dto.GetSavingAnalyticOutput
+import usecases.analystics.dto.GetSavingBalanceInput
+import usecases.analystics.dto.GetScheduleInvoiceSummaryOutput
+import usecases.analystics.dto.GetSpendByCategoryInput
+import usecases.analystics.dto.GetSpendByCategoryOutput
+import usecases.analystics.dto.GetSpendByTagInput
+import usecases.analystics.dto.GetSpendByTagOutput
+import usecases.budgets.dto.GetAllBudgetInput
+import usecases.budgets.dto.GetBudgetOutput
+import usecases.interfaces.IUseCase
+import usecases.invoices.dto.GetBalanceByPeriodOutput
+import usecases.invoices.dto.GetBalanceInput
+import usecases.invoices.dto.GetBalanceOutput
+import usecases.invoices.dto.GetBalancesByPeriodInput
+import usecases.patrimonies.dto.GetPatrimonyOutput
 import dev.auguste.agni_api.infras.persistences.AccountRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.util.UUID
 
 
 @Configuration
@@ -181,14 +179,14 @@ class AnalyticConfig {
     fun getPatrimonyEvolution(
         patrimonyRepo: IRepository<Patrimony>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
-        savingGoalRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
     ): IUseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput> {
         return GetPatrimonyEvolution(
             patrimonyRepo = patrimonyRepo,
             patrimonySnapshotRepo = snapshotRepo,
             getBalanceByPeriod = getBalanceByPeriod,
-            savingGoalRepo = savingGoalRepo,
+            fundRepo = fundRepo,
         )
     }
 
@@ -212,7 +210,7 @@ class AnalyticConfig {
         budgetRepo: IRepository<Budget>,
         profileRepo: IRepository<Profile>,
         provisionRepo: IRepository<Provision>,
-        fundRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     ) : IUseCase<ForcastSpendingInput, ForcastSpendingOutput> {
         return ForcastSpending(

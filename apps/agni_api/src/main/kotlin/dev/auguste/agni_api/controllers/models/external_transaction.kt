@@ -1,6 +1,6 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.usecases.invoices.dto.AddExternalTransactionInput
+import usecases.invoices.dto.AddExternalTransactionInput
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDateTime
 

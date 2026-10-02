@@ -1,12 +1,12 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
-import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
-import dev.auguste.agni_api.core.entities.enums.InvoiceType
-import dev.auguste.agni_api.core.usecases.internal_loan.dto.CreateInternalLoanInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.InvoiceDeductionInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.TransactionInput
+import domain.enums.InvoiceMovementType
+import domain.enums.InvoiceStatusType
+import domain.enums.InvoiceType
+import usecases.internal_loan.dto.CreateInternalLoanInput
+import usecases.invoices.dto.CreateInvoiceInput
+import usecases.invoices.dto.InvoiceDeductionInput
+import usecases.invoices.dto.TransactionInput
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -45,8 +45,8 @@ fun mapApiCreateInternalLoanModel(input: ApiCreateInternalLoanModel): CreateInte
             accountId = input.creditAccountId,
             status = InvoiceStatusType.PENDING,
             date = input.transactionDate,
-            type = InvoiceType.VARIABLECOST,
-            mouvementType = InvoiceMouvementType.DEBIT,
+            type = InvoiceType.VARIABLE_COST,
+            mouvementType = InvoiceMovementType.DEBIT,
             currency = null,
             transactions = input.transactions.map {
                 TransactionInput(

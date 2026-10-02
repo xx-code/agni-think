@@ -1,9 +1,9 @@
 package dev.auguste.agni_api.infras.persistences.query_adapters
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QuerySavingGoalExtend
-import dev.auguste.agni_api.core.entities.SavingGoal
+import adapters.dto.QueryFilter
+import adapters.repositories.IQueryExtend
+import adapters.repositories.query_extend.QuerySavingGoalExtend
+import domain.entities.Fund
 import dev.auguste.agni_api.infras.persistences.IMapper
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcSavingGoalModel
 import org.springframework.jdbc.core.RowMapper
@@ -16,15 +16,15 @@ import java.util.UUID
 @Component
 class QuerySavingGoalExtendJdbcAdapter(
     jdbcTemplate: NamedParameterJdbcTemplate,
-    mapper: IMapper<JdbcSavingGoalModel, SavingGoal>
-): BaseQueryExtendJdbcAdapter<JdbcSavingGoalModel, SavingGoal>(jdbcTemplate, mapper) {
+    mapper: IMapper<JdbcSavingGoalModel, Fund>
+): BaseQueryExtendJdbcAdapter<JdbcSavingGoalModel, Fund>(jdbcTemplate, mapper) {
     override fun getSqlQuery(): StringBuilder = StringBuilder("SELECT * FROM funds WHERE 1=1")
     override fun getSqlCountQuery(): StringBuilder = StringBuilder("SELECT COUNT(*) FROM funds WHERE 1=1")
 
     override fun getSqlStringBuilder(
         sqlBuilder: StringBuilder,
         queryFilter: QueryFilter,
-        query: IQueryExtend<SavingGoal>
+        query: IQueryExtend<Fund>
     ): SqlQueryBuilder {
         val extend = query as QuerySavingGoalExtend
         val params = MapSqlParameterSource()

@@ -1,6 +1,6 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.usecases.notifications.dto.PushNotificationInput
+import usecases.notifications.dto.PushNotificationInput
 import jakarta.validation.constraints.NotEmpty
 
 data class ApiPushNotificationInput(

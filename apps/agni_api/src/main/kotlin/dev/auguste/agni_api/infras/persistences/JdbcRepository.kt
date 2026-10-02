@@ -1,12 +1,12 @@
 package dev.auguste.agni_api.infras.persistences
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.dto.RepoList
-import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.IQueryExtendBuilder
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
-import dev.auguste.agni_api.core.entities.Entity
+import adapters.dto.QueryFilter
+import adapters.dto.RepoList
+import adapters.repositories.IQueryExtend
+import adapters.repositories.IQueryExtendBuilder
+import adapters.repositories.IRepository
+import adapters.repositories.IUnitOfWork
+import domain.entities.Entity
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcModel
 import dev.auguste.agni_api.infras.persistences.query_adapters.IQueryExtendJdbcAdapter
 import dev.auguste.agni_api.infras.persistences.query_adapters.JdbcQueryAdapter

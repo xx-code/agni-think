@@ -1,8 +1,8 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.PrincipleType
-import dev.auguste.agni_api.core.usecases.finance_principles.dto.CreateFinancePrincipleInput
-import dev.auguste.agni_api.core.usecases.finance_principles.dto.UpdateFinancePrincipleInput
+import domain.enums.PrincipleType
+import usecases.finance_principles.dto.CreateFinancePrincipleInput
+import usecases.finance_principles.dto.UpdateFinancePrincipleInput
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull

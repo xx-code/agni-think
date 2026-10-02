@@ -1,19 +1,19 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.entities.FinanceReport
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.finance_reports.CreateFinanceReport
-import dev.auguste.agni_api.core.usecases.finance_reports.DeleteFinanceReport
-import dev.auguste.agni_api.core.usecases.finance_reports.GetAllFinanceReport
-import dev.auguste.agni_api.core.usecases.finance_reports.GetFinanceReport
-import dev.auguste.agni_api.core.usecases.finance_reports.dto.CreateFinanceReportInput
-import dev.auguste.agni_api.core.usecases.finance_reports.dto.DeleteFinanceReportInput
-import dev.auguste.agni_api.core.usecases.finance_reports.dto.GetFinanceReportInput
-import dev.auguste.agni_api.core.usecases.finance_reports.dto.GetFinanceReportOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import adapters.dto.QueryFilter
+import adapters.repositories.IRepository
+import domain.entities.FinanceReport
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.finance_reports.CreateFinanceReport
+import usecases.finance_reports.DeleteFinanceReport
+import usecases.finance_reports.GetAllFinanceReport
+import usecases.finance_reports.GetFinanceReport
+import usecases.finance_reports.dto.CreateFinanceReportInput
+import usecases.finance_reports.dto.DeleteFinanceReportInput
+import usecases.finance_reports.dto.GetFinanceReportInput
+import usecases.finance_reports.dto.GetFinanceReportOutput
+import usecases.interfaces.IUseCase
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 

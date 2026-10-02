@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
-import dev.auguste.agni_api.core.entities.FinancePrinciple
-import dev.auguste.agni_api.core.entities.enums.PrincipleType
+import domain.entities.FinancePrinciple
+import domain.enums.PrincipleType
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column

@@ -1,8 +1,8 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.FundType
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.CreateSavingGoalInput
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.UpdateSavingGoalInput
+import domain.enums.FundType
+import usecases.saving_goals.dto.CreateSavingGoalInput
+import usecases.saving_goals.dto.UpdateSavingGoalInput
 import java.time.LocalDate
 import java.util.UUID
 

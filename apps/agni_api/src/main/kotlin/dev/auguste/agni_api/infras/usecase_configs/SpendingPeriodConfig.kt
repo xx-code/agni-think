@@ -1,36 +1,35 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.entities.Budget
-import dev.auguste.agni_api.core.entities.Profile
-import dev.auguste.agni_api.core.entities.Provision
-import dev.auguste.agni_api.core.entities.SavingGoal
-import dev.auguste.agni_api.core.entities.ScheduleInvoice
-import dev.auguste.agni_api.core.entities.SpendingPeriod
-import dev.auguste.agni_api.core.entities.SpendingPeriodTemplate
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.analystics.dto.GetSavingBalanceInput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
-import dev.auguste.agni_api.core.usecases.spending_period.CompleteSpendingPeriod
-import dev.auguste.agni_api.core.usecases.spending_period.CreateSpendingPeriod
-import dev.auguste.agni_api.core.usecases.spending_period.DeleteSpendingPeriod
-import dev.auguste.agni_api.core.usecases.spending_period.ForcastSpendingPeriod
-import dev.auguste.agni_api.core.usecases.spending_period.GetAllSpendingPeriod
-import dev.auguste.agni_api.core.usecases.spending_period.GetSpendingPeriod
-import dev.auguste.agni_api.core.usecases.spending_period.UpdateSpendingPeriod
-import dev.auguste.agni_api.core.usecases.spending_period.dto.CreateSpendingPeriodInput
-import dev.auguste.agni_api.core.usecases.spending_period.dto.ForcastSpendingPeriodInput
-import dev.auguste.agni_api.core.usecases.spending_period.dto.ForcastSpendingPeriodOutput
-import dev.auguste.agni_api.core.usecases.spending_period.dto.GetAllSpendingPeriodInput
-import dev.auguste.agni_api.core.usecases.spending_period.dto.GetAllSpendingPeriodOutput
-import dev.auguste.agni_api.core.usecases.spending_period.dto.GetSpendingPeriodOutput
-import dev.auguste.agni_api.core.usecases.spending_period.dto.UpdateSpendingPeriodInput
+import adapters.repositories.IRepository
+import domain.entities.Budget
+import domain.entities.Profile
+import domain.entities.Provision
+import domain.entities.Fund
+import domain.entities.ScheduleInvoice
+import domain.entities.SpendingPeriod
+import domain.entities.SpendingPeriodTemplate
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.analystics.dto.GetSavingBalanceInput
+import usecases.interfaces.IUseCase
+import usecases.invoices.dto.GetAllInvoiceInput
+import usecases.invoices.dto.GetBalanceInput
+import usecases.invoices.dto.GetBalanceOutput
+import usecases.invoices.dto.GetInvoiceOutput
+import usecases.spending_period.CompleteSpendingPeriod
+import usecases.spending_period.CreateSpendingPeriod
+import usecases.spending_period.DeleteSpendingPeriod
+import usecases.spending_period.ForcastSpendingPeriod
+import usecases.spending_period.GetAllSpendingPeriod
+import usecases.spending_period.GetSpendingPeriod
+import usecases.spending_period.UpdateSpendingPeriod
+import usecases.spending_period.dto.CreateSpendingPeriodInput
+import usecases.spending_period.dto.ForcastSpendingPeriodInput
+import usecases.spending_period.dto.ForcastSpendingPeriodOutput
+import usecases.spending_period.dto.GetAllSpendingPeriodInput
+import usecases.spending_period.dto.GetAllSpendingPeriodOutput
+import usecases.spending_period.dto.GetSpendingPeriodOutput
+import usecases.spending_period.dto.UpdateSpendingPeriodInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID
@@ -78,7 +77,7 @@ class SpendingPeriodConfig {
         budgetRepo: IRepository<Budget>,
         profileRepo: IRepository<Profile>,
         provisionRepo: IRepository<Provision>,
-        fundRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
         getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
         getInvoice: IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>>

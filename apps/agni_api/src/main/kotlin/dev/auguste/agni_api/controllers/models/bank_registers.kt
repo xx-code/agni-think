@@ -1,10 +1,10 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.usecases.bank_registers.dto.AccountLinkerInput
-import dev.auguste.agni_api.core.usecases.bank_registers.dto.AccountLinkerOutput
-import dev.auguste.agni_api.core.usecases.bank_registers.dto.CreateBankRegisterInput
-import dev.auguste.agni_api.core.usecases.bank_registers.dto.GetBankRegisterOutput
-import dev.auguste.agni_api.core.usecases.bank_registers.dto.UpdateBankRegisterInput
+import usecases.bank_registers.dto.AccountLinkerInput
+import usecases.bank_registers.dto.AccountLinkerOutput
+import usecases.bank_registers.dto.CreateBankRegisterInput
+import usecases.bank_registers.dto.GetBankRegisterOutput
+import usecases.bank_registers.dto.UpdateBankRegisterInput
 import jakarta.validation.constraints.NotEmpty
 import jdk.javadoc.internal.doclets.formats.html.markup.HtmlStyle
 import java.util.UUID

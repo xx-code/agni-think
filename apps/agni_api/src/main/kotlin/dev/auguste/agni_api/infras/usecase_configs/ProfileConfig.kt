@@ -1,15 +1,15 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.entities.Profile
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.profiles.CreateProfile
-import dev.auguste.agni_api.core.usecases.profiles.GetProfile
-import dev.auguste.agni_api.core.usecases.profiles.UpdateProfile
-import dev.auguste.agni_api.core.usecases.profiles.dto.CreateProfileInput
-import dev.auguste.agni_api.core.usecases.profiles.dto.GetProfileOutput
-import dev.auguste.agni_api.core.usecases.profiles.dto.UpdateProfileInput
+import adapters.repositories.IRepository
+import domain.entities.Profile
+import usecases.CreatedOutput
+import usecases.interfaces.IUseCase
+import usecases.profiles.CreateProfile
+import usecases.profiles.GetProfile
+import usecases.profiles.UpdateProfile
+import usecases.profiles.dto.CreateProfileInput
+import usecases.profiles.dto.GetProfileOutput
+import usecases.profiles.dto.UpdateProfileInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID

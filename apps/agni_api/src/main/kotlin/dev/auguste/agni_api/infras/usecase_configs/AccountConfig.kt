@@ -1,29 +1,29 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.entities.Account
-import dev.auguste.agni_api.core.entities.Currency
-import dev.auguste.agni_api.core.entities.InternalLoan
-import dev.auguste.agni_api.core.entities.SavingGoal
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.accounts.CreateAccount
-import dev.auguste.agni_api.core.usecases.accounts.DeleteAccount
-import dev.auguste.agni_api.core.usecases.accounts.GetAccount
-import dev.auguste.agni_api.core.usecases.accounts.GetAccountWithDetail
-import dev.auguste.agni_api.core.usecases.accounts.GetAllAccountWithDetail
-import dev.auguste.agni_api.core.usecases.accounts.GetAllAccounts
-import dev.auguste.agni_api.core.usecases.accounts.UpdateAccount
-import dev.auguste.agni_api.core.usecases.accounts.dto.CreateAccountInput
-import dev.auguste.agni_api.core.usecases.accounts.dto.DeleteAccountInput
-import dev.auguste.agni_api.core.usecases.accounts.dto.GetAccountOutput
-import dev.auguste.agni_api.core.usecases.accounts.dto.GetAccountWithDetailOutput
-import dev.auguste.agni_api.core.usecases.accounts.dto.UpdateAccountInput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
+import adapters.dto.QueryFilter
+import adapters.repositories.IRepository
+import domain.entities.Account
+import domain.entities.Currency
+import domain.entities.InternalLoan
+import domain.entities.Fund
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.accounts.CreateAccount
+import usecases.accounts.DeleteAccount
+import usecases.accounts.GetAccount
+import usecases.accounts.GetAccountWithDetail
+import usecases.accounts.GetAllAccountWithDetail
+import usecases.accounts.GetAllAccounts
+import usecases.accounts.UpdateAccount
+import usecases.accounts.dto.CreateAccountInput
+import usecases.accounts.dto.DeleteAccountInput
+import usecases.accounts.dto.GetAccountOutput
+import usecases.accounts.dto.GetAccountWithDetailOutput
+import usecases.accounts.dto.UpdateAccountInput
+import usecases.interfaces.IUseCase
+import usecases.invoices.dto.GetBalanceInput
+import usecases.invoices.dto.GetBalanceOutput
+import usecases.invoices.dto.GetInvoiceOutput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID
@@ -72,14 +72,14 @@ class AccountConfig {
     @Bean
     fun getAccountWithDetail(
         accountRepo: IRepository<Account>,
-        savingGoalRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         internalLoanRepo: IRepository<InternalLoan>,
         getInvoice: IUseCase<UUID, GetInvoiceOutput>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
     ): IUseCase<UUID, GetAccountWithDetailOutput> {
         return GetAccountWithDetail(
             accountRepo = accountRepo,
-            savingGoalRepo = savingGoalRepo,
+            fundRepo = fundRepo,
             internalLoanRepo = internalLoanRepo,
             getInvoice = getInvoice,
             getBalance = getBalance
@@ -89,14 +89,14 @@ class AccountConfig {
     @Bean
     fun getAllAccountsWithDetail(
         accountRepo: IRepository<Account>,
-        savingGoalRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         internalLoanRepo: IRepository<InternalLoan>,
         getInvoice: IUseCase<UUID, GetInvoiceOutput>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
     ) : IUseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>> {
         return GetAllAccountWithDetail(
             accountRepo = accountRepo,
-            savingGoalRepo = savingGoalRepo,
+            fundRepo = fundRepo,
             internalLoanRepo = internalLoanRepo,
             getInvoice = getInvoice,
             getBalance = getBalance

@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.usecases.categories.dto.CreateCategoryInput
-import dev.auguste.agni_api.core.usecases.categories.dto.UpdateCategoryInput
+import usecases.categories.dto.CreateCategoryInput
+import usecases.categories.dto.UpdateCategoryInput
 import java.util.UUID
 
 data class ApiCreateCategoryModel(

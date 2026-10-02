@@ -1,10 +1,10 @@
 package dev.auguste.agni_api.infras.persistences.query_adapters
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IQueryExtendBuilder
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
-import dev.auguste.agni_api.core.entities.Entity
-import dev.auguste.agni_api.core.usecases.ListOutput
+import adapters.dto.QueryFilter
+import adapters.repositories.IQueryExtendBuilder
+import adapters.repositories.query_extend.QueryComparator
+import domain.entities.Entity
+import usecases.ListOutput
 import dev.auguste.agni_api.infras.persistences.IMapper
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcModel
 import org.springframework.jdbc.core.DataClassRowMapper

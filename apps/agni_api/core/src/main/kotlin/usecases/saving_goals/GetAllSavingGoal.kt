@@ -1,0 +1,55 @@
+package usecases.saving_goals
+
+import adapters.dto.QueryFilter
+import adapters.dto.QuerySortBy
+import adapters.repositories.IRepository
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.query_extend.QueryGoalExtend
+import domain.entities.Goal
+import domain.entities.Fund
+import usecases.ListOutput
+import usecases.interfaces.IUseCase
+import usecases.saving_goals.dto.FundGoalOutput
+import usecases.saving_goals.dto.GetAllSavingGoalInput
+import usecases.saving_goals.dto.GetSavingGoalOutput
+
+class GetAllSavingGoal(
+    private val fundRepo: IRepository<Fund>,
+    private val goalRepo: IRepository<Goal>): IUseCase<GetAllSavingGoalInput, ListOutput<GetSavingGoalOutput>> {
+    override fun execAsync(input: GetAllSavingGoalInput): ListOutput<GetSavingGoalOutput> {
+        val query = QueryFilter(
+            offset = input.queryFilter.offset,
+            limit = input.queryFilter.limit,
+            queryAll = input.queryFilter.queryAll,
+            sortBy = QuerySortBy("updated_at", false),
+        )
+        val condition = QueryExtendBuilder<Fund>()
+        if (input.type != null)
+            condition.addCondition("type", QueryComparator.Equal, input.type.value)
+
+        val savingGoals = fundRepo.getAll(query, condition)
+        val goals = goalRepo.getAll(QueryFilter.queryAll(), QueryGoalExtend(sourceIds = savingGoals.items.map { it.id }.toSet()))
+        return ListOutput(
+            items = savingGoals.items.map {
+                GetSavingGoalOutput(
+                   id = it.id,
+                    title = it.title,
+                    description = it.description,
+                    target = it.target,
+                    balance = it.balance,
+                    accountId = it.accountId,
+                    type = it.type.value,
+                    goals = goals.items.filter { goal -> goal.targetSourceId == it.id }.map { goal ->
+                        FundGoalOutput(
+                            id = goal.id,
+                            title = goal.title,
+                            dueDate = goal.dueDate
+                        )
+                    }
+                )
+            },
+            total = savingGoals.total
+        )
+    }
+}

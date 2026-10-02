@@ -1,21 +1,22 @@
 package dev.auguste.agni_api.infras
 
-import dev.auguste.agni_api.core.DOLLAR_CURRENT_ID
-import dev.auguste.agni_api.core.FREEZE_CATEGORY_ID
-import dev.auguste.agni_api.core.SAVING_CATEGORY_ID
-import dev.auguste.agni_api.core.TRANSFERT_CATEGORY_ID
-import dev.auguste.agni_api.core.UNKNOWN_CATEGORY_ID
-import dev.auguste.agni_api.core.adapters.events.IEventRegister
-import dev.auguste.agni_api.core.adapters.events.EventType
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateExternalTransactionListener
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateInvoiceEventListener
-import dev.auguste.agni_api.core.adapters.events.listeners.ICreateManyExternalTransactionListener
-import dev.auguste.agni_api.core.adapters.events.listeners.IDeleteInvoiceEventListener
-import dev.auguste.agni_api.core.entities.Category
-import dev.auguste.agni_api.core.entities.Currency
-import dev.auguste.agni_api.core.usecases.notifications.PushNotification
+import domain.DOLLAR_CURRENT_ID
+import domain.FREEZE_CATEGORY_ID
+import domain.SAVING_CATEGORY_ID
+import domain.TRANSFERT_CATEGORY_ID
+import domain.UNKNOWN_CATEGORY_ID
+import adapters.events.IEventRegister
+import adapters.events.EventType
+import adapters.events.listeners.ICreateExternalTransactionListener
+import adapters.events.listeners.ICreateInvoiceEventListener
+import adapters.events.listeners.ICreateManyExternalTransactionListener
+import adapters.events.listeners.IDeleteInvoiceEventListener
+import domain.entities.Category
+import domain.entities.Currency
+import usecases.notifications.PushNotification
 import dev.auguste.agni_api.infras.persistences.CategoryRepository
 import dev.auguste.agni_api.infras.persistences.CurrencyRepository
+import domain.entities.Color
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
@@ -57,7 +58,7 @@ class Startup (
                         SAVING_CATEGORY_ID,
                         title = "Epargne",
                         icon = "i-lucide-piggy-bank",
-                        color = "#4CAF50",
+                        color = Color("#4CAF50") ,
                         isSystem = true,
                     )
                 )
@@ -68,7 +69,7 @@ class Startup (
                         TRANSFERT_CATEGORY_ID,
                         title = "Transfert",
                         icon = "i-lucide-arrow-left-right",
-                        color = "#29B6F6",
+                        color = Color("#29B6F6") ,
                         isSystem = true,
                     )
                 )
@@ -79,7 +80,7 @@ class Startup (
                         FREEZE_CATEGORY_ID,
                         title = "Freeze",
                         icon = "i-lucide-snowflake",
-                        color = "#455A64",
+                        color = Color("#455A64"),
                         isSystem = true,
                     )
                 )
@@ -90,7 +91,7 @@ class Startup (
                         UNKNOWN_CATEGORY_ID,
                         title = "Unknown",
                         icon = "i-lucide-circle-question-mark",
-                        color = "#313131",
+                        color = Color("#313131"),
                         isSystem = true
                     )
                 )

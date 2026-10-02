@@ -1,36 +1,34 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.events.IEventRegister
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
-import dev.auguste.agni_api.core.entities.DomainException
-import dev.auguste.agni_api.core.entities.IncomeSource
-import dev.auguste.agni_api.core.entities.Provision
-import dev.auguste.agni_api.core.entities.SavingGoal
-import dev.auguste.agni_api.core.entities.ScheduleInvoice
-import dev.auguste.agni_api.core.facades.InvoiceDependencies
-import dev.auguste.agni_api.core.usecases.BackgroundTaskOut
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
-import dev.auguste.agni_api.core.usecases.interfaces.ISuspendableUseCase
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.dto.CreateFreezeInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.ApplyScheduleInvoice
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.CreateScheduleInvoice
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.DeleteScheduleInvoice
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.GetAllScheduleInvoice
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.GetScheduleInvoice
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.UpdateScheduleInvoice
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.VerifyScheduleModuleLinker
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.GetScheduleInvoiceOutput
-import dev.auguste.agni_api.core.usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
-import dev.auguste.agni_api.core.value_objects.ScheduleInvoiceModuleLinker
-import dev.auguste.agni_api.infras.persistences.JdbcUnitOfWork
+import adapters.dto.QueryFilter
+import adapters.events.IEventRegister
+import adapters.repositories.IRepository
+import adapters.repositories.IUnitOfWork
+import domain.entities.IncomeSource
+import domain.entities.Provision
+import domain.entities.Fund
+import domain.entities.ScheduleInvoice
+import facades.InvoiceDependencies
+import usecases.BackgroundTaskOut
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.interfaces.IInnerUseCase
+import usecases.interfaces.ISuspendableUseCase
+import usecases.interfaces.IUseCase
+import usecases.invoices.dto.CreateFreezeInvoiceInput
+import usecases.invoices.dto.CreateInvoiceInput
+import usecases.schedule_Invoices.ApplyScheduleInvoice
+import usecases.schedule_Invoices.CreateScheduleInvoice
+import usecases.schedule_Invoices.DeleteScheduleInvoice
+import usecases.schedule_Invoices.GetAllScheduleInvoice
+import usecases.schedule_Invoices.GetScheduleInvoice
+import usecases.schedule_Invoices.UpdateScheduleInvoice
+import usecases.schedule_Invoices.VerifyScheduleModuleLinker
+import usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
+import usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
+import usecases.schedule_Invoices.dto.GetScheduleInvoiceOutput
+import usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
+import domain.value_objects.ScheduleInvoiceModuleLinker
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID
@@ -59,7 +57,7 @@ class ScheduleInvoiceConfig {
     fun verifyScheduleModuleLinker(
         provisionRepo: IRepository<Provision>,
         incomeSourceRepo: IRepository<IncomeSource>,
-        fundsSourceRepo: IRepository<SavingGoal>,
+        fundsSourceRepo: IRepository<Fund>,
         ): IUseCase<ScheduleInvoiceModuleLinker, Unit> {
         return VerifyScheduleModuleLinker(
             incomeSourceRepo = incomeSourceRepo,

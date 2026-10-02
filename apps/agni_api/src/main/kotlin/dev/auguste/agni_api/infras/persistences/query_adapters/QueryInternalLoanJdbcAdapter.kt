@@ -1,11 +1,11 @@
 package dev.auguste.agni_api.infras.persistences.query_adapters
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInternalLoanExtend
-import dev.auguste.agni_api.core.entities.InternalLoan
+import adapters.dto.QueryFilter
+import adapters.repositories.IQueryExtend
+import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.query_extend.QueryInternalLoanExtend
+import domain.entities.InternalLoan
 import dev.auguste.agni_api.infras.persistences.IMapper
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInternalLoanModal
 import org.springframework.jdbc.core.RowMapper
@@ -55,11 +55,12 @@ class QueryInternalLoanJdbcAdapter(
             params.addValue("refundFreezeId", extend.refundFreezeId.toString())
         }
 
-        if (extend.scheduleDueDateComparator != null) {
+        val scheduleDueDateComparator = extend.scheduleDueDateComparator
+        if (scheduleDueDateComparator != null) {
 
-            val dateToVerify =extend.scheduleDueDateComparator.date.atOffset(ZoneOffset.UTC).toString()
+            val dateToVerify =scheduleDueDateComparator.date.atOffset(ZoneOffset.UTC).toString()
 
-            val operator = when(extend.scheduleDueDateComparator.comparator) {
+            val operator = when(scheduleDueDateComparator.comparator) {
                 QueryComparator.Greater -> ">"
                 QueryComparator.GreaterOrEquals -> ">="
                 QueryComparator.Lesser -> "<"

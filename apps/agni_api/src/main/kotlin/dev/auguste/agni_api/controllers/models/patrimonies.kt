@@ -1,11 +1,11 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.PatrimonySnapshotStatusType
-import dev.auguste.agni_api.core.entities.enums.PatrimonyType
-import dev.auguste.agni_api.core.usecases.patrimonies.dto.CreatePatrimonyInput
-import dev.auguste.agni_api.core.usecases.patrimonies.dto.UpdatePatrimonyInput
-import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.AddSnapshotToPatrimonyInput
-import dev.auguste.agni_api.core.usecases.patrimonies.snapshots.dto.UpdateSnapshotFromPatrimonyInput
+import domain.enums.PatrimonySnapshotStatusType
+import domain.enums.PatrimonyType
+import usecases.patrimonies.dto.CreatePatrimonyInput
+import usecases.patrimonies.dto.UpdatePatrimonyInput
+import usecases.patrimonies.snapshots.dto.AddSnapshotToPatrimonyInput
+import usecases.patrimonies.snapshots.dto.UpdateSnapshotFromPatrimonyInput
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull

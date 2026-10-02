@@ -1,9 +1,9 @@
 package dev.auguste.agni_api.infras.persistences.query_adapters
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryInvoiceExtend
-import dev.auguste.agni_api.core.entities.Invoice
+import adapters.dto.QueryFilter
+import adapters.repositories.IQueryExtend
+import adapters.repositories.query_extend.QueryInvoiceExtend
+import domain.entities.Invoice
 import dev.auguste.agni_api.infras.persistences.IMapper
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInvoiceModel
 import org.springframework.jdbc.core.RowMapper
@@ -34,9 +34,10 @@ class QueryInvoiceExtendJdbcAdapter(
             params.addValue("accounts", extend.accountIds)
         }
 
-        if (!extend.types.isNullOrEmpty()) {
+        val types = extend.types
+        if (!types.isNullOrEmpty()) {
             sqlBuilder.append(" AND LOWER(type) IN (:types)")
-            params.addValue("types", extend.types.map { it.value.lowercase() }.toSet())
+            params.addValue("types", types.map { it.value.lowercase() }.toSet())
         }
 
         extend.status?.let {

@@ -1,7 +1,8 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
-import dev.auguste.agni_api.core.entities.Tag
+import domain.entities.Tag
 import dev.auguste.agni_api.infras.persistences.IMapper
+import domain.entities.Color
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -33,7 +34,7 @@ class JdbcTagModelMapper: IMapper<JdbcTagModel, Tag> {
         val tag = Tag(
             id = model.tagId,
             value = model.value,
-            color = model.color,
+            color = if (!model.color.isBlank()) Color(model.color) else Color("#FFF"),
             isSystem = model.isSystem,
             isArchived = model.isArchived,
         )
@@ -46,7 +47,7 @@ class JdbcTagModelMapper: IMapper<JdbcTagModel, Tag> {
         return JdbcTagModel (
             tagId = entity.id,
             value = entity.value,
-            color = entity.color,
+            color = entity.color.toString(),
             isSystem = entity.isSystem,
             isArchived = entity.isArchived,
             createdAt = entity.createdAt,

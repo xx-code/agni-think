@@ -1,6 +1,6 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.usecases.analystics.dto.WantItemOutput
+import usecases.analystics.dto.WantItemOutput
 import jakarta.validation.constraints.Min
 import org.hibernate.validator.constraints.Range
 import org.springframework.format.annotation.DateTimeFormat

@@ -1,13 +1,13 @@
 package dev.auguste.agni_api.infras.persistences
 
-import dev.auguste.agni_api.core.adapters.IChecker
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.QueryExtendBuilder
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
-import dev.auguste.agni_api.core.entities.Category
-import dev.auguste.agni_api.core.entities.Tag
-import dev.auguste.agni_api.core.entities.Transaction
+import adapters.IChecker
+import adapters.dto.QueryFilter
+import adapters.repositories.IRepository
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.query_extend.QueryComparator
+import domain.entities.Category
+import domain.entities.Tag
+import domain.entities.Transaction
 import org.springframework.stereotype.Component
 
 @Component

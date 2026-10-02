@@ -1,30 +1,29 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.adapters.repositories.IUnitOfWork
-import dev.auguste.agni_api.core.entities.Account
-import dev.auguste.agni_api.core.entities.Goal
-import dev.auguste.agni_api.core.entities.SavingGoal
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
-import dev.auguste.agni_api.core.usecases.saving_goals.CreateSavingGoal
-import dev.auguste.agni_api.core.usecases.saving_goals.DecreaseSavingGoal
-import dev.auguste.agni_api.core.usecases.saving_goals.DeleteSavingGoal
-import dev.auguste.agni_api.core.usecases.saving_goals.GetAllSavingGoal
-import dev.auguste.agni_api.core.usecases.saving_goals.GetSavingGoal
-import dev.auguste.agni_api.core.usecases.saving_goals.IncreaseSavingGoal
-import dev.auguste.agni_api.core.usecases.saving_goals.UpdateSavingGoal
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.CreateSavingGoalInput
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.DecreaseSavingGoalInput
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.DeleteSavingGoalInput
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetAllSavingGoalInput
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.GetSavingGoalOutput
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.IncreaseSavingGoalInput
-import dev.auguste.agni_api.core.usecases.saving_goals.dto.UpdateSavingGoalInput
+import adapters.repositories.IRepository
+import adapters.repositories.IUnitOfWork
+import domain.entities.Account
+import domain.entities.Goal
+import domain.entities.Fund
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.interfaces.IInnerUseCase
+import usecases.interfaces.IUseCase
+import usecases.invoices.dto.CreateInvoiceInput
+import usecases.saving_goals.CreateSavingGoal
+import usecases.saving_goals.DecreaseSavingGoal
+import usecases.saving_goals.DeleteSavingGoal
+import usecases.saving_goals.GetAllSavingGoal
+import usecases.saving_goals.GetSavingGoal
+import usecases.saving_goals.IncreaseSavingGoal
+import usecases.saving_goals.UpdateSavingGoal
+import usecases.saving_goals.dto.CreateSavingGoalInput
+import usecases.saving_goals.dto.DecreaseSavingGoalInput
+import usecases.saving_goals.dto.DeleteSavingGoalInput
+import usecases.saving_goals.dto.GetAllSavingGoalInput
+import usecases.saving_goals.dto.GetSavingGoalOutput
+import usecases.saving_goals.dto.IncreaseSavingGoalInput
+import usecases.saving_goals.dto.UpdateSavingGoalInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID
@@ -34,35 +33,35 @@ class SavingGoalConfig {
 
     @Bean
     fun createSavingGoal(
-        savingGoalRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
     ): IUseCase<CreateSavingGoalInput, CreatedOutput> {
         return CreateSavingGoal(
-            savingGoalRepo = savingGoalRepo,
+            fundRepo = fundRepo,
             accountingRepo = accountRepo
         )
     }
 
     @Bean
     fun updateSavingGoal(
-        savingGoalRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
     ): IUseCase<UpdateSavingGoalInput, Unit> {
         return UpdateSavingGoal(
-            savingGoalRepo = savingGoalRepo,
+            fundRepo = fundRepo,
             accountRepo = accountRepo
         )
     }
 
     @Bean
     fun decreaseSavingGoal(
-        savingGoalRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
         createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork,
     ): IInnerUseCase<DecreaseSavingGoalInput, Unit> {
         return DecreaseSavingGoal(
-            savingGoalRepo = savingGoalRepo,
+            fundRepo = fundRepo,
             accountRepo = accountRepo,
             createInvoice = createInvoice,
             unitOfWork = unitOfWork
@@ -71,13 +70,13 @@ class SavingGoalConfig {
 
     @Bean
     fun increaseSavingGoal(
-        savingGoalRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
         createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork,
     ): IUseCase<IncreaseSavingGoalInput, Unit> {
        return IncreaseSavingGoal(
-           savingGoalRepo = savingGoalRepo,
+           fundRepo = fundRepo,
            accountRepo = accountRepo,
            createInvoice = createInvoice,
            unitOfWork = unitOfWork
@@ -86,14 +85,14 @@ class SavingGoalConfig {
 
     @Bean
    fun deleteSavingGoal(
-       savingGoalRepo: IRepository<SavingGoal>,
-       accountRepo: IRepository<Account>,
-       goalRepo: IRepository<Goal>,
-       createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
-       unitOfWork: IUnitOfWork,
+        fundRepo: IRepository<Fund>,
+        accountRepo: IRepository<Account>,
+        goalRepo: IRepository<Goal>,
+        createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
+        unitOfWork: IUnitOfWork,
    ): IUseCase<DeleteSavingGoalInput, Unit> {
        return DeleteSavingGoal(
-           savingGoalRepo = savingGoalRepo,
+           fundRepo = fundRepo,
            accountRepo = accountRepo,
            createInvoice = createInvoice,
            unitOfWork = unitOfWork,
@@ -103,22 +102,22 @@ class SavingGoalConfig {
 
     @Bean
     fun getAllSavingGoals(
-        savingGoalRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         goalRepo: IRepository<Goal>
     ): IUseCase<GetAllSavingGoalInput, ListOutput<GetSavingGoalOutput>> {
         return GetAllSavingGoal(
-            savingGoalRepo = savingGoalRepo,
+            fundRepo = fundRepo,
             goalRepo = goalRepo
         )
     }
 
     @Bean
     fun getSavingGoal(
-        savingGoalRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         goalRepo: IRepository<Goal>
     ): IUseCase<UUID, GetSavingGoalOutput> {
         return GetSavingGoal(
-            savingGoalRepo = savingGoalRepo,
+            fundRepo = fundRepo,
             goalRepo = goalRepo
         )
     }

@@ -5,11 +5,11 @@ import dev.auguste.agni_api.controllers.models.ApiUpdateProfileModel
 import dev.auguste.agni_api.controllers.models.mapApiCreateProfileToCreateProfile
 import dev.auguste.agni_api.controllers.models.mapApiUpdateProfileToUpdateProfile
 import dev.auguste.agni_api.controllers.models.tempPrivateProfileKey
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.profiles.dto.CreateProfileInput
-import dev.auguste.agni_api.core.usecases.profiles.dto.GetProfileOutput
-import dev.auguste.agni_api.core.usecases.profiles.dto.UpdateProfileInput
+import usecases.CreatedOutput
+import usecases.interfaces.IUseCase
+import usecases.profiles.dto.CreateProfileInput
+import usecases.profiles.dto.GetProfileOutput
+import usecases.profiles.dto.UpdateProfileInput
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

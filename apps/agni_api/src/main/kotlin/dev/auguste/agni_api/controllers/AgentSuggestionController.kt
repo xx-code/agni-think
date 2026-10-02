@@ -2,15 +2,15 @@ package dev.auguste.agni_api.controllers
 
 import dev.auguste.agni_api.controllers.models.ApiAddSuggestionModel
 import dev.auguste.agni_api.controllers.models.mapApiAddSuggestionModel
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.entities.enums.AgentSuggestionStatusType
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.AddSuggestionInput
-import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.ConfirmSuggestionInput
-import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.GetAllSuggestionInput
-import dev.auguste.agni_api.core.usecases.agent_suggestions.dto.GetSuggestionOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import adapters.dto.QueryFilter
+import domain.enums.AgentSuggestionStatusType
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.agent_suggestions.dto.AddSuggestionInput
+import usecases.agent_suggestions.dto.ConfirmSuggestionInput
+import usecases.agent_suggestions.dto.GetAllSuggestionInput
+import usecases.agent_suggestions.dto.GetSuggestionOutput
+import usecases.interfaces.IUseCase
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable

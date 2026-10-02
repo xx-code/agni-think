@@ -10,27 +10,27 @@ import dev.auguste.agni_api.controllers.models.mapApiCreateFreezeInvoice
 import dev.auguste.agni_api.controllers.models.mapApiCreateInvoice
 import dev.auguste.agni_api.controllers.models.mapApiTransfer
 import dev.auguste.agni_api.controllers.models.mapApiUpdateInvoice
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.entities.enums.InvoiceMouvementType
-import dev.auguste.agni_api.core.entities.enums.InvoiceStatusType
-import dev.auguste.agni_api.core.entities.enums.InvoiceType
-import dev.auguste.agni_api.core.entities.enums.PeriodType
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.interfaces.IInnerUseCase
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.dto.CompleteInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.CreateFreezeInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.CreateInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.DeleteInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetAllInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceByPeriodOutput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalancesByPeriodInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetInvoiceOutput
-import dev.auguste.agni_api.core.usecases.invoices.dto.TransferInvoiceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.UpdateInvoiceInput
+import adapters.dto.QueryFilter
+import domain.enums.InvoiceMovementType
+import domain.enums.InvoiceStatusType
+import domain.enums.InvoiceType
+import domain.enums.PeriodType
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.interfaces.IInnerUseCase
+import usecases.interfaces.IUseCase
+import usecases.invoices.dto.CompleteInvoiceInput
+import usecases.invoices.dto.CreateFreezeInvoiceInput
+import usecases.invoices.dto.CreateInvoiceInput
+import usecases.invoices.dto.DeleteInvoiceInput
+import usecases.invoices.dto.GetAllInvoiceInput
+import usecases.invoices.dto.GetBalanceByPeriodOutput
+import usecases.invoices.dto.GetBalanceInput
+import usecases.invoices.dto.GetBalanceOutput
+import usecases.invoices.dto.GetBalancesByPeriodInput
+import usecases.invoices.dto.GetInvoiceOutput
+import usecases.invoices.dto.TransferInvoiceInput
+import usecases.invoices.dto.UpdateInvoiceInput
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.ResponseEntity
@@ -101,7 +101,7 @@ class InvoiceController(
                 status = extend.status?.let { InvoiceStatusType.fromString(extend.status) }  ,
                 types = extend.types?.let {  extend.types.map { InvoiceType.fromString(it) }.toSet() },
                 isFreeze = extend.isFreeze,
-                mouvementType = extend.mouvement?.let { InvoiceMouvementType.fromString(extend.mouvement) },
+                mouvementType = extend.mouvement?.let { InvoiceMovementType.fromString(extend.mouvement) },
                 categoryIds = extend.categoryIds,
                 tagIds = extend.tagIds,
                 budgetIds = extend.budgetIds,
@@ -128,7 +128,7 @@ class InvoiceController(
                 status = query.status?.let { InvoiceStatusType.fromString(query.status) }  ,
                 types = query.types?.let {  query.types.map { InvoiceType.fromString(it) }.toSet() },
                 isFreeze = query.isFreeze,
-                mouvement = query.mouvement?.let { InvoiceMouvementType.fromString(query.mouvement) },
+                mouvement = query.mouvement?.let { InvoiceMovementType.fromString(query.mouvement) },
                 categoryIds = query.categoryIds,
                 tagIds = query.tagIds,
                 budgetIds = query.budgetIds,
@@ -150,7 +150,7 @@ class InvoiceController(
                 status = query.status?.let { InvoiceStatusType.fromString(query.status) }  ,
                 types = query.types?.let {  query.types.map { InvoiceType.fromString(it) }.toSet() },
                 isFreeze = query.isFreeze,
-                mouvement = query.mouvement?.let { InvoiceMouvementType.fromString(query.mouvement) },
+                mouvement = query.mouvement?.let { InvoiceMovementType.fromString(query.mouvement) },
                 categoryIds = query.categoryIds,
                 tagIds = query.tagIds,
                 budgetIds = query.budgetIds,

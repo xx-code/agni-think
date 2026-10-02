@@ -1,6 +1,11 @@
 package dev.auguste.agni_api
 
-import dev.auguste.agni_api.core.entities.DomainException
+import dev.auguste.agni_api.i18n.MessageResolver
+import domain.exceptions.AlreadyExistException
+import domain.exceptions.BaseException
+import domain.exceptions.NotFoundException
+import domain.exceptions.UnExpectedException
+import domain.exceptions.ValidationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -8,36 +13,24 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
-class GlobalExceptionHandler {
-    @ExceptionHandler(DomainException.NotFound::class)
-    fun handleEntityNotFound(ex: DomainException.NotFound): ResponseEntity<ErrorResponse> {
-        val errorResponse = ErrorResponse(
-            status = HttpStatus.NOT_FOUND.value(),
-            message = ex.message,
-            error = ex.code,
-        )
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse)
-    }
+class GlobalExceptionHandler(
+    private val messageResolver: MessageResolver,
+) {
+    @ExceptionHandler(NotFoundException::class)
+    fun handleEntityNotFound(ex: NotFoundException): ResponseEntity<ErrorResponse> =
+        respond(HttpStatus.NOT_FOUND, ex)
 
-    @ExceptionHandler(DomainException.AlreadyExist::class)
-    fun handleEntityAlreadyExist(ex: DomainException.AlreadyExist): ResponseEntity<ErrorResponse> {
-        val errorResponse = ErrorResponse(
-            status = HttpStatus.CONFLICT.value(),
-            message = ex.message,
-            error = ex.code,
-        )
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse)
-    }
+    @ExceptionHandler(AlreadyExistException::class)
+    fun handleEntityAlreadyExist(ex: AlreadyExistException): ResponseEntity<ErrorResponse> =
+        respond(HttpStatus.CONFLICT, ex)
 
-    @ExceptionHandler(DomainException.BusinessLogic::class)
-    fun handleBusinessLogic(ex: DomainException.BusinessLogic): ResponseEntity<ErrorResponse> {
-        val errorResponse = ErrorResponse(
-            status = HttpStatus.UNPROCESSABLE_ENTITY.value(),
-            message = ex.message,
-            error = ex.code,
-        )
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse)
-    }
+    @ExceptionHandler(ValidationException::class)
+    fun handleBusinessLogic(ex: ValidationException): ResponseEntity<ErrorResponse> =
+        respond(HttpStatus.UNPROCESSABLE_ENTITY, ex)
+
+    @ExceptionHandler(UnExpectedException::class)
+    fun handleUnexpected(ex: UnExpectedException): ResponseEntity<ErrorResponse> =
+        respond(HttpStatus.INTERNAL_SERVER_ERROR, ex)
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationException(ex: MethodArgumentNotValidException): ResponseEntity<ValidationErrorResponse> {
@@ -51,5 +44,14 @@ class GlobalExceptionHandler {
         )
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationErrorResponse)
+    }
+
+    private fun respond(status: HttpStatus, ex: BaseException): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse(
+            status = status.value(),
+            error = ex.errorKey,
+            message = messageResolver.resolve(ex.errorKey, ex.metadata),
+        )
+        return ResponseEntity.status(status).body(errorResponse)
     }
 }

@@ -1,11 +1,11 @@
 package dev.auguste.agni_api.infras.persistences.query_adapters
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.adapters.repositories.IQueryExtend
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryComparator
-import dev.auguste.agni_api.core.adapters.repositories.query_extend.QueryBudgetExtend
-import dev.auguste.agni_api.core.entities.Budget
+import adapters.dto.QueryFilter
+import adapters.repositories.IQueryExtend
+import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.query_extend.QueryBudgetExtend
+import domain.entities.Budget
 import dev.auguste.agni_api.infras.persistences.IMapper
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcBudgetModel
 import org.springframework.jdbc.core.RowMapper
@@ -32,11 +32,12 @@ class QueryBudgetExtendJdbcAdapter(
         val extend = query as QueryBudgetExtend
         val params = MapSqlParameterSource()
 
-        if (extend.scheduleDueDateComparator != null) {
+        val scheduleDueDateComparator = extend.scheduleDueDateComparator
+        if (scheduleDueDateComparator != null) {
             sqlBuilder.append(" AND jsonb_exists(scheduler, 'due_date')")
-            val dateToVerify = extend.scheduleDueDateComparator.date.atOffset(ZoneOffset.UTC).toString()
+            val dateToVerify = scheduleDueDateComparator.date.atOffset(ZoneOffset.UTC).toString()
 
-            val operator = when(extend.scheduleDueDateComparator.comparator) {
+            val operator = when(scheduleDueDateComparator.comparator) {
                 QueryComparator.Greater -> ">"
                 QueryComparator.GreaterOrEquals -> ">="
                 QueryComparator.Lesser -> "<"
@@ -49,12 +50,13 @@ class QueryBudgetExtendJdbcAdapter(
             params.addValue("dueDate", dateToVerify)
         }
 
-        if (!extend.periodTypes.isNullOrEmpty()) {
+        val periodTypes = extend.periodTypes
+        if (!periodTypes.isNullOrEmpty()) {
             sqlBuilder.append(" AND jsonb_exists(scheduler, 'repeater')")
             sqlBuilder.append(" AND jsonb_exists(scheduler -> 'repeater', 'period')")
             sqlBuilder.append(" AND LOWER((scheduler -> 'repeater' ->> 'period')) IN (:periodTypes)")
 
-            params.addValue("periodTypes", extend.periodTypes.map { it.value.lowercase() })
+            params.addValue("periodTypes", periodTypes.map { it.value.lowercase() })
         }
 
 

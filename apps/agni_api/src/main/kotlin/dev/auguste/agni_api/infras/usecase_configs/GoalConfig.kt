@@ -1,25 +1,25 @@
 package dev.auguste.agni_api.infras.usecase_configs
 
-import dev.auguste.agni_api.core.adapters.FinanceContext
-import dev.auguste.agni_api.core.adapters.IFinanceContext
-import dev.auguste.agni_api.core.adapters.repositories.IRepository
-import dev.auguste.agni_api.core.entities.Category
-import dev.auguste.agni_api.core.entities.Goal
-import dev.auguste.agni_api.core.entities.SavingGoal
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.goals.CreateGoal
-import dev.auguste.agni_api.core.usecases.goals.DeleteGoal
-import dev.auguste.agni_api.core.usecases.goals.GetAllGoals
-import dev.auguste.agni_api.core.usecases.goals.GetGoal
-import dev.auguste.agni_api.core.usecases.goals.UpdateGoal
-import dev.auguste.agni_api.core.usecases.goals.dto.CreateGoalInput
-import dev.auguste.agni_api.core.usecases.goals.dto.GetAllGoalInput
-import dev.auguste.agni_api.core.usecases.goals.dto.GetGoalOutput
-import dev.auguste.agni_api.core.usecases.goals.dto.UpdateGoalInput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceInput
-import dev.auguste.agni_api.core.usecases.invoices.dto.GetBalanceOutput
+import adapters.FinanceContext
+import adapters.IFinanceContext
+import adapters.repositories.IRepository
+import domain.entities.Category
+import domain.entities.Goal
+import domain.entities.Fund
+import usecases.CreatedOutput
+import usecases.ListOutput
+import usecases.goals.CreateGoal
+import usecases.goals.DeleteGoal
+import usecases.goals.GetAllGoals
+import usecases.goals.GetGoal
+import usecases.goals.UpdateGoal
+import usecases.goals.dto.CreateGoalInput
+import usecases.goals.dto.GetAllGoalInput
+import usecases.goals.dto.GetGoalOutput
+import usecases.goals.dto.UpdateGoalInput
+import usecases.interfaces.IUseCase
+import usecases.invoices.dto.GetBalanceInput
+import usecases.invoices.dto.GetBalanceOutput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.util.UUID
@@ -29,7 +29,7 @@ class GoalConfig {
 
     @Bean
     fun financeContext(
-        fundRepo: IRepository<SavingGoal>,
+        fundRepo: IRepository<Fund>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
         categoryRepo: IRepository<Category>
     ): IFinanceContext {

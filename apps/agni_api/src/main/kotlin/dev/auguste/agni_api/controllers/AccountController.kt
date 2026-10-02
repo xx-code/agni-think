@@ -4,15 +4,12 @@ import dev.auguste.agni_api.controllers.models.ApiCreateAccountModel
 import dev.auguste.agni_api.controllers.models.ApiUpdateAccountModel
 import dev.auguste.agni_api.controllers.models.mapApiCreateAccountModel
 import dev.auguste.agni_api.controllers.models.mapApiUpdateModel
-import dev.auguste.agni_api.core.adapters.dto.QueryFilter
-import dev.auguste.agni_api.core.usecases.CreatedOutput
-import dev.auguste.agni_api.core.usecases.ListOutput
-import dev.auguste.agni_api.core.usecases.accounts.dto.CreateAccountInput
-import dev.auguste.agni_api.core.usecases.accounts.dto.DeleteAccountInput
-import dev.auguste.agni_api.core.usecases.accounts.dto.GetAccountOutput
-import dev.auguste.agni_api.core.usecases.accounts.dto.GetAccountWithDetailOutput
-import dev.auguste.agni_api.core.usecases.accounts.dto.UpdateAccountInput
-import dev.auguste.agni_api.core.usecases.interfaces.IUseCase
+import adapters.dto.QueryFilter
+import usecases.ListOutput
+import usecases.accounts.dto.DeleteAccountInput
+import usecases.accounts.dto.GetAccountOutput
+import usecases.accounts.dto.GetAccountWithDetailOutput
+import usecases.accounts.dto.UpdateAccountInput
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -22,8 +19,10 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import usecases.CreatedOutput
+import usecases.accounts.dto.CreateAccountInput
+import usecases.interfaces.IUseCase
 import java.util.UUID
 
 @RestController

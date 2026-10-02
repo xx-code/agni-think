@@ -1,20 +1,17 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.DepreciationType
-import dev.auguste.agni_api.core.entities.enums.PeriodType
-import dev.auguste.agni_api.core.entities.enums.ProvisionType
-import dev.auguste.agni_api.core.usecases.provisionable.dto.CreateProvisionInput
-import dev.auguste.agni_api.core.usecases.provisionable.dto.ScheduleInvoiceProvisionInput
-import dev.auguste.agni_api.core.usecases.provisionable.dto.UpdateProvisionInput
-import dev.auguste.agni_api.core.value_objects.ProvisionDepreciateCriteria
-import dev.auguste.agni_api.core.value_objects.Scheduler
-import dev.auguste.agni_api.core.value_objects.SchedulerRecurrence
+import domain.enums.DepreciationType
+import domain.enums.PeriodType
+import domain.enums.ProvisionType
+import usecases.provisionable.dto.CreateProvisionInput
+import usecases.provisionable.dto.ScheduleInvoiceProvisionInput
+import usecases.provisionable.dto.UpdateProvisionInput
+import domain.value_objects.ProvisionDepreciateCriteria
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 data class ApiProvisionDepreciateCriteriaInput(

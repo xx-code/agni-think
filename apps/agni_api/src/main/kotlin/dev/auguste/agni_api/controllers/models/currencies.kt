@@ -1,7 +1,7 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.usecases.currencies.dto.CreateCurrencyInput
-import dev.auguste.agni_api.core.usecases.currencies.dto.UpdateCurrencyInput
+import usecases.currencies.dto.CreateCurrencyInput
+import usecases.currencies.dto.UpdateCurrencyInput
 import jakarta.validation.constraints.NotEmpty
 import java.util.UUID
 

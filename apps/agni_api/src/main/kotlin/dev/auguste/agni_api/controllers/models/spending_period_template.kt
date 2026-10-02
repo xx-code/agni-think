@@ -1,9 +1,9 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.adapters.dto.ScheduleRepeaterInput
-import dev.auguste.agni_api.core.entities.enums.PeriodType
-import dev.auguste.agni_api.core.usecases.spending_period_template.dto.CreateSpendingPeriodTemplateInput
-import dev.auguste.agni_api.core.usecases.spending_period_template.dto.UpdateSpendingPeriodTemplateInput
+import adapters.dto.ScheduleRepeaterInput
+import domain.enums.PeriodType
+import usecases.spending_period_template.dto.CreateSpendingPeriodTemplateInput
+import usecases.spending_period_template.dto.UpdateSpendingPeriodTemplateInput
 import java.time.LocalDate
 import java.util.UUID
 

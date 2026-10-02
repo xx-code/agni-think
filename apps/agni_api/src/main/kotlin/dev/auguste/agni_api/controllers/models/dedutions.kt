@@ -1,9 +1,9 @@
 package dev.auguste.agni_api.controllers.models
 
-import dev.auguste.agni_api.core.entities.enums.DeductionBaseType
-import dev.auguste.agni_api.core.entities.enums.DeductionModeType
-import dev.auguste.agni_api.core.usecases.deductions.dto.CreateDeductionInput
-import dev.auguste.agni_api.core.usecases.deductions.dto.UpdateDeductionInput
+import domain.enums.DeductionBaseType
+import domain.enums.DeductionModeType
+import usecases.deductions.dto.CreateDeductionInput
+import usecases.deductions.dto.UpdateDeductionInput
 import jakarta.validation.constraints.NotEmpty
 import java.util.UUID
 
