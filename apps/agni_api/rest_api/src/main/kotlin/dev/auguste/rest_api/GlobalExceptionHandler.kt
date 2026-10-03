@@ -1,5 +1,6 @@
 package dev.auguste.rest_api
 
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import dev.auguste.rest_api.i18n.MessageResolver
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.BaseException
@@ -8,6 +9,7 @@ import domain.exceptions.UnExpectedException
 import domain.exceptions.ValidationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -41,6 +43,26 @@ class GlobalExceptionHandler(
         val validationErrorResponse = ValidationErrorResponse(
             status = HttpStatus.BAD_REQUEST.value(),
             errors = fieldErrorsMap
+        )
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationErrorResponse)
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleHttpMessageNotReadable(ex: HttpMessageNotReadableException): ResponseEntity<ValidationErrorResponse> {
+        val errorMap = mutableMapOf<String, String?>()
+
+        val cause = ex.cause
+        if (cause is MismatchedInputException) {
+            val fieldName = cause.path.joinToString(".") { it.fieldName ?: "[${it.index}]" }
+            errorMap[fieldName] = "Field '$fieldName' is missing or invalid"
+        } else {
+            errorMap["body"] = "Malformed JSON request body"
+        }
+
+        val validationErrorResponse = ValidationErrorResponse(
+            status = HttpStatus.BAD_REQUEST.value(),
+            errors = errorMap
         )
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationErrorResponse)

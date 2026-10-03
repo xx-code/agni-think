@@ -1,4 +1,4 @@
-package usecases.saving_goals.dto
+package usecases.funds.dto
 
 import java.util.UUID
 

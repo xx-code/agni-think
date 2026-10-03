@@ -1,8 +1,8 @@
 package dev.auguste.rest_api.controllers.models
 
 import domain.enums.FundType
-import usecases.saving_goals.dto.CreateSavingGoalInput
-import usecases.saving_goals.dto.UpdateSavingGoalInput
+import usecases.funds.dto.CreateFundInput
+import usecases.funds.dto.UpdateFundInput
 import java.util.UUID
 
 
@@ -32,8 +32,8 @@ data class ApiDeleteSavingGoalModel(
 )
 
 
-fun mapApiCreateSavingGoal(model: ApiCreateSavingGoalModel): CreateSavingGoalInput {
-    return CreateSavingGoalInput(
+fun mapApiCreateSavingGoal(model: ApiCreateSavingGoalModel): CreateFundInput {
+    return CreateFundInput(
         target = model.target,
         title = model.title,
         description = model.description,
@@ -42,8 +42,8 @@ fun mapApiCreateSavingGoal(model: ApiCreateSavingGoalModel): CreateSavingGoalInp
     )
 }
 
-fun mapApiUpdateSavingGoal(id: UUID, model: ApiUpdateSavingGoalModel): UpdateSavingGoalInput {
-    return UpdateSavingGoalInput(
+fun mapApiUpdateSavingGoal(id: UUID, model: ApiUpdateSavingGoalModel): UpdateFundInput {
+    return UpdateFundInput(
         id = id,
         target = model.target,
         title = model.title,

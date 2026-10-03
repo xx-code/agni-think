@@ -21,7 +21,7 @@ import usecases.provisionable.dto.CreateProvisionInput
 import usecases.provisionable.dto.DeleteProvisionInput
 import usecases.provisionable.dto.GetProvisionOutput
 import usecases.provisionable.dto.UpdateProvisionInput
-import usecases.saving_goals.dto.DecreaseSavingGoalInput
+import usecases.funds.dto.DecreaseSavingGoalInput
 import usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
 import usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
 import usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput

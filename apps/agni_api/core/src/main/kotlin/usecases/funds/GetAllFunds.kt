@@ -1,4 +1,4 @@
-package usecases.saving_goals
+package usecases.funds
 
 import usecases.UseCase
 import adapters.dto.QueryFilter
@@ -9,14 +9,14 @@ import adapters.repositories.QueryComparator
 import domain.entities.Goal
 import domain.entities.Fund
 import usecases.dto.ListOutput
-import usecases.saving_goals.dto.FundGoalOutput
-import usecases.saving_goals.dto.GetAllSavingGoalInput
-import usecases.saving_goals.dto.GetSavingGoalOutput
+import usecases.funds.dto.FundGoalOutput
+import usecases.funds.dto.GetAllFundInput
+import usecases.funds.dto.GetSavingGoalOutput
 
-class GetAllSavingGoal(
+class GetAllFunds(
     private val fundRepo: IRepository<Fund>,
-    private val goalRepo: IRepository<Goal>): UseCase<GetAllSavingGoalInput, ListOutput<GetSavingGoalOutput>>() {
-    override suspend fun process(input: GetAllSavingGoalInput): ListOutput<GetSavingGoalOutput> {
+    private val goalRepo: IRepository<Goal>): UseCase<GetAllFundInput, ListOutput<GetSavingGoalOutput>>() {
+    override suspend fun process(input: GetAllFundInput): ListOutput<GetSavingGoalOutput> {
         val query = QueryFilter(
             offset = input.queryFilter.offset,
             limit = input.queryFilter.limit,

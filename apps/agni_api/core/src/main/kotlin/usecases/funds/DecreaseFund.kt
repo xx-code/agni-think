@@ -1,4 +1,4 @@
-package usecases.saving_goals
+package usecases.funds
 
 import usecases.interfaces.IUseCase
 
@@ -12,7 +12,7 @@ import domain.entities.Fund
 import usecases.dto.CreatedOutput
 import usecases.invoices.dto.CreateInvoiceInput
 import usecases.invoices.dto.TransactionInput
-import usecases.saving_goals.dto.DecreaseSavingGoalInput
+import usecases.funds.dto.DecreaseSavingGoalInput
 import domain.value_objects.InvoiceModuleLinker
 import java.time.LocalDateTime
 import domain.enums.InvoiceModuleLinkerType
@@ -21,7 +21,7 @@ import domain.enums.InvoiceStatusType
 import domain.enums.InvoiceType
 import usecases.UseCase
 
-class DecreaseSavingGoal(
+class DecreaseFund(
     private val fundRepo: IRepository<Fund>,
     private val accountRepo: IRepository<Account>,
     private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,

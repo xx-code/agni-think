@@ -9,20 +9,20 @@ import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.invoices.dto.CreateInvoiceInput
-import usecases.saving_goals.CreateSavingGoal
-import usecases.saving_goals.DecreaseSavingGoal
-import usecases.saving_goals.DeleteSavingGoal
-import usecases.saving_goals.GetAllSavingGoal
-import usecases.saving_goals.GetSavingGoal
-import usecases.saving_goals.IncreaseSavingGoal
-import usecases.saving_goals.UpdateSavingGoal
-import usecases.saving_goals.dto.CreateSavingGoalInput
-import usecases.saving_goals.dto.DecreaseSavingGoalInput
-import usecases.saving_goals.dto.DeleteSavingGoalInput
-import usecases.saving_goals.dto.GetAllSavingGoalInput
-import usecases.saving_goals.dto.GetSavingGoalOutput
-import usecases.saving_goals.dto.IncreaseSavingGoalInput
-import usecases.saving_goals.dto.UpdateSavingGoalInput
+import usecases.funds.CreateFund
+import usecases.funds.DecreaseFund
+import usecases.funds.DeleteFund
+import usecases.funds.GetAllFunds
+import usecases.funds.GetFund
+import usecases.funds.IncreaseFund
+import usecases.funds.UpdateFund
+import usecases.funds.dto.CreateFundInput
+import usecases.funds.dto.DecreaseSavingGoalInput
+import usecases.funds.dto.DeleteFundInput
+import usecases.funds.dto.GetAllFundInput
+import usecases.funds.dto.GetSavingGoalOutput
+import usecases.funds.dto.IncreaseSavingGoalInput
+import usecases.funds.dto.UpdateFundInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import usecases.UseCase
@@ -35,8 +35,8 @@ class FundConfig {
     fun createFund(
         fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
-    ): UseCase<CreateSavingGoalInput, CreatedOutput> {
-        return CreateSavingGoal(
+    ): UseCase<CreateFundInput, CreatedOutput> {
+        return CreateFund(
             fundRepo = fundRepo,
             accountingRepo = accountRepo
         )
@@ -46,8 +46,8 @@ class FundConfig {
     fun updateFund(
         fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
-    ): UseCase<UpdateSavingGoalInput, Unit> {
-        return UpdateSavingGoal(
+    ): UseCase<UpdateFundInput, Unit> {
+        return UpdateFund(
             fundRepo = fundRepo,
             accountRepo = accountRepo
         )
@@ -60,7 +60,7 @@ class FundConfig {
         createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork,
     ): UseCase<DecreaseSavingGoalInput, Unit> {
-        return DecreaseSavingGoal(
+        return DecreaseFund(
             fundRepo = fundRepo,
             accountRepo = accountRepo,
             createInvoice = createInvoice,
@@ -75,7 +75,7 @@ class FundConfig {
         createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork,
     ): UseCase<IncreaseSavingGoalInput, Unit> {
-       return IncreaseSavingGoal(
+       return IncreaseFund(
            fundRepo = fundRepo,
            accountRepo = accountRepo,
            createInvoice = createInvoice,
@@ -90,8 +90,8 @@ class FundConfig {
         goalRepo: IRepository<Goal>,
         createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork,
-   ): UseCase<DeleteSavingGoalInput, Unit> {
-       return DeleteSavingGoal(
+   ): UseCase<DeleteFundInput, Unit> {
+       return DeleteFund(
            fundRepo = fundRepo,
            accountRepo = accountRepo,
            createInvoice = createInvoice,
@@ -104,8 +104,8 @@ class FundConfig {
     fun getAllFund(
         fundRepo: IRepository<Fund>,
         goalRepo: IRepository<Goal>
-    ): UseCase<GetAllSavingGoalInput, ListOutput<GetSavingGoalOutput>> {
-        return GetAllSavingGoal(
+    ): UseCase<GetAllFundInput, ListOutput<GetSavingGoalOutput>> {
+        return GetAllFunds(
             fundRepo = fundRepo,
             goalRepo = goalRepo
         )
@@ -116,7 +116,7 @@ class FundConfig {
         fundRepo: IRepository<Fund>,
         goalRepo: IRepository<Goal>
     ): UseCase<UUID, GetSavingGoalOutput> {
-        return GetSavingGoal(
+        return GetFund(
             fundRepo = fundRepo,
             goalRepo = goalRepo
         )

@@ -11,13 +11,13 @@ import domain.enums.FundType
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
-import usecases.saving_goals.dto.CreateSavingGoalInput
-import usecases.saving_goals.dto.DecreaseSavingGoalInput
-import usecases.saving_goals.dto.DeleteSavingGoalInput
-import usecases.saving_goals.dto.GetAllSavingGoalInput
-import usecases.saving_goals.dto.GetSavingGoalOutput
-import usecases.saving_goals.dto.IncreaseSavingGoalInput
-import usecases.saving_goals.dto.UpdateSavingGoalInput
+import usecases.funds.dto.CreateFundInput
+import usecases.funds.dto.DecreaseSavingGoalInput
+import usecases.funds.dto.DeleteFundInput
+import usecases.funds.dto.GetAllFundInput
+import usecases.funds.dto.GetSavingGoalOutput
+import usecases.funds.dto.IncreaseSavingGoalInput
+import usecases.funds.dto.UpdateFundInput
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -31,12 +31,12 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/v2/funds")
-class SavingGoalController (
-    private val createSavingGoalUseCase: IUseCase<CreateSavingGoalInput, CreatedOutput>,
-    private val updateSavingGoalUseCase: IUseCase<UpdateSavingGoalInput, Unit>,
-    private val deleteSavingGoalUseCase: IUseCase<DeleteSavingGoalInput, Unit>,
+class FundController (
+    private val createSavingGoalUseCase: IUseCase<CreateFundInput, CreatedOutput>,
+    private val updateSavingGoalUseCase: IUseCase<UpdateFundInput, Unit>,
+    private val deleteSavingGoalUseCase: IUseCase<DeleteFundInput, Unit>,
     private val getSavingGoalUseCase: IUseCase<UUID, GetSavingGoalOutput>,
-    private val getAllSavingGoalUseCase: IUseCase<GetAllSavingGoalInput, ListOutput<GetSavingGoalOutput>>,
+    private val getAllSavingGoalUseCase: IUseCase<GetAllFundInput, ListOutput<GetSavingGoalOutput>>,
     private val increaseSavingGoalUseCase: IUseCase<IncreaseSavingGoalInput, Unit>,
     private val decreaseSavingGoalUseCase: IUseCase<DecreaseSavingGoalInput, Unit>,
 ){
@@ -58,7 +58,7 @@ class SavingGoalController (
     @PutMapping("/{id}/remove")
     suspend fun deleteSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiDeleteSavingGoalModel): ResponseEntity<Unit> {
         return ResponseEntity.ok(deleteSavingGoalUseCase.execute(
-            DeleteSavingGoalInput(id, request.accountId)
+            DeleteFundInput(id, request.accountId)
         ).getOrThrow())
     }
 
@@ -71,7 +71,7 @@ class SavingGoalController (
 
     @GetMapping
     suspend fun getAllSavingGoal(query: QueryFilter, type: String? = null): ResponseEntity<ListOutput<GetSavingGoalOutput>> {
-        return ResponseEntity.ok(getAllSavingGoalUseCase.execute(GetAllSavingGoalInput(
+        return ResponseEntity.ok(getAllSavingGoalUseCase.execute(GetAllFundInput(
             query,
             if (!type.isNullOrEmpty()) FundType.fromString(type) else null
         )).getOrThrow())

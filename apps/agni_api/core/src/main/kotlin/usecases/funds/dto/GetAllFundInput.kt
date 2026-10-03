@@ -1,9 +1,9 @@
-package usecases.saving_goals.dto
+package usecases.funds.dto
 
 import adapters.dto.QueryFilter
 import domain.enums.FundType
 
-data class GetAllSavingGoalInput(
+data class GetAllFundInput(
     var queryFilter: QueryFilter,
     val type: FundType? = null
 )

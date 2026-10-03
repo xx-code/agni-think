@@ -1,9 +1,9 @@
-package usecases.saving_goals.dto
+package usecases.funds.dto
 
 import domain.enums.FundType
 import java.util.UUID
 
-data class UpdateSavingGoalInput(
+data class UpdateFundInput(
     val id: UUID,
     val title: String?,
     val target: Double?,

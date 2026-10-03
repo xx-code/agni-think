@@ -1,4 +1,4 @@
-package usecases.saving_goals
+package usecases.funds
 
 import usecases.interfaces.IUseCase
 
@@ -15,21 +15,21 @@ import domain.entities.Fund
 import usecases.dto.CreatedOutput
 import usecases.invoices.dto.CreateInvoiceInput
 import usecases.invoices.dto.TransactionInput
-import usecases.saving_goals.dto.DeleteSavingGoalInput
+import usecases.funds.dto.DeleteFundInput
 import java.time.LocalDateTime
 import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
 import domain.enums.InvoiceType
 import usecases.UseCase
 
-class DeleteSavingGoal(
+class DeleteFund(
     private val fundRepo: IRepository<Fund>,
     private val accountRepo: IRepository<Account>,
     private val goalRepo: IRepository<Goal>,
     private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
     unitOfWork: IUnitOfWork
-): UseCase<DeleteSavingGoalInput, Unit>(unitOfWork) {
-    override suspend fun process(input: DeleteSavingGoalInput) {
+): UseCase<DeleteFundInput, Unit>(unitOfWork) {
+    override suspend fun process(input: DeleteFundInput) {
         val savingGoal = fundRepo.get(input.savingGoalId) ?: throw NotFoundException.SingleEntity(input.savingGoalId, "saving_goal")
 
         if (savingGoal.balance == 0.0) {

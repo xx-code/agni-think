@@ -1,4 +1,4 @@
-package usecases.saving_goals
+package usecases.funds
 
 import usecases.UseCase
 import adapters.dto.QueryFilter
@@ -8,11 +8,11 @@ import adapters.repositories.QueryComparator
 import domain.entities.Fund
 import domain.exceptions.NotFoundException
 import domain.entities.Goal
-import usecases.saving_goals.dto.FundGoalOutput
-import usecases.saving_goals.dto.GetSavingGoalOutput
+import usecases.funds.dto.FundGoalOutput
+import usecases.funds.dto.GetSavingGoalOutput
 import java.util.UUID
 
-class GetSavingGoal(
+class GetFund(
     private val fundRepo: IRepository<Fund>,
     private val goalRepo: IRepository<Goal>
     ): UseCase<UUID, GetSavingGoalOutput>() {

@@ -1,4 +1,4 @@
-package usecases.saving_goals
+package usecases.funds
 
 import usecases.UseCase
 import adapters.repositories.IRepository
@@ -8,14 +8,14 @@ import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.Fund
 import usecases.dto.CreatedOutput
-import usecases.saving_goals.dto.CreateSavingGoalInput
+import usecases.funds.dto.CreateFundInput
 import domain.enums.FundType
 
-class CreateSavingGoal(
+class CreateFund(
     private val fundRepo: IRepository<Fund>,
-    private val accountingRepo: IRepository<Account>): UseCase<CreateSavingGoalInput, CreatedOutput>() {
+    private val accountingRepo: IRepository<Account>): UseCase<CreateFundInput, CreatedOutput>() {
 
-    override suspend fun process(input: CreateSavingGoalInput): CreatedOutput {
+    override suspend fun process(input: CreateFundInput): CreatedOutput {
         if (input.accountId != null && this.accountingRepo.get(input.accountId) == null)
             throw NotFoundException.SingleEntity(input.accountId, "account")
 

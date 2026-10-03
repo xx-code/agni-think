@@ -14,7 +14,7 @@ import adapters.repositories.QueryComparator
 import domain.entities.Provision
 import domain.entities.Fund
 import usecases.dto.BackgroundTaskOut
-import usecases.saving_goals.dto.DecreaseSavingGoalInput
+import usecases.funds.dto.DecreaseSavingGoalInput
 import java.time.LocalDate
 import kotlin.Throwable
 import domain.enums.ProvisionType
