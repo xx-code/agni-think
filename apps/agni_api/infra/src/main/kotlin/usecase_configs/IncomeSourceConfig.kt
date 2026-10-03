@@ -6,8 +6,8 @@ import adapters.repositories.IUnitOfWork
 import domain.entities.Account
 import domain.entities.IncomeSource
 import domain.entities.ScheduleInvoice
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.income_sources.CreateIncomeSource
 import usecases.income_sources.DeleteIncomeSource
 import usecases.income_sources.GetAllIncomeSource
@@ -23,6 +23,7 @@ import usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
 import usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -34,12 +35,12 @@ class IncomeSourceConfig {
         accountRepo: IRepository<Account>,
         createScheduleInvoice: IUseCase<CreateScheduleInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork
-    ) : IUseCase<CreateIncomeSourceInput, CreatedOutput> {
+    ) : UseCase<CreateIncomeSourceInput, CreatedOutput> {
         return CreateIncomeSource(
-            incomeSourceRepo,
-            createScheduleInvoice,
-            accountRepo,
-            unitOfWork
+            incomeSourceRepo = incomeSourceRepo,
+            accountRepo = accountRepo,
+            createScheduleInvoice = createScheduleInvoice,
+            unitOfWork = unitOfWork
         )
     }
 
@@ -50,7 +51,7 @@ class IncomeSourceConfig {
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         updateScheduleInvoice: IUseCase<UpdateScheduleInvoiceInput, Unit>,
         unitOfWork: IUnitOfWork
-    ) : IUseCase<UpdateIncomeSourceInput, Unit> {
+    ) : UseCase<UpdateIncomeSourceInput, Unit> {
         return UpdateIncomeSource(
             incomeSourceRepo,
             accountRepo,
@@ -66,7 +67,7 @@ class IncomeSourceConfig {
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         deleteScheduleInvoice: IUseCase<DeleteScheduleInvoiceInput, Unit>,
         unitOfWork: IUnitOfWork
-    ) : IUseCase<DeleteIncomeSourceInput, Unit> {
+    ) : UseCase<DeleteIncomeSourceInput, Unit> {
         return DeleteIncomeSource(
             incomeSourceRepo,
             scheduleInvoiceRepo,
@@ -78,7 +79,7 @@ class IncomeSourceConfig {
     @Bean
     fun getIncomeSource(
         incomeSourceRepo: IRepository<IncomeSource>,
-    ) : IUseCase<UUID, GetIncomeSourceOutput> {
+    ) : UseCase<UUID, GetIncomeSourceOutput> {
         return GetIncomeSource(
             incomeSourceRepo
         )
@@ -87,7 +88,7 @@ class IncomeSourceConfig {
     @Bean
     fun getAllIncomeSource(
         incomeSourceRepo: IRepository<IncomeSource>,
-    ) : IUseCase<QueryFilter, ListOutput<GetIncomeSourceOutput>> {
+    ) : UseCase<QueryFilter, ListOutput<GetIncomeSourceOutput>> {
         return GetAllIncomeSource(
             incomeSourceRepo
         )

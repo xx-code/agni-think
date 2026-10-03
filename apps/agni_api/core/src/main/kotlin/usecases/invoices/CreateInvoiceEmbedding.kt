@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import usecases.UseCase
 import adapters.EmbeddingDocument
 import adapters.IEmbeddingService
 import adapters.events.contents.CreateEmbeddingInvoiceEventContent
@@ -12,7 +13,7 @@ import adapters.repositories.IRepository
 import domain.entities.Budget
 import domain.entities.Category
 import domain.entities.Tag
-import usecases.BackgroundTaskOut
+import usecases.dto.BackgroundTaskOut
 import usecases.interfaces.IUseCase
 import domain.exceptions.ValidationException
 import usecases.invoices.dto.GetInvoiceOutput
@@ -26,7 +27,7 @@ class CreateInvoiceEmbedding(
     private val getInvoice: IUseCase<UUID, GetInvoiceOutput>,
     private val embeddingService: IEmbeddingService,
     private val invoiceCollectionName: String
-): IUseCase<UUID, BackgroundTaskOut>, ICreateInvoiceEventListener {
+): UseCase<UUID, BackgroundTaskOut>(), ICreateInvoiceEventListener {
     private var event: CreateEmbeddingInvoiceEventContent? = null
 
     fun getCat(id: UUID?, categories: List<Category>): String {
@@ -41,9 +42,9 @@ class CreateInvoiceEmbedding(
         return budgets.find { it.id == id }?.title ?: "?"
     }
 
-    override fun execAsync(input: UUID): BackgroundTaskOut {
+    override suspend fun process(input: UUID): BackgroundTaskOut {
         try {
-            val invoice = getInvoice.execAsync(input)
+            val invoice = getInvoice.processDirect(input)
 
             val categories = categoryRepo.getManyByIds(invoice.transactions.map { it.category.id }.toSet())
             val tags = tagsRepo.getManyByIds(invoice.transactions.flatMap { invoice -> invoice.tags.map { it.id} }.toSet())
@@ -83,9 +84,9 @@ class CreateInvoiceEmbedding(
         }
     }
 
-    override fun update() {
+    override suspend fun update() {
         event?.let {
-           execAsync(it.invoice.id)
+           process(it.invoice.id)
         }
         event = null
     }

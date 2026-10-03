@@ -1,5 +1,6 @@
 package usecases.analystics
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
@@ -36,8 +37,8 @@ class ForcastSpending(
     private val provisionRepo: IRepository<Provision>,
     private val fundRepo: IRepository<Fund>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
-): IUseCase<ForcastSpendingInput, ForcastSpendingOutput> {
-    override fun execAsync(input: ForcastSpendingInput): ForcastSpendingOutput {
+): UseCase<ForcastSpendingInput, ForcastSpendingOutput>() {
+    override suspend fun process(input: ForcastSpendingInput): ForcastSpendingOutput {
         var currentBalance = 0.0
         val accounts = accountRepo.getAll(QueryFilter.queryAll())
         currentBalance = input.overrideAccountsBalance ?: getCurrentBalance(accounts.items)
@@ -64,7 +65,7 @@ class ForcastSpending(
         val fixExpense = getScheduleTotal(scheduleInvoices.items, fundsById, provisionsById, InvoiceType.FIXED_COST, input.startDate, input.endDate)
         val variableExpense = getScheduleTotal(scheduleInvoices.items, fundsById, provisionsById, InvoiceType.VARIABLE_COST, input.startDate, input.endDate)
 
-        val freezeBalanceToRemove = getBalance.execAsync(GetBalanceInput(
+        val freezeBalanceToRemove = getBalance.processDirect(GetBalanceInput(
             isFreeze = true,
             startDate = input.startDate.atStartOfDay(),
             endDate = input.endDate.atStartOfDay()
@@ -207,7 +208,7 @@ class ForcastSpending(
             val balance: Double,
             val remaining: Double
         )
-        fun getBudgetExpense(
+        suspend fun getBudgetExpense(
             budgets: List<Budget>,
             startDate: LocalDate,
             endDate: LocalDate,
@@ -221,7 +222,7 @@ class ForcastSpending(
                     budget.isArchived) {
                     continue
                 }
-                val spend = getBalance.execAsync(GetBalanceInput(
+                val spend = getBalance.processDirect(GetBalanceInput(
                     startDate = startDate.atStartOfDay(),
                     endDate = endDate.atStartOfDay(),
                     budgetIds = setOf(budget.id)

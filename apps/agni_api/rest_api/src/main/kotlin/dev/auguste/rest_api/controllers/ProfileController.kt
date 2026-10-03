@@ -5,7 +5,7 @@ import dev.auguste.rest_api.controllers.models.ApiUpdateProfileModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateProfileToCreateProfile
 import dev.auguste.rest_api.controllers.models.mapApiUpdateProfileToUpdateProfile
 import dev.auguste.rest_api.controllers.models.tempPrivateProfileKey
-import usecases.CreatedOutput
+import usecases.dto.CreatedOutput
 import usecases.interfaces.IUseCase
 import usecases.profiles.dto.CreateProfileInput
 import usecases.profiles.dto.GetProfileOutput
@@ -31,17 +31,17 @@ class ProfileController(
 ) {
 
     @PostMapping
-    fun createProvision(@Valid @RequestBody request: ApiCreateProfileModel) : ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createProfileUseCase.execAsync(mapApiCreateProfileToCreateProfile(request)))
+    suspend fun createProvision(@Valid @RequestBody request: ApiCreateProfileModel) : ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createProfileUseCase.execute(mapApiCreateProfileToCreateProfile(request)).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getProfile(@PathVariable id: UUID): ResponseEntity<GetProfileOutput> {
-        return ResponseEntity.ok(getProfileUseCase.execAsync(tempPrivateProfileKey))
+    suspend fun getProfile(@PathVariable id: UUID): ResponseEntity<GetProfileOutput> {
+        return ResponseEntity.ok(getProfileUseCase.execute(tempPrivateProfileKey).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateProfile(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateProfileModel) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateProfileUseCase.execAsync(mapApiUpdateProfileToUpdateProfile(id, request)))
+    suspend fun updateProfile(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateProfileModel) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateProfileUseCase.execute(mapApiUpdateProfileToUpdateProfile(id, request)).getOrThrow())
     }
 }

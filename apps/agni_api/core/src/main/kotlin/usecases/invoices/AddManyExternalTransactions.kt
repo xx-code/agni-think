@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.events.EventType
 import adapters.events.IEventRegister
@@ -8,16 +9,15 @@ import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.ExternalTransaction
-import usecases.CreatedOutput
-import usecases.interfaces.IUseCase
+import usecases.dto.CreatedOutput
 import domain.exceptions.ValidationException
 import usecases.invoices.dto.AddExternalTransactionInput
 
 class AddManyExternalTransactions(
     private val externalTransRepo: IRepository<ExternalTransaction>,
     private val eventRegister: IEventRegister
-): IUseCase<List<AddExternalTransactionInput>, List<CreatedOutput>> {
-    override fun execAsync(input: List<AddExternalTransactionInput>): List<CreatedOutput>  {
+): UseCase<List<AddExternalTransactionInput>, List<CreatedOutput>>() {
+    override suspend fun process(input: List<AddExternalTransactionInput>): List<CreatedOutput>  {
         var newExternalTransactions = input.map {
             ExternalTransaction(
                 accountId = it.accountId,

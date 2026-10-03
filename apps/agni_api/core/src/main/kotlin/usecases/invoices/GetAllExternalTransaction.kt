@@ -1,18 +1,18 @@
 package usecases.invoices
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.ExternalTransaction
-import usecases.ListOutput
-import usecases.interfaces.IUseCase
+import usecases.dto.ListOutput
 import usecases.invoices.dto.GetAllExternalTransactionInput
 import usecases.invoices.dto.GetExternalTransactionOutput
 
 class GetAllExternalTransaction(
     private val externalTransactionRepo: IRepository<ExternalTransaction>,
-): IUseCase<GetAllExternalTransactionInput, ListOutput<GetExternalTransactionOutput>> {
-    override fun execAsync(input: GetAllExternalTransactionInput): ListOutput<GetExternalTransactionOutput> {
+): UseCase<GetAllExternalTransactionInput, ListOutput<GetExternalTransactionOutput>>() {
+    override suspend fun process(input: GetAllExternalTransactionInput): ListOutput<GetExternalTransactionOutput> {
         val conditionExternalTransaction = QueryExtendBuilder<ExternalTransaction>()
             .addCondition("isTreated", QueryComparator.Equal, input.isTreated)
         val externalTransactions = externalTransactionRepo.getAll(input.query, conditionExternalTransaction)

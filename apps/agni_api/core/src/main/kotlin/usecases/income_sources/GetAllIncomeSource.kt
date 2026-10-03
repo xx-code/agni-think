@@ -1,16 +1,15 @@
 package usecases.income_sources
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.IncomeSource
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.income_sources.dto.GetIncomeSourceOutput
-import usecases.interfaces.IUseCase
-
 class GetAllIncomeSource(
     private val incomeSourceRepo: IRepository<IncomeSource>,
-) : IUseCase<QueryFilter, ListOutput<GetIncomeSourceOutput>> {
-    override fun execAsync(input: QueryFilter): ListOutput<GetIncomeSourceOutput> {
+): UseCase<QueryFilter, ListOutput<GetIncomeSourceOutput>>() {
+    override suspend fun process(input: QueryFilter): ListOutput<GetIncomeSourceOutput> {
         val incomeSources = incomeSourceRepo.getAll(input)
 
         return ListOutput(

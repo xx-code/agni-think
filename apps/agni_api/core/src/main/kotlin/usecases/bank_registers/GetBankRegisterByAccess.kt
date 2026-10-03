@@ -1,5 +1,6 @@
 package usecases.bank_registers
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
@@ -11,13 +12,11 @@ import domain.exceptions.ValidationException
 import usecases.bank_registers.dto.AccountLinkerOutput
 import usecases.bank_registers.dto.GetBankRegisterByAccessCodeInput
 import usecases.bank_registers.dto.GetBankRegisterOutput
-import usecases.interfaces.IUseCase
-
 class GetBankRegisterByAccess(
     private val bankRegisterRepo: IRepository<BankRegister>,
     private val accountRepo: IRepository<Account>,
-): IUseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput> {
-    override fun execAsync(input: GetBankRegisterByAccessCodeInput): GetBankRegisterOutput {
+): UseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput>() {
+    override suspend fun process(input: GetBankRegisterByAccessCodeInput): GetBankRegisterOutput {
         val condition = QueryExtendBuilder<BankRegister>()
 
         if (input.institutionId.isBlank())

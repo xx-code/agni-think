@@ -1,17 +1,16 @@
 package usecases.tags
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
-import domain.entities.Category
 import domain.entities.Tag
-import usecases.ListOutput
-import usecases.interfaces.IUseCase
+import usecases.dto.ListOutput
 import usecases.tags.dto.GetAllTagInput
 import usecases.tags.dto.GetTagOutput
 
-class GetAllTags(private val tagRepo: IRepository<Tag>): IUseCase<GetAllTagInput, ListOutput<GetTagOutput>> {
-    override fun execAsync(input: GetAllTagInput): ListOutput<GetTagOutput> {
+class GetAllTags(private val tagRepo: IRepository<Tag>): UseCase<GetAllTagInput, ListOutput<GetTagOutput>>() {
+    override suspend fun process(input: GetAllTagInput): ListOutput<GetTagOutput> {
         val condition = QueryExtendBuilder<Tag>()
 
         if (input.isSystem != null)

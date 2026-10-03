@@ -1,5 +1,6 @@
 package usecases.invoices.transactions
 
+import usecases.UseCase
 import domain.SAVING_CATEGORY_ID
 import domain.TRANSFERT_CATEGORY_ID
 import adapters.dto.QueryFilter
@@ -14,7 +15,6 @@ import domain.entities.Tag
 import domain.entities.Transaction
 import domain.enums.DeductionBaseType
 import domain.enums.DeductionModeType
-import usecases.interfaces.IUseCase
 import usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 import usecases.invoices.transactions.dto.TransactionBudgetOutput
@@ -30,8 +30,8 @@ class GetInvoiceTransactions(
     private val tagRepo: IRepository<Tag>,
     private val budgetRepo: IRepository<Budget>,
     private val transactionRepo: IRepository<Transaction>
-): IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>> {
-     override fun execAsync(input: GetInvoiceTransactionsInput): List<GetInvoiceTransactionsOutput> {
+): UseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>() {
+     override suspend fun process(input: GetInvoiceTransactionsInput): List<GetInvoiceTransactionsOutput> {
          val conditionTransactionExtend = QueryExtendBuilder<Transaction>()
              .addCondition("categoryId", QueryComparator.In, input.categoryIds)
              .addCondition("tagIds", QueryComparator.In, input.tagIds)

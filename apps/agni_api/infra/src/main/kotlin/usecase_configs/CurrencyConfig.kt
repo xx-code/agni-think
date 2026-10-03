@@ -3,8 +3,8 @@ package usecase_configs
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.Currency
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.currencies.CreateCurrency
 import usecases.currencies.DeleteCurrency
 import usecases.currencies.GetAllCurrencies
@@ -17,6 +17,7 @@ import usecases.currencies.dto.UpdateCurrencyInput
 import usecases.interfaces.IUseCase
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -25,7 +26,7 @@ class CurrencyConfig {
     @Bean
     fun createCurrency(
        currencyRepo: IRepository<Currency>
-    ): IUseCase<CreateCurrencyInput, CreatedOutput> {
+    ): UseCase<CreateCurrencyInput, CreatedOutput> {
         return CreateCurrency(
             currencyRepo = currencyRepo
         )
@@ -34,7 +35,7 @@ class CurrencyConfig {
     @Bean
     fun deleteCurrency(
         currencyRepo: IRepository<Currency>
-    ): IUseCase<DeleteCurrencyInput, Unit> {
+    ): UseCase<DeleteCurrencyInput, Unit> {
         return DeleteCurrency(
             currencyRepo = currencyRepo
         )
@@ -43,7 +44,7 @@ class CurrencyConfig {
     @Bean
     fun getCurrency(
         currencyRepo: IRepository<Currency>
-    ): IUseCase<UUID, GetCurrencyOutput> {
+    ): UseCase<UUID, GetCurrencyOutput> {
         return GetCurrency(
             currencyRepo = currencyRepo
         )
@@ -52,7 +53,7 @@ class CurrencyConfig {
     @Bean
     fun getAllCurrencies(
         currencyRepo: IRepository<Currency>
-    ): IUseCase<QueryFilter, ListOutput<GetCurrencyOutput>> {
+    ): UseCase<QueryFilter, ListOutput<GetCurrencyOutput>> {
         return GetAllCurrencies(
             currencyRepo = currencyRepo
         )
@@ -61,7 +62,7 @@ class CurrencyConfig {
     @Bean
     fun updateCurrency(
         currencyRepo: IRepository<Currency>
-    ): IUseCase<UpdateCurrencyInput, Unit> {
+    ): UseCase<UpdateCurrencyInput, Unit> {
         return UpdateCurrency(
             currencyRepo = currencyRepo
         )

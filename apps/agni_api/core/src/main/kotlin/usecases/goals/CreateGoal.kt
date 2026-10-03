@@ -1,18 +1,17 @@
 package usecases.goals
 
+import usecases.UseCase
 import adapters.IFinanceContext
 import adapters.repositories.IRepository
 import domain.entities.Goal
 import domain.factories.GoalEvaluationStrategyFactory
-import usecases.CreatedOutput
+import usecases.dto.CreatedOutput
 import usecases.goals.dto.CreateGoalInput
-import usecases.interfaces.IUseCase
-
 class CreateGoal(
     private val goalRepo: IRepository<Goal>,
     private val financeContext: IFinanceContext
-): IUseCase<CreateGoalInput, CreatedOutput> {
-    override fun execAsync(input: CreateGoalInput): CreatedOutput {
+): UseCase<CreateGoalInput, CreatedOutput>() {
+    override suspend fun process(input: CreateGoalInput): CreatedOutput {
         val newGoal = Goal(
             title = input.title,
             description = input.description,

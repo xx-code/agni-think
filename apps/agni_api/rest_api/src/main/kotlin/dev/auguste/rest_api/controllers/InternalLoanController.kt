@@ -6,8 +6,8 @@ import dev.auguste.rest_api.controllers.models.ApiCreateInternalLoanModel
 import dev.auguste.rest_api.controllers.models.ApiRemoveRefundInternalLoanModel
 import dev.auguste.rest_api.controllers.models.ApiUpdateInternalLoanModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateInternalLoanModel
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.internal_loan.dto.AddRefundInternalLoanInput
 import usecases.internal_loan.dto.CreateInternalLoanInput
@@ -39,44 +39,44 @@ class InternalLoanController(
     private val removeRefundInternalLoan: IUseCase<RemoveRefundInternalLoanInput, Unit>
 ) {
     @GetMapping("{id}")
-    fun getInternalLoan(@PathVariable id: UUID): ResponseEntity<GetInternalLoanOutput> {
-        return ResponseEntity.ok(getInternalLoan.execAsync(id))
+    suspend fun getInternalLoan(@PathVariable id: UUID): ResponseEntity<GetInternalLoanOutput> {
+        return ResponseEntity.ok(getInternalLoan.execute(id).getOrThrow())
     }
 
     @GetMapping
-    fun getAllInternalLoans(query: QueryFilter): ResponseEntity<ListOutput<GetInternalLoanOutput>>  {
-        return ResponseEntity.ok(getAllInternalLoan.execAsync(query))
+    suspend fun getAllInternalLoans(query: QueryFilter): ResponseEntity<ListOutput<GetInternalLoanOutput>>  {
+        return ResponseEntity.ok(getAllInternalLoan.execute(query).getOrThrow())
     }
 
     @PostMapping
-    fun createInternalLoan(@RequestBody request: ApiCreateInternalLoanModel): ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createInternalLoan.execAsync(mapApiCreateInternalLoanModel(request)))
+    suspend fun createInternalLoan(@RequestBody request: ApiCreateInternalLoanModel): ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createInternalLoan.execute(mapApiCreateInternalLoanModel(request)).getOrThrow())
     }
 
     @PutMapping("{id}")
-    fun updateInternalLoan(@PathVariable id: UUID, @RequestBody request: ApiUpdateInternalLoanModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateInternalLoan.execAsync(UpdateInternalLoanInput(id, request.fundAccountId, request.dueDate)))
+    suspend fun updateInternalLoan(@PathVariable id: UUID, @RequestBody request: ApiUpdateInternalLoanModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateInternalLoan.execute(UpdateInternalLoanInput(id, request.fundAccountId, request.dueDate)).getOrThrow())
     }
 
     @DeleteMapping("{id}")
-    fun deleteInternalLoan(@PathVariable id: UUID): ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteInternalLoan.execAsync(id))
+    suspend fun deleteInternalLoan(@PathVariable id: UUID): ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteInternalLoan.execute(id).getOrThrow())
     }
 
     @PutMapping("{id}/add-fund")
-    fun addFundInternalLoan(@PathVariable id: UUID, @RequestBody request: ApiAddRefundInternalLoanModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(addRefundInternalLoan.execAsync(AddRefundInternalLoanInput(
+    suspend fun addFundInternalLoan(@PathVariable id: UUID, @RequestBody request: ApiAddRefundInternalLoanModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(addRefundInternalLoan.execute(AddRefundInternalLoanInput(
             internalLoanId = id,
             accountId = request.refundAccountId,
             amount = request.refundAmount
-        )))
+        )).getOrThrow())
     }
 
     @PutMapping("{id}/remove-fund")
-    fun refundFund(@PathVariable id: UUID, @RequestBody request: ApiRemoveRefundInternalLoanModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(removeRefundInternalLoan.execAsync(RemoveRefundInternalLoanInput(
+    suspend fun refundFund(@PathVariable id: UUID, @RequestBody request: ApiRemoveRefundInternalLoanModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(removeRefundInternalLoan.execute(RemoveRefundInternalLoanInput(
             internalLoanId = id,
             freezeInvoiceId = request.freezeInvoiceRefundId
-        )))
+        )).getOrThrow())
     }
 }

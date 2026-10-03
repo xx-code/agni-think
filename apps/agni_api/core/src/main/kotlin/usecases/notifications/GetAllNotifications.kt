@@ -1,15 +1,15 @@
 package usecases.notifications
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import adapters.dto.QueryFilter
 import domain.entities.Notification
-import usecases.ListOutput
-import usecases.interfaces.IUseCase
+import usecases.dto.ListOutput
 import usecases.notifications.dto.GetNotificationOutput
 
-class GetAllNotifications(private val notificationRepo: IRepository<Notification>): IUseCase<QueryFilter, ListOutput<GetNotificationOutput>> {
+class GetAllNotifications(private val notificationRepo: IRepository<Notification>): UseCase<QueryFilter, ListOutput<GetNotificationOutput>>() {
 
-    override fun execAsync(input: QueryFilter): ListOutput<GetNotificationOutput> {
+    override suspend fun process(input: QueryFilter): ListOutput<GetNotificationOutput> {
         val notifications = notificationRepo.getAll(input)
 
         return ListOutput(

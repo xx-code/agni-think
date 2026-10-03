@@ -1,5 +1,5 @@
 package adapters.repositories
 
 interface IUnitOfWork {
-    fun <T> execute(block: () -> T): T
+    suspend fun <T> execute(block: suspend () -> T): T
 }

@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import domain.enums.IncomeSourceFrequencyType
 import domain.enums.IncomeSourceType
 import domain.exceptions.ValidationException
@@ -34,7 +36,7 @@ class IncomeSourceValidationTest {
     )
 
     @Test
-    fun `accepts the reliability boundaries`() {
+    fun `accepts the reliability boundaries`() = runBlocking {
         val source = incomeSource()
 
         source.reliabilityLevel = 1
@@ -45,7 +47,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `refuses a reliability outside one to one hundred`() {
+    fun `refuses a reliability outside one to one hundred`() = runBlocking {
         val source = incomeSource()
 
         val tooLow = assertFailsWith<ValidationException.IncomeSourceReliabilityLevelInvalid> {
@@ -59,7 +61,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `accepts rates that add up to one hundred`() {
+    fun `accepts rates that add up to one hundred`() = runBlocking {
         val source = incomeSource(taxRate = 0.0, otherRate = 0.0)
 
         source.taxRate = 60.0
@@ -70,7 +72,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `refuses a tax rate that would push the total above one hundred`() {
+    fun `refuses a tax rate that would push the total above one hundred`() = runBlocking {
         val source = incomeSource(taxRate = 80.0, otherRate = 30.0)
 
         val error = assertFailsWith<ValidationException.IncomeSourceTaxRateInvalid> {
@@ -82,21 +84,21 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `refuses a negative tax rate`() {
+    fun `refuses a negative tax rate`() = runBlocking {
         val source = incomeSource()
 
         assertFailsWith<ValidationException.IncomeSourceTaxRateInvalid> { source.taxRate = -0.5 }
     }
 
     @Test
-    fun `refuses an other rate that would push the total above one hundred`() {
+    fun `refuses an other rate that would push the total above one hundred`() = runBlocking {
         val source = incomeSource(taxRate = 80.0, otherRate = 10.0)
 
         assertFailsWith<ValidationException.IncomeSourceOtherRateInvalid> { source.otherRate = 30.0 }
     }
 
     @Test
-    fun `an other rate error reports the other rate and not the tax rate`() {
+    fun `an other rate error reports the other rate and not the tax rate`() = runBlocking {
         val source = incomeSource(taxRate = 30.0, otherRate = 10.0)
 
         val error = assertFailsWith<ValidationException.IncomeSourceOtherRateInvalid> {
@@ -108,7 +110,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `accepts a null or positive annual gross amount`() {
+    fun `accepts a null or positive annual gross amount`() = runBlocking {
         val source = incomeSource()
 
         source.annualGrossAmount = null
@@ -119,7 +121,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `refuses a negative annual gross amount`() {
+    fun `refuses a negative annual gross amount`() = runBlocking {
         val source = incomeSource()
 
         val error = assertFailsWith<ValidationException.IncomeSourceAnnualGrossAmountMustBePositif> {
@@ -130,7 +132,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `accepts an open ended income source`() {
+    fun `accepts an open ended income source`() = runBlocking {
         val source = incomeSource(endDate = null)
 
         source.endDate = null
@@ -138,7 +140,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `refuses a start date that is not before the end date`() {
+    fun `refuses a start date that is not before the end date`() = runBlocking {
         val source = incomeSource()
 
         val error = assertFailsWith<ValidationException.IncomeSourceStartDateMustLessThanEndDate> {
@@ -150,7 +152,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `refuses an end date that is not after the start date`() {
+    fun `refuses an end date that is not after the start date`() = runBlocking {
         val source = incomeSource()
 
         val error = assertFailsWith<ValidationException.IncomeSourceEndDateMustGreaterThanStartDate> {
@@ -161,7 +163,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `refuses an end date set before the start date`() {
+    fun `refuses an end date set before the start date`() = runBlocking {
         val source = incomeSource()
 
         assertFailsWith<ValidationException.IncomeSourceEndDateMustGreaterThanStartDate> {
@@ -170,7 +172,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `lets a bounded income source become open ended again`() {
+    fun `lets a bounded income source become open ended again`() = runBlocking {
         val source = incomeSource()
 
         source.endDate = null
@@ -179,7 +181,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `validates the start date against the current end date`() {
+    fun `validates the start date against the current end date`() = runBlocking {
         val source = incomeSource(startDate = startDate, endDate = LocalDate.of(2026, 6, 30))
 
         source.endDate = LocalDate.of(2026, 12, 31)
@@ -189,7 +191,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `moves the start date of an open ended income source`() {
+    fun `moves the start date of an open ended income source`() = runBlocking {
         val source = incomeSource(endDate = null)
 
         source.startDate = startDate.plusMonths(3)
@@ -198,7 +200,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `the tax rate validator sees the current other rate`() {
+    fun `the tax rate validator sees the current other rate`() = runBlocking {
         val source = incomeSource(taxRate = 0.0, otherRate = 50.0)
 
         source.otherRate = 40.0
@@ -208,7 +210,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `the other rate validator sees the current tax rate`() {
+    fun `the other rate validator sees the current tax rate`() = runBlocking {
         val source = incomeSource(taxRate = 50.0, otherRate = 0.0)
 
         source.taxRate = 40.0

@@ -9,11 +9,9 @@ import domain.entities.Provision
 import domain.entities.Fund
 import domain.entities.ScheduleInvoice
 import facades.InvoiceDependencies
-import usecases.BackgroundTaskOut
-import usecases.CreatedOutput
-import usecases.ListOutput
-import usecases.interfaces.IInnerUseCase
-import usecases.interfaces.ISuspendableUseCase
+import usecases.dto.BackgroundTaskOut
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.invoices.dto.CreateFreezeInvoiceInput
 import usecases.invoices.dto.CreateInvoiceInput
@@ -31,6 +29,7 @@ import usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
 import domain.value_objects.ScheduleInvoiceModuleLinker
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -39,11 +38,11 @@ class ScheduleInvoiceConfig {
     @Bean
     fun applyScheduleInvoice(
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-        createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
-        createFreezeInvoice: IInnerUseCase<CreateFreezeInvoiceInput, CreatedOutput>,
+        createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
+        createFreezeInvoice: IUseCase<CreateFreezeInvoiceInput, CreatedOutput>,
         eventManger: IEventRegister,
         unitOfWork: IUnitOfWork,
-    ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
+    ): UseCase<Unit, BackgroundTaskOut> {
         return ApplyScheduleInvoice(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
             createInvoice = createInvoice,
@@ -58,7 +57,7 @@ class ScheduleInvoiceConfig {
         provisionRepo: IRepository<Provision>,
         incomeSourceRepo: IRepository<IncomeSource>,
         fundsSourceRepo: IRepository<Fund>,
-        ): IUseCase<ScheduleInvoiceModuleLinker, Unit> {
+        ): UseCase<ScheduleInvoiceModuleLinker, Unit> {
         return VerifyScheduleModuleLinker(
             incomeSourceRepo = incomeSourceRepo,
             fundSourceRepo = fundsSourceRepo,
@@ -71,7 +70,7 @@ class ScheduleInvoiceConfig {
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         invoiceDependencies: InvoiceDependencies,
         verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>,
-    ): IUseCase<CreateScheduleInvoiceInput, CreatedOutput> {
+    ): UseCase<CreateScheduleInvoiceInput, CreatedOutput> {
         return CreateScheduleInvoice(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
             invoiceDependencies = invoiceDependencies,
@@ -82,7 +81,7 @@ class ScheduleInvoiceConfig {
     @Bean
     fun deleteScheduleInvoice(
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-    ): IUseCase<DeleteScheduleInvoiceInput, Unit> {
+    ): UseCase<DeleteScheduleInvoiceInput, Unit> {
         return DeleteScheduleInvoice(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
         )
@@ -91,7 +90,7 @@ class ScheduleInvoiceConfig {
     @Bean
     fun getAllScheduleInvoice(
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-    ): IUseCase<QueryFilter, ListOutput<GetScheduleInvoiceOutput>> {
+    ): UseCase<QueryFilter, ListOutput<GetScheduleInvoiceOutput>> {
         return GetAllScheduleInvoice(
             scheduleInvoiceRepo = scheduleInvoiceRepo
         )
@@ -100,7 +99,7 @@ class ScheduleInvoiceConfig {
     @Bean
     fun getScheduleInvoice(
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-    ): IUseCase<UUID, GetScheduleInvoiceOutput> {
+    ): UseCase<UUID, GetScheduleInvoiceOutput> {
        return GetScheduleInvoice(
            scheduleInvoiceRepo = scheduleInvoiceRepo
        ) 
@@ -111,7 +110,7 @@ class ScheduleInvoiceConfig {
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         invoiceDependencies: InvoiceDependencies,
         verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>,
-    ): IUseCase<UpdateScheduleInvoiceInput, Unit> {
+    ): UseCase<UpdateScheduleInvoiceInput, Unit> {
         return UpdateScheduleInvoice(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
             invoiceDependencies = invoiceDependencies,

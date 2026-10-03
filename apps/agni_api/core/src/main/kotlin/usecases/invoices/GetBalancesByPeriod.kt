@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import usecases.UseCase
 import domain.exceptions.ValidationException
 import domain.enums.PeriodType
 import usecases.interfaces.IUseCase
@@ -11,8 +12,8 @@ import java.time.LocalDateTime
 
 class GetBalancesByPeriod(
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
-): IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>> {
-    override fun execAsync(input: GetBalancesByPeriodInput): List<GetBalanceByPeriodOutput> {
+): UseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>() {
+    override suspend fun process(input: GetBalancesByPeriodInput): List<GetBalanceByPeriodOutput> {
         val results = mutableListOf<GetBalanceByPeriodOutput>()
 
         if (input.interval <= 0)
@@ -29,7 +30,7 @@ class GetBalancesByPeriod(
                 PeriodType.DAY -> current.plusDays(input.interval.toLong())
             }
 
-            val resBalance = getBalance.execAsync(GetBalanceInput(
+            val resBalance = getBalance.processDirect(GetBalanceInput(
                 startDate = current,
                 endDate = next,
                 categoryIds = input.categoryIds,

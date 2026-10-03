@@ -1,9 +1,9 @@
 package usecases.provisionable
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.Provision
-import usecases.interfaces.IUseCase
 import usecases.provisionable.dto.GetProvisionOutput
 import usecases.provisionable.dto.ProvisionDepreciateCriteriaOutput
 import usecases.provisionable.dto.ProvisionInvoiceOutput
@@ -11,8 +11,8 @@ import java.util.UUID
 
 class GetProvision(
     private val provisionRepo: IRepository<Provision>
-    ): IUseCase<UUID, GetProvisionOutput> {
-    override fun execAsync(input: UUID): GetProvisionOutput {
+    ): UseCase<UUID, GetProvisionOutput>() {
+    override suspend fun process(input: UUID): GetProvisionOutput {
         val provisional = provisionRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "provisionable")
 
         return GetProvisionOutput(

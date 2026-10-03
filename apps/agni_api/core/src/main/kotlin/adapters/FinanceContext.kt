@@ -17,11 +17,11 @@ data class FinanceContextFund(
 )
 
 interface IFinanceContext {
-    fun getFund(id: UUID): FinanceContextFund
-    fun verifyFundExists(id: UUID)
-    fun getCategoryTotal(id: UUID, startDate: LocalDate, endDate: LocalDate): Double
-    fun verifyCategoryExists(id: UUID)
-    fun getNetWorthTotal(): Double
+    suspend fun getFund(id: UUID): FinanceContextFund
+    suspend fun verifyFundExists(id: UUID)
+    suspend fun getCategoryTotal(id: UUID, startDate: LocalDate, endDate: LocalDate): Double
+    suspend fun verifyCategoryExists(id: UUID)
+    suspend fun getNetWorthTotal(): Double
 }
 
 class FinanceContext(
@@ -29,7 +29,7 @@ class FinanceContext(
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     private val categoryRepo: IRepository<Category>
 ): IFinanceContext {
-    override fun getFund(id: UUID): FinanceContextFund
+    override suspend fun getFund(id: UUID): FinanceContextFund
     {
         val fund = fundRepo.get(id) ?: throw NotFoundException.SingleEntity(id, "saving_goal")
         return FinanceContextFund(
@@ -39,12 +39,12 @@ class FinanceContext(
         )
     }
 
-    override fun verifyFundExists(id: UUID) {
+    override suspend fun verifyFundExists(id: UUID) {
         fundRepo.get(id) ?: throw NotFoundException.SingleEntity(id, "saving_goal")
     }
 
-    override fun getCategoryTotal(id: UUID, startDate: LocalDate, endDate: LocalDate): Double {
-        val balance = getBalance.execAsync(
+    override suspend fun getCategoryTotal(id: UUID, startDate: LocalDate, endDate: LocalDate): Double {
+        val balance = getBalance.processDirect(
             GetBalanceInput(
                 categoryIds = setOf(id),
                 startDate = startDate.atStartOfDay(),
@@ -55,11 +55,11 @@ class FinanceContext(
         return balance.balance
     }
 
-    override fun verifyCategoryExists(id: UUID) {
+    override suspend fun verifyCategoryExists(id: UUID) {
         categoryRepo.get(id) ?: throw NotFoundException.SingleEntity(id, "category")
     }
 
-    override fun getNetWorthTotal(): Double {
+    override suspend fun getNetWorthTotal(): Double {
         throw Exception("Net Worth total not supported")
     }
 }

@@ -1,5 +1,8 @@
 package usecases.invoices
 
+import usecases.interfaces.IUseCase
+
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.events.EventType
 import adapters.events.IEventRegister
@@ -11,21 +14,17 @@ import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.entities.Invoice
 import domain.enums.InvoiceStatusType
-import usecases.BackgroundTaskOut
-import usecases.interfaces.IInnerUseCase
-import usecases.interfaces.ISuspendableUseCase
-import usecases.interfaces.IUseCase
+import usecases.dto.BackgroundTaskOut
 import usecases.invoices.dto.DeleteInvoiceInput
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class RemoveFreezeInvoice(
     private val invoiceRepo: IRepository<Invoice>,
     private val accountRepo: IRepository<Account>,
-    private val deleteInvoice: IInnerUseCase<DeleteInvoiceInput, Unit>,
+    private val deleteInvoice: IUseCase<DeleteInvoiceInput, Unit>,
     private val eventRegister: IEventRegister
-): ISuspendableUseCase<Unit, BackgroundTaskOut> {
-    override suspend fun execAsync(input: Unit): BackgroundTaskOut {
+): UseCase<Unit, BackgroundTaskOut>() {
+    override suspend fun process(input: Unit): BackgroundTaskOut {
         try {
             val condition = QueryExtendBuilder<Invoice>()
                 .addCondition("is", QueryComparator.Equal, InvoiceStatusType.COMPLETED.value)
@@ -36,7 +35,7 @@ class RemoveFreezeInvoice(
             )
 
             for(invoiceItem in freezeInvoice.items) {
-                deleteInvoice.execAsync(DeleteInvoiceInput(invoiceItem.id, false))
+                deleteInvoice.processDirect(DeleteInvoiceInput(invoiceItem.id, false))
                 val account = accountRepo.get(invoiceItem.accountId)
 
                 eventRegister.notify(EventType.NOTIFICATION, NotificationEventContent(

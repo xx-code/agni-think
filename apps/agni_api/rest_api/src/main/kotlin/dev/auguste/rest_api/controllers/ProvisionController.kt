@@ -5,8 +5,8 @@ import dev.auguste.rest_api.controllers.models.ApiCreateProvisionModel
 import dev.auguste.rest_api.controllers.models.ApiUpdateProvisionModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateProvision
 import dev.auguste.rest_api.controllers.models.mapApiUpdateProvision
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.provisionable.dto.CreateProvisionInput
 import usecases.provisionable.dto.DeleteProvisionInput
@@ -34,37 +34,37 @@ class ProvisionController (
     val getAllProvisionUseCase: IUseCase<QueryFilter, ListOutput<GetProvisionOutput>>
 ) {
     @PostMapping
-    fun createProvision(@Valid @RequestBody request: ApiCreateProvisionModel) : ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createProvisionUseCase.execAsync(
+    suspend fun createProvision(@Valid @RequestBody request: ApiCreateProvisionModel) : ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createProvisionUseCase.execute(
             mapApiCreateProvision(request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateProvision(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateProvisionModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateProvisionUseCase.execAsync(
+    suspend fun updateProvision(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateProvisionModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateProvisionUseCase.execute(
             mapApiUpdateProvision(id, request)
-        ))
+        ).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteProvision(@PathVariable id: UUID): ResponseEntity<Unit> {
-       return ResponseEntity.ok(deleteProvisionUseCase.execAsync(
+    suspend fun deleteProvision(@PathVariable id: UUID): ResponseEntity<Unit> {
+       return ResponseEntity.ok(deleteProvisionUseCase.execute(
            DeleteProvisionInput(id)
-       ))
+       ).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getProvision(@PathVariable id: UUID) : ResponseEntity<GetProvisionOutput> {
-        return ResponseEntity.ok(getProvisionUseCase.execAsync(
+    suspend fun getProvision(@PathVariable id: UUID) : ResponseEntity<GetProvisionOutput> {
+        return ResponseEntity.ok(getProvisionUseCase.execute(
             id
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping
-    fun getAllProvisions(query: QueryFilter) : ResponseEntity<ListOutput<GetProvisionOutput>> {
-        return ResponseEntity.ok(getAllProvisionUseCase.execAsync(
+    suspend fun getAllProvisions(query: QueryFilter) : ResponseEntity<ListOutput<GetProvisionOutput>> {
+        return ResponseEntity.ok(getAllProvisionUseCase.execute(
             query
-        ))
+        ).getOrThrow())
     }
 }

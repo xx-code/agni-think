@@ -1,15 +1,14 @@
 package usecases.currencies
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Currency
 import usecases.currencies.dto.UpdateCurrencyInput
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
-import usecases.interfaces.IUseCase
+class UpdateCurrency(private val currencyRepo: IRepository<Currency>): UseCase<UpdateCurrencyInput, Unit>() {
 
-class UpdateCurrency(private val currencyRepo: IRepository<Currency>): IUseCase<UpdateCurrencyInput, Unit> {
-
-    override fun execAsync(input: UpdateCurrencyInput) {
+    override suspend fun process(input: UpdateCurrencyInput) {
         val currency = currencyRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "currency")
 
         if (input.name != null) {

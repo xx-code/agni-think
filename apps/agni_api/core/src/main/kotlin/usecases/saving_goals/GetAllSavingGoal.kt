@@ -1,5 +1,6 @@
 package usecases.saving_goals
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
 import adapters.repositories.IRepository
@@ -7,16 +8,15 @@ import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Goal
 import domain.entities.Fund
-import usecases.ListOutput
-import usecases.interfaces.IUseCase
+import usecases.dto.ListOutput
 import usecases.saving_goals.dto.FundGoalOutput
 import usecases.saving_goals.dto.GetAllSavingGoalInput
 import usecases.saving_goals.dto.GetSavingGoalOutput
 
 class GetAllSavingGoal(
     private val fundRepo: IRepository<Fund>,
-    private val goalRepo: IRepository<Goal>): IUseCase<GetAllSavingGoalInput, ListOutput<GetSavingGoalOutput>> {
-    override fun execAsync(input: GetAllSavingGoalInput): ListOutput<GetSavingGoalOutput> {
+    private val goalRepo: IRepository<Goal>): UseCase<GetAllSavingGoalInput, ListOutput<GetSavingGoalOutput>>() {
+    override suspend fun process(input: GetAllSavingGoalInput): ListOutput<GetSavingGoalOutput> {
         val query = QueryFilter(
             offset = input.queryFilter.offset,
             limit = input.queryFilter.limit,

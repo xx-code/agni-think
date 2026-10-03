@@ -1,16 +1,15 @@
 package usecases.categories
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Category
 import domain.entities.Color
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
 import usecases.categories.dto.UpdateCategoryInput
-import usecases.interfaces.IUseCase
+class UpdateCategory(private val categoryRepo: IRepository<Category>): UseCase<UpdateCategoryInput, Unit>() {
 
-class UpdateCategory(private val categoryRepo: IRepository<Category>): IUseCase<UpdateCategoryInput, Unit> {
-
-    override fun execAsync(input: UpdateCategoryInput) {
+    override suspend fun process(input: UpdateCategoryInput) {
         val category = categoryRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "category")
 
         if (input.title != null) {

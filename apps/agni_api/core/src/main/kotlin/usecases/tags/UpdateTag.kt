@@ -1,15 +1,15 @@
 package usecases.tags
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Color
 import domain.entities.Tag
-import usecases.interfaces.IUseCase
 import domain.exceptions.NotFoundException
 import usecases.tags.dto.UpdateTagInput
 
-class UpdateTag(private val tagRepo: IRepository<Tag>): IUseCase<UpdateTagInput, Unit> {
+class UpdateTag(private val tagRepo: IRepository<Tag>): UseCase<UpdateTagInput, Unit>() {
 
-    override fun execAsync(input: UpdateTagInput) {
+    override suspend fun process(input: UpdateTagInput) {
         val tag = tagRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "tag")
 
         if (input.value != null)

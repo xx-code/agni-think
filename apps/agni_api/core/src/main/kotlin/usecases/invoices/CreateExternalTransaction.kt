@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import usecases.UseCase
 import adapters.EmbeddingDocument
 import adapters.IEmbeddingService
 import adapters.events.EventType
@@ -11,8 +12,7 @@ import adapters.events.listeners.ICreateExternalTransactionListener
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.ExternalTransaction
-import usecases.BackgroundTaskOut
-import usecases.interfaces.IUseCase
+import usecases.dto.BackgroundTaskOut
 import java.util.UUID
 
 class CreateExternalTransaction(
@@ -20,10 +20,10 @@ class CreateExternalTransaction(
     private val embeddingService: IEmbeddingService,
     private val eventRegister: IEventRegister,
     private val collectionExternalTransactionName: String,
-) : IUseCase<UUID, BackgroundTaskOut>, ICreateExternalTransactionListener  {
+): UseCase<UUID, BackgroundTaskOut>(), ICreateExternalTransactionListener  {
     private var event: CreateEmbeddingExternalTransEventContent? = null
 
-    override fun execAsync(input: UUID): BackgroundTaskOut {
+    override suspend fun process(input: UUID): BackgroundTaskOut {
         try {
             val trans = externalTransactionRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "transaction")
 
@@ -56,9 +56,9 @@ class CreateExternalTransaction(
         event = content
     }
 
-    override fun update() {
+    override suspend fun update() {
         event?.let {
-            execAsync(it.externalTransactions.id)
+            process(it.externalTransactions.id)
         }
         event = null
     }

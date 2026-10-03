@@ -1,5 +1,6 @@
 package usecases.analystics
 
+import usecases.UseCase
 import domain.SAVING_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
@@ -30,9 +31,9 @@ class GetPatrimonyEvolution(
     private val patrimonySnapshotRepo: IRepository<PatrimonySnapshot>,
     private val fundRepo: IRepository<Fund>,
     private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
-) : IUseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput> {
+): UseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput>() {
 
-    override fun execAsync(input: GetPatrimonyEvolutionInput): GetPatrimonyEvolutionOutput {
+    override suspend fun process(input: GetPatrimonyEvolutionInput): GetPatrimonyEvolutionOutput {
         val patrimonies = patrimonyRepo.getAll(QueryFilter.queryAll())
         val patrimonyIds = patrimonies.items.map { it.id }.toSet()
 
@@ -57,7 +58,7 @@ class GetPatrimonyEvolution(
             val patrimonySnapshots = snapshots.filter { it.patrimonyId == patrimony.id }
 
             // Get balance history calculated from transactions if needed for fallback
-            val balancesByPeriod = getBalanceByPeriod.execAsync(
+            val balancesByPeriod = getBalanceByPeriod.processDirect(
                 GetBalancesByPeriodInput(
                     period = input.periodType,
                     interval = input.interval,
@@ -103,7 +104,7 @@ class GetPatrimonyEvolution(
         val currentSavingGoalBalance = fundRepo.getAll(QueryFilter.queryAll()).items.sumOf { it.balance }
 
         // Fetch periodic savings activity
-        val savingBalancesByDate = getBalanceByPeriod.execAsync(
+        val savingBalancesByDate = getBalanceByPeriod.processDirect(
             GetBalancesByPeriodInput(
                 period = input.periodType,
                 interval = input.interval,

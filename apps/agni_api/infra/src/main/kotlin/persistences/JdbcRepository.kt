@@ -6,11 +6,14 @@ import adapters.repositories.IQueryExtendBuilder
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import domain.entities.Entity
+import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
+import org.springframework.transaction.reactive.TransactionalOperator
+import org.springframework.transaction.reactive.executeAndAwait
 import org.springframework.transaction.support.TransactionTemplate
 import persistences.jbdc_model.JdbcModel
 import java.util.UUID
@@ -115,9 +118,11 @@ abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
 
 @Component
 class JdbcUnitOfWork(
-    val transactionTemplate: TransactionTemplate,
+    private val transactionTemplate: TransactionTemplate
 ): IUnitOfWork {
-    override fun <T> execute(block: () -> T): T {
-        return transactionTemplate.execute { block() } ?: throw IllegalStateException("Transaction yielded no result")
+    override suspend fun <T> execute(block: suspend () -> T): T {
+        return transactionTemplate.execute {
+            runBlocking { block() }
+        } ?: throw IllegalStateException("Transaction yielded no result")
     }
 }

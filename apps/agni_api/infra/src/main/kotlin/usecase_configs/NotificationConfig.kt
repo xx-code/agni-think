@@ -3,7 +3,7 @@ package usecase_configs
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.Notification
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.notifications.DeleteNotification
 import usecases.notifications.GetAllNotifications
@@ -14,6 +14,7 @@ import usecases.notifications.dto.DeleteNotificationInput
 import usecases.notifications.dto.GetNotificationOutput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -22,7 +23,7 @@ class NotificationConfig {
     @Bean
     fun deleteNotification(
         notificationRepo: IRepository<Notification>,
-    ): IUseCase<DeleteNotificationInput, Unit> {
+    ): UseCase<DeleteNotificationInput, Unit> {
         return DeleteNotification(
             notificationRepo = notificationRepo,
         )
@@ -31,7 +32,7 @@ class NotificationConfig {
     @Bean
     fun getAllNotifications(
         notificationRepo: IRepository<Notification>,
-    ): IUseCase<QueryFilter, ListOutput<GetNotificationOutput>> {
+    ): UseCase<QueryFilter, ListOutput<GetNotificationOutput>> {
         return GetAllNotifications(
             notificationRepo = notificationRepo,
         )
@@ -40,7 +41,7 @@ class NotificationConfig {
     @Bean
     fun getNotifications(
         notificationRepo: IRepository<Notification>,
-    ): IUseCase<UUID, GetNotificationOutput> {
+    ): UseCase<UUID, GetNotificationOutput> {
         return GetNotification(
             notificationRepo = notificationRepo,
         )
@@ -58,7 +59,7 @@ class NotificationConfig {
     @Bean
     fun togglePushNotification(
         notificationRepo: IRepository<Notification>,
-    ): IUseCase<UUID, Unit> {
+    ): UseCase<UUID, Unit> {
         return ToggleReadNotification(
             notificationRepo = notificationRepo,
         )

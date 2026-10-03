@@ -17,7 +17,7 @@ import domain.entities.Fund
 import domain.entities.ScheduleInvoice
 import domain.entities.Tag
 import org.springframework.context.annotation.Bean
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.analystics.ForcastSpending
 import usecases.analystics.GetAnnualOutlook
 import usecases.analystics.GetBudgetTotalSummary
@@ -61,6 +61,7 @@ import usecases.invoices.dto.GetBalancesByPeriodInput
 import usecases.patrimonies.dto.GetPatrimonyOutput
 import org.springframework.context.annotation.Configuration
 import persistences.AccountRepository
+import usecases.UseCase
 
 
 @Configuration
@@ -69,8 +70,8 @@ class AnalyticConfig {
     @Bean
     fun getSavingBalance(
         accountRepository: AccountRepository,
-        getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    ): IUseCase<GetSavingBalanceInput, Double> {
+        getBalance: UseCase<GetBalanceInput, GetBalanceOutput>,
+    ): UseCase<GetSavingBalanceInput, Double> {
         return GetSavingBalance(
             accountRepo = accountRepository,
             getBalance = getBalance
@@ -81,7 +82,7 @@ class AnalyticConfig {
     fun getSpendCategoryAnalytic(
         categoryRepo: IRepository<Category>,
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
-    ) : IUseCase<GetSpendByCategoryInput, ListOutput<GetSpendByCategoryOutput>> {
+    ) : UseCase<GetSpendByCategoryInput, ListOutput<GetSpendByCategoryOutput>> {
         return GetSpendByCategoryAnalytic(
             categoryRepo = categoryRepo,
             getBalanceByPeriod = getBalanceByPeriod
@@ -92,7 +93,7 @@ class AnalyticConfig {
     fun getSpendTagAnalytic(
         tagRepo: IRepository<Tag>,
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
-    ) : IUseCase<GetSpendByTagInput, ListOutput<GetSpendByTagOutput>> {
+    ) : UseCase<GetSpendByTagInput, ListOutput<GetSpendByTagOutput>> {
         return GetSpendByTagAnalytic(
             tagRepo = tagRepo,
             getBalanceByPeriod = getBalanceByPeriod
@@ -103,7 +104,7 @@ class AnalyticConfig {
     fun getSavingAnalytic(
         accountRepo: IRepository<Account>,
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
-    ) : IUseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput> {
+    ) : UseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput> {
         return GetSavingAnalytic(
             accountRepo = accountRepo,
             getBalanceByPeriod = getBalanceByPeriod
@@ -115,7 +116,7 @@ class AnalyticConfig {
         principleRepo: IRepository<FinancePrinciple>,
         incomeSourceRepo: IRepository<IncomeSource>,
         scheduleInvoice: IRepository<ScheduleInvoice>
-    ) : IUseCase<Unit, GetFinanceProfileOutput> {
+    ) : UseCase<Unit, GetFinanceProfileOutput> {
         return GetFinanceProfile(
             accountRepo = accountRepo,
             principleRepo = principleRepo,
@@ -127,7 +128,7 @@ class AnalyticConfig {
     @Bean fun getBudgetingRule(
         getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    ) : IUseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput> {
+    ) : UseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput> {
         return GetBudgetingRuleAnalytic(
             getSavingBalance = getSavingBalance,
             getBalance = getBalance
@@ -141,7 +142,7 @@ class AnalyticConfig {
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
         getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
         getBudgets: IUseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>>
-    ) : IUseCase<Unit, GetAnnualOutlookOutput>{
+    ) : UseCase<Unit, GetAnnualOutlookOutput>{
         return GetAnnualOutlook(
             scheduleRepo = scheduleInvoiceRepo,
             categoryRepo = categoryRepo,
@@ -160,7 +161,7 @@ class AnalyticConfig {
     @Bean fun getBudgetTotalSummary(
         repoBudget: IRepository<Budget>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    ) : IUseCase<Unit, GetBudgetTotalSummaryOutput> {
+    ) : UseCase<Unit, GetBudgetTotalSummaryOutput> {
         return GetBudgetTotalSummary(
             repoBudget = repoBudget,
             getBalance = getBalance
@@ -182,7 +183,7 @@ class AnalyticConfig {
         snapshotRepo: IRepository<PatrimonySnapshot>,
         fundRepo: IRepository<Fund>,
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
-    ): IUseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput> {
+    ): UseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput> {
         return GetPatrimonyEvolution(
             patrimonyRepo = patrimonyRepo,
             patrimonySnapshotRepo = snapshotRepo,
@@ -200,7 +201,7 @@ class AnalyticConfig {
 
     @Bean fun getScheduleInvoiceSummary(
         invoiceSummaryRepo: IRepository<ScheduleInvoice>
-    ) : IUseCase<Unit, GetScheduleInvoiceSummaryOutput> {
+    ) : UseCase<Unit, GetScheduleInvoiceSummaryOutput> {
         return GetScheduleInvoiceSummary(invoiceSummaryRepo)
     }
 
@@ -213,7 +214,7 @@ class AnalyticConfig {
         provisionRepo: IRepository<Provision>,
         fundRepo: IRepository<Fund>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    ) : IUseCase<ForcastSpendingInput, ForcastSpendingOutput> {
+    ) : UseCase<ForcastSpendingInput, ForcastSpendingOutput> {
         return ForcastSpending(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
             accountRepo = accountRepo,

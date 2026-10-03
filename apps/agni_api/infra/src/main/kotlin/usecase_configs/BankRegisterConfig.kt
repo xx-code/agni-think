@@ -4,8 +4,8 @@ import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.BankRegister
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.bank_registers.CreateBankRegister
 import usecases.bank_registers.DeleteBankRegister
 import usecases.bank_registers.GetAllBankRegisters
@@ -19,6 +19,7 @@ import usecases.bank_registers.dto.UpdateBankRegisterInput
 import usecases.interfaces.IUseCase
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 
 @Configuration
 class BankRegisterConfig {
@@ -26,7 +27,7 @@ class BankRegisterConfig {
     fun createBankRegister(
         bankRegisterRepo: IRepository<BankRegister>,
         accountRepo: IRepository<Account>,
-    ): IUseCase<CreateBankRegisterInput, CreatedOutput> {
+    ): UseCase<CreateBankRegisterInput, CreatedOutput> {
         return CreateBankRegister(
             bankRegisterRepo,
             accountRepo = accountRepo
@@ -42,7 +43,7 @@ class BankRegisterConfig {
     fun getAllBankRegister(
         bankRegisterRepo: IRepository<BankRegister>,
         accountRepo: IRepository<Account>
-    ): IUseCase<QueryFilter, ListOutput<GetBankRegisterOutput>> {
+    ): UseCase<QueryFilter, ListOutput<GetBankRegisterOutput>> {
         return GetAllBankRegisters(
             bankRegisterRepo,
             accountRepo
@@ -53,7 +54,7 @@ class BankRegisterConfig {
     fun getBankRegisterByAccessCode(
         accountRepo: IRepository<Account>,
         bankRegisterRepo: IRepository<BankRegister>
-    ): IUseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput> {
+    ): UseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput> {
         return GetBankRegisterByAccess(
             bankRegisterRepo,
             accountRepo
@@ -64,7 +65,7 @@ class BankRegisterConfig {
     fun updateBankRegister(
         bankRegisterRepo: IRepository<BankRegister>,
         accountRepo: IRepository<Account>
-    ) : IUseCase<UpdateBankRegisterInput, Unit> {
+    ) : UseCase<UpdateBankRegisterInput, Unit> {
         return UpdateBankRegister(bankRegisterRepo, accountRepo)
     }
 }

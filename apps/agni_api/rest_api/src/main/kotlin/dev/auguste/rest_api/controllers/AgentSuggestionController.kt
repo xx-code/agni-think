@@ -4,8 +4,8 @@ import adapters.dto.QueryFilter
 import dev.auguste.rest_api.controllers.models.ApiAddSuggestionModel
 import dev.auguste.rest_api.controllers.models.mapApiAddSuggestionModel
 import domain.enums.AgentSuggestionStatusType
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.agent_suggestions.dto.AddSuggestionInput
 import usecases.agent_suggestions.dto.ConfirmSuggestionInput
 import usecases.agent_suggestions.dto.GetAllSuggestionInput
@@ -28,28 +28,28 @@ class AgentSuggestionController(
     private val getAllSuggestions: IUseCase<GetAllSuggestionInput, ListOutput<GetSuggestionOutput>>
 ) {
     @PostMapping
-    fun addSuggestion(@RequestBody input: ApiAddSuggestionModel): ResponseEntity<CreatedOutput> {
+    suspend fun addSuggestion(@RequestBody input: ApiAddSuggestionModel): ResponseEntity<CreatedOutput> {
         
-        return ResponseEntity.ok(addSuggestion.execAsync(mapApiAddSuggestionModel(input)))
+        return ResponseEntity.ok(addSuggestion.execute(mapApiAddSuggestionModel(input)).getOrThrow())
     }
 
     @GetMapping
-    fun getAllSuggestions(query: QueryFilter, status: String? = null): ResponseEntity<ListOutput<GetSuggestionOutput>> {
-        return ResponseEntity.ok(getAllSuggestions.execAsync(
+    suspend fun getAllSuggestions(query: QueryFilter, status: String? = null): ResponseEntity<ListOutput<GetSuggestionOutput>> {
+        return ResponseEntity.ok(getAllSuggestions.execute(
             GetAllSuggestionInput(
                 query = query,
                 status = status?.let { AgentSuggestionStatusType.fromString(it) }
             )
-        ))
+        ).getOrThrow())
     }
 
     @PostMapping("/{id}/confirm")
-    fun confirmSuggestion(@PathVariable id: UUID, isConfirm: Boolean): ResponseEntity<Unit> {
-        return ResponseEntity.ok(confirmSuggestion.execAsync(
+    suspend fun confirmSuggestion(@PathVariable id: UUID, isConfirm: Boolean): ResponseEntity<Unit> {
+        return ResponseEntity.ok(confirmSuggestion.execute(
             input = ConfirmSuggestionInput(
                id,
                 isAccept = isConfirm
             )
-        ))
+        ).getOrThrow())
     }
 }

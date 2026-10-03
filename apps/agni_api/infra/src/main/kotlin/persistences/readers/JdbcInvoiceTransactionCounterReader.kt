@@ -6,7 +6,7 @@ import adapters.readers.IInvoiceTransactionReader
 import adapters.repositories.IQueryExtendBuilder
 import domain.entities.Invoice
 import domain.entities.Transaction
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import org.springframework.jdbc.core.DataClassRowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate

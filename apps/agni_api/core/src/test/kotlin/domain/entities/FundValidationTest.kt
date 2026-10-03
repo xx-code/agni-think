@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import domain.enums.FundType
 import domain.exceptions.ValidationException
 import kotlin.test.Test
@@ -18,7 +20,7 @@ class FundValidationTest {
     )
 
     @Test
-    fun `accepts a strictly positive target`() {
+    fun `accepts a strictly positive target`() = runBlocking {
         val fund = fund()
 
         fund.target = 0.5
@@ -27,7 +29,7 @@ class FundValidationTest {
     }
 
     @Test
-    fun `refuses a zero target`() {
+    fun `refuses a zero target`() = runBlocking {
         val fund = fund()
 
         val error = assertFailsWith<ValidationException.FundTargetAmountMustGreaterThanZero> {
@@ -39,7 +41,7 @@ class FundValidationTest {
     }
 
     @Test
-    fun `refuses a negative target`() {
+    fun `refuses a negative target`() = runBlocking {
         val fund = fund(target = 3_000.0)
 
         val error = assertFailsWith<ValidationException.FundTargetAmountMustGreaterThanZero> {

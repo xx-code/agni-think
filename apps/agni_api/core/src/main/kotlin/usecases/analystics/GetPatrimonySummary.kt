@@ -1,8 +1,9 @@
 package usecases.analystics
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import domain.enums.PatrimonyType
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.analystics.dto.GetPatrimonySummaryOutput
 import usecases.interfaces.IUseCase
 import usecases.patrimonies.dto.GetPatrimonyOutput
@@ -10,9 +11,9 @@ import kotlin.math.abs
 
 class GetPatrimonySummary(
     private val getAllPatrimonies: IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>>
-): IUseCase<Unit, GetPatrimonySummaryOutput> {
-    override fun execAsync(input: Unit): GetPatrimonySummaryOutput {
-        val patrimonies = getAllPatrimonies.execAsync(QueryFilter.queryAll())
+): UseCase<Unit, GetPatrimonySummaryOutput>() {
+    override suspend fun process(input: Unit): GetPatrimonySummaryOutput {
+        val patrimonies = getAllPatrimonies.processDirect(QueryFilter.queryAll())
 
         val totalAsset = patrimonies.items
                 .filter { PatrimonyType.fromString(it.type) == PatrimonyType.ASSET }

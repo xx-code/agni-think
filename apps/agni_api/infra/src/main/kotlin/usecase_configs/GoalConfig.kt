@@ -6,8 +6,8 @@ import adapters.repositories.IRepository
 import domain.entities.Category
 import domain.entities.Goal
 import domain.entities.Fund
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.goals.CreateGoal
 import usecases.goals.DeleteGoal
 import usecases.goals.GetAllGoals
@@ -22,6 +22,7 @@ import usecases.invoices.dto.GetBalanceInput
 import usecases.invoices.dto.GetBalanceOutput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -44,7 +45,7 @@ class GoalConfig {
     fun createGoal(
         goalRepo: IRepository<Goal>,
         financeContext: IFinanceContext
-    ): IUseCase<CreateGoalInput, CreatedOutput> {
+    ): UseCase<CreateGoalInput, CreatedOutput> {
         return CreateGoal(
             goalRepo = goalRepo,
             financeContext = financeContext
@@ -55,7 +56,7 @@ class GoalConfig {
     fun getGoal(
         goalRepo: IRepository<Goal>,
         financeContext: IFinanceContext,
-    ): IUseCase<UUID, GetGoalOutput> {
+    ): UseCase<UUID, GetGoalOutput> {
         return GetGoal(
             goalRepo = goalRepo,
             financeContext = financeContext
@@ -65,7 +66,7 @@ class GoalConfig {
     @Bean fun getAllGoal(
         goalRepo: IRepository<Goal>,
         financeContext: IFinanceContext,
-    ): IUseCase<GetAllGoalInput, ListOutput<GetGoalOutput>> {
+    ): UseCase<GetAllGoalInput, ListOutput<GetGoalOutput>> {
         return GetAllGoals(
             goalRepo = goalRepo,
             financeContext = financeContext
@@ -75,7 +76,7 @@ class GoalConfig {
     @Bean
     fun deleteGoal(
         goalRepo: IRepository<Goal>
-    ): IUseCase<UUID, Unit> {
+    ): UseCase<UUID, Unit> {
         return DeleteGoal(
             goalRepo
         )
@@ -85,7 +86,7 @@ class GoalConfig {
     fun updateGoal(
         goalRepo: IRepository<Goal>,
         financeContext: IFinanceContext
-    ): IUseCase<UpdateGoalInput, Unit> {
+    ): UseCase<UpdateGoalInput, Unit> {
         return UpdateGoal(
             goalRepo,
             financeContext

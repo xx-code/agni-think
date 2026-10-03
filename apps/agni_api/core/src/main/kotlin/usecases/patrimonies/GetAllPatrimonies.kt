@@ -1,5 +1,6 @@
 package usecases.patrimonies
 
+import usecases.UseCase
 import domain.SAVING_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
@@ -12,7 +13,7 @@ import domain.entities.Patrimony
 import domain.entities.PatrimonySnapshot
 import domain.entities.Provision
 import domain.entities.Fund
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.invoices.dto.GetBalanceByPeriodOutput
 import usecases.invoices.dto.GetBalancesByPeriodInput
@@ -35,9 +36,9 @@ class GetAllPatrimonies(
     private val provisionRepo: IRepository<Provision>,
     private val invoiceRepo: IRepository<Invoice>,
     private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
-    private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>): IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>> {
+    private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>): UseCase<QueryFilter, ListOutput<GetPatrimonyOutput>>() {
 
-    override fun execAsync(input: QueryFilter): ListOutput<GetPatrimonyOutput> {
+    override suspend fun process(input: QueryFilter): ListOutput<GetPatrimonyOutput> {
         val patrimonies = patrimonyRepo.getAll(input)
 
         val conditionProvision = QueryExtendBuilder<Provision>()
@@ -55,7 +56,7 @@ class GetAllPatrimonies(
 
         for (patrimony in patrimonies.items) {
             val patrimonyAccounts = accounts.filter { patrimony.accountIds.contains(it.id) }
-            val balancesByPeriod = getBalanceByPeriod.execAsync(GetBalancesByPeriodInput(
+            val balancesByPeriod = getBalanceByPeriod.processDirect(GetBalancesByPeriodInput(
                 period = PeriodType.MONTH,
                 interval = 1,
                 dateFrom = startDate,
@@ -91,7 +92,7 @@ class GetAllPatrimonies(
 
         val savingGoals = fundRepo.getAll(QueryFilter(0, 0, true))
         val savingGoalAmount = savingGoals.items.sumOf { it.balance }
-        val balancesByPeriodSavingGoal = getBalanceByPeriod.execAsync(
+        val balancesByPeriodSavingGoal = getBalanceByPeriod.processDirect(
             GetBalancesByPeriodInput(
                 period = PeriodType.MONTH,
                 interval = 1,
@@ -158,7 +159,7 @@ class GetAllPatrimonies(
 
         var detailInvoiceTransactions = mutableListOf<GetInvoiceOutput>()
         if (lastMonthInvoices.isNotEmpty()) {
-            detailInvoiceTransactions = getManyInvoices.execAsync(
+            detailInvoiceTransactions = getManyInvoices.processDirect(
             lastMonthInvoices.values
                 .flatMap { it.map { inv -> inv.id } }
                 .toSet()

@@ -1,15 +1,14 @@
 package usecases.analystics
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.ScheduleInvoice
 import usecases.analystics.dto.GetScheduleInvoiceSummaryOutput
-import usecases.interfaces.IUseCase
-
 class GetScheduleInvoiceSummary(
     val scheduleInvoiceRepo: IRepository<ScheduleInvoice>
-): IUseCase<Unit, GetScheduleInvoiceSummaryOutput> {
-    override fun execAsync(input: Unit): GetScheduleInvoiceSummaryOutput {
+): UseCase<Unit, GetScheduleInvoiceSummaryOutput>() {
+    override suspend fun process(input: Unit): GetScheduleInvoiceSummaryOutput {
         val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll())
 
         return GetScheduleInvoiceSummaryOutput(

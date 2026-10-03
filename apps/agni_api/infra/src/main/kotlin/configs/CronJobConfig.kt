@@ -1,7 +1,8 @@
 package configs
 
-import usecases.BackgroundTaskOut
-import usecases.interfaces.ISuspendableUseCase
+import usecases.dto.BackgroundTaskOut
+import usecases.dto.Result
+import usecases.interfaces.IUseCase
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -13,24 +14,24 @@ import org.springframework.stereotype.Service
 @Service
 class CronJobOrchestratorEach12h(
     @Qualifier("applyScheduleInvoice")
-    private val applyScheduleInvoiceUseCase: ISuspendableUseCase<Unit, BackgroundTaskOut>,
+    private val applyScheduleInvoiceUseCase: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("removeFreezeInvoice")
-    private val removeFreezeInvoice: ISuspendableUseCase<Unit, BackgroundTaskOut>,
+    private val removeFreezeInvoice: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("updateDueBudget")
-    private val updateBudgetDueDate: ISuspendableUseCase<Unit, BackgroundTaskOut>,
+    private val updateBudgetDueDate: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("autoCompleteInternalLoan")
-    private val autoCompleteInternalLoan: ISuspendableUseCase<Unit, BackgroundTaskOut>,
+    private val autoCompleteInternalLoan: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("applySpendingPeriodTemplate")
-    private val applySpendingPeriodTemplate: ISuspendableUseCase<Unit, BackgroundTaskOut>,
+    private val applySpendingPeriodTemplate: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("makeProvisionInstallment")
-    private val makeProvisionInstallment: ISuspendableUseCase<Unit, BackgroundTaskOut>
+    private val makeProvisionInstallment: IUseCase<Unit, BackgroundTaskOut>
 ) : ApplicationRunner {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private suspend fun executeTask(taskName: String, action: suspend () -> BackgroundTaskOut) {
+    private suspend fun executeTask(taskName: String, action: suspend () -> Result<BackgroundTaskOut>) {
         try {
-            val res = action()
+            val res = action().getOrThrow()
             logger.info("[*] Finished cron $taskName: ${res.message}")
         } catch (e: Exception) {
             logger.error("[!] Error while executing $taskName", e)
@@ -38,12 +39,12 @@ class CronJobOrchestratorEach12h(
     }
 
     private suspend fun executeAll() {
-        executeTask("provision make installment fund") { makeProvisionInstallment.execAsync(Unit) }
-        executeTask("schedule invoice") { applyScheduleInvoiceUseCase.execAsync(Unit) }
-        executeTask("remove freeze invoice") { removeFreezeInvoice.execAsync(Unit) }
-        executeTask("update budget due date") { updateBudgetDueDate.execAsync(Unit) }
-        executeTask("update internal loan due date") { autoCompleteInternalLoan.execAsync(Unit) }
-        executeTask("spending period template") { applySpendingPeriodTemplate.execAsync(Unit) }
+        executeTask("provision make installment fund") { makeProvisionInstallment.execute(Unit) }
+        executeTask("schedule invoice") { applyScheduleInvoiceUseCase.execute(Unit) }
+        executeTask("remove freeze invoice") { removeFreezeInvoice.execute(Unit) }
+        executeTask("update budget due date") { updateBudgetDueDate.execute(Unit) }
+        executeTask("update internal loan due date") { autoCompleteInternalLoan.execute(Unit) }
+        executeTask("spending period template") { applySpendingPeriodTemplate.execute(Unit) }
     }
 
     @Scheduled(cron = "0 0 */12 * * *")

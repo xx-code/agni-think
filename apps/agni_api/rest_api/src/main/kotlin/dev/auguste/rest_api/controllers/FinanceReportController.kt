@@ -3,8 +3,8 @@ package dev.auguste.rest_api.controllers
 import adapters.dto.QueryFilter
 import dev.auguste.rest_api.controllers.models.ApiCreateFinanceReportModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateFinanceReportModel
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.finance_reports.dto.CreateFinanceReportInput
 import usecases.finance_reports.dto.DeleteFinanceReportInput
 import usecases.finance_reports.dto.GetFinanceReportInput
@@ -29,22 +29,22 @@ class FinanceReportController(
     private val getAllFinanceReport: IUseCase<QueryFilter, ListOutput<GetFinanceReportOutput>>
 ) {
     @GetMapping("/{id}")
-    fun getFinanceReport(@PathVariable id: UUID): ResponseEntity<GetFinanceReportOutput> {
-        return ResponseEntity.ok(getFinanceReport.execAsync(GetFinanceReportInput(id)))
+    suspend fun getFinanceReport(@PathVariable id: UUID): ResponseEntity<GetFinanceReportOutput> {
+        return ResponseEntity.ok(getFinanceReport.execute(GetFinanceReportInput(id)).getOrThrow())
     }
 
     @GetMapping
-    fun getAllFinanceReport(query: QueryFilter): ResponseEntity<ListOutput<GetFinanceReportOutput>> {
-        return ResponseEntity.ok(getAllFinanceReport.execAsync(query))
+    suspend fun getAllFinanceReport(query: QueryFilter): ResponseEntity<ListOutput<GetFinanceReportOutput>> {
+        return ResponseEntity.ok(getAllFinanceReport.execute(query).getOrThrow())
     }
 
     @PostMapping
-    fun createFinanceReport(@RequestBody input: ApiCreateFinanceReportModel): ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createFinanceReport.execAsync(mapApiCreateFinanceReportModel(input)))
+    suspend fun createFinanceReport(@RequestBody input: ApiCreateFinanceReportModel): ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createFinanceReport.execute(mapApiCreateFinanceReportModel(input)).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteFinanceReport(@PathVariable id: UUID): ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteFinanceReport.execAsync(DeleteFinanceReportInput(id) ))
+    suspend fun deleteFinanceReport(@PathVariable id: UUID): ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteFinanceReport.execute(DeleteFinanceReportInput(id) ).getOrThrow())
     }
 }

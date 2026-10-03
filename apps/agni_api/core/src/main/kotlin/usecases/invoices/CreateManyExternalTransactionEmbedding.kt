@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import usecases.UseCase
 import adapters.EmbeddingDocument
 import adapters.IEmbeddingService
 import adapters.events.EventType
@@ -11,8 +12,7 @@ import adapters.events.listeners.ICreateManyExternalTransactionListener
 import adapters.repositories.IRepository
 import domain.exceptions.ValidationException
 import domain.entities.ExternalTransaction
-import usecases.BackgroundTaskOut
-import usecases.interfaces.IUseCase
+import usecases.dto.BackgroundTaskOut
 import java.util.UUID
 
 class CreateManyExternalTransactionEmbedding(
@@ -20,10 +20,10 @@ class CreateManyExternalTransactionEmbedding(
     private val embeddingService: IEmbeddingService,
     private val eventRegister: IEventRegister,
     private val collectionName: String
-) : IUseCase<List<UUID>, BackgroundTaskOut>, ICreateManyExternalTransactionListener{
+): UseCase<List<UUID>, BackgroundTaskOut>(), ICreateManyExternalTransactionListener{
     private var event: CreateManyEmbeddingExternalTransEventContent? = null
 
-    override fun execAsync(input: List<UUID>): BackgroundTaskOut {
+    override suspend fun process(input: List<UUID>): BackgroundTaskOut {
         try {
             val transactions = externalTransactionRepo.getManyByIds(input.toSet())
             if (transactions.size != input.size)
@@ -63,9 +63,9 @@ class CreateManyExternalTransactionEmbedding(
         event = content
     }
 
-    override fun update() {
+    override suspend fun update() {
         event?.let {
-            execAsync(it.transactions.map { trans -> trans.id })
+            process(it.transactions.map { trans -> trans.id })
         }
         event = null
     }

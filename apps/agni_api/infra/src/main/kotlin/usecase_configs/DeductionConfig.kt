@@ -3,8 +3,8 @@ package usecase_configs
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.Deduction
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.deductions.CreateDeduction
 import usecases.deductions.DeleteDeduction
 import usecases.deductions.GetAllDeductions
@@ -17,6 +17,7 @@ import usecases.deductions.dto.UpdateDeductionInput
 import usecases.interfaces.IUseCase
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -25,7 +26,7 @@ class DeductionConfig {
     @Bean
     fun createDeduction(
         deductionRepo: IRepository<Deduction>,
-    ): IUseCase<CreateDeductionInput, CreatedOutput> {
+    ): UseCase<CreateDeductionInput, CreatedOutput> {
         return CreateDeduction(
             deductionRepo = deductionRepo
         )
@@ -34,7 +35,7 @@ class DeductionConfig {
     @Bean
     fun deleteDeduction(
         deductionRepo: IRepository<Deduction>,
-    ): IUseCase<DeleteDeductionInput, Unit> {
+    ): UseCase<DeleteDeductionInput, Unit> {
         return DeleteDeduction(
             deductionRepo = deductionRepo
         )
@@ -43,7 +44,7 @@ class DeductionConfig {
     @Bean
     fun getDeduction(
         deductionRepo: IRepository<Deduction>,
-    ): IUseCase<UUID, GetDeductionOutput> {
+    ): UseCase<UUID, GetDeductionOutput> {
         return GetDeduction(
             deductionRepo = deductionRepo
         )
@@ -52,7 +53,7 @@ class DeductionConfig {
     @Bean
     fun getAllDeductions(
         deductionRepo: IRepository<Deduction>,
-    ): IUseCase<QueryFilter, ListOutput<GetDeductionOutput>> {
+    ): UseCase<QueryFilter, ListOutput<GetDeductionOutput>> {
         return GetAllDeductions(
             deductionRepo = deductionRepo
         )
@@ -61,7 +62,7 @@ class DeductionConfig {
     @Bean
     fun updateDeduction(
         deductionRepo: IRepository<Deduction>,
-    ): IUseCase<UpdateDeductionInput, Unit> {
+    ): UseCase<UpdateDeductionInput, Unit> {
         return UpdateDeduction(
             deductionRepo = deductionRepo
         )

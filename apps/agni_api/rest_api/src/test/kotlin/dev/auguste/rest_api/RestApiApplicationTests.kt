@@ -1,5 +1,7 @@
 package dev.auguste.rest_api
 
+import kotlinx.coroutines.runBlocking
+
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
@@ -7,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest
 class RestApiApplicationTests {
 
     @Test
-    fun contextLoads() {
+    fun contextLoads() = runBlocking {
     }
 
 }

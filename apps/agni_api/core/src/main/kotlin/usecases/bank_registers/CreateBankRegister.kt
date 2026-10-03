@@ -1,19 +1,19 @@
 package usecases.bank_registers
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.BankRegister
 import domain.exceptions.NotFoundException
-import usecases.CreatedOutput
+import usecases.dto.CreatedOutput
 import usecases.bank_registers.dto.CreateBankRegisterInput
-import usecases.interfaces.IUseCase
 import domain.value_objects.AccountLinked
 
 class CreateBankRegister(
     private val bankRegisterRepo: IRepository<BankRegister>,
     private val accountRepo: IRepository<Account>,
-): IUseCase<CreateBankRegisterInput, CreatedOutput> {
-    override fun execAsync(input: CreateBankRegisterInput): CreatedOutput {
+): UseCase<CreateBankRegisterInput, CreatedOutput>() {
+    override suspend fun process(input: CreateBankRegisterInput): CreatedOutput {
         val accountIds = input.accounts.mapNotNull { it.accountId }.toSet()
         val accounts = accountRepo.getManyByIds(accountIds)
         if (accountIds.isNotEmpty() && accounts.size != input.accounts.size)

@@ -1,20 +1,19 @@
 package usecases.patrimonies.snapshots
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.Patrimony
 import domain.entities.PatrimonySnapshot
-import domain.entities.Provision
-import usecases.CreatedOutput
-import usecases.interfaces.IUseCase
+import usecases.dto.CreatedOutput
 import usecases.patrimonies.snapshots.dto.AddSnapshotToPatrimonyInput
 
 class AddSnapshotToPatrimony(
     private val patrimonyRepo: IRepository<Patrimony>,
     private val snapshotPatrimonyRepo: IRepository<PatrimonySnapshot>
-): IUseCase<AddSnapshotToPatrimonyInput, CreatedOutput> {
+): UseCase<AddSnapshotToPatrimonyInput, CreatedOutput>() {
 
-    override fun execAsync(input: AddSnapshotToPatrimonyInput): CreatedOutput {
+    override suspend fun process(input: AddSnapshotToPatrimonyInput): CreatedOutput {
         patrimonyRepo.get(input.patrimonyId) ?: throw NotFoundException.SingleEntity(input.patrimonyId, "patrimony")
 
         val snapShot = PatrimonySnapshot(

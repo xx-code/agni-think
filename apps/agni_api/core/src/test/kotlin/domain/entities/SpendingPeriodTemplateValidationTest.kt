@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import domain.exceptions.ValidationException
 import java.time.LocalDate
 import kotlin.test.Test
@@ -23,7 +25,7 @@ class SpendingPeriodTemplateValidationTest {
         )
 
     @Test
-    fun `accepts a template with and without an end date`() {
+    fun `accepts a template with and without an end date`() = runBlocking {
         val bounded = template()
         bounded.endDate = end.plusMonths(1)
 
@@ -34,7 +36,7 @@ class SpendingPeriodTemplateValidationTest {
     }
 
     @Test
-    fun `refuses moving the start date onto the end date`() {
+    fun `refuses moving the start date onto the end date`() = runBlocking {
         val template = template()
 
         val error = assertFailsWith<ValidationException.SpendingPeriodTemplateStartDateMustBeLesserThanEndDate> {
@@ -46,7 +48,7 @@ class SpendingPeriodTemplateValidationTest {
     }
 
     @Test
-    fun `refuses moving the start date after the end date`() {
+    fun `refuses moving the start date after the end date`() = runBlocking {
         val template = template()
 
         assertFailsWith<ValidationException.SpendingPeriodTemplateStartDateMustBeLesserThanEndDate> {
@@ -55,7 +57,7 @@ class SpendingPeriodTemplateValidationTest {
     }
 
     @Test
-    fun `refuses an end date on or before the start date`() {
+    fun `refuses an end date on or before the start date`() = runBlocking {
         val template = template()
 
         val error = assertFailsWith<ValidationException.SpendingPeriodTemplateEndDateMustBeGreaterThanStartDate> {
@@ -71,7 +73,7 @@ class SpendingPeriodTemplateValidationTest {
     }
 
     @Test
-    fun `lets a bounded template become open ended again`() {
+    fun `lets a bounded template become open ended again`() = runBlocking {
         val template = template()
 
         template.endDate = null
@@ -80,7 +82,7 @@ class SpendingPeriodTemplateValidationTest {
     }
 
     @Test
-    fun `moves the start date freely while the template is open ended`() {
+    fun `moves the start date freely while the template is open ended`() = runBlocking {
         val template = template(endDate = null)
 
         template.startDate = start.plusMonths(6)
@@ -89,7 +91,7 @@ class SpendingPeriodTemplateValidationTest {
     }
 
     @Test
-    fun `is inactive once the checked date reaches the end date`() {
+    fun `is inactive once the checked date reaches the end date`() = runBlocking {
         val template = template()
 
         assertTrue(template.checkIsActive(date = end.minusDays(1)))
@@ -98,7 +100,7 @@ class SpendingPeriodTemplateValidationTest {
     }
 
     @Test
-    fun `an inactive template stays inactive`() {
+    fun `an inactive template stays inactive`() = runBlocking {
         val template = template(isActive = false)
 
         assertFalse(template.checkIsActive(date = start))

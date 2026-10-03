@@ -9,7 +9,7 @@ class CreateEmbeddingInvoiceEventContent(
     val invoice: Invoice,
 ) : IEventContent {
 
-    override fun dispatch(listener: IEventListener) {
+    override suspend fun dispatch(listener: IEventListener) {
         if (listener is ICreateInvoiceEventListener) {
             listener.serve(this)
             listener.update()

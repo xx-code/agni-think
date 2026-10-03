@@ -1,20 +1,20 @@
 package usecases.tags
 
+import usecases.UseCase
 import adapters.IChecker
 import adapters.repositories.IRepository
 import domain.entities.Tag
-import usecases.interfaces.IUseCase
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
-import usecases.DeleteOutput
+import usecases.dto.DeleteOutput
 import usecases.tags.dto.DeleteTagInput
 
 class DeleteTag(
     private val tagRepo: IRepository<Tag>,
     private val checker: IChecker<Tag>
-    ): IUseCase<DeleteTagInput, DeleteOutput> {
+    ): UseCase<DeleteTagInput, DeleteOutput>() {
 
-    override fun execAsync(input: DeleteTagInput): DeleteOutput {
+    override suspend fun process(input: DeleteTagInput): DeleteOutput {
         val tag = tagRepo.get(input.tagId) ?: throw NotFoundException.SingleEntity(input.tagId, "tag")
 
         if (tag.isSystem)

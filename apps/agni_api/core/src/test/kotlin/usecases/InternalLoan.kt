@@ -1,5 +1,9 @@
 package usecases.invoices.transactions
 
+import io.mockk.coEvery
+
+import kotlinx.coroutines.runBlocking
+
 import adapters.dto.RepoList
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
@@ -11,7 +15,6 @@ import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
 import domain.enums.InvoiceType
 import usecases.CreatedOutput
-import usecases.interfaces.IInnerUseCase
 import usecases.interfaces.IUseCase
 import usecases.internal_loan.CreateInternalLoan
 import usecases.internal_loan.dto.CreateInternalLoanInput
@@ -20,6 +23,8 @@ import usecases.invoices.dto.GetInvoiceOutput
 import domain.value_objects.CreditCardAccountDetail
 import domain.value_objects.SavingAccountDetail
 import io.mockk.*
+
+import io.mockk.coEvery
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -29,7 +34,7 @@ class CreateInternalLoanTest {
 
     private val internalLoanRepo = mockk<IRepository<InternalLoan>>()
     private val accountRepo = mockk<IRepository<Account>>()
-    private val createInvoice = mockk<IInnerUseCase<CreateInvoiceInput, CreatedOutput>>()
+    private val createInvoice = mockk<IUseCase<CreateInvoiceInput, CreatedOutput>>()
     private val invoiceRepo = mockk<IRepository<Invoice>>()
     private val scheduleInvoiceRepo = mockk<IRepository<ScheduleInvoice>>()
     private val getInvoice = mockk<IUseCase<UUID, GetInvoiceOutput>>()
@@ -41,7 +46,7 @@ class CreateInternalLoanTest {
     )
 
     @Test
-    fun `should accept loan when confidence score is above 80 percent`() {
+    fun `should accept loan when confidence score is above 80 percent`() = runBlocking {
         // Arrange
         val fundId = UUID.randomUUID()
         val creditId = UUID.randomUUID()
@@ -54,7 +59,7 @@ class CreateInternalLoanTest {
         )
 
         // Mock Unit of Work execution
-        every { unitOfWork.execute<CreatedOutput>(any()) } answers {
+        coevery { unitOfWork.execute<CreatedOutput>(any()) } answers {
             val block = firstArg<() -> CreatedOutput>()
             block()
         }
@@ -83,8 +88,8 @@ class CreateInternalLoanTest {
         every { scheduleInvoiceRepo.getAll(any(), any()) } returns RepoList(listOf(biWeeklyIncome), 1)
 
         // Mock Invoice Creation
-        every { createInvoice.execInnerAsync(any()) } returns CreatedOutput(invoiceId)
-        every { getInvoice.execAsync(invoiceId) } returns GetInvoiceOutput(
+        coEvery { createInvoice.processDirect(any()) } returns CreatedOutput(invoiceId)
+        coEvery { getInvoice.processDirect(invoiceId) } returns GetInvoiceOutput(
             id = invoiceId,
             total = 464.0,
             date = LocalDate.now().atStartOfDay(),
@@ -102,7 +107,7 @@ class CreateInternalLoanTest {
         every { internalLoanRepo.create(any()) } just runs
 
         // Act
-        val result = useCase.execAsync(input)
+        val result = useCase.execute(input).getOrThrow()
 
         // Assert
         assertNotNull(result)
@@ -110,12 +115,12 @@ class CreateInternalLoanTest {
     }
 
     @Test
-    fun `should throw exception when confidence score is too low`() {
+    fun `should throw exception when confidence score is too low`() = runBlocking {
         // Arrange - Simulate very low savings
         val fundId = UUID.randomUUID()
         val creditId = UUID.randomUUID()
 
-        every { unitOfWork.execute<CreatedOutput>(any()) } answers { firstArg<() -> CreatedOutput>().invoke() }
+        coevery { unitOfWork.execute<CreatedOutput>(any()) } answers { firstArg<() -> CreatedOutput>().invoke() }
         every { accountRepo.get(fundId) } returns mockk {
             every { balance } returns 100.0 // Extremely low savings
             every { detail } returns SavingAccountDetail(2000.0)
@@ -129,8 +134,8 @@ class CreateInternalLoanTest {
         every { internalLoanRepo.getAll(any(), any()) } returns RepoList(emptyList(), 0)
         every { invoiceRepo.getAll(any(), any()) } returns RepoList(emptyList(), 0)
         every { scheduleInvoiceRepo.getAll(any(), any()) } returns RepoList(emptyList(), 0)
-        every { createInvoice.execInnerAsync(any()) } returns CreatedOutput(UUID.randomUUID())
-        every { getInvoice.execAsync(any()) } returns GetInvoiceOutput(
+        coEvery { createInvoice.processDirect(any()) } returns CreatedOutput(UUID.randomUUID())
+        coEvery { getInvoice.processDirect(any()) } returns GetInvoiceOutput(
             id = UUID.randomUUID(),
             total = 1000.0,
             date = LocalDate.now().atStartOfDay(),

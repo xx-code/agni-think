@@ -1,15 +1,14 @@
 package usecases.deductions
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import adapters.dto.QueryFilter
 import domain.entities.Deduction
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.deductions.dto.GetDeductionOutput
-import usecases.interfaces.IUseCase
+class GetAllDeductions(private val deductionRepo: IRepository<Deduction>): UseCase<QueryFilter, ListOutput<GetDeductionOutput>>() {
 
-class GetAllDeductions(private val deductionRepo: IRepository<Deduction>): IUseCase<QueryFilter, ListOutput<GetDeductionOutput>> {
-
-    override fun execAsync(input: QueryFilter): ListOutput<GetDeductionOutput> {
+    override suspend fun process(input: QueryFilter): ListOutput<GetDeductionOutput> {
         val deductions = deductionRepo.getAll(input)
 
         return ListOutput(

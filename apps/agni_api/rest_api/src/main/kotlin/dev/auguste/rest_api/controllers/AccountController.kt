@@ -5,7 +5,7 @@ import dev.auguste.rest_api.controllers.models.ApiCreateAccountModel
 import dev.auguste.rest_api.controllers.models.ApiUpdateAccountModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateAccountModel
 import dev.auguste.rest_api.controllers.models.mapApiUpdateModel
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.accounts.dto.DeleteAccountInput
 import usecases.accounts.dto.GetAccountOutput
 import usecases.accounts.dto.GetAccountWithDetailOutput
@@ -20,10 +20,11 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import usecases.CreatedOutput
+import usecases.dto.CreatedOutput
 import usecases.accounts.dto.CreateAccountInput
 import usecases.interfaces.IUseCase
 import java.util.UUID
+import kotlin.getOrThrow
 
 @RestController
 @RequestMapping("/v2/accounts")
@@ -38,38 +39,39 @@ class AccountController(
 ) {
 
     @GetMapping
-    fun getAccounts(queryFilter: QueryFilter, withDetail: Boolean = false): ResponseEntity<ListOutput<*>> {
+    suspend fun getAccounts(queryFilter: QueryFilter, withDetail: Boolean = false): ResponseEntity<ListOutput<*>> {
         val res = if (withDetail)  {
-            getAllAccountWithDetailUseCase.execAsync(queryFilter)
+            getAllAccountWithDetailUseCase.execute(queryFilter)
         } else {
-            getAllAccountUseCase.execAsync(queryFilter)
+            getAllAccountUseCase.execute(queryFilter)
         }
-        return ResponseEntity.ok(res)
+
+        return ResponseEntity.ok(res.getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getAccount(@PathVariable id: UUID, withDetail: Boolean = false): ResponseEntity<*> {
+    suspend fun getAccount(@PathVariable id: UUID, withDetail: Boolean = false): ResponseEntity<*> {
         if (withDetail) {
-            return ResponseEntity.ok(getAccountWithDetailUseCase.execAsync(id))
+            return ResponseEntity.ok(getAccountWithDetailUseCase.execute(id).getOrThrow())
         } else {
-            return ResponseEntity.ok(getAccountUseCase.execAsync(id))
+            return ResponseEntity.ok(getAccountUseCase.execute(id).getOrThrow())
         }
     }
 
     @PostMapping
-    fun createAccount(@Valid @RequestBody request: ApiCreateAccountModel): ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createAccountUseCase.execAsync(mapApiCreateAccountModel(request)))
+    suspend fun createAccount(@Valid @RequestBody request: ApiCreateAccountModel): ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createAccountUseCase.execute(mapApiCreateAccountModel(request)).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateAccount(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateAccountModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateAccountUseCase.execAsync(mapApiUpdateModel(id, request)))
+    suspend fun updateAccount(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateAccountModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateAccountUseCase.execute(mapApiUpdateModel(id, request)).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteAccount(@PathVariable id: UUID) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteAccountUseCase.execAsync(
+    suspend fun deleteAccount(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteAccountUseCase.execute(
             DeleteAccountInput(id)
-        ))
+        ).getOrThrow())
     }
 }

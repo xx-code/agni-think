@@ -1,19 +1,16 @@
 package usecases.categories
 
-import adapters.dto.QueryFilter
-import adapters.dto.QuerySortBy
+import usecases.UseCase
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Category
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.categories.dto.GetAllCategoryInput
 import usecases.categories.dto.GetCategoryOutput
-import usecases.interfaces.IUseCase
+class GetAllCategory(private val categoryRepo: IRepository<Category>): UseCase<GetAllCategoryInput, ListOutput<GetCategoryOutput>>() {
 
-class GetAllCategory(private val categoryRepo: IRepository<Category>): IUseCase<GetAllCategoryInput, ListOutput<GetCategoryOutput>> {
-
-    override fun execAsync(input: GetAllCategoryInput): ListOutput<GetCategoryOutput> {
+    override suspend fun process(input: GetAllCategoryInput): ListOutput<GetCategoryOutput> {
         val condition = QueryExtendBuilder<Category>()
 
         if (input.isSystem != null)

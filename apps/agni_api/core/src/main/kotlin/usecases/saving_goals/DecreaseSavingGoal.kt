@@ -1,5 +1,7 @@
 package usecases.saving_goals
 
+import usecases.interfaces.IUseCase
+
 import domain.SAVING_CATEGORY_ID
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
@@ -7,8 +9,7 @@ import domain.entities.Account
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.Fund
-import usecases.CreatedOutput
-import usecases.interfaces.IInnerUseCase
+import usecases.dto.CreatedOutput
 import usecases.invoices.dto.CreateInvoiceInput
 import usecases.invoices.dto.TransactionInput
 import usecases.saving_goals.dto.DecreaseSavingGoalInput
@@ -18,21 +19,16 @@ import domain.enums.InvoiceModuleLinkerType
 import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
 import domain.enums.InvoiceType
+import usecases.UseCase
 
 class DecreaseSavingGoal(
     private val fundRepo: IRepository<Fund>,
     private val accountRepo: IRepository<Account>,
-    private val createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
-    private val unitOfWork: IUnitOfWork
-): IInnerUseCase<DecreaseSavingGoalInput, Unit> {
+    private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
+    unitOfWork: IUnitOfWork
+): UseCase<DecreaseSavingGoalInput, Unit>(unitOfWork) {
 
-    override fun execAsync(input: DecreaseSavingGoalInput) {
-        unitOfWork.execute {
-            execInnerAsync(input)
-        }
-    }
-
-    override fun execInnerAsync(input: DecreaseSavingGoalInput) {
+    override suspend fun process(input: DecreaseSavingGoalInput) {
         val savingGoal = fundRepo.get(input.savingGoalId) ?: throw NotFoundException.SingleEntity(input.savingGoalId, "saving_goal")
 
         if (input.amount <= 0)
@@ -49,7 +45,7 @@ class DecreaseSavingGoal(
         if (account.balance < input.amount)
             throw ValidationException.SavingGoalBalanceMustBeGreaterThanAmount()
 
-        createInvoice.execInnerAsync(CreateInvoiceInput(
+        createInvoice.processDirect(CreateInvoiceInput(
             accountId = input.accountId,
             status = InvoiceStatusType.COMPLETED,
             date = LocalDateTime.now(),

@@ -7,8 +7,8 @@ import dev.auguste.rest_api.controllers.models.ApiUpdateBankRegisterModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateBankRegister
 import dev.auguste.rest_api.controllers.models.mapApiUpdateBankRegister
 import dev.auguste.rest_api.controllers.models.mapBankRegisterToSecure
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.bank_registers.dto.CreateBankRegisterInput
 import usecases.bank_registers.dto.GetBankRegisterByAccessCodeInput
 import usecases.bank_registers.dto.GetBankRegisterOutput
@@ -33,29 +33,29 @@ class BankRegisterController(
     private val getBankRegisterByAccess: IUseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput>
     ) {
     @PostMapping
-    fun createBankRegister(@RequestBody input: ApiCreateBankRegisterModel): ResponseEntity<CreatedOutput> {
+    suspend fun createBankRegister(@RequestBody input: ApiCreateBankRegisterModel): ResponseEntity<CreatedOutput> {
         return ResponseEntity.ok(
-            createBankRegister.execAsync(mapApiCreateBankRegister(input))
+            createBankRegister.execute(mapApiCreateBankRegister(input)).getOrThrow()
         )
     }
 
     @PutMapping("/{id}")
-    fun updateBankRegister(@PathVariable id: UUID, @RequestBody input: ApiUpdateBankRegisterModel): ResponseEntity<Unit> {
+    suspend fun updateBankRegister(@PathVariable id: UUID, @RequestBody input: ApiUpdateBankRegisterModel): ResponseEntity<Unit> {
         return ResponseEntity.ok(
-            updateBankRegister.execAsync(mapApiUpdateBankRegister(id, input))
+            updateBankRegister.execute(mapApiUpdateBankRegister(id, input)).getOrThrow()
         )
     }
 
     @GetMapping("/agent-level")
-    fun getAllBankRegisterAgentLevel(query: QueryFilter): ResponseEntity<ListOutput<GetBankRegisterOutput>> {
+    suspend fun getAllBankRegisterAgentLevel(query: QueryFilter): ResponseEntity<ListOutput<GetBankRegisterOutput>> {
         return ResponseEntity.ok(
-            getAllBankRegisters.execAsync(query)
+            getAllBankRegisters.execute(query).getOrThrow()
         )
     }
 
     @GetMapping
-    fun getAllBankRegister(query: QueryFilter): ResponseEntity<ListOutput<ApiSecureBankRegisterOutput>> {
-        val result = getAllBankRegisters.execAsync(query)
+    suspend fun getAllBankRegister(query: QueryFilter): ResponseEntity<ListOutput<ApiSecureBankRegisterOutput>> {
+        val result = getAllBankRegisters.execute(query).getOrThrow()
         return ResponseEntity.ok(
             ListOutput(
                 items= result.items.map { mapBankRegisterToSecure(it) },
@@ -65,11 +65,11 @@ class BankRegisterController(
     }
 
     @GetMapping("/institution/{institutionId}")
-    fun getBankRegisterByAccessCode(@PathVariable institutionId: String): ResponseEntity<GetBankRegisterOutput> {
+    suspend fun getBankRegisterByAccessCode(@PathVariable institutionId: String): ResponseEntity<GetBankRegisterOutput> {
         return ResponseEntity.ok(
-            getBankRegisterByAccess.execAsync(GetBankRegisterByAccessCodeInput(
+            getBankRegisterByAccess.execute(GetBankRegisterByAccessCodeInput(
                 institutionId = institutionId
-            ))
+            )).getOrThrow()
         )
     }
 }

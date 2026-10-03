@@ -1,5 +1,6 @@
 package usecases.analystics
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.Budget
@@ -12,8 +13,8 @@ import usecases.invoices.dto.GetBalanceOutput
 class GetBudgetTotalSummary(
     private val repoBudget: IRepository<Budget>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
-): IUseCase<Unit, GetBudgetTotalSummaryOutput> {
-    override fun execAsync(input: Unit): GetBudgetTotalSummaryOutput {
+): UseCase<Unit, GetBudgetTotalSummaryOutput>() {
+    override suspend fun process(input: Unit): GetBudgetTotalSummaryOutput {
         val budgets = repoBudget.getAll(QueryFilter.queryAll())
         val budgetRepeat = budgets.items.filter { it.scheduler.repeater != null}
         val budgetNoRepeat = budgets.items.filter { it.scheduler.repeater == null}
@@ -37,14 +38,14 @@ class GetBudgetTotalSummary(
             .maxByOrNull { it.scheduler.upgradeDate() }
             ?.scheduler?.upgradeDate()
 
-        val balanceRepeatOut = getBalance.execAsync(GetBalanceInput(
+        val balanceRepeatOut = getBalance.processDirect(GetBalanceInput(
             budgetIds = idsRepeat.toSet(),
             types = setOf(InvoiceType.FIXED_COST, InvoiceType.VARIABLE_COST, InvoiceType.OTHER),
             startDate = minStartDateRepeat,
             endDate = maxEndDateRepeat,
         ))
 
-        val balanceNoRepeatOut = getBalance.execAsync(GetBalanceInput(
+        val balanceNoRepeatOut = getBalance.processDirect(GetBalanceInput(
             budgetIds = idsNoRepeat.toSet(),
             types = setOf(InvoiceType.FIXED_COST, InvoiceType.VARIABLE_COST, InvoiceType.OTHER),
             startDate = minStartDateNoRepeat,

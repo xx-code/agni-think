@@ -15,7 +15,7 @@ class NotificationEventContent(
     val type: NotificationType
 ) : IEventContent {
 
-    override fun dispatch(listener: IEventListener) {
+    override suspend fun dispatch(listener: IEventListener) {
         if (listener is INotificationEventListener) {
             listener.serve(this)
             listener.update()

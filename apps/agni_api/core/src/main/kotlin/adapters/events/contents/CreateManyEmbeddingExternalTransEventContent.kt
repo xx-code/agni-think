@@ -8,7 +8,7 @@ import domain.entities.ExternalTransaction
 class CreateManyEmbeddingExternalTransEventContent(
     val transactions: List<ExternalTransaction>
 ): IEventContent {
-    override fun dispatch(listener: IEventListener) {
+    override suspend fun dispatch(listener: IEventListener) {
         if (listener is ICreateManyExternalTransactionListener) {
             listener.server(this)
             listener.update()

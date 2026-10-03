@@ -1,38 +1,40 @@
 package persistences
 
+import kotlinx.coroutines.runBlocking
+
 import org.junit.jupiter.api.Test
 
 class JdbcRepositoryTest {
     @Test
-    fun create() {
+    fun create() = runBlocking {
     }
 
     @Test
-    fun getAll() {
+    fun getAll() = runBlocking {
     }
 
     @Test
-    fun getManyByIds() {
+    fun getManyByIds() = runBlocking {
     }
 
     @Test
-    fun get() {
+    fun get() = runBlocking {
     }
 
     @Test
-    fun delete() {
+    fun delete() = runBlocking {
     }
 
     @Test
-    fun deleteManyByIds() {
+    fun deleteManyByIds() = runBlocking {
     }
 
     @Test
-    fun update() {
+    fun update() = runBlocking {
     }
 
     @Test
-    fun existsByName() {
+    fun existsByName() = runBlocking {
     }
 
 }

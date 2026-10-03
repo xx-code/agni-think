@@ -4,7 +4,7 @@ import adapters.dto.QueryFilter
 import adapters.repositories.IQueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Entity
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import org.springframework.jdbc.core.DataClassRowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate

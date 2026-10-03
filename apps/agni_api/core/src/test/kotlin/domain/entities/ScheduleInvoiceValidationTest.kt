@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import domain.enums.InvoiceType
 import domain.exceptions.ValidationException
 import domain.value_objects.Scheduler
@@ -28,7 +30,7 @@ class ScheduleInvoiceValidationTest {
     )
 
     @Test
-    fun `accepts a strictly positive amount`() {
+    fun `accepts a strictly positive amount`() = runBlocking {
         val invoice = scheduleInvoice()
 
         invoice.amount = 0.01
@@ -37,7 +39,7 @@ class ScheduleInvoiceValidationTest {
     }
 
     @Test
-    fun `refuses a zero amount`() {
+    fun `refuses a zero amount`() = runBlocking {
         val invoice = scheduleInvoice()
 
         val error = assertFailsWith<ValidationException.SchedulerInvoiceAmountShouldGreaterThanZero> {
@@ -49,7 +51,7 @@ class ScheduleInvoiceValidationTest {
     }
 
     @Test
-    fun `refuses a negative amount`() {
+    fun `refuses a negative amount`() = runBlocking {
         val invoice = scheduleInvoice(amount = 45.0)
 
         val error = assertFailsWith<ValidationException.SchedulerInvoiceAmountShouldGreaterThanZero> {
@@ -60,7 +62,7 @@ class ScheduleInvoiceValidationTest {
     }
 
     @Test
-    fun `refuses a freeze scheduler while the invoice is not frozen`() {
+    fun `refuses a freeze scheduler while the invoice is not frozen`() = runBlocking {
         val invoice = scheduleInvoice(isFreeze = false)
 
         val error = assertFailsWith<ValidationException.ScheduleFreezeInvoiceMustHaveAScheduler> {
@@ -71,7 +73,7 @@ class ScheduleInvoiceValidationTest {
     }
 
     @Test
-    fun `refuses clearing the freeze scheduler`() {
+    fun `refuses clearing the freeze scheduler`() = runBlocking {
         val invoice = scheduleInvoice(isFreeze = true, freezeScheduler = monthlyScheduler())
 
         assertFailsWith<ValidationException.ScheduleFreezeInvoiceMustHaveAScheduler> {
@@ -80,7 +82,7 @@ class ScheduleInvoiceValidationTest {
     }
 
     @Test
-    fun `accepts a freeze scheduler once the invoice is frozen`() {
+    fun `accepts a freeze scheduler once the invoice is frozen`() = runBlocking {
         val invoice = scheduleInvoice(isFreeze = false)
 
         invoice.isFreeze = true
@@ -90,7 +92,7 @@ class ScheduleInvoiceValidationTest {
     }
 
     @Test
-    fun `reading the freeze end date of an unfrozen invoice is refused`() {
+    fun `reading the freeze end date of an unfrozen invoice is refused`() = runBlocking {
         val invoice = scheduleInvoice(isFreeze = false)
 
         assertFailsWith<ValidationException.ScheduleFreezeInvoiceMustHaveAScheduler> {

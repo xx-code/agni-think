@@ -9,8 +9,8 @@ import domain.entities.Patrimony
 import domain.entities.PatrimonySnapshot
 import domain.entities.Provision
 import domain.entities.Fund
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.invoices.dto.GetBalanceByPeriodOutput
 import usecases.invoices.dto.GetBalancesByPeriodInput
@@ -36,6 +36,7 @@ import usecases.patrimonies.snapshots.dto.RemoveSnapshotFromPatrimonyInput
 import usecases.patrimonies.snapshots.dto.UpdateSnapshotFromPatrimonyInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -47,7 +48,7 @@ class PatrimonyConfig {
         accountRepo: IRepository<Account>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
         unitOfWork: IUnitOfWork
-    ): IUseCase<CreatePatrimonyInput, CreatedOutput> {
+    ): UseCase<CreatePatrimonyInput, CreatedOutput> {
         return CreatePatrimony(
             patrimonyRepo = patrimonyRepo,
             accountRepo = accountRepo,
@@ -61,7 +62,7 @@ class PatrimonyConfig {
         patrimonyRepo: IRepository<Patrimony>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
         unitOfWork: IUnitOfWork
-    ): IUseCase<DeletePatrimonyInput, Unit> {
+    ): UseCase<DeletePatrimonyInput, Unit> {
         return DeletePatrimony(
             patrimonyRepo = patrimonyRepo,
             patrimonySnapshotRepo = snapshotRepo,
@@ -79,7 +80,7 @@ class PatrimonyConfig {
         provisionRepo: IRepository<Provision>,
         invoiceRepo: IRepository<Invoice>,
         getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
-    ): IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>> {
+    ): UseCase<QueryFilter, ListOutput<GetPatrimonyOutput>> {
         return GetAllPatrimonies(
             patrimonyRepo = patrimonyRepo,
             accountRepo = accountRepo,
@@ -102,7 +103,7 @@ class PatrimonyConfig {
         provisionRepo: IRepository<Provision>,
         invoiceRepo: IRepository<Invoice>,
         getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
-    ): IUseCase<GetPatrimonyInput, GetPatrimonyOutput> {
+    ): UseCase<GetPatrimonyInput, GetPatrimonyOutput> {
         return GetPatrimony(
             patrimonyRepo = patrimonyRepo,
             accountRepo = accountRepo,
@@ -119,7 +120,7 @@ class PatrimonyConfig {
     fun updatePatrimony(
         patrimonyRepo: IRepository<Patrimony>,
         accountRepo: IRepository<Account>,
-    ): IUseCase<UpdatePatrimonyInput, Unit> {
+    ): UseCase<UpdatePatrimonyInput, Unit> {
         return UpdatePatrimony(
             patrimonyRepo = patrimonyRepo,
             accountRepo = accountRepo,
@@ -130,7 +131,7 @@ class PatrimonyConfig {
     fun addSnapshotToPatrimonies(
        patrimonyRepo: IRepository<Patrimony>,
        snapshotRepo: IRepository<PatrimonySnapshot>,
-    ) : IUseCase<AddSnapshotToPatrimonyInput, CreatedOutput> {
+    ) : UseCase<AddSnapshotToPatrimonyInput, CreatedOutput> {
         return AddSnapshotToPatrimony(
             patrimonyRepo = patrimonyRepo,
             snapshotPatrimonyRepo = snapshotRepo,
@@ -140,7 +141,7 @@ class PatrimonyConfig {
     @Bean
     fun removeSnapshotFromPatrimonies(
         snapshotRepo: IRepository<PatrimonySnapshot>
-    ) : IUseCase<RemoveSnapshotFromPatrimonyInput, Unit> {
+    ) : UseCase<RemoveSnapshotFromPatrimonyInput, Unit> {
         return RemoveSnapshotFromPatrimony(
             snapshotRepo = snapshotRepo
         )
@@ -149,7 +150,7 @@ class PatrimonyConfig {
     @Bean
     fun updateSnapshotFromPatrimonies(
         snapshotRepo: IRepository<PatrimonySnapshot>
-    ) : IUseCase<UpdateSnapshotFromPatrimonyInput, Unit> {
+    ) : UseCase<UpdateSnapshotFromPatrimonyInput, Unit> {
         return UpdateSnapshotFromPatrimony(
             snapshotRepo = snapshotRepo
         )
@@ -163,7 +164,7 @@ class PatrimonyConfig {
         provisionRepo: IRepository<Provision>,
         invoiceRepo: IRepository<Invoice>,
         getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
-    ) : IUseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>> {
+    ) : UseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>> {
         return GetAllSnapshotFromPatrimony(
             snapshotPatrimonyRepo = snapshotRepo,
             fundRepo = fundRepo,

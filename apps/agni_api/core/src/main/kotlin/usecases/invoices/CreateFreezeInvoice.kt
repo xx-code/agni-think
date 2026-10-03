@@ -1,28 +1,24 @@
 package usecases.invoices
 
+import usecases.interfaces.IUseCase
+
 import domain.FREEZE_CATEGORY_ID
 import adapters.repositories.IUnitOfWork
 import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceType
-import usecases.CreatedOutput
-import usecases.interfaces.IInnerUseCase
+import usecases.UseCase
+import usecases.dto.CreatedOutput
 import usecases.invoices.dto.CreateFreezeInvoiceInput
 import usecases.invoices.dto.CreateInvoiceInput
 import usecases.invoices.dto.TransactionInput
 
 class CreateFreezeInvoice(
-    val unitOfWork: IUnitOfWork,
-    val createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
-) : IInnerUseCase<CreateFreezeInvoiceInput, CreatedOutput> {
+    unitOfWork: IUnitOfWork,
+    private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
+) : UseCase<CreateFreezeInvoiceInput, CreatedOutput>(unitOfWork) {
 
-    override fun execAsync(input: CreateFreezeInvoiceInput): CreatedOutput {
-        return unitOfWork.execute {
-            this.execInnerAsync(input)
-        }
-    }
-
-    override fun execInnerAsync(input: CreateFreezeInvoiceInput): CreatedOutput {
-        return createInvoice.execInnerAsync(CreateInvoiceInput(
+    override suspend fun process(input: CreateFreezeInvoiceInput): CreatedOutput {
+        return createInvoice.processDirect(CreateInvoiceInput(
             accountId = input.accountId,
             status = input.status,
             date = input.endDate,

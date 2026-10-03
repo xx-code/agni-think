@@ -1,5 +1,7 @@
 package usecases.provisionable
 
+import usecases.interfaces.IUseCase
+
 import adapters.dto.QueryFilter
 import adapters.events.EventType
 import adapters.events.IEventRegister
@@ -11,22 +13,21 @@ import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Provision
 import domain.entities.Fund
-import usecases.BackgroundTaskOut
-import usecases.interfaces.IInnerUseCase
-import usecases.interfaces.ISuspendableUseCase
+import usecases.dto.BackgroundTaskOut
 import usecases.saving_goals.dto.DecreaseSavingGoalInput
 import java.time.LocalDate
 import kotlin.Throwable
 import domain.enums.ProvisionType
+import usecases.UseCase
 
 class MakePaymentInstallment(
     private val provisionRepo: IRepository<Provision>,
     private val fundRepo: IRepository<Fund>,
-    private val decreaseFund:  IInnerUseCase<DecreaseSavingGoalInput, Unit>,
+    private val decreaseFund: IUseCase<DecreaseSavingGoalInput, Unit>,
     private val eventManager: IEventRegister,
-    private val unitOfWork: IUnitOfWork,
-): ISuspendableUseCase<Unit, BackgroundTaskOut> {
-    override suspend fun execAsync(input: Unit): BackgroundTaskOut {
+    unitOfWork: IUnitOfWork,
+): UseCase<Unit, BackgroundTaskOut>(unitOfWork) {
+    override suspend fun process(input: Unit): BackgroundTaskOut {
         try {
             val condition = QueryExtendBuilder<Provision>()
                 .addCondition("type", QueryComparator.Equal, ProvisionType.DEPRECIATE_LOAN.value)
@@ -38,29 +39,27 @@ class MakePaymentInstallment(
             val fundsById = funds.associateBy { it.id }
 
             for (provision in amortizedProvisions) {
-                unitOfWork.execute {
-                    val payment = provision.paymentInfo ?: return@execute
-                    if (!payment.scheduler.isDueDate()) return@execute
+                val payment = provision.paymentInfo ?: continue
+                if (!payment.scheduler.isDueDate()) continue
 
-                    val fund = fundsById[provision.fundAmortizationId] ?: return@execute
-                    if (fund.balance < payment.paymentAmount) return@execute
+                val fund = fundsById[provision.fundAmortizationId] ?: continue
+                if (fund.balance < payment.paymentAmount) continue
 
-                    provision.paymentInfo = payment.copy(
-                        scheduler = payment.scheduler.copy(
-                            date = payment.scheduler.upgradeDate()
-                        )
+                provision.paymentInfo = payment.copy(
+                    scheduler = payment.scheduler.copy(
+                        date = payment.scheduler.upgradeDate()
                     )
+                )
 
-                    provisionRepo.update(provision)
+                provisionRepo.update(provision)
 
-                    decreaseFund.execInnerAsync(
-                        DecreaseSavingGoalInput(
-                            savingGoalId = fund.id,
-                            accountId = payment.accountId,
-                            amount = payment.paymentAmount
-                        )
+                decreaseFund.processDirect(
+                    DecreaseSavingGoalInput(
+                        savingGoalId = fund.id,
+                        accountId = payment.accountId,
+                        amount = payment.paymentAmount
                     )
-                }
+                )
             }
 
             return BackgroundTaskOut("Apply Provision Payment Installment Success")

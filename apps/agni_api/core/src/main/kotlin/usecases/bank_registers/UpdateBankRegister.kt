@@ -1,18 +1,18 @@
 package usecases.bank_registers
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.BankRegister
 import usecases.bank_registers.dto.UpdateBankRegisterInput
-import usecases.interfaces.IUseCase
 import domain.exceptions.NotFoundException
 import domain.value_objects.AccountLinked
 
 class UpdateBankRegister(
     private val bankRegisterRepo: IRepository<BankRegister>,
     private val accountRepo: IRepository<Account>,
-): IUseCase<UpdateBankRegisterInput, Unit> {
-    override fun execAsync(input: UpdateBankRegisterInput) {
+): UseCase<UpdateBankRegisterInput, Unit>() {
+    override suspend fun process(input: UpdateBankRegisterInput) {
         val bankRegister = bankRegisterRepo.get(input.bankRegisterId) ?: throw NotFoundException.SingleEntity(input.bankRegisterId, "bank_register")
 
         if (!input.accessCode.isNullOrEmpty()) {

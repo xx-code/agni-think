@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
@@ -15,11 +16,11 @@ import java.util.UUID
 class GetInvoice(
     private val invoiceRepo: IRepository<Invoice>,
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>
-): IUseCase<UUID, GetInvoiceOutput> {
-    override fun execAsync(input: UUID): GetInvoiceOutput {
+): UseCase<UUID, GetInvoiceOutput>() {
+    override suspend fun process(input: UUID): GetInvoiceOutput {
         val invoice = invoiceRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "invoice")
 
-        val invoiceTransactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
+        val invoiceTransactions = getInvoiceTransactions.processDirect(GetInvoiceTransactionsInput(
             invoiceIds = setOf(invoice.id),
             categoryIds = null,
             tagIds = null,

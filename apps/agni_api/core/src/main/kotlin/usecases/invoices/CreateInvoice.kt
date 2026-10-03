@@ -15,27 +15,20 @@ import domain.enums.DeductionModeType
 import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
 import facades.InvoiceDependencies
-import usecases.CreatedOutput
-import usecases.interfaces.IInnerUseCase
+import usecases.dto.CreatedOutput
 import usecases.invoices.dto.CreateInvoiceInput
 import domain.value_objects.InvoiceDeduction
+import usecases.UseCase
 import java.util.UUID
 
 // TODO: Refactoring
 class CreateInvoice(
     private val invoiceRepo: IRepository<Invoice>,
     private val invoiceDependencies: InvoiceDependencies,
-    private val unitOfWork: IUnitOfWork,
-    private val eventRegister: IEventRegister
-): IInnerUseCase<CreateInvoiceInput, CreatedOutput> {
-
-    override fun execAsync(input: CreateInvoiceInput): CreatedOutput {
-        return unitOfWork.execute {
-            this.execInnerAsync(input)
-        }
-    }
-
-    override fun execInnerAsync(input: CreateInvoiceInput): CreatedOutput {
+    private val eventRegister: IEventRegister,
+    unitOfWork: IUnitOfWork,
+): UseCase<CreateInvoiceInput, CreatedOutput>(unitOfWork) {
+    override suspend fun process(input: CreateInvoiceInput): CreatedOutput {
         val account = invoiceDependencies.accountRepo.get(input.accountId) ?: throw NotFoundException.SingleEntity(input.accountId, "invoice")
 
         if (input.transactions.isEmpty())

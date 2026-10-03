@@ -6,8 +6,8 @@ import dev.auguste.rest_api.controllers.models.ApiUpdateBudgetModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateBudgetModel
 import dev.auguste.rest_api.controllers.models.mapApiUpdateBudgetModel
 import domain.enums.PeriodType
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.budgets.dto.CreateBudgetInput
 import usecases.budgets.dto.DeleteBudgetInput
 import usecases.budgets.dto.GetAllBudgetInput
@@ -38,41 +38,41 @@ class BudgetController(
 ) {
 
     @PostMapping
-    fun createBudget(@Valid @RequestBody request: ApiCreateBudgetModel): ResponseEntity<CreatedOutput>  {
-        return ResponseEntity.ok(createBudget.execAsync(
+    suspend fun createBudget(@Valid @RequestBody request: ApiCreateBudgetModel): ResponseEntity<CreatedOutput>  {
+        return ResponseEntity.ok(createBudget.execute(
             mapApiCreateBudgetModel(request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateBudget(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateBudgetModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateBudget.execAsync(
+    suspend fun updateBudget(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateBudgetModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateBudget.execute(
             mapApiUpdateBudgetModel(id, request)
-        ))
+        ).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteBudget(@PathVariable id: UUID): ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteBudget.execAsync(
+    suspend fun deleteBudget(@PathVariable id: UUID): ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteBudget.execute(
             DeleteBudgetInput(id)
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getBudget(@PathVariable id: UUID): ResponseEntity<GetBudgetOutput> {
-        return ResponseEntity.ok(getBudget.execAsync(
+    suspend fun getBudget(@PathVariable id: UUID): ResponseEntity<GetBudgetOutput> {
+        return ResponseEntity.ok(getBudget.execute(
             id
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping
-    fun getAllBudgets(query: QueryFilter, @RequestParam periodTypes: List<String>?): ResponseEntity<ListOutput<GetBudgetOutput>> {
+    suspend fun getAllBudgets(query: QueryFilter, @RequestParam periodTypes: List<String>?): ResponseEntity<ListOutput<GetBudgetOutput>> {
 
         return ResponseEntity.ok(
-            getAllBudgets.execAsync(GetAllBudgetInput(
+            getAllBudgets.execute(GetAllBudgetInput(
                 query,
                 periodTypes?.map { period -> PeriodType.fromString(period)}?.toSet()
-            ))
+            )).getOrThrow()
         )
     }
 }

@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import domain.exceptions.ValidationException
 
 import adapters.FinanceContextFund
@@ -51,7 +53,7 @@ class FinanceContextMock(
 class GoalValidationTest {
 
     @Test
-    fun `create a goal and evaluate`() {
+    fun `create a goal and evaluate`() = runBlocking {
         val fundId = UUID.randomUUID()
         val fundGoal = Goal(
             UUID.randomUUID(),
@@ -79,7 +81,7 @@ class GoalValidationTest {
     }
 
     @Test
-    fun `evaluate a category target goal`() {
+    fun `evaluate a category target goal`() = runBlocking {
         val categoryId = UUID.randomUUID()
         val categoryGoal = Goal(
             UUID.randomUUID(),
@@ -106,7 +108,7 @@ class GoalValidationTest {
     }
 
     @Test
-    fun `progress is clamped at 100 when balance exceeds target`() {
+    fun `progress is clamped at 100 when balance exceeds target`() = runBlocking {
         val fundId = UUID.randomUUID()
         val fundGoal = Goal(
             UUID.randomUUID(),
@@ -133,7 +135,7 @@ class GoalValidationTest {
     }
 
     @Test
-    fun `progress is zero when target amount is zero`() {
+    fun `progress is zero when target amount is zero`() = runBlocking {
         val fundId = UUID.randomUUID()
         val fundGoal = Goal(
             UUID.randomUUID(),
@@ -160,13 +162,13 @@ class GoalValidationTest {
     }
 
     @Test
-    fun `factory returns the strategy registered for the type`() {
+    fun `factory returns the strategy registered for the type`() = runBlocking {
         assertTrue(GoalEvaluationStrategyFactory.getStrategy(GoalEvaluationType.FUND) is FundGoalEvaluationStrategy)
         assertTrue(GoalEvaluationStrategyFactory.getStrategy(GoalEvaluationType.TRANSACTION_TARGET) is CategoryEvaluationStrategy)
     }
 
     @Test
-    fun `factory throws when no strategy is registered for the type`() {
+    fun `factory throws when no strategy is registered for the type`() = runBlocking {
         assertThrows(ValidationException::class.java) {
             GoalEvaluationStrategyFactory.getStrategy(GoalEvaluationType.PATRIMONY)
         }

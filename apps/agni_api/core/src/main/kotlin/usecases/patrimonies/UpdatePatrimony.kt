@@ -1,16 +1,16 @@
 package usecases.patrimonies
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.Patrimony
-import usecases.interfaces.IUseCase
 import domain.exceptions.NotFoundException
 import usecases.patrimonies.dto.UpdatePatrimonyInput
 
 class UpdatePatrimony(
     private val patrimonyRepo: IRepository<Patrimony>,
-    private val accountRepo: IRepository<Account>): IUseCase<UpdatePatrimonyInput, Unit> {
-    override fun execAsync(input: UpdatePatrimonyInput) {
+    private val accountRepo: IRepository<Account>): UseCase<UpdatePatrimonyInput, Unit>() {
+    override suspend fun process(input: UpdatePatrimonyInput) {
         val patrimony = patrimonyRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "patrimony")
 
         if (input.title != null)

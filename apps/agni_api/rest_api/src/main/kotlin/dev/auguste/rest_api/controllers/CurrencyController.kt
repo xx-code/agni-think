@@ -5,8 +5,8 @@ import dev.auguste.rest_api.controllers.models.ApiCreateCurrencyModel
 import dev.auguste.rest_api.controllers.models.ApiUpdateCurrencyModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateCurrency
 import dev.auguste.rest_api.controllers.models.mapApiUpdateCurrency
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.currencies.dto.CreateCurrencyInput
 import usecases.currencies.dto.DeleteCurrencyInput
 import usecases.currencies.dto.GetCurrencyOutput
@@ -35,37 +35,37 @@ class CurrencyController(
 ) {
 
     @PostMapping
-    fun createCurrency(@Valid @RequestBody request: ApiCreateCurrencyModel) : ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createCurrencyUseCase.execAsync(
+    suspend fun createCurrency(@Valid @RequestBody request: ApiCreateCurrencyModel) : ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createCurrencyUseCase.execute(
             mapApiCreateCurrency(request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateCurrency(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateCurrencyModel) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateCurrencyUseCase.execAsync(
+    suspend fun updateCurrency(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateCurrencyModel) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateCurrencyUseCase.execute(
             mapApiUpdateCurrency(id, request)
-        ))
+        ).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteCurrency(@PathVariable id: UUID) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteCurrencyUseCase.execAsync(
+    suspend fun deleteCurrency(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteCurrencyUseCase.execute(
             DeleteCurrencyInput(id)
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getCurrency(@PathVariable id: UUID) : ResponseEntity<GetCurrencyOutput> {
-        return ResponseEntity.ok(getCurrencyUseCase.execAsync(
+    suspend fun getCurrency(@PathVariable id: UUID) : ResponseEntity<GetCurrencyOutput> {
+        return ResponseEntity.ok(getCurrencyUseCase.execute(
             id
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping
-    fun getAllCurrencies(query: QueryFilter) : ResponseEntity<ListOutput<GetCurrencyOutput>> {
-        return ResponseEntity.ok(getAllCurrenciesUseCase.execAsync(
+    suspend fun getAllCurrencies(query: QueryFilter) : ResponseEntity<ListOutput<GetCurrencyOutput>> {
+        return ResponseEntity.ok(getAllCurrenciesUseCase.execute(
             query
-        ))
+        ).getOrThrow())
     }
 }

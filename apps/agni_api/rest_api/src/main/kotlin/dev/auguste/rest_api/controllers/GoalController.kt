@@ -8,8 +8,8 @@ import dev.auguste.rest_api.controllers.models.mapApiCreateGoal
 import dev.auguste.rest_api.controllers.models.mapApiUpdateGoal
 import domain.enums.GoalEvaluationType
 import domain.enums.GoalStatusType
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.goals.dto.CreateGoalInput
 import usecases.goals.dto.GetAllGoalInput
 import usecases.goals.dto.GetGoalOutput
@@ -40,40 +40,40 @@ class GoalController(
 ) {
 
     @PostMapping
-    fun createGoal(@Valid @RequestBody input: ApiCreateGoal): ResponseEntity<CreatedOutput> {
+    suspend fun createGoal(@Valid @RequestBody input: ApiCreateGoal): ResponseEntity<CreatedOutput> {
         return ResponseEntity.ok(
-            createGoal.execAsync(mapApiCreateGoal(input))
+            createGoal.execute(mapApiCreateGoal(input)).getOrThrow()
         )
     }
 
     @PutMapping("/{id}")
-    fun updateGoal(@PathVariable id: UUID, @Valid @RequestBody input: ApiUpdateGoal): ResponseEntity<Unit> {
+    suspend fun updateGoal(@PathVariable id: UUID, @Valid @RequestBody input: ApiUpdateGoal): ResponseEntity<Unit> {
         return ResponseEntity.ok(
-            updateGoal.execAsync(mapApiUpdateGoal(id, input))
+            updateGoal.execute(mapApiUpdateGoal(id, input)).getOrThrow()
         )
     }
 
     @GetMapping("/{id}")
-    fun getGoal(@PathVariable id: UUID): ResponseEntity<GetGoalOutput> {
+    suspend fun getGoal(@PathVariable id: UUID): ResponseEntity<GetGoalOutput> {
         return ResponseEntity.ok(
-            getGoal.execAsync(id)
+            getGoal.execute(id).getOrThrow()
         )
     }
 
     @GetMapping
-    fun getAllGoals(@ModelAttribute query: QueryFilter, @ModelAttribute queryExtend: ApiGaolQueryExtend): ResponseEntity<ListOutput<GetGoalOutput>> {
+    suspend fun getAllGoals(@ModelAttribute query: QueryFilter, @ModelAttribute queryExtend: ApiGaolQueryExtend): ResponseEntity<ListOutput<GetGoalOutput>> {
         return ResponseEntity.ok(
-            getAllGoal.execAsync(GetAllGoalInput(
+            getAllGoal.execute(GetAllGoalInput(
                 query,
                 sourceId = queryExtend.sourceId,
                 status = queryExtend.status?.let { GoalStatusType.fromInt(it) },
                 type = queryExtend.type?.let { GoalEvaluationType.fromString(it) }
-            ))
+            )).getOrThrow()
         )
     }
 
     @DeleteMapping("/{id}")
-    fun deleteGoal(@PathVariable id: UUID): ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteGoal.execAsync(id))
+    suspend fun deleteGoal(@PathVariable id: UUID): ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteGoal.execute(id).getOrThrow())
     }
 }

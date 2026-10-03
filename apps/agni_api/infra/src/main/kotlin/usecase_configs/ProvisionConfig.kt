@@ -7,18 +7,16 @@ import adapters.repositories.IUnitOfWork
 import domain.entities.Provision
 import domain.entities.Fund
 import domain.entities.ScheduleInvoice
-import usecases.BackgroundTaskOut
-import usecases.CreatedOutput
-import usecases.ListOutput
-import usecases.interfaces.IInnerUseCase
-import usecases.interfaces.ISuspendableUseCase
+import usecases.dto.BackgroundTaskOut
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
-import usecases.provisionable.CreateProvisionable
-import usecases.provisionable.DeleteProvisionable
-import usecases.provisionable.GetAllProvisionable
+import usecases.provisionable.CreateProvision
+import usecases.provisionable.DeleteProvision
+import usecases.provisionable.GetAllProvision
 import usecases.provisionable.GetProvision
 import usecases.provisionable.MakePaymentInstallment
-import usecases.provisionable.UpdateProvisionable
+import usecases.provisionable.UpdateProvision
 import usecases.provisionable.dto.CreateProvisionInput
 import usecases.provisionable.dto.DeleteProvisionInput
 import usecases.provisionable.dto.GetProvisionOutput
@@ -29,6 +27,7 @@ import usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
 import usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -40,8 +39,8 @@ class ProvisionConfig {
         fundRepo: IRepository<Fund>,
         createSchedulerInvoice: IUseCase<CreateScheduleInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork
-    ): IUseCase<CreateProvisionInput, CreatedOutput> {
-        return CreateProvisionable(
+    ): UseCase<CreateProvisionInput, CreatedOutput> {
+        return CreateProvision(
             provisionRepo = provisionRepo,
             fundRepo = fundRepo,
             createScheduleInvoice = createSchedulerInvoice,
@@ -56,8 +55,8 @@ class ProvisionConfig {
         fundRepo: IRepository<Fund>,
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         updateSchedulerInvoice: IUseCase<UpdateScheduleInvoiceInput, Unit>,
-    ): IUseCase<UpdateProvisionInput, Unit> {
-        return UpdateProvisionable(
+    ): UseCase<UpdateProvisionInput, Unit> {
+        return UpdateProvision(
             unitOfWork = unitOfWork,
             provisionRepo = provisionRepo,
             fundRepo = fundRepo,
@@ -72,8 +71,8 @@ class ProvisionConfig {
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         deleteScheduleInvoice: IUseCase<DeleteScheduleInvoiceInput, Unit>,
         unitOfWork: IUnitOfWork
-    ): IUseCase<DeleteProvisionInput, Unit> {
-        return DeleteProvisionable(
+    ): UseCase<DeleteProvisionInput, Unit> {
+        return DeleteProvision(
             provisionRepo = provisionRepo,
             scheduleInvoiceRepo = scheduleInvoiceRepo,
             deleteScheduleInvoice = deleteScheduleInvoice,
@@ -84,7 +83,7 @@ class ProvisionConfig {
     @Bean
     fun getProvision(
         provisionRepo: IRepository<Provision>
-    ): IUseCase<UUID, GetProvisionOutput> {
+    ): UseCase<UUID, GetProvisionOutput> {
         return GetProvision(
             provisionRepo = provisionRepo
         )
@@ -93,8 +92,8 @@ class ProvisionConfig {
     @Bean
     fun getAllProvision(
         provisionRepo: IRepository<Provision>
-    ): IUseCase<QueryFilter, ListOutput<GetProvisionOutput>> {
-       return GetAllProvisionable(
+    ): UseCase<QueryFilter, ListOutput<GetProvisionOutput>> {
+       return GetAllProvision(
            provisionRepo = provisionRepo
        )
     }
@@ -104,10 +103,10 @@ class ProvisionConfig {
     fun makeProvisionInstallment(
         provisionRepo: IRepository<Provision>,
         fundRepo: IRepository<Fund>,
-        decreaseFund: IInnerUseCase<DecreaseSavingGoalInput, Unit>,
+        decreaseFund: IUseCase<DecreaseSavingGoalInput, Unit>,
         eventManager: IEventRegister,
         unitOfWork: IUnitOfWork
-    ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
+    ): UseCase<Unit, BackgroundTaskOut> {
         return MakePaymentInstallment(
             provisionRepo = provisionRepo,
             fundRepo = fundRepo,

@@ -1,15 +1,14 @@
 package usecases.analystics
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.Provision
 import usecases.analystics.dto.GetProvisionSummaryOutput
-import usecases.interfaces.IUseCase
-
 class GetProvisionSummary(
     private val provisionRepo: IRepository<Provision>
-) : IUseCase<Unit, GetProvisionSummaryOutput> {
-    override fun execAsync(input: Unit): GetProvisionSummaryOutput {
+): UseCase<Unit, GetProvisionSummaryOutput>() {
+    override suspend fun process(input: Unit): GetProvisionSummaryOutput {
         val provisions = provisionRepo.getAll(QueryFilter.queryAll())
 
         return GetProvisionSummaryOutput(

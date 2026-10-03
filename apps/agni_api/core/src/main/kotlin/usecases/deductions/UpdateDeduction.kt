@@ -1,15 +1,14 @@
 package usecases.deductions
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Deduction
 import usecases.deductions.dto.UpdateDeductionInput
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
-import usecases.interfaces.IUseCase
+class UpdateDeduction(private val deductionRepo: IRepository<Deduction>): UseCase<UpdateDeductionInput, Unit>() {
 
-class UpdateDeduction(private val deductionRepo: IRepository<Deduction>): IUseCase<UpdateDeductionInput, Unit> {
-
-    override fun execAsync(input: UpdateDeductionInput) {
+    override suspend fun process(input: UpdateDeductionInput) {
         val deduction = deductionRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "deduction")
 
         if (input.title != null) {

@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import domain.exceptions.ValidationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -14,7 +16,7 @@ import kotlin.test.assertFalse
 class CleanObservableContractTest {
 
     @Test
-    fun `constructor does not validate the initial value`() {
+    fun `constructor does not validate the initial value`() = runBlocking {
         val budget = Budget(
             title = "Groceries",
             target = -500.0,
@@ -25,7 +27,7 @@ class CleanObservableContractTest {
     }
 
     @Test
-    fun `a refused assignment keeps the previous value`() {
+    fun `a refused assignment keeps the previous value`() = runBlocking {
         val budget = Budget(
             title = "Groceries",
             target = 250.0,
@@ -38,7 +40,7 @@ class CleanObservableContractTest {
     }
 
     @Test
-    fun `a refused assignment does not flag the entity as changed`() {
+    fun `a refused assignment does not flag the entity as changed`() = runBlocking {
         val budget = Budget(
             title = "Groceries",
             target = 250.0,

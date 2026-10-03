@@ -9,7 +9,7 @@ import domain.entities.ExternalTransaction
 class CreateEmbeddingExternalTransEventContent(
     val externalTransactions: ExternalTransaction
 ): IEventContent {
-    override fun dispatch(listener: IEventListener) {
+    override suspend fun dispatch(listener: IEventListener) {
         if (listener is ICreateExternalTransactionListener) {
             listener.server(this)
             listener.update()

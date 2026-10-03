@@ -1,5 +1,6 @@
 package usecases.schedule_Invoices
 
+import usecases.UseCase
 import domain.FREEZE_CATEGORY_ID
 import adapters.repositories.IRepository
 import domain.exceptions.AlreadyExistException
@@ -7,7 +8,7 @@ import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.ScheduleInvoice
 import domain.enums.InvoiceType
-import usecases.CreatedOutput
+import usecases.dto.CreatedOutput
 import facades.InvoiceDependencies
 import usecases.interfaces.IUseCase
 import usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
@@ -19,8 +20,8 @@ class CreateScheduleInvoice(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
     private val invoiceDependencies: InvoiceDependencies,
     private val verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>
-): IUseCase<CreateScheduleInvoiceInput, CreatedOutput> {
-    override fun execAsync(input: CreateScheduleInvoiceInput): CreatedOutput {
+): UseCase<CreateScheduleInvoiceInput, CreatedOutput>() {
+    override suspend fun process(input: CreateScheduleInvoiceInput): CreatedOutput {
         if (scheduleInvoiceRepo.existsByName(input.description))
             throw AlreadyExistException.EntitiesByField(mapOf("name" to input.description), "schedule_invoice")
 
@@ -54,7 +55,7 @@ class CreateScheduleInvoice(
             repeater = SchedulerRecurrence( period = input.schedule.repeater.period, interval = input.schedule.repeater.interval)
 
         if (input.moduleLinker != null)
-            verifyScheduleModuleLinker.execAsync(input.moduleLinker)
+            verifyScheduleModuleLinker.processDirect(input.moduleLinker)
 
         val newScheduleInvoice = ScheduleInvoice(
             accountId = input.accountId,

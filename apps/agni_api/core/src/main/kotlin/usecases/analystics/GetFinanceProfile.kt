@@ -1,5 +1,6 @@
 package usecases.analystics
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.Account
@@ -13,7 +14,6 @@ import usecases.analystics.dto.ComingSpendingOutput
 import usecases.analystics.dto.GetFinanceProfileOutput
 import usecases.analystics.dto.IncomeSourceOutput
 import usecases.analystics.dto.PrincipeToFollowOutput
-import usecases.interfaces.IUseCase
 import domain.value_objects.BrokingAccountDetail
 import domain.value_objects.BusinessAccountDetail
 import domain.value_objects.CheckingAccountDetail
@@ -29,8 +29,8 @@ class GetFinanceProfile(
     private val principleRepo: IRepository<FinancePrinciple>,
     private val incomeSourceRepo: IRepository<IncomeSource>,
     private val scheduleInvoice: IRepository<ScheduleInvoice>
-) : IUseCase<Unit, GetFinanceProfileOutput> {
-    override fun execAsync(input: Unit): GetFinanceProfileOutput {
+): UseCase<Unit, GetFinanceProfileOutput>() {
+    override suspend fun process(input: Unit): GetFinanceProfileOutput {
         val accounts = accountRepo.getAll(QueryFilter.queryAll())
         val principles = principleRepo.getAll(QueryFilter.queryAll())
         val incomes = incomeSourceRepo.getAll(QueryFilter.queryAll())

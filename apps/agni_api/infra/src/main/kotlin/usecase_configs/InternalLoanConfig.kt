@@ -8,11 +8,9 @@ import domain.entities.Account
 import domain.entities.InternalLoan
 import domain.entities.Invoice
 import domain.entities.ScheduleInvoice
-import usecases.BackgroundTaskOut
-import usecases.CreatedOutput
-import usecases.ListOutput
-import usecases.interfaces.IInnerUseCase
-import usecases.interfaces.ISuspendableUseCase
+import usecases.dto.BackgroundTaskOut
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.internal_loan.AddRefundInternalLoan
 import usecases.internal_loan.AutoCompleteInternalLoan
@@ -33,6 +31,7 @@ import usecases.invoices.dto.DeleteInvoiceInput
 import usecases.invoices.dto.GetInvoiceOutput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -42,21 +41,20 @@ class InternalLoanConfig {
     fun createInternalLoan(
         internalRepo: IRepository<InternalLoan>,
         accountRepo: IRepository<Account>,
-        createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
+        createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
         getInvoice: IUseCase<UUID, GetInvoiceOutput>,
         invoiceRepo: IRepository<Invoice>,
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         unitOfWork: IUnitOfWork
-    ): IUseCase<CreateInternalLoanInput, CreatedOutput> {
+    ): UseCase<CreateInternalLoanInput, CreatedOutput> {
         return CreateInternalLoan(
-            internalRepo,
-            accountRepo,
-            createInvoice,
-            invoiceRepo,
-            scheduleInvoiceRepo,
-            getInvoice,
-
-            unitOfWork
+            internalLoanRepo = internalRepo,
+            accountRepo = accountRepo,
+            invoiceRepo = invoiceRepo,
+            scheduleInvoiceRepo = scheduleInvoiceRepo,
+            createInvoice = createInvoice,
+            getInvoice = getInvoice,
+            unitOfWork = unitOfWork
         )
     }
 
@@ -64,7 +62,7 @@ class InternalLoanConfig {
     fun updateInternalLoan(
         internalRepo: IRepository<InternalLoan>,
         accountRepo: IRepository<Account>,
-    ): IUseCase<UpdateInternalLoanInput, Unit> {
+    ): UseCase<UpdateInternalLoanInput, Unit> {
         return UpdateInternalLoan(
             internalRepo,
             accountRepo
@@ -74,9 +72,9 @@ class InternalLoanConfig {
     @Bean
     fun deleteInternalLoan(
         internalLoanRepo: IRepository<InternalLoan>,
-        deleteInvoice: IInnerUseCase<DeleteInvoiceInput, Unit>,
+        deleteInvoice: IUseCase<DeleteInvoiceInput, Unit>,
         unitOfWork: IUnitOfWork
-    ): IUseCase<UUID, Unit> {
+    ): UseCase<UUID, Unit> {
         return DeleteInternalLoan(
             internalLoanRepo,
             deleteInvoice,
@@ -88,7 +86,7 @@ class InternalLoanConfig {
     fun getInternalLoan(
         internalRepo: IRepository<InternalLoan>,
         getInvoice: IUseCase<UUID, GetInvoiceOutput>
-    ): IUseCase<UUID, GetInternalLoanOutput> {
+    ): UseCase<UUID, GetInternalLoanOutput> {
         return GetInternalLoan(
             internalRepo,
             getInvoice = getInvoice
@@ -99,7 +97,7 @@ class InternalLoanConfig {
     fun getAllInternalLoan(
         internalRepo: IRepository<InternalLoan>,
         getInvoice: IUseCase<UUID, GetInvoiceOutput>
-    ): IUseCase<QueryFilter, ListOutput<GetInternalLoanOutput>> {
+    ): UseCase<QueryFilter, ListOutput<GetInternalLoanOutput>> {
         return GetAllInternalLoan(
             internalRepo,
             getInvoice = getInvoice
@@ -110,9 +108,9 @@ class InternalLoanConfig {
     fun getAddRefundInternalLoan(
         internalRepo: IRepository<InternalLoan>,
         getInvoice: IUseCase<UUID, GetInvoiceOutput>,
-        createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
+        createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork
-    ): IUseCase<AddRefundInternalLoanInput, Unit> {
+    ): UseCase<AddRefundInternalLoanInput, Unit> {
         return AddRefundInternalLoan(
             internalLoanRepo = internalRepo,
             getInvoice = getInvoice,
@@ -125,9 +123,9 @@ class InternalLoanConfig {
     fun getRemoveRefundInternalLoan(
         internalRepo: IRepository<InternalLoan>,
         getInvoice: IUseCase<UUID, GetInvoiceOutput>,
-        deleteInvoice: IInnerUseCase<DeleteInvoiceInput, Unit>,
+        deleteInvoice: IUseCase<DeleteInvoiceInput, Unit>,
         unitOfWork: IUnitOfWork
-    ): IUseCase<RemoveRefundInternalLoanInput, Unit> {
+    ): UseCase<RemoveRefundInternalLoanInput, Unit> {
         return RemoveRefundInternalLoan(
             internalLoanRepo = internalRepo,
             getInvoice = getInvoice,
@@ -143,7 +141,7 @@ class InternalLoanConfig {
         completeInvoice: IUseCase<CompleteInvoiceInput, Unit>,
         getInvoice: IUseCase<UUID, GetInvoiceOutput>,
         eventRegister: IEventRegister
-    ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
+    ): UseCase<Unit, BackgroundTaskOut> {
         return AutoCompleteInternalLoan(
             internalLoanRepo = internalLoanRepo,
             getInvoice = getInvoice,

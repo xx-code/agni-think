@@ -1,5 +1,6 @@
 package usecases.accounts
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
@@ -7,7 +8,7 @@ import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.entities.InternalLoan
 import domain.entities.Fund
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.accounts.dto.GetAccountWithDetailOutput
 import usecases.accounts.dto.mapperAccountDetailOutput
 import usecases.interfaces.IUseCase
@@ -19,12 +20,12 @@ import java.util.UUID
 class GetAllAccountWithDetail(
     private val accountRepo: IRepository<Account>,
     private val fundRepo: IRepository<Fund>,
-    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     private val internalLoanRepo: IRepository<InternalLoan>,
+    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     private val getInvoice: IUseCase<UUID, GetInvoiceOutput>
-) : IUseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>>{
+): UseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>>(){
 
-    override fun execAsync(input: QueryFilter): ListOutput<GetAccountWithDetailOutput> {
+    override suspend fun process(input: QueryFilter): ListOutput<GetAccountWithDetailOutput> {
         val accounts = accountRepo.getAll(input)
         val results = mutableListOf<GetAccountWithDetailOutput>()
 
@@ -40,11 +41,11 @@ class GetAllAccountWithDetail(
             var currentLoanBalance = 0.0
             if (internalLoans.items.isNotEmpty()) {
                 internalLoans.items.forEach { internalLoanItem ->
-                    currentLoanBalance += getInvoice.execAsync(internalLoanItem.invoiceId).total
+                    currentLoanBalance += getInvoice.processDirect(internalLoanItem.invoiceId).total
                 }
             }
             val lockedBalance = funds.items.filter { it.accountId == account.id }.sumOf { it.balance } + currentLoanBalance
-            val freezeBalance = getBalance.execAsync(GetBalanceInput(
+            val freezeBalance = getBalance.processDirect(GetBalanceInput(
                 accountIds = setOf(account.id),
                 isFreeze = true
             )).balance

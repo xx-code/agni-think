@@ -1,20 +1,20 @@
 package usecases.saving_goals
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
 import domain.entities.Fund
-import usecases.interfaces.IUseCase
 import usecases.saving_goals.dto.UpdateSavingGoalInput
 import domain.enums.FundType
 
 class UpdateSavingGoal(
     private val fundRepo: IRepository<Fund>,
     private val accountRepo: IRepository<Account>
-): IUseCase<UpdateSavingGoalInput, Unit> {
+): UseCase<UpdateSavingGoalInput, Unit>() {
 
-    override fun execAsync(input: UpdateSavingGoalInput) {
+    override suspend fun process(input: UpdateSavingGoalInput) {
         val savingGoal = fundRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "saving_goal")
 
         if (input.title != null) {

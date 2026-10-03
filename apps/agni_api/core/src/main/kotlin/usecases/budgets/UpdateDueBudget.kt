@@ -1,5 +1,6 @@
 package usecases.budgets
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.events.EventType
 import adapters.events.IEventRegister
@@ -9,16 +10,15 @@ import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Budget
-import usecases.BackgroundTaskOut
-import usecases.interfaces.ISuspendableUseCase
+import usecases.dto.BackgroundTaskOut
 import domain.value_objects.Scheduler
 import java.time.LocalDateTime
 
 class UpdateDueBudget(
     private val budgetRepo: IRepository<Budget>,
     private val eventRegister: IEventRegister
-): ISuspendableUseCase<Unit, BackgroundTaskOut> {
-    override suspend fun execAsync(input: Unit): BackgroundTaskOut {
+): UseCase<Unit, BackgroundTaskOut>() {
+    override suspend fun process(input: Unit): BackgroundTaskOut {
         try {
             val conditionBudget = QueryExtendBuilder<Budget>()
                 .addCondition("scheduler.date", QueryComparator.GreaterOrEquals, LocalDateTime.now())

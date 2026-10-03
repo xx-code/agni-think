@@ -1,4 +1,4 @@
-package usecases
+package usecases.dto
 
 import java.util.UUID
 

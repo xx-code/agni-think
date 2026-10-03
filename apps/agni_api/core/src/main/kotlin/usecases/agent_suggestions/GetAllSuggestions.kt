@@ -1,18 +1,17 @@
 package usecases.agent_suggestions
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.AgentSuggestion
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.agent_suggestions.dto.GetAllSuggestionInput
 import usecases.agent_suggestions.dto.GetSuggestionOutput
-import usecases.interfaces.IUseCase
-
 class GetAllSuggestions(
     private val suggestionRepo: IRepository<AgentSuggestion>,
-): IUseCase<GetAllSuggestionInput, ListOutput<GetSuggestionOutput>> {
-    override fun execAsync(input: GetAllSuggestionInput): ListOutput<GetSuggestionOutput> {
+): UseCase<GetAllSuggestionInput, ListOutput<GetSuggestionOutput>>() {
+    override suspend fun process(input: GetAllSuggestionInput): ListOutput<GetSuggestionOutput> {
         val condition = QueryExtendBuilder<AgentSuggestion>()
         if (input.status != null)
             condition.addCondition("status", QueryComparator.Equal, input.status.value)

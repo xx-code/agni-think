@@ -1,15 +1,15 @@
 package usecases.profiles
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Profile
-import usecases.CreatedOutput
-import usecases.interfaces.IUseCase
+import usecases.dto.CreatedOutput
 import usecases.profiles.dto.CreateProfileInput
 
 class CreateProfile(
     private val profileRepo: IRepository<Profile>
-): IUseCase<CreateProfileInput, CreatedOutput> {
-    override fun execAsync(input: CreateProfileInput): CreatedOutput {
+): UseCase<CreateProfileInput, CreatedOutput>() {
+    override suspend fun process(input: CreateProfileInput): CreatedOutput {
         val newProfile = Profile(
             fixSpendPercentage = input.fixSpendPercentage,
             maxWishlistAmount = input.maxWishlistAmount,

@@ -1,5 +1,7 @@
 package persistences
 
+import kotlinx.coroutines.runBlocking
+
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
 import adapters.repositories.IQueryExtendBuilder
@@ -52,7 +54,7 @@ class JdbcQueryAdapterTest {
         }
 
     @Test
-    fun `binds a temporal condition on a json field as timestamptz and not as a string`() {
+    fun `binds a temporal condition on a json field as timestamptz and not as a string`() = runBlocking {
         val mapper = JdbcBudgetModelMapper(objectMapper)
         val value = LocalDateTime.of(2026, 10, 2, 23, 8)
 
@@ -76,7 +78,7 @@ class JdbcQueryAdapterTest {
     }
 
     @Test
-    fun `binds a json date range on schedule transactions as timestamptz`() {
+    fun `binds a json date range on schedule transactions as timestamptz`() = runBlocking {
         val mapper = JdbcScheduleInvoiceMapper(objectMapper)
         val from = LocalDateTime.of(2026, 1, 1, 0, 0)
         val to = LocalDateTime.of(2026, 12, 31, 0, 0)
@@ -97,7 +99,7 @@ class JdbcQueryAdapterTest {
     }
 
     @Test
-    fun `binds LocalDate and OffsetDateTime on plain columns as timestamptz`() {
+    fun `binds LocalDate and OffsetDateTime on plain columns as timestamptz`() = runBlocking {
         val mapper = invoiceMapper(mapOf("date" to "date"))
 
         val result = where(
@@ -116,7 +118,7 @@ class JdbcQueryAdapterTest {
     }
 
     @Test
-    fun `binds every element of an IN condition as a temporal value`() {
+    fun `binds every element of an IN condition as a temporal value`() = runBlocking {
         val mapper = invoiceMapper(mapOf("date" to "date"))
         val dates = setOf(LocalDateTime.of(2026, 3, 1, 8, 0), LocalDateTime.of(2026, 3, 2, 8, 0))
 
@@ -134,7 +136,7 @@ class JdbcQueryAdapterTest {
     }
 
     @Test
-    fun `never reuses a parameter name across conditions on the same field`() {
+    fun `never reuses a parameter name across conditions on the same field`() = runBlocking {
         val mapper = invoiceMapper(mapOf("date" to "date"))
         val lowerBound = LocalDateTime.of(2026, 1, 1, 0, 0)
         val inDates = setOf(LocalDateTime.of(2026, 3, 1, 8, 0))
@@ -161,7 +163,7 @@ class JdbcQueryAdapterTest {
     }
 
     @Test
-    fun `keeps the jsonb array containment predicate for json arrays`() {
+    fun `keeps the jsonb array containment predicate for json arrays`() = runBlocking {
         val mapper = JdbcInvoiceModelMapper(objectMapper)
 
         val result = where(
@@ -177,7 +179,7 @@ class JdbcQueryAdapterTest {
     }
 
     @Test
-    fun `turns a nested json path into valid jsonb traversals`() {
+    fun `turns a nested json path into valid jsonb traversals`() = runBlocking {
         val mapper = JdbcBudgetModelMapper(objectMapper)
 
         val result = where(
@@ -196,7 +198,7 @@ class JdbcQueryAdapterTest {
     }
 
     @Test
-    fun `casts a nested json date as timestamptz`() {
+    fun `casts a nested json date as timestamptz`() = runBlocking {
         val mapper = invoiceMapper(
             mapOf(
                 "id" to "budget_id",
@@ -223,7 +225,7 @@ class JdbcQueryAdapterTest {
     }
 
     @Test
-    fun `keeps the conditions of every chained query builder when they share the params`() {
+    fun `keeps the conditions of every chained query builder when they share the params`() = runBlocking {
         val invoiceSide = invoiceMapper(mapOf("id" to "invoice_id", "isFreeze" to "is_freeze"))
         val transactionSide = invoiceMapper(mapOf("id" to "transaction_id", "date" to "date"))
         val params = MapSqlParameterSource()
@@ -273,7 +275,7 @@ class JdbcQueryAdapterTest {
 
 
     @Test
-    fun `orders a distinct query by its distinct key and qualifies the sort field`() {
+    fun `orders a distinct query by its distinct key and qualifies the sort field`() = runBlocking {
         val mapper = mockk<IMapper<JdbcInvoiceModel, Invoice>>(relaxed = true).also {
             every { it.getEntityModelFieldName() } returns mapOf("id" to "transaction_id", "date" to "date")
             every { it.getSortField() } returns setOf("date")
@@ -299,7 +301,7 @@ class JdbcQueryAdapterTest {
 
 
     @Test
-    fun `tests membership in a json array of values with the containment operator`() {
+    fun `tests membership in a json array of values with the containment operator`() = runBlocking {
         val budgetId = UUID.fromString("bae3f868-ba98-4d15-abd2-71ac48ea01c7")
         val otherId = UUID.fromString("9c02d239-9d56-4a7f-b8e5-34a47791c097")
         val mapper = invoiceMapper(mapOf("id" to "transaction_id", "budgetIds" to "jsonb_scalar_array:budget_ids"))
@@ -342,7 +344,7 @@ class JdbcQueryAdapterTest {
 
 
     @Test
-    fun `keeps the json array convention when the query has an alias`() {
+    fun `keeps the json array convention when the query has an alias`() = runBlocking {
         val mapper = invoiceMapper(mapOf("id" to "record_id", "tagIds" to "jsonb_scalar_array:tag_ids"))
         val tagId = UUID.fromString("0a6e89f9-aff8-4033-8b82-12150664887e")
 
@@ -361,7 +363,7 @@ class JdbcQueryAdapterTest {
 
 
     @Test
-    fun `serializes json array values as json literals`() {
+    fun `serializes json array values as json literals`() = runBlocking {
         val mapper = invoiceMapper(mapOf("id" to "record_id", "amount" to "jsonb_scalar_array:amounts"))
 
         val result = where(

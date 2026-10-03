@@ -24,7 +24,7 @@ class EventRegister: IEventRegister {
         }
     }
 
-    override fun notify(event: EventType, content: IEventContent) {
+    override suspend fun notify(event: EventType, content: IEventContent) {
         if (subscriptions.containsKey(event)) {
             for (listener in subscriptions[event]!!) {
                 content.dispatch(listener)

@@ -1,5 +1,8 @@
 package usecases.spending_period
 
+import usecases.interfaces.IUseCase
+
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
@@ -9,10 +12,9 @@ import domain.entities.Profile
 import domain.entities.Provision
 import domain.entities.Fund
 import domain.entities.ScheduleInvoice
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.analystics.ForcastSpending
 import usecases.analystics.dto.GetSavingBalanceInput
-import usecases.interfaces.IUseCase
 import usecases.invoices.dto.GetAllInvoiceInput
 import usecases.invoices.dto.GetBalanceInput
 import usecases.invoices.dto.GetBalanceOutput
@@ -36,8 +38,8 @@ class ForcastSpendingPeriod(
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     private val getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
     private val getInvoices: IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>>
-): IUseCase<ForcastSpendingPeriodInput, ForcastSpendingPeriodOutput> {
-    override fun execAsync(input: ForcastSpendingPeriodInput): ForcastSpendingPeriodOutput {
+): UseCase<ForcastSpendingPeriodInput, ForcastSpendingPeriodOutput>() {
+    override suspend fun process(input: ForcastSpendingPeriodInput): ForcastSpendingPeriodOutput {
         val budgets = budgetRepo.getManyByIds(input.budgetIds.toSet())
 
         val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
@@ -45,20 +47,20 @@ class ForcastSpendingPeriod(
             .addCondition("scheduler.date", QueryComparator.LesserOrEquals, input.endDate.atStartOfDay())
         val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
 
-        val invoices = getInvoices.execAsync(GetAllInvoiceInput(
+        val invoices = getInvoices.processDirect(GetAllInvoiceInput(
             startDate = input.startDate.atStartOfDay(),
             endDate = input.endDate.atStartOfDay(),
             status = InvoiceStatusType.COMPLETED,
             queryFilter = QueryFilter.queryAll()
         ))
 
-        val currentBalance = getBalance.execAsync(GetBalanceInput(
+        val currentBalance = getBalance.processDirect(GetBalanceInput(
             startDate = input.startDate.atStartOfDay(),
             endDate = input.endDate.atStartOfDay(),
             removeSystemCategory = true
         ))
 
-        val savingBalance = getSavingBalance.execAsync(GetSavingBalanceInput(
+        val savingBalance = getSavingBalance.processDirect(GetSavingBalanceInput(
             startDate = input.startDate.atStartOfDay(),
             endDate = input.endDate.atStartOfDay()
         ))

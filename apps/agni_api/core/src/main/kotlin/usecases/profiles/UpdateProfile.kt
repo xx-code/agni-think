@@ -1,15 +1,15 @@
 package usecases.profiles
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.Profile
-import usecases.interfaces.IUseCase
 import usecases.profiles.dto.UpdateProfileInput
 
 class UpdateProfile(
     private val profileRepo: IRepository<Profile>
-): IUseCase<UpdateProfileInput, Unit> {
-    override fun execAsync(input: UpdateProfileInput) {
+): UseCase<UpdateProfileInput, Unit>() {
+    override suspend fun process(input: UpdateProfileInput) {
         val profile = profileRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "profile")
 
         if (input.maxWishlistAmount != null) {

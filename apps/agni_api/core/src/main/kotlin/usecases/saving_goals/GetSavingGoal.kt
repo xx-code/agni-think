@@ -1,11 +1,11 @@
 package usecases.saving_goals
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Fund
-import usecases.interfaces.IUseCase
 import domain.exceptions.NotFoundException
 import domain.entities.Goal
 import usecases.saving_goals.dto.FundGoalOutput
@@ -15,9 +15,9 @@ import java.util.UUID
 class GetSavingGoal(
     private val fundRepo: IRepository<Fund>,
     private val goalRepo: IRepository<Goal>
-    ): IUseCase<UUID, GetSavingGoalOutput> {
+    ): UseCase<UUID, GetSavingGoalOutput>() {
 
-    override fun execAsync(input: UUID): GetSavingGoalOutput {
+    override suspend fun process(input: UUID): GetSavingGoalOutput {
         val fund = fundRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "saving_goal")
         val conditionGoal = QueryExtendBuilder<Goal>()
             .addCondition("targetSourceId", QueryComparator.Equal, fund.id)

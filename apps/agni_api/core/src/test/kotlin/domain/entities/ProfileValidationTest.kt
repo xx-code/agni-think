@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import domain.exceptions.ValidationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,7 +24,7 @@ class ProfileValidationTest {
     )
 
     @Test
-    fun `accepts a zero max wishlist amount`() {
+    fun `accepts a zero max wishlist amount`() = runBlocking {
         val profile = profile(maxWishlistAmount = 0.0)
 
         profile.maxWishlistAmount = 250.0
@@ -31,7 +33,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `refuses a negative max wishlist amount`() {
+    fun `refuses a negative max wishlist amount`() = runBlocking {
         val profile = profile()
 
         val error = assertFailsWith<ValidationException.ProfileMaxWishlistAmountMustBePositif> {
@@ -42,7 +44,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `accepts percentages that add up to exactly one hundred`() {
+    fun `accepts percentages that add up to exactly one hundred`() = runBlocking {
         val profile = profile(fixSpendPercentage = 40.0, varialSpendPercentage = 30.0, savingPercentage = 20.0)
 
         profile.fixSpendPercentage = 50.0
@@ -51,7 +53,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `accepts percentages adding up to less than one hundred`() {
+    fun `accepts percentages adding up to less than one hundred`() = runBlocking {
         val profile = profile()
 
         profile.fixSpendPercentage = 10.0
@@ -62,7 +64,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `refuses a fix percentage above one hundred`() {
+    fun `refuses a fix percentage above one hundred`() = runBlocking {
         val profile = profile()
 
         assertFailsWith<ValidationException.ProfileRulePercentageMustBePositif> {
@@ -71,7 +73,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `refuses a negative percentage`() {
+    fun `refuses a negative percentage`() = runBlocking {
         val profile = profile()
 
         assertFailsWith<ValidationException.ProfileRulePercentageMustBePositif> {
@@ -80,7 +82,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `refuses a percentage pushing the total above one hundred`() {
+    fun `refuses a percentage pushing the total above one hundred`() = runBlocking {
         val profile = profile(fixSpendPercentage = 50.0, varialSpendPercentage = 30.0, savingPercentage = 20.0)
 
         val error = assertFailsWith<ValidationException.ProfileRulePercentageMustBePositif> {
@@ -95,7 +97,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `a variable percentage error is labelled as the variable rule`() {
+    fun `a variable percentage error is labelled as the variable rule`() = runBlocking {
         val profile = profile(fixSpendPercentage = 50.0, varialSpendPercentage = 30.0, savingPercentage = 20.0)
 
         val error = assertFailsWith<ValidationException.ProfileRulePercentageMustBePositif> {
@@ -108,7 +110,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `a fix percentage error is labelled as the fix rule`() {
+    fun `a fix percentage error is labelled as the fix rule`() = runBlocking {
         val profile = profile(fixSpendPercentage = 50.0, varialSpendPercentage = 30.0, savingPercentage = 20.0)
 
         val error = assertFailsWith<ValidationException.ProfileRulePercentageMustBePositif> {
@@ -120,7 +122,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `the total reported by a percentage error uses the current sibling values`() {
+    fun `the total reported by a percentage error uses the current sibling values`() = runBlocking {
         val profile = profile(fixSpendPercentage = 50.0, varialSpendPercentage = 30.0, savingPercentage = 20.0)
 
         profile.fixSpendPercentage = 40.0
@@ -133,7 +135,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `accepts a zero balance buffer`() {
+    fun `accepts a zero balance buffer`() = runBlocking {
         val profile = profile()
 
         profile.balanceBuffer = 0.0
@@ -142,7 +144,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `refuses a negative balance buffer`() {
+    fun `refuses a negative balance buffer`() = runBlocking {
         val profile = profile()
 
         val error = assertFailsWith<ValidationException.BalanceBufferMustBeGreaterOrEqualToZero> {

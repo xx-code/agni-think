@@ -1,19 +1,19 @@
 package usecases.internal_loan
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.InternalLoan
 import domain.enums.AccountType
-import usecases.interfaces.IUseCase
 import usecases.internal_loan.dto.UpdateInternalLoanInput
 
 class UpdateInternalLoan(
     private val internalLoanRepo: IRepository<InternalLoan>,
     private val accountRepo: IRepository<Account>,
-): IUseCase<UpdateInternalLoanInput, Unit> {
-    override fun execAsync(input: UpdateInternalLoanInput) {
+): UseCase<UpdateInternalLoanInput, Unit>() {
+    override suspend fun process(input: UpdateInternalLoanInput) {
         val internalLoan = internalLoanRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "internal_loan")
 
         if (input.fundSourceId != null)  {

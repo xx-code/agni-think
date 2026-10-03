@@ -10,7 +10,7 @@ import domain.interfaces.IGoalEvaluationStrategy
 class FundGoalEvaluationStrategy(
     override val type: GoalEvaluationType = GoalEvaluationType.FUND
 ) : IGoalEvaluationStrategy {
-    override fun verifyGoalBusinessLogic(
+    override suspend fun verifyGoalBusinessLogic(
         goal: Goal,
         context: IFinanceContext
     ) {
@@ -19,7 +19,7 @@ class FundGoalEvaluationStrategy(
             throw ValidationException.GoalTargetAmountMustBeLeastFund(fund.balance, goal.targetAmount)
     }
 
-    override fun evaluateCurrentAmount(
+    override suspend fun evaluateCurrentAmount(
         goal: Goal,
         context: IFinanceContext
     ): Double {
@@ -31,14 +31,14 @@ class FundGoalEvaluationStrategy(
 class CategoryEvaluationStrategy(
     override val type: GoalEvaluationType = GoalEvaluationType.TRANSACTION_TARGET
 ) : IGoalEvaluationStrategy {
-    override fun verifyGoalBusinessLogic(
+    override suspend fun verifyGoalBusinessLogic(
         goal: Goal,
         context: IFinanceContext
     ) {
         context.verifyCategoryExists(goal.targetSourceId)
     }
 
-    override fun evaluateCurrentAmount(
+    override suspend fun evaluateCurrentAmount(
         goal: Goal,
         context: IFinanceContext
     ): Double {

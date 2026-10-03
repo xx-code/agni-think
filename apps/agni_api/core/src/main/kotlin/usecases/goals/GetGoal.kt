@@ -1,5 +1,6 @@
 package usecases.goals
 
+import usecases.UseCase
 import adapters.IFinanceContext
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
@@ -7,14 +8,13 @@ import domain.entities.Goal
 import domain.factories.GoalEvaluationStrategyFactory
 import usecases.goals.dto.GetGoalEvaluationOutput
 import usecases.goals.dto.GetGoalOutput
-import usecases.interfaces.IUseCase
 import java.util.UUID
 
 class GetGoal(
     private val goalRepo: IRepository<Goal>,
     private val financeContext: IFinanceContext
-): IUseCase<UUID, GetGoalOutput> {
-    override fun execAsync(input: UUID): GetGoalOutput {
+): UseCase<UUID, GetGoalOutput>() {
+    override suspend fun process(input: UUID): GetGoalOutput {
         val goal = goalRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "goal")
 
         val strategy = GoalEvaluationStrategyFactory.getStrategy(goal.type)

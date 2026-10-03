@@ -3,8 +3,8 @@ package dev.auguste.rest_api.controllers
 import adapters.dto.QueryFilter
 import dev.auguste.rest_api.controllers.models.ApiPushNotificationInput
 import dev.auguste.rest_api.controllers.models.mapApiPushNotification
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.notifications.PushNotification
 import usecases.notifications.dto.DeleteNotificationInput
@@ -32,28 +32,28 @@ class NotificationController(
 ) {
 
     @PostMapping
-    fun pushNotification(@Valid @RequestBody request: ApiPushNotificationInput) : ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(pushNotificationUseCase.execAsync(
+    suspend fun pushNotification(@Valid @RequestBody request: ApiPushNotificationInput) : ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(pushNotificationUseCase.execute(
             mapApiPushNotification(request)
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping
-    fun getAllNotifications(query: QueryFilter) : ResponseEntity<ListOutput<GetNotificationOutput>> {
-        return ResponseEntity.ok(getAllNotificationsUseCase.execAsync(
+    suspend fun getAllNotifications(query: QueryFilter) : ResponseEntity<ListOutput<GetNotificationOutput>> {
+        return ResponseEntity.ok(getAllNotificationsUseCase.execute(
             query
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}/toggle-read")
-    fun toggleReadNotification(@PathVariable id: UUID) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(toggleReadNotification.execAsync(id))
+    suspend fun toggleReadNotification(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(toggleReadNotification.execute(id).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteNotification(@PathVariable id: UUID) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteNotification.execAsync(
+    suspend fun deleteNotification(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteNotification.execute(
             DeleteNotificationInput(id)
-        ))
+        ).getOrThrow())
     }
 }

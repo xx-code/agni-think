@@ -5,8 +5,8 @@ import dev.auguste.rest_api.controllers.models.ApiCreateScheduleInvoiceModel
 import dev.auguste.rest_api.controllers.models.ApiUpdateScheduleInvoiceModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateScheduleInvoice
 import dev.auguste.rest_api.controllers.models.mapApiUpdateScheduleInvoice
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
 import usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
@@ -35,37 +35,37 @@ class ScheduleInvoiceController (
 ){
 
     @PostMapping
-    fun createScheduleInvoice(@Valid @RequestBody request: ApiCreateScheduleInvoiceModel) : ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createScheduleInvoiceUseCase.execAsync(
+    suspend fun createScheduleInvoice(@Valid @RequestBody request: ApiCreateScheduleInvoiceModel) : ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createScheduleInvoiceUseCase.execute(
             mapApiCreateScheduleInvoice(request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateScheduleInvoice(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateScheduleInvoiceModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateScheduleInvoiceUseCase.execAsync(
+    suspend fun updateScheduleInvoice(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateScheduleInvoiceModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateScheduleInvoiceUseCase.execute(
             mapApiUpdateScheduleInvoice(id, request)
-        ))
+        ).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteScheduleInvoice(@PathVariable id: UUID): ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteScheduleInvoiceUseCase.execAsync(
+    suspend fun deleteScheduleInvoice(@PathVariable id: UUID): ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteScheduleInvoiceUseCase.execute(
             DeleteScheduleInvoiceInput(id)
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getScheduleInvoice(@PathVariable id: UUID): ResponseEntity<GetScheduleInvoiceOutput> {
-        return ResponseEntity.ok(getScheduleInvoiceUseCase.execAsync(
+    suspend fun getScheduleInvoice(@PathVariable id: UUID): ResponseEntity<GetScheduleInvoiceOutput> {
+        return ResponseEntity.ok(getScheduleInvoiceUseCase.execute(
             id
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping
-    fun getAllScheduleInvoice(query: QueryFilter): ResponseEntity<ListOutput<GetScheduleInvoiceOutput>> {
-        return ResponseEntity.ok(getAllScheduleInvoiceUseCase.execAsync(
+    suspend fun getAllScheduleInvoice(query: QueryFilter): ResponseEntity<ListOutput<GetScheduleInvoiceOutput>> {
+        return ResponseEntity.ok(getAllScheduleInvoiceUseCase.execute(
             query
-        ))
+        ).getOrThrow())
     }
 }

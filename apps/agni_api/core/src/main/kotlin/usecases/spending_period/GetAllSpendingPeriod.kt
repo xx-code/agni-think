@@ -1,22 +1,20 @@
 package usecases.spending_period
 
-import adapters.dto.QueryFilter
+import usecases.UseCase
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.SpendingPeriod
-import usecases.ListOutput
-import usecases.interfaces.IUseCase
+import usecases.dto.ListOutput
 import usecases.spending_period.dto.GetAllSpendingPeriodInput
 import usecases.spending_period.dto.GetAllSpendingPeriodOutput
-import usecases.spending_period.dto.GetSpendingPeriodOutput
 import usecases.spending_period.dto.SpendingPeriodItemOutput
 import usecases.spending_period.dto.SpendingPeriodSnapShotOutput
 
 class GetAllSpendingPeriod(
     private val spendingPeriodRepo: IRepository<SpendingPeriod>,
-): IUseCase<GetAllSpendingPeriodInput, ListOutput<GetAllSpendingPeriodOutput>> {
-    override fun execAsync(input: GetAllSpendingPeriodInput): ListOutput<GetAllSpendingPeriodOutput> {
+): UseCase<GetAllSpendingPeriodInput, ListOutput<GetAllSpendingPeriodOutput>>() {
+    override suspend fun process(input: GetAllSpendingPeriodInput): ListOutput<GetAllSpendingPeriodOutput> {
         val condition = QueryExtendBuilder<SpendingPeriod>()
             .addCondition("spendingPeriodTemplateId", QueryComparator.Equal, input.spendingPeriodTemplateId)
             .addCondition("state", QueryComparator.Equal, input.state?.value)

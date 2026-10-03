@@ -1,17 +1,17 @@
 package usecases.schedule_Invoices
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.ScheduleInvoice
-import usecases.ListOutput
-import usecases.interfaces.IUseCase
+import usecases.dto.ListOutput
 import usecases.schedule_Invoices.dto.GetScheduleInvoiceOutput
 import usecases.schedule_Invoices.dto.ScheduleInvoiceRepeaterOutput
 
 class GetAllScheduleInvoice(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>
-): IUseCase<QueryFilter, ListOutput<GetScheduleInvoiceOutput>> {
-    override fun execAsync(input: QueryFilter): ListOutput<GetScheduleInvoiceOutput> {
+): UseCase<QueryFilter, ListOutput<GetScheduleInvoiceOutput>>() {
+    override suspend fun process(input: QueryFilter): ListOutput<GetScheduleInvoiceOutput> {
         val scheduleInvoices = scheduleInvoiceRepo.getAll(input)
 
         return ListOutput(

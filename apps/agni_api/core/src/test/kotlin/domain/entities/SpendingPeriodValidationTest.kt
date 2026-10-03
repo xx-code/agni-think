@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import domain.enums.SpendingPeriodStateType
 import domain.exceptions.ValidationException
 import java.time.LocalDate
@@ -27,14 +29,14 @@ class SpendingPeriodValidationTest {
     )
 
     @Test
-    fun `accepts a period that lasts at least one day`() {
+    fun `accepts a period that lasts at least one day`() = runBlocking {
         val period = spendingPeriod(startDate = start, endDate = start.plusDays(1))
 
         assertEquals(start.plusDays(1), period.endDate)
     }
 
     @Test
-    fun `refuses moving the start date onto the end date`() {
+    fun `refuses moving the start date onto the end date`() = runBlocking {
         val period = spendingPeriod()
 
         val error = assertFailsWith<ValidationException.SpendingPeriodStartDateMustBeLesserThanEndDate> {
@@ -46,7 +48,7 @@ class SpendingPeriodValidationTest {
     }
 
     @Test
-    fun `refuses moving the start date after the end date`() {
+    fun `refuses moving the start date after the end date`() = runBlocking {
         val period = spendingPeriod()
 
         assertFailsWith<ValidationException.SpendingPeriodStartDateMustBeLesserThanEndDate> {
@@ -55,7 +57,7 @@ class SpendingPeriodValidationTest {
     }
 
     @Test
-    fun `refuses moving the end date onto the start date`() {
+    fun `refuses moving the end date onto the start date`() = runBlocking {
         val period = spendingPeriod()
 
         val error = assertFailsWith<ValidationException.SpendingPeriodEndDateMustBeGreaterThanStartDate> {
@@ -67,7 +69,7 @@ class SpendingPeriodValidationTest {
     }
 
     @Test
-    fun `refuses moving the end date before the start date`() {
+    fun `refuses moving the end date before the start date`() = runBlocking {
         val period = spendingPeriod()
 
         assertFailsWith<ValidationException.SpendingPeriodEndDateMustBeGreaterThanStartDate> {
@@ -76,7 +78,7 @@ class SpendingPeriodValidationTest {
     }
 
     @Test
-    fun `accepts shifting both bounds while keeping the period ordered`() {
+    fun `accepts shifting both bounds while keeping the period ordered`() = runBlocking {
         val period = spendingPeriod()
 
         period.startDate = start.plusDays(7)

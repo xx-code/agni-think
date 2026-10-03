@@ -8,8 +8,8 @@ import dev.auguste.rest_api.controllers.models.ApiUpgradeSavingGoalModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateSavingGoal
 import dev.auguste.rest_api.controllers.models.mapApiUpdateSavingGoal
 import domain.enums.FundType
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.saving_goals.dto.CreateSavingGoalInput
 import usecases.saving_goals.dto.DecreaseSavingGoalInput
@@ -42,60 +42,60 @@ class SavingGoalController (
 ){
 
     @PostMapping
-    fun createSavingGoal(@Valid @RequestBody request: ApiCreateSavingGoalModel): ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createSavingGoalUseCase.execAsync(
+    suspend fun createSavingGoal(@Valid @RequestBody request: ApiCreateSavingGoalModel): ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createSavingGoalUseCase.execute(
             mapApiCreateSavingGoal(request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateSavingGoalModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateSavingGoalUseCase.execAsync(
+    suspend fun updateSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateSavingGoalModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateSavingGoalUseCase.execute(
             mapApiUpdateSavingGoal(id, request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}/remove")
-    fun deleteSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiDeleteSavingGoalModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteSavingGoalUseCase.execAsync(
+    suspend fun deleteSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiDeleteSavingGoalModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteSavingGoalUseCase.execute(
             DeleteSavingGoalInput(id, request.accountId)
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getSavingGoal(@PathVariable id: UUID): ResponseEntity<GetSavingGoalOutput> {
-        return ResponseEntity.ok(getSavingGoalUseCase.execAsync(
+    suspend fun getSavingGoal(@PathVariable id: UUID): ResponseEntity<GetSavingGoalOutput> {
+        return ResponseEntity.ok(getSavingGoalUseCase.execute(
             id
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping
-    fun getAllSavingGoal(query: QueryFilter, type: String? = null): ResponseEntity<ListOutput<GetSavingGoalOutput>> {
-        return ResponseEntity.ok(getAllSavingGoalUseCase.execAsync(GetAllSavingGoalInput(
+    suspend fun getAllSavingGoal(query: QueryFilter, type: String? = null): ResponseEntity<ListOutput<GetSavingGoalOutput>> {
+        return ResponseEntity.ok(getAllSavingGoalUseCase.execute(GetAllSavingGoalInput(
             query,
             if (!type.isNullOrEmpty()) FundType.fromString(type) else null
-        )))
+        )).getOrThrow())
     }
 
     @PutMapping("/{id}/increase")
-    fun increaseSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpgradeSavingGoalModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(increaseSavingGoalUseCase.execAsync(
+    suspend fun increaseSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpgradeSavingGoalModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(increaseSavingGoalUseCase.execute(
             IncreaseSavingGoalInput(
                 savingGoalId = id,
                 accountId = request.accountId,
                 amount = request.amount
             )
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}/decrease")
-    fun decreaseSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpgradeSavingGoalModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(decreaseSavingGoalUseCase.execAsync(
+    suspend fun decreaseSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpgradeSavingGoalModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(decreaseSavingGoalUseCase.execute(
             DecreaseSavingGoalInput(
                 savingGoalId = id,
                 accountId = request.accountId,
                 amount = request.amount
             )
-        ))
+        ).getOrThrow())
     }
 }

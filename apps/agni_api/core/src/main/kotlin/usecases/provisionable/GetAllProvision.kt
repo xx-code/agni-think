@@ -1,20 +1,19 @@
 package usecases.provisionable
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
-import adapters.dto.ScheduleRepeaterOutput
 import adapters.repositories.IRepository
 import domain.entities.Provision
-import usecases.ListOutput
-import usecases.interfaces.IUseCase
+import usecases.dto.ListOutput
 import usecases.provisionable.dto.GetProvisionOutput
 import usecases.provisionable.dto.ProvisionDepreciateCriteriaOutput
 import usecases.provisionable.dto.ProvisionInvoiceOutput
 
-class GetAllProvisionable(
+class GetAllProvision(
     private val provisionRepo: IRepository<Provision>
-): IUseCase<QueryFilter, ListOutput<GetProvisionOutput>> {
-    override fun execAsync(input: QueryFilter): ListOutput<GetProvisionOutput> {
+): UseCase<QueryFilter, ListOutput<GetProvisionOutput>>() {
+    override suspend fun process(input: QueryFilter): ListOutput<GetProvisionOutput> {
         val query = QueryFilter(
             offset = input.offset,
             limit = input.limit,
@@ -22,10 +21,10 @@ class GetAllProvisionable(
                 by = "updated_at",
             )
         )
-        val provisionables =  provisionRepo.getAll(query)
+        val provisions =  provisionRepo.getAll(query)
 
         return ListOutput(
-            items = provisionables.items.map { provisional ->
+            items = provisions.items.map { provisional ->
                 GetProvisionOutput(
                     id = provisional.id,
                     title = provisional.title,
@@ -66,7 +65,7 @@ class GetAllProvisionable(
                     }
                 )
             },
-            total = provisionables.total,
+            total = provisions.total,
         )
 
     }

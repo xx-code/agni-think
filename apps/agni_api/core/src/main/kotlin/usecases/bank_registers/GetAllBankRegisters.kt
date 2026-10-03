@@ -1,19 +1,18 @@
 package usecases.bank_registers
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.BankRegister
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.bank_registers.dto.AccountLinkerOutput
 import usecases.bank_registers.dto.GetBankRegisterOutput
-import usecases.interfaces.IUseCase
-
 class GetAllBankRegisters(
     private val bankRegisterRepo: IRepository<BankRegister>,
     private val accountRepo: IRepository<Account>,
-): IUseCase<QueryFilter, ListOutput<GetBankRegisterOutput>> {
-    override fun execAsync(input: QueryFilter): ListOutput<GetBankRegisterOutput> {
+): UseCase<QueryFilter, ListOutput<GetBankRegisterOutput>>() {
+    override suspend fun process(input: QueryFilter): ListOutput<GetBankRegisterOutput> {
         val res = bankRegisterRepo.getAll(input)
         val accounts = accountRepo.getManyByIds(
             res.items.flatMap {

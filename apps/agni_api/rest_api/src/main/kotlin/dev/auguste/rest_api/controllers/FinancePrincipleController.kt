@@ -5,8 +5,8 @@ import dev.auguste.rest_api.controllers.models.ApiCreateFinancePrincipleModel
 import dev.auguste.rest_api.controllers.models.ApiUpdateFinancePrincipleModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateFinancePrincipleTo
 import dev.auguste.rest_api.controllers.models.mapApiUpdateFinancePrincipleTo
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.finance_principles.dto.CreateFinancePrincipleInput
 import usecases.finance_principles.dto.DeleteFinancePrincipleInput
 import usecases.finance_principles.dto.GetFinancePrincipleOutput
@@ -34,27 +34,27 @@ class FinancePrincipleController (
 ){
 
     @PostMapping
-    fun createFinancePrinciple(@RequestBody request: ApiCreateFinancePrincipleModel): ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createFinancePrinciple.execAsync(mapApiCreateFinancePrincipleTo(request)))
+    suspend fun createFinancePrinciple(@RequestBody request: ApiCreateFinancePrincipleModel): ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createFinancePrinciple.execute(mapApiCreateFinancePrincipleTo(request)).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateFinancePrinciple(@PathVariable id: UUID, @RequestBody request: ApiUpdateFinancePrincipleModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateFinancePrinciple.execAsync(mapApiUpdateFinancePrincipleTo(id, request)))
+    suspend fun updateFinancePrinciple(@PathVariable id: UUID, @RequestBody request: ApiUpdateFinancePrincipleModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateFinancePrinciple.execute(mapApiUpdateFinancePrincipleTo(id, request)).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteFinancePrinciple(@PathVariable id: UUID): ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteFinancePrinciple.execAsync(DeleteFinancePrincipleInput(id)))
+    suspend fun deleteFinancePrinciple(@PathVariable id: UUID): ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteFinancePrinciple.execute(DeleteFinancePrincipleInput(id)).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getFinancePrinciple(@PathVariable id: UUID): ResponseEntity<GetFinancePrincipleOutput> {
-        return ResponseEntity.ok(getFinancePrinciple.execAsync(id))
+    suspend fun getFinancePrinciple(@PathVariable id: UUID): ResponseEntity<GetFinancePrincipleOutput> {
+        return ResponseEntity.ok(getFinancePrinciple.execute(id).getOrThrow())
     }
 
     @GetMapping
-    fun getAllFinancePrinciple(query: QueryFilter): ResponseEntity<ListOutput<GetFinancePrincipleOutput>> {
-        return ResponseEntity.ok(getAllFinancePrinciple.execAsync(query))
+    suspend fun getAllFinancePrinciple(query: QueryFilter): ResponseEntity<ListOutput<GetFinancePrincipleOutput>> {
+        return ResponseEntity.ok(getAllFinancePrinciple.execute(query).getOrThrow())
     }
 }

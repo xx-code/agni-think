@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import domain.exceptions.ValidationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -14,7 +16,7 @@ class BudgetValidationTest {
     )
 
     @Test
-    fun `accepts a strictly positive target`() {
+    fun `accepts a strictly positive target`() = runBlocking {
         val budget = budget()
 
         budget.target = 0.01
@@ -23,7 +25,7 @@ class BudgetValidationTest {
     }
 
     @Test
-    fun `refuses a zero target`() {
+    fun `refuses a zero target`() = runBlocking {
         val budget = budget()
 
         val error = assertFailsWith<ValidationException.InvalidBudgetTarget> { budget.target = 0.0 }
@@ -33,7 +35,7 @@ class BudgetValidationTest {
     }
 
     @Test
-    fun `refuses a negative target and reports the refused value`() {
+    fun `refuses a negative target and reports the refused value`() = runBlocking {
         val budget = budget(target = 500.0)
 
         val error = assertFailsWith<ValidationException.InvalidBudgetTarget> { budget.target = -42.5 }

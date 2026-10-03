@@ -9,7 +9,7 @@ class DeleteEmbeddingInvoiceEventContent(
     val invoiceId: UUID,
 ) : IEventContent {
 
-    override fun dispatch(listener: IEventListener) {
+    override suspend fun dispatch(listener: IEventListener) {
         if (listener is IDeleteInvoiceEventListener) {
             listener.serve(this)
             listener.update()

@@ -1,5 +1,6 @@
 package usecases.patrimonies
 
+import usecases.UseCase
 import domain.SAVING_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
@@ -37,9 +38,9 @@ class GetPatrimony(
     private val invoiceRepo: IRepository<Invoice>,
     private val getBalancesByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
     private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
-) : IUseCase<GetPatrimonyInput, GetPatrimonyOutput> {
+): UseCase<GetPatrimonyInput, GetPatrimonyOutput>() {
 
-    override fun execAsync(input: GetPatrimonyInput): GetPatrimonyOutput {
+    override suspend fun process(input: GetPatrimonyInput): GetPatrimonyOutput {
         when(input.sourceType) {
             SourcePatrimonyType.PROVISION -> {
                 val provision = provisionRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "provisionable")
@@ -71,7 +72,7 @@ class GetPatrimony(
                 val lastMonthInvoices = invoices.items
                 var detailInvoices = mutableListOf<GetInvoiceOutput>()
                 if (lastMonthInvoices.isNotEmpty()) {
-                    detailInvoices = getManyInvoices.execAsync(
+                    detailInvoices = getManyInvoices.processDirect(
                     lastMonthInvoices.map { it.id }.toSet(),
                     ).toMutableList()
                 }
@@ -99,7 +100,7 @@ class GetPatrimony(
             SourcePatrimonyType.FUND -> {
                 val savingGoals = fundRepo.getAll(QueryFilter(0, 0, true))
                 val savingGoalAmount = savingGoals.items.sumOf { it.balance }
-                val balancesByPeriodSavingGoal = getBalancesByPeriod.execAsync(
+                val balancesByPeriodSavingGoal = getBalancesByPeriod.processDirect(
                     GetBalancesByPeriodInput(
                         period = PeriodType.MONTH,
                         interval = 1,
@@ -137,7 +138,7 @@ class GetPatrimony(
                 )
 
                 val accounts = accountRepo.getManyByIds(patrimony.accountIds)
-                val balancesByPeriod = getBalancesByPeriod.execAsync(
+                val balancesByPeriod = getBalancesByPeriod.processDirect(
                     GetBalancesByPeriodInput(
                         period = PeriodType.MONTH,
                         interval = 1,

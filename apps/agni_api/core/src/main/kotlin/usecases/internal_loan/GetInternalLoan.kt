@@ -1,5 +1,6 @@
 package usecases.internal_loan
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.InternalLoan
@@ -11,15 +12,15 @@ import java.util.UUID
 class GetInternalLoan(
     private val internalLoanRepo: IRepository<InternalLoan>,
     private val getInvoice: IUseCase<UUID, GetInvoiceOutput>
-) : IUseCase<UUID, GetInternalLoanOutput> {
-    override fun execAsync(input: UUID): GetInternalLoanOutput {
+): UseCase<UUID, GetInternalLoanOutput>() {
+    override suspend fun process(input: UUID): GetInternalLoanOutput {
         val internalLoan = internalLoanRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "internal_loan")
 
-        val invoiceLoan = getInvoice.execAsync(internalLoan.invoiceId)
+        val invoiceLoan = getInvoice.processDirect(internalLoan.invoiceId)
 
         var totalRefund = 0.0
         for(refundId in internalLoan.trackRefunds) {
-            val refund = getInvoice.execAsync(refundId)
+            val refund = getInvoice.processDirect(refundId)
             totalRefund += refund.total
         }
 

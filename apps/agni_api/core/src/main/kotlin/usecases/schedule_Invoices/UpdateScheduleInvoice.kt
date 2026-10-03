@@ -1,5 +1,6 @@
 package usecases.schedule_Invoices
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
@@ -16,9 +17,9 @@ class UpdateScheduleInvoice(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
     private val invoiceDependencies: InvoiceDependencies,
     private val verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>
-): IUseCase<UpdateScheduleInvoiceInput, Unit> {
+): UseCase<UpdateScheduleInvoiceInput, Unit>() {
 
-    override fun execAsync(input: UpdateScheduleInvoiceInput) {
+    override suspend fun process(input: UpdateScheduleInvoiceInput) {
         val scheduleInvoice = scheduleInvoiceRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "schedule_invoice")
 
         if (input.passContextEdit && !scheduleInvoice.isContextEditable())
@@ -77,7 +78,7 @@ class UpdateScheduleInvoice(
             scheduleInvoice.endDate = input.endDate
 
         if (input.moduleLinker != null) {
-            verifyScheduleModuleLinker.execAsync(input.moduleLinker)
+            verifyScheduleModuleLinker.processDirect(input.moduleLinker)
             scheduleInvoice.moduleLinker = input.moduleLinker
         }
 

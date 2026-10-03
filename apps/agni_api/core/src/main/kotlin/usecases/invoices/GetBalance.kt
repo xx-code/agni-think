@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
@@ -16,8 +17,8 @@ import domain.enums.InvoiceStatusType
 class GetBalance(
     private val invoiceRepo: IRepository<Invoice>,
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>
-): IUseCase<GetBalanceInput, GetBalanceOutput> {
-    override fun execAsync(input: GetBalanceInput): GetBalanceOutput {
+): UseCase<GetBalanceInput, GetBalanceOutput>() {
+    override suspend fun process(input: GetBalanceInput): GetBalanceOutput {
         val conditionInvoice = QueryExtendBuilder<Invoice>()
             .addCondition("accountId", QueryComparator.In, input.accountIds)
             .addCondition("date", QueryComparator.GreaterOrEquals, input.startDate)
@@ -29,7 +30,7 @@ class GetBalance(
 
         val invoices = invoiceRepo.getAll(QueryFilter(0, 0, true), conditionInvoice)
 
-        val invoiceTransactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
+        val invoiceTransactions = getInvoiceTransactions.processDirect(GetInvoiceTransactionsInput(
             invoiceIds = invoices.items.map { it.id }.toSet(),
             categoryIds = input.categoryIds,
             tagIds = input.tagIds,

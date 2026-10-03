@@ -1,5 +1,7 @@
 package usecases.invoices
 
+import usecases.interfaces.IUseCase
+
 import domain.TRANSFERT_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.events.EventType
@@ -15,31 +17,24 @@ import domain.exceptions.ValidationException
 import domain.entities.InternalLoan
 import domain.entities.Invoice
 import domain.entities.Transaction
-import usecases.interfaces.IInnerUseCase
-import usecases.interfaces.IUseCase
 import usecases.invoices.dto.DeleteInvoiceInput
 import usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
+import usecases.UseCase
 
 class DeleteInvoice(
     private val invoiceRepo: IRepository<Invoice>,
     private val transactionRepo: IRepository<Transaction>,
     private val accountRepo: IRepository<Account>,
-    private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
     private val internalLoanRepo: IRepository<InternalLoan>,
-    private val unitOfWork: IUnitOfWork,
+    private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+    unitOfWork: IUnitOfWork,
     private val eventRegister: IEventRegister
-): IInnerUseCase<DeleteInvoiceInput, Unit> {
+): UseCase<DeleteInvoiceInput, Unit>(unitOfWork) {
 
-    override fun execAsync(input: DeleteInvoiceInput): Unit {
-        unitOfWork.execute {
-            this.execInnerAsync(input)
-        }
-    }
-
-    override fun execInnerAsync(input: DeleteInvoiceInput): Unit {
+    override suspend fun process(input: DeleteInvoiceInput): Unit {
         val invoice = invoiceRepo.get(input.invoiceId) ?: throw NotFoundException.SingleEntity(input.invoiceId, "invoice")
         val account = accountRepo.get(invoice.accountId) ?: throw NotFoundException.SingleEntity(invoice.accountId, "account")
 
@@ -58,7 +53,7 @@ class DeleteInvoice(
             }
         }
 
-        val invoiceTransactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
+        val invoiceTransactions = getInvoiceTransactions.processDirect(GetInvoiceTransactionsInput(
             invoiceIds = setOf(invoice.id),
             categoryIds = null,
             tagIds = null,

@@ -9,7 +9,7 @@ import dev.auguste.rest_api.controllers.models.ApiGetPatrimonyEvolutionModel
 import dev.auguste.rest_api.controllers.models.ApiGetSavingAnalyticModel
 import dev.auguste.rest_api.controllers.models.ApiGetTagAnalyticModel
 import domain.enums.PeriodType
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.analystics.dto.ForcastSpendingInput
 import usecases.analystics.dto.ForcastSpendingOutput
 import usecases.analystics.dto.GetAnnualOutlookOutput
@@ -57,8 +57,8 @@ class AnalyticController(
     private val forcastSpending: IUseCase<ForcastSpendingInput, ForcastSpendingOutput>,
 ) {
     @GetMapping("/spend-categories")
-    fun getSpendCategoriesAnalytic(query: ApiGetCategoryAnalyticModel) : ResponseEntity<ListOutput<GetSpendByCategoryOutput>> {
-        return ResponseEntity.ok(getSpendCategoryAnalytic.execAsync(
+    suspend fun getSpendCategoriesAnalytic(query: ApiGetCategoryAnalyticModel) : ResponseEntity<ListOutput<GetSpendByCategoryOutput>> {
+        return ResponseEntity.ok(getSpendCategoryAnalytic.execute(
             GetSpendByCategoryInput(
                 period = PeriodType.fromString(query.period),
                 interval = query.interval,
@@ -69,12 +69,12 @@ class AnalyticController(
                     query.queryAll
                 )
             )
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/spend-tags")
-    fun getSpendTagsAnalytic(query: ApiGetTagAnalyticModel) : ResponseEntity<ListOutput<GetSpendByTagOutput>> {
-        return ResponseEntity.ok(getSpendTagAnalytic.execAsync(
+    suspend fun getSpendTagsAnalytic(query: ApiGetTagAnalyticModel) : ResponseEntity<ListOutput<GetSpendByTagOutput>> {
+        return ResponseEntity.ok(getSpendTagAnalytic.execute(
             GetSpendByTagInput(
                 period = PeriodType.fromString(query.period),
                 interval = query.interval,
@@ -86,78 +86,78 @@ class AnalyticController(
                 ),
                 categoryId = query.categoryId
             )
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/savings")
-    fun getSavingAnalytic(query: ApiGetSavingAnalyticModel) : ResponseEntity<GetSavingAnalyticOutput> {
-        return ResponseEntity.ok(getSavingAnalytic.execAsync(
+    suspend fun getSavingAnalytic(query: ApiGetSavingAnalyticModel) : ResponseEntity<GetSavingAnalyticOutput> {
+        return ResponseEntity.ok(getSavingAnalytic.execute(
             GetSavingAnalyticInput(
                 period = PeriodType.fromString(query.period),
                 interval = query.interval,
                 startDate = query.startDate
             )
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/finance-profile")
-    fun getFinanceProfile() : ResponseEntity<GetFinanceProfileOutput> {
-        return ResponseEntity.ok(getFinanceProfile.execAsync(Unit))
+    suspend fun getFinanceProfile() : ResponseEntity<GetFinanceProfileOutput> {
+        return ResponseEntity.ok(getFinanceProfile.execute(Unit).getOrThrow())
     }
 
     @GetMapping("/budgeting-rule")
-    fun getBudgetingRuleAnalyse(query: ApiGetBudgetingRuleModel) : ResponseEntity<GetBudgetingRuleAnalyticOutput> {
-        return ResponseEntity.ok(getBudgetingRuleAnalytic.execAsync(
+    suspend fun getBudgetingRuleAnalyse(query: ApiGetBudgetingRuleModel) : ResponseEntity<GetBudgetingRuleAnalyticOutput> {
+        return ResponseEntity.ok(getBudgetingRuleAnalytic.execute(
             GetBudgetingRuleAnalyticInput(
                 period = query.period?.let { PeriodType.fromString(it) },
                 interval = query.interval,
                 startDate = query.startDate,
                 endDate = query.endDate
             )
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/annual-outlook")
-    fun getAnnualOutlook() : ResponseEntity<GetAnnualOutlookOutput> {
-        return ResponseEntity.ok(getAnnualOutlook.execAsync(Unit))
+    suspend fun getAnnualOutlook() : ResponseEntity<GetAnnualOutlookOutput> {
+        return ResponseEntity.ok(getAnnualOutlook.execute(Unit).getOrThrow())
     }
 
     @GetMapping("/fund-total-summary")
-    fun getFundSummary() : ResponseEntity<FundSummaryOutput> {
-        return ResponseEntity.ok(getFundTotalSummary.execAsync(Unit))
+    suspend fun getFundSummary() : ResponseEntity<FundSummaryOutput> {
+        return ResponseEntity.ok(getFundTotalSummary.execute(Unit).getOrThrow())
     }
 
     @GetMapping("/budget-total-summary")
-    fun getBudgetTotalSummary() : ResponseEntity<GetBudgetTotalSummaryOutput> {
-        return ResponseEntity.ok(getBudgetTotalSummary.execAsync(Unit))
+    suspend fun getBudgetTotalSummary() : ResponseEntity<GetBudgetTotalSummaryOutput> {
+        return ResponseEntity.ok(getBudgetTotalSummary.execute(Unit).getOrThrow())
     }
 
     @GetMapping("/patrimony-summary")
-    fun getPatrimonySummary() : ResponseEntity<GetPatrimonySummaryOutput> {
-        return ResponseEntity.ok(getPatrimonySummary.execAsync(Unit))
+    suspend fun getPatrimonySummary() : ResponseEntity<GetPatrimonySummaryOutput> {
+        return ResponseEntity.ok(getPatrimonySummary.execute(Unit).getOrThrow())
     }
 
     @GetMapping("/patrimony-evolution")
-    fun getPatrimonyEvolution(query: ApiGetPatrimonyEvolutionModel) : ResponseEntity<GetPatrimonyEvolutionOutput> {
-        return ResponseEntity.ok(getPatrimonyEvolution.execAsync(GetPatrimonyEvolutionInput(
+    suspend fun getPatrimonyEvolution(query: ApiGetPatrimonyEvolutionModel) : ResponseEntity<GetPatrimonyEvolutionOutput> {
+        return ResponseEntity.ok(getPatrimonyEvolution.execute(GetPatrimonyEvolutionInput(
             PeriodType.fromString(query.period),
             query.interval
-        )))
+        )).getOrThrow())
     }
 
     @GetMapping("/provision-summary")
-    fun getProvisionSummary() : ResponseEntity<GetProvisionSummaryOutput> {
-        return ResponseEntity.ok(getProvisionSummary.execAsync(Unit))
+    suspend fun getProvisionSummary() : ResponseEntity<GetProvisionSummaryOutput> {
+        return ResponseEntity.ok(getProvisionSummary.execute(Unit).getOrThrow())
     }
 
     @GetMapping("/schedule-invoice-summary")
-    fun getScheduleInvoiceSummary() : ResponseEntity<GetScheduleInvoiceSummaryOutput> {
-        return ResponseEntity.ok(getScheduleInvoiceSummary.execAsync(Unit))
+    suspend fun getScheduleInvoiceSummary() : ResponseEntity<GetScheduleInvoiceSummaryOutput> {
+        return ResponseEntity.ok(getScheduleInvoiceSummary.execute(Unit).getOrThrow())
     }
 
     @PostMapping("/forcast-spending")
-    private fun forcastSpending(@Valid @RequestBody input: ApiForcastSpendingModel): ResponseEntity<ForcastSpendingOutput>{
-        return ResponseEntity.ok(forcastSpending.execAsync(
+    private suspend fun forcastSpending(@Valid @RequestBody input: ApiForcastSpendingModel): ResponseEntity<ForcastSpendingOutput>{
+        return ResponseEntity.ok(forcastSpending.execute(
             input = ForcastSpendingInput(
                 startDate = input.startDate,
                 endDate = input.endDate,
@@ -177,6 +177,6 @@ class AnalyticController(
                 budgetIds = input.budgetIds,
                 savingRate = input.savingRate
             )
-        ))
+        ).getOrThrow())
     }
 }

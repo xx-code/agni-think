@@ -6,8 +6,8 @@ import domain.entities.Account
 import domain.entities.Currency
 import domain.entities.InternalLoan
 import domain.entities.Fund
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.accounts.CreateAccount
 import usecases.accounts.DeleteAccount
 import usecases.accounts.GetAccount
@@ -26,6 +26,7 @@ import usecases.invoices.dto.GetBalanceOutput
 import usecases.invoices.dto.GetInvoiceOutput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -35,7 +36,7 @@ class AccountConfig {
     fun createAccount(
         accountRepo: IRepository<Account>,
         currencyRepo: IRepository<Currency>
-    ): IUseCase<CreateAccountInput, CreatedOutput> {
+    ): UseCase<CreateAccountInput, CreatedOutput> {
         return CreateAccount(
             accountRepository = accountRepo,
             currencyRepository = currencyRepo
@@ -45,7 +46,7 @@ class AccountConfig {
     @Bean
     fun updateAccount(
         accountRepo: IRepository<Account>
-    ): IUseCase<UpdateAccountInput, Unit> {
+    ): UseCase<UpdateAccountInput, Unit> {
         return UpdateAccount(
             accountRepo = accountRepo
         )
@@ -54,7 +55,7 @@ class AccountConfig {
     @Bean
     fun getAccount(
         accountRepo: IRepository<Account>,
-    ): IUseCase<UUID, GetAccountOutput> {
+    ): UseCase<UUID, GetAccountOutput> {
         return GetAccount(
             accountRepo = accountRepo
         )
@@ -63,7 +64,7 @@ class AccountConfig {
     @Bean
     fun getAllAccounts(
         accountRepo: IRepository<Account>
-    ): IUseCase<QueryFilter, ListOutput<GetAccountOutput>> {
+    ): UseCase<QueryFilter, ListOutput<GetAccountOutput>> {
         return GetAllAccounts(
             accountRepo = accountRepo
         )
@@ -74,9 +75,9 @@ class AccountConfig {
         accountRepo: IRepository<Account>,
         fundRepo: IRepository<Fund>,
         internalLoanRepo: IRepository<InternalLoan>,
-        getInvoice: IUseCase<UUID, GetInvoiceOutput>,
-        getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
-    ): IUseCase<UUID, GetAccountWithDetailOutput> {
+        getInvoice: UseCase<UUID, GetInvoiceOutput>,
+        getBalance: UseCase<GetBalanceInput, GetBalanceOutput>
+    ): UseCase<UUID, GetAccountWithDetailOutput> {
         return GetAccountWithDetail(
             accountRepo = accountRepo,
             fundRepo = fundRepo,
@@ -91,9 +92,9 @@ class AccountConfig {
         accountRepo: IRepository<Account>,
         fundRepo: IRepository<Fund>,
         internalLoanRepo: IRepository<InternalLoan>,
-        getInvoice: IUseCase<UUID, GetInvoiceOutput>,
-        getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
-    ) : IUseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>> {
+        getInvoice: UseCase<UUID, GetInvoiceOutput>,
+        getBalance: UseCase<GetBalanceInput, GetBalanceOutput>
+    ) : UseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>> {
         return GetAllAccountWithDetail(
             accountRepo = accountRepo,
             fundRepo = fundRepo,
@@ -106,7 +107,7 @@ class AccountConfig {
     @Bean
     fun deleteAccount(
         accountRepo: IRepository<Account>,
-    ) : IUseCase<DeleteAccountInput, Unit> {
+    ) : UseCase<DeleteAccountInput, Unit> {
        return DeleteAccount(
            accountRepo = accountRepo
        )

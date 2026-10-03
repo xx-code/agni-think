@@ -1,5 +1,8 @@
 package usecases.invoices
 
+import usecases.interfaces.IUseCase
+
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.readers.IInvoiceTransactionReader
 import adapters.repositories.IQueryExtendBuilder
@@ -9,8 +12,7 @@ import adapters.repositories.QueryComparator
 import domain.entities.Deduction
 import domain.entities.Invoice
 import domain.entities.Transaction
-import usecases.ListOutput
-import usecases.interfaces.IUseCase
+import usecases.dto.ListOutput
 import usecases.invoices.dto.GetAllInvoiceInput
 import usecases.invoices.dto.GetInvoiceOutput
 import usecases.invoices.dto.InvoiceDeductionOutput
@@ -25,9 +27,9 @@ class GetAllInvoices(
     private val deductionRepo: IRepository<Deduction>,
     private val invoiceTransactionReader: IInvoiceTransactionReader,
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>
-): IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>> {
+): UseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>>() {
 
-    override fun execAsync(input: GetAllInvoiceInput ): ListOutput<GetInvoiceOutput> {
+    override suspend fun process(input: GetAllInvoiceInput ): ListOutput<GetInvoiceOutput> {
         input.queryFilter.sortBy.by = "date"
 
         val conditionInvoice = QueryExtendBuilder<Invoice>()
@@ -55,12 +57,12 @@ class GetAllInvoices(
         return getInvoiceWithTransactionFilter(input, conditionInvoice, conditionTransaction, deductions.items)
     }
 
-    private fun getInvoiceWithoutTransactionFilter(query: QueryFilter, queryInvoiceExtend: IQueryExtendBuilder<Invoice>, deductions: List<Deduction>) : ListOutput<GetInvoiceOutput> {
+    private suspend fun getInvoiceWithoutTransactionFilter(query: QueryFilter, queryInvoiceExtend: IQueryExtendBuilder<Invoice>, deductions: List<Deduction>) : ListOutput<GetInvoiceOutput> {
         val invoices = invoiceRepo.getAll(query, queryInvoiceExtend)
 
         val results = mutableListOf<GetInvoiceOutput>()
 
-        val transactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
+        val transactions = getInvoiceTransactions.processDirect(GetInvoiceTransactionsInput(
             invoiceIds = invoices.items.map { it.id }.toSet(),
             categoryIds = null,
             tagIds = null,
@@ -97,9 +99,9 @@ class GetAllInvoices(
         )
     }
 
-    private fun getInvoiceWithTransactionFilter (query: GetAllInvoiceInput, queryInvoiceExtend: IQueryExtendBuilder<Invoice>, queryTransactionExtend: IQueryExtendBuilder<Transaction>, deductions: List<Deduction>) : ListOutput<GetInvoiceOutput> {
+    private suspend fun getInvoiceWithTransactionFilter (query: GetAllInvoiceInput, queryInvoiceExtend: IQueryExtendBuilder<Invoice>, queryTransactionExtend: IQueryExtendBuilder<Transaction>, deductions: List<Deduction>) : ListOutput<GetInvoiceOutput> {
         val invoices = invoiceTransactionReader.filteredInvoiceIds(query.queryFilter, queryInvoiceExtend, queryTransactionExtend)
-        val invoiceTransactions = getInvoiceTransactions.execAsync(GetInvoiceTransactionsInput(
+        val invoiceTransactions = getInvoiceTransactions.processDirect(GetInvoiceTransactionsInput(
             invoiceIds = invoices.items.map { it.id }.toSet(),
         ))
 

@@ -1,17 +1,16 @@
 package usecases.finance_principles
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.ValidationException
 import domain.entities.FinancePrinciple
-import usecases.CreatedOutput
+import usecases.dto.CreatedOutput
 import usecases.finance_principles.dto.CreateFinancePrincipleInput
-import usecases.interfaces.IUseCase
-
 class CreateFinancePrinciple(
     private val financePrincipleRepo: IRepository<FinancePrinciple>
-) : IUseCase<CreateFinancePrincipleInput, CreatedOutput> {
-    override fun execAsync(input: CreateFinancePrincipleInput): CreatedOutput {
+): UseCase<CreateFinancePrincipleInput, CreatedOutput>() {
+    override suspend fun process(input: CreateFinancePrincipleInput): CreatedOutput {
         if (financePrincipleRepo.existsByName(input.name))
             throw AlreadyExistException.EntitiesByField(mapOf("name" to input.name), "finance_principle")
 

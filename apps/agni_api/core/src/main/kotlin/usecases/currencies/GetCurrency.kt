@@ -1,14 +1,14 @@
 package usecases.currencies
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Currency
 import usecases.currencies.dto.GetCurrencyOutput
-import usecases.interfaces.IUseCase
 import domain.exceptions.NotFoundException
 import java.util.UUID
 
-class GetCurrency(private val currencyRepo: IRepository<Currency>): IUseCase<UUID, GetCurrencyOutput> {
-    override fun execAsync(input: UUID): GetCurrencyOutput {
+class GetCurrency(private val currencyRepo: IRepository<Currency>): UseCase<UUID, GetCurrencyOutput>() {
+    override suspend fun process(input: UUID): GetCurrencyOutput {
         val currency = currencyRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "currency")
 
         return GetCurrencyOutput(

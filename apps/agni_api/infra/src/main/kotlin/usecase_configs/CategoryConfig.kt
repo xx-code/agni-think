@@ -3,9 +3,9 @@ package usecase_configs
 import adapters.IChecker
 import adapters.repositories.IRepository
 import domain.entities.Category
-import usecases.CreatedOutput
-import usecases.DeleteOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.DeleteOutput
+import usecases.dto.ListOutput
 import usecases.categories.CreateCategory
 import usecases.categories.DeleteCategory
 import usecases.categories.GetAllCategory
@@ -19,6 +19,7 @@ import usecases.categories.dto.UpdateCategoryInput
 import usecases.interfaces.IUseCase
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -27,7 +28,7 @@ class CategoryConfig {
     @Bean
     fun createCategory(
         categoryRepository: IRepository<Category>
-    ): IUseCase<CreateCategoryInput, CreatedOutput> {
+    ): UseCase<CreateCategoryInput, CreatedOutput> {
         return CreateCategory(
             categoryRepo = categoryRepository
         )
@@ -37,7 +38,7 @@ class CategoryConfig {
     fun deleteCategory(
         categoryRepository: IRepository<Category>,
         checker: IChecker<Category>
-    ): IUseCase<DeleteCategoryInput, DeleteOutput> {
+    ): UseCase<DeleteCategoryInput, DeleteOutput> {
         return DeleteCategory(
             categoryRepo = categoryRepository,
              checker
@@ -47,7 +48,7 @@ class CategoryConfig {
     @Bean
     fun getAllCategories(
         categoryRepository: IRepository<Category>
-    ): IUseCase<GetAllCategoryInput, ListOutput<GetCategoryOutput>> {
+    ): UseCase<GetAllCategoryInput, ListOutput<GetCategoryOutput>> {
        return GetAllCategory(
            categoryRepo = categoryRepository
        )
@@ -56,7 +57,7 @@ class CategoryConfig {
     @Bean
     fun getCategory(
         categoryRepository: IRepository<Category>
-    ): IUseCase<UUID, GetCategoryOutput> {
+    ): UseCase<UUID, GetCategoryOutput> {
         return GetCategory(
             categoryRepo = categoryRepository
         )
@@ -65,7 +66,7 @@ class CategoryConfig {
     @Bean
     fun updateCategory(
         categoryRepository: IRepository<Category>
-    ): IUseCase<UpdateCategoryInput, Unit> {
+    ): UseCase<UpdateCategoryInput, Unit> {
         return UpdateCategory(
             categoryRepo = categoryRepository
         )

@@ -3,8 +3,8 @@ package usecase_configs
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.FinanceReport
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.finance_reports.CreateFinanceReport
 import usecases.finance_reports.DeleteFinanceReport
 import usecases.finance_reports.GetAllFinanceReport
@@ -16,6 +16,7 @@ import usecases.finance_reports.dto.GetFinanceReportOutput
 import usecases.interfaces.IUseCase
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 
 @Configuration
 class FinanceReportConfig {
@@ -23,21 +24,21 @@ class FinanceReportConfig {
     @Bean
     fun createFinanceReport(
         financeRepo: IRepository<FinanceReport>
-    ): IUseCase<CreateFinanceReportInput, CreatedOutput> {
+    ): UseCase<CreateFinanceReportInput, CreatedOutput> {
         return CreateFinanceReport(financeRepo)
     }
 
     @Bean
     fun getFinanceReport(
         financeReportRepo: IRepository<FinanceReport>
-    ): IUseCase<GetFinanceReportInput, GetFinanceReportOutput> {
+    ): UseCase<GetFinanceReportInput, GetFinanceReportOutput> {
         return GetFinanceReport(financeReportRepo)
     }
 
     @Bean
     fun getAllFinanceReport(
         financeReportRepo: IRepository<FinanceReport>
-    ): IUseCase<QueryFilter, ListOutput<GetFinanceReportOutput>> {
+    ): UseCase<QueryFilter, ListOutput<GetFinanceReportOutput>> {
         return GetAllFinanceReport(
             financeReportRepo
         )
@@ -46,7 +47,7 @@ class FinanceReportConfig {
     @Bean
     fun deleteFinanceReport(
         financeReportRepo: IRepository<FinanceReport>
-    ): IUseCase<DeleteFinanceReportInput, Unit> {
+    ): UseCase<DeleteFinanceReportInput, Unit> {
         return DeleteFinanceReport(financeReportRepo)
     }
 }

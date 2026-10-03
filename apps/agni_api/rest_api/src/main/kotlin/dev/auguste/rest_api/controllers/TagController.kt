@@ -6,9 +6,9 @@ import dev.auguste.rest_api.controllers.models.ApiCreateTagModel
 import dev.auguste.rest_api.controllers.models.ApiUpdateTagModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateTag
 import dev.auguste.rest_api.controllers.models.mapApiUpdateTag
-import usecases.CreatedOutput
-import usecases.DeleteOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.DeleteOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.tags.dto.CreateTagInput
 import usecases.tags.dto.DeleteTagInput
@@ -38,51 +38,51 @@ class TagController(
 ) {
 
     @PostMapping
-    fun createTag(@Valid @RequestBody request: ApiCreateTagModel): ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createTagUseCase.execAsync(
+    suspend fun createTag(@Valid @RequestBody request: ApiCreateTagModel): ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createTagUseCase.execute(
             mapApiCreateTag(request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateTag(@PathVariable id: UUID, @Valid @RequestBody input: ApiUpdateTagModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateTagUseCase.execAsync(
+    suspend fun updateTag(@PathVariable id: UUID, @Valid @RequestBody input: ApiUpdateTagModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateTagUseCase.execute(
             mapApiUpdateTag(id, input)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}/archive")
-    fun archiveCategory(@PathVariable id: UUID, @Valid @RequestBody request: ApiArchiveTagModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateTagUseCase.execAsync(
+    suspend fun archiveCategory(@PathVariable id: UUID, @Valid @RequestBody request: ApiArchiveTagModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateTagUseCase.execute(
             input = UpdateTagInput(
                 id = id,
                 archive = request.archive
             )
-        ))
+        ).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteTag(@PathVariable id: UUID): ResponseEntity<DeleteOutput> {
-        return ResponseEntity.ok(deleteTagUseCase.execAsync(
+    suspend fun deleteTag(@PathVariable id: UUID): ResponseEntity<DeleteOutput> {
+        return ResponseEntity.ok(deleteTagUseCase.execute(
             DeleteTagInput(id)
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getTag(@PathVariable id: UUID): ResponseEntity<GetTagOutput> {
-        return ResponseEntity.ok(getTagUseCase.execAsync(
+    suspend fun getTag(@PathVariable id: UUID): ResponseEntity<GetTagOutput> {
+        return ResponseEntity.ok(getTagUseCase.execute(
             id
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping
-    fun getAllTags(query: QueryFilter, isSystem: Boolean? = null, isArchived: Boolean? = null): ResponseEntity<ListOutput<GetTagOutput>> {
-        return ResponseEntity.ok(getAllTagUseCase.execAsync(
+    suspend fun getAllTags(query: QueryFilter, isSystem: Boolean? = null, isArchived: Boolean? = null): ResponseEntity<ListOutput<GetTagOutput>> {
+        return ResponseEntity.ok(getAllTagUseCase.execute(
             GetAllTagInput(
                 query,
                 isSystem,
                 isArchived
             )
-        ))
+        ).getOrThrow())
     }
 }

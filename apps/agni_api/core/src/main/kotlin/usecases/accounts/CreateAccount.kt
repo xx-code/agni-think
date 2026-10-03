@@ -7,17 +7,15 @@ import domain.entities.Currency
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
-import usecases.CreatedOutput
+import usecases.UseCase
+import usecases.dto.CreatedOutput
 import usecases.accounts.dto.CreateAccountInput
-import usecases.interfaces.IUseCase
 
 class CreateAccount(
     private val accountRepository: IRepository<Account>,
     private val currencyRepository: IRepository<Currency>
-): IUseCase<CreateAccountInput, CreatedOutput> {
-
-    override fun execAsync(input: CreateAccountInput): CreatedOutput {
-
+): UseCase<CreateAccountInput, CreatedOutput>() {
+    override suspend fun process(input: CreateAccountInput): CreatedOutput {
         if (accountRepository.existsByName(input.title))
             throw AlreadyExistException.EntitiesByField(mapOf("name" to input.title), "account")
 

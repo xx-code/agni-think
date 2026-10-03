@@ -1,18 +1,18 @@
 package usecases.schedule_Invoices
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.ScheduleInvoice
-import usecases.interfaces.IUseCase
 import usecases.schedule_Invoices.dto.GetScheduleInvoiceOutput
 import usecases.schedule_Invoices.dto.ScheduleInvoiceRepeaterOutput
 import java.util.UUID
 
 class GetScheduleInvoice(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>
-): IUseCase<UUID, GetScheduleInvoiceOutput> {
+): UseCase<UUID, GetScheduleInvoiceOutput>() {
 
-    override fun execAsync(input: UUID): GetScheduleInvoiceOutput {
+    override suspend fun process(input: UUID): GetScheduleInvoiceOutput {
         val scheduleInvoice = scheduleInvoiceRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "schedule_invoice")
 
         return GetScheduleInvoiceOutput(

@@ -1,16 +1,16 @@
 package usecases.spending_period
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.SpendingPeriod
-import usecases.interfaces.IUseCase
 import usecases.spending_period.dto.UpdateSpendingPeriodInput
 import domain.value_objects.SpendingPeriodItem
 
 class UpdateSpendingPeriod(
     private val spendingPeriodRepo: IRepository<SpendingPeriod>,
-): IUseCase<UpdateSpendingPeriodInput, Unit> {
-    override fun execAsync(input: UpdateSpendingPeriodInput) {
+): UseCase<UpdateSpendingPeriodInput, Unit>() {
+    override suspend fun process(input: UpdateSpendingPeriodInput) {
         val spendPeriod = spendingPeriodRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "spending_period")
 
         input.startDate?.let { spendPeriod.startDate = it }

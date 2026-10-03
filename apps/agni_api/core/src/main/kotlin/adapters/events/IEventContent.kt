@@ -1,6 +1,6 @@
 package adapters.events
 
 interface IEventContent {
-    fun dispatch(listener: IEventListener)
+    suspend fun dispatch(listener: IEventListener)
 }
 

@@ -6,6 +6,6 @@ import domain.enums.GoalEvaluationType
 
 interface IGoalEvaluationStrategy {
     val type: GoalEvaluationType
-    fun verifyGoalBusinessLogic(goal: Goal, context: IFinanceContext)
-    fun evaluateCurrentAmount(goal: Goal, context: IFinanceContext): Double
+    suspend fun verifyGoalBusinessLogic(goal: Goal, context: IFinanceContext)
+    suspend fun evaluateCurrentAmount(goal: Goal, context: IFinanceContext): Double
 }

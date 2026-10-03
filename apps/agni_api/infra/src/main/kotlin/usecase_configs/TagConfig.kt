@@ -3,9 +3,9 @@ package usecase_configs
 import adapters.IChecker
 import adapters.repositories.IRepository
 import domain.entities.Tag
-import usecases.CreatedOutput
-import usecases.DeleteOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.DeleteOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.tags.CreateTag
 import usecases.tags.DeleteTag
@@ -19,6 +19,7 @@ import usecases.tags.dto.GetTagOutput
 import usecases.tags.dto.UpdateTagInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -27,7 +28,7 @@ class TagConfig {
     @Bean
     fun createTag(
        tagRepository: IRepository<Tag>
-    ): IUseCase<CreateTagInput, CreatedOutput> {
+    ): UseCase<CreateTagInput, CreatedOutput> {
         return CreateTag(
             tagRepo = tagRepository,
         )
@@ -36,7 +37,7 @@ class TagConfig {
     @Bean
     fun getTag(
         tagRepository: IRepository<Tag>
-    ): IUseCase<UUID, GetTagOutput> {
+    ): UseCase<UUID, GetTagOutput> {
         return GetTag(
             tagRepo = tagRepository
         )
@@ -46,7 +47,7 @@ class TagConfig {
     fun deleteTag(
         tagRepository: IRepository<Tag>,
         checker: IChecker<Tag>
-    ): IUseCase<DeleteTagInput, DeleteOutput> {
+    ): UseCase<DeleteTagInput, DeleteOutput> {
         return DeleteTag(
             tagRepo = tagRepository,
             checker = checker
@@ -56,7 +57,7 @@ class TagConfig {
     @Bean
     fun getAllTags(
         tagRepository: IRepository<Tag>
-    ): IUseCase<GetAllTagInput, ListOutput<GetTagOutput>> {
+    ): UseCase<GetAllTagInput, ListOutput<GetTagOutput>> {
         return GetAllTags(
             tagRepo = tagRepository
         )
@@ -65,7 +66,7 @@ class TagConfig {
     @Bean
     fun updateTag(
         tagRepository: IRepository<Tag>
-    ): IUseCase<UpdateTagInput, Unit> {
+    ): UseCase<UpdateTagInput, Unit> {
         return UpdateTag(
             tagRepo = tagRepository,
         )

@@ -1,5 +1,6 @@
 package usecases.accounts
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
@@ -22,8 +23,8 @@ class GetAccountWithDetail(
     private val internalLoanRepo: IRepository<InternalLoan>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     private val getInvoice: IUseCase<UUID, GetInvoiceOutput>
-): IUseCase<UUID, GetAccountWithDetailOutput> {
-    override fun execAsync(input: UUID): GetAccountWithDetailOutput {
+): UseCase<UUID, GetAccountWithDetailOutput>() {
+    override suspend fun process(input: UUID): GetAccountWithDetailOutput {
         val account = accountRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "account")
 
         val conditionInternalLoad = QueryExtendBuilder<InternalLoan>()
@@ -32,7 +33,7 @@ class GetAccountWithDetail(
         var currentLoanBalance = 0.0
         if (internalLoans.items.isNotEmpty()) {
             internalLoans.items.forEach { internalLoanItem ->
-                currentLoanBalance += getInvoice.execAsync(internalLoanItem.invoiceId).total
+                currentLoanBalance += getInvoice.processDirect(internalLoanItem.invoiceId).total
             }
         }
 
@@ -43,7 +44,7 @@ class GetAccountWithDetail(
 
         val lockedBalance = funds.items.sumOf { it.balance } + currentLoanBalance
 
-        val freezeBalance = getBalance.execAsync(GetBalanceInput(
+        val freezeBalance = getBalance.processDirect(GetBalanceInput(
             accountIds = setOf(account.id),
             isFreeze = true
         )).balance

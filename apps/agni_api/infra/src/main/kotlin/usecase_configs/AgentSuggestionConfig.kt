@@ -2,8 +2,8 @@ package usecase_configs
 
 import adapters.repositories.IRepository
 import domain.entities.AgentSuggestion
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.agent_suggestions.AddSuggestion
 import usecases.agent_suggestions.ConfirmSuggestion
 import usecases.agent_suggestions.GetAllSuggestions
@@ -14,6 +14,7 @@ import usecases.agent_suggestions.dto.GetSuggestionOutput
 import usecases.interfaces.IUseCase
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 
 
 @Configuration
@@ -21,7 +22,7 @@ class AgentSuggestionConfig {
     @Bean
     fun addAgentSuggestion(
         agentSuggestionRepo: IRepository<AgentSuggestion>,
-    ): IUseCase<AddSuggestionInput, CreatedOutput> {
+    ): UseCase<AddSuggestionInput, CreatedOutput> {
         return AddSuggestion(
             agentSuggestionRepo
         )
@@ -30,14 +31,14 @@ class AgentSuggestionConfig {
     @Bean
     fun confirmAgentSuggestion(
         agentSuggestionRepo: IRepository<AgentSuggestion>,
-    ): IUseCase<ConfirmSuggestionInput, Unit> {
+    ): UseCase<ConfirmSuggestionInput, Unit> {
         return ConfirmSuggestion(agentSuggestionRepo)
     }
 
     @Bean
     fun getAllAgentSuggestions(
         agentSuggestionRepo: IRepository<AgentSuggestion>,
-    ): IUseCase<GetAllSuggestionInput, ListOutput<GetSuggestionOutput>> {
+    ): UseCase<GetAllSuggestionInput, ListOutput<GetSuggestionOutput>> {
         return GetAllSuggestions(agentSuggestionRepo)
     }
 }

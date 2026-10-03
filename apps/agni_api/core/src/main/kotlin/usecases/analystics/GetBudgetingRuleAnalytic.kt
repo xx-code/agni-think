@@ -1,5 +1,6 @@
 package usecases.analystics
 
+import usecases.UseCase
 import domain.utils.LocalDateTimeRange
 import usecases.analystics.dto.GetBudgetingRuleAnalyticInput
 import usecases.analystics.dto.GetBudgetingRuleAnalyticOutput
@@ -12,32 +13,32 @@ import domain.enums.InvoiceType
 class GetBudgetingRuleAnalytic(
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     private val getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
-) : IUseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput> {
-    override fun execAsync(input: GetBudgetingRuleAnalyticInput): GetBudgetingRuleAnalyticOutput {
+): UseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput>() {
+    override suspend fun process(input: GetBudgetingRuleAnalyticInput): GetBudgetingRuleAnalyticOutput {
         val range = if (input.startDate != null && input.endDate != null) {
             LocalDateTimeRange(input.startDate, input.endDate)
         } else {
             LocalDateTimeRange.fromPeriod(input.period!!, input.interval)
         }
 
-        val periodBalance = getBalance.execAsync(GetBalanceInput(
+        val periodBalance = getBalance.processDirect(GetBalanceInput(
             startDate = range.start,
             endDate = range.end,
         ))
 
-        val fixedCostBalance = getBalance.execAsync(GetBalanceInput(
+        val fixedCostBalance = getBalance.processDirect(GetBalanceInput(
             types = setOf(InvoiceType.FIXED_COST),
             startDate = range.start,
             endDate = range.end,
         ))
 
-        val variableCostBalance = getBalance.execAsync(GetBalanceInput(
+        val variableCostBalance = getBalance.processDirect(GetBalanceInput(
             types = setOf(InvoiceType.VARIABLE_COST),
             startDate = range.start,
             endDate = range.end
         ))
 
-        val savingBalance = getSavingBalance.execAsync(
+        val savingBalance = getSavingBalance.processDirect(
             GetSavingBalanceInput(range.start, range.end)
         )
 

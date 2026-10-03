@@ -36,7 +36,7 @@ class Goal(
     var status by cleanObservable(status, this)
     var type by cleanObservable(type, this)
 
-    fun evaluateProgress(strategy: IGoalEvaluationStrategy, context: IFinanceContext): GoalEvaluationProgress {
+    suspend fun evaluateProgress(strategy: IGoalEvaluationStrategy, context: IFinanceContext): GoalEvaluationProgress {
         val currentAmount = strategy.evaluateCurrentAmount(this, context)
 
         if (targetAmount == 0.0)

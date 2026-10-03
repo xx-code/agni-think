@@ -1,5 +1,6 @@
 package usecases.analystics
 
+import usecases.UseCase
 import domain.SAVING_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
@@ -15,9 +16,9 @@ import usecases.invoices.dto.GetBalancesByPeriodInput
 class GetSavingAnalytic(
     private val accountRepo: IRepository<Account>,
     private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
-) : IUseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput> {
+): UseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput>() {
 
-    override fun execAsync(input: GetSavingAnalyticInput): GetSavingAnalyticOutput {
+    override suspend fun process(input: GetSavingAnalyticInput): GetSavingAnalyticOutput {
 
         val accounts = accountRepo.getAll(QueryFilter(0, 0, true))
         val accountInvestmentIds = accounts.items
@@ -26,7 +27,7 @@ class GetSavingAnalytic(
             .toSet()
 
         // 1. Entrées d'argent globales (Revenus)
-        val balanceIncome = getBalanceByPeriod.execAsync(GetBalancesByPeriodInput(
+        val balanceIncome = getBalanceByPeriod.processDirect(GetBalancesByPeriodInput(
             period = input.period,
             interval = input.interval,
             dateFrom = input.startDate,
@@ -34,7 +35,7 @@ class GetSavingAnalytic(
         ))
 
         // 2. Épargne explicite : Uniquement les dépenses avec le Tag/Catégorie Épargne
-        val balanceSavingCategory = getBalanceByPeriod.execAsync(GetBalancesByPeriodInput(
+        val balanceSavingCategory = getBalanceByPeriod.processDirect(GetBalancesByPeriodInput(
             period = input.period,
             interval = input.interval,
             dateFrom = input.startDate,
@@ -42,7 +43,7 @@ class GetSavingAnalytic(
         ))
 
         // 3. Investissement : Uniquement l'argent qui entre sur les comptes de Brokage
-        val balanceInvestmentAccount = getBalanceByPeriod.execAsync(GetBalancesByPeriodInput(
+        val balanceInvestmentAccount = getBalanceByPeriod.processDirect(GetBalancesByPeriodInput(
             accountIds = accountInvestmentIds,
             period = input.period,
             interval = input.interval,

@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -35,7 +37,7 @@ class EntityTest {
 
     @Test
     @DisplayName("Should initialize correctly")
-    fun shouldInitializeCorrectly() {
+    fun shouldInitializeCorrectly() = runBlocking {
         val dumbValueObject = DumbValueObject(1, "blue")
         val dumbEntity = DumbEntity(name = "New Dumb", dumbValueObject = dumbValueObject, dumbListValueObject =  mutableSetOf(dumbValueObject))
 
@@ -47,7 +49,7 @@ class EntityTest {
 
     @Test
     @DisplayName("Should mark change when value is updated")
-    fun shouldMarkChangedWhenValueIsUpdated() {
+    fun shouldMarkChangedWhenValueIsUpdated() = runBlocking {
         var dumbValueObject = DumbValueObject(1, "blue")
         val dumbEntity = DumbEntity(name = "New Dumb", dumbValueObject = dumbValueObject, dumbListValueObject =  mutableSetOf(dumbValueObject))
 

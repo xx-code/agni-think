@@ -1,5 +1,7 @@
 package usecases.invoices.transactions
 
+import kotlinx.coroutines.runBlocking
+
 import adapters.dto.RepoList
 import adapters.repositories.IRepository
 import domain.entities.Budget
@@ -137,7 +139,7 @@ class GetInvoiceTransactionsTests {
 
     @Test
     @DisplayName("Retourne les transactions filtrées par categoryId avec déductions appliquées")
-    fun shouldReturnFilteredTransactionsWithDeductions() {
+    fun shouldReturnFilteredTransactionsWithDeductions() = runBlocking {
         val res = useCase.execAsync(
             GetInvoiceTransactionsInput(
                 invoiceIds = setOf(invoice1.id, invoice2.id),
@@ -169,7 +171,7 @@ class GetInvoiceTransactionsTests {
 
     @Test
     @DisplayName("Return filter transaction with flat deduction")
-    fun shouldReturnFilteredTransactionsWithFlatDeductions() {
+    fun shouldReturnFilteredTransactionsWithFlatDeductions() = runBlocking {
         every { invoiceRepo.getManyByIds(any()) }
             .returns(listOf(invoice3))
 

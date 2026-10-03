@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import domain.exceptions.ValidationException
 import java.util.UUID
 import kotlin.test.Test
@@ -16,7 +18,7 @@ class TransactionValidationTest {
     )
 
     @Test
-    fun `accepts a strictly positive amount`() {
+    fun `accepts a strictly positive amount`() = runBlocking {
         val transaction = transaction()
 
         transaction.amount = 0.01
@@ -25,7 +27,7 @@ class TransactionValidationTest {
     }
 
     @Test
-    fun `refuses a zero amount`() {
+    fun `refuses a zero amount`() = runBlocking {
         val transaction = transaction()
 
         val error = assertFailsWith<ValidationException.TransactionAmountMustBeGreaterThanZero> {
@@ -37,7 +39,7 @@ class TransactionValidationTest {
     }
 
     @Test
-    fun `refuses a negative amount`() {
+    fun `refuses a negative amount`() = runBlocking {
         val transaction = transaction(amount = 25.0)
 
         val error = assertFailsWith<ValidationException.TransactionAmountMustBeGreaterThanZero> {
@@ -48,7 +50,7 @@ class TransactionValidationTest {
     }
 
     @Test
-    fun `a refused amount does not overwrite the current one`() {
+    fun `a refused amount does not overwrite the current one`() = runBlocking {
         val transaction = transaction(amount = 25.0)
 
         assertFailsWith<ValidationException.TransactionAmountMustBeGreaterThanZero> {

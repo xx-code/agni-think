@@ -1,15 +1,14 @@
 package usecases.accounts
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import adapters.dto.QueryFilter
 import domain.entities.Account
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.accounts.dto.GetAccountOutput
-import usecases.interfaces.IUseCase
+class GetAllAccounts(private val accountRepo: IRepository<Account>): UseCase<QueryFilter, ListOutput<GetAccountOutput>>() {
 
-class GetAllAccounts(private val accountRepo: IRepository<Account>): IUseCase<QueryFilter, ListOutput<GetAccountOutput>> {
-
-    override fun execAsync(input: QueryFilter): ListOutput<GetAccountOutput> {
+    override suspend fun process(input: QueryFilter): ListOutput<GetAccountOutput> {
         val accounts = accountRepo.getAll(query = input)
 
         return ListOutput(

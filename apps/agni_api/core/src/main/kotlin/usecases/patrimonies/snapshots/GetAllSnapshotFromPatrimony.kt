@@ -1,5 +1,6 @@
 package usecases.patrimonies.snapshots
 
+import usecases.UseCase
 import domain.SAVING_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
@@ -10,7 +11,7 @@ import domain.entities.Invoice
 import domain.entities.PatrimonySnapshot
 import domain.entities.Provision
 import domain.entities.Fund
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.invoices.dto.GetBalanceByPeriodOutput
 import usecases.invoices.dto.GetBalancesByPeriodInput
@@ -31,13 +32,13 @@ import domain.enums.PeriodType
 class GetAllSnapshotFromPatrimony(
     private val snapshotPatrimonyRepo: IRepository<PatrimonySnapshot>,
     private val fundRepo: IRepository<Fund>,
-    private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
     private val provisionRepo: IRepository<Provision>,
     private val invoiceRepo: IRepository<Invoice>,
+    private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
     private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
-): IUseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>> {
+): UseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>>() {
 
-    override fun execAsync(input: GetAllSnapshotPatrimonyInput): ListOutput<GetSnapshotPatrimonyOutput> {
+    override suspend fun process(input: GetAllSnapshotPatrimonyInput): ListOutput<GetSnapshotPatrimonyOutput> {
         when (input.sourcePatrimonyType) {
             SourcePatrimonyType.PATRIMONY -> {
                 input.query.sortBy.by = "date"
@@ -66,7 +67,7 @@ class GetAllSnapshotFromPatrimony(
                     date.plusMonths(step).with(TemporalAdjusters.firstDayOfMonth())
                 }
 
-                val savingBalancesByDate = getBalanceByPeriod.execAsync(
+                val savingBalancesByDate = getBalanceByPeriod.processDirect(
                     GetBalancesByPeriodInput(
                         period = PeriodType.MONTH,
                         interval = numMonth.toInt(),
@@ -150,7 +151,7 @@ class GetAllSnapshotFromPatrimony(
                         ))
 
                     if (invoices.items.isNotEmpty()) {
-                        val invoices = getManyInvoices.execAsync(
+                        val invoices = getManyInvoices.processDirect(
                             invoices.items.map { it.id }.toSet(),
                         ).toMutableList()
 

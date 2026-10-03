@@ -1,15 +1,14 @@
 package usecases.deductions
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Deduction
-import usecases.CreatedOutput
+import usecases.dto.CreatedOutput
 import usecases.deductions.dto.CreateDeductionInput
 import domain.exceptions.AlreadyExistException
-import usecases.interfaces.IUseCase
+class CreateDeduction(private val deductionRepo: IRepository<Deduction>): UseCase<CreateDeductionInput, CreatedOutput>() {
 
-class CreateDeduction(private val deductionRepo: IRepository<Deduction>): IUseCase<CreateDeductionInput, CreatedOutput> {
-
-    override fun execAsync(input: CreateDeductionInput): CreatedOutput {
+    override suspend fun process(input: CreateDeductionInput): CreatedOutput {
         if (deductionRepo.existsByName(input.title))
             throw AlreadyExistException.EntitiesByField(mapOf("name" to input.title), "deduction")
 

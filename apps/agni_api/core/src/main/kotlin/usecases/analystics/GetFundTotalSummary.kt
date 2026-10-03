@@ -1,13 +1,12 @@
 package usecases.analystics
 
+import usecases.UseCase
 import adapters.dto.FundSummaryOutput
 import adapters.readers.IFundSummaryReader
-import usecases.interfaces.IUseCase
-
 data class GetFundTotalSummary(
     private val fundSummaryReader: IFundSummaryReader,
-): IUseCase<Unit, FundSummaryOutput> {
-    override fun execAsync(input: Unit): FundSummaryOutput {
+): UseCase<Unit, FundSummaryOutput>() {
+    override suspend fun process(input: Unit): FundSummaryOutput {
         val res = fundSummaryReader.getSummary()
 
         return res

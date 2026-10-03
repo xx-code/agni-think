@@ -1,5 +1,6 @@
 package usecases.internal_loan
 
+import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.events.EventType
 import adapters.events.IEventRegister
@@ -9,13 +10,11 @@ import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.InternalLoan
-import usecases.BackgroundTaskOut
-import usecases.interfaces.ISuspendableUseCase
+import usecases.dto.BackgroundTaskOut
 import usecases.interfaces.IUseCase
 import usecases.invoices.dto.CompleteInvoiceInput
 import usecases.invoices.dto.GetInvoiceOutput
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 class AutoCompleteInternalLoan(
@@ -23,8 +22,8 @@ class AutoCompleteInternalLoan(
     private val getInvoice: IUseCase<UUID, GetInvoiceOutput>,
     private val completeInvoice: IUseCase<CompleteInvoiceInput, Unit>,
     private val eventRegister: IEventRegister
-): ISuspendableUseCase<Unit, BackgroundTaskOut> {
-    override suspend fun execAsync(input: Unit): BackgroundTaskOut {
+): UseCase<Unit, BackgroundTaskOut>() {
+    override suspend fun process(input: Unit): BackgroundTaskOut {
         try {
             val condition = QueryExtendBuilder<InternalLoan>()
                 .addCondition("dueDate", QueryComparator.LesserOrEquals, LocalDate.now())
@@ -34,8 +33,8 @@ class AutoCompleteInternalLoan(
             )
 
             for (internalLoan in internalLoans.items) {
-                completeInvoice.execAsync(CompleteInvoiceInput(internalLoan.invoiceId))
-                val invoice = getInvoice.execAsync(internalLoan.invoiceId)
+                completeInvoice.processDirect(CompleteInvoiceInput(internalLoan.invoiceId))
+                val invoice = getInvoice.processDirect(internalLoan.invoiceId)
 
                 eventRegister.notify(
                     EventType.NOTIFICATION, NotificationEventContent(

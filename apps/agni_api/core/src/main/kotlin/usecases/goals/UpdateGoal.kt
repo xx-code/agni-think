@@ -1,18 +1,17 @@
 package usecases.goals
 
+import usecases.UseCase
 import adapters.IFinanceContext
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.Goal
 import domain.factories.GoalEvaluationStrategyFactory
 import usecases.goals.dto.UpdateGoalInput
-import usecases.interfaces.IUseCase
-
 class UpdateGoal(
     private val goalRepo: IRepository<Goal>,
     private val financeContext: IFinanceContext
-): IUseCase<UpdateGoalInput, Unit> {
-    override fun execAsync(input: UpdateGoalInput) {
+): UseCase<UpdateGoalInput, Unit>() {
+    override suspend fun process(input: UpdateGoalInput) {
         val goal = goalRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "goal")
 
         if (input.status != null && input.status != goal.status) {

@@ -12,8 +12,7 @@ import domain.entities.InternalLoan
 import domain.entities.Invoice
 import domain.entities.ScheduleInvoice
 import domain.roundTo
-import usecases.CreatedOutput
-import usecases.interfaces.IInnerUseCase
+import usecases.dto.CreatedOutput
 import usecases.interfaces.IUseCase
 import usecases.internal_loan.dto.CreateInternalLoanInput
 import usecases.invoices.dto.CreateInvoiceInput
@@ -24,30 +23,29 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.math.abs
 import domain.enums.AccountType
-import domain.enums.InvoiceType
+import usecases.UseCase
 
 class CreateInternalLoan(
     private val internalLoanRepo: IRepository<InternalLoan>,
     private val accountRepo: IRepository<Account>,
-    private val createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
     private val invoiceRepo: IRepository<Invoice>,
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+    private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
     private val getInvoice: IUseCase<UUID, GetInvoiceOutput>,
-    private val unitOfWork: IUnitOfWork
-): IUseCase<CreateInternalLoanInput, CreatedOutput> {
-    override fun execAsync(input: CreateInternalLoanInput): CreatedOutput {
-        return unitOfWork.execute {
-            val account = accountRepo.get(input.fundSourceId) ?: throw NotFoundException.SingleEntity(input.fundSourceId, "account")
-            val creditAccount = accountRepo.get(input.creditTargetId) ?: throw NotFoundException.SingleEntity(input.creditTargetId, "account")
-            val condition = QueryExtendBuilder<InternalLoan>()
-                .addCondition("fundSourceId", QueryComparator.Equal, input.fundSourceId)
-            val internalLoans = internalLoanRepo.getAll(QueryFilter.queryAll(), condition)
-            var currentLoanBalance = 0.0
-            if (internalLoans.items.isNotEmpty()) {
-                internalLoans.items.forEach { internalLoanItem ->
-                    currentLoanBalance += getInvoice.execAsync(internalLoanItem.invoiceId).total
-                }
+    unitOfWork: IUnitOfWork
+): UseCase<CreateInternalLoanInput, CreatedOutput>(unitOfWork) {
+    override suspend fun process(input: CreateInternalLoanInput): CreatedOutput {
+        val account = accountRepo.get(input.fundSourceId) ?: throw NotFoundException.SingleEntity(input.fundSourceId, "account")
+        val creditAccount = accountRepo.get(input.creditTargetId) ?: throw NotFoundException.SingleEntity(input.creditTargetId, "account")
+        val condition = QueryExtendBuilder<InternalLoan>()
+            .addCondition("fundSourceId", QueryComparator.Equal, input.fundSourceId)
+        val internalLoans = internalLoanRepo.getAll(QueryFilter.queryAll(), condition)
+        var currentLoanBalance = 0.0
+        if (internalLoans.items.isNotEmpty()) {
+            internalLoans.items.forEach { internalLoanItem ->
+                currentLoanBalance += getInvoice.processDirect(internalLoanItem.invoiceId).total
             }
+        }
 
 //            val invoices = invoiceRepo.getAll(QueryFilter(queryAll = true), QueryInvoiceExtend(status = InvoiceStatusType.PENDING))
 //            val otherPendingInvoices = invoices.items.filter { internalLoans.items.map { loan -> loan.invoiceId }.contains(it.id) }
@@ -62,27 +60,27 @@ class CreateInternalLoan(
 //                )
 //            )
 
-            val accountType = account.detail.getType()
-            if (accountType != AccountType.CHECKING && accountType != AccountType.SAVING)
-                throw ValidationException.InternalLoanAccountNotAllowForCollateral()
+        val accountType = account.detail.getType()
+        if (accountType != AccountType.CHECKING && accountType != AccountType.SAVING)
+            throw ValidationException.InternalLoanAccountNotAllowForCollateral()
 
-            if (creditAccount.detail.getType() != AccountType.CREDIT_CARD)
-                throw ValidationException.InternalLoanBadAccountCredit()
+        if (creditAccount.detail.getType() != AccountType.CREDIT_CARD)
+            throw ValidationException.InternalLoanBadAccountCredit()
 
-            val creditCardDetail = (creditAccount.detail as CreditCardAccountDetail)
-            val creditUtilization = if (creditCardDetail.creditLimit > 0) {
-                ((abs(creditAccount.balance) / creditCardDetail.creditLimit).roundTo(2)) * 100
-            } else {
-                0.0
-            }
+        val creditCardDetail = (creditAccount.detail as CreditCardAccountDetail)
+        val creditUtilization = if (creditCardDetail.creditLimit > 0) {
+            ((abs(creditAccount.balance) / creditCardDetail.creditLimit).roundTo(2)) * 100
+        } else {
+            0.0
+        }
 
-            var nextPaymentDate = creditCardDetail.invoiceDate
-            while (nextPaymentDate.isBefore(LocalDate.now())) {
-                nextPaymentDate = nextPaymentDate.plusMonths(1)
-            }
+        var nextPaymentDate = creditCardDetail.invoiceDate
+        while (nextPaymentDate.isBefore(LocalDate.now())) {
+            nextPaymentDate = nextPaymentDate.plusMonths(1)
+        }
 
-            val resCreateInvoice = createInvoice.execInnerAsync(input.invoiceInput)
-            val newInvoice = getInvoice.execAsync(resCreateInvoice.newId)
+        val resCreateInvoice = createInvoice.processDirect(input.invoiceInput)
+        val newInvoice = getInvoice.processDirect(resCreateInvoice.newId)
 
 //            val confidence = calculateLoanConfidence(
 //                newInvoice.date.toLocalDate(),
@@ -96,17 +94,16 @@ class CreateInternalLoan(
 //                throw ValidationException.InternalLoanBadConfidenceScore(confidence)
 //            }
 
-            val internalLoan = InternalLoan(
-                creditTargetId = input.creditTargetId,
-                invoiceId = resCreateInvoice.newId,
-                fundSourceId = input.fundSourceId,
-                dueDate = input.dueDate,
-            )
+        val internalLoan = InternalLoan(
+            creditTargetId = input.creditTargetId,
+            invoiceId = resCreateInvoice.newId,
+            fundSourceId = input.fundSourceId,
+            dueDate = input.dueDate,
+        )
 
-            internalLoanRepo.create(internalLoan)
+        internalLoanRepo.create(internalLoan)
 
-            CreatedOutput(internalLoan.id)
-        }
+        return CreatedOutput(internalLoan.id)
     }
 
 

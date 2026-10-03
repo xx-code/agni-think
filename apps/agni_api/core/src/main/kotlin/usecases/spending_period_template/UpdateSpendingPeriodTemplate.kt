@@ -1,5 +1,6 @@
 package usecases.spending_period_template
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
@@ -7,15 +8,14 @@ import domain.entities.Budget
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
 import domain.entities.SpendingPeriodTemplate
-import usecases.interfaces.IUseCase
 import usecases.spending_period_template.dto.UpdateSpendingPeriodTemplateInput
 import domain.value_objects.SchedulerRecurrence
 
 class UpdateSpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
     private val budgetRepo: IRepository<Budget>,
-): IUseCase<UpdateSpendingPeriodTemplateInput, Unit> {
-    override fun execAsync(input: UpdateSpendingPeriodTemplateInput) {
+): UseCase<UpdateSpendingPeriodTemplateInput, Unit>() {
+    override suspend fun process(input: UpdateSpendingPeriodTemplateInput) {
         val spendPeriodTemplate = spendingPeriodTemplateRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "spending_period_template")
 
         if (input.recurrence != null) {

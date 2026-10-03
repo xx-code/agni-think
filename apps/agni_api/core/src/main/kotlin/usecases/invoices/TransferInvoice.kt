@@ -12,24 +12,18 @@ import domain.enums.InvoiceModuleLinkerType
 import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
 import domain.enums.InvoiceType
-import usecases.interfaces.IInnerUseCase
 import usecases.invoices.dto.TransferInvoiceInput
 import domain.value_objects.InvoiceModuleLinker
+import usecases.UseCase
 import java.util.UUID
 
 class TransferInvoice(
     private val invoiceRepo: IRepository<Invoice>,
     private val accountRepo: IRepository<Account>,
     private val transactionRepo: IRepository<Transaction>,
-    private val unitOfWork: IUnitOfWork
-): IInnerUseCase<TransferInvoiceInput, Unit> {
-    override fun execAsync(input: TransferInvoiceInput) {
-        unitOfWork.execute {
-            execInnerAsync(input)
-        }
-    }
-
-    override fun execInnerAsync(input: TransferInvoiceInput) {
+    unitOfWork: IUnitOfWork
+): UseCase<TransferInvoiceInput, Unit>(unitOfWork) {
+    override suspend fun process(input: TransferInvoiceInput) {
         val accountFrom = accountRepo.get(input.accountIdFrom) ?: throw NotFoundException.SingleEntity(input.accountIdFrom, "account")
         val accountTo = accountRepo.get(input.accountIdTo) ?: throw NotFoundException.SingleEntity(input.accountIdTo, "account")
 

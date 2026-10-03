@@ -1,5 +1,5 @@
 package adapters.events
 
 interface IEventListener {
-    fun update()
+    suspend fun update()
 }

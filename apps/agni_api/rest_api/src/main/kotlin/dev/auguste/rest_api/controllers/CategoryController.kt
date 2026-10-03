@@ -6,9 +6,9 @@ import dev.auguste.rest_api.controllers.models.ApiCreateCategoryModel
 import dev.auguste.rest_api.controllers.models.ApiUpdateCategoryModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateCategoryModel
 import dev.auguste.rest_api.controllers.models.mapApiUpdateCategoryModel
-import usecases.CreatedOutput
-import usecases.DeleteOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.DeleteOutput
+import usecases.dto.ListOutput
 import usecases.categories.dto.CreateCategoryInput
 import usecases.categories.dto.DeleteCategoryInput
 import usecases.categories.dto.GetAllCategoryInput
@@ -38,48 +38,48 @@ class CategoryController(
 ) {
 
     @PostMapping
-    fun createCategory(@Valid @RequestBody request: ApiCreateCategoryModel): ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createCategoryUseCase.execAsync(
+    suspend fun createCategory(@Valid @RequestBody request: ApiCreateCategoryModel): ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createCategoryUseCase.execute(
             mapApiCreateCategoryModel(request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateCategory(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateCategoryModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateCategoryUseCase.execAsync(
+    suspend fun updateCategory(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateCategoryModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateCategoryUseCase.execute(
             mapApiUpdateCategoryModel(id, request)
-        ))
+        ).getOrThrow())
     }
 
 
     @PutMapping("/{id}/archive")
-    fun archiveCategory(@PathVariable id: UUID, @Valid @RequestBody request: ApiArchiveCategoryModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateCategoryUseCase.execAsync(
+    suspend fun archiveCategory(@PathVariable id: UUID, @Valid @RequestBody request: ApiArchiveCategoryModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateCategoryUseCase.execute(
             input = UpdateCategoryInput(
                 id = id,
                 isArchived = request.archive
             )
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getCategory(@PathVariable id: UUID): ResponseEntity<GetCategoryOutput> {
-        return ResponseEntity.ok(getCategoryUseCase.execAsync(id))
+    suspend fun getCategory(@PathVariable id: UUID): ResponseEntity<GetCategoryOutput> {
+        return ResponseEntity.ok(getCategoryUseCase.execute(id).getOrThrow())
     }
 
     @GetMapping
-    fun getAllCategories(queryFilter: QueryFilter, isSystem: Boolean? = null, isArchived: Boolean? = null): ResponseEntity<ListOutput<GetCategoryOutput>> {
-        return ResponseEntity.ok(getAllCategoryUseCase.execAsync(GetAllCategoryInput(
+    suspend fun getAllCategories(queryFilter: QueryFilter, isSystem: Boolean? = null, isArchived: Boolean? = null): ResponseEntity<ListOutput<GetCategoryOutput>> {
+        return ResponseEntity.ok(getAllCategoryUseCase.execute(GetAllCategoryInput(
             queryFilter,
             isSystem,
             isArchived
-        )))
+        )).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteCategory(@PathVariable id: UUID): ResponseEntity<DeleteOutput> {
-        return ResponseEntity.ok(deleteCategoryUseCase.execAsync(
+    suspend fun deleteCategory(@PathVariable id: UUID): ResponseEntity<DeleteOutput> {
+        return ResponseEntity.ok(deleteCategoryUseCase.execute(
             DeleteCategoryInput(id)
-        ))
+        ).getOrThrow())
     }
 }

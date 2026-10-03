@@ -1,5 +1,7 @@
 package persistences
 
+import kotlinx.coroutines.runBlocking
+
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -16,7 +18,7 @@ class JdbcConverterTest {
     private val writing = StringToJdbcValueConverter()
 
     @Test
-    fun `reads a jsonb column as its raw json text`() {
+    fun `reads a jsonb column as its raw json text`() = runBlocking {
         val pg = PGobject().apply {
             type = "jsonb"
             value = """["a","b"]"""
@@ -26,7 +28,7 @@ class JdbcConverterTest {
     }
 
     @Test
-    fun `reads a json column as its raw json text`() {
+    fun `reads a json column as its raw json text`() = runBlocking {
         val pg = PGobject().apply {
             type = "json"
             value = """{"period":"Day","interval":1}"""
@@ -36,14 +38,14 @@ class JdbcConverterTest {
     }
 
     @Test
-    fun `keeps a sql null as null instead of an empty string`() {
+    fun `keeps a sql null as null instead of an empty string`() = runBlocking {
         val pgNull = PGobject().apply { type = "jsonb" }
 
         assertNull(reading.convert(pgNull), "a NULL json column must not become an empty string")
     }
 
     @Test
-    fun `writes a string as a jdbc value of type other`() {
+    fun `writes a string as a jdbc value of type other`() = runBlocking {
         val converted = writing.convert("""["a"]""")
 
         assertEquals("""["a"]""", converted.value)
@@ -51,14 +53,14 @@ class JdbcConverterTest {
     }
 
     @Test
-    fun `does not force jsonb on a plain text value`() {
+    fun `does not force jsonb on a plain text value`() = runBlocking {
         // Un `jsonb` sur une colonne `text` echouerait a l'insertion avec
         // "column is of type text but expression is of type jsonb".
         assertEquals(JDBCType.OTHER, writing.convert("un simple titre").jdbcType)
     }
 
     @Test
-    fun `registers exactly the reading and the writing converter`() {
+    fun `registers exactly the reading and the writing converter`() = runBlocking {
         // `userConverters()` est `protected` : Spring l'appelle, pas le code applicatif.
         val userConverters = JdbcPersistenceConfig::class.java
             .getDeclaredMethod("userConverters")
@@ -72,7 +74,7 @@ class JdbcConverterTest {
     }
 
     @Test
-    fun `extends AbstractJdbcConfiguration so Spring registers the converters`() {
+    fun `extends AbstractJdbcConfiguration so Spring registers the converters`() = runBlocking {
         // Sans cet heritage, `userConverters()` n'est jamais appele et les colonnes
         // `json`/`jsonb` arrivent en `PGobject` dans les modeles.
         assertEquals(
@@ -82,7 +84,7 @@ class JdbcConverterTest {
     }
 
     @Test
-    fun `declares the reading and the writing annotations`() {
+    fun `declares the reading and the writing annotations`() = runBlocking {
         assertTrue(
             PgObjectToStringConverter::class.java.isAnnotationPresent(ReadingConverter::class.java),
             "PGobject -> String must be a @ReadingConverter"

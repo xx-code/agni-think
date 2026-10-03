@@ -2,7 +2,7 @@ package usecase_configs
 
 import adapters.repositories.IRepository
 import domain.entities.Profile
-import usecases.CreatedOutput
+import usecases.dto.CreatedOutput
 import usecases.interfaces.IUseCase
 import usecases.profiles.CreateProfile
 import usecases.profiles.GetProfile
@@ -12,6 +12,7 @@ import usecases.profiles.dto.GetProfileOutput
 import usecases.profiles.dto.UpdateProfileInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -20,7 +21,7 @@ class ProfileConfig {
     @Bean
     fun createProfile(
         profileRepo: IRepository<Profile>
-    ): IUseCase<CreateProfileInput, CreatedOutput> {
+    ): UseCase<CreateProfileInput, CreatedOutput> {
         return CreateProfile(
             profileRepo = profileRepo
         )
@@ -29,7 +30,7 @@ class ProfileConfig {
     @Bean
     fun updateProfile(
         profileRepo: IRepository<Profile>
-    ): IUseCase<UpdateProfileInput, Unit> {
+    ): UseCase<UpdateProfileInput, Unit> {
         return UpdateProfile(
             profileRepo = profileRepo
         )
@@ -38,7 +39,7 @@ class ProfileConfig {
     @Bean
     fun getProfile(
         profileRepo: IRepository<Profile>
-    ): IUseCase<UUID, GetProfileOutput> {
+    ): UseCase<UUID, GetProfileOutput> {
         return GetProfile(
             profileRepo = profileRepo
         )

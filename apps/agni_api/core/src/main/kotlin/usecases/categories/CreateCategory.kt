@@ -1,16 +1,15 @@
 package usecases.categories
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Category
 import domain.entities.Color
 import domain.exceptions.AlreadyExistException
-import usecases.CreatedOutput
+import usecases.dto.CreatedOutput
 import usecases.categories.dto.CreateCategoryInput
-import usecases.interfaces.IUseCase
+class CreateCategory(private val categoryRepo: IRepository<Category>): UseCase<CreateCategoryInput, CreatedOutput>() {
 
-class CreateCategory(private val categoryRepo: IRepository<Category>): IUseCase<CreateCategoryInput, CreatedOutput> {
-
-    override fun execAsync(input: CreateCategoryInput): CreatedOutput {
+    override suspend fun process(input: CreateCategoryInput): CreatedOutput {
         if (categoryRepo.existsByName(input.title))
             throw AlreadyExistException.EntitiesByField(mapOf("name" to "Category title already exists"), "category")
 

@@ -5,8 +5,8 @@ import dev.auguste.rest_api.controllers.models.ApiCreateDeductionModel
 import dev.auguste.rest_api.controllers.models.ApiUpdateDeductionModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateDeduction
 import dev.auguste.rest_api.controllers.models.mapApiUpdateDeduction
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.deductions.dto.CreateDeductionInput
 import usecases.deductions.dto.DeleteDeductionInput
 import usecases.deductions.dto.GetDeductionOutput
@@ -35,37 +35,37 @@ class DeductionController(
 ) {
 
     @PostMapping
-    fun createDeduction(@Valid @RequestBody request: ApiCreateDeductionModel) : ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createDeductionUseCase.execAsync(
+    suspend fun createDeduction(@Valid @RequestBody request: ApiCreateDeductionModel) : ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createDeductionUseCase.execute(
             mapApiCreateDeduction(request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateDeduction(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateDeductionModel) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateDeductionUseCase.execAsync(
+    suspend fun updateDeduction(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateDeductionModel) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateDeductionUseCase.execute(
             mapApiUpdateDeduction(id, request)
-        ))
+        ).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteDeduction(@PathVariable id: UUID) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteDeductionUseCase.execAsync(
+    suspend fun deleteDeduction(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteDeductionUseCase.execute(
             DeleteDeductionInput(id)
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getDeduction(@PathVariable id: UUID) : ResponseEntity<GetDeductionOutput> {
-        return ResponseEntity.ok(getDeductionUseCase.execAsync(
+    suspend fun getDeduction(@PathVariable id: UUID) : ResponseEntity<GetDeductionOutput> {
+        return ResponseEntity.ok(getDeductionUseCase.execute(
             id
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping
-    fun getAllDeduction(query: QueryFilter) : ResponseEntity<ListOutput<GetDeductionOutput>> {
-        return ResponseEntity.ok(getAllDeductionUseCase.execAsync(
+    suspend fun getAllDeduction(query: QueryFilter) : ResponseEntity<ListOutput<GetDeductionOutput>> {
+        return ResponseEntity.ok(getAllDeductionUseCase.execute(
             query
-        ))
+        ).getOrThrow())
     }
 }

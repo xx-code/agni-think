@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import usecases.UseCase
 import adapters.IEmbeddingService
 import adapters.events.EventType
 import adapters.events.listeners.IDeleteInvoiceEventListener
@@ -7,18 +8,17 @@ import adapters.events.IEventRegister
 import adapters.events.contents.DeleteEmbeddingInvoiceEventContent
 import adapters.events.contents.NotificationEventContent
 import adapters.events.contents.NotificationType
-import usecases.BackgroundTaskOut
-import usecases.interfaces.IUseCase
+import usecases.dto.BackgroundTaskOut
 import java.util.UUID
 
 class DeleteInvoiceEmbedding(
     private val eventRegister: IEventRegister,
     private val embeddingService: IEmbeddingService,
     private val invoiceCollectionName: String
-) : IUseCase<UUID, BackgroundTaskOut>, IDeleteInvoiceEventListener {
+): UseCase<UUID, BackgroundTaskOut>(), IDeleteInvoiceEventListener {
     private var event: DeleteEmbeddingInvoiceEventContent? = null
 
-    override fun execAsync(input: UUID): BackgroundTaskOut {
+    override suspend fun process(input: UUID): BackgroundTaskOut {
         try {
             embeddingService.deleteEmbeddingDocument(invoiceCollectionName, input)
 
@@ -37,9 +37,9 @@ class DeleteInvoiceEmbedding(
         }
     }
 
-    override fun update() {
+    override suspend fun update() {
         event?.let {
-            execAsync(it.invoiceId)
+            process(it.invoiceId)
         }
 
         event = null

@@ -9,8 +9,8 @@ import dev.auguste.rest_api.controllers.models.mapApiAddSnapshotToPatrimony
 import dev.auguste.rest_api.controllers.models.mapApiCreatePatrimony
 import dev.auguste.rest_api.controllers.models.mapApiUpdatePatrimony
 import dev.auguste.rest_api.controllers.models.mapApiUpdateSnapshotToPatrimony
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.patrimonies.dto.CreatePatrimonyInput
 import usecases.patrimonies.dto.DeletePatrimonyInput
@@ -50,71 +50,71 @@ class PatrimonyController(
 ) {
 
     @PostMapping
-    fun createPatrimony(@Valid @RequestBody request: ApiCreatePatrimonyModel): ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createPatrimonyUseCase.execAsync(
+    suspend fun createPatrimony(@Valid @RequestBody request: ApiCreatePatrimonyModel): ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createPatrimonyUseCase.execute(
             mapApiCreatePatrimony(request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updatePatrimony(@PathVariable id:UUID, @Valid @RequestBody request: ApiUpdatePatrimonyModel) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(updatePatrimonyUseCase.execAsync(
+    suspend fun updatePatrimony(@PathVariable id:UUID, @Valid @RequestBody request: ApiUpdatePatrimonyModel) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(updatePatrimonyUseCase.execute(
             mapApiUpdatePatrimony(id, request)
-        ))
+        ).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deletePatrimony(@PathVariable id: UUID) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(deletePatrimonyUseCase.execAsync(
+    suspend fun deletePatrimony(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(deletePatrimonyUseCase.execute(
             DeletePatrimonyInput(id)
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getPatrimony(@PathVariable id: UUID, sourceType: String = SourcePatrimonyType.PATRIMONY.value, isAsset: Boolean = false) : ResponseEntity<GetPatrimonyOutput> {
-        return ResponseEntity.ok(getPatrimonyUseCase.execAsync(
+    suspend fun getPatrimony(@PathVariable id: UUID, sourceType: String = SourcePatrimonyType.PATRIMONY.value, isAsset: Boolean = false) : ResponseEntity<GetPatrimonyOutput> {
+        return ResponseEntity.ok(getPatrimonyUseCase.execute(
             GetPatrimonyInput(id, SourcePatrimonyType.fromString(sourceType), isAsset)
-        ))
+        ).getOrThrow())
     }
     @GetMapping("/total-fund")
-    fun getPatrimony() : ResponseEntity<GetPatrimonyOutput> {
-        return ResponseEntity.ok(getPatrimonyUseCase.execAsync(
+    suspend fun getPatrimony() : ResponseEntity<GetPatrimonyOutput> {
+        return ResponseEntity.ok(getPatrimonyUseCase.execute(
             GetPatrimonyInput(UUID.randomUUID(), SourcePatrimonyType.FUND)
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping
-    fun getAllPatrimonies(query: QueryFilter) : ResponseEntity<ListOutput<GetPatrimonyOutput>> {
-        return ResponseEntity.ok(getAllPatrimoniesUseCase.execAsync(
+    suspend fun getAllPatrimonies(query: QueryFilter) : ResponseEntity<ListOutput<GetPatrimonyOutput>> {
+        return ResponseEntity.ok(getAllPatrimoniesUseCase.execute(
             query
-        ))
+        ).getOrThrow())
     }
 
     @PostMapping("/{id}/add-snapshot")
-    fun addSnapshotToPatrimonies(@PathVariable id: UUID, @Valid @RequestBody request: ApiAddSnapshotToPatrimonyModel) : ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(addSnapshotToPatrimonyUseCase.execAsync(
+    suspend fun addSnapshotToPatrimonies(@PathVariable id: UUID, @Valid @RequestBody request: ApiAddSnapshotToPatrimonyModel) : ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(addSnapshotToPatrimonyUseCase.execute(
             mapApiAddSnapshotToPatrimony(id, request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/remove-snapshot/{snapshotId}")
-    fun removeSnapshotFromPatrimonies(@PathVariable snapshotId: UUID) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(removeSnapshotFromPatrimonyUseCase.execAsync(
+    suspend fun removeSnapshotFromPatrimonies(@PathVariable snapshotId: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(removeSnapshotFromPatrimonyUseCase.execute(
             RemoveSnapshotFromPatrimonyInput(snapshotId)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/update-snapshot/{snapshotId}")
-    fun updateSnapshotFromPatrimonies(@PathVariable snapshotId: UUID, @Valid @RequestBody request: ApiUpdateSnapshotFromPatrimonyModel) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateSnapshotFromPatrimonyUseCase.execAsync(
+    suspend fun updateSnapshotFromPatrimonies(@PathVariable snapshotId: UUID, @Valid @RequestBody request: ApiUpdateSnapshotFromPatrimonyModel) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateSnapshotFromPatrimonyUseCase.execute(
             mapApiUpdateSnapshotToPatrimony(snapshotId, request)
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/{id}/snapshots")
-    fun getSnapshotsFromPatrimony(@PathVariable id: UUID, query: QueryFilter, sourceType: String = SourcePatrimonyType.PATRIMONY.value, isAsset: Boolean = false) : ResponseEntity<ListOutput<GetSnapshotPatrimonyOutput>> {
-        return ResponseEntity.ok(getAllPatrimonySnapshotUseCase.execAsync(
+    suspend fun getSnapshotsFromPatrimony(@PathVariable id: UUID, query: QueryFilter, sourceType: String = SourcePatrimonyType.PATRIMONY.value, isAsset: Boolean = false) : ResponseEntity<ListOutput<GetSnapshotPatrimonyOutput>> {
+        return ResponseEntity.ok(getAllPatrimonySnapshotUseCase.execute(
             GetAllSnapshotPatrimonyInput(id, query, SourcePatrimonyType.fromString(sourceType), isAsset)
-        ))
+        ).getOrThrow())
     }
 }

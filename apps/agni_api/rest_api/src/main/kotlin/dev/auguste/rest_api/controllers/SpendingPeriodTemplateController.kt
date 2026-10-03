@@ -5,8 +5,8 @@ import dev.auguste.rest_api.controllers.models.ApiCreateSpendingPeriodTemplateMo
 import dev.auguste.rest_api.controllers.models.ApiUpdateSpendingPeriodTemplateModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateSpendingPeriodTemplateToSpendingPeriodTemplate
 import dev.auguste.rest_api.controllers.models.mapApiUpdateSpendingPeriodTemplateToSpendingPeriodTemplate
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.spending_period_template.dto.CreateSpendingPeriodTemplateInput
 import usecases.spending_period_template.dto.GetSpendingPeriodTemplateOutput
@@ -35,35 +35,35 @@ class SpendingPeriodTemplateController(
 ) {
 
     @PostMapping
-    fun createSpendingPeriodTemplate(@Valid @RequestBody request: ApiCreateSpendingPeriodTemplateModel) : ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createSpendingPeriodTemplateUc.execAsync(
+    suspend fun createSpendingPeriodTemplate(@Valid @RequestBody request: ApiCreateSpendingPeriodTemplateModel) : ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createSpendingPeriodTemplateUc.execute(
             mapApiCreateSpendingPeriodTemplateToSpendingPeriodTemplate(request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateSpendingPeriodTemplate(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateSpendingPeriodTemplateModel) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateSpendingPeriodTemplateUc.execAsync(
+    suspend fun updateSpendingPeriodTemplate(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateSpendingPeriodTemplateModel) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateSpendingPeriodTemplateUc.execute(
             mapApiUpdateSpendingPeriodTemplateToSpendingPeriodTemplate(id, request)
-        ))
+        ).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteSpendingPeriodTemplate(@PathVariable id: UUID) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteSpendingPeriodTemplateUc.execAsync(id))
+    suspend fun deleteSpendingPeriodTemplate(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteSpendingPeriodTemplateUc.execute(id).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getSpendingPeriodTemplate(@PathVariable id: UUID) : ResponseEntity<GetSpendingPeriodTemplateOutput> {
-        return ResponseEntity.ok(getSpendingPeriodTemplateUc.execAsync(
+    suspend fun getSpendingPeriodTemplate(@PathVariable id: UUID) : ResponseEntity<GetSpendingPeriodTemplateOutput> {
+        return ResponseEntity.ok(getSpendingPeriodTemplateUc.execute(
             input = id
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping
-    fun getAllSpendingPeriodTemplates(query: QueryFilter) : ResponseEntity<ListOutput<GetSpendingPeriodTemplateOutput>> {
-        return ResponseEntity.ok(getAllSpendingPeriodTemplateUc.execAsync(
+    suspend fun getAllSpendingPeriodTemplates(query: QueryFilter) : ResponseEntity<ListOutput<GetSpendingPeriodTemplateOutput>> {
+        return ResponseEntity.ok(getAllSpendingPeriodTemplateUc.execute(
             query
-        ))
+        ).getOrThrow())
     }
 }

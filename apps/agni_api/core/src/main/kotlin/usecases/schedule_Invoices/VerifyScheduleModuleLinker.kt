@@ -1,11 +1,11 @@
 package usecases.schedule_Invoices
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.IncomeSource
 import domain.entities.Provision
 import domain.entities.Fund
-import usecases.interfaces.IUseCase
 import domain.value_objects.ScheduleInvoiceModuleLinker
 import domain.enums.ScheduleInvoiceModuleLinkerType
 
@@ -13,8 +13,8 @@ class VerifyScheduleModuleLinker(
     private val incomeSourceRepo: IRepository<IncomeSource>,
     private val fundSourceRepo: IRepository<Fund>,
     private val provisionRepo: IRepository<Provision>,
-): IUseCase<ScheduleInvoiceModuleLinker, Unit> {
-    override fun execAsync(input: ScheduleInvoiceModuleLinker) {
+): UseCase<ScheduleInvoiceModuleLinker, Unit>() {
+    override suspend fun process(input: ScheduleInvoiceModuleLinker) {
         when (input.module) {
             ScheduleInvoiceModuleLinkerType.FUND -> {
                 if (fundSourceRepo.get(input.sourceId) == null)

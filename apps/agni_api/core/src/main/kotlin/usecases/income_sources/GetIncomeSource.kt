@@ -1,16 +1,16 @@
 package usecases.income_sources
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.IncomeSource
 import usecases.income_sources.dto.GetIncomeSourceOutput
-import usecases.interfaces.IUseCase
 import java.util.UUID
 
 class GetIncomeSource(
     private val incomeSourceRepo: IRepository<IncomeSource>,
-) : IUseCase<UUID, GetIncomeSourceOutput> {
-    override fun execAsync(input: UUID): GetIncomeSourceOutput {
+): UseCase<UUID, GetIncomeSourceOutput>() {
+    override suspend fun process(input: UUID): GetIncomeSourceOutput {
         val incomeSource = incomeSourceRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "income_source")
 
         return GetIncomeSourceOutput(

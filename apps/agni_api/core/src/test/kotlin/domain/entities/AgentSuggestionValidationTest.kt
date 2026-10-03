@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import domain.enums.AgentSuggestionStatusType
 import domain.exceptions.ValidationException
 import kotlin.test.Test
@@ -18,7 +20,7 @@ class AgentSuggestionValidationTest {
     )
 
     @Test
-    fun `accepts the lower and upper confidence boundaries`() {
+    fun `accepts the lower and upper confidence boundaries`() = runBlocking {
         val suggestion = suggestion(confidenceScore = 0.0)
         suggestion.confidenceScore = 100.0
 
@@ -26,7 +28,7 @@ class AgentSuggestionValidationTest {
     }
 
     @Test
-    fun `refuses a confidence below zero`() {
+    fun `refuses a confidence below zero`() = runBlocking {
         val suggestion = suggestion()
 
         val error = assertFailsWith<ValidationException.AgentSuggestionInvalidConfidenceScore> {
@@ -38,7 +40,7 @@ class AgentSuggestionValidationTest {
     }
 
     @Test
-    fun `refuses a confidence above one hundred`() {
+    fun `refuses a confidence above one hundred`() = runBlocking {
         val suggestion = suggestion()
 
         val error = assertFailsWith<ValidationException.AgentSuggestionInvalidConfidenceScore> {

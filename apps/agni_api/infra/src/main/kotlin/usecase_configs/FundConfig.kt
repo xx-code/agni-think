@@ -5,9 +5,8 @@ import adapters.repositories.IUnitOfWork
 import domain.entities.Account
 import domain.entities.Goal
 import domain.entities.Fund
-import usecases.CreatedOutput
-import usecases.ListOutput
-import usecases.interfaces.IInnerUseCase
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.invoices.dto.CreateInvoiceInput
 import usecases.saving_goals.CreateSavingGoal
@@ -26,6 +25,7 @@ import usecases.saving_goals.dto.IncreaseSavingGoalInput
 import usecases.saving_goals.dto.UpdateSavingGoalInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -35,7 +35,7 @@ class FundConfig {
     fun createFund(
         fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
-    ): IUseCase<CreateSavingGoalInput, CreatedOutput> {
+    ): UseCase<CreateSavingGoalInput, CreatedOutput> {
         return CreateSavingGoal(
             fundRepo = fundRepo,
             accountingRepo = accountRepo
@@ -46,7 +46,7 @@ class FundConfig {
     fun updateFund(
         fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
-    ): IUseCase<UpdateSavingGoalInput, Unit> {
+    ): UseCase<UpdateSavingGoalInput, Unit> {
         return UpdateSavingGoal(
             fundRepo = fundRepo,
             accountRepo = accountRepo
@@ -57,9 +57,9 @@ class FundConfig {
     fun decreaseFund(
         fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
-        createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
+        createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork,
-    ): IInnerUseCase<DecreaseSavingGoalInput, Unit> {
+    ): UseCase<DecreaseSavingGoalInput, Unit> {
         return DecreaseSavingGoal(
             fundRepo = fundRepo,
             accountRepo = accountRepo,
@@ -72,9 +72,9 @@ class FundConfig {
     fun increaseFund(
         fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
-        createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
+        createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork,
-    ): IUseCase<IncreaseSavingGoalInput, Unit> {
+    ): UseCase<IncreaseSavingGoalInput, Unit> {
        return IncreaseSavingGoal(
            fundRepo = fundRepo,
            accountRepo = accountRepo,
@@ -88,9 +88,9 @@ class FundConfig {
         fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
         goalRepo: IRepository<Goal>,
-        createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
+        createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
         unitOfWork: IUnitOfWork,
-   ): IUseCase<DeleteSavingGoalInput, Unit> {
+   ): UseCase<DeleteSavingGoalInput, Unit> {
        return DeleteSavingGoal(
            fundRepo = fundRepo,
            accountRepo = accountRepo,
@@ -104,7 +104,7 @@ class FundConfig {
     fun getAllFund(
         fundRepo: IRepository<Fund>,
         goalRepo: IRepository<Goal>
-    ): IUseCase<GetAllSavingGoalInput, ListOutput<GetSavingGoalOutput>> {
+    ): UseCase<GetAllSavingGoalInput, ListOutput<GetSavingGoalOutput>> {
         return GetAllSavingGoal(
             fundRepo = fundRepo,
             goalRepo = goalRepo
@@ -115,7 +115,7 @@ class FundConfig {
     fun getFund(
         fundRepo: IRepository<Fund>,
         goalRepo: IRepository<Goal>
-    ): IUseCase<UUID, GetSavingGoalOutput> {
+    ): UseCase<UUID, GetSavingGoalOutput> {
         return GetSavingGoal(
             fundRepo = fundRepo,
             goalRepo = goalRepo

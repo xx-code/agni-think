@@ -6,26 +6,15 @@ import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import domain.entities.Budget
 import domain.entities.Profile
-import domain.entities.ScheduleInvoice
 import domain.entities.SpendingPeriod
 
 import domain.entities.SpendingPeriodTemplate
-import usecases.BackgroundTaskOut
-import usecases.CreatedOutput
-import usecases.ListOutput
-import usecases.analystics.dto.ForcastSpendingInput
-import usecases.analystics.dto.ForcastSpendingOutput
-import usecases.analystics.dto.GetSavingBalanceInput
-import usecases.interfaces.ISuspendableUseCase
+import usecases.dto.BackgroundTaskOut
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
-import usecases.invoices.dto.GetAllInvoiceInput
-import usecases.invoices.dto.GetBalanceInput
-import usecases.invoices.dto.GetBalanceOutput
-import usecases.invoices.dto.GetInvoiceOutput
-import usecases.spending_period.ForcastSpendingPeriod
 import usecases.spending_period.dto.ForcastSpendingPeriodInput
 import usecases.spending_period.dto.ForcastSpendingPeriodOutput
-import usecases.spending_period.dto.GetAllSpendingPeriodInput
 import usecases.spending_period_template.ApplySpendingPeriodTemplate
 import usecases.spending_period_template.CreateSpendingPeriodTemplate
 import usecases.spending_period_template.DeleteSpendingPeriodTemplate
@@ -37,6 +26,7 @@ import usecases.spending_period_template.dto.GetSpendingPeriodTemplateOutput
 import usecases.spending_period_template.dto.UpdateSpendingPeriodTemplateInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -46,7 +36,7 @@ class SpendingPeriodTemplateConfig {
     fun createSpendingPeriodTemplate(
         spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
         budgetRepo: IRepository<Budget>
-    ): IUseCase<CreateSpendingPeriodTemplateInput, CreatedOutput> {
+    ): UseCase<CreateSpendingPeriodTemplateInput, CreatedOutput> {
         return CreateSpendingPeriodTemplate(
             spendingPeriodTemplateRepo = spendingPeriodTemplateRepo,
             budgetRepo = budgetRepo,
@@ -57,7 +47,7 @@ class SpendingPeriodTemplateConfig {
     fun updateSpendingPeriodTemplate(
         spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
         budgetRepo: IRepository<Budget>
-    ): IUseCase<UpdateSpendingPeriodTemplateInput, Unit> {
+    ): UseCase<UpdateSpendingPeriodTemplateInput, Unit> {
         return UpdateSpendingPeriodTemplate(
             spendingPeriodTemplateRepo = spendingPeriodTemplateRepo,
             budgetRepo = budgetRepo,
@@ -68,7 +58,7 @@ class SpendingPeriodTemplateConfig {
     fun getSpendingPeriodTemplate(
         spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
         budgetRepo: IRepository<Budget>
-    ): IUseCase<UUID, GetSpendingPeriodTemplateOutput> {
+    ): UseCase<UUID, GetSpendingPeriodTemplateOutput> {
         return GetSpendingPeriodTemplate(
             spendingPeriodTemplateRepo = spendingPeriodTemplateRepo,
             budgetRepo = budgetRepo
@@ -79,7 +69,7 @@ class SpendingPeriodTemplateConfig {
     fun getAllSpendingPeriodTemplate(
         spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
         budgetRepo: IRepository<Budget>
-    ): IUseCase<QueryFilter, ListOutput<GetSpendingPeriodTemplateOutput>> {
+    ): UseCase<QueryFilter, ListOutput<GetSpendingPeriodTemplateOutput>> {
         return GetAllSpendingPeriodTemplate(
             spendingPeriodTemplateRepo = spendingPeriodTemplateRepo,
             budgetRepo = budgetRepo,
@@ -89,7 +79,7 @@ class SpendingPeriodTemplateConfig {
     @Bean("deleteSpendingPeriodTemplate")
     fun deleteSpendingPeriodTemplate(
         spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
-    ) : IUseCase<UUID, Unit> {
+    ) : UseCase<UUID, Unit> {
        return DeleteSpendingPeriodTemplate(
            spendingPeriodTemplateRepo = spendingPeriodTemplateRepo
        )
@@ -103,7 +93,7 @@ class SpendingPeriodTemplateConfig {
         foreCastSpending: IUseCase<ForcastSpendingPeriodInput, ForcastSpendingPeriodOutput>,
         eventRegister: IEventRegister,
         unitOfWork: IUnitOfWork,
-    ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
+    ): UseCase<Unit, BackgroundTaskOut> {
         return ApplySpendingPeriodTemplate(
             spendingPeriodTemplateRepo = spendingPeriodTemplateRepo,
             spendingPeriodRepo = spendingPeriodRepo,

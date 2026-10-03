@@ -1,5 +1,7 @@
 package domain.entities
 
+import kotlinx.coroutines.runBlocking
+
 import domain.enums.PrincipleType
 import domain.exceptions.ValidationException
 import kotlin.test.Test
@@ -16,7 +18,7 @@ class FinancePrincipleValidationTest {
     )
 
     @Test
-    fun `accepts the soft and hard strictness boundaries`() {
+    fun `accepts the soft and hard strictness boundaries`() = runBlocking {
         val principle = principle()
 
         principle.strictness = 1
@@ -27,7 +29,7 @@ class FinancePrincipleValidationTest {
     }
 
     @Test
-    fun `refuses a strictness below one`() {
+    fun `refuses a strictness below one`() = runBlocking {
         val principle = principle()
 
         val error = assertFailsWith<ValidationException.InvalidFinancialPrincipleStrictness> {
@@ -39,7 +41,7 @@ class FinancePrincipleValidationTest {
     }
 
     @Test
-    fun `refuses a strictness above ten`() {
+    fun `refuses a strictness above ten`() = runBlocking {
         val principle = principle()
 
         val error = assertFailsWith<ValidationException.InvalidFinancialPrincipleStrictness> {

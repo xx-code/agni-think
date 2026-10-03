@@ -1,5 +1,11 @@
 package usecases.analytics
 
+import io.mockk.coVerify
+
+import io.mockk.coEvery
+
+import kotlinx.coroutines.runBlocking
+
 import adapters.dto.RepoList
 import adapters.repositories.IRepository
 import domain.entities.Account
@@ -24,8 +30,12 @@ import domain.value_objects.SavingAccountDetail
 import domain.value_objects.Scheduler
 import domain.value_objects.SchedulerRecurrence
 import io.mockk.every
+
+import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.verify
+
+import io.mockk.coVerify
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
@@ -66,7 +76,7 @@ class ForcastSpendingTest {
 
     @BeforeEach
     fun stubDefaultGetBalance() {
-        every { getBalance.execAsync(any()) } returns GetBalanceOutput(balance = 0.0, income = 0.0, spend = 0.0)
+        coEvery { getBalance.processDirect(any()) } returns GetBalanceOutput(balance = 0.0, income = 0.0, spend = 0.0)
     }
 
     private fun stubProfile(savingRate: Double) {
@@ -144,7 +154,7 @@ class ForcastSpendingTest {
     )
 
     @Test
-    fun `empty forecast uses override balance and returns zeroes`() {
+    fun `empty forecast uses override balance and returns zeroes`() = runBlocking {
         stubNoBudgets()
         stubNoScheduleInvoices()
         stubProfile(10.0)
@@ -172,7 +182,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `current balance excludes saving and broking accounts`() {
+    fun `current balance excludes saving and broking accounts`() = runBlocking {
         stubNoBudgets()
         stubNoScheduleInvoices()
         stubProfile(0.0)
@@ -184,7 +194,7 @@ class ForcastSpendingTest {
             20.0 to AccountType.BUSINESS
         )
 
-        val result = forcastSpending.execAsync(emptyInput().copy(savingRate = 0.0))
+        val result = forcastSpending.execute(emptyInput().copy(savingRate = 0.0)).getOrThrow()
 
         assertEquals(60.0, result.remainAmount)
         assertEquals(60.0, result.totalExpectedIncome)
@@ -192,7 +202,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `sums income fixed and variable expenses from schedule invoices`() {
+    fun `sums income fixed and variable expenses from schedule invoices`() = runBlocking {
         stubNoBudgets()
         stubProfile(10.0)
         stubScheduleInvoices(
@@ -218,7 +228,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `multiplies recurring schedule invoices by number of occurrences`() {
+    fun `multiplies recurring schedule invoices by number of occurrences`() = runBlocking {
         stubNoBudgets()
         stubProfile(0.0)
         stubScheduleInvoices(
@@ -249,10 +259,10 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `counts only freeze invoices whose freeze end date is after the forecast end date`() {
+    fun `counts only freeze invoices whose freeze end date is after the forecast end date`() = runBlocking {
         stubNoBudgets()
         stubProfile(0.0)
-        every { getBalance.execAsync(any()) } returns GetBalanceOutput(balance = 100.0, income = 0.0, spend = 0.0)
+        coEvery { getBalance.processDirect(any()) } returns GetBalanceOutput(balance = 100.0, income = 0.0, spend = 0.0)
         stubScheduleInvoices(
             scheduleInvoice(InvoiceType.FIXED_COST, 200.0),
             scheduleInvoice(
@@ -281,7 +291,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `adds budget expenses for requested budget ids`() {
+    fun `adds budget expenses for requested budget ids`() = runBlocking {
         stubNoScheduleInvoices()
         stubProfile(0.0)
 
@@ -313,12 +323,12 @@ class ForcastSpendingTest {
         // `remaining = target - abs(spend)`, et `spend` vient de `getBalance` (0 par defaut ici) :
         // le solde courant n'est plus lu via `getBudget`.
         assertEquals(1500.0, result.expectedBudgetExpense)
-        verify(exactly = 1) { getBalance.execAsync(match { it.budgetIds == setOf(aId) }) }
-        verify(exactly = 1) { getBalance.execAsync(match { it.budgetIds == setOf(bId) }) }
+        coVerify(exactly = 1) { getBalance.processDirect(match { it.budgetIds == setOf(aId) }) }
+        coVerify(exactly = 1) { getBalance.processDirect(match { it.budgetIds == setOf(bId) }) }
     }
 
     @Test
-    fun `uses profile saving rate when input saving rate is null`() {
+    fun `uses profile saving rate when input saving rate is null`() = runBlocking {
         stubNoBudgets()
         stubProfile(20.0)
         stubScheduleInvoices(scheduleInvoice(InvoiceType.INCOME, 1000.0))
@@ -333,7 +343,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `input saving rate overrides profile saving rate`() {
+    fun `input saving rate overrides profile saving rate`() = runBlocking {
         stubNoBudgets()
         stubProfile(80.0)
         stubScheduleInvoices(scheduleInvoice(InvoiceType.INCOME, 1000.0))
@@ -346,7 +356,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `approves want items that fit within available amount`() {
+    fun `approves want items that fit within available amount`() = runBlocking {
         stubNoBudgets()
         stubNoScheduleInvoices()
         stubProfile(0.0)
@@ -369,7 +379,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `rejects want items that exceed available balance after saving margin`() {
+    fun `rejects want items that exceed available balance after saving margin`() = runBlocking {
         stubNoBudgets()
         stubNoScheduleInvoices()
         stubProfile(0.0)
@@ -391,7 +401,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `adds additional saving income on top of override balance`() {
+    fun `adds additional saving income on top of override balance`() = runBlocking {
         stubNoBudgets()
         stubNoScheduleInvoices()
         stubProfile(0.0)
@@ -413,7 +423,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `adds additional saving income on top of scheduled income`() {
+    fun `adds additional saving income on top of scheduled income`() = runBlocking {
         stubNoBudgets()
         stubProfile(10.0)
         val savingId = UUID.randomUUID()
@@ -436,7 +446,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `throws when additional saving account is not a saving account`() {
+    fun `throws when additional saving account is not a saving account`() = runBlocking {
         stubNoBudgets()
         stubNoScheduleInvoices()
         stubProfile(0.0)
@@ -455,7 +465,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `throws when additional saving account does not exist`() {
+    fun `throws when additional saving account does not exist`() = runBlocking {
         stubNoBudgets()
         stubNoScheduleInvoices()
         stubProfile(0.0)
@@ -473,7 +483,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `throws when additional saving amount exceeds the saving account balance`() {
+    fun `throws when additional saving amount exceeds the saving account balance`() = runBlocking {
         stubNoBudgets()
         stubNoScheduleInvoices()
         stubProfile(0.0)

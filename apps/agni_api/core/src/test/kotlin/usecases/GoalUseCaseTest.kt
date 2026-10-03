@@ -1,5 +1,11 @@
 package usecases
 
+import io.mockk.coVerify
+
+import io.mockk.coEvery
+
+import kotlinx.coroutines.runBlocking
+
 import adapters.FinanceContextFund
 import adapters.IFinanceContext
 import adapters.dto.QueryFilter
@@ -13,10 +19,14 @@ import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import io.mockk.Runs
 import io.mockk.every
+
+import io.mockk.coEvery
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+
+import io.mockk.coVerify
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.Test
@@ -77,78 +87,78 @@ class GoalUseCaseTest {
     )
 
     @Test
-    fun `create fund goal validates source, evaluates progress and persists it`() {
+    fun `create fund goal validates source, evaluates progress and persists it`() = runBlocking {
         val sourceId = UUID.randomUUID()
         val goalSlot = slot<Goal>()
-        every { financeContext.getFund(sourceId) } returns FinanceContextFund(sourceId, 450.0, 450.0)
+        coevery { financeContext.getFund(sourceId) } returns FinanceContextFund(sourceId, 450.0, 450.0)
         every { goalRepo.create(capture(goalSlot)) } just Runs
 
-        val result = createGoal.execAsync(createGoalInput(sourceId, type = GoalEvaluationType.FUND))
+        val result = createGoal.execute(createGoalInput(sourceId, type = GoalEvaluationType.FUND)).getOrThrow()
 
         assertEquals(goalSlot.captured.id, result.newId)
         assertEquals("Fond", goalSlot.captured.title)
         assertEquals(sourceId, goalSlot.captured.targetSourceId)
         assertEquals(GoalEvaluationType.FUND, goalSlot.captured.type)
-        verify { financeContext.getFund(sourceId) }
+        coverify { financeContext.getFund(sourceId) }
     }
 
     @Test
-    fun `create category target goal validates category and persists it`() {
+    fun `create category target goal validates category and persists it`() = runBlocking {
         val sourceId = UUID.randomUUID()
         val goalSlot = slot<Goal>()
-        every { financeContext.verifyCategoryExists(sourceId) } just Runs
-        every { financeContext.getCategoryTotal(any(), any(), any()) } returns 50.0
+    coeveryvery { financeContext.verifyCategoryExists(sourceId) } just Runs
+  coevery every { financeContext.getCategoryTotal(any(), any(), any()) } returns 50.0
         every { goalRepo.create(capture(goalSlot)) } just Runs
 
-        createGoal.execAsync(createGoalInput(sourceId, type = GoalEvaluationType.TRANSACTION_TARGET))
+        createGoal.execute(createGoalInput(sourceId, type = GoalEvaluationType.TRANSACTION_TARGET)).getOrThrow()
 
         assertEquals(sourceId, goalSlot.captured.targetSourceId)
         assertEquals(GoalEvaluationType.TRANSACTION_TARGET, goalSlot.captured.type)
-        verify { financeContext.verifyCategoryExists(sourceId) }
+  coverifyverify { financeContext.verifyCategoryExists(sourceId) }
     }
 
     @Test
-    fun `does not create goal when fund does not exist`() {
+    fun `does not create goal when fund does not exist`() = runBlocking {
         val sourceId = UUID.randomUUID()
-        every { financeContext.getFund(sourceId) } throws NotFoundException.SingleEntity(sourceId, "saving_goal")
+        coevery { financeContext.getFund(sourceId) } throws NotFoundException.SingleEntity(sourceId, "saving_goal")
 
         assertFailsWith<NotFoundException> {
-            createGoal.execAsync(createGoalInput(sourceId))
+            createGoal.execute(createGoalInput(sourceId)).getOrThrow()
         }
 
         verify(exactly = 0) { goalRepo.create(any()) }
     }
 
     @Test
-    fun `does not create goal when category does not exist`() {
+    fun `does not create goal when category does not exist`() = runBlocking {
         val sourceId = UUID.randomUUID()
-        every { financeContext.verifyCategoryExists(sourceId) } throws NotFoundException.SingleEntity(sourceId, "category")
+        coevery { financeContext.verifyCategoryExists(sourceId) } throws NotFoundException.SingleEntity(sourceId, "category")
 
         assertFailsWith<NotFoundException> {
-            createGoal.execAsync(createGoalInput(sourceId, type = GoalEvaluationType.TRANSACTION_TARGET))
+            createGoal.execute(createGoalInput(sourceId, type = GoalEvaluationType.TRANSACTION_TARGET)).getOrThrow()
         }
 
         verify(exactly = 0) { goalRepo.create(any()) }
     }
 
     @Test
-    fun `create goal throws when no strategy is registered for the type`() {
+    fun `create goal throws when no strategy is registered for the type`() = runBlocking {
         val sourceId = UUID.randomUUID()
 
         assertFailsWith<ValidationException> {
-            createGoal.execAsync(createGoalInput(sourceId, type = GoalEvaluationType.PATRIMONY))
+            createGoal.execute(createGoalInput(sourceId, type = GoalEvaluationType.PATRIMONY)).getOrThrow()
         }
 
         verify(exactly = 0) { goalRepo.create(any()) }
     }
 
     @Test
-    fun `update goal persists changed fields`() {
+    fun `update goal persists changed fields`() = runBlocking {
         val goalId = UUID.randomUUID()
         val existing = goal(id = goalId, title = "Old title")
         val goalSlot = slot<Goal>()
         every { goalRepo.get(goalId) } returns existing
-        every { financeContext.getFund(any()) } returns FinanceContextFund(goalId, 1000.0, 1000.0)
+        coevery { financeContext.getFund(any()) } returns FinanceContextFund(goalId, 1000.0, 1000.0)
         every { goalRepo.update(capture(goalSlot)) } just Runs
 
         updateGoal.execAsync(
@@ -168,7 +178,7 @@ class GoalUseCaseTest {
     }
 
     @Test
-    fun `update goal does not persist when nothing changed`() {
+    fun `update goal does not persist when nothing changed`() = runBlocking {
         val goalId = UUID.randomUUID()
         val existing = goal(id = goalId, title = "Title", status = GoalStatusType.ACTIVE)
         every { goalRepo.get(goalId) } returns existing
@@ -188,26 +198,26 @@ class GoalUseCaseTest {
     }
 
     @Test
-    fun `update goal throws not found when goal does not exist`() {
+    fun `update goal throws not found when goal does not exist`() = runBlocking {
         val goalId = UUID.randomUUID()
         every { goalRepo.get(goalId) } returns null
 
         assertFailsWith<NotFoundException> {
-            updateGoal.execAsync(UpdateGoalInput(id = goalId, title = null, description = null, targetAmount = null, targetDate = null, status = null))
+            updateGoal.execute(UpdateGoalInput(id = goalId, title = null, description = null, targetAmount = null, targetDate = null, status = null)).getOrThrow()
         }
 
         verify(exactly = 0) { goalRepo.update(any()) }
     }
 
     @Test
-    fun `get goal returns goal with evaluation`() {
+    fun `get goal returns goal with evaluation`() = runBlocking {
         val goalId = UUID.randomUUID()
         val sourceId = UUID.randomUUID()
         val existing = goal(id = goalId, sourceId = sourceId, targetAmount = 300.0)
         every { goalRepo.get(goalId) } returns existing
-        every { financeContext.getFund(sourceId) } returns FinanceContextFund(sourceId, 100.0, 400.0)
+    coeveryvery { financeContext.getFund(sourceId) } returns FinanceContextFund(sourceId, 100.0, 400.0)
 
-        val output = getGoal.execAsync(goalId)
+        val output = getGoal.execute(goalId).getOrThrow()
 
         assertEquals(goalId, output.id)
         assertEquals("Fond", output.title)
@@ -217,21 +227,21 @@ class GoalUseCaseTest {
     }
 
     @Test
-    fun `get goal throws not found when goal does not exist`() {
+    fun `get goal throws not found when goal does not exist`() = runBlocking {
         val goalId = UUID.randomUUID()
         every { goalRepo.get(goalId) } returns null
 
         assertFailsWith<NotFoundException> {
-            getGoal.execAsync(goalId)
+            getGoal.execute(goalId).getOrThrow()
         }
     }
 
     @Test
-    fun `get all goals returns items with evaluation and forwards filters`() {
+    fun `get all goals returns items with evaluation and forwards filters`() = runBlocking {
         val sourceId = UUID.randomUUID()
         val goal1 = goal(sourceId = sourceId, targetAmount = 300.0)
         val goal2 = goal(sourceId = sourceId, targetAmount = 200.0, status = GoalStatusType.COMPLETED)
-        every { financeContext.getFund(any()) } returns FinanceContextFund(sourceId, 50.0, 400.0)
+  coevery every { financeContext.getFund(any()) } returns FinanceContextFund(sourceId, 50.0, 400.0)
         every { goalRepo.getAll(any(), anyNullable()) } returns RepoList(listOf(goal1, goal2), 2)
 
         val result = getAllGoals.execAsync(
@@ -267,8 +277,8 @@ class GoalUseCaseTest {
     }
 
     @Test
-    fun `get all goals returns empty list`() {
-        every { financeContext.getFund(any()) } returns FinanceContextFund(UUID.randomUUID(), 0.0, 400.0)
+    fun `get all goals returns empty list`() = runBlocking {
+  coevery every { financeContext.getFund(any()) } returns FinanceContextFund(UUID.randomUUID(), 0.0, 400.0)
         every { goalRepo.getAll(any(), anyNullable()) } returns RepoList(emptyList(), 0)
 
         val result = getAllGoals.execAsync(
@@ -280,23 +290,23 @@ class GoalUseCaseTest {
     }
 
     @Test
-    fun `delete goal deletes when exists`() {
+    fun `delete goal deletes when exists`() = runBlocking {
         val goalId = UUID.randomUUID()
         every { goalRepo.get(goalId) } returns goal(id = goalId)
         every { goalRepo.delete(goalId) } just Runs
 
-        deleteGoal.execAsync(goalId)
+        deleteGoal.execute(goalId).getOrThrow()
 
         verify { goalRepo.delete(goalId) }
     }
 
     @Test
-    fun `delete goal throws not found when goal does not exist`() {
+    fun `delete goal throws not found when goal does not exist`() = runBlocking {
         val goalId = UUID.randomUUID()
         every { goalRepo.get(goalId) } returns null
 
         assertFailsWith<NotFoundException> {
-            deleteGoal.execAsync(goalId)
+            deleteGoal.execute(goalId).getOrThrow()
         }
 
         verify(exactly = 0) { goalRepo.delete(goalId) }

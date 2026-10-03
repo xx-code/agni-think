@@ -5,8 +5,8 @@ import dev.auguste.rest_api.controllers.models.ApiCreateIncomeSourceModel
 import dev.auguste.rest_api.controllers.models.ApiUpdateIncomeSourceModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateIncomeSourceTo
 import dev.auguste.rest_api.controllers.models.mapApiUpdateIncomeSourceTo
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.income_sources.dto.CreateIncomeSourceInput
 import usecases.income_sources.dto.DeleteIncomeSourceInput
 import usecases.income_sources.dto.GetIncomeSourceOutput
@@ -34,35 +34,35 @@ class IncomeSourceController(
 ) {
 
     @PostMapping
-    fun createIncomeSource(@RequestBody request: ApiCreateIncomeSourceModel): ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createIncomeSource.execAsync(
+    suspend fun createIncomeSource(@RequestBody request: ApiCreateIncomeSourceModel): ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createIncomeSource.execute(
             mapApiCreateIncomeSourceTo(request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateIncomeSource(@PathVariable id: UUID, @RequestBody request: ApiUpdateIncomeSourceModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateIncomeSource.execAsync(
+    suspend fun updateIncomeSource(@PathVariable id: UUID, @RequestBody request: ApiUpdateIncomeSourceModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateIncomeSource.execute(
             mapApiUpdateIncomeSourceTo(id, request)
-        ))
+        ).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteIncomeSource(@PathVariable id: UUID): ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteIncomeSource.execAsync(
+    suspend fun deleteIncomeSource(@PathVariable id: UUID): ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteIncomeSource.execute(
             DeleteIncomeSourceInput(id)
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getIncomeSource(@PathVariable id: UUID): ResponseEntity<GetIncomeSourceOutput> {
-        return ResponseEntity.ok(getIncomeSource.execAsync(
+    suspend fun getIncomeSource(@PathVariable id: UUID): ResponseEntity<GetIncomeSourceOutput> {
+        return ResponseEntity.ok(getIncomeSource.execute(
             id
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping
-    fun getAllIncomeSource(query: QueryFilter): ResponseEntity<ListOutput<GetIncomeSourceOutput>> {
-        return ResponseEntity.ok(getAllIncomeSource.execAsync(query))
+    suspend fun getAllIncomeSource(query: QueryFilter): ResponseEntity<ListOutput<GetIncomeSourceOutput>> {
+        return ResponseEntity.ok(getAllIncomeSource.execute(query).getOrThrow())
     }
 }

@@ -3,9 +3,9 @@ package usecase_configs
 import adapters.events.IEventRegister
 import adapters.repositories.IRepository
 import domain.entities.Budget
-import usecases.BackgroundTaskOut
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.BackgroundTaskOut
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.budgets.CreateBudget
 import usecases.budgets.DeleteBudget
 import usecases.budgets.GetAllBudgets
@@ -17,12 +17,12 @@ import usecases.budgets.dto.DeleteBudgetInput
 import usecases.budgets.dto.GetAllBudgetInput
 import usecases.budgets.dto.GetBudgetOutput
 import usecases.budgets.dto.UpdateBudgetInput
-import usecases.interfaces.ISuspendableUseCase
 import usecases.interfaces.IUseCase
 import usecases.invoices.dto.GetBalanceInput
 import usecases.invoices.dto.GetBalanceOutput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import usecases.UseCase
 import java.util.UUID
 
 @Configuration
@@ -31,7 +31,7 @@ class BudgetConfig {
     @Bean
     fun createBudget(
         budgetRepo: IRepository<Budget>,
-    ) : IUseCase<CreateBudgetInput, CreatedOutput> {
+    ) : UseCase<CreateBudgetInput, CreatedOutput> {
         return CreateBudget(
             budgetRepo = budgetRepo
         )
@@ -40,7 +40,7 @@ class BudgetConfig {
     @Bean 
     fun updateBudget(
         budgetRepo : IRepository<Budget>,
-    ) : IUseCase<UpdateBudgetInput, Unit> {
+    ) : UseCase<UpdateBudgetInput, Unit> {
         return UpdateBudget(
             budgetRepo = budgetRepo
         )
@@ -49,7 +49,7 @@ class BudgetConfig {
     @Bean
     fun deleteBudget(
         budgetRepo : IRepository<Budget>,
-    ) : IUseCase<DeleteBudgetInput, Unit> {
+    ) : UseCase<DeleteBudgetInput, Unit> {
         return DeleteBudget(
             budgetRepo = budgetRepo,
         )
@@ -59,7 +59,7 @@ class BudgetConfig {
     fun getBudget(
         budgetRepo : IRepository<Budget>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    ) : IUseCase<UUID, GetBudgetOutput> {
+    ) : UseCase<UUID, GetBudgetOutput> {
         return GetBudget(
             budgetRepo = budgetRepo,
             getBalance = getBalance
@@ -70,7 +70,7 @@ class BudgetConfig {
     fun getAllBudgets(
         budgetRepo : IRepository<Budget>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    ) : IUseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>> {
+    ) : UseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>> {
         return GetAllBudgets(
             budgetRepo = budgetRepo,
             getBalance = getBalance
@@ -81,7 +81,7 @@ class BudgetConfig {
     fun updateDueBudget(
         budgetRepo : IRepository<Budget>,
         eventRegister: IEventRegister
-    ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
+    ): UseCase<Unit, BackgroundTaskOut> {
         return UpdateDueBudget(
             budgetRepo = budgetRepo,
             eventRegister = eventRegister,

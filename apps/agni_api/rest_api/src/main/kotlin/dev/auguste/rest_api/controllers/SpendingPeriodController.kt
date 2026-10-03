@@ -4,8 +4,8 @@ import dev.auguste.rest_api.controllers.models.ApiCreateSpendingPeriodModel
 import dev.auguste.rest_api.controllers.models.ApiUpdateSpendingPeriodModel
 import dev.auguste.rest_api.controllers.models.mapApiCreateSpendingPeriodToSpendingPeriod
 import dev.auguste.rest_api.controllers.models.mapApiUpdateSpendingPeriodToSpendingPeriod
-import usecases.CreatedOutput
-import usecases.ListOutput
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.spending_period.dto.CreateSpendingPeriodInput
 import usecases.spending_period.dto.GetAllSpendingPeriodInput
@@ -37,40 +37,40 @@ class SpendingPeriodController(
 ) {
 
     @PostMapping
-    fun createSpendingPeriod(@Valid @RequestBody request: ApiCreateSpendingPeriodModel): ResponseEntity<CreatedOutput> {
-        return ResponseEntity.ok(createSpendingPeriodUc.execAsync(
+    suspend fun createSpendingPeriod(@Valid @RequestBody request: ApiCreateSpendingPeriodModel): ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createSpendingPeriodUc.execute(
             mapApiCreateSpendingPeriodToSpendingPeriod(request)
-        ))
+        ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    fun updateSpendingPeriod(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateSpendingPeriodModel): ResponseEntity<Unit> {
-        return ResponseEntity.ok(updateSpendingPeriodUc.execAsync(
+    suspend fun updateSpendingPeriod(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateSpendingPeriodModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateSpendingPeriodUc.execute(
             mapApiUpdateSpendingPeriodToSpendingPeriod(id, request)
-        ))
+        ).getOrThrow())
     }
 
     @DeleteMapping("/{id}")
-    fun deleteSpendingPeriod(@PathVariable id: UUID): ResponseEntity<Unit> {
-        return ResponseEntity.ok(deleteSpendingPeriodUc.execAsync(id))
+    suspend fun deleteSpendingPeriod(@PathVariable id: UUID): ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteSpendingPeriodUc.execute(id).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    fun getSpendingPeriod(@PathVariable id: UUID): ResponseEntity<GetSpendingPeriodOutput> {
-        return ResponseEntity.ok(getSpendingPeriodUc.execAsync(
+    suspend fun getSpendingPeriod(@PathVariable id: UUID): ResponseEntity<GetSpendingPeriodOutput> {
+        return ResponseEntity.ok(getSpendingPeriodUc.execute(
             input = id
-        ))
+        ).getOrThrow())
     }
 
     @GetMapping
-    fun getAllSpendingPeriods(query: GetAllSpendingPeriodInput): ResponseEntity<ListOutput<GetAllSpendingPeriodOutput>> {
-        return ResponseEntity.ok(getAllSpendingPeriodUc.execAsync(
+    suspend fun getAllSpendingPeriods(query: GetAllSpendingPeriodInput): ResponseEntity<ListOutput<GetAllSpendingPeriodOutput>> {
+        return ResponseEntity.ok(getAllSpendingPeriodUc.execute(
             query
-        ))
+        ).getOrThrow())
     }
 
     @PostMapping("/{id}/complete")
-    fun completeSpendingPeriod(@PathVariable id: UUID): ResponseEntity<Unit> {
-        return ResponseEntity.ok(completeSpendingPeriodUc.execAsync(id))
+    suspend fun completeSpendingPeriod(@PathVariable id: UUID): ResponseEntity<Unit> {
+        return ResponseEntity.ok(completeSpendingPeriodUc.execute(id).getOrThrow())
     }
 }

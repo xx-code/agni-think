@@ -1,15 +1,14 @@
 package usecases.currencies
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Currency
 import domain.exceptions.AlreadyExistException
-import usecases.CreatedOutput
+import usecases.dto.CreatedOutput
 import usecases.currencies.dto.CreateCurrencyInput
-import usecases.interfaces.IUseCase
+class CreateCurrency(private val currencyRepo: IRepository<Currency>): UseCase<CreateCurrencyInput, CreatedOutput>() {
 
-class CreateCurrency(private val currencyRepo: IRepository<Currency>): IUseCase<CreateCurrencyInput, CreatedOutput> {
-
-    override fun execAsync(input: CreateCurrencyInput): CreatedOutput {
+    override suspend fun process(input: CreateCurrencyInput): CreatedOutput {
         if (currencyRepo.existsByName(input.name))
             throw AlreadyExistException.EntitiesByField(mapOf("name" to input.name), "currency")
 

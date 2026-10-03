@@ -1,11 +1,11 @@
 package usecases.spending_period
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.SpendingPeriod
 import domain.entities.SpendingPeriodTemplate
-import usecases.CreatedOutput
-import usecases.interfaces.IUseCase
+import usecases.dto.CreatedOutput
 import usecases.spending_period.dto.CreateSpendingPeriodInput
 import domain.value_objects.Scheduler
 import domain.value_objects.SnapshotForcastSpendingPeriod
@@ -15,8 +15,8 @@ import kotlin.collections.map
 class CreateSpendingPeriod(
     private val spendingPeriodRepo: IRepository<SpendingPeriod>,
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
-): IUseCase<CreateSpendingPeriodInput, CreatedOutput> {
-    override fun execAsync(input: CreateSpendingPeriodInput): CreatedOutput {
+): UseCase<CreateSpendingPeriodInput, CreatedOutput>() {
+    override suspend fun process(input: CreateSpendingPeriodInput): CreatedOutput {
         val template = spendingPeriodTemplateRepo.get(input.spendingPeriodTemplateId) ?: throw NotFoundException.SingleEntity(input.spendingPeriodTemplateId, "spending_period_template")
 
         val scheduler = Scheduler(

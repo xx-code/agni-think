@@ -1,11 +1,11 @@
 package usecases.invoices
 
+import usecases.UseCase
 import adapters.events.EventType
 import adapters.events.IEventRegister
 import adapters.events.contents.CreateEmbeddingExternalTransEventContent
 import adapters.repositories.IRepository
 import domain.entities.ExternalTransaction
-import usecases.interfaces.IUseCase
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import usecases.invoices.dto.TreatAnExternalTransactionInput
@@ -13,8 +13,8 @@ import usecases.invoices.dto.TreatAnExternalTransactionInput
 class TreatAnExternalTransaction(
     private val externalTransactionRepo: IRepository<ExternalTransaction>,
     private val eventRegister: IEventRegister
-): IUseCase<TreatAnExternalTransactionInput, Unit> {
-    override fun execAsync(input: TreatAnExternalTransactionInput) {
+): UseCase<TreatAnExternalTransactionInput, Unit>() {
+    override suspend fun process(input: TreatAnExternalTransactionInput) {
         val externalTransaction = externalTransactionRepo.get(input.transactionId) ?: throw NotFoundException.SingleEntity(input.transactionId, "external_transaction")
         if (externalTransaction.isTreated)
             throw ValidationException.TreatedTransactionAlreadyTreated()

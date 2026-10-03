@@ -1,15 +1,14 @@
 package usecases.currencies
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import adapters.dto.QueryFilter
 import domain.entities.Currency
-import usecases.ListOutput
+import usecases.dto.ListOutput
 import usecases.currencies.dto.GetCurrencyOutput
-import usecases.interfaces.IUseCase
+class GetAllCurrencies(private val currencyRepo: IRepository<Currency>): UseCase<QueryFilter, ListOutput<GetCurrencyOutput>>() {
 
-class GetAllCurrencies(private val currencyRepo: IRepository<Currency>): IUseCase<QueryFilter, ListOutput<GetCurrencyOutput>> {
-
-    override fun execAsync(input: QueryFilter): ListOutput<GetCurrencyOutput> {
+    override suspend fun process(input: QueryFilter): ListOutput<GetCurrencyOutput> {
         val currencies = currencyRepo.getAll(input)
 
         return ListOutput(

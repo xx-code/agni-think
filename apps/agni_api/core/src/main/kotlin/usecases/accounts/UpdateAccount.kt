@@ -1,16 +1,15 @@
 package usecases.accounts
 
+import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.Color
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
 import usecases.accounts.dto.UpdateAccountInput
-import usecases.interfaces.IUseCase
+class UpdateAccount(private val accountRepo: IRepository<Account>): UseCase<UpdateAccountInput, Unit>() {
 
-class UpdateAccount(private val accountRepo: IRepository<Account>): IUseCase<UpdateAccountInput, Unit> {
-
-    override fun execAsync(input: UpdateAccountInput) {
+    override suspend fun process(input: UpdateAccountInput) {
         val account = accountRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "account")
 
         if (input.title != null) {
