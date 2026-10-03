@@ -1,4 +1,4 @@
-package usecases.provisionable
+package usecases.provision
 
 import usecases.interfaces.IUseCase
 
@@ -12,7 +12,7 @@ import domain.entities.Provision
 import domain.entities.ScheduleInvoice
 import domain.enums.ScheduleInvoiceModuleLinkerType
 import usecases.UseCase
-import usecases.provisionable.dto.DeleteProvisionInput
+import usecases.provision.dto.DeleteProvisionInput
 import usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
 
 class DeleteProvision(

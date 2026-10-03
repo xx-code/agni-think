@@ -1,4 +1,4 @@
-package usecases.provisionable.dto
+package usecases.provision.dto
 
 import domain.enums.PeriodType
 import domain.enums.ProvisionType

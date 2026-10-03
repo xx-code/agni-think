@@ -8,10 +8,10 @@ import dev.auguste.rest_api.controllers.models.mapApiUpdateProvision
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
-import usecases.provisionable.dto.CreateProvisionInput
-import usecases.provisionable.dto.DeleteProvisionInput
-import usecases.provisionable.dto.GetProvisionOutput
-import usecases.provisionable.dto.UpdateProvisionInput
+import usecases.provision.dto.CreateProvisionInput
+import usecases.provision.dto.DeleteProvisionInput
+import usecases.provision.dto.GetProvisionOutput
+import usecases.provision.dto.UpdateProvisionInput
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping

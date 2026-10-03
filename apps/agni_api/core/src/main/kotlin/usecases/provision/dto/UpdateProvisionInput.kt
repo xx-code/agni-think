@@ -1,4 +1,4 @@
-package usecases.provisionable.dto
+package usecases.provision.dto
 
 import domain.enums.ProvisionType
 import domain.value_objects.ProvisionDepreciateCriteria

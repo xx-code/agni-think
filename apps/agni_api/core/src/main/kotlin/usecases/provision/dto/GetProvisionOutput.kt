@@ -1,4 +1,4 @@
-package usecases.provisionable.dto
+package usecases.provision.dto
 
 import java.time.LocalDate
 import java.util.UUID

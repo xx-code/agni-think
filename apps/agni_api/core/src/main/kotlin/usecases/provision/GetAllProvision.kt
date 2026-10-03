@@ -1,4 +1,4 @@
-package usecases.provisionable
+package usecases.provision
 
 import usecases.UseCase
 import adapters.dto.QueryFilter
@@ -6,9 +6,9 @@ import adapters.dto.QuerySortBy
 import adapters.repositories.IRepository
 import domain.entities.Provision
 import usecases.dto.ListOutput
-import usecases.provisionable.dto.GetProvisionOutput
-import usecases.provisionable.dto.ProvisionDepreciateCriteriaOutput
-import usecases.provisionable.dto.ProvisionInvoiceOutput
+import usecases.provision.dto.GetProvisionOutput
+import usecases.provision.dto.ProvisionDepreciateCriteriaOutput
+import usecases.provision.dto.ProvisionInvoiceOutput
 
 class GetAllProvision(
     private val provisionRepo: IRepository<Provision>

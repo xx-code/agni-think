@@ -1,12 +1,12 @@
-package usecases.provisionable
+package usecases.provision
 
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.Provision
-import usecases.provisionable.dto.GetProvisionOutput
-import usecases.provisionable.dto.ProvisionDepreciateCriteriaOutput
-import usecases.provisionable.dto.ProvisionInvoiceOutput
+import usecases.provision.dto.GetProvisionOutput
+import usecases.provision.dto.ProvisionDepreciateCriteriaOutput
+import usecases.provision.dto.ProvisionInvoiceOutput
 import java.util.UUID
 
 class GetProvision(

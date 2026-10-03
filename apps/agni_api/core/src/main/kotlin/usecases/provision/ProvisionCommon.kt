@@ -1,4 +1,4 @@
-package usecases.provisionable
+package usecases.provision
 
 import domain.exceptions.ValidationException
 import domain.enums.PeriodType

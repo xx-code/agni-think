@@ -1,4 +1,4 @@
-package usecases.provisionable
+package usecases.provision
 
 import usecases.interfaces.IUseCase
 
@@ -15,7 +15,7 @@ import domain.exceptions.ValidationException
 import domain.entities.Provision
 import domain.entities.Fund
 import domain.entities.ScheduleInvoice
-import usecases.provisionable.dto.UpdateProvisionInput
+import usecases.provision.dto.UpdateProvisionInput
 import usecases.schedule_Invoices.dto.SchedulerInvoiceInput
 import usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
 import domain.value_objects.ProvisionPayment

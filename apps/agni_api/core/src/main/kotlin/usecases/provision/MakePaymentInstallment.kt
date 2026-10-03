@@ -1,4 +1,4 @@
-package usecases.provisionable
+package usecases.provision
 
 import usecases.interfaces.IUseCase
 

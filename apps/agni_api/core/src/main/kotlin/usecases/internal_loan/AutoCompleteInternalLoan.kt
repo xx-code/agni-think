@@ -25,25 +25,25 @@ class AutoCompleteInternalLoan(
 ): UseCase<Unit, BackgroundTaskOut>() {
     override suspend fun process(input: Unit): BackgroundTaskOut {
         try {
-            val condition = QueryExtendBuilder<InternalLoan>()
-                .addCondition("dueDate", QueryComparator.LesserOrEquals, LocalDate.now())
-            val internalLoans = internalLoanRepo.getAll(
-                query = QueryFilter(0, 0, true),
-                condition
-            )
-
-            for (internalLoan in internalLoans.items) {
-                completeInvoice.processDirect(CompleteInvoiceInput(internalLoan.invoiceId))
-                val invoice = getInvoice.processDirect(internalLoan.invoiceId)
-
-                eventRegister.notify(
-                    EventType.NOTIFICATION, NotificationEventContent(
-                        "Pret interne",
-                        "Pret pour ${invoice.transactions.first().description} est arrive a echeance",
-                        type = NotificationType.Success
-                    )
-                )
-            }
+//            val condition = QueryExtendBuilder<InternalLoan>()
+//                .addCondition("dueDate", QueryComparator.LesserOrEquals, LocalDate.now())
+//            val internalLoans = internalLoanRepo.getAll(
+//                query = QueryFilter(0, 0, true),
+//                condition
+//            )
+//
+//            for (internalLoan in internalLoans.items) {
+//                completeInvoice.processDirect(CompleteInvoiceInput(internalLoan.invoiceId))
+//                val invoice = getInvoice.processDirect(internalLoan.invoiceId)
+//
+//                eventRegister.notify(
+//                    EventType.NOTIFICATION, NotificationEventContent(
+//                        "Pret interne",
+//                        "Pret pour ${invoice.transactions.first().description} est arrive a echeance",
+//                        type = NotificationType.Success
+//                    )
+//                )
+//            }
 
             return BackgroundTaskOut("All Internal load completed")
         } catch (error: Throwable) {

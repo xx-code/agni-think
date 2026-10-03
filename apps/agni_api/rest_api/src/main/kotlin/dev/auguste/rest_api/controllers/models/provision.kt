@@ -3,9 +3,9 @@ package dev.auguste.rest_api.controllers.models
 import domain.enums.DepreciationType
 import domain.enums.PeriodType
 import domain.enums.ProvisionType
-import usecases.provisionable.dto.CreateProvisionInput
-import usecases.provisionable.dto.ScheduleInvoiceProvisionInput
-import usecases.provisionable.dto.UpdateProvisionInput
+import usecases.provision.dto.CreateProvisionInput
+import usecases.provision.dto.ScheduleInvoiceProvisionInput
+import usecases.provision.dto.UpdateProvisionInput
 import domain.value_objects.ProvisionDepreciateCriteria
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Min
