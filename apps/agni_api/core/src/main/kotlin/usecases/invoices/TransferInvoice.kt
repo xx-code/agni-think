@@ -40,27 +40,27 @@ class TransferInvoice(
         val invoiceToId = UUID.randomUUID()
 
         val invoiceFromModuleLinkers = input.moduleSourcesLinker.toMutableList()
-            invoiceFromModuleLinkers.add(InvoiceModuleLinker(invoiceToId, _root_ide_package_.domain.enums.InvoiceModuleLinkerType.TRANSFER))
+            invoiceFromModuleLinkers.add(InvoiceModuleLinker(invoiceToId, InvoiceModuleLinkerType.TRANSFER))
         val invoiceToModuleLinkers = input.moduleSourcesLinker.toMutableList()
-            invoiceToModuleLinkers.add(InvoiceModuleLinker(invoiceFromId, _root_ide_package_.domain.enums.InvoiceModuleLinkerType.TRANSFER))
+            invoiceToModuleLinkers.add(InvoiceModuleLinker(invoiceFromId, InvoiceModuleLinkerType.TRANSFER))
 
         val invoiceFrom = Invoice(
             id=invoiceFromId,
             accountId = accountFrom.id,
-            status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED,
+            status = InvoiceStatusType.COMPLETED,
             date = input.date,
-            type = _root_ide_package_.domain.enums.InvoiceType.OTHER,
-            movementType = _root_ide_package_.domain.enums.InvoiceMovementType.DEBIT,
+            type = InvoiceType.OTHER,
+            movementType = InvoiceMovementType.DEBIT,
             moduleLinkers = invoiceFromModuleLinkers
         )
 
         val invoiceTo = Invoice(
             id=invoiceToId,
             accountId = accountTo.id,
-            status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED,
+            status = InvoiceStatusType.COMPLETED,
             date = input.date,
-            type = _root_ide_package_.domain.enums.InvoiceType.OTHER,
-            movementType = _root_ide_package_.domain.enums.InvoiceMovementType.CREDIT,
+            type = InvoiceType.OTHER,
+            movementType = InvoiceMovementType.CREDIT,
             moduleLinkers = invoiceToModuleLinkers
         )
 

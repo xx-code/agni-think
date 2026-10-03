@@ -29,10 +29,10 @@ import org.springframework.context.annotation.Configuration
 import java.util.UUID
 
 @Configuration
-class SavingGoalConfig {
+class FundConfig {
 
     @Bean
-    fun createSavingGoal(
+    fun createFund(
         fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
     ): IUseCase<CreateSavingGoalInput, CreatedOutput> {
@@ -43,7 +43,7 @@ class SavingGoalConfig {
     }
 
     @Bean
-    fun updateSavingGoal(
+    fun updateFund(
         fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
     ): IUseCase<UpdateSavingGoalInput, Unit> {
@@ -54,7 +54,7 @@ class SavingGoalConfig {
     }
 
     @Bean
-    fun decreaseSavingGoal(
+    fun decreaseFund(
         fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
         createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
@@ -69,7 +69,7 @@ class SavingGoalConfig {
     }
 
     @Bean
-    fun increaseSavingGoal(
+    fun increaseFund(
         fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
         createInvoice: IInnerUseCase<CreateInvoiceInput, CreatedOutput>,
@@ -84,7 +84,7 @@ class SavingGoalConfig {
     }
 
     @Bean
-   fun deleteSavingGoal(
+   fun deleteFund(
         fundRepo: IRepository<Fund>,
         accountRepo: IRepository<Account>,
         goalRepo: IRepository<Goal>,
@@ -101,7 +101,7 @@ class SavingGoalConfig {
    }
 
     @Bean
-    fun getAllSavingGoals(
+    fun getAllFund(
         fundRepo: IRepository<Fund>,
         goalRepo: IRepository<Goal>
     ): IUseCase<GetAllSavingGoalInput, ListOutput<GetSavingGoalOutput>> {
@@ -112,7 +112,7 @@ class SavingGoalConfig {
     }
 
     @Bean
-    fun getSavingGoal(
+    fun getFund(
         fundRepo: IRepository<Fund>,
         goalRepo: IRepository<Goal>
     ): IUseCase<UUID, GetSavingGoalOutput> {

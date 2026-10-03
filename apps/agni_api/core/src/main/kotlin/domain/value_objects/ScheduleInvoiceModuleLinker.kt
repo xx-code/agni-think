@@ -5,7 +5,7 @@ import java.util.UUID
 
 data class ScheduleInvoiceModuleLinker(
     val sourceId: UUID,
-    val module: domain.enums.ScheduleInvoiceModuleLinkerType
+    val module: ScheduleInvoiceModuleLinkerType
 ): IValueObject {
     override fun toMap(): Map<String, Any> {
         return mapOf(
@@ -23,7 +23,7 @@ data class ScheduleInvoiceModuleLinker(
                 return null
 
             val sourceId = UUID.fromString(map["source_id"] as String)
-            val module = _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.fromString(map["module"] as String)
+            val module = ScheduleInvoiceModuleLinkerType.fromString(map["module"] as String)
 
             return ScheduleInvoiceModuleLinker(
                 sourceId,

@@ -2,8 +2,8 @@ package usecases.accounts
 
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryInternalLoanExtend
-import adapters.repositories.query_extend.QuerySavingGoalExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.entities.InternalLoan
 import domain.entities.Fund
@@ -28,19 +28,22 @@ class GetAllAccountWithDetail(
         val accounts = accountRepo.getAll(input)
         val results = mutableListOf<GetAccountWithDetailOutput>()
 
-        val savingGoals = fundRepo.getAll(
-            QueryFilter(0,0, true),
-            QuerySavingGoalExtend(accounts.items.map { it.id }.toSet()))
+        val conditionFund = QueryExtendBuilder<Fund>()
+            .addCondition("accountId", QueryComparator.In, accounts.items.map { it.id }.toSet())
+        val funds = fundRepo.getAll(
+            QueryFilter(0,0, true), conditionFund)
 
         for(account in accounts.items) {
-            val internalLoans = internalLoanRepo.getAll(QueryFilter(queryAll = true), QueryInternalLoanExtend(fundSourceId = account.id))
+            val conditionInternalLoad = QueryExtendBuilder<InternalLoan>()
+                .addCondition("fundSourceId", QueryComparator.Equal, account.id)
+            val internalLoans = internalLoanRepo.getAll(QueryFilter(queryAll = true), conditionInternalLoad)
             var currentLoanBalance = 0.0
             if (internalLoans.items.isNotEmpty()) {
                 internalLoans.items.forEach { internalLoanItem ->
                     currentLoanBalance += getInvoice.execAsync(internalLoanItem.invoiceId).total
                 }
             }
-            val lockedBalance = savingGoals.items.filter { it.accountId == account.id }.sumOf { it.balance } + currentLoanBalance
+            val lockedBalance = funds.items.filter { it.accountId == account.id }.sumOf { it.balance } + currentLoanBalance
             val freezeBalance = getBalance.execAsync(GetBalanceInput(
                 accountIds = setOf(account.id),
                 isFreeze = true

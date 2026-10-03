@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Table("funds")
-data class JdbcSavingGoalModel(
+data class JdbcFundModel(
     @Id
     @get:JvmName("getIdentifier")
     val fundId: UUID,
@@ -34,10 +34,10 @@ data class JdbcSavingGoalModel(
 }
 
 @Component
-class JdbcSavingGoalMapper(
+class JdbcFundMapper(
     private val objectMapper: ObjectMapper
-): IMapper<JdbcSavingGoalModel, Fund> {
-    override fun toDomain(model: JdbcSavingGoalModel): Fund {
+): IMapper<JdbcFundModel, Fund> {
+    override fun toDomain(model: JdbcFundModel): Fund {
         return Fund(
             id = model.id,
             title = model.title,
@@ -49,8 +49,8 @@ class JdbcSavingGoalMapper(
         )
     }
 
-    override fun toModel(entity: Fund): JdbcSavingGoalModel {
-        return JdbcSavingGoalModel(
+    override fun toModel(entity: Fund): JdbcFundModel {
+        return JdbcFundModel(
             fundId = entity.id,
             title = entity.title,
             target = entity.target,
@@ -81,5 +81,5 @@ class JdbcSavingGoalMapper(
         return setOf("balance", "target", "created_at", "updated_at")
     }
 
-    override fun getModelClass(): Class<JdbcSavingGoalModel> = JdbcSavingGoalModel::class.java
+    override fun getModelClass(): Class<JdbcFundModel> = JdbcFundModel::class.java
 }

@@ -1,7 +1,8 @@
 package usecases.agent_suggestions
 
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryAgentSuggestionExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.AgentSuggestion
 import usecases.ListOutput
 import usecases.agent_suggestions.dto.GetAllSuggestionInput
@@ -12,7 +13,11 @@ class GetAllSuggestions(
     private val suggestionRepo: IRepository<AgentSuggestion>,
 ): IUseCase<GetAllSuggestionInput, ListOutput<GetSuggestionOutput>> {
     override fun execAsync(input: GetAllSuggestionInput): ListOutput<GetSuggestionOutput> {
-        val suggestions = suggestionRepo.getAll(query = input.query, queryExtend = QueryAgentSuggestionExtend(input.status))
+        val condition = QueryExtendBuilder<AgentSuggestion>()
+        if (input.status != null)
+            condition.addCondition("status", QueryComparator.Equal, input.status.value)
+
+        val suggestions = suggestionRepo.getAll(query = input.query, queryExtend = condition)
 
         return ListOutput(
             items=suggestions.items.map {

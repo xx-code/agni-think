@@ -7,9 +7,8 @@ import adapters.events.contents.NotificationEventContent
 import adapters.events.contents.NotificationType
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
-import adapters.repositories.query_extend.QueryComparator
-import adapters.repositories.query_extend.QueryDateComparator
-import adapters.repositories.query_extend.QueryScheduleInvoiceExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.ScheduleInvoice
 import domain.enums.InvoiceModuleLinkerType
 import domain.enums.InvoiceMovementType
@@ -37,14 +36,11 @@ class ApplyScheduleInvoice(
 ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
     override suspend fun execAsync(input: Unit): BackgroundTaskOut {
         try {
+            val conditionScheduleInvoice = QueryExtendBuilder<ScheduleInvoice>()
+                .addCondition("scheduler.date", QueryComparator.GreaterOrEquals, LocalDateTime.now())
             val scheduleInvoices = scheduleInvoiceRepo.getAll(
                 QueryFilter(0, 30, true),
-                QueryScheduleInvoiceExtend(
-                    comparatorDueDate = QueryDateComparator(
-                        LocalDateTime.now(),
-                        comparator = QueryComparator.LesserOrEquals,
-                    )
-                )
+                conditionScheduleInvoice,
             )
 
             for(scheduleInvoice in scheduleInvoices.items.filter { !it.isPause }) {
@@ -63,23 +59,23 @@ class ApplyScheduleInvoice(
                             accountId = scheduleInvoice.accountId,
                             endDate = date,
                             amount = scheduleInvoice.amount,
-                            status = _root_ide_package_.domain.enums.InvoiceStatusType.PENDING
+                            status = InvoiceStatusType.PENDING
                         ))
                     } else {
-                        var movement = _root_ide_package_.domain.enums.InvoiceMovementType.CREDIT
-                        if (scheduleInvoice.type != _root_ide_package_.domain.enums.InvoiceType.INCOME)
-                            movement = _root_ide_package_.domain.enums.InvoiceMovementType.DEBIT
+                        var movement = InvoiceMovementType.CREDIT
+                        if (scheduleInvoice.type != InvoiceType.INCOME)
+                            movement = InvoiceMovementType.DEBIT
 
                         val invoiceModuleLinkers = mutableListOf<InvoiceModuleLinker>()
                         invoiceModuleLinkers.add(InvoiceModuleLinker(
                             scheduleInvoice.id,
-                            _root_ide_package_.domain.enums.InvoiceModuleLinkerType.SCHEDULE_INVOICE
+                            InvoiceModuleLinkerType.SCHEDULE_INVOICE
                         ))
 
                         if (scheduleInvoice.moduleLinker != null) {
                             val matchModuleType = when(scheduleInvoice.moduleLinker!!.module) {
-                                _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.INCOME_SOURCE -> _root_ide_package_.domain.enums.InvoiceModuleLinkerType.INCOME_SOURCE
-                                _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.PROVISION -> _root_ide_package_.domain.enums.InvoiceModuleLinkerType.PROVISION
+                                ScheduleInvoiceModuleLinkerType.INCOME_SOURCE -> InvoiceModuleLinkerType.INCOME_SOURCE
+                                ScheduleInvoiceModuleLinkerType.PROVISION -> InvoiceModuleLinkerType.PROVISION
                                 else -> null
                             }
                             if (matchModuleType != null) {
@@ -92,7 +88,7 @@ class ApplyScheduleInvoice(
 
                         createInvoice.execInnerAsync(CreateInvoiceInput(
                             accountId = scheduleInvoice.accountId,
-                            status = _root_ide_package_.domain.enums.InvoiceStatusType.PENDING,
+                            status = InvoiceStatusType.PENDING,
                             date = date,
                             type = scheduleInvoice.type,
                             mouvementType = movement,

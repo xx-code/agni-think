@@ -5,8 +5,7 @@ import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
-import adapters.repositories.query_extend.QueryPatrimonySnapshotExtend
+import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.entities.Invoice
 import domain.entities.Patrimony
@@ -23,6 +22,10 @@ import usecases.patrimonies.dto.SourcePatrimonyType
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
+import domain.enums.InvoiceModuleLinkerType
+import domain.enums.InvoiceStatusType
+import domain.enums.PatrimonyType
+import domain.enums.PeriodType
 
 class GetAllPatrimonies(
     private val patrimonyRepo: IRepository<Patrimony>,
@@ -41,10 +44,10 @@ class GetAllPatrimonies(
         conditionProvision.addCondition("isPatrimony", QueryComparator.Equal, true)
         val provisions = provisionRepo.getAll(QueryFilter.queryAll(), conditionProvision)
 
+        val conditionSnapShot = QueryExtendBuilder<PatrimonySnapshot>()
+            .addCondition("patrimonyId", QueryComparator.In, patrimonies.items.map { it.id }.toSet())
         val snapshots = patrimonySnapshotRepo.getAll(
-            QueryFilter(0,0,true, QuerySortBy("date")),
-            QueryPatrimonySnapshotExtend(patrimonies.items.map { it.id }.toSet())
-        )
+            QueryFilter(0,0,true, QuerySortBy("date")), conditionSnapShot)
 
         val results = mutableListOf<GetPatrimonyOutput>()
         val accounts = accountRepo.getManyByIds(patrimonies.items.flatMap { it.accountIds }.toSet())
@@ -53,11 +56,11 @@ class GetAllPatrimonies(
         for (patrimony in patrimonies.items) {
             val patrimonyAccounts = accounts.filter { patrimony.accountIds.contains(it.id) }
             val balancesByPeriod = getBalanceByPeriod.execAsync(GetBalancesByPeriodInput(
-                period = _root_ide_package_.domain.enums.PeriodType.MONTH,
+                period = PeriodType.MONTH,
                 interval = 1,
                 dateFrom = startDate,
                 accountIds = patrimony.accountIds.toSet(),
-                status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED
+                status = InvoiceStatusType.COMPLETED
             ))
 
             val accountBalance = patrimonyAccounts.sumOf { it.balance }
@@ -90,11 +93,11 @@ class GetAllPatrimonies(
         val savingGoalAmount = savingGoals.items.sumOf { it.balance }
         val balancesByPeriodSavingGoal = getBalanceByPeriod.execAsync(
             GetBalancesByPeriodInput(
-                period = _root_ide_package_.domain.enums.PeriodType.MONTH,
+                period = PeriodType.MONTH,
                 interval = 1,
                 dateFrom = startDate,
                 categoryIds = setOf(SAVING_CATEGORY_ID),
-                status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED
+                status = InvoiceStatusType.COMPLETED
             )
         )
 
@@ -110,7 +113,7 @@ class GetAllPatrimonies(
             amount = savingGoalAmount,
             currentBalance = savingGoalAmount,
             pastBalance = if (passSavingGoalBalance > 0) passSavingGoalBalance else 0.0,
-            type = _root_ide_package_.domain.enums.PatrimonyType.ASSET.value,
+            type = PatrimonyType.ASSET.value,
             accountIds = listOf(),
             sourceType = SourcePatrimonyType.FUND.value
         ))
@@ -126,7 +129,7 @@ class GetAllPatrimonies(
             .addCondition(
                 "moduleLinkers.module",
                 QueryComparator.Equal,
-                _root_ide_package_.domain.enums.InvoiceModuleLinkerType.PROVISION.value
+                InvoiceModuleLinkerType.PROVISION.value
             )
             .addCondition(
                 "moduleLinkers.sourceId",
@@ -143,7 +146,7 @@ class GetAllPatrimonies(
         val lastMonthInvoices = invoices.items
             .groupBy { invoice ->
                 invoice.moduleLinkers
-                    ?.firstOrNull { it.module == _root_ide_package_.domain.enums.InvoiceModuleLinkerType.PROVISION }
+                    ?.firstOrNull { it.module == InvoiceModuleLinkerType.PROVISION }
                     ?.sourceId
             }
             .mapNotNull { (provisionId, invoices) ->
@@ -189,7 +192,7 @@ class GetAllPatrimonies(
                     amount = 0.0,
                     currentBalance = currentResidual,
                     pastBalance = passAsset,
-                    type = _root_ide_package_.domain.enums.PatrimonyType.ASSET.value,
+                    type = PatrimonyType.ASSET.value,
                     sourceType = SourcePatrimonyType.PROVISION.value
                 )
             )
@@ -204,7 +207,7 @@ class GetAllPatrimonies(
                     amount = totalCost,
                     currentBalance = totalCost - passInvoicePayment,
                     pastBalance = passLiability,
-                    type = _root_ide_package_.domain.enums.PatrimonyType.LIABILITY.value,
+                    type = PatrimonyType.LIABILITY.value,
                     sourceType = SourcePatrimonyType.PROVISION.value
                 )
             )

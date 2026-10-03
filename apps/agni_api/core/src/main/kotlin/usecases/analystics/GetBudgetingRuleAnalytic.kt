@@ -7,6 +7,7 @@ import usecases.analystics.dto.GetSavingBalanceInput
 import usecases.interfaces.IUseCase
 import usecases.invoices.dto.GetBalanceInput
 import usecases.invoices.dto.GetBalanceOutput
+import domain.enums.InvoiceType
 
 class GetBudgetingRuleAnalytic(
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
@@ -25,13 +26,13 @@ class GetBudgetingRuleAnalytic(
         ))
 
         val fixedCostBalance = getBalance.execAsync(GetBalanceInput(
-            types = setOf(_root_ide_package_.domain.enums.InvoiceType.FIXED_COST),
+            types = setOf(InvoiceType.FIXED_COST),
             startDate = range.start,
             endDate = range.end,
         ))
 
         val variableCostBalance = getBalance.execAsync(GetBalanceInput(
-            types = setOf(_root_ide_package_.domain.enums.InvoiceType.VARIABLE_COST),
+            types = setOf(InvoiceType.VARIABLE_COST),
             startDate = range.start,
             endDate = range.end
         ))

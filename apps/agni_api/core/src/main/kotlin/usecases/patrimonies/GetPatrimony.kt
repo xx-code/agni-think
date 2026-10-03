@@ -5,8 +5,7 @@ import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
-import adapters.repositories.query_extend.QueryPatrimonySnapshotExtend
+import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.entities.Patrimony
 import domain.entities.PatrimonySnapshot
@@ -24,6 +23,10 @@ import usecases.patrimonies.dto.SourcePatrimonyType
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
+import domain.enums.InvoiceModuleLinkerType
+import domain.enums.InvoiceStatusType
+import domain.enums.PatrimonyType
+import domain.enums.PeriodType
 
 class GetPatrimony(
     private val patrimonyRepo: IRepository<Patrimony>,
@@ -44,7 +47,7 @@ class GetPatrimony(
                     .addCondition(
                         "moduleLinkers.module",
                         QueryComparator.Equal,
-                        _root_ide_package_.domain.enums.InvoiceModuleLinkerType.PROVISION.value
+                        InvoiceModuleLinkerType.PROVISION.value
                     )
                     .addCondition(
                         "moduleLinkers.sourceId",
@@ -89,7 +92,7 @@ class GetPatrimony(
                     amount = if (input.isAsset) 0.0 else provision.calculateTotalCost(),
                     currentBalance = currentBalance,
                     pastBalance = pastBalance,
-                    type = _root_ide_package_.domain.enums.PatrimonyType.LIABILITY.value,
+                    type = PatrimonyType.LIABILITY.value,
                     sourceType = SourcePatrimonyType.PROVISION.value
                 )
             }
@@ -98,11 +101,11 @@ class GetPatrimony(
                 val savingGoalAmount = savingGoals.items.sumOf { it.balance }
                 val balancesByPeriodSavingGoal = getBalancesByPeriod.execAsync(
                     GetBalancesByPeriodInput(
-                        period = _root_ide_package_.domain.enums.PeriodType.MONTH,
+                        period = PeriodType.MONTH,
                         interval = 1,
                         dateFrom = LocalDateTime.now().minusMonths(1).with(TemporalAdjusters.firstDayOfMonth()),
                         categoryIds = setOf(SAVING_CATEGORY_ID),
-                        status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED
+                        status = InvoiceStatusType.COMPLETED
                     )
                 )
 
@@ -118,7 +121,7 @@ class GetPatrimony(
                     amount = savingGoalAmount,
                     currentBalance = savingGoalAmount,
                     pastBalance = if (passSavingGoalBalance > 0) passSavingGoalBalance else 0.0,
-                    type = _root_ide_package_.domain.enums.PatrimonyType.ASSET.value,
+                    type = PatrimonyType.ASSET.value,
                     accountIds = listOf(),
                     sourceType = SourcePatrimonyType.FUND.value
                 )
@@ -126,19 +129,21 @@ class GetPatrimony(
             SourcePatrimonyType.PATRIMONY -> {
                 val patrimony = patrimonyRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "patrimony")
 
+                val conditionSnapShot = QueryExtendBuilder<PatrimonySnapshot>()
+                    .addCondition("patrimonyId", QueryComparator.Equal, input.id)
                 val snapshots = patrimonySnapshotRepo.getAll(
                     QueryFilter(0, 0, true, QuerySortBy("date")),
-                    QueryPatrimonySnapshotExtend(setOf(input.id))
+                    conditionSnapShot
                 )
 
                 val accounts = accountRepo.getManyByIds(patrimony.accountIds)
                 val balancesByPeriod = getBalancesByPeriod.execAsync(
                     GetBalancesByPeriodInput(
-                        period = _root_ide_package_.domain.enums.PeriodType.MONTH,
+                        period = PeriodType.MONTH,
                         interval = 1,
                         dateFrom = LocalDateTime.now().minusMonths(1).with(TemporalAdjusters.firstDayOfMonth()),
                         accountIds = patrimony.accountIds.toSet(),
-                        status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED
+                        status = InvoiceStatusType.COMPLETED
                     )
                 )
 

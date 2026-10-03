@@ -5,7 +5,7 @@ import adapters.dto.ScheduleRepeaterInput
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.QueryComparator
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
 import domain.exceptions.UnExpectedException
@@ -20,6 +20,9 @@ import usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
 import domain.value_objects.ProvisionPayment
 import domain.value_objects.Scheduler
 import domain.value_objects.SchedulerRecurrence
+import domain.enums.FundType
+import domain.enums.ProvisionType
+import domain.enums.ScheduleInvoiceModuleLinkerType
 
 class UpdateProvisionable(
     private val unitOfWork: IUnitOfWork,
@@ -74,18 +77,18 @@ class UpdateProvisionable(
             if (input.interestLoan != null)
                 provisionable.interestLoan = input.interestLoan
 
-            if (input.loanMonth != null && provisionable.type == _root_ide_package_.domain.enums.ProvisionType.DEPRECIATE_LOAN)
+            if (input.loanMonth != null && provisionable.type == ProvisionType.DEPRECIATE_LOAN)
                 provisionable.loanMonth = input.loanMonth.toLong()
 
             if (input.isInstallmentOnTTC != null)
                 provisionable.isInstallmentOnTTC = input.isInstallmentOnTTC
 
-            val isDepreciateLoan = input.scheduleInvoice != null && provisionable.type == _root_ide_package_.domain.enums.ProvisionType.DEPRECIATE_LOAN
+            val isDepreciateLoan = input.scheduleInvoice != null && provisionable.type == ProvisionType.DEPRECIATE_LOAN
             // val doUpdateLoan = input.costTTC != null || input.loanMonth != null || input.interestLoan != null || input.scheduleInvoice != null
 
             if (isDepreciateLoan && input.fundAmortizationId != null) {
                 val fund = fundRepo.get(input.fundAmortizationId) ?: throw NotFoundException.SingleEntity(input.fundAmortizationId, "saving_goal")
-                if (fund.type != _root_ide_package_.domain.enums.FundType.AMORTIZATION)
+                if (fund.type != FundType.AMORTIZATION)
                     throw ValidationException.YouHaveToSelectOnlyAmortizationFund()
             }
 
@@ -125,10 +128,10 @@ class UpdateProvisionable(
             if (provisionable.hasChanged())
                 provisionRepo.update(provisionable)
 
-            if (provisionable.type == _root_ide_package_.domain.enums.ProvisionType.DEPRECIATE_LOAN && provisionable.paymentInfo != null) {
+            if (provisionable.type == ProvisionType.DEPRECIATE_LOAN && provisionable.paymentInfo != null) {
                 val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
                     .addCondition("moduleLinker.sourceId", QueryComparator.Equal, provisionable.id)
-                    .addCondition("moduleLinker.module", QueryComparator.Equal, _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.PROVISION.value)
+                    .addCondition("moduleLinker.module", QueryComparator.Equal, ScheduleInvoiceModuleLinkerType.PROVISION.value)
 
                 val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
                 if (scheduleInvoices.items.isNotEmpty()) {

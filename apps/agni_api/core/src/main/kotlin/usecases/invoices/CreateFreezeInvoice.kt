@@ -26,8 +26,8 @@ class CreateFreezeInvoice(
             accountId = input.accountId,
             status = input.status,
             date = input.endDate,
-            type = _root_ide_package_.domain.enums.InvoiceType.OTHER,
-            mouvementType = _root_ide_package_.domain.enums.InvoiceMovementType.DEBIT,
+            type = InvoiceType.OTHER,
+            mouvementType = InvoiceMovementType.DEBIT,
             currency = null,
             isFreeze = true,
             transactions = setOf(

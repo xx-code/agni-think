@@ -4,7 +4,8 @@ import domain.SAVING_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryPatrimonySnapshotExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Patrimony
 import domain.entities.PatrimonySnapshot
 import domain.entities.Fund
@@ -19,6 +20,9 @@ import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 import kotlin.math.abs
+import domain.enums.InvoiceStatusType
+import domain.enums.PatrimonyType
+import domain.enums.PeriodType
 
 
 class GetPatrimonyEvolution(
@@ -32,10 +36,13 @@ class GetPatrimonyEvolution(
         val patrimonies = patrimonyRepo.getAll(QueryFilter.queryAll())
         val patrimonyIds = patrimonies.items.map { it.id }.toSet()
 
+        val conditionSnapshot = QueryExtendBuilder<PatrimonySnapshot>()
+            .addCondition("patrimonyId", QueryComparator.In, patrimonyIds)
+
         // 1. Fetch all relevant snapshots sorted chronologically
         val snapshots = patrimonySnapshotRepo.getAll(
             QueryFilter(0, 0, true, QuerySortBy("date")),
-            QueryPatrimonySnapshotExtend(patrimonyIds)
+            conditionSnapshot
         ).items
 
         // 2. Build target period interval buckets (e.g., last N months)
@@ -56,7 +63,7 @@ class GetPatrimonyEvolution(
                     interval = input.interval,
                     dateFrom = date,
                     accountIds = patrimony.accountIds.toSet(),
-                    status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED
+                    status = InvoiceStatusType.COMPLETED
                 )
             ).associateBy { it.date }
 
@@ -86,7 +93,7 @@ class GetPatrimonyEvolution(
                     networth = resolvedBalance
                 )
             }
-            if (patrimony.type == _root_ide_package_.domain.enums.PatrimonyType.LIABILITY)
+            if (patrimony.type == PatrimonyType.LIABILITY)
                 patrimonyLiabilityBreakdown[patrimony.id] = evolutionPoints
             else
                 patrimonyAssetBreakdown[patrimony.id] = evolutionPoints
@@ -102,7 +109,7 @@ class GetPatrimonyEvolution(
                 interval = input.interval,
                 dateFrom = date,
                 categoryIds = setOf(SAVING_CATEGORY_ID),
-                status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED
+                status = InvoiceStatusType.COMPLETED
             )
         ).associateBy { it.date }
 
@@ -140,12 +147,12 @@ class GetPatrimonyEvolution(
     /**
      * Generates dates corresponding to period intervals (e.g. 1st of every month for N intervals)
      */
-    private fun generatePeriodBuckets(startDate: LocalDate, periodType: domain.enums.PeriodType, count: Int): List<LocalDate> {
+    private fun generatePeriodBuckets(startDate: LocalDate, periodType: PeriodType, count: Int): List<LocalDate> {
         return (0 until count).map { step ->
             when (periodType) {
-                _root_ide_package_.domain.enums.PeriodType.MONTH -> startDate.plusMonths(step.toLong()).with(TemporalAdjusters.firstDayOfMonth())
-                _root_ide_package_.domain.enums.PeriodType.WEEK -> startDate.plusWeeks(step.toLong())
-                _root_ide_package_.domain.enums.PeriodType.YEAR -> startDate.plusYears(step.toLong()).with(TemporalAdjusters.firstDayOfYear())
+                PeriodType.MONTH -> startDate.plusMonths(step.toLong()).with(TemporalAdjusters.firstDayOfMonth())
+                PeriodType.WEEK -> startDate.plusWeeks(step.toLong())
+                PeriodType.YEAR -> startDate.plusYears(step.toLong()).with(TemporalAdjusters.firstDayOfYear())
                 else -> startDate.plusDays(step.toLong())
             }
         }

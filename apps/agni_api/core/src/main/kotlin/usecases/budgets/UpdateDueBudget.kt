@@ -6,9 +6,8 @@ import adapters.events.IEventRegister
 import adapters.events.contents.NotificationEventContent
 import adapters.events.contents.NotificationType
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryComparator
-import adapters.repositories.query_extend.QueryBudgetExtend
-import adapters.repositories.query_extend.QueryDateComparator
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Budget
 import usecases.BackgroundTaskOut
 import usecases.interfaces.ISuspendableUseCase
@@ -21,19 +20,18 @@ class UpdateDueBudget(
 ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
     override suspend fun execAsync(input: Unit): BackgroundTaskOut {
         try {
+            val conditionBudget = QueryExtendBuilder<Budget>()
+                .addCondition("scheduler.date", QueryComparator.GreaterOrEquals, LocalDateTime.now())
+
             val budgets = budgetRepo.getAll(
-                query = QueryFilter(0, 0, true),
-                QueryBudgetExtend(QueryDateComparator(
-                    LocalDateTime.now(),
-                    comparator = QueryComparator.LesserOrEquals
-                )))
+                query = QueryFilter(0, 0, true), conditionBudget)
 
             for (budget in budgets.items.filter { !it.isArchived }) {
                 if (budget.scheduler.repeater == null) {
                     budget.isArchived = true
                 } else {
                     budget.scheduler = Scheduler(
-                        budget.scheduler.upgradeDate()!!, // verifcation date already make in fuction
+                        budget.scheduler.upgradeDate(),
                         repeater = budget.scheduler.repeater,
                     )
                 }

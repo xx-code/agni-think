@@ -6,7 +6,7 @@ import adapters.events.listeners.ICreateExternalTransactionListener
 import adapters.events.listeners.ICreateInvoiceEventListener
 import adapters.events.listeners.ICreateManyExternalTransactionListener
 import adapters.events.listeners.IDeleteInvoiceEventListener
-import adapters.readers.IInvoicetransactionCountReader
+import adapters.readers.IInvoiceTransactionReader
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import usecases.invoices.DeleteInvoiceEmbedding
@@ -162,13 +162,13 @@ class InvoiceConfig {
     fun getAllInvoice(
         invoiceRepo: IRepository<Invoice>,
         deductionRepo: IRepository<Deduction>,
-        invoiceTransactionCountReader: IInvoicetransactionCountReader,
+        invoiceTransactionCountReader: IInvoiceTransactionReader,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
     ): IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>> {
         return GetAllInvoices(
             invoiceRepo = invoiceRepo,
             deductionRepo = deductionRepo,
-            invoiceTransactionCountReader = invoiceTransactionCountReader,
+            invoiceTransactionReader = invoiceTransactionCountReader,
             getInvoiceTransactions = getInvoiceTransactions
         )
     }

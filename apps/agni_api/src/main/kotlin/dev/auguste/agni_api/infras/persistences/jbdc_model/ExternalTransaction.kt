@@ -13,8 +13,7 @@ import java.util.UUID
 data class JdbcExternalTransactionModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("external_transaction_id")
-    val id: UUID,
+    val externalTransactionId: UUID,
     @Column("transaction_id")
     val transactionId: String,
     @Column("account_id")
@@ -32,7 +31,7 @@ data class JdbcExternalTransactionModel(
     val dateTransaction: LocalDateTime,
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return externalTransactionId
     }
 }
 
@@ -54,7 +53,7 @@ class JdbcExternalTransactionModelMapper: IMapper<JdbcExternalTransactionModel, 
 
     override fun toModel(entity: ExternalTransaction): JdbcExternalTransactionModel {
         return JdbcExternalTransactionModel(
-            id = entity.id,
+            externalTransactionId = entity.id,
             accountId = entity.accountId,
             transactionId = entity.transactionId,
             amount = entity.amount,
@@ -66,19 +65,23 @@ class JdbcExternalTransactionModelMapper: IMapper<JdbcExternalTransactionModel, 
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "external_transaction_id",
+        "transactionId" to "transaction_id",
+        "accountId" to "account_id",
+        "amount" to "amount",
+        "dateTransaction" to "date_transaction",
+        "merchantName" to "merchant_name",
+        "categoryPrimary" to "category_primary",
+        "categoryDetail" to "category_detail",
+        "isTreated" to "is_treated"
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "external_transactions"
 
     override fun getSortField(): Set<String> {
         return setOf()
     }
 
-    override fun getModelClass(): Class<JdbcExternalTransactionModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcExternalTransactionModel> = JdbcExternalTransactionModel::class.java
 }

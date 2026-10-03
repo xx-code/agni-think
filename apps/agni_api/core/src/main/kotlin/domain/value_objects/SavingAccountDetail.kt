@@ -1,12 +1,13 @@
 package domain.value_objects
 
 import domain.interfaces.IAccountDetail
+import domain.enums.AccountType
 
 data class SavingAccountDetail(
     val secureAmount: Double
 ): IAccountDetail {
-    override fun getType(): domain.enums.AccountType {
-        return _root_ide_package_.domain.enums.AccountType.SAVING
+    override fun getType(): AccountType {
+        return AccountType.SAVING
     }
 
     override fun toMap(): Map<String, Any> {

@@ -21,6 +21,8 @@ import domain.value_objects.CreditCardAccountDetail
 import domain.value_objects.SavingAccountDetail
 import java.time.LocalDate
 import kotlin.math.abs
+import domain.enums.AccountType
+import domain.enums.InvoiceType
 
 class GetFinanceProfile(
     private val accountRepo: IRepository<Account>,
@@ -29,10 +31,10 @@ class GetFinanceProfile(
     private val scheduleInvoice: IRepository<ScheduleInvoice>
 ) : IUseCase<Unit, GetFinanceProfileOutput> {
     override fun execAsync(input: Unit): GetFinanceProfileOutput {
-        val accounts = accountRepo.getAll(QueryFilter(0, 0, true))
-        val principles = principleRepo.getAll(QueryFilter(0, 0, true))
-        val incomes = incomeSourceRepo.getAll(QueryFilter(0, 0, true))
-        val scheduleInvoices = scheduleInvoice.getAll(QueryFilter(0, 0, true))
+        val accounts = accountRepo.getAll(QueryFilter.queryAll())
+        val principles = principleRepo.getAll(QueryFilter.queryAll())
+        val incomes = incomeSourceRepo.getAll(QueryFilter.queryAll())
+        val scheduleInvoices = scheduleInvoice.getAll(QueryFilter.queryAll())
 
         return GetFinanceProfileOutput(
             currentBalanceTotalWithFreeze = accounts.items.sumOf { it.balance },
@@ -50,7 +52,7 @@ class GetFinanceProfile(
     private fun computeTotalCreditUtilization(accounts: List<Account>): Double {
         var total = 0.0
 
-        accounts.filter { it.detail.getType() == _root_ide_package_.domain.enums.AccountType.CREDIT_CARD }.forEach {
+        accounts.filter { it.detail.getType() == AccountType.CREDIT_CARD }.forEach {
             val detail = it.detail as CreditCardAccountDetail
             val utilization = if (detail.creditLimit > 0) {
                 ((abs(it.balance) / detail.creditLimit).roundTo(2)) * 100
@@ -85,7 +87,7 @@ class GetFinanceProfile(
     private fun formatComingRevenue(scheduleInvoices: List<ScheduleInvoice>) : List<ComingRevenueOutput> {
         val comingRevenueOutputs = mutableListOf<ComingRevenueOutput>()
 
-        scheduleInvoices.filter { it.type == _root_ide_package_.domain.enums.InvoiceType.INCOME }.forEach { scheduleInvoice ->
+        scheduleInvoices.filter { it.type == InvoiceType.INCOME }.forEach { scheduleInvoice ->
             comingRevenueOutputs.add(
                 ComingRevenueOutput(
                     title = scheduleInvoice.title,
@@ -102,7 +104,7 @@ class GetFinanceProfile(
     private fun formatComingSpend(scheduleInvoices: List<ScheduleInvoice>) : List<ComingSpendingOutput> {
         val comingSpendOutputs = mutableListOf<ComingSpendingOutput>()
 
-        scheduleInvoices.filter { it.type != _root_ide_package_.domain.enums.InvoiceType.INCOME }.forEach { scheduleInvoice ->
+        scheduleInvoices.filter { it.type != InvoiceType.INCOME }.forEach { scheduleInvoice ->
             ComingSpendingOutput(
                 title = scheduleInvoice.title,
                 amount = scheduleInvoice.amount,
@@ -138,8 +140,8 @@ class GetFinanceProfile(
                 accountType = account.detail.getType().value,
                 balance = account.balance,
                 accountDetailRule = when(account.detail.getType()) {
-                    _root_ide_package_.domain.enums.AccountType.CHECKING -> "I desir to have a buffer a ${(account.detail as CheckingAccountDetail).buffer}"
-                    _root_ide_package_.domain.enums.AccountType.CREDIT_CARD -> {
+                    AccountType.CHECKING -> "I desir to have a buffer a ${(account.detail as CheckingAccountDetail).buffer}"
+                    AccountType.CREDIT_CARD -> {
                         val now = LocalDate.now()
                         var nextPaymentDate = (account.detail as CreditCardAccountDetail).invoiceDate
                         while (nextPaymentDate.isBefore(now)) {
@@ -147,13 +149,13 @@ class GetFinanceProfile(
                         }
                         "The Credit Card Limit is a ${(account.detail as CreditCardAccountDetail).creditLimit} the next Payment Invoice is $nextPaymentDate"
                     }
-                    _root_ide_package_.domain.enums.AccountType.SAVING -> "I desir to have holy threshold of ${(account.detail as SavingAccountDetail).secureAmount}"
-                    _root_ide_package_.domain.enums.AccountType.BUSINESS -> "I desir to have a buffer a ${(account.detail as BusinessAccountDetail).buffer}"
-                    _root_ide_package_.domain.enums.AccountType.BROKING -> "type management ${(account.detail as BrokingAccountDetail).managementType} contribution type ${(account.detail as BrokingAccountDetail).contributionType}"
+                    AccountType.SAVING -> "I desir to have holy threshold of ${(account.detail as SavingAccountDetail).secureAmount}"
+                    AccountType.BUSINESS -> "I desir to have a buffer a ${(account.detail as BusinessAccountDetail).buffer}"
+                    AccountType.BROKING -> "type management ${(account.detail as BrokingAccountDetail).managementType} contribution type ${(account.detail as BrokingAccountDetail).contributionType}"
                 },
                 isLiquidity = when(account.detail.getType()) {
-                    _root_ide_package_.domain.enums.AccountType.CHECKING -> true
-                    _root_ide_package_.domain.enums.AccountType.CREDIT_CARD -> true
+                    AccountType.CHECKING -> true
+                    AccountType.CREDIT_CARD -> true
                     else -> false
                 }
             ))

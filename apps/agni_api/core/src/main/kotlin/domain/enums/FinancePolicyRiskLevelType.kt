@@ -7,6 +7,7 @@ enum class FinancePolicyRiskLevelType {
     MEDIUM,
     HIGH;
 
+
     companion object {
         fun fromInt(value: Int): FinancePolicyRiskLevelType {
             if (value !in 0..3)

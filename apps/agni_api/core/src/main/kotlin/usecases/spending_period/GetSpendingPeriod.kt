@@ -24,7 +24,7 @@ class GetSpendingPeriod(
         val spendingPeriodTemplate = spendingPeriodTemplateRepo.get(spendPeriod.spendingPeriodTemplateId) ?: throw NotFoundException.SingleEntity(spendPeriod.spendingPeriodTemplateId, "spending_period_template")
 
         var forcast: ForcastSpendingPeriodOutput? = null
-        if (spendPeriod.state != _root_ide_package_.domain.enums.SpendingPeriodStateType.COMPLETE) {
+        if (spendPeriod.state != SpendingPeriodStateType.COMPLETE) {
             forcast = forcastSpendingPeriod.execAsync(ForcastSpendingPeriodInput(
                 startDate = spendPeriod.startDate,
                 endDate = spendPeriod.endDate,

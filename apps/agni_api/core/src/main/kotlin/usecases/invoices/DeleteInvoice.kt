@@ -7,7 +7,8 @@ import adapters.events.IEventRegister
 import adapters.events.contents.DeleteEmbeddingInvoiceEventContent
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
-import adapters.repositories.query_extend.QueryInternalLoanExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
@@ -19,6 +20,8 @@ import usecases.interfaces.IUseCase
 import usecases.invoices.dto.DeleteInvoiceInput
 import usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
+import domain.enums.InvoiceMovementType
+import domain.enums.InvoiceStatusType
 
 class DeleteInvoice(
     private val invoiceRepo: IRepository<Invoice>,
@@ -41,12 +44,15 @@ class DeleteInvoice(
         val account = accountRepo.get(invoice.accountId) ?: throw NotFoundException.SingleEntity(invoice.accountId, "account")
 
         if (input.checkInternalLoan) {
-            val internalLoans = internalLoanRepo.getAll(QueryFilter(queryAll = true), QueryInternalLoanExtend(invoiceId = input.invoiceId))
+            // TODO: To remove
+            val conditionInvoice = QueryExtendBuilder<InternalLoan>()
+                .addCondition("invoiceId", QueryComparator.Equal, input.invoiceId)
+            val internalLoans = internalLoanRepo.getAll(QueryFilter(queryAll = true), conditionInvoice)
             if (internalLoans.items.isNotEmpty()) {
                 throw ValidationException.InternalLoanLinkCantBeDelete()
             }
 
-            val internalLoanRefunds = internalLoanRepo.getAll(QueryFilter(queryAll = true), QueryInternalLoanExtend(refundFreezeId = input.invoiceId))
+            val internalLoanRefunds = internalLoanRepo.getAll(QueryFilter(queryAll = true), conditionInvoice)
             if (internalLoanRefunds.items.isNotEmpty()) {
                 throw ValidationException.InternalLoanLinkCantBeDelete()
             }
@@ -70,8 +76,8 @@ class DeleteInvoice(
 
         invoiceRepo.delete(input.invoiceId)
 
-        if (invoice.statusType == _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED) {
-            if (invoice.movementType == _root_ide_package_.domain.enums.InvoiceMovementType.CREDIT)
+        if (invoice.statusType == InvoiceStatusType.COMPLETED) {
+            if (invoice.movementType == InvoiceMovementType.CREDIT)
                 account.balance -= invoiceTransactions.first().total
             else
                 account.balance += invoiceTransactions.first().total
@@ -79,7 +85,7 @@ class DeleteInvoice(
             accountRepo.update(account)
         }
 
-        if (invoice.statusType == _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED)
+        if (invoice.statusType == InvoiceStatusType.COMPLETED)
             eventRegister.notify(EventType.DELETE_INVOICE, DeleteEmbeddingInvoiceEventContent(input.invoiceId))
 
     }

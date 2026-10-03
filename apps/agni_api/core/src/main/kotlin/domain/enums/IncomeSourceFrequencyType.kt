@@ -9,6 +9,10 @@ enum class IncomeSourceFrequencyType(val value: String) {
     YEARLY("Yearly"),
     IRRELEVANTLY("Irrelevant");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): IncomeSourceFrequencyType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

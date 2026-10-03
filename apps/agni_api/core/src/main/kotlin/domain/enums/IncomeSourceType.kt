@@ -8,6 +8,10 @@ enum class IncomeSourceType(val value: String) {
     GIG("Gig"),
     PASSIVE("Passive");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): IncomeSourceType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

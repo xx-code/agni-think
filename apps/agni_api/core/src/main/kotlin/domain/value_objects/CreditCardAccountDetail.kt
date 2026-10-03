@@ -2,13 +2,14 @@ package domain.value_objects
 
 import domain.interfaces.IAccountDetail
 import java.time.LocalDate
+import domain.enums.AccountType
 
 data class CreditCardAccountDetail(
     val creditLimit: Double,
     val invoiceDate: LocalDate): IAccountDetail{
 
-    override fun getType(): domain.enums.AccountType {
-        return _root_ide_package_.domain.enums.AccountType.CREDIT_CARD
+    override fun getType(): AccountType {
+        return AccountType.CREDIT_CARD
     }
 
     override fun toMap(): Map<String, Any> {

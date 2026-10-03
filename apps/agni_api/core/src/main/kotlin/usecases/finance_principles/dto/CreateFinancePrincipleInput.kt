@@ -5,7 +5,7 @@ import domain.enums.PrincipleType
 data class CreateFinancePrincipleInput(
     val name: String,
     val description: String,
-    val targetType: domain.enums.PrincipleType,
+    val targetType: PrincipleType,
     val strictness: Int,
     val logicRules: String?
 )

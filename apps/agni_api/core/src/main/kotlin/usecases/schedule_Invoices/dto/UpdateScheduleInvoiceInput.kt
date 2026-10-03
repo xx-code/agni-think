@@ -12,7 +12,7 @@ data class UpdateScheduleInvoiceInput(
     val amount: Double? = null,
     val categoryId: UUID? = null,
     val tagIds: Set<UUID>? = null,
-    val type: domain.enums.InvoiceType? = null,
+    val type: InvoiceType? = null,
     val isPause: Boolean? = null,
     val schedule: SchedulerInvoiceInput? = null,
     val freezeSchedule: SchedulerInvoiceInput? = null,

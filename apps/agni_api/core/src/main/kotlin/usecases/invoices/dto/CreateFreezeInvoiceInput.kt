@@ -9,5 +9,5 @@ data class CreateFreezeInvoiceInput(
     val endDate: LocalDateTime,
     val title: String,
     val amount: Double,
-    val status: domain.enums.InvoiceStatusType
+    val status: InvoiceStatusType
 )

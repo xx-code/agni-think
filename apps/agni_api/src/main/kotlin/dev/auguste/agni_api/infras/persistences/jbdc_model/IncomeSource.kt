@@ -5,7 +5,6 @@ import domain.enums.IncomeSourceFrequencyType
 import domain.enums.IncomeSourceType
 import dev.auguste.agni_api.infras.persistences.IMapper
 import org.springframework.data.annotation.Id
-import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.stereotype.Component
 import java.time.LocalDate
@@ -15,8 +14,7 @@ import java.util.UUID
 data class JdbcIncomeSourceModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("income_source_id")
-    val id: UUID,
+    val incomeSourceId: UUID,
 
     val name: String,
     val type: String,
@@ -29,7 +27,7 @@ data class JdbcIncomeSourceModel(
     val linkedAccountId: UUID?,
     val annualGrossAmount: Double?) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return incomeSourceId
     }
 }
 
@@ -53,7 +51,7 @@ class JdbcIncomeSourceMapper: IMapper<JdbcIncomeSourceModel, IncomeSource> {
 
     override fun toModel(entity: IncomeSource): JdbcIncomeSourceModel {
         return JdbcIncomeSourceModel(
-            id = entity.id,
+            incomeSourceId = entity.id,
             name = entity.title,
             type = entity.type.value,
             payFrequency = entity.payFrequency.value,
@@ -67,19 +65,25 @@ class JdbcIncomeSourceMapper: IMapper<JdbcIncomeSourceModel, IncomeSource> {
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "income_source_id",
+        "title" to "name",
+        "type" to "type",
+        "payFrequency" to "pay_frequency",
+        "reliabilityLevel" to "reliability_level",
+        "startDate" to "start_date",
+        "endDate" to "end_date",
+        "taxRate" to "tax_rate",
+        "otherRate" to "other_rate",
+        "linkedAccountId" to "linked_account_id",
+        "annualGrossAmount" to "annual_gross_amount"
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "income_sources"
 
     override fun getSortField(): Set<String> {
         return setOf("startDate", "endDate", "taxRate", "otherRate")
     }
 
-    override fun getModelClass(): Class<JdbcIncomeSourceModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcIncomeSourceModel> = JdbcIncomeSourceModel::class.java
 }

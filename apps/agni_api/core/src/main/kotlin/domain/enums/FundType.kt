@@ -10,6 +10,7 @@ enum class FundType(val value: String) {
     OPPORTUNITY("Opportunity"),
     SAVINGS_GENERAL("SavingsGeneral");
 
+
     companion object {
         fun fromString(value: String): FundType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

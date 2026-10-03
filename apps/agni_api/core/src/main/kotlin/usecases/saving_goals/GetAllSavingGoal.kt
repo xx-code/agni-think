@@ -4,8 +4,7 @@ import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
-import adapters.repositories.query_extend.QueryGoalExtend
+import adapters.repositories.QueryComparator
 import domain.entities.Goal
 import domain.entities.Fund
 import usecases.ListOutput
@@ -28,10 +27,12 @@ class GetAllSavingGoal(
         if (input.type != null)
             condition.addCondition("type", QueryComparator.Equal, input.type.value)
 
-        val savingGoals = fundRepo.getAll(query, condition)
-        val goals = goalRepo.getAll(QueryFilter.queryAll(), QueryGoalExtend(sourceIds = savingGoals.items.map { it.id }.toSet()))
+        val funds = fundRepo.getAll(query, condition)
+        val conditionGoal = QueryExtendBuilder<Goal>()
+            .addCondition("targetSourceId", QueryComparator.In, funds.items.map { it.id }.toSet())
+        val goals = goalRepo.getAll(QueryFilter.queryAll(), conditionGoal)
         return ListOutput(
-            items = savingGoals.items.map {
+            items = funds.items.map {
                 GetSavingGoalOutput(
                    id = it.id,
                     title = it.title,
@@ -49,7 +50,7 @@ class GetAllSavingGoal(
                     }
                 )
             },
-            total = savingGoals.total
+            total = funds.total
         )
     }
 }

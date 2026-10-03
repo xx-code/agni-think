@@ -7,6 +7,10 @@ enum class ScheduleInvoiceModuleLinkerType(val value: String) {
     PROVISION("Provision"),
     INCOME_SOURCE("IncomeSource");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): ScheduleInvoiceModuleLinkerType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

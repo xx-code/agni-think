@@ -4,8 +4,7 @@ import domain.SAVING_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
-import adapters.repositories.query_extend.QueryPatrimonySnapshotExtend
+import adapters.repositories.QueryComparator
 import domain.exceptions.NotFoundException
 import domain.entities.Invoice
 import domain.entities.PatrimonySnapshot
@@ -24,6 +23,10 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
+import domain.enums.InvoiceModuleLinkerType
+import domain.enums.InvoiceStatusType
+import domain.enums.PatrimonySnapshotStatusType
+import domain.enums.PeriodType
 
 class GetAllSnapshotFromPatrimony(
     private val snapshotPatrimonyRepo: IRepository<PatrimonySnapshot>,
@@ -38,7 +41,9 @@ class GetAllSnapshotFromPatrimony(
         when (input.sourcePatrimonyType) {
             SourcePatrimonyType.PATRIMONY -> {
                 input.query.sortBy.by = "date"
-                val snapshots = snapshotPatrimonyRepo.getAll(input.query, QueryPatrimonySnapshotExtend(setOf(input.patrimonyId)))
+                val conditionSnapShot = QueryExtendBuilder<PatrimonySnapshot>()
+                    .addCondition("patrimonyId", QueryComparator.Equal, input.patrimonyId)
+                val snapshots = snapshotPatrimonyRepo.getAll(input.query, conditionSnapShot)
 
                 return ListOutput(
                     items = snapshots.items.map {
@@ -63,11 +68,11 @@ class GetAllSnapshotFromPatrimony(
 
                 val savingBalancesByDate = getBalanceByPeriod.execAsync(
                     GetBalancesByPeriodInput(
-                        period = _root_ide_package_.domain.enums.PeriodType.MONTH,
+                        period = PeriodType.MONTH,
                         interval = numMonth.toInt(),
                         dateFrom = date,
                         categoryIds = setOf(SAVING_CATEGORY_ID),
-                        status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED
+                        status = InvoiceStatusType.COMPLETED
                     )
                 ).associateBy { it.date }
 
@@ -91,7 +96,7 @@ class GetAllSnapshotFromPatrimony(
                         patrimonyId = UUID.randomUUID(),
                         balance = it.value,
                         date = it.key.toLocalDate(),
-                        status = _root_ide_package_.domain.enums.PatrimonySnapshotStatusType.COMPLETED.value
+                        status = PatrimonySnapshotStatusType.COMPLETED.value
                     ) },
                     total = savingGoalBalancesPerPeriod.size.toLong()
                 )
@@ -105,7 +110,7 @@ class GetAllSnapshotFromPatrimony(
                         .addCondition(
                             "moduleLinkers.module",
                             QueryComparator.Equal,
-                            _root_ide_package_.domain.enums.InvoiceModuleLinkerType.PROVISION.value
+                            InvoiceModuleLinkerType.PROVISION.value
                         )
                         .addCondition(
                             "moduleLinkers.sourceId",
@@ -132,7 +137,7 @@ class GetAllSnapshotFromPatrimony(
                         patrimonyId = provision.id,
                         balance = totalCost,
                         date = provision.acquisitionDate,
-                        status = _root_ide_package_.domain.enums.PatrimonySnapshotStatusType.COMPLETED.value
+                        status = PatrimonySnapshotStatusType.COMPLETED.value
                     ))
 
                     if (notRegisterAmount > 0)
@@ -141,7 +146,7 @@ class GetAllSnapshotFromPatrimony(
                             patrimonyId = provision.id,
                             balance = notRegisterAmount,
                             date = firstInvoiceMonthStart.toLocalDate(),
-                            status = _root_ide_package_.domain.enums.PatrimonySnapshotStatusType.COMPLETED.value
+                            status = PatrimonySnapshotStatusType.COMPLETED.value
                         ))
 
                     if (invoices.items.isNotEmpty()) {
@@ -156,7 +161,7 @@ class GetAllSnapshotFromPatrimony(
                                     patrimonyId = provision.id,
                                     balance = totalCost - it.total + notRegisterAmount,
                                     date = it.date.toLocalDate(),
-                                    status = _root_ide_package_.domain.enums.PatrimonySnapshotStatusType.COMPLETED.value
+                                    status = PatrimonySnapshotStatusType.COMPLETED.value
                                 )
                             )
                         }
@@ -170,7 +175,7 @@ class GetAllSnapshotFromPatrimony(
                             patrimonyId = provision.id,
                             balance = provision.calculateResidualValue(date),
                             date = date,
-                            status = _root_ide_package_.domain.enums.PatrimonySnapshotStatusType.COMPLETED.value
+                            status = PatrimonySnapshotStatusType.COMPLETED.value
                         ))
                     }
                 }

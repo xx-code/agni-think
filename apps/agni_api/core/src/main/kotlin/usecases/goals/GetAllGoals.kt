@@ -4,7 +4,9 @@ import adapters.IFinanceContext
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryGoalExtend
+import adapters.repositories.QueryCondition
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Goal
 import domain.factories.GoalEvaluationStrategyFactory
 import usecases.ListOutput
@@ -24,13 +26,13 @@ class GetAllGoals(
             queryAll = input.queryFilter.queryAll,
             sortBy = QuerySortBy("due_date", true)
         )
+        val conditionGoal = QueryExtendBuilder<Goal>()
+            .addCondition("targetSourceId", QueryComparator.In, input.sourceId?.let { setOf(it) })
+            .addCondition("status", QueryComparator.Equal, input.status)
+            .addCondition("type", QueryComparator.In, input.type?.value)
         val res = goalRepo.getAll(
             query = query,
-            QueryGoalExtend(
-                sourceIds = input.sourceId?.let { setOf(it) },
-                status = input.status,
-                type = input.type
-            )
+            conditionGoal
         )
 
        return ListOutput(

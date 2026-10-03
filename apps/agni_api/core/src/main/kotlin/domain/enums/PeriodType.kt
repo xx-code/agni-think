@@ -8,6 +8,10 @@ enum class PeriodType(val value: String) {
     WEEK("Week"),
     DAY("Day");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): PeriodType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

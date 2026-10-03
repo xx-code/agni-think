@@ -17,7 +17,7 @@ data class UpdateProvisionInput(
     val isInstallmentOnTTC: Boolean = true,
     val scheduleInvoice: ScheduleInvoiceProvisionInput?,
     val depreciationCriteria: List<ProvisionDepreciateCriteria>?,
-    val type: domain.enums.ProvisionType?,
+    val type: ProvisionType?,
     val floorValue: Double?,
     val interestLoan: Double?,
     val loanMonth: Int?

@@ -1,98 +1,63 @@
 package dev.auguste.agni_api.infras.persistences.readers
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import adapters.dto.QueryFilter
-import adapters.readers.IInvoicetransactionCountReader
-import adapters.repositories.IQueryExtend
-import adapters.repositories.query_extend.QueryInvoiceExtend
-import adapters.repositories.query_extend.QueryTransactionExtend
+import adapters.dto.QuerySortBy
+import adapters.readers.IInvoiceTransactionReader
+import adapters.repositories.IQueryExtendBuilder
 import domain.entities.Invoice
 import domain.entities.Transaction
 import usecases.ListOutput
 import dev.auguste.agni_api.infras.persistences.IMapper
-import dev.auguste.agni_api.infras.persistences.query_adapters.addPaginationSqlStringBuilder
+import dev.auguste.agni_api.infras.persistences.addPaginationSqlStringBuilder
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcInvoiceModel
+import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcTransactionModel
+import dev.auguste.agni_api.infras.persistences.JdbcQueryAdapter
+import org.springframework.jdbc.core.DataClassRowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
-import java.util.UUID
+
 
 @Component
-class JdbcInvoiceTransactionCountReader(
+class JdbcInvoiceTransactionReader(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
-    private val objectMapper: ObjectMapper,
-    private val mapper: IMapper<JdbcInvoiceModel, Invoice>
-) : IInvoicetransactionCountReader {
+    private val mapperInvoice: IMapper<JdbcInvoiceModel, Invoice>,
+    private val mapperTransaction: IMapper<JdbcTransactionModel, Transaction>,
+    private val queryAdapter: JdbcQueryAdapter,
+) : IInvoiceTransactionReader {
 
     private fun buildStringSql(
         queryFilter: QueryFilter,
-        queryInvoiceExtend: IQueryExtend<Invoice>,
-        queryTransactionExtend: IQueryExtend<Transaction>,
+        queryInvoiceExtend: IQueryExtendBuilder<Invoice>,
+        queryTransactionExtend: IQueryExtendBuilder<Transaction>,
         sql: StringBuilder,
-        params: MapSqlParameterSource) : StringBuilder {
+        params: MapSqlParameterSource,
+        ensureOrderBy: Boolean = false
+    ): StringBuilder {
 
-        val queryInvoiceExtend = queryInvoiceExtend as QueryInvoiceExtend
-        val queryTransactionExtend = queryTransactionExtend as QueryTransactionExtend
+        var reformSql = queryAdapter.getSqlStringBuilder(sql, queryInvoiceExtend, mapperInvoice, "i", params)
+        reformSql = queryAdapter.getSqlStringBuilder(reformSql.sql, queryTransactionExtend, mapperTransaction, "t", params)
 
-
-        if (!queryInvoiceExtend.accountIds.isNullOrEmpty()) {
-            sql.append(" AND t.account_id IN (:accounts)")
-            params.addValue("accounts", queryInvoiceExtend.accountIds)
+        // Un SELECT DISTINCT ON n'est valide que si l'ORDER BY commence par ses expressions :
+        // un tri par defaut est applique quand la requete n'en demande aucun.
+        val sortBy = if (queryFilter.sortBy.by in mapperInvoice.getSortField()) {
+            queryFilter.sortBy
+        } else {
+            QuerySortBy(mapperInvoice.getEntityModelFieldName()["date"] ?: "date", false)
         }
+        val effectiveFilter = if (ensureOrderBy) queryFilter.copy(sortBy = sortBy) else queryFilter
 
-        val invoiceTypes = queryInvoiceExtend.types
-        if (!invoiceTypes.isNullOrEmpty()) {
-            sql.append(" AND t.type IN (:types)")
-            params.addValue("types", invoiceTypes.map { it.value })
-        }
-
-        queryInvoiceExtend.status?.let {
-            sql.append(" AND t.status = :status")
-            params.addValue("status", it.value)
-        }
-
-        queryInvoiceExtend.isFreeze?.let {
-            sql.append(" AND t.is_freeze = :isFreeze")
-            params.addValue("isFreeze", it)
-        }
-
-        queryInvoiceExtend.startDate?.let {
-            sql.append(" AND t.date >= :startDate")
-            params.addValue("startDate", it)
-        }
-
-        queryInvoiceExtend.endDate?.let {
-            sql.append(" AND t.date <= :endDate")
-            params.addValue("endDate", it)
-        }
-
-        if (!queryTransactionExtend.categoryIds.isNullOrEmpty()) {
-            sql.append(" AND r.category_id IN (:categories)")
-            params.addValue("categories", queryTransactionExtend.categoryIds)
-        }
-
-        val transactionTagIds = queryTransactionExtend.tagIds
-        if (!transactionTagIds.isNullOrEmpty()) {
-            sql.append(" AND r.tag_ids ??| CAST(:tagIds AS text[])")
-            params.addValue("tagIds", transactionTagIds.toTypedArray())
-        }
-
-        val transactionBudgetIds = queryTransactionExtend.budgetIds
-        if (!transactionBudgetIds.isNullOrEmpty()) {
-            sql.append(" AND r.budget_ids ??| CAST(:budgetIds AS text[])")
-            params.addValue("budgetIds", transactionBudgetIds.toTypedArray())
-        }
-
-        return addPaginationSqlStringBuilder(sql, params, queryFilter, mapper, true)
+        return addPaginationSqlStringBuilder(reformSql.sql, params, effectiveFilter, mapperInvoice, true, "i")
     }
 
+
     override fun count(
-        queryInvoiceExtend: IQueryExtend<Invoice>,
-        queryTransactionExtend: IQueryExtend<Transaction>): Long {
+        queryInvoiceExtend: IQueryExtendBuilder<Invoice>,
+        queryTransactionExtend: IQueryExtendBuilder<Transaction>): Long {
         var sql = StringBuilder("""
-            SELECT COUNT(DISTINCT t.transaction_id) 
-            FROM transactions t
-            JOIN records r ON t.transaction_id = r.transaction_id
+            SELECT COUNT(DISTINCT i.${mapperInvoice.getEntityModelFieldName()["id"]}) 
+            FROM ${mapperInvoice.getTableName()} i
+            JOIN ${mapperTransaction.getTableName()} t ON t.${mapperTransaction.getEntityModelFieldName()["invoiceId"]} = i.${mapperInvoice.getEntityModelFieldName()["id"]}
             WHERE 1=1
         """.trimIndent())
         val params = MapSqlParameterSource()
@@ -104,35 +69,29 @@ class JdbcInvoiceTransactionCountReader(
 
     override fun filteredInvoiceIds(
         query: QueryFilter,
-        queryInvoiceExtend: IQueryExtend<Invoice>,
-        queryTransactionExtend: IQueryExtend<Transaction>
-    ): ListOutput<UUID> {
+        queryInvoiceExtend: IQueryExtendBuilder<Invoice>,
+        queryTransactionExtend: IQueryExtendBuilder<Transaction>
+    ): ListOutput<Invoice> {
         val total = count(queryInvoiceExtend, queryTransactionExtend)
 
         var sql = StringBuilder("""
-            SELECT DISTINCT ON (t.transaction_id) 
-                t.transaction_id, 
-                t.account_id,
-                t.is_freeze,
-                t.status,
-                t.type,
-                t.mouvement,
-                t.date,
-                t.deductions
-            FROM transactions t
-            JOIN records r ON t.transaction_id = r.transaction_id
+            SELECT DISTINCT ON (i.${mapperInvoice.getEntityModelFieldName()["id"]}) i.*
+            FROM ${mapperInvoice.getTableName()} i
+            JOIN ${mapperTransaction.getTableName()} t ON t.${mapperTransaction.getEntityModelFieldName()["invoiceId"]} = i.${mapperInvoice.getEntityModelFieldName()["id"]}
             WHERE 1=1
         """.trimIndent())
 
         val params = MapSqlParameterSource()
-        sql = buildStringSql(query, queryInvoiceExtend, queryTransactionExtend, sql, params)
+        sql = buildStringSql(query, queryInvoiceExtend, queryTransactionExtend, sql, params, true)
 
-        val results = jdbcTemplate.query(sql.toString(), params) { rs, _ ->
-            rs.getObject("transaction_id", UUID::class.java)
-        }
+        val items = jdbcTemplate.query(
+            sql.toString(),
+            params,
+            DataClassRowMapper(mapperInvoice.getModelClass())
+        )
 
         return ListOutput(
-            results,
+            items.map { mapperInvoice.toDomain(it) },
             total
         )
     }

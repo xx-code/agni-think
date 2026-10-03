@@ -21,7 +21,7 @@ class GetSavingAnalytic(
 
         val accounts = accountRepo.getAll(QueryFilter(0, 0, true))
         val accountInvestmentIds = accounts.items
-            .filter { it.detail.getType() == _root_ide_package_.domain.enums.AccountType.BROKING }
+            .filter { it.detail.getType() == AccountType.BROKING }
             .map { it.id }
             .toSet()
 
@@ -30,7 +30,7 @@ class GetSavingAnalytic(
             period = input.period,
             interval = input.interval,
             dateFrom = input.startDate,
-            mouvement = _root_ide_package_.domain.enums.InvoiceMovementType.CREDIT
+            mouvement = InvoiceMovementType.CREDIT
         ))
 
         // 2. Épargne explicite : Uniquement les dépenses avec le Tag/Catégorie Épargne

@@ -13,8 +13,7 @@ import java.util.UUID
 data class JdbcFinancePrincipleModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("finance_principle_id")
-    val id: UUID,
+    val financePrincipleId: UUID,
 
     val name: String,
     val description: String,
@@ -24,7 +23,7 @@ data class JdbcFinancePrincipleModel(
 
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return financePrincipleId
     }
 }
 
@@ -43,7 +42,7 @@ class JdbcFinancePrincipleMapper: IMapper<JdbcFinancePrincipleModel, FinancePrin
 
     override fun toModel(entity: FinancePrinciple): JdbcFinancePrincipleModel {
         return JdbcFinancePrincipleModel(
-            id = entity.id,
+            financePrincipleId = entity.id,
             name = entity.name,
             description = entity.description,
             strictness = entity.strictness,
@@ -52,19 +51,20 @@ class JdbcFinancePrincipleMapper: IMapper<JdbcFinancePrincipleModel, FinancePrin
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "finance_principle_id",
+        "name" to "name",
+        "description" to "description",
+        "targetType" to "target_type",
+        "strictness" to "strictness",
+        "logicRules" to "logic_rules"
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "finance_principles"
 
     override fun getSortField(): Set<String> {
         return setOf()
     }
 
-    override fun getModelClass(): Class<JdbcFinancePrincipleModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcFinancePrincipleModel> = JdbcFinancePrincipleModel::class.java
 }

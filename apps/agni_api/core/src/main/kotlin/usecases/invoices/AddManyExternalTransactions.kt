@@ -5,7 +5,8 @@ import adapters.events.EventType
 import adapters.events.IEventRegister
 import adapters.events.contents.CreateManyEmbeddingExternalTransEventContent
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryExternalTransactionExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.ExternalTransaction
 import usecases.CreatedOutput
 import usecases.interfaces.IUseCase
@@ -30,9 +31,11 @@ class AddManyExternalTransactions(
             )
         }
 
+        val condition = QueryExtendBuilder<ExternalTransaction>()
+            .addCondition("transactionId", QueryComparator.In, input.map { it.transactionId }.toSet())
         val externalTransactions = externalTransRepo.getAll(
             query = QueryFilter(queryAll = true),
-            queryExtend = QueryExternalTransactionExtend(transactionIds = input.map { it.transactionId }.toSet()),
+            condition
         )
 
         newExternalTransactions = newExternalTransactions.filter { trans -> trans.transactionId !in externalTransactions.items.map { it.transactionId } }

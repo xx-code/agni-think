@@ -13,8 +13,7 @@ import java.util.UUID
 data class JdbcAgentSuggestionModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("agent_suggestion_id")
-    val id: UUID,
+    val agentSuggestionId: UUID,
     @Column("agent_id")
     val agentId: String,
     @Column("agent_name")
@@ -26,7 +25,7 @@ data class JdbcAgentSuggestionModel(
     val status: String
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return agentSuggestionId
     }
 }
 
@@ -46,7 +45,7 @@ class JdbcAgentSuggestionModelMapper: IMapper<JdbcAgentSuggestionModel, AgentSug
 
     override fun toModel(entity: AgentSuggestion): JdbcAgentSuggestionModel {
         return JdbcAgentSuggestionModel(
-            id = entity.id,
+            agentSuggestionId = entity.id,
             title = entity.title,
             agentId = entity.agentId,
             agentName = entity.agentName,
@@ -56,19 +55,21 @@ class JdbcAgentSuggestionModelMapper: IMapper<JdbcAgentSuggestionModel, AgentSug
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "agent_suggestion_id",
+        "agentId" to "agent_id",
+        "agentName" to "agent_name",
+        "title" to "title",
+        "description" to "description",
+        "confidenceScore" to "confidence_score",
+        "status" to "status"
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "agent_suggestions"
 
     override fun getSortField(): Set<String> {
         return setOf("agentId", "agentName", "confidenceScore", "status")
     }
 
-    override fun getModelClass(): Class<JdbcAgentSuggestionModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcAgentSuggestionModel> = JdbcAgentSuggestionModel::class.java
 }

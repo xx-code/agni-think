@@ -86,7 +86,7 @@ class JdbcSpendingPeriodTemplateMapper(
         "createdDate" to "created_date",
         "updatedDate" to "updated_date",
         "endDate" to "end_date",
-        "targetBudgetIds" to "target_budget_ids"
+        "targetBudgetIds" to "jsonb_scalar_array:target_budget_ids"
     )
 
     override fun getTableName(): String = "spending_period_templates"

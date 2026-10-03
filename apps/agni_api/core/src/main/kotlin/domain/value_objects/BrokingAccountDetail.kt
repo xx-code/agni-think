@@ -1,11 +1,14 @@
 package domain.value_objects
 
 import domain.interfaces.IAccountDetail
+import domain.enums.AccountType
+import domain.enums.ContributionAccountType
+import domain.enums.ManagementAccountType
 
-data class BrokingAccountDetail(val managementType: domain.enums.ManagementAccountType, val contributionType: domain.enums.ContributionAccountType):
+data class BrokingAccountDetail(val managementType: ManagementAccountType, val contributionType: ContributionAccountType):
     IAccountDetail {
-    override fun getType(): domain.enums.AccountType {
-       return _root_ide_package_.domain.enums.AccountType.BROKING
+    override fun getType(): AccountType {
+       return AccountType.BROKING
     }
 
     override fun toMap(): Map<String, Any> {
@@ -18,14 +21,14 @@ data class BrokingAccountDetail(val managementType: domain.enums.ManagementAccou
     companion object {
         fun fromMap(map: Map<String, Any>?): IAccountDetail {
             if (map == null)
-                return BrokingAccountDetail(_root_ide_package_.domain.enums.ManagementAccountType.MANAGED, _root_ide_package_.domain.enums.ContributionAccountType.UNREGISTERED)
+                return BrokingAccountDetail(ManagementAccountType.MANAGED, ContributionAccountType.UNREGISTERED)
 
             if (!map.containsKey("management_type") || !map.containsKey("contribution_account"))
-                return BrokingAccountDetail(_root_ide_package_.domain.enums.ManagementAccountType.MANAGED, _root_ide_package_.domain.enums.ContributionAccountType.UNREGISTERED)
+                return BrokingAccountDetail(ManagementAccountType.MANAGED, ContributionAccountType.UNREGISTERED)
 
             return BrokingAccountDetail(
-                _root_ide_package_.domain.enums.ManagementAccountType.fromString(map.getValue("management_type") as String),
-                _root_ide_package_.domain.enums.ContributionAccountType.fromString(map.getValue("contribution_account") as String),
+                ManagementAccountType.fromString(map.getValue("management_type") as String),
+                ContributionAccountType.fromString(map.getValue("contribution_account") as String),
             )
         }
     }

@@ -7,5 +7,5 @@ data class GetSuggestionOutput(
     val title: String,
     val description: String,
     val confidenceScore: Double,
-    val status: domain.enums.AgentSuggestionStatusType
+    val status: AgentSuggestionStatusType
 )

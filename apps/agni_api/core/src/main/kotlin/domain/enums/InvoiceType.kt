@@ -8,6 +8,10 @@ enum class InvoiceType(val value: String) {
     VARIABLE_COST("VariableCost"),
     OTHER("Other");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): InvoiceType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

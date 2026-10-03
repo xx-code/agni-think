@@ -7,6 +7,10 @@ enum class PrincipleType(val value: String) {
     UPGRADE("Upgrade"),
     INVESTMENT("Investment");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): PrincipleType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

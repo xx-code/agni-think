@@ -7,8 +7,8 @@ import java.util.UUID
 
 data class CreateIncomeSourceInput(
     val title: String,
-    val type: domain.enums.IncomeSourceType,
-    val payFrequencyType: domain.enums.IncomeSourceFrequencyType,
+    val type: IncomeSourceType,
+    val payFrequencyType: IncomeSourceFrequencyType,
     val reliabilityLevel: Int,
     val taxRate: Double,
     val otherRate: Double,

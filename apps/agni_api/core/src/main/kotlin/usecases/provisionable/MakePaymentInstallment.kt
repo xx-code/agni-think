@@ -8,7 +8,7 @@ import adapters.events.contents.NotificationType
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.QueryComparator
 import domain.entities.Provision
 import domain.entities.Fund
 import usecases.BackgroundTaskOut
@@ -17,6 +17,7 @@ import usecases.interfaces.ISuspendableUseCase
 import usecases.saving_goals.dto.DecreaseSavingGoalInput
 import java.time.LocalDate
 import kotlin.Throwable
+import domain.enums.ProvisionType
 
 class MakePaymentInstallment(
     private val provisionRepo: IRepository<Provision>,
@@ -28,7 +29,7 @@ class MakePaymentInstallment(
     override suspend fun execAsync(input: Unit): BackgroundTaskOut {
         try {
             val condition = QueryExtendBuilder<Provision>()
-                .addCondition("type", QueryComparator.Equal, _root_ide_package_.domain.enums.ProvisionType.DEPRECIATE_LOAN.value)
+                .addCondition("type", QueryComparator.Equal, ProvisionType.DEPRECIATE_LOAN.value)
                 .addCondition("paymentInfo.endDate", QueryComparator.GreaterOrEquals, LocalDate.now())
             val provisions = provisionRepo.getAll(QueryFilter.queryAll(), condition)
             val amortizedProvisions = provisions.items.filter { it.isAmortize() }

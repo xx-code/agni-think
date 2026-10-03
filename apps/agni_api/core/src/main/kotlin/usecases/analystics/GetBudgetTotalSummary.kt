@@ -39,14 +39,14 @@ class GetBudgetTotalSummary(
 
         val balanceRepeatOut = getBalance.execAsync(GetBalanceInput(
             budgetIds = idsRepeat.toSet(),
-            types = setOf(_root_ide_package_.domain.enums.InvoiceType.FIXED_COST, _root_ide_package_.domain.enums.InvoiceType.VARIABLE_COST, _root_ide_package_.domain.enums.InvoiceType.OTHER),
+            types = setOf(InvoiceType.FIXED_COST, InvoiceType.VARIABLE_COST, InvoiceType.OTHER),
             startDate = minStartDateRepeat,
             endDate = maxEndDateRepeat,
         ))
 
         val balanceNoRepeatOut = getBalance.execAsync(GetBalanceInput(
             budgetIds = idsNoRepeat.toSet(),
-            types = setOf(_root_ide_package_.domain.enums.InvoiceType.FIXED_COST, _root_ide_package_.domain.enums.InvoiceType.VARIABLE_COST, _root_ide_package_.domain.enums.InvoiceType.OTHER),
+            types = setOf(InvoiceType.FIXED_COST, InvoiceType.VARIABLE_COST, InvoiceType.OTHER),
             startDate = minStartDateNoRepeat,
             endDate = maxEndDateNoRepeat
         ))

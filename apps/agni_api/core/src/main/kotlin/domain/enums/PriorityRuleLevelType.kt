@@ -7,6 +7,10 @@ enum class PriorityRuleLevelType(val value: String) {
     SAVING_FIRST("SavingFirst"),
     LIFE_STYLE_OPTIMIZED("LifeStyleOptimized");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): PriorityRuleLevelType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

@@ -17,6 +17,10 @@ import domain.value_objects.ProvisionPayment
 import domain.value_objects.ScheduleInvoiceModuleLinker
 import domain.value_objects.Scheduler
 import domain.value_objects.SchedulerRecurrence
+import domain.enums.FundType
+import domain.enums.InvoiceType
+import domain.enums.ProvisionType
+import domain.enums.ScheduleInvoiceModuleLinkerType
 
 class CreateProvisionable(
     private val provisionRepo: IRepository<Provision>,
@@ -31,7 +35,7 @@ class CreateProvisionable(
 
             if (input.fundAmortizationId != null) {
                 val fund = fundRepo.get(input.fundAmortizationId) ?: throw NotFoundException.SingleEntity(input.fundAmortizationId, "saving_goal")
-                if (fund.type != _root_ide_package_.domain.enums.FundType.AMORTIZATION)
+                if (fund.type != FundType.AMORTIZATION)
                     throw ValidationException.YouHaveToSelectOnlyAmortizationFund()
             }
 
@@ -50,7 +54,7 @@ class CreateProvisionable(
                 loanMonth = input.loanMonth.toLong(),
             )
 
-            if (input.scheduleInvoice != null && input.type == _root_ide_package_.domain.enums.ProvisionType.DEPRECIATE_LOAN) {
+            if (input.scheduleInvoice != null && input.type == ProvisionType.DEPRECIATE_LOAN) {
                 val endLoanDate = provision.acquisitionDate.plusMonths(input.loanMonth.toLong())
                 val scheduler = Scheduler(
                     date = input.acquisitionDate.atStartOfDay(),
@@ -81,14 +85,14 @@ class CreateProvisionable(
             }
 
             provisionRepo.create(provision)
-            if (provision.type == _root_ide_package_.domain.enums.ProvisionType.DEPRECIATE_LOAN && provision.paymentInfo != null) {
+            if (provision.type == ProvisionType.DEPRECIATE_LOAN && provision.paymentInfo != null) {
                 createScheduleInvoice.execAsync(CreateScheduleInvoiceInput(
                     accountId = provision.paymentInfo!!.accountId,
                     amount = provision.paymentInfo!!.paymentAmount,
                     description = provision.title,
                     categoryId = provision.paymentInfo!!.categoryId,
                     tagIds = provision.paymentInfo!!.tagIds,
-                    type = _root_ide_package_.domain.enums.InvoiceType.FIXED_COST,
+                    type = InvoiceType.FIXED_COST,
                     schedule = SchedulerInvoiceInput(
                         dueDate = provision.paymentInfo!!.scheduler.date,
                         repeater = provision.paymentInfo!!.scheduler.repeater?.let {
@@ -102,7 +106,7 @@ class CreateProvisionable(
                     freezeSchedule = null,
                     moduleLinker = ScheduleInvoiceModuleLinker(
                         provision.id,
-                        _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.PROVISION,
+                        ScheduleInvoiceModuleLinkerType.PROVISION,
                     ),
                     endDate = provision.paymentInfo!!.endDate.atStartOfDay()
                 ))

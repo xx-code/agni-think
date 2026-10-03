@@ -8,6 +8,10 @@ enum class ImportanceGoalType(val type: Int) {
     IMPORTANT(3),
     URGENT(4);
 
+    override fun toString(): String {
+        return type.toString()
+    }
+
     companion object {
         fun fromInt(value: Int): ImportanceGoalType {
             if (value == 0 || value > 4)

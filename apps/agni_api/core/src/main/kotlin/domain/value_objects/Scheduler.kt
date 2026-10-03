@@ -24,10 +24,10 @@ data class Scheduler(var date: LocalDateTime, val repeater: SchedulerRecurrence?
 
         while (next.isBefore(toDate)) {
             next = when(repeater.period) {
-                _root_ide_package_.domain.enums.PeriodType.YEAR -> next.plusYears(repeater.interval.toLong())
-                _root_ide_package_.domain.enums.PeriodType.MONTH -> next.plusMonths(repeater.interval.toLong())
-                _root_ide_package_.domain.enums.PeriodType.WEEK -> next.plusWeeks(repeater.interval.toLong())
-                _root_ide_package_.domain.enums.PeriodType.DAY -> next.plusDays(repeater.interval.toLong())
+                PeriodType.YEAR -> next.plusYears(repeater.interval.toLong())
+                PeriodType.MONTH -> next.plusMonths(repeater.interval.toLong())
+                PeriodType.WEEK -> next.plusWeeks(repeater.interval.toLong())
+                PeriodType.DAY -> next.plusDays(repeater.interval.toLong())
             }
         }
 
@@ -43,10 +43,10 @@ data class Scheduler(var date: LocalDateTime, val repeater: SchedulerRecurrence?
 
         while (next.isAfter(now)) {
             next = when(repeater.period) {
-                _root_ide_package_.domain.enums.PeriodType.YEAR -> next.minusYears(repeater.interval.toLong())
-                _root_ide_package_.domain.enums.PeriodType.MONTH -> next.minusMonths(repeater.interval.toLong())
-                _root_ide_package_.domain.enums.PeriodType.WEEK -> next.minusWeeks(repeater.interval.toLong())
-                _root_ide_package_.domain.enums.PeriodType.DAY -> next.minusDays(repeater.interval.toLong())
+                PeriodType.YEAR -> next.minusYears(repeater.interval.toLong())
+                PeriodType.MONTH -> next.minusMonths(repeater.interval.toLong())
+                PeriodType.WEEK -> next.minusWeeks(repeater.interval.toLong())
+                PeriodType.DAY -> next.minusDays(repeater.interval.toLong())
             }
         }
 

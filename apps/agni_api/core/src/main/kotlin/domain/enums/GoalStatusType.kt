@@ -7,6 +7,7 @@ enum class GoalStatusType {
     COMPLETED,
     PAUSED;
 
+
     companion object {
         fun fromInt(value: Int): GoalStatusType {
             if (value !in 0..2)

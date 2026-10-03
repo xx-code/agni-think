@@ -8,7 +8,7 @@ import adapters.events.contents.NotificationType
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.QueryComparator
 import domain.entities.Profile
 import domain.entities.SpendingPeriod
 import domain.entities.SpendingPeriodTemplate
@@ -34,13 +34,13 @@ class ApplySpendingPeriodTemplate(
     override suspend fun execAsync(input: Unit): BackgroundTaskOut {
         try {
             val conditionSpendingPeriod = QueryExtendBuilder<SpendingPeriod>()
-                .addCondition("state", QueryComparator.NotEqual, _root_ide_package_.domain.enums.SpendingPeriodStateType.COMPLETE.value)
+                .addCondition("state", QueryComparator.NotEqual, SpendingPeriodStateType.COMPLETE.value)
                 .addCondition("endDate", QueryComparator.Lesser, LocalDate.now())
             val spendingPeriods = spendingPeriodRepo.getAll(QueryFilter.queryAll(), conditionSpendingPeriod)
 
             // spending period whose end date has passed becomes in progress
             for (spendingPeriod in spendingPeriods.items) {
-                spendingPeriod.state = _root_ide_package_.domain.enums.SpendingPeriodStateType.IN_PROGRESS
+                spendingPeriod.state = SpendingPeriodStateType.IN_PROGRESS
                 spendingPeriodRepo.update(spendingPeriod)
             }
 
@@ -82,7 +82,7 @@ class ApplySpendingPeriodTemplate(
                             savingRateTarget = savingRate,
                             totalExpectedIncome = forecastRes.totalExpectedIncome,
                             totalExpectedExpenses = forecastRes.totalExpectedExpense,
-                            state = _root_ide_package_.domain.enums.SpendingPeriodStateType.DRAFT,
+                            state = SpendingPeriodStateType.DRAFT,
                             wantSpendingItems = listOf(),
                             snapshot = SnapshotForcastSpendingPeriod(
                                 income = 0.0,

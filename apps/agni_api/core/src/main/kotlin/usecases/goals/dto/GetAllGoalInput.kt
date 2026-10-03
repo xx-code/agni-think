@@ -10,6 +10,6 @@ data class GetAllGoalInput(
     val queryFilter: QueryFilter,
     val sourceId: UUID? = null,
     val targetDate: LocalDate? = null,
-    val status: domain.enums.GoalStatusType? = null,
-    val type: domain.enums.GoalEvaluationType? = null
+    val status: GoalStatusType? = null,
+    val type: GoalEvaluationType? = null
 )

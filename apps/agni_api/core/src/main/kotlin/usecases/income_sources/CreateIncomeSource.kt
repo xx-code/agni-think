@@ -60,25 +60,25 @@ class CreateIncomeSource(
                     description = newIncomeSource.title,
                     categoryId = input.invoiceIncomeCategoryId,
                     tagIds = setOf(),
-                    type = _root_ide_package_.domain.enums.InvoiceType.INCOME,
+                    type = InvoiceType.INCOME,
                     schedule = SchedulerInvoiceInput(
                         dueDate = newIncomeSource.getEstimateNextDate().atStartOfDay(),
                         repeater = ScheduleRepeaterInput(
                             period = when(newIncomeSource.payFrequency) {
-                                _root_ide_package_.domain.enums.IncomeSourceFrequencyType.BIWEEKLY -> _root_ide_package_.domain.enums.PeriodType.WEEK
-                                _root_ide_package_.domain.enums.IncomeSourceFrequencyType.MONTHLY -> _root_ide_package_.domain.enums.PeriodType.MONTH
-                                _root_ide_package_.domain.enums.IncomeSourceFrequencyType.YEARLY -> _root_ide_package_.domain.enums.PeriodType.YEAR
-                                else -> _root_ide_package_.domain.enums.PeriodType.MONTH
+                                IncomeSourceFrequencyType.BIWEEKLY -> PeriodType.WEEK
+                                IncomeSourceFrequencyType.MONTHLY -> PeriodType.MONTH
+                                IncomeSourceFrequencyType.YEARLY -> PeriodType.YEAR
+                                else -> PeriodType.MONTH
                             },
                             interval = when(newIncomeSource.payFrequency) {
-                                _root_ide_package_.domain.enums.IncomeSourceFrequencyType.BIWEEKLY -> 2
+                                IncomeSourceFrequencyType.BIWEEKLY -> 2
                                 else -> 1
                             }
                         )
                     ),
                     isFreeze = false,
                     freezeSchedule = null,
-                    moduleLinker = ScheduleInvoiceModuleLinker(newIncomeSource.id, _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.INCOME_SOURCE),
+                    moduleLinker = ScheduleInvoiceModuleLinker(newIncomeSource.id, ScheduleInvoiceModuleLinkerType.INCOME_SOURCE),
                     endDate = input.endDate?.atStartOfDay()
                 ))
             }

@@ -11,8 +11,7 @@ import domain.value_objects.Scheduler
 import domain.value_objects.SchedulerRecurrence
 
 class CreateBudget(
-    private val budgetRepo: IRepository<Budget>,
-    private val fundRepo: IRepository<Fund>
+    private val budgetRepo: IRepository<Budget>
 ): IUseCase<CreateBudgetInput, CreatedOutput> {
     override fun execAsync(input: CreateBudgetInput): CreatedOutput {
         if (budgetRepo.existsByName(input.title))

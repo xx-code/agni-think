@@ -7,6 +7,10 @@ enum class GoalEvaluationType(val value: String) {
     TRANSACTION_TARGET("TransactionTarget"),
     PATRIMONY("Patrimony");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): GoalEvaluationType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

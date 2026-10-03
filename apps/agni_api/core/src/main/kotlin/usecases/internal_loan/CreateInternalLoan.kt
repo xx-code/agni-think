@@ -3,10 +3,8 @@ package usecases.internal_loan
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
-import adapters.repositories.query_extend.QueryComparator
-import adapters.repositories.query_extend.QueryDateComparator
-import adapters.repositories.query_extend.QueryInternalLoanExtend
-import adapters.repositories.query_extend.QueryScheduleInvoiceExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
@@ -25,6 +23,8 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.math.abs
+import domain.enums.AccountType
+import domain.enums.InvoiceType
 
 class CreateInternalLoan(
     private val internalLoanRepo: IRepository<InternalLoan>,
@@ -39,7 +39,9 @@ class CreateInternalLoan(
         return unitOfWork.execute {
             val account = accountRepo.get(input.fundSourceId) ?: throw NotFoundException.SingleEntity(input.fundSourceId, "account")
             val creditAccount = accountRepo.get(input.creditTargetId) ?: throw NotFoundException.SingleEntity(input.creditTargetId, "account")
-            val internalLoans = internalLoanRepo.getAll(query = QueryFilter(queryAll = true), QueryInternalLoanExtend(fundSourceId = input.fundSourceId))
+            val condition = QueryExtendBuilder<InternalLoan>()
+                .addCondition("fundSourceId", QueryComparator.Equal, input.fundSourceId)
+            val internalLoans = internalLoanRepo.getAll(QueryFilter.queryAll(), condition)
             var currentLoanBalance = 0.0
             if (internalLoans.items.isNotEmpty()) {
                 internalLoans.items.forEach { internalLoanItem ->
@@ -53,18 +55,18 @@ class CreateInternalLoan(
 //                throw ValidationException.InternalLoanAllPendingMustBeReady()
 //            }
 
-            val scheduleInvoice = scheduleInvoiceRepo.getAll(QueryFilter(queryAll = true),
-                QueryScheduleInvoiceExtend(
-                    type = _root_ide_package_.domain.enums.InvoiceType.INCOME,
-                    comparatorDueDate = QueryDateComparator(input.dueDate.atStartOfDay() , comparator = QueryComparator.LesserOrEquals)
-                )
-            )
+//            val scheduleInvoice = scheduleInvoiceRepo.getAll(QueryFilter(queryAll = true),
+//                QueryScheduleInvoiceExtend(
+//                    type = InvoiceType.INCOME,
+//                    comparatorDueDate = QueryDateComparator(input.dueDate.atStartOfDay() , comparator = QueryComparator.LesserOrEquals)
+//                )
+//            )
 
             val accountType = account.detail.getType()
-            if (accountType != _root_ide_package_.domain.enums.AccountType.CHECKING && accountType != _root_ide_package_.domain.enums.AccountType.SAVING)
+            if (accountType != AccountType.CHECKING && accountType != AccountType.SAVING)
                 throw ValidationException.InternalLoanAccountNotAllowForCollateral()
 
-            if (creditAccount.detail.getType() != _root_ide_package_.domain.enums.AccountType.CREDIT_CARD)
+            if (creditAccount.detail.getType() != AccountType.CREDIT_CARD)
                 throw ValidationException.InternalLoanBadAccountCredit()
 
             val creditCardDetail = (creditAccount.detail as CreditCardAccountDetail)

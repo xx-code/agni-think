@@ -8,7 +8,7 @@ import domain.interfaces.IGoalEvaluationStrategy
 
 
 class FundGoalEvaluationStrategy(
-    override val type: domain.enums.GoalEvaluationType = GoalEvaluationType.FUND
+    override val type: GoalEvaluationType = GoalEvaluationType.FUND
 ) : IGoalEvaluationStrategy {
     override fun verifyGoalBusinessLogic(
         goal: Goal,

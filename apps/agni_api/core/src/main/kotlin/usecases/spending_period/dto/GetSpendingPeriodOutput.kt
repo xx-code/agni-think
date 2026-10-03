@@ -21,7 +21,7 @@ data class GetSpendingPeriodOutput(
     val savingRateTarget: Double,
     val totalExpectedIncome: Double,
     val totalExpectedExpenses: Double,
-    val state: domain.enums.SpendingPeriodStateType,
+    val state: SpendingPeriodStateType,
     val wantSpendingItems: List<SpendingPeriodItemOutput>,
     val snapshot: SpendingPeriodSnapShotOutput,
     val forcast: ForcastSpendingPeriodOutput?
@@ -36,7 +36,7 @@ data class GetAllSpendingPeriodOutput(
     val savingRateTarget: Double,
     val totalExpectedIncome: Double,
     val totalExpectedExpenses: Double,
-    val state: domain.enums.SpendingPeriodStateType,
+    val state: SpendingPeriodStateType,
     val snapshot: SpendingPeriodSnapShotOutput,
     val wantSpendingItems: List<SpendingPeriodItemOutput>,
 )

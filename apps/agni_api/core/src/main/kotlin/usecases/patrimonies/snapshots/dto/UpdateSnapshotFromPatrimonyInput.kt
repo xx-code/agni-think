@@ -7,6 +7,6 @@ import java.util.UUID
 data class UpdateSnapshotFromPatrimonyInput(
     val id: UUID,
     val balance: Double?,
-    val status: domain.enums.PatrimonySnapshotStatusType?,
+    val status: PatrimonySnapshotStatusType?,
     val date: LocalDate?
 )

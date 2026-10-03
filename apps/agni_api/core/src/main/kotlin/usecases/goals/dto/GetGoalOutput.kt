@@ -18,7 +18,7 @@ data class GetGoalOutput(
     val targetSourceId: UUID,
     val dueDate: LocalDate,
     val createdDate: LocalDate,
-    val status: domain.enums.GoalStatusType,
-    val type: domain.enums.GoalEvaluationType,
+    val status: GoalStatusType,
+    val type: GoalEvaluationType,
     val evaluation: GetGoalEvaluationOutput
 )

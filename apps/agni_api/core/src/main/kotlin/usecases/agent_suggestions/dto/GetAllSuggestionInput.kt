@@ -5,5 +5,5 @@ import domain.enums.AgentSuggestionStatusType
 
 data class GetAllSuggestionInput(
     val query: QueryFilter,
-    val status: domain.enums.AgentSuggestionStatusType? = null
+    val status: AgentSuggestionStatusType? = null
 )

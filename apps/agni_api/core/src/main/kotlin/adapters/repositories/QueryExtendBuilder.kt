@@ -1,6 +1,5 @@
 package adapters.repositories
 
-import adapters.repositories.query_extend.QueryComparator
 
 class QueryExtendBuilder<T>: IQueryExtendBuilder<T> {
     private val conditions = mutableListOf<IQueryCondition<*>>()
@@ -10,6 +9,8 @@ class QueryExtendBuilder<T>: IQueryExtendBuilder<T> {
         operator: QueryComparator,
         value: V
     ): IQueryExtendBuilder<T> {
+        if (value == null)
+            return this
         conditions.add(QueryCondition(fieldName, operator, value))
         return this
     }
@@ -67,6 +68,7 @@ class QueryExtendBuilder<T>: IQueryExtendBuilder<T> {
                 QueryComparator.Equal -> a == b
                 QueryComparator.NotEqual -> a != b
                 QueryComparator.In -> (value as? Collection<*>)?.contains(entityValue) == true
+                QueryComparator.NotIn -> (value as? Collection<*>)?.contains(entityValue) != true
             }
         }
 

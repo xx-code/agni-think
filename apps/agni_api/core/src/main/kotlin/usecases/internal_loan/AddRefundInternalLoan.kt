@@ -43,10 +43,10 @@ class AddRefundInternalLoan(
 
             val resFreeze = createInvoice.execInnerAsync(CreateInvoiceInput(
                 accountId = input.accountId,
-                status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED,
+                status = InvoiceStatusType.COMPLETED,
                 date = internalLoan.dueDate.atStartOfDay(),
-                type = _root_ide_package_.domain.enums.InvoiceType.OTHER,
-                mouvementType = _root_ide_package_.domain.enums.InvoiceMovementType.DEBIT,
+                type = InvoiceType.OTHER,
+                mouvementType = InvoiceMovementType.DEBIT,
                 currency = null,
                 isFreeze = true,
                 transactions = setOf(

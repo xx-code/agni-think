@@ -19,7 +19,7 @@ class UpdateInternalLoan(
         if (input.fundSourceId != null)  {
             val account = accountRepo.get(input.fundSourceId) ?: throw NotFoundException.SingleEntity(input.fundSourceId, "account")
             val accountType = account.detail.getType()
-            if (accountType != _root_ide_package_.domain.enums.AccountType.CHECKING && accountType != _root_ide_package_.domain.enums.AccountType.SAVING)
+            if (accountType != AccountType.CHECKING && accountType != AccountType.SAVING)
                 throw  ValidationException.InternalLoanAccountNotAllowForCollateral()
 
             if (account.balance * (0.1) > account.balance)

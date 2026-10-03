@@ -3,7 +3,7 @@ package usecases.analystics
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.entities.Budget
 import domain.exceptions.NotFoundException
@@ -23,6 +23,10 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.math.abs
+import domain.enums.AccountType
+import domain.enums.InvoiceType
+import domain.enums.PeriodType
+import domain.enums.ScheduleInvoiceModuleLinkerType
 
 class ForcastSpending(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
@@ -36,11 +40,7 @@ class ForcastSpending(
     override fun execAsync(input: ForcastSpendingInput): ForcastSpendingOutput {
         var currentBalance = 0.0
         val accounts = accountRepo.getAll(QueryFilter.queryAll())
-        if (input.overrideAccountsBalance != null) {
-            currentBalance = input.overrideAccountsBalance
-        } else {
-            currentBalance = getCurrentBalance(accounts.items)
-        }
+        currentBalance = input.overrideAccountsBalance ?: getCurrentBalance(accounts.items)
 
         val budgets = budgetRepo.getManyByIds(input.budgetIds.toSet())
 
@@ -52,7 +52,7 @@ class ForcastSpending(
             .addCondition("scheduler.date", QueryComparator.LesserOrEquals, input.endDate.atStartOfDay())
         val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
 
-        val provisionIds = scheduleInvoices.items.filter { it.moduleLinker?.module == _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.PROVISION  }.mapNotNull { it.moduleLinker?.sourceId }
+        val provisionIds = scheduleInvoices.items.filter { it.moduleLinker?.module == ScheduleInvoiceModuleLinkerType.PROVISION  }.mapNotNull { it.moduleLinker?.sourceId }
         val provisions = provisionRepo.getManyByIds(provisionIds.toSet()).filter { it.paymentInfo != null && it.paymentInfo!!.endDate >= LocalDate.now() }
         val fundIds = provisions.mapNotNull { it.fundAmortizationId }
         val funds = fundRepo.getManyByIds(fundIds.toSet())
@@ -60,9 +60,9 @@ class ForcastSpending(
         val provisionsById = provisions.associateBy { it.id }
         val fundsById = funds.associateBy { it.id }
 
-        val income = getScheduleTotal(scheduleInvoices.items, fundsById, provisionsById, _root_ide_package_.domain.enums.InvoiceType.INCOME, input.startDate, input.endDate)
-        val fixExpense = getScheduleTotal(scheduleInvoices.items, fundsById, provisionsById, _root_ide_package_.domain.enums.InvoiceType.FIXED_COST, input.startDate, input.endDate)
-        val variableExpense = getScheduleTotal(scheduleInvoices.items, fundsById, provisionsById, _root_ide_package_.domain.enums.InvoiceType.VARIABLE_COST, input.startDate, input.endDate)
+        val income = getScheduleTotal(scheduleInvoices.items, fundsById, provisionsById, InvoiceType.INCOME, input.startDate, input.endDate)
+        val fixExpense = getScheduleTotal(scheduleInvoices.items, fundsById, provisionsById, InvoiceType.FIXED_COST, input.startDate, input.endDate)
+        val variableExpense = getScheduleTotal(scheduleInvoices.items, fundsById, provisionsById, InvoiceType.VARIABLE_COST, input.startDate, input.endDate)
 
         val freezeBalanceToRemove = getBalance.execAsync(GetBalanceInput(
             isFreeze = true,
@@ -127,7 +127,7 @@ class ForcastSpending(
         accounts: List<Account>
     ): Double {
         val savingAccountsById = accounts
-            .filter { it.detail.getType() == _root_ide_package_.domain.enums.AccountType.SAVING }
+            .filter { it.detail.getType() == AccountType.SAVING }
             .associateBy { it.id }
 
         val missingAccountIds = additionalAccounts
@@ -148,7 +148,7 @@ class ForcastSpending(
         return additionalAccounts.sumOf { it.amount }
     }
 
-    private fun getScheduleTotal(scheduleInvoices: List<ScheduleInvoice>, fundsById: Map<UUID, Fund>, provisionsById: Map<UUID, Provision>, invoiceType: domain.enums.InvoiceType, startDate: LocalDate, endDate: LocalDate): Double {
+    private fun getScheduleTotal(scheduleInvoices: List<ScheduleInvoice>, fundsById: Map<UUID, Fund>, provisionsById: Map<UUID, Provision>, invoiceType: InvoiceType, startDate: LocalDate, endDate: LocalDate): Double {
         var total = 0.0
         var scheduleInvoices = scheduleInvoices.filter { it.type == invoiceType }
         scheduleInvoices = scheduleInvoices.filter {
@@ -185,7 +185,7 @@ class ForcastSpending(
 
     private fun getCurrentBalance(accounts: List<Account>): Double {
         return accounts.filter {
-            !listOf(_root_ide_package_.domain.enums.AccountType.SAVING, _root_ide_package_.domain.enums.AccountType.BROKING).contains(it.detail.getType())
+            !listOf(AccountType.SAVING, AccountType.BROKING).contains(it.detail.getType())
         }.sumOf { it.balance }
     }
 
@@ -240,10 +240,10 @@ class ForcastSpending(
 
                 val target = if (repeater != null && repeater.interval > 0) {
                     val periodDays = when (repeater.period) {
-                        _root_ide_package_.domain.enums.PeriodType.DAY -> 1.0
-                        _root_ide_package_.domain.enums.PeriodType.WEEK -> 7.0 * repeater.interval
-                        _root_ide_package_.domain.enums.PeriodType.MONTH -> 30.4167 * repeater.interval
-                        _root_ide_package_.domain.enums.PeriodType.YEAR -> 365.0 * repeater.interval
+                        PeriodType.DAY -> 1.0
+                        PeriodType.WEEK -> 7.0 * repeater.interval
+                        PeriodType.MONTH -> 30.4167 * repeater.interval
+                        PeriodType.YEAR -> 365.0 * repeater.interval
                     }
 
                     budget.target * (numberOfDayBudget / periodDays)

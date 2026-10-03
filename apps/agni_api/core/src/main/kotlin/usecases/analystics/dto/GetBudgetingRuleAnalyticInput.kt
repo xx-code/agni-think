@@ -6,6 +6,6 @@ import java.time.LocalDateTime
 data class GetBudgetingRuleAnalyticInput(
     val startDate: LocalDateTime? = null,
     val endDate: LocalDateTime? = null,
-    val period: domain.enums.PeriodType? = _root_ide_package_.domain.enums.PeriodType.MONTH,
+    val period: PeriodType? = PeriodType.MONTH,
     val interval: Int = 0
 )

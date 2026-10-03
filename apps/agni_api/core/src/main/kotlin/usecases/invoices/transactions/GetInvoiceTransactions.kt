@@ -4,7 +4,8 @@ import domain.SAVING_CATEGORY_ID
 import domain.TRANSFERT_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryTransactionExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Budget
 import domain.entities.Category
 import domain.entities.Deduction
@@ -31,28 +32,20 @@ class GetInvoiceTransactions(
     private val transactionRepo: IRepository<Transaction>
 ): IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>> {
      override fun execAsync(input: GetInvoiceTransactionsInput): List<GetInvoiceTransactionsOutput> {
-         val extends = QueryTransactionExtend(
-            invoiceIds = input.invoiceIds,
-            tagIds = input.tagIds,
-            categoryIds = input.categoryIds,
-            budgetIds = input.budgetIds,
-            maxAmount = input.maxAmount,
-            minAmount = input.minAmount
-         )
+         val conditionTransactionExtend = QueryExtendBuilder<Transaction>()
+             .addCondition("categoryId", QueryComparator.In, input.categoryIds)
+             .addCondition("tagIds", QueryComparator.In, input.tagIds)
+             .addCondition("budgetIds", QueryComparator.In, input.budgetIds)
+             .addCondition("amount", QueryComparator.GreaterOrEquals, input.minAmount)
+             .addCondition("amount", QueryComparator.LesserOrEquals, input.maxAmount)
+
 
          val invoices = invoiceRepo.getManyByIds(input.invoiceIds)
          val deductionIds = invoices.flatMap { invoice -> invoice.deductions }.map { it.deductionId }.toSet()
          val deductions = deductionRepo.getManyByIds(deductionIds)
-         var transactions = transactionRepo.getAll(
-            QueryFilter(0, 0, true),
-            QueryTransactionExtend(
-                invoiceIds = input.invoiceIds,
-                tagIds = null,
-                categoryIds = null,
-                budgetIds = null,
-                maxAmount = null,
-                minAmount = null
-            )).items
+         val conditionTransaction = QueryExtendBuilder<Transaction>()
+             .addCondition("invoiceId", QueryComparator.In, input.invoiceIds)
+         var transactions = transactionRepo.getAll(QueryFilter.queryAll(), conditionTransaction).items
 
 
          val categories = categoryRepo.getManyByIds(transactions.map { it.categoryId }.toSet())
@@ -76,10 +69,10 @@ class GetInvoiceTransactions(
             )
 
             // Adjust Transaction, Total and Subtotal Invoice
-            if (doFilterTransactions(extends)) {
+            if (conditionTransactionExtend.getConditions().isNotEmpty()) {
                invoiceTransaction = formatInvoiceTransaction(
                    invoice,
-                   transactions.filter { extends.isStatisfy(it) },
+                   transactions.filter { conditionTransactionExtend.satisfy(it) },
                    deductions,
                    categories,
                    tags,
@@ -116,8 +109,8 @@ class GetInvoiceTransactions(
         val subTotal = transactions.sumOf { transaction -> transaction.amount }
         val invoiceDeductions = deductions.filter { deduction -> invoice.deductions.map { it.deductionId }.contains(deduction.id) }
 
-        val deductionSubTotal = invoiceDeductions.filter { it.base == _root_ide_package_.domain.enums.DeductionBaseType.SUBTOTAL }
-        val deductionTotal = invoiceDeductions.filter { it.base == _root_ide_package_.domain.enums.DeductionBaseType.TOTAL }
+        val deductionSubTotal = invoiceDeductions.filter { it.base == DeductionBaseType.SUBTOTAL }
+        val deductionTotal = invoiceDeductions.filter { it.base == DeductionBaseType.TOTAL }
 
         val totalBeforeSubTotal = computeInvoiceAmountWithDeduction(subTotal, invoice, deductionSubTotal, invoiceParentSubtotal)
         val total = computeInvoiceAmountWithDeduction(totalBeforeSubTotal, invoice, deductionTotal, invoiceParentTotal)
@@ -170,7 +163,7 @@ class GetInvoiceTransactions(
         return total + deductions.sumOf { deduction ->
             val invoiceDeduction = invoice.deductions.find { it.deductionId == deduction.id }
             invoiceDeduction?.let {
-                if (deduction.mode == _root_ide_package_.domain.enums.DeductionModeType.FLAT)
+                if (deduction.mode == DeductionModeType.FLAT)
                     adjustFlatDeductionAmountAfterFiltered(it.amount, parentInvoiceSubtotal)
                 else
                     total * (it.amount / 100)
@@ -182,11 +175,5 @@ class GetInvoiceTransactions(
         return parentTotalAmount?.let {
             parentTotalAmount * (deductionAmount / parentTotalAmount)
         } ?: deductionAmount
-    }
-
-
-    private fun doFilterTransactions(query: QueryTransactionExtend) : Boolean{
-        return query.categoryIds !== null || query.tagIds !== null || query.budgetIds !== null || query.maxAmount !== null
-                || query.minAmount !== null
     }
 }

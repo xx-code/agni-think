@@ -6,7 +6,7 @@ import adapters.events.IEventListener
 import domain.entities.Invoice
 
 class CreateEmbeddingInvoiceEventContent(
-    val invoice: domain.entities.Invoice,
+    val invoice: Invoice,
 ) : IEventContent {
 
     override fun dispatch(listener: IEventListener) {

@@ -8,5 +8,5 @@ import java.util.UUID
 data class GetAllSpendingPeriodInput(
     val queryFilter: QueryFilter,
     val spendingPeriodTemplateId: UUID? = null,
-    val state: domain.enums.SpendingPeriodStateType? = null,
+    val state: SpendingPeriodStateType? = null,
 )

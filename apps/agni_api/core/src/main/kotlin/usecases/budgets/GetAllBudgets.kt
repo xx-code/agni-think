@@ -4,7 +4,8 @@ import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
 import adapters.dto.ScheduleRepeaterOutput
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryBudgetExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Budget
 import domain.enums.InvoiceType
 import usecases.ListOutput
@@ -25,9 +26,15 @@ class GetAllBudgets(
             queryAll = input.query.queryAll,
             sortBy = QuerySortBy("updated_at")
         )
+
+        val conditionBudget = QueryExtendBuilder<Budget>()
+        if (input.periodTypes != null)
+            conditionBudget.addCondition("scheduler.repeater", QueryComparator.In, input.periodTypes.map { it.value }.toSet())
+
         val budgets = budgetRepo.getAll(
             query = query,
-            QueryBudgetExtend(periodTypes = input.periodTypes))
+            conditionBudget
+        )
 
         val result = mutableListOf<GetBudgetOutput>()
         for (budget in budgets.items) {
@@ -36,7 +43,7 @@ class GetAllBudgets(
 
             val resultBalance = getBalance.execAsync(GetBalanceInput(
                 budgetIds = setOf(budget.id),
-                types = setOf(_root_ide_package_.domain.enums.InvoiceType.FIXED_COST, _root_ide_package_.domain.enums.InvoiceType.VARIABLE_COST, _root_ide_package_.domain.enums.InvoiceType.OTHER),
+                types = setOf(InvoiceType.FIXED_COST, InvoiceType.VARIABLE_COST, InvoiceType.OTHER),
                 startDate = startDate,
                 endDate = endDate
             ))

@@ -6,7 +6,6 @@ import dev.auguste.agni_api.controllers.models.ApiUpdateGoal
 import dev.auguste.agni_api.controllers.models.mapApiCreateGoal
 import dev.auguste.agni_api.controllers.models.mapApiUpdateGoal
 import adapters.dto.QueryFilter
-import adapters.repositories.query_extend.QueryGoalExtend
 import domain.enums.GoalEvaluationType
 import domain.enums.GoalStatusType
 import usecases.CreatedOutput

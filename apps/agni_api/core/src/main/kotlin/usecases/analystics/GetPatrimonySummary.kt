@@ -15,18 +15,18 @@ class GetPatrimonySummary(
         val patrimonies = getAllPatrimonies.execAsync(QueryFilter.queryAll())
 
         val totalAsset = patrimonies.items
-                .filter { _root_ide_package_.domain.enums.PatrimonyType.fromString(it.type) == _root_ide_package_.domain.enums.PatrimonyType.ASSET }
+                .filter { PatrimonyType.fromString(it.type) == PatrimonyType.ASSET }
                 .sumOf { it.currentBalance }
         val totalLiability = patrimonies.items
-                .filter { _root_ide_package_.domain.enums.PatrimonyType.fromString(it.type) == _root_ide_package_.domain.enums.PatrimonyType.LIABILITY }
+                .filter { PatrimonyType.fromString(it.type) == PatrimonyType.LIABILITY }
                 .sumOf { it.currentBalance }
 
         val totalPassAsset = patrimonies.items
-                .filter { _root_ide_package_.domain.enums.PatrimonyType.fromString(it.type) == _root_ide_package_.domain.enums.PatrimonyType.ASSET }
+                .filter { PatrimonyType.fromString(it.type) == PatrimonyType.ASSET }
                 .sumOf { it.pastBalance }
 
         val totalPassLiability = patrimonies.items
-                .filter { _root_ide_package_.domain.enums.PatrimonyType.fromString(it.type) == _root_ide_package_.domain.enums.PatrimonyType.LIABILITY }
+                .filter { PatrimonyType.fromString(it.type) == PatrimonyType.LIABILITY }
                 .sumOf { it.pastBalance }
 
         val networth = totalAsset - totalLiability

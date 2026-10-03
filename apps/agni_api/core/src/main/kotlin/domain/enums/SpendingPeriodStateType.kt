@@ -8,6 +8,10 @@ enum class SpendingPeriodStateType(val value: String) {
     IN_PROGRESS("InProgress"),
     COMPLETE("Complete");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): SpendingPeriodStateType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

@@ -15,8 +15,7 @@ import java.util.UUID
 data class JdbcGoalModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("goal_id")
-    val id: UUID,
+    val goalId: UUID,
     val title: String,
     @Column("source_id")
     val sourceId: UUID,
@@ -29,7 +28,7 @@ data class JdbcGoalModel(
     val type: String
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return goalId
     }
 }
 
@@ -50,7 +49,7 @@ class JdbcGoalModelMapper: IMapper<JdbcGoalModel, Goal> {
 
     override fun toModel(entity: Goal): JdbcGoalModel {
         return JdbcGoalModel(
-            id = entity.id,
+            goalId = entity.id,
             title = entity.title,
             sourceId = entity.targetSourceId,
             description = entity.description,
@@ -61,19 +60,22 @@ class JdbcGoalModelMapper: IMapper<JdbcGoalModel, Goal> {
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "goal_id",
+        "title" to "title",
+        "description" to "description",
+        "targetSourceId" to "source_id",
+        "targetAmount" to "target_amount",
+        "dueDate" to "due_date",
+        "status" to "status",
+        "type" to "type"
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "goals"
 
     override fun getSortField(): Set<String> {
         return setOf("due_date", "target_amount", "status", "type")
     }
 
-    override fun getModelClass(): Class<JdbcGoalModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcGoalModel> = JdbcGoalModel::class.java
 }

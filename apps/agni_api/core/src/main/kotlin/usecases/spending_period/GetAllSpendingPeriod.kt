@@ -3,7 +3,7 @@ package usecases.spending_period
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.QueryComparator
 import domain.entities.SpendingPeriod
 import usecases.ListOutput
 import usecases.interfaces.IUseCase
@@ -18,17 +18,11 @@ class GetAllSpendingPeriod(
 ): IUseCase<GetAllSpendingPeriodInput, ListOutput<GetAllSpendingPeriodOutput>> {
     override fun execAsync(input: GetAllSpendingPeriodInput): ListOutput<GetAllSpendingPeriodOutput> {
         val condition = QueryExtendBuilder<SpendingPeriod>()
-        if (input.spendingPeriodTemplateId != null)
-            condition.addCondition("spendingPeriodTemplateId", QueryComparator.Equal, input.spendingPeriodTemplateId)
+            .addCondition("spendingPeriodTemplateId", QueryComparator.Equal, input.spendingPeriodTemplateId)
+            .addCondition("state", QueryComparator.Equal, input.state?.value)
+//            .addCondition("startDate", QueryComparator.Equal, input.startDate)
+//            .addCondition("endDate", QueryComparator.Equal, input.endDate)
 
-//        if (input.startDate != null)
-//            condition.addCondition("startDate", QueryComparator.Equal, input.startDate)
-//
-//        if (input.endDate != null)
-//            condition.addCondition("endDate", QueryComparator.Equal, input.endDate)
-//
-        if (input.state != null)
-            condition.addCondition("state", QueryComparator.Equal, input.state.value)
 
         val spendingPeriods = spendingPeriodRepo.getAll(input.queryFilter, condition)
 

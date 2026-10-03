@@ -7,6 +7,7 @@ import domain.exceptions.NotFoundException
 import domain.entities.Fund
 import usecases.interfaces.IUseCase
 import usecases.saving_goals.dto.UpdateSavingGoalInput
+import domain.enums.FundType
 
 class UpdateSavingGoal(
     private val fundRepo: IRepository<Fund>,
@@ -41,7 +42,7 @@ class UpdateSavingGoal(
 
         if (input.type != null && input.type != savingGoal.type ) {
             savingGoal.type = input.type
-            if (input.type == _root_ide_package_.domain.enums.FundType.AMORTIZATION)
+            if (input.type == FundType.AMORTIZATION)
                 savingGoal.accountId = null
         }
 

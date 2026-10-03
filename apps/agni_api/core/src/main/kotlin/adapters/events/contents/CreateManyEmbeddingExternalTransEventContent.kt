@@ -6,7 +6,7 @@ import adapters.events.listeners.ICreateManyExternalTransactionListener
 import domain.entities.ExternalTransaction
 
 class CreateManyEmbeddingExternalTransEventContent(
-    val transactions: List<domain.entities.ExternalTransaction>
+    val transactions: List<ExternalTransaction>
 ): IEventContent {
     override fun dispatch(listener: IEventListener) {
         if (listener is ICreateManyExternalTransactionListener) {

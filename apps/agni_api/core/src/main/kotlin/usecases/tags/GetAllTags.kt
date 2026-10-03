@@ -2,8 +2,7 @@ package usecases.tags
 
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
-import adapters.repositories.query_extend.QueryTagExtend
+import adapters.repositories.QueryComparator
 import domain.entities.Category
 import domain.entities.Tag
 import usecases.ListOutput

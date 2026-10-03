@@ -14,6 +14,10 @@ import usecases.invoices.dto.TransactionInput
 import usecases.saving_goals.dto.DecreaseSavingGoalInput
 import domain.value_objects.InvoiceModuleLinker
 import java.time.LocalDateTime
+import domain.enums.InvoiceModuleLinkerType
+import domain.enums.InvoiceMovementType
+import domain.enums.InvoiceStatusType
+import domain.enums.InvoiceType
 
 class DecreaseSavingGoal(
     private val fundRepo: IRepository<Fund>,
@@ -47,10 +51,10 @@ class DecreaseSavingGoal(
 
         createInvoice.execInnerAsync(CreateInvoiceInput(
             accountId = input.accountId,
-            status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED,
+            status = InvoiceStatusType.COMPLETED,
             date = LocalDateTime.now(),
-            type = _root_ide_package_.domain.enums.InvoiceType.OTHER,
-            mouvementType = _root_ide_package_.domain.enums.InvoiceMovementType.CREDIT,
+            type = InvoiceType.OTHER,
+            mouvementType = InvoiceMovementType.CREDIT,
             currency = null,
             transactions = setOf(TransactionInput(
                 amount = input.amount,
@@ -61,7 +65,7 @@ class DecreaseSavingGoal(
             )),
             moduleSourcesLinker = listOf(InvoiceModuleLinker(
                 sourceId = savingGoal.id,
-                module = _root_ide_package_.domain.enums.InvoiceModuleLinkerType.FUND
+                module = InvoiceModuleLinkerType.FUND
             )),
             deductions = setOf()
         ))

@@ -7,6 +7,10 @@ enum class AgentSuggestionStatusType(val value: String) {
     REJECTED("Rejected"),
     PENDING("Pending");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): AgentSuggestionStatusType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

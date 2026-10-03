@@ -16,7 +16,7 @@ class GetSavingBalance(
 ) : IUseCase<GetSavingBalanceInput, Double> {
     override fun execAsync(input: GetSavingBalanceInput): Double {
          val accounts = accountRepo.getAll(QueryFilter(0, 0, true))
-        val savingAccountType = setOf(_root_ide_package_.domain.enums.AccountType.SAVING, _root_ide_package_.domain.enums.AccountType.BROKING)
+        val savingAccountType = setOf(AccountType.SAVING, AccountType.BROKING)
         val savingAccountIds = accounts.items.filter{ savingAccountType.contains(it.detail.getType()) }.map { it.id }
 
         val savingGoalBalance = getBalance.execAsync(GetBalanceInput(

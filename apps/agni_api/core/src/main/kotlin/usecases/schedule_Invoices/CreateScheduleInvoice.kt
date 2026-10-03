@@ -45,7 +45,7 @@ class CreateScheduleInvoice(
         if (input.categoryId != null)
             categoryId = input.categoryId
 
-        var type = _root_ide_package_.domain.enums.InvoiceType.OTHER
+        var type = InvoiceType.OTHER
         if (input.type != null)
             type = input.type
 

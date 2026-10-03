@@ -5,7 +5,8 @@ import adapters.events.EventType
 import adapters.events.IEventRegister
 import adapters.events.contents.CreateEmbeddingExternalTransEventContent
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryExternalTransactionExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.exceptions.AlreadyExistException
 import domain.entities.ExternalTransaction
 import usecases.CreatedOutput
@@ -18,10 +19,12 @@ class AddExternalTransaction(
 ): IUseCase<AddExternalTransactionInput, CreatedOutput> {
     override fun execAsync(input: AddExternalTransactionInput): CreatedOutput {
 
+        val condition = QueryExtendBuilder<ExternalTransaction>()
+            .addCondition("transactionId", QueryComparator.Equal, input.transactionId)
         val externalTransactions = externalTransactionRepo.getAll(
-            query = QueryFilter(queryAll = true),
-            queryExtend = QueryExternalTransactionExtend(transactionIds = setOf(input.transactionId)
-        ))
+            QueryFilter.queryAll(),
+            condition
+        )
 
         if (externalTransactions.items.isNotEmpty())
             throw AlreadyExistException.Entity("all_external_transaction")

@@ -6,7 +6,8 @@ import adapters.events.IEventRegister
 import adapters.events.contents.CreateEmbeddingInvoiceEventContent
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
-import adapters.repositories.query_extend.QueryInternalLoanExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.exceptions.NotFoundException
 import domain.entities.InternalLoan
@@ -15,6 +16,8 @@ import usecases.interfaces.IUseCase
 import usecases.invoices.dto.CompleteInvoiceInput
 import usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
+import domain.enums.InvoiceMovementType
+import domain.enums.InvoiceStatusType
 
 class CompleteInvoice(
     private val invoiceRepo: IRepository<Invoice>,
@@ -40,15 +43,18 @@ class CompleteInvoice(
 
             val balance = transactions.first().total
 
-            invoice.statusType = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED
-            if (invoice.movementType == _root_ide_package_.domain.enums.InvoiceMovementType.CREDIT)
+            invoice.statusType = InvoiceStatusType.COMPLETED
+            if (invoice.movementType == InvoiceMovementType.CREDIT)
                 account.balance += balance
             else account.balance -= balance
 
             invoiceRepo.update(invoice)
             accountRepo.update(account)
 
-            val internalLoans = internalLoanRepo.getAll(QueryFilter(queryAll = true), QueryInternalLoanExtend(invoiceId = input.invoiceId))
+            // TODO: To remove feature
+            val conditionInvoice = QueryExtendBuilder<InternalLoan>()
+                .addCondition("invoiceId", QueryComparator.Equal, input.invoiceId)
+            val internalLoans = internalLoanRepo.getAll(QueryFilter.queryAll(), conditionInvoice)
             if (internalLoans.items.isNotEmpty())
                 internalLoanRepo.delete(internalLoans.items.first().invoiceId)
 

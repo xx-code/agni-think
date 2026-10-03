@@ -42,7 +42,7 @@ class CreatePatrimony(
                     patrimonyId = newPatrimony.id,
                     currentBalanceObserved = newPatrimony.amount,
                     date = LocalDate.now(),
-                    status = _root_ide_package_.domain.enums.PatrimonySnapshotStatusType.COMPLETED
+                    status = PatrimonySnapshotStatusType.COMPLETED
                 )
 
                 snapshotRepo.create(firstSnapShot)

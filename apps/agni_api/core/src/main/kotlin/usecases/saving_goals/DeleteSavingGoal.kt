@@ -3,7 +3,8 @@ package usecases.saving_goals
 import domain.SAVING_CATEGORY_ID
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
-import adapters.repositories.query_extend.QueryGoalExtend
+import adapters.repositories.QueryComparator
+import adapters.repositories.QueryExtendBuilder
 import domain.entities.Account
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
@@ -16,6 +17,9 @@ import usecases.invoices.dto.CreateInvoiceInput
 import usecases.invoices.dto.TransactionInput
 import usecases.saving_goals.dto.DeleteSavingGoalInput
 import java.time.LocalDateTime
+import domain.enums.InvoiceMovementType
+import domain.enums.InvoiceStatusType
+import domain.enums.InvoiceType
 
 class DeleteSavingGoal(
     private val fundRepo: IRepository<Fund>,
@@ -46,10 +50,10 @@ class DeleteSavingGoal(
 
             createInvoice.execInnerAsync(CreateInvoiceInput(
                 accountId = accountId,
-                status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED,
+                status = InvoiceStatusType.COMPLETED,
                 date = LocalDateTime.now(),
-                type = _root_ide_package_.domain.enums.InvoiceType.OTHER,
-                mouvementType = _root_ide_package_.domain.enums.InvoiceMovementType.CREDIT,
+                type = InvoiceType.OTHER,
+                mouvementType = InvoiceMovementType.CREDIT,
                 currency = null,
                 transactions = setOf(TransactionInput(
                     amount = savingGoal.balance,
@@ -62,7 +66,9 @@ class DeleteSavingGoal(
             ))
 
             fundRepo.delete(input.savingGoalId)
-            goalRepo.deleteManyBy(QueryGoalExtend(setOf(input.savingGoalId)))
+            val conditionGoal = QueryExtendBuilder<Goal>()
+                .addCondition("targetSourceId", QueryComparator.Equal, input.savingGoalId)
+            goalRepo.deleteManyBy(conditionGoal)
         }
     }
 }

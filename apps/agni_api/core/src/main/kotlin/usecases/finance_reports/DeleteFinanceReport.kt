@@ -10,7 +10,7 @@ class DeleteFinanceReport(
     private val financeReportRepo: IRepository<FinanceReport>,
 ): IUseCase<DeleteFinanceReportInput, Unit> {
     override fun execAsync(input: DeleteFinanceReportInput) {
-        val financeReport = financeReportRepo.get(input.financeReportId) ?: throw NotFoundException.SingleEntity(input.financeReportId, "finance_report")
+        financeReportRepo.get(input.financeReportId) ?: throw NotFoundException.SingleEntity(input.financeReportId, "finance_report")
         financeReportRepo.delete(input.financeReportId)
     }
 }

@@ -6,6 +6,6 @@ import domain.enums.DeductionModeType
 data class CreateDeductionInput(
     val title: String,
     val description: String,
-    val base: domain.enums.DeductionBaseType,
-    val mode: domain.enums.DeductionModeType
+    val base: DeductionBaseType,
+    val mode: DeductionModeType
 )

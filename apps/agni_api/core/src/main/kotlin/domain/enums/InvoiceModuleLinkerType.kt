@@ -9,6 +9,10 @@ enum class InvoiceModuleLinkerType(val value: String) {
     INCOME_SOURCE("IncomeSource"),
     TRANSFER("Transfer");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): InvoiceModuleLinkerType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

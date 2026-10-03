@@ -32,11 +32,9 @@ class BudgetConfig {
     @Bean
     fun createBudget(
         budgetRepo: IRepository<Budget>,
-        fundRepo: IRepository<Fund>,
     ) : IUseCase<CreateBudgetInput, CreatedOutput> {
         return CreateBudget(
-            budgetRepo = budgetRepo,
-            fundRepo = fundRepo,
+            budgetRepo = budgetRepo
         )
     }
     

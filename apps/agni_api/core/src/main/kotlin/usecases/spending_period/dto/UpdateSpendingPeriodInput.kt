@@ -11,7 +11,7 @@ data class UpdateSpendingPeriodInput(
     val endDate: LocalDate? = null,
     val freeAmount: Double? = null,
     val savingRateTarget: Double? = null,
-    val state: domain.enums.SpendingPeriodStateType? = null,
+    val state: SpendingPeriodStateType? = null,
     val totalExpectedIncome: Double? = null,
     val totalExpectedExpenses: Double? = null,
     val wantSpendingItems: List<SpendingPeriodItemInput>? = null

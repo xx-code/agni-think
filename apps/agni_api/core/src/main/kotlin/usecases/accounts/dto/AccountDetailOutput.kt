@@ -7,10 +7,13 @@ import domain.value_objects.CheckingAccountDetail
 import domain.value_objects.CreditCardAccountDetail
 import java.time.LocalDate
 import kotlin.math.abs
+import domain.enums.AccountType
+import domain.enums.ContributionAccountType
+import domain.enums.ManagementAccountType
 
 data class GetBrokingDetailOutput(
-    val managementType: domain.enums.ManagementAccountType,
-    val contributionType: domain.enums.ContributionAccountType,
+    val managementType: ManagementAccountType,
+    val contributionType: ContributionAccountType,
 )
 
 data class GetCreditCardAccountOutput(
@@ -31,14 +34,14 @@ data class AccountDetailOutput(
 
 fun mapperAccountDetailOutput(accountDetail: IAccountDetail, balance: Double = 0.0): AccountDetailOutput {
     return when(accountDetail.getType()) {
-        _root_ide_package_.domain.enums.AccountType.CHECKING -> {
+        AccountType.CHECKING -> {
             val detail = (accountDetail as CheckingAccountDetail)
             AccountDetailOutput(detailForChecking = GetCheckingDetailOutput(
                 buffer = detail.buffer
             )
             )
         }
-        _root_ide_package_.domain.enums.AccountType.BROKING -> {
+        AccountType.BROKING -> {
             val detail = (accountDetail as BrokingAccountDetail)
             AccountDetailOutput(
                 detailForBroking = GetBrokingDetailOutput(
@@ -48,7 +51,7 @@ fun mapperAccountDetailOutput(accountDetail: IAccountDetail, balance: Double = 0
             )
         }
 
-        _root_ide_package_.domain.enums.AccountType.CREDIT_CARD -> {
+        AccountType.CREDIT_CARD -> {
             val detail = (accountDetail as CreditCardAccountDetail)
 
             val now = LocalDate.now()
@@ -70,10 +73,10 @@ fun mapperAccountDetailOutput(accountDetail: IAccountDetail, balance: Double = 0
             ))
         }
 
-        _root_ide_package_.domain.enums.AccountType.BUSINESS -> {
+        AccountType.BUSINESS -> {
             AccountDetailOutput()
         }
-        _root_ide_package_.domain.enums.AccountType.SAVING -> {
+        AccountType.SAVING -> {
             AccountDetailOutput()
         }
     }

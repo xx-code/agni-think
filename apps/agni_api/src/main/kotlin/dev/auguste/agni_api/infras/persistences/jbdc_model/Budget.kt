@@ -16,11 +16,9 @@ import java.util.UUID
 data class JdbcBudgetModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("budget_id")
-    val id: UUID,
+    val budgetId: UUID,
 
-    @Column("title")
-    val name: String,
+    val title: String,
 
     val target: Double,
     val scheduler: String,
@@ -34,7 +32,7 @@ data class JdbcBudgetModel(
     val updatedAt: LocalDateTime
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return budgetId
     }
 }
 
@@ -47,7 +45,7 @@ class JdbcBudgetModelMapper(
 
         return Budget(
             id = model.id,
-            title = model.name,
+            title = model.title,
             target = model.target,
             scheduler = Scheduler.fromMap(schedulerJson),
             isArchived = model.isArchived,
@@ -58,8 +56,8 @@ class JdbcBudgetModelMapper(
 
     override fun toModel(entity: Budget): JdbcBudgetModel {
         return JdbcBudgetModel(
-            id = entity.id,
-            name = entity.title,
+            budgetId = entity.id,
+            title = entity.title,
             target = entity.target,
             scheduler = objectMapper.writeValueAsString(entity.scheduler.toMap()),
             isArchived = entity.isArchived,
@@ -68,19 +66,23 @@ class JdbcBudgetModelMapper(
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "budget_id",
+        "title" to "title",
+        "target" to "target",
+        "scheduler" to "scheduler",
+        "scheduler.date" to "scheduler->>'due_date'",
+        "scheduler.repeater" to "scheduler->>'repeater'->>'period'",
+        "isArchived" to "is_archived",
+        "createdAt" to "created_at",
+        "updatedAt" to "updated_at"
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "budgets"
 
     override fun getSortField(): Set<String> {
         return setOf("target", "created_at", "updated_at")
     }
 
-    override fun getModelClass(): Class<JdbcBudgetModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcBudgetModel> = JdbcBudgetModel::class.java
 }

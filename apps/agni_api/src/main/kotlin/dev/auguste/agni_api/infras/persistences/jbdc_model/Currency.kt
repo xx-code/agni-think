@@ -12,8 +12,7 @@ import java.util.UUID
 data class JdbcCurrencyModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("currency_id")
-    val id: UUID,
+    val currencyId: UUID,
     val name: String,
     val symbol: String,
     val locale: String?,
@@ -25,7 +24,7 @@ data class JdbcCurrencyModel(
     val isBase: Boolean = false
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return currencyId
     }
 }
 
@@ -44,7 +43,7 @@ class JdbcCurrencyModelMapper: IMapper<JdbcCurrencyModel, Currency> {
 
     override fun toModel(entity: Currency): JdbcCurrencyModel {
         return JdbcCurrencyModel(
-            id = entity.id,
+            currencyId = entity.id,
             name = entity.name,
             symbol = entity.symbol,
             locale = entity.locale,
@@ -53,19 +52,20 @@ class JdbcCurrencyModelMapper: IMapper<JdbcCurrencyModel, Currency> {
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "currency_id",
+        "name" to "name",
+        "symbol" to "symbol",
+        "locale" to "locale",
+        "rateToBase" to "rate_to_base",
+        "isBase" to "is_base"
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "currencies"
 
     override fun getSortField(): Set<String> {
         return setOf("rate_to_base")
     }
 
-    override fun getModelClass(): Class<JdbcCurrencyModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcCurrencyModel> = JdbcCurrencyModel::class.java
 }

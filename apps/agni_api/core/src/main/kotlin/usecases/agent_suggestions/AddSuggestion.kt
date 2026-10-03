@@ -17,7 +17,7 @@ class AddSuggestion(
             title = input.title,
             description = input.description,
             confidenceScore = input.confidenceScore,
-            status = _root_ide_package_.domain.enums.AgentSuggestionStatusType.PENDING
+            status = AgentSuggestionStatusType.PENDING
         )
 
         agentSuggestionRepo.create(newSuggestion)

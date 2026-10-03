@@ -23,7 +23,7 @@ class GetBudget(
 
         val resultBalance = getBalance.execAsync(GetBalanceInput(
             budgetIds = setOf(budget.id),
-            types = setOf(_root_ide_package_.domain.enums.InvoiceType.FIXED_COST, _root_ide_package_.domain.enums.InvoiceType.VARIABLE_COST, _root_ide_package_.domain.enums.InvoiceType.OTHER),
+            types = setOf(InvoiceType.FIXED_COST, InvoiceType.VARIABLE_COST, InvoiceType.OTHER),
             startDate = startDate,
             endDate = endDate
         ))

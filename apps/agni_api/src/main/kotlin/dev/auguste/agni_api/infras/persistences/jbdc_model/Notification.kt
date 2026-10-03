@@ -13,11 +13,9 @@ import java.util.UUID
 data class JdbcNotificationModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("notification_id")
-    val id: UUID,
+    val notificationId: UUID,
 
-    @Column("title")
-    val name: String,
+    val title: String,
 
     val content: String,
 
@@ -27,7 +25,7 @@ data class JdbcNotificationModel(
     val date: LocalDateTime
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return notificationId
     }
 }
 
@@ -36,7 +34,7 @@ class JdbcNotificationModelMapper: IMapper<JdbcNotificationModel, Notification> 
     override fun toDomain(model: JdbcNotificationModel): Notification {
         return Notification(
             id = model.id,
-            title = model.name,
+            title = model.title,
             content = model.content,
             dateTime = model.date,
             isRead =model.isRead,
@@ -45,27 +43,27 @@ class JdbcNotificationModelMapper: IMapper<JdbcNotificationModel, Notification> 
 
     override fun toModel(entity: Notification): JdbcNotificationModel {
         return JdbcNotificationModel(
-            id = entity.id,
-            name = entity.title,
+            notificationId = entity.id,
+            title = entity.title,
             content = entity.content,
             isRead = entity.isRead,
             date = entity.dateTime
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "notification_id",
+        "title" to "title",
+        "content" to "content",
+        "dateTime" to "date",
+        "isRead" to "is_read"
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "notifications"
 
     override fun getSortField(): Set<String> {
         return setOf("date")
     }
 
-    override fun getModelClass(): Class<JdbcNotificationModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcNotificationModel> = JdbcNotificationModel::class.java
 }

@@ -11,7 +11,7 @@ data class ScheduleInvoiceProvisionInput(
     val invoiceCategoryId: UUID,
     val tagIds: Set<UUID>,
     val budgetIds: Set<UUID>,
-    val paymentPeriod: domain.enums.PeriodType,
+    val paymentPeriod: PeriodType,
     val paymentInterval: Int
 )
 
@@ -23,7 +23,7 @@ data class CreateProvisionInput (
     val acquisitionDate: LocalDate,
     val expectedLifespanMonth: Int,
     val isInstallmentOnTTC: Boolean = true,
-    val type: domain.enums.ProvisionType,
+    val type: ProvisionType,
     val isPatrimony: Boolean,
     val depreciationCriteria: List<ProvisionDepreciateCriteria>,
     val scheduleInvoice: ScheduleInvoiceProvisionInput? = null,

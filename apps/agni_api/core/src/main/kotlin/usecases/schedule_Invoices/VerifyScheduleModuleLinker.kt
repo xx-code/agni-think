@@ -7,6 +7,7 @@ import domain.entities.Provision
 import domain.entities.Fund
 import usecases.interfaces.IUseCase
 import domain.value_objects.ScheduleInvoiceModuleLinker
+import domain.enums.ScheduleInvoiceModuleLinkerType
 
 class VerifyScheduleModuleLinker(
     private val incomeSourceRepo: IRepository<IncomeSource>,
@@ -15,15 +16,15 @@ class VerifyScheduleModuleLinker(
 ): IUseCase<ScheduleInvoiceModuleLinker, Unit> {
     override fun execAsync(input: ScheduleInvoiceModuleLinker) {
         when (input.module) {
-            _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.FUND -> {
+            ScheduleInvoiceModuleLinkerType.FUND -> {
                 if (fundSourceRepo.get(input.sourceId) == null)
                     throw NotFoundException.SingleEntity(input.sourceId, "saving_goal")
             }
-            _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.PROVISION -> {
+            ScheduleInvoiceModuleLinkerType.PROVISION -> {
                 if (provisionRepo.get(input.sourceId) == null)
                     throw NotFoundException.SingleEntity(input.sourceId, "provisionable")
             }
-            _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.INCOME_SOURCE -> {
+            ScheduleInvoiceModuleLinkerType.INCOME_SOURCE -> {
                 if (incomeSourceRepo.get(input.sourceId) == null)
                     throw NotFoundException.SingleEntity(input.sourceId, "income_source")
             }

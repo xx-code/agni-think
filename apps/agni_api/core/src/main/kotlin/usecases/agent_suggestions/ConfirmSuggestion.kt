@@ -12,7 +12,7 @@ class ConfirmSuggestion(
 ): IUseCase<ConfirmSuggestionInput, Unit> {
     override fun execAsync(input: ConfirmSuggestionInput) {
         val suggestion = agentSuggestionRepo.get(input.suggestionId) ?: throw NotFoundException.SingleEntity(input.suggestionId, "agent_suggestion")
-        suggestion.status = if (input.isAccept)  _root_ide_package_.domain.enums.AgentSuggestionStatusType.ACCEPTED else _root_ide_package_.domain.enums.AgentSuggestionStatusType.REJECTED
+        suggestion.status = if (input.isAccept)  AgentSuggestionStatusType.ACCEPTED else AgentSuggestionStatusType.REJECTED
         agentSuggestionRepo.update(suggestion)
     }
 }

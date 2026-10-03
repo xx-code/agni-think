@@ -11,5 +11,5 @@ data class UpdateGoalInput(
     val description: String?,
     val targetAmount: Double?,
     val targetDate: LocalDate?,
-    val status: domain.enums.GoalStatusType?
+    val status: GoalStatusType?
 )

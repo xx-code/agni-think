@@ -5,5 +5,5 @@ import domain.enums.FundType
 
 data class GetAllSavingGoalInput(
     var queryFilter: QueryFilter,
-    val type: domain.enums.FundType? = null
+    val type: FundType? = null
 )

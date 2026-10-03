@@ -1,7 +1,8 @@
 package usecases.invoices
 
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryExternalTransactionExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.ExternalTransaction
 import usecases.ListOutput
 import usecases.interfaces.IUseCase
@@ -12,7 +13,9 @@ class GetAllExternalTransaction(
     private val externalTransactionRepo: IRepository<ExternalTransaction>,
 ): IUseCase<GetAllExternalTransactionInput, ListOutput<GetExternalTransactionOutput>> {
     override fun execAsync(input: GetAllExternalTransactionInput): ListOutput<GetExternalTransactionOutput> {
-        val externalTransactions = externalTransactionRepo.getAll(input.query, queryExtend = QueryExternalTransactionExtend(isTreated = input.isTreated))
+        val conditionExternalTransaction = QueryExtendBuilder<ExternalTransaction>()
+            .addCondition("isTreated", QueryComparator.Equal, input.isTreated)
+        val externalTransactions = externalTransactionRepo.getAll(input.query, conditionExternalTransaction)
 
         return ListOutput(
             externalTransactions.items.map {

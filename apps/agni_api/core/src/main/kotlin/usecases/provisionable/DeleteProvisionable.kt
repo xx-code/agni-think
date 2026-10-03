@@ -4,7 +4,7 @@ import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.QueryComparator
 import domain.exceptions.NotFoundException
 import domain.entities.Provision
 import domain.entities.ScheduleInvoice
@@ -27,7 +27,7 @@ class DeleteProvisionable(
             provisionRepo.delete(input.provisionableId)
             val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
                 .addCondition("moduleLinker.sourceId", QueryComparator.Equal, provision.id)
-                .addCondition("moduleLinker.module", QueryComparator.Equal, _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.PROVISION.value)
+                .addCondition("moduleLinker.module", QueryComparator.Equal, ScheduleInvoiceModuleLinkerType.PROVISION.value)
 
             val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
             for (scheduleInvoice in scheduleInvoices.items) {

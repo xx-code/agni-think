@@ -8,4 +8,5 @@ enum class ErrorCodeType(val value: Int) {
     UNAUTHORIZED(401),
     FORBIDDEN(403),
     INTERNAL_SERVER_ERROR(500)
+
 }

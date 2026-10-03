@@ -5,7 +5,7 @@ import adapters.dto.ScheduleRepeaterInput
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.entities.IncomeSource
 import usecases.income_sources.dto.UpdateIncomeSourceInput
@@ -82,7 +82,7 @@ class UpdateIncomeSource(
 
             val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
                 .addCondition("moduleLinker.sourceId", QueryComparator.Equal, incomeSource.id)
-                .addCondition("moduleLinker.module", QueryComparator.Equal, _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.INCOME_SOURCE.value)
+                .addCondition("moduleLinker.module", QueryComparator.Equal, ScheduleInvoiceModuleLinkerType.INCOME_SOURCE.value)
 
             val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
             if (scheduleInvoices.items.isNotEmpty()) {
@@ -98,13 +98,13 @@ class UpdateIncomeSource(
                             dueDate = incomeSource.getEstimateNextDate().atStartOfDay(),
                             repeater = ScheduleRepeaterInput(
                                 period = when(it) {
-                                    _root_ide_package_.domain.enums.IncomeSourceFrequencyType.BIWEEKLY -> _root_ide_package_.domain.enums.PeriodType.WEEK
-                                    _root_ide_package_.domain.enums.IncomeSourceFrequencyType.MONTHLY -> _root_ide_package_.domain.enums.PeriodType.MONTH
-                                    _root_ide_package_.domain.enums.IncomeSourceFrequencyType.YEARLY -> _root_ide_package_.domain.enums.PeriodType.YEAR
-                                    else -> _root_ide_package_.domain.enums.PeriodType.MONTH
+                                    IncomeSourceFrequencyType.BIWEEKLY -> PeriodType.WEEK
+                                    IncomeSourceFrequencyType.MONTHLY -> PeriodType.MONTH
+                                    IncomeSourceFrequencyType.YEARLY -> PeriodType.YEAR
+                                    else -> PeriodType.MONTH
                                 },
                                 interval = when(it) {
-                                    _root_ide_package_.domain.enums.IncomeSourceFrequencyType.BIWEEKLY -> 2
+                                    IncomeSourceFrequencyType.BIWEEKLY -> 2
                                     else -> 1
                                 }
                             )

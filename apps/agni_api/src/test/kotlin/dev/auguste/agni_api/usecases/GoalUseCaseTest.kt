@@ -6,7 +6,6 @@ import adapters.dto.QueryFilter
 import adapters.dto.RepoList
 import adapters.repositories.IQueryExtend
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryGoalExtend
 import domain.entities.Goal
 import domain.enums.GoalEvaluationType
 import domain.enums.GoalStatusType

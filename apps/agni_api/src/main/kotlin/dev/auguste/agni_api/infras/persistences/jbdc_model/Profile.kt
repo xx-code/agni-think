@@ -14,8 +14,7 @@ import java.util.UUID
 data class JdbcProfileModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("profile_id")
-    val id: UUID,
+    val profileId: UUID,
 
     @Column("max_wishlist_amount")
     val maxWishlistAmount: Double,
@@ -31,7 +30,7 @@ data class JdbcProfileModel(
     val balanceBuffer: Double
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return profileId
     }
 }
 
@@ -50,7 +49,7 @@ class JdbcProfileMapper: IMapper<JdbcProfileModel, Profile> {
 
     override fun toModel(entity: Profile): JdbcProfileModel {
         return JdbcProfileModel(
-            id = entity.id,
+            profileId = entity.id,
             maxWishlistAmount = entity.maxWishlistAmount,
             fixSpendPercentage = entity.fixSpendPercentage,
             varialSpendPercentage = entity.varialSpendPercentage,
@@ -59,19 +58,20 @@ class JdbcProfileMapper: IMapper<JdbcProfileModel, Profile> {
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "profile_id",
+        "maxWishlistAmount" to "max_wishlist_amount",
+        "fixSpendPercentage" to "fix_spend_percentage",
+        "varialSpendPercentage" to "varial_spend_percentage",
+        "savingPercentage" to "saving_percentage",
+        "balanceBuffer" to "balance_buffer"
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "profiles"
 
     override fun getSortField(): Set<String> {
         return setOf()
     }
 
-    override fun getModelClass(): Class<JdbcProfileModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcProfileModel> = JdbcProfileModel::class.java
 }

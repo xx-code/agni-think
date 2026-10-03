@@ -2,7 +2,7 @@ package usecases.spending_period_template
 
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.QueryComparator
 import domain.entities.Budget
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException

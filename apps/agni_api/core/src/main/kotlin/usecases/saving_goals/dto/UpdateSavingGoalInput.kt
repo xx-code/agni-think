@@ -8,6 +8,6 @@ data class UpdateSavingGoalInput(
     val title: String?,
     val target: Double?,
     val description: String?,
-    val type: domain.enums.FundType?,
+    val type: FundType?,
     val accountId: UUID?
     )

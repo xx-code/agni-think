@@ -141,7 +141,7 @@ class JdbcScheduleInvoiceMapper(
         "type" to "type",
         "isPause" to "is_pause",
         "isFreeze" to "is_freeze",
-        "tagIds" to "tag_ids",
+        "tagIds" to "jsonb_scalar_array:tag_ids",
         "endDate" to "end_date",
 
         "scheduler.date" to "scheduler->>'due_date'",

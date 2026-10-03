@@ -17,7 +17,7 @@ data class CreateScheduleInvoiceInput(
     val description: String,
     val categoryId: UUID?,
     val tagIds: Set<UUID>,
-    val type: domain.enums.InvoiceType?,
+    val type: InvoiceType?,
     val schedule: SchedulerInvoiceInput,
     val isFreeze: Boolean?,
     val freezeSchedule: SchedulerInvoiceInput?,

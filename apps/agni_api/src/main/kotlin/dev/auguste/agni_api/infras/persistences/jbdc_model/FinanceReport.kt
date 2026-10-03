@@ -13,14 +13,13 @@ import java.util.UUID
 data class JdbcFinanceReportModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("finance_report_id")
-    val id: UUID,
+    val financeReportId: UUID,
     val title: String,
     val description: String,
     val date: LocalDate
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return financeReportId
     }
 }
 
@@ -37,26 +36,25 @@ class JdbcFinanceReportModelMapper: IMapper<JdbcFinanceReportModel, FinanceRepor
 
     override fun toModel(entity: FinanceReport): JdbcFinanceReportModel {
         return JdbcFinanceReportModel(
-            id = entity.id,
+            financeReportId = entity.id,
             title = entity.title,
             description = entity.description,
             date = entity.date
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "finance_report_id",
+        "title" to "title",
+        "description" to "description",
+        "date" to "date"
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "finance_reports"
 
     override fun getSortField(): Set<String> {
         return setOf("date")
     }
 
-    override fun getModelClass(): Class<JdbcFinanceReportModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcFinanceReportModel> = JdbcFinanceReportModel::class.java
 }

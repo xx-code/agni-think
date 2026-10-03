@@ -95,37 +95,37 @@ class CreateInvoice(
             totalBeforeDeduction += transaction.amount
         }
 
-        val subTotalDeductions =  deductions.filter { it.base == _root_ide_package_.domain.enums.DeductionBaseType.SUBTOTAL }
+        val subTotalDeductions =  deductions.filter { it.base == DeductionBaseType.SUBTOTAL }
         val subTotal = totalBeforeDeduction + subTotalDeductions.sumOf { deduction ->
             val invoiceDeduction = input.deductions.find { it.deductionId == deduction.id }
             invoiceDeduction?.let {
-                if (deduction.mode == _root_ide_package_.domain.enums.DeductionModeType.FLAT)
+                if (deduction.mode == DeductionModeType.FLAT)
                     it.amount
                 else
                     totalBeforeDeduction * (it.amount / 100)
             } ?: 0.0
         }
 
-        val totalDeductions =  deductions.filter { it.base == _root_ide_package_.domain.enums.DeductionBaseType.TOTAL }
+        val totalDeductions =  deductions.filter { it.base == DeductionBaseType.TOTAL }
         val total = subTotal + totalDeductions.sumOf { deduction ->
             val invoiceDeduction = input.deductions.find { it.deductionId == deduction.id }
             invoiceDeduction?.let {
-                if (deduction.mode == _root_ide_package_.domain.enums.DeductionModeType.FLAT)
+                if (deduction.mode == DeductionModeType.FLAT)
                     it.amount
                 else
                     subTotal * (it.amount / 100)
             } ?: 0.0
         }
 
-        if (input.status == _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED) {
-            if (input.mouvementType == _root_ide_package_.domain.enums.InvoiceMovementType.CREDIT) account.balance += total
+        if (input.status == InvoiceStatusType.COMPLETED) {
+            if (input.mouvementType == InvoiceMovementType.CREDIT) account.balance += total
             else account.balance -= total
 
             invoiceDependencies.accountRepo.update(account)
         }
 
         invoiceRepo.create(newInvoice)
-        if (newInvoice.statusType == _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED)
+        if (newInvoice.statusType == InvoiceStatusType.COMPLETED)
             eventRegister.notify(EventType.CREATE_INVOICE, CreateEmbeddingInvoiceEventContent(newInvoice))
 
         return CreatedOutput(newInvoice.id)

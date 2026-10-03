@@ -8,12 +8,12 @@ import java.util.UUID
 
 data class GetBalanceInput(
     val accountIds: Set<UUID>? = null,
-    val status: domain.enums.InvoiceStatusType? = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED,
+    val status: InvoiceStatusType? = InvoiceStatusType.COMPLETED,
     val startDate: LocalDateTime? = null,
     val endDate: LocalDateTime? = null,
-    val types: Set<domain.enums.InvoiceType>? = null,
+    val types: Set<InvoiceType>? = null,
     val isFreeze: Boolean? = null,
-    val mouvement: domain.enums.InvoiceMovementType? = null,
+    val movement: InvoiceMovementType? = null,
     val categoryIds: Set<UUID>? = null,
     val tagIds: Set<UUID>? = null,
     val budgetIds: Set<UUID>? = null,

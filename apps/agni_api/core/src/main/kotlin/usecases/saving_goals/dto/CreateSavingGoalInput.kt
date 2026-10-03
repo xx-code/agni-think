@@ -7,6 +7,6 @@ data class CreateSavingGoalInput(
     val target: Double,
     val title: String,
     val description: String,
-    val type: domain.enums.FundType,
+    val type: FundType,
     val accountId: UUID?
 )

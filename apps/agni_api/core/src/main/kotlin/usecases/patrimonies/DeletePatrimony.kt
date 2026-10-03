@@ -3,7 +3,8 @@ package usecases.patrimonies
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.dto.QueryFilter
-import adapters.repositories.query_extend.QueryPatrimonySnapshotExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Patrimony
 import domain.entities.PatrimonySnapshot
 import usecases.interfaces.IUseCase
@@ -19,7 +20,9 @@ class DeletePatrimony(
         unitOfWork.execute {
             patrimonyRepo.get(input.patrimonyId) ?: throw NotFoundException.SingleEntity(input.patrimonyId, "patrimony")
 
-            patrimonySnapshotRepo.getAll(query = QueryFilter(0, 0, true), QueryPatrimonySnapshotExtend(setOf(input.patrimonyId)))
+            val conditionSnapShot = QueryExtendBuilder<PatrimonySnapshot>()
+                .addCondition("patrimonyId", QueryComparator.Equal, input.patrimonyId)
+            patrimonySnapshotRepo.getAll(query = QueryFilter(0, 0, true), conditionSnapShot)
 
             patrimonyRepo.delete(input.patrimonyId)
         }

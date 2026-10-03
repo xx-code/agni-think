@@ -2,10 +2,8 @@ package usecases.analystics
 
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryComparator
-import adapters.repositories.query_extend.QueryCategoryExtend
-import adapters.repositories.query_extend.QueryDateComparator
-import adapters.repositories.query_extend.QueryScheduleInvoiceExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Category
 import domain.entities.ScheduleInvoice
 import domain.enums.InvoiceType
@@ -33,22 +31,20 @@ class GetAnnualOutlook(
     private val getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
 ): IUseCase<Unit, GetAnnualOutlookOutput> {
     override fun execAsync(input: Unit): GetAnnualOutlookOutput {
-        val scheduleInvoices = scheduleRepo.getAll(
-            QueryFilter(0, 0, true),
-            QueryScheduleInvoiceExtend(
-                QueryDateComparator(LocalDateTime.now(), comparator = QueryComparator.Greater)),
-        )
+        val conditionScheduleInvoice = QueryExtendBuilder<ScheduleInvoice>()
+            .addCondition("scheduler.date", QueryComparator.Greater, LocalDateTime.now())
+
+        val scheduleInvoices = scheduleRepo.getAll(QueryFilter(0, 0, true), conditionScheduleInvoice)
         val currentDateTime = LocalDateTime.now()
         val currentBalance = getBalance.execAsync(GetBalanceInput(
             startDate = currentDateTime.with(TemporalAdjusters.firstDayOfYear()),
-            status = null, // Take even pending
             endDate = currentDateTime
         ))
 
-        val nextIncome = getFutureOutlook(scheduleInvoices.items.filter { it.type == _root_ide_package_.domain.enums.InvoiceType.INCOME })
+        val nextIncome = getFutureOutlook(scheduleInvoices.items.filter { it.type == InvoiceType.INCOME })
         val incomeOutlook = nextIncome + currentBalance.income
 
-        val nextSpend = getFutureOutlook(scheduleInvoices.items.filter { it.type != _root_ide_package_.domain.enums.InvoiceType.INCOME && !it.isPause && !it.isFreeze })
+        val nextSpend = getFutureOutlook(scheduleInvoices.items.filter { it.type != InvoiceType.INCOME && !it.isPause && !it.isFreeze })
         val (currentBudgetOutlook, targetBudgetOutlook) = getBudgetBalances()
         val remindBudget = if (currentBudgetOutlook > targetBudgetOutlook) 0.0 else (targetBudgetOutlook - currentBudgetOutlook)
 
@@ -60,7 +56,9 @@ class GetAnnualOutlook(
             endDate = currentDateTime
         ))
 
-        val categories = categoryRepo.getAll(QueryFilter(0, 0, true), QueryCategoryExtend(isSystem = false))
+        val conditionCategory = QueryExtendBuilder<Category>()
+            .addCondition("isSystem", QueryComparator.Equal, false)
+        val categories = categoryRepo.getAll(QueryFilter(0, 0, true), conditionCategory)
         val currentSpendByCategories = getCurrentBalanceByCategory(categories.items)
         val spendByCategoryOutlook = addFutureSpendByCategory(currentSpendByCategories, scheduleInvoices.items)
 
@@ -93,8 +91,8 @@ class GetAnnualOutlook(
 
         val totalTargetAmount = budgets.sumOf {
             // if there are no repeater it's a year compute
-            val period = _root_ide_package_.domain.enums.PeriodType.fromString(it.repeater?.period ?: "YEAR")
-            if (period == _root_ide_package_.domain.enums.PeriodType.YEAR)
+            val period = PeriodType.fromString(it.repeater?.period ?: "YEAR")
+            if (period == PeriodType.YEAR)
                 it.target
             else {
                 val now = LocalDate.now()

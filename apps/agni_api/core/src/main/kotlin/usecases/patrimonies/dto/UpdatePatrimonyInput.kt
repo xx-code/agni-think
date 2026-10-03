@@ -8,5 +8,5 @@ data class UpdatePatrimonyInput(
     val title: String?,
     val amount: Double?,
     val accountIds: Set<UUID>?,
-    val type: domain.enums.PatrimonyType?
+    val type: PatrimonyType?
 )

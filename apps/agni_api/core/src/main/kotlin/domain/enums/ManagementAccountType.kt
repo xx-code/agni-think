@@ -7,6 +7,10 @@ enum class ManagementAccountType(val value: String) {
     MANAGED("Managed"),
     ROBOT("Robot");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): ManagementAccountType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

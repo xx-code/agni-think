@@ -2,7 +2,8 @@ package usecases.saving_goals
 
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryGoalExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Fund
 import usecases.interfaces.IUseCase
 import domain.exceptions.NotFoundException
@@ -17,17 +18,19 @@ class GetSavingGoal(
     ): IUseCase<UUID, GetSavingGoalOutput> {
 
     override fun execAsync(input: UUID): GetSavingGoalOutput {
-        val savingGoal = fundRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "saving_goal")
-        val goals = goalRepo.getAll(QueryFilter.queryAll(), QueryGoalExtend(sourceIds = setOf(savingGoal.id) ))
+        val fund = fundRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "saving_goal")
+        val conditionGoal = QueryExtendBuilder<Goal>()
+            .addCondition("targetSourceId", QueryComparator.Equal, fund.id)
+        val goals = goalRepo.getAll(QueryFilter.queryAll(), conditionGoal)
 
         return GetSavingGoalOutput(
-            id = savingGoal.id,
-            title = savingGoal.title,
-            description = savingGoal.description,
-            target = savingGoal.target,
-            balance = savingGoal.balance,
-            accountId = savingGoal.accountId,
-            type = savingGoal.type.value,
+            id = fund.id,
+            title = fund.title,
+            description = fund.description,
+            target = fund.target,
+            balance = fund.balance,
+            accountId = fund.accountId,
+            type = fund.type.value,
             goals = goals.items.map {
                 FundGoalOutput(
                     id = it.id,

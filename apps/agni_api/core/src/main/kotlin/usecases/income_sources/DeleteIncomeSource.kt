@@ -4,7 +4,7 @@ import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.QueryComparator
 import domain.exceptions.NotFoundException
 import domain.entities.IncomeSource
 import domain.entities.ScheduleInvoice
@@ -25,7 +25,7 @@ class DeleteIncomeSource(
             incomeSourceRepo.delete(input.incomeSourceId)
             val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
                 .addCondition("moduleLinker.sourceId", QueryComparator.Equal, incomeSource.id)
-                .addCondition("moduleLinker.module", QueryComparator.Equal, _root_ide_package_.domain.enums.ScheduleInvoiceModuleLinkerType.INCOME_SOURCE.value)
+                .addCondition("moduleLinker.module", QueryComparator.Equal, ScheduleInvoiceModuleLinkerType.INCOME_SOURCE.value)
 
             val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
             for (scheduleInvoice in scheduleInvoices.items) {

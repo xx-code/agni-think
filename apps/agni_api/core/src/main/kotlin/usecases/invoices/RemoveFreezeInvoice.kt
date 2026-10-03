@@ -6,7 +6,8 @@ import adapters.events.IEventRegister
 import adapters.events.contents.NotificationEventContent
 import adapters.events.contents.NotificationType
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryInvoiceExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.entities.Invoice
 import domain.enums.InvoiceStatusType
@@ -15,6 +16,7 @@ import usecases.interfaces.IInnerUseCase
 import usecases.interfaces.ISuspendableUseCase
 import usecases.interfaces.IUseCase
 import usecases.invoices.dto.DeleteInvoiceInput
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class RemoveFreezeInvoice(
@@ -25,17 +27,12 @@ class RemoveFreezeInvoice(
 ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
     override suspend fun execAsync(input: Unit): BackgroundTaskOut {
         try {
+            val condition = QueryExtendBuilder<Invoice>()
+                .addCondition("is", QueryComparator.Equal, InvoiceStatusType.COMPLETED.value)
+                .addCondition("date", QueryComparator.GreaterOrEquals, LocalDate.now())
             val freezeInvoice = invoiceRepo.getAll(
                 query = QueryFilter(0, 0, true),
-                queryExtend = QueryInvoiceExtend(
-                    accountIds = null,
-                    endDate = LocalDateTime.now() ,
-                    startDate = null,
-                    types = null,
-                    isFreeze = true,
-                    status = _root_ide_package_.domain.enums.InvoiceStatusType.COMPLETED,
-                    mouvementType = null
-                )
+                queryExtend = condition
             )
 
             for(invoiceItem in freezeInvoice.items) {

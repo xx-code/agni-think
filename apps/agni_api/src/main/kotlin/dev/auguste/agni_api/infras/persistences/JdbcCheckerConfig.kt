@@ -4,7 +4,7 @@ import adapters.IChecker
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.QueryComparator
 import domain.entities.Category
 import domain.entities.Tag
 import domain.entities.Transaction

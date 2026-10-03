@@ -23,10 +23,10 @@ data class TransactionInput(
 data class CreateInvoiceInput(
     val persistentInvoiceId: UUID? = null,
     val accountId: UUID,
-    val status: domain.enums.InvoiceStatusType,
+    val status: InvoiceStatusType,
     val date: LocalDateTime,
-    val type: domain.enums.InvoiceType,
-    val mouvementType: domain.enums.InvoiceMovementType,
+    val type: InvoiceType,
+    val mouvementType: InvoiceMovementType,
     val currency: UUID?,
     val transactions: Set<TransactionInput>,
     val deductions: Set<InvoiceDeductionInput>,

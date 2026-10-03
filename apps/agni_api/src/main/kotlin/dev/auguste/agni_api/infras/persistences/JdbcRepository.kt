@@ -2,18 +2,14 @@ package dev.auguste.agni_api.infras.persistences
 
 import adapters.dto.QueryFilter
 import adapters.dto.RepoList
-import adapters.repositories.IQueryExtend
 import adapters.repositories.IQueryExtendBuilder
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import domain.entities.Entity
 import dev.auguste.agni_api.infras.persistences.jbdc_model.JdbcModel
-import dev.auguste.agni_api.infras.persistences.query_adapters.IQueryExtendJdbcAdapter
-import dev.auguste.agni_api.infras.persistences.query_adapters.JdbcQueryAdapter
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
-import org.springframework.data.relational.core.query.Query.query
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.support.TransactionTemplate
@@ -23,7 +19,6 @@ abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
     protected val storage: GenericStorage<TModel, UUID>,
     protected val modelMapper: IMapper<TModel, TEntity>,
     private val queryAdapter: JdbcQueryAdapter,
-    protected val queryExtendAdapter: IQueryExtendJdbcAdapter<TModel, TEntity>? = null,
 ): IRepository<TEntity> {
 
 
@@ -37,47 +32,8 @@ abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
         storage.saveAll(models)
     }
 
-    override fun getAll(
-        query: QueryFilter,
-        queryExtend: IQueryExtend<TEntity>?
-    ): RepoList<TEntity> {
-        var sort = Sort.unsorted()
-        if (modelMapper.getSortField().isNotEmpty()) {
-            if (query.sortBy.by.isNotBlank() && modelMapper.getSortField().contains(query.sortBy.by)) {
-                val direction = if (query.sortBy.ascending) Sort.Direction.ASC else Sort.Direction.DESC
-                sort = Sort.by(direction, query.sortBy.by)
-            }
-        }
 
-        var pageable = Pageable.unpaged()
-        if (!query.queryAll && query.offset >= 0 && query.limit > 0) {
-            val pageIndex = query.offset / query.limit
-            pageable = PageRequest.of(pageIndex, query.limit, sort)
-        }
-
-        if (queryExtend != null) {
-            if (queryExtendAdapter == null)
-                throw Error("Query Adapter not setup")
-
-            val results = queryExtendAdapter.filter(query, queryExtend)
-
-            return RepoList(
-                items = results.items.map { modelMapper.toDomain(it) },
-                total = results.total
-            )
-        }
-
-        val results = storage.findAll(pageable)
-            .map(modelMapper::toDomain)
-            .content
-
-        return RepoList(
-            items = results.toList(),
-            total = storage.count()
-        )
-    }
-
-    override fun getAll(query: QueryFilter, queryExtend: IQueryExtendBuilder<TEntity>): RepoList<TEntity> {
+    override fun getAll(query: QueryFilter, queryExtend: IQueryExtendBuilder<TEntity>?): RepoList<TEntity> {
         var sort = Sort.unsorted()
         if (modelMapper.getSortField().isNotEmpty()) {
             if (query.sortBy.by.isNotBlank() && modelMapper.getSortField().contains(query.sortBy.by)) {
@@ -130,11 +86,8 @@ abstract class JdbcRepository<TModel: JdbcModel, TEntity: Entity>(
         storage.deleteById(id)
     }
 
-    override fun deleteManyBy(queryExtend: IQueryExtend<TEntity>) {
-        if (queryExtendAdapter == null)
-            throw Error("Query Adapter not setup")
-
-        val results = queryExtendAdapter.filter(QueryFilter.queryAll(), queryExtend)
+    override fun deleteManyBy(queryExtend: IQueryExtendBuilder<TEntity>) {
+        val results = queryAdapter.toSpecification(queryExtend, modelMapper, QueryFilter.queryAll())
         if (results.items.isNotEmpty()) {
             storage.deleteAllById(results.items.map { it.id!! }.toSet())
         }

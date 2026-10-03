@@ -5,7 +5,7 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 
-data class SchedulerRecurrence(val period: domain.enums.PeriodType, val interval: Int) {
+data class SchedulerRecurrence(val period: PeriodType, val interval: Int) {
     fun toMap(): Map<String, Any?> {
         return mapOf("period" to period.value, "interval" to interval)
     }
@@ -19,10 +19,10 @@ data class SchedulerRecurrence(val period: domain.enums.PeriodType, val interval
         while (!current.isAfter(endDate)) {
             count++
             current = when (period) {
-                _root_ide_package_.domain.enums.PeriodType.YEAR -> current.plusYears(interval.toLong())
-                _root_ide_package_.domain.enums.PeriodType.MONTH -> current.plusMonths(interval.toLong())
-                _root_ide_package_.domain.enums.PeriodType.WEEK -> current.plusWeeks(interval.toLong())
-                _root_ide_package_.domain.enums.PeriodType.DAY -> current.plusDays(interval.toLong())
+                PeriodType.YEAR -> current.plusYears(interval.toLong())
+                PeriodType.MONTH -> current.plusMonths(interval.toLong())
+                PeriodType.WEEK -> current.plusWeeks(interval.toLong())
+                PeriodType.DAY -> current.plusDays(interval.toLong())
             }
         }
 
@@ -32,13 +32,13 @@ data class SchedulerRecurrence(val period: domain.enums.PeriodType, val interval
     companion object {
         fun fromMap(map: Map<String, Any>?): SchedulerRecurrence {
             if (map == null)
-                return SchedulerRecurrence(_root_ide_package_.domain.enums.PeriodType.DAY, 1)
+                return SchedulerRecurrence(PeriodType.DAY, 1)
 
             if (!map.containsKey("period") || !map.containsKey("interval")) {
-                return SchedulerRecurrence(_root_ide_package_.domain.enums.PeriodType.DAY, 1)
+                return SchedulerRecurrence(PeriodType.DAY, 1)
             }
 
-            return SchedulerRecurrence(_root_ide_package_.domain.enums.PeriodType.fromString(map.getValue("period") as String), map.getValue("interval") as Int)
+            return SchedulerRecurrence(PeriodType.fromString(map.getValue("period") as String), map.getValue("interval") as Int)
         }
     }
 }

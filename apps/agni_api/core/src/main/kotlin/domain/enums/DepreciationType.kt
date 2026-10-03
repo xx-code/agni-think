@@ -8,6 +8,9 @@ enum class DepreciationType(val value: String) {
     FIX("fix"),
     FIX_PERCENTAGE("FixPercentage");
 
+    override fun toString(): String {
+        return value
+    }
     companion object {
         fun fromString(value: String): DepreciationType {
             return entries.find { it.value.equals(value, ignoreCase = true) }

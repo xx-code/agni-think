@@ -6,13 +6,13 @@ import domain.enums.DepreciationType
 data class ProvisionDepreciateCriteria(
     val title: String,
     val description: String,
-    val type: domain.enums.DepreciationType,
+    val type: DepreciationType,
     val value: Double,
     val monthRange: Int = 0
 ): IValueObject {
 
     init {
-        if (type == _root_ide_package_.domain.enums.DepreciationType.DECLINING_BALANCE && monthRange <= 0)
+        if (type == DepreciationType.DECLINING_BALANCE && monthRange <= 0)
             throw ValidationException.ProvisionDepreciateCriteriaDecliningBalanceMustHaveRangeGreaterThanZero(monthRange)
     }
 
@@ -39,11 +39,11 @@ data class ProvisionDepreciateCriteria(
     companion object {
         fun fromMap(map: Map<String, Any>?): ProvisionDepreciateCriteria {
             if (map == null)
-                return ProvisionDepreciateCriteria("", "", _root_ide_package_.domain.enums.DepreciationType.FIX, 0.0)
+                return ProvisionDepreciateCriteria("", "", DepreciationType.FIX, 0.0)
 
             if (!map.containsKey("title") || !map.containsKey("description") || !map.containsKey("type")
                 || !map.containsKey("value") || !map.containsKey("monthRange"))
-                return ProvisionDepreciateCriteria("", "", _root_ide_package_.domain.enums.DepreciationType.FIX, 0.0)
+                return ProvisionDepreciateCriteria("", "", DepreciationType.FIX, 0.0)
 
             var value = map["value"]
             if (value is Int)
@@ -52,7 +52,7 @@ data class ProvisionDepreciateCriteria(
             return ProvisionDepreciateCriteria(
                 title = map["title"] as String,
                 description = map["description"] as String,
-                type = _root_ide_package_.domain.enums.DepreciationType.fromString(map["type"] as String),
+                type = DepreciationType.fromString(map["type"] as String),
                 value = value as Double,
                 monthRange = map["monthRange"] as Int
             )

@@ -16,19 +16,19 @@ class ProvisionCommon {
                 val interval = scheduler.repeater.interval
                 if (interval > 0) {
                     amount = when (scheduler.repeater.period) {
-                        _root_ide_package_.domain.enums.PeriodType.YEAR -> {
+                        PeriodType.YEAR -> {
                             monthlyPayment*12*interval
                         }
 
-                        _root_ide_package_.domain.enums.PeriodType.MONTH -> {
+                        PeriodType.MONTH -> {
                             monthlyPayment*interval
                         }
 
-                        _root_ide_package_.domain.enums.PeriodType.WEEK -> {
+                        PeriodType.WEEK -> {
                             (monthlyPayment/4)*interval
                         }
 
-                        _root_ide_package_.domain.enums.PeriodType.DAY -> {
+                        PeriodType.DAY -> {
                             throw ValidationException.ProvisionWithLoanMustHaveCantBeByDay()
                         }
                     }

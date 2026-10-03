@@ -14,8 +14,7 @@ import java.util.UUID
 data class JdbcPatrimonySnapshotModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("patrimony_snapshot_id")
-    val id: UUID,
+    val patrimonySnapshotId: UUID,
 
     @Column("patrimony_id")
     val patrimonyId: UUID,
@@ -25,7 +24,7 @@ data class JdbcPatrimonySnapshotModel(
     val status: String
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return patrimonySnapshotId
     }
 }
 
@@ -43,7 +42,7 @@ class JdbcPatrimonySnapshotMapper: IMapper<JdbcPatrimonySnapshotModel, Patrimony
 
     override fun toModel(entity: PatrimonySnapshot): JdbcPatrimonySnapshotModel {
         return JdbcPatrimonySnapshotModel(
-            id = entity.id,
+            patrimonySnapshotId = entity.id,
             patrimonyId = entity.patrimonyId,
             date = entity.date,
             balance = entity.currentBalanceObserved,
@@ -51,19 +50,19 @@ class JdbcPatrimonySnapshotMapper: IMapper<JdbcPatrimonySnapshotModel, Patrimony
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "patrimony_snapshot_id",
+        "patrimonyId" to "patrimony_id",
+        "date" to "date",
+        "currentBalanceObserved" to "balance",
+        "status" to "status"
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "patrimony_snapshots"
 
     override fun getSortField(): Set<String> {
         return setOf("date")
     }
 
-    override fun getModelClass(): Class<JdbcPatrimonySnapshotModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcPatrimonySnapshotModel> = JdbcPatrimonySnapshotModel::class.java
 }

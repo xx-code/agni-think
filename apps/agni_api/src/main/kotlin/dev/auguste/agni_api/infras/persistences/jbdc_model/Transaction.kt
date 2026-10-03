@@ -94,8 +94,8 @@ class JdbcTransactionModelMapper(
         "invoiceId" to "transaction_id",
         "categoryId" to "category_id",
         "amount" to "money_amount",
-        "tagIds" to "tag_ids",
-        "budgetIds" to "budget_ids",
+        "tagIds" to "jsonb_scalar_array:tag_ids",
+        "budgetIds" to "jsonb_scalar_array:budget_ids",
         "description" to "description"
     )
 

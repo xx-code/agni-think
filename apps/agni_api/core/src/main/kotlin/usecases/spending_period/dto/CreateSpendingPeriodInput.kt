@@ -12,6 +12,6 @@ data class CreateSpendingPeriodInput(
     val savingRateTarget: Double,
     val totalExpectedIncome: Double,
     val totalExpectedExpenses: Double,
-    val state: domain.enums.SpendingPeriodStateType,
+    val state: SpendingPeriodStateType,
     val wantSpendingItems: List<SpendingPeriodItemInput>
 )

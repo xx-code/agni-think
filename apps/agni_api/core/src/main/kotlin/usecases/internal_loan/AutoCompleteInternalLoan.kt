@@ -6,15 +6,15 @@ import adapters.events.IEventRegister
 import adapters.events.contents.NotificationEventContent
 import adapters.events.contents.NotificationType
 import adapters.repositories.IRepository
-import adapters.repositories.query_extend.QueryComparator
-import adapters.repositories.query_extend.QueryDateComparator
-import adapters.repositories.query_extend.QueryInternalLoanExtend
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.InternalLoan
 import usecases.BackgroundTaskOut
 import usecases.interfaces.ISuspendableUseCase
 import usecases.interfaces.IUseCase
 import usecases.invoices.dto.CompleteInvoiceInput
 import usecases.invoices.dto.GetInvoiceOutput
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -26,14 +26,11 @@ class AutoCompleteInternalLoan(
 ): ISuspendableUseCase<Unit, BackgroundTaskOut> {
     override suspend fun execAsync(input: Unit): BackgroundTaskOut {
         try {
+            val condition = QueryExtendBuilder<InternalLoan>()
+                .addCondition("dueDate", QueryComparator.LesserOrEquals, LocalDate.now())
             val internalLoans = internalLoanRepo.getAll(
                 query = QueryFilter(0, 0, true),
-                QueryInternalLoanExtend(
-                    scheduleDueDateComparator = QueryDateComparator(
-                        date = LocalDateTime.now(),
-                        comparator = QueryComparator.LesserOrEquals
-                    )
-                )
+                condition
             )
 
             for (internalLoan in internalLoans.items) {

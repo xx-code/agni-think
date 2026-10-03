@@ -1,11 +1,7 @@
 package adapters.repositories
 
-import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.QueryComparator
 import domain.entities.Entity
-
-interface IQueryExtend<T: domain.entities.Entity> {
-    fun isStatisfy(entity: T): Boolean
-}
 
 interface IQueryCondition<V> {
     val fieldName: String

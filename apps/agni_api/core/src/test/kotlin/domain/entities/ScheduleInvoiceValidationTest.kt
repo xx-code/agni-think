@@ -2,6 +2,7 @@ package domain.entities
 
 import domain.enums.InvoiceType
 import domain.exceptions.ValidationException
+import domain.value_objects.Scheduler
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.Test
@@ -13,7 +14,7 @@ class ScheduleInvoiceValidationTest {
     private fun scheduleInvoice(
         amount: Double = 45.0,
         isFreeze: Boolean = false,
-        freezeScheduler: domain.value_objects.Scheduler? = null,
+        freezeScheduler: Scheduler? = null,
     ) = ScheduleInvoice(
         title = "Rent",
         accountId = UUID.randomUUID(),

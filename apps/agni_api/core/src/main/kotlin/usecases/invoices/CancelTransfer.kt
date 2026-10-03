@@ -5,7 +5,7 @@ import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
-import adapters.repositories.query_extend.QueryComparator
+import adapters.repositories.QueryComparator
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.Invoice
@@ -34,7 +34,7 @@ class CancelTransfer(
             if (transactions.items.first().categoryId != TRANSFERT_CATEGORY_ID)
                 throw ValidationException.CanOnlyCancelTransfer()
 
-            val linkedTransactionIds = invoice.moduleLinkers.filter { it.module == _root_ide_package_.domain.enums.InvoiceModuleLinkerType.TRANSFER }.map { it.sourceId }
+            val linkedTransactionIds = invoice.moduleLinkers.filter { it.module == InvoiceModuleLinkerType.TRANSFER }.map { it.sourceId }
 
             deleteInvoice.execInnerAsync(DeleteInvoiceInput(invoice.id, checkTransfer = false))
             for (linkedTransactionId in linkedTransactionIds) {

@@ -1,5 +1,7 @@
 package dev.auguste.agni_api.infras.persistences.jbdc_model
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import domain.entities.Patrimony
 import domain.enums.PatrimonyType
 import dev.auguste.agni_api.infras.persistences.IMapper
@@ -13,58 +15,62 @@ import java.util.UUID
 data class JdbcPatrimonyModel(
     @Id
     @get:JvmName("getIdentifier")
-    @Column("patrimony_id")
-    val id: UUID,
+    val patrimonyId: UUID,
 
-    @Column("title")
-    val name: String,
+    val title: String,
 
     val type: String,
     val amount: Double,
 
     @Column("account_ids")
-    val accountIds: Set<UUID>
+    val accountIds: String
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return id
+        return patrimonyId
     }
 }
 
 @Component
-class JdbcPatrimonyModelMapper: IMapper<JdbcPatrimonyModel, Patrimony> {
+class JdbcPatrimonyModelMapper(
+    private val objectMapper: ObjectMapper
+): IMapper<JdbcPatrimonyModel, Patrimony> {
     override fun toDomain(model: JdbcPatrimonyModel): Patrimony {
+        val accountIds = objectMapper.readValue<List<String>>(model.accountIds)
+            .map { UUID.fromString(it) }
+            .toSet()
+
         return Patrimony(
             id = model.id,
-            title = model.name,
+            title = model.title,
             amount = model.amount,
-            accountIds = model.accountIds.toMutableSet(),
+            accountIds = accountIds.toMutableSet(),
             type = PatrimonyType.fromString(model.type)
         )
     }
 
     override fun toModel(entity: Patrimony): JdbcPatrimonyModel {
         return JdbcPatrimonyModel(
-            id = entity.id,
-            name = entity.title,
+            patrimonyId = entity.id,
+            title = entity.title,
             amount = entity.amount,
-            accountIds = entity.accountIds.toMutableSet(),
+            accountIds = objectMapper.writeValueAsString(entity.accountIds.map { it.toString() }),
             type = entity.type.value,
         )
     }
 
-    override fun getEntityModelFieldName(): Map<String, String> {
-        TODO("Not yet implemented")
-    }
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "patrimony_id",
+        "title" to "title",
+        "type" to "type",
+        "amount" to "amount",
+        "accountIds" to "jsonb_scalar_array:account_ids"
+    )
 
-    override fun getTableName(): String {
-        TODO("Not yet implemented")
-    }
+    override fun getTableName(): String = "patrimonies"
 
     override fun getSortField(): Set<String> {
         return setOf()
     }
 
-    override fun getModelClass(): Class<JdbcPatrimonyModel> {
-        TODO("Not yet implemented")
-    }
+    override fun getModelClass(): Class<JdbcPatrimonyModel> = JdbcPatrimonyModel::class.java
 }

@@ -23,10 +23,10 @@ class GetBalancesByPeriod(
 
         while(current.isBefore(end)) {
             val next = when(input.period) {
-                _root_ide_package_.domain.enums.PeriodType.YEAR -> current.plusYears(input.interval.toLong())
-                _root_ide_package_.domain.enums.PeriodType.MONTH -> current.plusMonths(input.interval.toLong())
-                _root_ide_package_.domain.enums.PeriodType.WEEK -> current.plusWeeks(input.interval.toLong())
-                _root_ide_package_.domain.enums.PeriodType.DAY -> current.plusDays(input.interval.toLong())
+                PeriodType.YEAR -> current.plusYears(input.interval.toLong())
+                PeriodType.MONTH -> current.plusMonths(input.interval.toLong())
+                PeriodType.WEEK -> current.plusWeeks(input.interval.toLong())
+                PeriodType.DAY -> current.plusDays(input.interval.toLong())
             }
 
             val resBalance = getBalance.execAsync(GetBalanceInput(
@@ -41,7 +41,7 @@ class GetBalancesByPeriod(
                 minAmount = input.minAmount,
                 maxAmount = input.maxAmount,
                 budgetIds = input.budgetIds,
-                mouvement = input.mouvement,
+                movement = input.mouvement,
                 removeSystemCategory = input.removeSystemCategory
             ))
 

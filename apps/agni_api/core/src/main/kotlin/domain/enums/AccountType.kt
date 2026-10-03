@@ -9,6 +9,10 @@ enum class AccountType(val value: String) {
     BUSINESS("Business"),
     BROKING("Broking");
 
+    override fun toString(): String {
+        return value
+    }
+
     companion object {
         fun fromString(value: String): AccountType {
             return entries.find { it.value.equals(value, ignoreCase = true) }
