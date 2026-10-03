@@ -1,56 +1,31 @@
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21"
-    id("org.springframework.boot") version "4.0.2"
-    id("io.spring.dependency-management") version "1.1.7"
+    // Declarees ici, appliquees dans les modules : une seule source de verite pour les
+    // versions, et pas de conflit quand deux modules demandent le meme plugin.
+    kotlin("jvm") version "2.2.21" apply false
+    kotlin("plugin.spring") version "2.2.21" apply false
+    id("org.springframework.boot") version "4.0.2" apply false
+    id("io.spring.dependency-management") version "1.1.7" apply false
 }
 
-group = "dev.auguste"
-version = "0.0.1-SNAPSHOT"
-description = "agni_api"
+allprojects {
+    group = "dev.auguste"
+    version = "0.0.1-SNAPSHOT"
+}
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+// Versions partagees par les modules, pour eviter qu'un module embarque une
+// version divergente (c'etait le cas du BOM Spring Boot).
+extra["springBootVersion"] = "4.0.2"
+extra["mockkVersion"] = "1.14.9"
+extra["postgresqlVersion"] = "42.7.9"
+extra["kotlinCoroutinesVersion"] = "1.11.0"
+
+// La racine n'applique aucun plugin JVM : elle n'a donc pas de taches `classes` /
+// `testClasses` propres. On expose des agregats pour que `:classes` reste valide
+// (run-configurations IDE, scripts) et compile bien les trois modules.
+listOf("classes", "testClasses").forEach { name ->
+    tasks.register(name) {
+        group = "build"
+        description = "Aggregate task delegating '$name' to all modules."
+        dependsOn(subprojects.map { "${it.path}:$name" })
     }
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("com.querydsl:querydsl-jpa")
-    implementation("com.querydsl:querydsl-sql")
-    implementation("org.postgresql:postgresql:42.7.9")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("org.flywaydb:flyway-core")
-    implementation("org.flywaydb:flyway-database-postgresql")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-    implementation("org.danilopianini:khttp:1.6.3")
-    implementation(project(":core"))
-
-    testImplementation(kotlin("test"))
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-data-jdbc-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("io.mockk:mockk:1.14.9")
-    testImplementation("org.mockito:mockito-junit-jupiter")
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }

@@ -2,20 +2,28 @@ FROM eclipse-temurin:21-jdk AS builder
 
 WORKDIR /app
 
-COPY apps/agni_api/gradlew .
-COPY apps/agni_api/gradle gradle
-COPY apps/agni_api/build.gradle.kts .
-COPY apps/agni_api/settings.gradle.kts .
+COPY apps/agni_api/gradlew ./
+COPY apps/agni_api/gradle ./gradle
+COPY apps/agni_api/gradle.properties ./gradle.properties
+COPY apps/agni_api/settings.gradle.kts ./
+COPY apps/agni_api/build.gradle.kts ./
+
+
+COPY apps/agni_api/core/build.gradle.kts ./core/build.gradle.kts
+COPY apps/agni_api/infra/build.gradle.kts ./infra/build.gradle.kts
+COPY apps/agni_api/rest_api/build.gradle.kts ./rest_api/build.gradle.kts
 
 RUN chmod +x gradlew
 
 # cache
 RUN ./gradlew dependencies --no-daemon
 
-COPY apps/agni_api/src src
+COPY apps/agni_api/core/src ./core/src
+COPY apps/agni_api/infra/src ./infra/src
+COPY apps/agni_api/rest_api/src ./rest_api/src
 
-# Build Jar without test
-RUN ./gradlew bootJar --no-daemon -x test
+# bootJar est produit par le module :rest_api (et non plus a la racine)
+RUN ./gradlew :rest_api:bootJar --no-daemon -x test
 
 FROM eclipse-temurin:21-jre-alpine AS runtime
 
@@ -23,7 +31,7 @@ WORKDIR /app
 
 RUN addgroup -S spring && adduser -S spring -G spring
 
-COPY --from=builder --chown=spring:spring /app/build/libs/*.jar app.jar
+COPY --from=builder --chown=spring:spring /app/rest_api/build/libs/*.jar app.jar
 
 USER spring
 

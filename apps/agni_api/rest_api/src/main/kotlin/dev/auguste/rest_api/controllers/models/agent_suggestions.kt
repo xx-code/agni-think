@@ -1,0 +1,21 @@
+package dev.auguste.rest_api.controllers.models
+
+import usecases.agent_suggestions.dto.AddSuggestionInput
+
+data class ApiAddSuggestionModel(
+    val agentId: String,
+    val agentName: String,
+    val title: String,
+    val description: String,
+    val confidenceScore: Double
+)
+
+fun mapApiAddSuggestionModel(model: ApiAddSuggestionModel): AddSuggestionInput {
+    return AddSuggestionInput(
+        agentId = model.agentId,
+        agentName = model.agentName,
+        title = model.title,
+        description = model.description,
+        confidenceScore = model.confidenceScore
+    )
+}

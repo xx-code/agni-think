@@ -1,0 +1,59 @@
+package persistences.jbdc_model
+
+import domain.entities.FinanceReport
+import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Table
+import org.springframework.stereotype.Component
+import persistences.IMapper
+import java.time.LocalDate
+import java.util.UUID
+
+@Table("finance_reports")
+data class JdbcFinanceReportModel(
+    @Id
+    @get:JvmName("getIdentifier")
+    val financeReportId: UUID,
+    val title: String,
+    val description: String,
+    val date: LocalDate
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return financeReportId
+    }
+}
+
+@Component
+class JdbcFinanceReportModelMapper: IMapper<JdbcFinanceReportModel, FinanceReport> {
+    override fun toDomain(model: JdbcFinanceReportModel): FinanceReport {
+        return FinanceReport(
+            id = model.id,
+            title = model.title,
+            description = model.description,
+            date = model.date
+        )
+    }
+
+    override fun toModel(entity: FinanceReport): JdbcFinanceReportModel {
+        return JdbcFinanceReportModel(
+            financeReportId = entity.id,
+            title = entity.title,
+            description = entity.description,
+            date = entity.date
+        )
+    }
+
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "finance_report_id",
+        "title" to "title",
+        "description" to "description",
+        "date" to "date"
+    )
+
+    override fun getTableName(): String = "finance_reports"
+
+    override fun getSortField(): Set<String> {
+        return setOf("date")
+    }
+
+    override fun getModelClass(): Class<JdbcFinanceReportModel> = JdbcFinanceReportModel::class.java
+}
