@@ -11,20 +11,29 @@ class JdbcFundSummaryReader(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
 ): IFundSummaryReader {
     override fun getSummary(type: FundType?): FundSummaryOutput {
-        var sql = """
+        val sql = StringBuilder(
+            """
         SELECT 
             COALESCE(SUM(balance), 0) AS totalBalance, 
             COALESCE(SUM(target), 0)  AS totalTarget 
         FROM funds
         """.trimIndent()
-        if (type != null)
-            sql += " WHERE type = ${type.value}"
+        )
 
-        return jdbcTemplate.queryForObject(sql, emptyMap<String, Any>()) { rs, _ ->
+        val params = mutableMapOf<String, Any>()
+
+        if (type != null) {
+            sql.append(" WHERE type = :type")
+            params["type"] = type.value
+        }
+
+        val result = jdbcTemplate.queryForObject(sql.toString(), params) { rs, _ ->
             FundSummaryOutput(
                 totalTarget = rs.getLong("totalTarget"),
                 totalBalance = rs.getLong("totalBalance")
             )
-        } ?: FundSummaryOutput(totalTarget = 0, totalBalance = 0)
+        }
+
+        return result ?: FundSummaryOutput(totalTarget = 0L, totalBalance = 0L)
     }
 }

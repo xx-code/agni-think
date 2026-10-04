@@ -8,6 +8,7 @@ import dev.auguste.rest_api.controllers.models.ApiGetCategoryAnalyticModel
 import dev.auguste.rest_api.controllers.models.ApiGetPatrimonyEvolutionModel
 import dev.auguste.rest_api.controllers.models.ApiGetSavingAnalyticModel
 import dev.auguste.rest_api.controllers.models.ApiGetTagAnalyticModel
+import domain.enums.FundType
 import domain.enums.PeriodType
 import usecases.dto.ListOutput
 import usecases.analystics.dto.ForcastSpendingInput
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import usecases.analystics.dto.FundSummaryInput
 
 @RestController
 @RequestMapping("/v2/analytics")
@@ -48,7 +50,7 @@ class AnalyticController(
     private val getFinanceProfile: IUseCase<Unit, GetFinanceProfileOutput>,
     private val getBudgetingRuleAnalytic: IUseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput>,
     private val getAnnualOutlook: IUseCase<Unit, GetAnnualOutlookOutput>,
-    private val getFundTotalSummary: IUseCase<Unit, FundSummaryOutput>,
+    private val getFundTotalSummary: IUseCase<FundSummaryInput, FundSummaryOutput>,
     private val getBudgetTotalSummary: IUseCase<Unit, GetBudgetTotalSummaryOutput>,
     private val getPatrimonySummary: IUseCase<Unit, GetPatrimonySummaryOutput>,
     private val getPatrimonyEvolution: IUseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput>,
@@ -123,8 +125,12 @@ class AnalyticController(
     }
 
     @GetMapping("/fund-total-summary")
-    suspend fun getFundSummary() : ResponseEntity<FundSummaryOutput> {
-        return ResponseEntity.ok(getFundTotalSummary.execute(Unit).getOrThrow())
+    suspend fun getFundSummary(type: String? = "") : ResponseEntity<FundSummaryOutput> {
+        return ResponseEntity.ok(getFundTotalSummary.execute(
+            FundSummaryInput(
+                if (!type.isNullOrBlank()) FundType.fromString(type) else null
+            )
+        ).getOrThrow())
     }
 
     @GetMapping("/budget-total-summary")

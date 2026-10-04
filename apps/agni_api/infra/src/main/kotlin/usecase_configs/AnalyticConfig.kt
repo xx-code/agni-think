@@ -62,6 +62,7 @@ import usecases.patrimonies.dto.GetPatrimonyOutput
 import org.springframework.context.annotation.Configuration
 import persistences.AccountRepository
 import usecases.UseCase
+import usecases.analystics.dto.FundSummaryInput
 
 
 @Configuration
@@ -154,7 +155,7 @@ class AnalyticConfig {
 
     @Bean fun getFundSummary(
         fundSummaryReader: IFundSummaryReader
-    ) : IUseCase<Unit, FundSummaryOutput> {
+    ) : IUseCase<FundSummaryInput, FundSummaryOutput> {
         return GetFundTotalSummary(fundSummaryReader)
     }
 
