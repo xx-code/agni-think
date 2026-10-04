@@ -1,5 +1,7 @@
 package usecases.invoices
 
+import adapters.dto.AccountSnapshotBalanceInput
+import adapters.repositories.IAccountBalanceSnapshotRepository
 import domain.TRANSFERT_CATEGORY_ID
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
@@ -15,12 +17,14 @@ import domain.enums.InvoiceType
 import usecases.invoices.dto.TransferInvoiceInput
 import domain.value_objects.InvoiceModuleLinker
 import usecases.UseCase
+import java.time.LocalDateTime
 import java.util.UUID
 
 class TransferInvoice(
     private val invoiceRepo: IRepository<Invoice>,
     private val accountRepo: IRepository<Account>,
     private val transactionRepo: IRepository<Transaction>,
+    private val snapshotAccountBalanceRepo: IAccountBalanceSnapshotRepository,
     unitOfWork: IUnitOfWork
 ): UseCase<TransferInvoiceInput, Unit>(unitOfWork) {
     override suspend fun process(input: TransferInvoiceInput) {
@@ -83,5 +87,12 @@ class TransferInvoice(
 
         accountTo.balance += input.amount
         accountRepo.update(accountTo)
+
+        snapshotAccountBalanceRepo.makeManySnapshots(
+            listOf(
+                AccountSnapshotBalanceInput(accountFrom.id, accountFrom.balance, LocalDateTime.now()),
+                AccountSnapshotBalanceInput(accountTo.id, accountTo.balance, LocalDateTime.now())
+            )
+        )
     }
 }

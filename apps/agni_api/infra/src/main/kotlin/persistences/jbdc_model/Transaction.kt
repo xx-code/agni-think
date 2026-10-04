@@ -10,14 +10,13 @@ import org.springframework.stereotype.Component
 import persistences.IMapper
 import java.util.UUID
 
-@Table("records")
+@Table("transactions")
 data class JdbcTransactionModel(
     @Id
     @get:JvmName("getIdentifier")
-    val recordId: UUID,
-
-    @Column("transaction_id")
     val transactionId: UUID,
+
+    val invoiceId: UUID,
 
     val moneyAmount: Double,
 
@@ -33,7 +32,7 @@ data class JdbcTransactionModel(
     val budgetIds: String
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return recordId
+        return transactionId
     }
 }
 
@@ -67,8 +66,8 @@ class JdbcTransactionModelMapper(
         val tagIdsSet: Set<UUID> = parseUuidSet(model.tagIds)
 
         return Transaction(
-            id = model.recordId,
-            invoiceId = model.transactionId,
+            id = model.transactionId,
+            invoiceId = model.invoiceId,
             categoryId = model.categoryId,
             amount = model.moneyAmount,
             tagIds = tagIdsSet.toMutableSet(),
@@ -79,8 +78,8 @@ class JdbcTransactionModelMapper(
 
     override fun toModel(entity: Transaction): JdbcTransactionModel {
         return  JdbcTransactionModel(
-            recordId = entity.id,
-            transactionId = entity.invoiceId,
+            transactionId = entity.id,
+            invoiceId = entity.invoiceId,
             moneyAmount = entity.amount,
             categoryId = entity.categoryId,
             description = entity.description,
@@ -90,8 +89,8 @@ class JdbcTransactionModelMapper(
     }
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
-        "id" to "record_id",
-        "invoiceId" to "transaction_id",
+        "id" to "transaction_id",
+        "invoiceId" to "invoice_id",
         "categoryId" to "category_id",
         "amount" to "money_amount",
         "tagIds" to "jsonb_scalar_array:tag_ids",
@@ -99,7 +98,7 @@ class JdbcTransactionModelMapper(
         "description" to "description"
     )
 
-    override fun getTableName(): String = "records"
+    override fun getTableName(): String = "transactions"
 
     override fun getSortField(): Set<String> {
         return setOf("money_amount", "category_id")

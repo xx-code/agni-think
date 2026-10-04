@@ -38,7 +38,7 @@ class ApplyScheduleInvoice(
     override suspend fun process(input: Unit): BackgroundTaskOut {
         try {
             val conditionScheduleInvoice = QueryExtendBuilder<ScheduleInvoice>()
-                .addCondition("scheduler.date", QueryComparator.GreaterOrEquals, LocalDateTime.now())
+                .addCondition("scheduler.date", QueryComparator.LesserOrEquals, LocalDateTime.now())
             val scheduleInvoices = scheduleInvoiceRepo.getAll(
                 QueryFilter(0, 30, true),
                 conditionScheduleInvoice,

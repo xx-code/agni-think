@@ -21,7 +21,7 @@ class UpdateDueBudget(
     override suspend fun process(input: Unit): BackgroundTaskOut {
         try {
             val conditionBudget = QueryExtendBuilder<Budget>()
-                .addCondition("scheduler.date", QueryComparator.GreaterOrEquals, LocalDateTime.now())
+                .addCondition("scheduler.date", QueryComparator.LesserOrEquals, LocalDateTime.now())
 
             val budgets = budgetRepo.getAll(
                 query = QueryFilter(0, 0, true), conditionBudget)

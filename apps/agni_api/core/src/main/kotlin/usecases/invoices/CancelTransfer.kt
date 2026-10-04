@@ -4,6 +4,7 @@ import usecases.interfaces.IUseCase
 
 import domain.TRANSFERT_CATEGORY_ID
 import adapters.dto.QueryFilter
+import adapters.repositories.IAccountBalanceSnapshotRepository
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder

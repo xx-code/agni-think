@@ -1,8 +1,10 @@
 package usecases.invoices
 
+import adapters.dto.AccountSnapshotBalanceInput
 import adapters.events.contents.CreateEmbeddingInvoiceEventContent
 import adapters.events.EventType
 import adapters.events.IEventRegister
+import adapters.repositories.IAccountBalanceSnapshotRepository
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import domain.entities.Deduction
@@ -19,12 +21,14 @@ import usecases.dto.CreatedOutput
 import usecases.invoices.dto.CreateInvoiceInput
 import domain.value_objects.InvoiceDeduction
 import usecases.UseCase
+import java.time.LocalDateTime
 import java.util.UUID
 
 // TODO: Refactoring
 class CreateInvoice(
     private val invoiceRepo: IRepository<Invoice>,
     private val invoiceDependencies: InvoiceDependencies,
+    private val snapshotAccountBalanceRepo: IAccountBalanceSnapshotRepository,
     private val eventRegister: IEventRegister,
     unitOfWork: IUnitOfWork,
 ): UseCase<CreateInvoiceInput, CreatedOutput>(unitOfWork) {
@@ -115,9 +119,14 @@ class CreateInvoice(
             else account.balance -= total
 
             invoiceDependencies.accountRepo.update(account)
+
+            snapshotAccountBalanceRepo.makeSnapshot(
+                AccountSnapshotBalanceInput(account.id, account.balance, LocalDateTime.now())
+            )
         }
 
         invoiceRepo.create(newInvoice)
+
         if (newInvoice.statusType == InvoiceStatusType.COMPLETED)
             eventRegister.notify(EventType.CREATE_INVOICE, CreateEmbeddingInvoiceEventContent(newInvoice))
 

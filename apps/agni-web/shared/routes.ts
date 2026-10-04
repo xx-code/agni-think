@@ -26,6 +26,11 @@ export const API_ROUTES = {
             serverPath: '/api/accounts/:id',
             apiPath: '/accounts/:id',
             method: 'DELETE'
+        },
+        TOTAL_BALANCE: {
+            serverPath: '/api/accounts/total-balance',
+            apiPath: '/accounts/total-balance',
+            method: 'GET'
         }
     },
 

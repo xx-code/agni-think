@@ -11,6 +11,10 @@ export type TotalBalanceBufferIndicator = {
     description: string
     diffBalance: number
     buffer: number
+    projectedBuffer: number
+    projectedBufferByBalance: number
+    estimateCoverage: number
+    estimateLevel: BalanceBufferLevel
     coverage: number
     isUnderBuffer: boolean
     level: BalanceBufferLevel

@@ -7,6 +7,7 @@ import adapters.events.listeners.ICreateInvoiceEventListener
 import adapters.events.listeners.ICreateManyExternalTransactionListener
 import adapters.events.listeners.IDeleteInvoiceEventListener
 import adapters.readers.IInvoiceTransactionReader
+import adapters.repositories.IAccountBalanceSnapshotRepository
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import usecases.invoices.DeleteInvoiceEmbedding
@@ -99,6 +100,7 @@ class InvoiceConfig {
         internalLoanRepo: IRepository<InternalLoan>,
         unitOfWork: IUnitOfWork,
         eventRegister: IEventRegister,
+        snapshotBalanceAccountRepo: IAccountBalanceSnapshotRepository,
         ): UseCase<CompleteInvoiceInput, Unit> {
         return CompleteInvoice(
             invoiceRepo = invoiceRepo,
@@ -106,7 +108,8 @@ class InvoiceConfig {
             accountRepo = accountRepo,
             unitOfWork = unitOfWork,
             internalLoanRepo = internalLoanRepo,
-            eventRegister = eventRegister
+            eventRegister = eventRegister,
+            snapshotAccountBalanceRepo = snapshotBalanceAccountRepo,
         )
     }
 
@@ -126,13 +129,15 @@ class InvoiceConfig {
         invoiceRepo: IRepository<Invoice>,
         invoiceDependencies: InvoiceDependencies,
         unitOfWork: IUnitOfWork,
-        eventRegister: IEventRegister
+        eventRegister: IEventRegister,
+        snapshotBalanceAccountRepo: IAccountBalanceSnapshotRepository,
     ): UseCase<CreateInvoiceInput, CreatedOutput> {
         return CreateInvoice(
             invoiceRepo = invoiceRepo,
             invoiceDependencies = invoiceDependencies,
             unitOfWork = unitOfWork,
-            eventRegister = eventRegister
+            eventRegister = eventRegister,
+            snapshotAccountBalanceRepo = snapshotBalanceAccountRepo,
         )
     }
 
@@ -144,7 +149,8 @@ class InvoiceConfig {
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
         internalLoanRepo: IRepository<InternalLoan>,
         unitOfWork: IUnitOfWork,
-        eventRegister: IEventRegister
+        eventRegister: IEventRegister,
+        snapshotBalanceAccountRepo: IAccountBalanceSnapshotRepository,
     ): UseCase<DeleteInvoiceInput, Unit> {
         return DeleteInvoice(
             invoiceRepo = invoiceRepo,
@@ -153,7 +159,8 @@ class InvoiceConfig {
             getInvoiceTransactions = getInvoiceTransactions,
             unitOfWork = unitOfWork,
             internalLoanRepo = internalLoanRepo,
-            eventRegister = eventRegister
+            eventRegister = eventRegister,
+            snapshotAccountBalanceRepo = snapshotBalanceAccountRepo,
         )
     }
 
@@ -234,13 +241,15 @@ class InvoiceConfig {
         invoiceRepo: IRepository<Invoice>,
         accountRepo: IRepository<Account>,
         transactionRepo: IRepository<Transaction>,
-        unitOfWork: IUnitOfWork
+        unitOfWork: IUnitOfWork,
+        snapshotRepository: IAccountBalanceSnapshotRepository
     ): UseCase<TransferInvoiceInput, Unit> {
         return TransferInvoice(
             invoiceRepo = invoiceRepo,
             accountRepo = accountRepo,
             transactionRepo = transactionRepo,
-            unitOfWork = unitOfWork
+            unitOfWork = unitOfWork,
+            snapshotAccountBalanceRepo = snapshotRepository,
         )
     }
 

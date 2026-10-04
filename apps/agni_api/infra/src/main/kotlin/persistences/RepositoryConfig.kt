@@ -28,6 +28,7 @@ import domain.entities.Transaction
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import persistences.jbdc_model.JbdcAccountModel
+import persistences.jbdc_model.JdbcAccountSnapshotBalance
 import persistences.jbdc_model.JdbcAgentSuggestionModel
 import persistences.jbdc_model.JdbcBankRegisterModel
 import persistences.jbdc_model.JdbcBudgetModel
@@ -318,3 +319,6 @@ class SpendingPeriodRepository(
     mapper: IMapper<JdbcSpendingPeriodModel, SpendingPeriod>,
     queryAdapter: JdbcQueryAdapter,
 ): JdbcRepository<JdbcSpendingPeriodModel, SpendingPeriod>(storage, mapper, queryAdapter)
+
+@Repository
+interface AccountSnapshotStorage: GenericStorage<JdbcAccountSnapshotBalance, UUID>

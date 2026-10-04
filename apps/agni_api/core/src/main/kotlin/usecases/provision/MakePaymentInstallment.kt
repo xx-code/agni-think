@@ -31,7 +31,7 @@ class MakePaymentInstallment(
         try {
             val condition = QueryExtendBuilder<Provision>()
                 .addCondition("type", QueryComparator.Equal, ProvisionType.DEPRECIATE_LOAN.value)
-                .addCondition("paymentInfo.endDate", QueryComparator.GreaterOrEquals, LocalDate.now())
+                .addCondition("paymentInfo.endDate", QueryComparator.LesserOrEquals, LocalDate.now())
             val provisions = provisionRepo.getAll(QueryFilter.queryAll(), condition)
             val amortizedProvisions = provisions.items.filter { it.isAmortize() }
             val amortizedProvisionIds = amortizedProvisions.mapNotNull { it.fundAmortizationId }

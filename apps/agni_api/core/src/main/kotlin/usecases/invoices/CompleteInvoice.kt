@@ -1,11 +1,13 @@
 package usecases.invoices
 
+import adapters.dto.AccountSnapshotBalanceInput
 import usecases.interfaces.IUseCase
 
 import adapters.dto.QueryFilter
 import adapters.events.EventType
 import adapters.events.IEventRegister
 import adapters.events.contents.CreateEmbeddingInvoiceEventContent
+import adapters.repositories.IAccountBalanceSnapshotRepository
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
@@ -20,12 +22,14 @@ import usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
 import usecases.UseCase
+import java.time.LocalDateTime
 
 class CompleteInvoice(
     private val invoiceRepo: IRepository<Invoice>,
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
     private val accountRepo: IRepository<Account>,
     private val internalLoanRepo: IRepository<InternalLoan>,
+    private val snapshotAccountBalanceRepo: IAccountBalanceSnapshotRepository,
     unitOfWork: IUnitOfWork,
     private val eventRegister: IEventRegister
 ): UseCase<CompleteInvoiceInput, Unit>(unitOfWork) {
@@ -51,13 +55,17 @@ class CompleteInvoice(
 
         invoiceRepo.update(invoice)
         accountRepo.update(account)
+        snapshotAccountBalanceRepo.makeSnapshot(
+            AccountSnapshotBalanceInput(account.id, account.balance, LocalDateTime.now())
+        )
+
 
         // TODO: To remove feature
-        val conditionInvoice = QueryExtendBuilder<InternalLoan>()
-            .addCondition("invoiceId", QueryComparator.Equal, input.invoiceId)
-        val internalLoans = internalLoanRepo.getAll(QueryFilter.queryAll(), conditionInvoice)
-        if (internalLoans.items.isNotEmpty())
-            internalLoanRepo.delete(internalLoans.items.first().invoiceId)
+//        val conditionInvoice = QueryExtendBuilder<InternalLoan>()
+//            .addCondition("invoiceId", QueryComparator.Equal, input.invoiceId)
+//        val internalLoans = internalLoanRepo.getAll(QueryFilter.queryAll(), conditionInvoice)
+//        if (internalLoans.items.isNotEmpty())
+//            internalLoanRepo.delete(internalLoans.items.first().invoiceId)
 
         eventRegister.notify(EventType.CREATE_INVOICE, CreateEmbeddingInvoiceEventContent(invoice))
     }

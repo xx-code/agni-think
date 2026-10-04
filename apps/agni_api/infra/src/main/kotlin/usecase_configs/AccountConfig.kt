@@ -6,6 +6,8 @@ import domain.entities.Account
 import domain.entities.Currency
 import domain.entities.InternalLoan
 import domain.entities.Fund
+import domain.entities.Profile
+import domain.entities.ScheduleInvoice
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.accounts.CreateAccount
@@ -27,6 +29,10 @@ import usecases.invoices.dto.GetInvoiceOutput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import usecases.UseCase
+import usecases.accounts.GetTotalBalanceAmount
+import usecases.accounts.dto.GetTotalBalanceAmountOutput
+import usecases.analystics.dto.ForcastSpendingInput
+import usecases.analystics.dto.ForcastSpendingOutput
 import java.util.UUID
 
 @Configuration
@@ -111,5 +117,24 @@ class AccountConfig {
        return DeleteAccount(
            accountRepo = accountRepo
        )
+    }
+
+    @Bean
+    fun getTotalAccountBalance(
+        accountRepo: IRepository<Account>,
+        fundRepo: IRepository<Fund>,
+        profileRepo: IRepository<Profile>,
+        scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+        getBalance: UseCase<GetBalanceInput, GetBalanceOutput>,
+        forcastSpending: UseCase<ForcastSpendingInput, ForcastSpendingOutput>
+    ) : UseCase<Unit, GetTotalBalanceAmountOutput> {
+        return GetTotalBalanceAmount(
+            accountRepo = accountRepo,
+            fundRepo = fundRepo,
+            profile = profileRepo,
+            scheduleInvoiceRepo = scheduleInvoiceRepo,
+            getBalance = getBalance,
+            forcastSpending = forcastSpending
+        )
     }
 }

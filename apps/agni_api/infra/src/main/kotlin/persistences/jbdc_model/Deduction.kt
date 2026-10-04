@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component
 import persistences.IMapper
 import java.util.UUID
 
-@Table("deduction_types")
+@Table("deductions")
 data class JdbcDeductionModel(
     @Id
     @get:JvmName("getIdentifier")
-    val deductionTypeId: UUID,
+    val deductionId: UUID,
 
     val title: String,
 
@@ -22,7 +22,7 @@ data class JdbcDeductionModel(
     val mode: String
 ) : JdbcModel() {
     override fun getId(): UUID {
-        return deductionTypeId
+        return deductionId
     }
 }
 
@@ -40,7 +40,7 @@ class JdbcDeductionModelMapper: IMapper<JdbcDeductionModel, Deduction> {
 
     override fun toModel(entity: Deduction): JdbcDeductionModel {
         return JdbcDeductionModel(
-            deductionTypeId = entity.id,
+            deductionId = entity.id,
             title = entity.title,
             description = entity.description,
             base = entity.base.value,
@@ -49,17 +49,17 @@ class JdbcDeductionModelMapper: IMapper<JdbcDeductionModel, Deduction> {
     }
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
-        "id" to "deduction_type_id",
+        "id" to "deduction_id",
         "title" to "title",
         "description" to "description",
         "base" to "base",
         "mode" to "mode"
     )
 
-    override fun getTableName(): String = "deduction_types"
+    override fun getTableName(): String = "deductions"
 
     override fun getSortField(): Set<String> {
-        return setOf("rate_to_base")
+        return setOf("title")
     }
 
     override fun getModelClass(): Class<JdbcDeductionModel> = JdbcDeductionModel::class.java

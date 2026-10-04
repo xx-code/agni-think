@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import usecases.dto.CreatedOutput
 import usecases.accounts.dto.CreateAccountInput
+import usecases.accounts.dto.GetTotalBalanceAmountOutput
 import usecases.interfaces.IUseCase
 import java.util.UUID
 import kotlin.getOrThrow
@@ -36,6 +37,7 @@ class AccountController(
     private val getAccountWithDetailUseCase: IUseCase<UUID, GetAccountWithDetailOutput>,
     private val getAllAccountWithDetailUseCase: IUseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>>,
     private val deleteAccountUseCase: IUseCase<DeleteAccountInput, Unit>,
+    private val getTotalBalanceUseCase: IUseCase<Unit, GetTotalBalanceAmountOutput>
 ) {
 
     @GetMapping
@@ -73,5 +75,12 @@ class AccountController(
         return ResponseEntity.ok(deleteAccountUseCase.execute(
             DeleteAccountInput(id)
         ).getOrThrow())
+    }
+
+    @GetMapping("/total-balance")
+    suspend fun getTotalBalance(): ResponseEntity<GetTotalBalanceAmountOutput> {
+        return ResponseEntity.ok(
+            getTotalBalanceUseCase(Unit).getOrThrow()
+        )
     }
 }

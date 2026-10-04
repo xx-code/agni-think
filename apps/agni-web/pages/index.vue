@@ -4,7 +4,7 @@ import { getSpendingPeriodAnalyticRange, useInProgressSpendingPeriod } from '~/c
 import type { Account, AccountWithDetailType, EditAccount } from "~/types/ui/account";
 import { getLocalTimeZone } from "@internationalized/date";
 import { ModalEditAccount, SlideOverQuickInvoicesView } from "#components";
-import { accountWithDetailResponseToAccountWithDetail, accountWithDetailToAccountCard, listAccountsResponseToListAccountWithDetail } from "~/mappers/account";
+import { accountWithDetailResponseToAccountWithDetail, accountWithDetailToAccountCard, listAccountsResponseToListAccountWithDetail, toAccountBalance } from "~/mappers/account";
 import { savingAnalyticResponseToSavingAnalytic } from "~/mappers/analytics";
 import { goalResponseToGoal, goalToFundGoalCards } from "~/mappers/goal";
 import { AccountType, getOrderAccountType } from "~/types/constants/account";
@@ -16,8 +16,6 @@ import type { GetBalanceResponse } from "~/types/api/transaction";
 import type { FundCardGoal } from "~/types/ui/fund";
 import { ApiLinkBuilder } from "~/utils/ApiLinkBuilder";
 import { API_ROUTES } from "~/shared/routes";
-import type { GetProfileResponse } from "~/types/api/profile";
-import { profileResponseToProfile } from "~/mappers/profile";
 import type { TotalBalanceBufferIndicator } from "~/types/ui/overview";
 import { getBalanceBufferLevel } from "~/utils/getBalanceBufferLevel";
 
@@ -36,6 +34,22 @@ function groupAndSortAccount(a: AccountWithDetailType, b: AccountWithDetailType)
   return a.title.localeCompare(b.title);
 }
 
+const { isLoading: isLoadingBalance, start: startLoadingBalance, stop: stopLoadingBalance } = useLoading()
+const { data: dataTotalBalance, refresh: refresTotalBalance } = useAsyncData(
+    'accounts+total+balaance',
+    async () => {
+        startLoadingBalance()
+        const res = await ApiLinkBuilder
+            .route(API_ROUTES.ACCOUNTS.TOTAL_BALANCE)
+            .mapper(toAccountBalance)
+            .execute()
+
+        stopLoadingBalance()
+
+        return res
+    }
+)
+
 const { data: accountData, refresh: refreshAccounts } = useAsyncData(
     'accounts+categories+tags+budgets',
     async () => {
@@ -45,12 +59,6 @@ const { data: accountData, refresh: refreshAccounts } = useAsyncData(
                         .mapper(listAccountsResponseToListAccountWithDetail)
                         .query({offest: 0, limit: 0, queryAll: true, withDetail: true})
                         .execute()
-
-        const profile = await ApiLinkBuilder
-            .route<GetProfileResponse>(API_ROUTES.PROFILE.GET_PROFILE)
-            .params({ id: "457ae73e-8124-4d3b-ab2b-d6a404c6b4d3" })
-            .mapper(profileResponseToProfile)
-            .execute()
 
         const accIds = res.items.map(account => account.id)
 
@@ -71,7 +79,6 @@ const { data: accountData, refresh: refreshAccounts } = useAsyncData(
         isLoadingAccount.value = false
 
         return {
-            profile,
             accounts: res.items.sort((a, b) => groupAndSortAccount(a, b)),
             balanceHistories: accIds.map((id, index) => ({
                 id,
@@ -143,40 +150,6 @@ const { data: goals } = useAsyncData('goal+overview', async () => {
     isLoadingGoal.value = false
 
     return items.map(i => (goalToFundGoalCards(i))) 
-})
-
-
-const totalAccountBalance = computed(() => {
-    let total = 0 
-    let totalFreezed = 0
-    let totalLocked = 0
-    let totalCreditUsage = 0
-
-    if (accountData.value) {
-        for(const acc of accountData.value.accounts) {
-            if (acc.type !== 'Saving' && acc.type !== 'Broking') {
-                total += acc.balance
-            }
-
-            totalFreezed += acc.freezeBalance
-            totalLocked += acc.lockedBalance
-        }
-
-        const creditCardAccount = accountData.value.accounts.filter(i => i.type === 'CreditCard')
-        const sum = creditCardAccount.reduce((acc, account) => acc += account.detail?.detailForCreditCard?.creditUtilisation ?? 0, 0)
-
-        totalCreditUsage = roundNumber(sum/creditCardAccount.length)
-    }  
-
-    // use the total
-
-    return { 
-        // add indication
-        totalBalance: total, 
-        totalFreezedBalance: totalFreezed, 
-        totalLockedBalance: totalLocked,
-        totalCreditUsage
-    }
 })
 
 
@@ -264,25 +237,30 @@ const openTransactionViews = async (accountId: string) => {
     } 
 }
 
-const availableBalance = computed(() => {
-    return totalAccountBalance.value.totalBalance - Math.abs(totalAccountBalance.value.totalFreezedBalance + totalAccountBalance.value.totalLockedBalance) 
-})
-
 const balanceBufferIndicator = computed<TotalBalanceBufferIndicator>(() => {
-    const buffer = accountData.value?.profile.balanceBuffer ?? 0
-    const totalBalance = totalAccountBalance.value.totalBalance
-    const diffBalance = roundNumber(totalBalance - buffer)
+    const buffer = dataTotalBalance.value?.buffer.baseBufferAmount ?? 0
+    const totalBalance = dataTotalBalance.value?.totalBalance ?? 0
+    const diffBalance = dataTotalBalance.value?.buffer.currentBalanceBuffer ?? totalBalance - buffer
+    const projectedBuffer = dataTotalBalance.value?.buffer.projectedBuffer ?? 0
+    const projectedBufferByBalance = dataTotalBalance.value?.buffer.projectedBufferByBalance ?? projectedBuffer - buffer
     const isUnderBuffer = diffBalance < 0
     const missingBalance = Math.abs(diffBalance)
     const coverage = buffer > 0
         ? Math.max(0, Math.min(100, roundNumber((totalBalance / buffer) * 100)))
         : (totalBalance > 0 ? 100 : 0)
+    const estimateCoverage = buffer > 0
+        ? Math.max(0, Math.min(100, roundNumber((projectedBuffer / buffer) * 100)))
+        : (projectedBuffer > 0 ? 100 : 0)
 
     return {
         buffer,
         diffBalance,
-        coverage,
+        projectedBuffer,
+        projectedBufferByBalance,
+        estimateCoverage,
         isUnderBuffer,
+        estimateLevel: getBalanceBufferLevel(buffer, projectedBuffer),
+        coverage,
         level: getBalanceBufferLevel(buffer, totalBalance),
         description: isUnderBuffer
             ? `Il manque ${formatCurrency(missingBalance)} pour atteindre le buffer`
@@ -320,12 +298,12 @@ function goalStatusBadge(goal: FundCardGoal) {
         />
 
         <UiOverviewAccountSummary 
-            v-if="!isLoadingAccount"
+            v-if="!isLoadingBalance"
             :indicator-balance-buffer="balanceBufferIndicator"
-            :total-balance="totalAccountBalance.totalBalance"
-            :disponible="availableBalance"
-            :freeze="totalAccountBalance.totalFreezedBalance"
-            :lock="totalAccountBalance.totalLockedBalance"
+            :total-balance="dataTotalBalance?.totalBalance ?? 0"
+            :disponible="dataTotalBalance?.totalAvailable ?? 0"
+            :freeze="dataTotalBalance?.totalFreeze ?? 0"
+            :lock="dataTotalBalance?.totalLock ?? 0"
         />
         <LoadingIndicator v-else />
 
@@ -380,8 +358,8 @@ function goalStatusBadge(goal: FundCardGoal) {
                         </h4>
                         <h1 :class="[
                             'font-semibold text-2xl p-2',
-                            totalAccountBalance.totalCreditUsage <= 30 ? 'text-green-600' : 'text-red-600'
-                        ]">{{ totalAccountBalance.totalCreditUsage }}%</h1>
+                            (dataTotalBalance?.totalCreditUtilization ?? 0) <= 30 ? 'text-green-600' : 'text-red-600'
+                        ]">{{ roundNumber(dataTotalBalance?.totalCreditUtilization ?? 0) }}%</h1>
                     </div>
 
                     <LoadingIndicator v-else />

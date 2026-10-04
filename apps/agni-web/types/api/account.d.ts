@@ -34,6 +34,22 @@ export type GetCreditCardDetailResponse = {
     nextInvoicePayment: string
 }
 
+export type GetBufferInfoResponse = {
+    baseBufferAmount: number
+    currentBalanceBuffer: number
+    projectedBuffer: number
+    projectedBufferByBalance: number
+}
+
+export type GetTotalBalanceAmountResponse = {
+    totalBalance: number
+    totalAvailable: number
+    totalFreeze: number
+    totalLock: number
+    totalCreditUtilization: number
+    buffer: GetBufferInfoResponse 
+}
+
 export type CreateAccountRequest = {
     title: string 
     type: string

@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import adapters.dto.AccountSnapshotBalanceInput
 import usecases.interfaces.IUseCase
 
 import domain.TRANSFERT_CATEGORY_ID
@@ -7,6 +8,7 @@ import adapters.dto.QueryFilter
 import adapters.events.EventType
 import adapters.events.IEventRegister
 import adapters.events.contents.DeleteEmbeddingInvoiceEventContent
+import adapters.repositories.IAccountBalanceSnapshotRepository
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
@@ -23,6 +25,7 @@ import usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
 import usecases.UseCase
+import java.time.LocalDateTime
 
 class DeleteInvoice(
     private val invoiceRepo: IRepository<Invoice>,
@@ -30,6 +33,7 @@ class DeleteInvoice(
     private val accountRepo: IRepository<Account>,
     private val internalLoanRepo: IRepository<InternalLoan>,
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+    private val snapshotAccountBalanceRepo: IAccountBalanceSnapshotRepository,
     unitOfWork: IUnitOfWork,
     private val eventRegister: IEventRegister
 ): UseCase<DeleteInvoiceInput, Unit>(unitOfWork) {
@@ -78,6 +82,10 @@ class DeleteInvoice(
                 account.balance += invoiceTransactions.first().total
 
             accountRepo.update(account)
+
+            snapshotAccountBalanceRepo.makeSnapshot(
+                AccountSnapshotBalanceInput(account.id, account.balance, LocalDateTime.now())
+            )
         }
 
         if (invoice.statusType == InvoiceStatusType.COMPLETED)
