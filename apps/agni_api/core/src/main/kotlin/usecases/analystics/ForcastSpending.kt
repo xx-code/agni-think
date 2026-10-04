@@ -22,6 +22,7 @@ import usecases.invoices.dto.GetBalanceInput
 import usecases.invoices.dto.GetBalanceOutput
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 import kotlin.math.abs
 import domain.enums.AccountType
