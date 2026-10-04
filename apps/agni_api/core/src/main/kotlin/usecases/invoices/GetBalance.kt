@@ -23,9 +23,9 @@ class GetBalance(
             .addCondition("accountId", QueryComparator.In, input.accountIds)
             .addCondition("date", QueryComparator.GreaterOrEquals, input.startDate)
             .addCondition("date", QueryComparator.LesserOrEquals, input.endDate)
-            .addCondition("types", QueryComparator.In, input.types?.map { it.value }?.toSet())
+            .addCondition("type", QueryComparator.In, input.types?.map { it.value }?.toSet())
             .addCondition("isFreeze", QueryComparator.Equal, input.isFreeze)
-            .addCondition("status", QueryComparator.Equal, input.status?.value)
+            .addCondition("statusType", QueryComparator.Equal, input.status?.value)
             .addCondition("movementType", QueryComparator.Equal, input.movement)
 
         val invoices = invoiceRepo.getAll(QueryFilter(0, 0, true), conditionInvoice)
@@ -40,8 +40,8 @@ class GetBalance(
             doRemoveSpecialCategory = input.removeSystemCategory == true && input.categoryIds.isNullOrEmpty(),
         ))
 
-        val creditInvoiceIds = invoices.items.filter { it.movementType == InvoiceMovementType.CREDIT }.map { it.id }
-        val debitInvoiceIds = invoices.items.filter { it.movementType == InvoiceMovementType.DEBIT }.map { it.id }
+        val creditInvoiceIds = invoices.items.filter { it.movement == InvoiceMovementType.CREDIT }.map { it.id }
+        val debitInvoiceIds = invoices.items.filter { it.movement == InvoiceMovementType.DEBIT }.map { it.id }
 
         val income = invoiceTransactions.filter { creditInvoiceIds.contains(it.invoiceId) }.sumOf { it.total }
         val spend = invoiceTransactions.filter { debitInvoiceIds.contains(it.invoiceId) }.sumOf { it.total }

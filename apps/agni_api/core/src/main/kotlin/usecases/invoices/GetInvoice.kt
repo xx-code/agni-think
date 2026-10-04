@@ -36,11 +36,11 @@ class GetInvoice(
         return GetInvoiceOutput(
             id = invoice.id,
             accountId = invoice.accountId,
-            status = invoice.statusType.value,
+            status = invoice.status.value,
             type = invoice.type.value,
             subTotal = invoiceTransactions.first().subTotal,
             total = invoiceTransactions.first().total,
-            mouvement = invoice.movementType.value,
+            mouvement = invoice.movement.value,
             date = invoice.date,
             isFreeze = invoice.isFreeze,
             transactions = invoiceTransactions.first().transactions,

@@ -57,7 +57,7 @@ class CreateInvoice(
             id = if(usePersistentId) input.persistentInvoiceId else UUID.randomUUID(),
             accountId = input.accountId,
             status = input.status,
-            movementType = input.mouvementType,
+            movement = input.mouvementType,
             type = input.type,
             deductions = input.deductions.map { InvoiceDeduction(it.deductionId, it.amount) }.toMutableSet(),
             date = input.date,
@@ -127,7 +127,7 @@ class CreateInvoice(
 
         invoiceRepo.create(newInvoice)
 
-        if (newInvoice.statusType == InvoiceStatusType.COMPLETED)
+        if (newInvoice.status == InvoiceStatusType.COMPLETED)
             eventRegister.notify(EventType.CREATE_INVOICE, CreateEmbeddingInvoiceEventContent(newInvoice))
 
         return CreatedOutput(newInvoice.id)

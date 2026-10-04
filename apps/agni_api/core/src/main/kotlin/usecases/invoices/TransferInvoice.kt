@@ -48,7 +48,7 @@ class TransferInvoice(
             status = InvoiceStatusType.COMPLETED,
             date = input.date,
             type = InvoiceType.OTHER,
-            movementType = InvoiceMovementType.DEBIT,
+            movement = InvoiceMovementType.DEBIT,
             moduleLinkers = invoiceFromModuleLinkers
         )
 
@@ -58,7 +58,7 @@ class TransferInvoice(
             status = InvoiceStatusType.COMPLETED,
             date = input.date,
             type = InvoiceType.OTHER,
-            movementType = InvoiceMovementType.CREDIT,
+            movement = InvoiceMovementType.CREDIT,
             moduleLinkers = invoiceToModuleLinkers
         )
 

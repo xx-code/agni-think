@@ -61,7 +61,7 @@ class UpdateInvoice(
             invoice.type = input.type
 
         if (input.mouvementType != null)
-            invoice.movementType = input.mouvementType
+            invoice.movement = input.mouvementType
 
         if (input.date != null)
             invoice.date = input.date
@@ -105,10 +105,10 @@ class UpdateInvoice(
             createInvoice.processDirect(CreateInvoiceInput(
                 persistentInvoiceId = invoice.id,
                 accountId = invoice.accountId,
-                status = invoice.statusType,
+                status = invoice.status,
                 date = invoice.date,
                 type = invoice.type,
-                mouvementType = invoice.movementType,
+                mouvementType = invoice.movement,
                 currency = null,
                 isFreeze = invoice.isFreeze,
                 transactions = finalTransactions,

@@ -75,8 +75,8 @@ class DeleteInvoice(
 
         invoiceRepo.delete(input.invoiceId)
 
-        if (invoice.statusType == InvoiceStatusType.COMPLETED) {
-            if (invoice.movementType == InvoiceMovementType.CREDIT)
+        if (invoice.status == InvoiceStatusType.COMPLETED) {
+            if (invoice.movement == InvoiceMovementType.CREDIT)
                 account.balance -= invoiceTransactions.first().total
             else
                 account.balance += invoiceTransactions.first().total
@@ -88,7 +88,7 @@ class DeleteInvoice(
             )
         }
 
-        if (invoice.statusType == InvoiceStatusType.COMPLETED)
+        if (invoice.status == InvoiceStatusType.COMPLETED)
             eventRegister.notify(EventType.DELETE_INVOICE, DeleteEmbeddingInvoiceEventContent(input.invoiceId))
 
     }
