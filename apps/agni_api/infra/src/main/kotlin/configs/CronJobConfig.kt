@@ -8,10 +8,16 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 @Service
+@ConditionalOnProperty(
+    name = ["agni.startup.enabled"],
+    havingValue = "true",
+    matchIfMissing = true
+)
 class CronJobOrchestratorEach12h(
     @Qualifier("applyScheduleInvoice")
     private val applyScheduleInvoiceUseCase: IUseCase<Unit, BackgroundTaskOut>,

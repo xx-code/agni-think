@@ -18,11 +18,17 @@ import domain.entities.Color
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import persistences.CategoryRepository
 import persistences.CurrencyRepository
 
 @Component
+@ConditionalOnProperty(
+    name = ["agni.startup.enabled"],
+    havingValue = "true",
+    matchIfMissing = true
+)
 class Startup (
     private val evenRegister: IEventRegister,
     private val pushNotification: PushNotification,
