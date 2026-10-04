@@ -1,150 +1,255 @@
 -- =====================================================================================
--- 1. Renommage des tables / colonnes pour coller aux modeles Kotlin (`@Table`,
---    `getTableName()`, `getEntityModelFieldName()`).
+-- V32 : migration IDEMPOTENTE (rejouable sur une base deja partiellement/totalement migree)
 --
---    L'ordre des instructions est imperative : chaque renommage libere un nom qui est
---    reutilise juste apres. Separer ces operations en plusieurs migrations echouerait sur
---    `relation "..." already exists`.
+-- Principe : chaque operation verifie l'etat reel du schema courant (current_schema())
+-- avant d'agir. Rien n'est ecrase, supprime ou renomme si le resultat existe deja.
 -- =====================================================================================
 
--- 1.1 `deductions` (table Knex : deduction_id, deduction_type_id, rate) n'est lue par
---     aucun code Kotlin : les deductions d'une facture vivent dans
---     `invoices.deductions` (jsonb). Table vide, on la supprime pour liberer le nom
---     `deductions`, qui doit revenir au catalogue `deduction_types`.
-DROP TABLE IF EXISTS deductions;
+-- -------------------------------------------------------------------------------------
+-- 0. Fonctions utilitaires temporaires (disparaissent a la fin de la session)
+-- -------------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION pg_temp.has_table(t text) RETURNS boolean LANGUAGE plpgsql AS $fn$
+BEGIN
+RETURN EXISTS (SELECT 1 FROM information_schema.tables
+               WHERE table_schema = current_schema() AND table_name = t);
+END $fn$;
 
--- 1.2 Catalogue des deductions : `deduction_types` devient `deductions`.
---     `ALTER TABLE ... RENAME TO` ne renomme ni la cle primaire ni ses index : le nom
---     `deduction_types_pkey` doit etre libere explicitement avant d'etre reutilise.
+CREATE OR REPLACE FUNCTION pg_temp.has_col(t text, c text) RETURNS boolean LANGUAGE plpgsql AS $fn$
+BEGIN
+RETURN EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_schema = current_schema() AND table_name = t AND column_name = c);
+END $fn$;
+
+-- Renomme une colonne seulement si l'ancienne existe ET que la nouvelle n'existe pas.
+CREATE OR REPLACE FUNCTION pg_temp.rename_col(t text, old_c text, new_c text) RETURNS void LANGUAGE plpgsql AS $fn$
+BEGIN
+    IF pg_temp.has_col(t, old_c) AND NOT pg_temp.has_col(t, new_c) THEN
+        EXECUTE format('ALTER TABLE %I RENAME COLUMN %I TO %I', t, old_c, new_c);
+END IF;
+END $fn$;
+
+-- Renomme un index SUR UNE TABLE DONNEE, seulement si le nom cible est libre.
+CREATE OR REPLACE FUNCTION pg_temp.rename_idx(t text, old_i text, new_i text) RETURNS void LANGUAGE plpgsql AS $fn$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_indexes
+               WHERE schemaname = current_schema() AND tablename = t AND indexname = old_i)
+       AND NOT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                       WHERE n.nspname = current_schema() AND c.relname = new_i) THEN
+        EXECUTE format('ALTER INDEX %I RENAME TO %I', old_i, new_i);
+END IF;
+END $fn$;
+
+-- NOT NULL : ignore si la colonne n'existe pas, est deja NOT NULL, ou contient des NULL (warning).
+CREATE OR REPLACE FUNCTION pg_temp.set_not_null(t text, c text) RETURNS void LANGUAGE plpgsql AS $fn$
+DECLARE nb bigint;
+BEGIN
+    IF NOT pg_temp.has_col(t, c) THEN
+        RAISE WARNING 'set_not_null: colonne %.% inexistante, ignoree', t, c;
+        RETURN;
+END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_schema = current_schema() AND table_name = t
+                 AND column_name = c AND is_nullable = 'NO') THEN
+        RETURN;
+END IF;
+EXECUTE format('SELECT count(*) FROM %I WHERE %I IS NULL', t, c) INTO nb;
+IF nb > 0 THEN
+        RAISE WARNING 'set_not_null: %.% contient % valeur(s) NULL, contrainte NON appliquee', t, c, nb;
+ELSE
+        EXECUTE format('ALTER TABLE %I ALTER COLUMN %I SET NOT NULL', t, c);
+END IF;
+END $fn$;
+
+-- CHECK : ajoute seulement si absente. NOT VALID => les lignes existantes ne sont pas
+-- re-verifiees (aucun blocage), mais toutes les nouvelles ecritures le sont.
+CREATE OR REPLACE FUNCTION pg_temp.add_check(t text, cname text, expr text) RETURNS void LANGUAGE plpgsql AS $fn$
+BEGIN
+    IF NOT pg_temp.has_table(t) THEN
+        RAISE WARNING 'add_check: table % inexistante, % ignoree', t, cname;
+        RETURN;
+END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                   WHERE conname = cname
+                     AND conrelid = format('%I.%I', current_schema(), t)::regclass) THEN
+        EXECUTE format('ALTER TABLE %I ADD CONSTRAINT %I CHECK (%s) NOT VALID', t, cname, expr);
+END IF;
+END $fn$;
+
+-- =====================================================================================
+-- 1. Renommage des tables / colonnes (ordre imperatif, chaque etape testee sur l'etat reel)
+-- =====================================================================================
+
+-- 1.1 + 1.2 Catalogue : `deduction_types` devient `deductions`.
+--     L'ancienne table Knex `deductions` (colonne deduction_type_id) n'est supprimee que
+--     si elle a encore l'ancienne structure ET que le catalogue `deduction_types` attend
+--     de prendre sa place. Un `deductions` deja migre n'est JAMAIS touche.
+DO $$
+BEGIN
+    IF pg_temp.has_table('deduction_types')
+       AND pg_temp.has_table('deductions')
+       AND pg_temp.has_col('deductions', 'deduction_type_id')
+       AND NOT pg_temp.has_col('deductions', 'title') THEN
+DROP TABLE deductions CASCADE;
+END IF;
+
+    IF pg_temp.has_table('deduction_types') AND NOT pg_temp.has_table('deductions') THEN
 ALTER TABLE deduction_types RENAME TO deductions;
-ALTER TABLE deductions RENAME COLUMN deduction_type_id TO deduction_id;
-ALTER INDEX deduction_types_pkey RENAME TO deductions_pkey;
+END IF;
+
+    PERFORM pg_temp.rename_col('deductions', 'deduction_type_id', 'deduction_id');
+    PERFORM pg_temp.rename_idx('deductions', 'deduction_types_pkey', 'deductions_pkey');
+END $$;
 
 -- 1.3 En-tete de facture : `transactions` devient `invoices`.
---     La colonne `mouvement` (faute de frappe historique) devient `movement` :
---     `JdbcInvoiceModel.movement` est lu par `SELECT *` via `DataClassRowMapper`.
-ALTER TABLE transactions RENAME COLUMN transaction_id TO invoice_id;
-ALTER TABLE transactions RENAME COLUMN mouvement TO movement;
+--     Un `transactions` n'est considere comme l'ANCIEN en-tete que s'il porte la colonne
+--     `mouvement`/`movement` (la table de lignes n'en a pas). Cela evite de renommer par
+--     erreur la nouvelle table de lignes (cause de l'erreur "invoice_id already exists").
+DO $$
+BEGIN
+    IF NOT pg_temp.has_table('invoices')
+       AND pg_temp.has_table('transactions')
+       AND (pg_temp.has_col('transactions', 'mouvement') OR pg_temp.has_col('transactions', 'movement')) THEN
 ALTER TABLE transactions RENAME TO invoices;
+END IF;
 
--- Une ligne historique stockait 'credit' au lieu de la valeur de l'enum
--- `InvoiceMovementType.CREDIT` : les agrégats de solde filtrent sur 'Credit'.
-UPDATE invoices SET movement = 'Credit' WHERE movement = 'credit';
+    IF pg_temp.has_table('invoices') THEN
+        PERFORM pg_temp.rename_col('invoices', 'transaction_id', 'invoice_id');
+        PERFORM pg_temp.rename_col('invoices', 'mouvement', 'movement');
 
-ALTER INDEX transactions_pkey RENAME TO invoices_pkey;
-ALTER INDEX transactions_account_id_index RENAME TO invoices_account_id_index;
-ALTER INDEX transactions_status_index RENAME TO invoices_status_index;
+        -- Les index sont cibles PAR TABLE : on ne peut pas toucher ceux d'une autre table.
+        PERFORM pg_temp.rename_idx('invoices', 'transactions_pkey', 'invoices_pkey');
+        PERFORM pg_temp.rename_idx('invoices', 'transactions_account_id_index', 'invoices_account_id_index');
+        PERFORM pg_temp.rename_idx('invoices', 'transactions_status_index', 'invoices_status_index');
+END IF;
 
--- La cle etrangere de `internal_loans` a suivi la table automatiquement, mais garde son
--- ancien nom : on lui redonne un nom coherent.
+    IF pg_temp.has_table('internal_loans')
+       AND EXISTS (SELECT 1 FROM pg_constraint
+                   WHERE conname = 'fk_invoice'
+                     AND conrelid = format('%I.%I', current_schema(), 'internal_loans')::regclass)
+       AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_internal_loans_invoice') THEN
 ALTER TABLE internal_loans RENAME CONSTRAINT fk_invoice TO fk_internal_loans_invoice;
+END IF;
+END $$;
 
--- 1.4 Lignes de facture : `records` devient `transactions`.
---     Renommer d'abord `transaction_id` -> `invoice_id` (la colonne pointe vers
---     `invoices`), sinon `record_id` ne pourra pas prendre le nom `transaction_id`
---     deja occupe sur la meme table.
-ALTER TABLE records RENAME COLUMN transaction_id TO invoice_id;
+-- Normalisation d'une ligne historique (idempotent : ne fait rien si deja 'Credit').
+DO $$
+BEGIN
+    IF pg_temp.has_table('invoices') AND pg_temp.has_col('invoices', 'movement') THEN
+UPDATE invoices SET movement = 'Credit' WHERE movement = 'credit';
+END IF;
+END $$;
+
+-- 1.4 Lignes de facture : `records` devient `transactions` (seulement si `records` existe encore).
+DO $$
+BEGIN
+    IF pg_temp.has_table('records') THEN
+        PERFORM pg_temp.rename_col('records', 'transaction_id', 'invoice_id');
+
+        IF NOT pg_temp.has_table('transactions') THEN
 ALTER TABLE records RENAME TO transactions;
-ALTER TABLE transactions RENAME COLUMN record_id TO transaction_id;
+ELSE
+            RAISE WARNING 'Table "transactions" deja presente : "records" non renommee (a verifier manuellement)';
+END IF;
+END IF;
 
-ALTER INDEX records_pkey RENAME TO transactions_pkey;
-ALTER INDEX records_transaction_id_index RENAME TO transactions_invoice_id_index;
+    -- Uniquement sur la table de lignes (celle qui a invoice_id)
+    IF pg_temp.has_table('transactions') AND pg_temp.has_col('transactions', 'invoice_id') THEN
+        PERFORM pg_temp.rename_col('transactions', 'record_id', 'transaction_id');
+        PERFORM pg_temp.rename_idx('transactions', 'records_pkey', 'transactions_pkey');
+        PERFORM pg_temp.rename_idx('transactions', 'records_transaction_id_index', 'transactions_invoice_id_index');
+END IF;
+END $$;
 
 -- =====================================================================================
 -- 2. Snapshot de solde par compte.
---    `date` est NOT NULL : `JdbcAccountSnapshotBalance.date` et le RowMapper de
---    `AccountSnapshotBalanceRepository` la lisent sans valeur par defaut.
 -- =====================================================================================
 CREATE TABLE IF NOT EXISTS account_snapshot_balances (
-    account_snapshot_balance_id UUID PRIMARY KEY,
-    account_id UUID NOT NULL,
-    balance DOUBLE PRECISION NOT NULL,
-    date TIMESTAMPTZ NOT NULL DEFAULT now(),
+                                                         account_snapshot_balance_id UUID PRIMARY KEY,
+                                                         account_id UUID NOT NULL,
+                                                         balance DOUBLE PRECISION NOT NULL,
+                                                         date TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT account_snapshot_balances_account_id_fkey
-        FOREIGN KEY (account_id) REFERENCES accounts (account_id) ON DELETE CASCADE
-);
+    FOREIGN KEY (account_id) REFERENCES accounts (account_id) ON DELETE CASCADE
+    );
 
--- Requete de l'historique : `WHERE account_id = ? AND date <= ? ORDER BY date DESC`.
 CREATE INDEX IF NOT EXISTS account_snapshot_balances_account_id_date_index
     ON account_snapshot_balances (account_id, date DESC);
 
 -- =====================================================================================
--- 3. Contraintes de nullabilite alignees sur les modeles Kotlin.
---    Toutes ces colonnes sont non nulles dans les donnees existantes et declarees non
---    nullables dans les data classes `JdbcInvoiceModel`, `JdbcTransactionModel` et
---    `JdbcDeductionModel` : une valeur nulle ferait echouer la lecture par
---    `DataClassRowMapper` avant meme d'atteindre la couche metier.
+-- 3. Contraintes de nullabilite (ignorees si deja posees, colonne absente ou NULL presents).
 -- =====================================================================================
-ALTER TABLE invoices
-    ALTER COLUMN account_id SET NOT NULL,
-    ALTER COLUMN status SET NOT NULL,
-    ALTER COLUMN type SET NOT NULL,
-    ALTER COLUMN movement SET NOT NULL,
-    ALTER COLUMN date SET NOT NULL,
-    ALTER COLUMN is_freeze SET NOT NULL,
-    ALTER COLUMN deductions SET NOT NULL,
-    ALTER COLUMN invoice_module_linkers SET NOT NULL;
+DO $$
+DECLARE c text;
+BEGIN
+    FOREACH c IN ARRAY ARRAY['account_id','status','type','movement','date','is_freeze','deductions','invoice_module_linkers'] LOOP
+        PERFORM pg_temp.set_not_null('invoices', c);
+END LOOP;
 
-ALTER TABLE transactions
-    ALTER COLUMN invoice_id SET NOT NULL,
-    ALTER COLUMN money_amount SET NOT NULL,
-    ALTER COLUMN category_id SET NOT NULL,
-    ALTER COLUMN description SET NOT NULL,
-    ALTER COLUMN tag_ids SET NOT NULL,
-    ALTER COLUMN budget_ids SET NOT NULL;
+    FOREACH c IN ARRAY ARRAY['invoice_id','money_amount','category_id','description','tag_ids','budget_ids'] LOOP
+        PERFORM pg_temp.set_not_null('transactions', c);
+END LOOP;
 
-ALTER TABLE deductions
-    ALTER COLUMN title SET NOT NULL,
-    ALTER COLUMN description SET NOT NULL,
-    ALTER COLUMN base SET NOT NULL,
-    ALTER COLUMN mode SET NOT NULL;
+    FOREACH c IN ARRAY ARRAY['title','description','base','mode'] LOOP
+        PERFORM pg_temp.set_not_null('deductions', c);
+END LOOP;
+END $$;
 
 -- =====================================================================================
--- 4. Domaines de valeurs.
---    Les listes reprennent exactement les enums Kotlin (`domain.enums`), qui sont
---    volontairement en base aujourd'hui. Elles protgent les agregats de solde et de
---    depense des valeurs parasites ('credit' a ete tolere par le VARCHAR).
+-- 4. Domaines de valeurs (CHECK ajoutes seulement s'ils n'existent pas, sans bloquer
+--    sur les donnees historiques grace a NOT VALID).
 -- =====================================================================================
-ALTER TABLE invoices
-    ADD CONSTRAINT invoices_movement_check CHECK (movement IN ('Credit', 'Debit')),
-    ADD CONSTRAINT invoices_status_check CHECK (status IN ('Pending', 'Complete')),
-    ADD CONSTRAINT invoices_type_check CHECK (type IN ('Income', 'FixedCost', 'VariableCost', 'Other'));
-
-ALTER TABLE deductions
-    ADD CONSTRAINT deductions_base_check CHECK (base IN ('Subtotal', 'Total')),
-    ADD CONSTRAINT deductions_mode_check CHECK (mode IN ('Flat', 'Rate'));
-
-ALTER TABLE transactions
-    ADD CONSTRAINT transactions_money_amount_check CHECK (money_amount > 0);
-
-ALTER TABLE accounts
-    ADD CONSTRAINT accounts_type_check CHECK (type IN ('Checking', 'CreditCard', 'Saving', 'Business', 'Broking'));
-
-ALTER TABLE funds
-    ADD CONSTRAINT funds_type_check CHECK (type IN ('Emergency', 'Amortization', 'SinkingFund',
-                                                  'ProjectTarget', 'Opportunity', 'SavingsGeneral'));
-
-ALTER TABLE spending_periods
-    ADD CONSTRAINT spending_periods_state_check CHECK (state IN ('Draft', 'ToReview', 'InProgress', 'Complete'));
+DO $$
+BEGIN
+    PERFORM pg_temp.add_check('invoices', 'invoices_movement_check', $c$movement IN ('Credit', 'Debit')$c$);
+    PERFORM pg_temp.add_check('invoices', 'invoices_status_check',   $c$status IN ('Pending', 'Complete')$c$);
+    PERFORM pg_temp.add_check('invoices', 'invoices_type_check',     $c$type IN ('Income', 'FixedCost', 'VariableCost', 'Other')$c$);
+    PERFORM pg_temp.add_check('deductions', 'deductions_base_check', $c$base IN ('Subtotal', 'Total')$c$);
+    PERFORM pg_temp.add_check('deductions', 'deductions_mode_check', $c$mode IN ('Flat', 'Rate')$c$);
+    PERFORM pg_temp.add_check('transactions', 'transactions_money_amount_check', $c$money_amount > 0$c$);
+    PERFORM pg_temp.add_check('accounts', 'accounts_type_check',
+        $c$type IN ('Checking', 'CreditCard', 'Saving', 'Business', 'Broking')$c$);
+    PERFORM pg_temp.add_check('funds', 'funds_type_check',
+        $c$type IN ('Emergency', 'Amortization', 'SinkingFund', 'ProjectTarget', 'Opportunity', 'SavingsGeneral')$c$);
+    PERFORM pg_temp.add_check('spending_periods', 'spending_periods_state_check',
+        $c$state IN ('Draft', 'ToReview', 'InProgress', 'Complete')$c$);
+END $$;
 
 -- =====================================================================================
--- 5. Index manquants.
---    Les agregats (`GetBalancesByPeriod`, tableau de bord) filtrent par compte puis
---    parcourent les dates ; les lignes de facture sont toujours lues via leur facture.
---    Aucun index n'existait sur `date`, et `invoices_account_id_index` est Nowredundant
---    avec le composite `(account_id, date DESC)`.
+-- 5. Index manquants & nettoyage (tous gardes).
 -- =====================================================================================
+DO $$
+BEGIN
+    IF pg_temp.has_table('invoices') THEN
 CREATE INDEX IF NOT EXISTS invoices_account_id_date_index ON invoices (account_id, date DESC);
 DROP INDEX IF EXISTS invoices_account_id_index;
+END IF;
 
+    IF pg_temp.has_table('transactions') AND pg_temp.has_col('transactions', 'category_id') THEN
 CREATE INDEX IF NOT EXISTS transactions_category_id_index ON transactions (category_id);
+END IF;
+
+    IF pg_temp.has_table('internal_loans') AND pg_temp.has_col('internal_loans', 'invoice_id') THEN
 CREATE INDEX IF NOT EXISTS internal_loans_invoice_id_index ON internal_loans (invoice_id);
+END IF;
+
+    IF pg_temp.has_table('spending_periods') AND pg_temp.has_col('spending_periods', 'spending_period_template_id') THEN
 CREATE INDEX IF NOT EXISTS spending_periods_spending_period_template_id_index
     ON spending_periods (spending_period_template_id);
+END IF;
 
--- Renommage heritage de V7 (la table s'appelait alors `save_goals`).
-ALTER INDEX save_goals_pkey RENAME TO funds_pkey;
+    -- Renommage herite de V7
+    PERFORM pg_temp.rename_idx('funds', 'save_goals_pkey', 'funds_pkey');
+
+    IF pg_temp.has_table('funds') AND pg_temp.has_col('funds', 'account_id') THEN
 CREATE INDEX IF NOT EXISTS funds_account_id_index ON funds (account_id);
+END IF;
+    IF pg_temp.has_table('holdings') AND pg_temp.has_col('holdings', 'account_id') THEN
 CREATE INDEX IF NOT EXISTS holdings_account_id_index ON holdings (account_id);
+END IF;
+    IF pg_temp.has_table('income_sources') AND pg_temp.has_col('income_sources', 'linked_account_id') THEN
 CREATE INDEX IF NOT EXISTS income_sources_linked_account_id_index ON income_sources (linked_account_id);
+END IF;
+    IF pg_temp.has_table('provisions') AND pg_temp.has_col('provisions', 'fund_amortization_id') THEN
 CREATE INDEX IF NOT EXISTS provisions_fund_amortization_id_index ON provisions (fund_amortization_id);
+END IF;
+END $$;
