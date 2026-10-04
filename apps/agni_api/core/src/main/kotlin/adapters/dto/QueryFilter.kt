@@ -1,0 +1,14 @@
+package adapters.dto
+
+data class QueryFilter(
+    val offset: Int = 0,
+    val limit: Int = 15,
+    val queryAll: Boolean = false,
+    val sortBy: QuerySortBy = QuerySortBy("", false)
+) {
+    companion object {
+        fun queryAll(): QueryFilter {
+            return QueryFilter(offset = 0, limit = 15, queryAll = true)
+        }
+    }
+}

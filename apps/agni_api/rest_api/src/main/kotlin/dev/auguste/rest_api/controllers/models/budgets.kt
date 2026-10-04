@@ -1,0 +1,71 @@
+package dev.auguste.rest_api.controllers.models
+
+import adapters.dto.ScheduleRepeaterInput
+import domain.enums.PeriodType
+import usecases.budgets.dto.BudgetScheduleInput
+import usecases.budgets.dto.CreateBudgetInput
+import usecases.budgets.dto.UpdateBudgetInput
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
+import java.time.LocalDateTime
+import java.util.UUID
+
+data class ApiBudgeScheduleInput(
+    @field:NotBlank("Date must be set")
+    val dueDate: LocalDateTime,
+    val repeater: ApiScheduleRepeaterModel?
+)
+
+data class ApiCreateBudgetModel(
+    @field:NotEmpty("Name must not be empty")
+    val title: String,
+
+    @field:Min(value = 0, message = "The Budget target cannot be more than 0")
+    val target: Double,
+    val schedule: ApiBudgeScheduleInput
+)
+
+data class ApiUpdateBudgetModel(
+    val title: String?,
+
+    @field:Min(value = 0, message = "The Budget target cannot be more than 0")
+    val target: Double?,
+
+    val schedule: ApiBudgeScheduleInput?
+)
+
+fun mapApiCreateBudgetModel(model: ApiCreateBudgetModel): CreateBudgetInput {
+    return CreateBudgetInput(
+        title = model.title,
+        target = model.target,
+        schedule = BudgetScheduleInput(
+            dueDate = model.schedule.dueDate,
+            repeater = model.schedule.repeater?.let {
+                ScheduleRepeaterInput(
+                    PeriodType.fromString(it.period),
+                    it.interval,
+                )
+            }
+        )
+    )
+}
+
+fun mapApiUpdateBudgetModel(id: UUID, model: ApiUpdateBudgetModel): UpdateBudgetInput {
+    return UpdateBudgetInput(
+        id = id,
+        title = model.title,
+        target = model.target,
+        schedule = model.schedule?.let {
+            BudgetScheduleInput(
+                dueDate = it.dueDate,
+                repeater = it.repeater?.let { repeater ->
+                    ScheduleRepeaterInput(
+                        PeriodType.fromString(repeater.period),
+                        repeater.interval,
+                    )
+                }
+            )
+        }
+    )
+}

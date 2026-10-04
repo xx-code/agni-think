@@ -112,6 +112,7 @@ watch(filter, () => {
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <UiBannerAccountant 
                 title="Provisions actives"
+                :is-money="false"
                 :amount="provisionSummary?.activesProvision ?? 0"
                 :icon="{ name: 'i-lucide-shield-check', backgroundColor: 'rgba(168, 85, 247, 0.1)', fontColor: '#a855f7' }"
             />

@@ -1,6 +1,6 @@
 import type { CalendarDate } from "@internationalized/date"
 import type { AccountType } from "../constants/account"
-import type { GetAccountResponse, GetAccountWithDetailResponse, GetCreditCardDetailResponse, GetCheckingDetailResponse } from "../api/account"
+import type { GetAccountResponse, GetAccountWithDetailResponse, GetCreditCardDetailResponse, GetCheckingDetailResponse, GetTotalBalanceAmountResponse } from "../api/account"
 
 export type EditAccount = {
     title: string
@@ -39,6 +39,8 @@ export type AccountCreditDetailType = Omit<GetCreditCardDetailResponse, 'nextInv
 export type AccountBrokeDetailType = GetBrokingDetailResponse
 
 export type AccountCheckingDetailType = GetCheckingDetailResponse
+
+export interface AccountTotalBalance extends GetTotalBalanceAmountResponse {}
 
 export type AccountCard = {
     id: string

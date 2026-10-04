@@ -1,0 +1,180 @@
+package dev.auguste.rest_api.controllers
+
+import adapters.dto.QueryFilter
+import dev.auguste.rest_api.controllers.models.ApiCreateFreezeInvoiceModel
+import dev.auguste.rest_api.controllers.models.ApiCreateInvoiceModel
+import dev.auguste.rest_api.controllers.models.ApiQueryBalanceByPeriod
+import dev.auguste.rest_api.controllers.models.ApiQueryInvoice
+import dev.auguste.rest_api.controllers.models.ApiTransferInvoiceModel
+import dev.auguste.rest_api.controllers.models.ApiUpdateInvoiceModel
+import dev.auguste.rest_api.controllers.models.mapApiCreateFreezeInvoice
+import dev.auguste.rest_api.controllers.models.mapApiCreateInvoice
+import dev.auguste.rest_api.controllers.models.mapApiTransfer
+import dev.auguste.rest_api.controllers.models.mapApiUpdateInvoice
+import domain.enums.InvoiceMovementType
+import domain.enums.InvoiceStatusType
+import domain.enums.InvoiceType
+import domain.enums.PeriodType
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
+import usecases.interfaces.IUseCase
+import usecases.invoices.dto.CompleteInvoiceInput
+import usecases.invoices.dto.CreateFreezeInvoiceInput
+import usecases.invoices.dto.CreateInvoiceInput
+import usecases.invoices.dto.DeleteInvoiceInput
+import usecases.invoices.dto.GetAllInvoiceInput
+import usecases.invoices.dto.GetBalanceByPeriodOutput
+import usecases.invoices.dto.GetBalanceInput
+import usecases.invoices.dto.GetBalanceOutput
+import usecases.invoices.dto.GetBalancesByPeriodInput
+import usecases.invoices.dto.GetInvoiceOutput
+import usecases.invoices.dto.TransferInvoiceInput
+import usecases.invoices.dto.UpdateInvoiceInput
+import jakarta.validation.Valid
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
+
+@RestController
+@RequestMapping("/v2/invoices")
+class InvoiceController(
+    private val createInvoiceUseCase: IUseCase<CreateInvoiceInput, CreatedOutput>,
+    private val getInvoiceUseCase: IUseCase<UUID, GetInvoiceOutput>,
+    private val getAllInvoiceUseCase: IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>>,
+    private val updateInvoiceUseCase: IUseCase<UpdateInvoiceInput, Unit>,
+    private val deleteInvoiceUseCase: IUseCase<DeleteInvoiceInput, Unit>,
+    private val transferInvoiceUseCase: IUseCase<TransferInvoiceInput, Unit>,
+    private val getBalanceUseCase: IUseCase<GetBalanceInput, GetBalanceOutput>,
+    private val getBalanceByPeriodUseCase: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
+    private val createFreezeInvoiceUseCase: IUseCase<CreateFreezeInvoiceInput, CreatedOutput>,
+    private val completeInvoiceUseCase: IUseCase<CompleteInvoiceInput, Unit>,
+    @Qualifier("cancelTransferInvoice")
+    private val cancelTransfer: IUseCase<UUID, Unit>
+) {
+
+    @PostMapping
+    suspend fun createInvoice(@Valid @RequestBody request: ApiCreateInvoiceModel) : ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createInvoiceUseCase.execute(
+            mapApiCreateInvoice(request)
+        ).getOrThrow())
+    }
+
+    @PutMapping("/{id}")
+    suspend fun updateInvoice(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateInvoiceModel) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateInvoiceUseCase.execute(
+            mapApiUpdateInvoice(id, request)
+        ).getOrThrow())
+    }
+
+    @DeleteMapping("/{id}")
+    suspend fun deleteInvoice(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteInvoiceUseCase.execute(
+            DeleteInvoiceInput(id)
+        ).getOrThrow())
+    }
+
+    @GetMapping("/{id}")
+    suspend fun getInvoice(@PathVariable id: UUID) : ResponseEntity<GetInvoiceOutput> {
+        return ResponseEntity.ok(getInvoiceUseCase.execute(
+            id
+        ).getOrThrow())
+    }
+
+    @GetMapping
+    suspend fun getAllInvoices(@ModelAttribute query: QueryFilter, @ModelAttribute extend: ApiQueryInvoice) : ResponseEntity<ListOutput<GetInvoiceOutput>> {
+        return ResponseEntity.ok(getAllInvoiceUseCase.execute(
+            GetAllInvoiceInput(
+                query,
+                accountIds = extend.accountIds,
+                startDate = extend.startDate,
+                endDate = extend.endDate,
+                status = extend.status?.let { InvoiceStatusType.fromString(extend.status) }  ,
+                types = extend.types?.let {  extend.types.map { InvoiceType.fromString(it) }.toSet() },
+                isFreeze = extend.isFreeze,
+                movementType = extend.mouvement?.let { InvoiceMovementType.fromString(extend.mouvement) },
+                categoryIds = extend.categoryIds,
+                tagIds = extend.tagIds,
+                budgetIds = extend.budgetIds,
+                minAmount = extend.minAmount,
+                maxAmount = extend.maxAmount
+            )
+        ).getOrThrow())
+    }
+
+    @PutMapping("/{id}/completed")
+    suspend fun completeInvoice(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(completeInvoiceUseCase.execute(
+            CompleteInvoiceInput(id)
+        ).getOrThrow())
+    }
+
+    @GetMapping("/balances")
+    suspend fun getBalance(query: ApiQueryInvoice) : ResponseEntity<GetBalanceOutput> {
+        return ResponseEntity.ok(getBalanceUseCase.execute(
+            GetBalanceInput(
+                startDate = query.startDate,
+                endDate = query.endDate,
+                accountIds = query.accountIds,
+                status = query.status?.let { InvoiceStatusType.fromString(query.status) }  ,
+                types = query.types?.let {  query.types.map { InvoiceType.fromString(it) }.toSet() },
+                isFreeze = query.isFreeze,
+                movement = query.mouvement?.let { InvoiceMovementType.fromString(query.mouvement) },
+                categoryIds = query.categoryIds,
+                tagIds = query.tagIds,
+                budgetIds = query.budgetIds,
+                minAmount = query.minAmount,
+                maxAmount = query.maxAmount
+            )
+        ).getOrThrow())
+    }
+
+    @GetMapping("/balances-by-period")
+    suspend fun getBalancesByPeriod(query: ApiQueryBalanceByPeriod) : ResponseEntity<List<GetBalanceByPeriodOutput>> {
+        return ResponseEntity.ok(getBalanceByPeriodUseCase.execute(
+            GetBalancesByPeriodInput(
+                period = PeriodType.fromString(query.period),
+                interval = query.interval,
+                dateFrom = query.dateFrom,
+                dateTo = query.dateTo,
+                accountIds = query.accountIds,
+                status = query.status?.let { InvoiceStatusType.fromString(query.status) }  ,
+                types = query.types?.let {  query.types.map { InvoiceType.fromString(it) }.toSet() },
+                isFreeze = query.isFreeze,
+                mouvement = query.mouvement?.let { InvoiceMovementType.fromString(query.mouvement) },
+                categoryIds = query.categoryIds,
+                tagIds = query.tagIds,
+                budgetIds = query.budgetIds,
+                minAmount = query.minAmount,
+                maxAmount = query.maxAmount
+            )
+        ).getOrThrow())
+    }
+
+    @PostMapping("create-freeze")
+    suspend fun createFreezeInvoice(@Valid @RequestBody request: ApiCreateFreezeInvoiceModel) : ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createFreezeInvoiceUseCase.execute(
+            mapApiCreateFreezeInvoice(request)
+        ).getOrThrow())
+    }
+
+    @PostMapping("transfer")
+    suspend fun transferInvoice(@Valid @RequestBody request: ApiTransferInvoiceModel) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(transferInvoiceUseCase.execute(
+            mapApiTransfer(request)
+        ).getOrThrow())
+    }
+
+    @DeleteMapping("transfer/{id}")
+    suspend fun cancelTransfer(@PathVariable id: UUID) : ResponseEntity<Unit> {
+        return ResponseEntity.ok(cancelTransfer.execute(id).getOrThrow())
+    }
+}

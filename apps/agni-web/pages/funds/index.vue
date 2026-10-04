@@ -32,7 +32,6 @@ const filterGoal = reactive<GoalQueryFilterRequest>({
     offset: 0,
     limit: 3,
     queryAll: false,
-    type: 'Fund'
 })
 const funds = ref<Fund[]>([])
 const totalFund = ref(0)
@@ -48,7 +47,10 @@ const { data: accounts } = useAsyncData('funds+accounts', async () => {
 
 const { data: summary } = useAsyncData('page-fund-summary', async () => {
     loadingSummary.value = true
-    const res = await ApiLinkBuilder.route<GetFundTotalSummary>(API_ROUTES.ANALYTICS.FUND_TOTAL_SUMMARY).execute()
+    const res = await ApiLinkBuilder
+        .route<GetFundTotalSummary>(API_ROUTES.ANALYTICS.FUND_TOTAL_SUMMARY)
+        .query({ type: filter.type })
+        .execute()
     loadingSummary.value = false
 
     return {
@@ -57,7 +59,7 @@ const { data: summary } = useAsyncData('page-fund-summary', async () => {
         remain: res.totalTarget - res.totalBalance
     }
 }, {
-    watch: [funds]
+    watch: [funds, filter]
 })
 
 

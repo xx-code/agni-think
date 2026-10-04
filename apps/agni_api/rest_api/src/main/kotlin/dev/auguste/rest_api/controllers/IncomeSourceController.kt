@@ -1,0 +1,68 @@
+package dev.auguste.rest_api.controllers
+
+import adapters.dto.QueryFilter
+import dev.auguste.rest_api.controllers.models.ApiCreateIncomeSourceModel
+import dev.auguste.rest_api.controllers.models.ApiUpdateIncomeSourceModel
+import dev.auguste.rest_api.controllers.models.mapApiCreateIncomeSourceTo
+import dev.auguste.rest_api.controllers.models.mapApiUpdateIncomeSourceTo
+import usecases.dto.CreatedOutput
+import usecases.dto.ListOutput
+import usecases.income_sources.dto.CreateIncomeSourceInput
+import usecases.income_sources.dto.DeleteIncomeSourceInput
+import usecases.income_sources.dto.GetIncomeSourceOutput
+import usecases.income_sources.dto.UpdateIncomeSourceInput
+import usecases.interfaces.IUseCase
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
+
+@RestController
+@RequestMapping("/v2/income-sources")
+class IncomeSourceController(
+    private val createIncomeSource: IUseCase<CreateIncomeSourceInput, CreatedOutput>,
+    private val updateIncomeSource: IUseCase<UpdateIncomeSourceInput, Unit>,
+    private val deleteIncomeSource: IUseCase<DeleteIncomeSourceInput, Unit>,
+    private val getIncomeSource: IUseCase<UUID, GetIncomeSourceOutput>,
+    private val getAllIncomeSource: IUseCase<QueryFilter, ListOutput<GetIncomeSourceOutput>>
+) {
+
+    @PostMapping
+    suspend fun createIncomeSource(@RequestBody request: ApiCreateIncomeSourceModel): ResponseEntity<CreatedOutput> {
+        return ResponseEntity.ok(createIncomeSource.execute(
+            mapApiCreateIncomeSourceTo(request)
+        ).getOrThrow())
+    }
+
+    @PutMapping("/{id}")
+    suspend fun updateIncomeSource(@PathVariable id: UUID, @RequestBody request: ApiUpdateIncomeSourceModel): ResponseEntity<Unit> {
+        return ResponseEntity.ok(updateIncomeSource.execute(
+            mapApiUpdateIncomeSourceTo(id, request)
+        ).getOrThrow())
+    }
+
+    @DeleteMapping("/{id}")
+    suspend fun deleteIncomeSource(@PathVariable id: UUID): ResponseEntity<Unit> {
+        return ResponseEntity.ok(deleteIncomeSource.execute(
+            DeleteIncomeSourceInput(id)
+        ).getOrThrow())
+    }
+
+    @GetMapping("/{id}")
+    suspend fun getIncomeSource(@PathVariable id: UUID): ResponseEntity<GetIncomeSourceOutput> {
+        return ResponseEntity.ok(getIncomeSource.execute(
+            id
+        ).getOrThrow())
+    }
+
+    @GetMapping
+    suspend fun getAllIncomeSource(query: QueryFilter): ResponseEntity<ListOutput<GetIncomeSourceOutput>> {
+        return ResponseEntity.ok(getAllIncomeSource.execute(query).getOrThrow())
+    }
+}

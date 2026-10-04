@@ -10,7 +10,10 @@ const props = defineProps<{
 }>()
 
 const bufferStyle = computed(() => {
-    switch (props.indicatorBalanceBuffer?.level) {
+    const levels = [props.indicatorBalanceBuffer?.level, props.indicatorBalanceBuffer?.estimateLevel]
+    const level = levels.includes('error') ? 'error' : levels.includes('warning') ? 'warning' : 'success'
+
+    switch (level) {
         case 'warning':
             return {
                 text: 'text-orange-500',
@@ -40,7 +43,7 @@ const bufferStyle = computed(() => {
 
 const isBufferAlert = computed(() => {
     const indicator = props.indicatorBalanceBuffer
-    return indicator != undefined && indicator.isUnderBuffer
+    return indicator != undefined && (indicator.isUnderBuffer || indicator.estimateLevel !== 'success')
 })
 
 const bufferDifference = computed(() => {
@@ -55,20 +58,31 @@ const bufferDifference = computed(() => {
             <div class="flex items-center gap-1.5">
                 <h6 class="text-gray-500 font-bold text-sm">Balance totale</h6>
 
-                <UPopover v-if="isBufferAlert" :content="{ side: 'bottom' }">
+                <UPopover v-if="indicatorBalanceBuffer" :content="{ side: 'bottom' }">
                     <UIcon :name="bufferStyle.icon" class="w-4 h-4 cursor-help" :class="bufferStyle.text" />
                     <template #content>
                         <div class="max-w-64 space-y-1.5 bg-white text-gray-700 text-xs p-2.5 rounded-lg">
-                            <p class="font-bold" :class="bufferStyle.title">{{ bufferStyle.label }}</p>
-                            <p>{{ indicatorBalanceBuffer?.description }}</p>
+                            <p class="font-bold" :class="bufferStyle.title">{{ isBufferAlert ? 'Buffer à surveiller' : bufferStyle.label }}</p>
+                            <p>{{ indicatorBalanceBuffer.description }}</p>
                             <p>
-                                <span class="font-semibold">Balance {{ formatCurrency(totalBalance) }}</span>
-                                <span class="opacity-70"> · Buffer {{ formatCurrency(indicatorBalanceBuffer?.buffer ?? 0) }}</span>
+                                <span class="font-semibold">Solde actuel {{ formatCurrency(totalBalance) }}</span>
+                                <span class="opacity-70"> · Buffer {{ formatCurrency(indicatorBalanceBuffer.buffer) }}</span>
                             </p>
                             <p class="font-semibold">{{ bufferDifference }}</p>
                             <UProgress
-                                :model-value="indicatorBalanceBuffer?.coverage ?? 0"
-                                :ui="{ indicator: bufferStyle.progress }"
+                                :model-value="indicatorBalanceBuffer.coverage"
+                                :ui="{ indicator: indicatorBalanceBuffer.level === 'success' ? 'bg-green-500' : indicatorBalanceBuffer.level === 'warning' ? 'bg-orange-500' : 'bg-red-500' }"
+                                size="xs"
+                            />
+                            <p class="font-semibold" :class="indicatorBalanceBuffer.estimateLevel === 'success' ? 'text-green-600' : indicatorBalanceBuffer.estimateLevel === 'warning' ? 'text-orange-600' : 'text-red-600'">
+                                Solde estimé {{ formatCurrency(indicatorBalanceBuffer.projectedBuffer) }}
+                            </p>
+                            <p>
+                                Marge estimée {{ `${indicatorBalanceBuffer.projectedBufferByBalance >= 0 ? '+' : ''}${formatCurrency(indicatorBalanceBuffer.projectedBufferByBalance)}` }}
+                            </p>
+                            <UProgress
+                                :model-value="indicatorBalanceBuffer.estimateCoverage"
+                                :ui="{ indicator: indicatorBalanceBuffer.estimateLevel === 'success' ? 'bg-green-500' : indicatorBalanceBuffer.estimateLevel === 'warning' ? 'bg-orange-500' : 'bg-red-500' }"
                                 size="xs"
                             />
                         </div>
