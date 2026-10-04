@@ -38,4 +38,5 @@ export type UpdateBudgetRequest = {
 
 export type BudgetQueryFilterRequest = QueryFilterRequest & {
     periodTypes?: string[]
+    loadBalance?: boolean
 }

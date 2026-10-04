@@ -223,8 +223,10 @@ const openTransactionViews = async (accountId: string) => {
         const instance = slideOverQuickInvoices.open({
             accountId: accountId,
             onClose: (refresh) => {
-                if (refresh)
+                if (refresh) {
                     refreshAccounts()
+                    refresTotalBalance()
+                } 
             } 
         })
         await instance.result

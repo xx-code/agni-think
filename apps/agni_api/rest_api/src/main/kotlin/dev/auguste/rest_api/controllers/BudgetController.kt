@@ -66,12 +66,13 @@ class BudgetController(
     }
 
     @GetMapping
-    suspend fun getAllBudgets(query: QueryFilter, @RequestParam periodTypes: List<String>?): ResponseEntity<ListOutput<GetBudgetOutput>> {
+    suspend fun getAllBudgets(query: QueryFilter, @RequestParam periodTypes: List<String>?, loadBalance: Boolean = true): ResponseEntity<ListOutput<GetBudgetOutput>> {
 
         return ResponseEntity.ok(
             getAllBudgets.execute(GetAllBudgetInput(
                 query,
-                periodTypes?.map { period -> PeriodType.fromString(period)}?.toSet()
+                periodTypes?.map { period -> PeriodType.fromString(period)}?.toSet(),
+                loadBalance
             )).getOrThrow()
         )
     }

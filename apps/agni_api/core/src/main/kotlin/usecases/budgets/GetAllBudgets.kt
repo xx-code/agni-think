@@ -39,6 +39,23 @@ class GetAllBudgets(
 
         val result = mutableListOf<GetBudgetOutput>()
         for (budget in budgets.items) {
+            if (!input.loadBalance)
+                result.add(
+                    GetBudgetOutput(
+                        id = budget.id,
+                        title = budget.title,
+                        target = budget.target,
+                        currentBalance = 0.0,
+                        dueDate = budget.scheduler.date,
+                        repeater = budget.scheduler.repeater?.let {
+                            ScheduleRepeaterOutput(
+                                it.period.value,
+                                it.interval,
+                            )
+                        }
+                    )
+                )
+
             val startDate = budget.scheduler.downgradeDate()
             val endDate = budget.scheduler.upgradeDate()
 
