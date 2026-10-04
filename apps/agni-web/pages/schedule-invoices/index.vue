@@ -184,6 +184,7 @@ useInfiniteScroll(
             <UiBannerAccountant 
                 title="Total Planifié"
                 :amount="utils?.scheduleInvoiceSummary.totalPlan ?? 0"
+                :is-money="false"
                 :icon="{ name: 'i-lucide-calendar-clock', backgroundColor: 'rgba(59, 130, 246, 0.1)', fontColor: '#3b82f6' }"
             />
 
@@ -196,12 +197,14 @@ useInfiniteScroll(
             <UiBannerAccountant 
                 title="Actives"
                 :amount="utils?.scheduleInvoiceSummary.totalActives ?? 0"
+                :is-money="false"
                 :icon="{ name: 'i-lucide-play-circle', backgroundColor: 'rgba(16, 185, 129, 0.1)', fontColor: '#10b981' }"
             />
 
             <UiBannerAccountant 
                 title="En Pause"
                 :amount="utils?.scheduleInvoiceSummary.totalPause ?? 0 "
+                :is-money="false"
                 :icon="{ name: 'i-lucide-pause-circle', backgroundColor: 'rgb(255, 115, 4, 0.1)', fontColor: '#ff7304' }"
             />
         </div>

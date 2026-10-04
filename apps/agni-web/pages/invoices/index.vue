@@ -190,7 +190,7 @@ const onCancelTransfer = async (id: string) => {
                         const targetId = i.sourceId || i.sourecId || i.id
                         return data.value.findIndex(d => d.id === targetId)
                     })
-                    .filter(i => i >= 0)
+                    .filter((i:any) => i >= 0)
 
                 for (const innerIndex of indexesToRemove)
                     removeData(innerIndex)
@@ -285,21 +285,7 @@ useInfiniteScroll(
             @freeze=""
             @filter="(filter) => { 
                 emptyData()
-                Object.assign(query, {
-                    ...query, 
-                    offset: 0,
-                    accountIds: filter.accountIds,
-                    tagIds: filter.tagIds,
-                    budgetIds: filter.budgetIds,
-                    categoryIds: filter.categoryIds,
-                    endDate: filter.endDate,
-                    startDate: filter.startDate,
-                    maxAmount: filter.maxAmount,
-                    minAmount: filter.minAmount,
-                    mouvement: filter.mouvement,
-                    status: filter.status,
-                    types: filter.types 
-                })
+                Object.assign(query, filter, { offset: 0 })
             }"
             @scan-invoice="openScanTransaction = true"
             @sync-bank="syncBank()"
