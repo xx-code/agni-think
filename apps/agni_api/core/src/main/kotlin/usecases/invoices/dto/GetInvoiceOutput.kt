@@ -1,0 +1,28 @@
+package usecases.invoices.dto
+
+import usecases.invoices.transactions.dto.TransactionOutput
+import java.time.LocalDateTime
+import java.util.UUID
+
+data class InvoiceDeductionOutput(
+    val id: UUID,
+    val amount: Double
+)
+data class InvoiceModuleLinkerOutput(
+    val sourceId: UUID,
+    val module: String
+)
+data class GetInvoiceOutput(
+    val id: UUID,
+    val accountId: UUID,
+    val status: String,
+    val subTotal: Double,
+    val total: Double,
+    val isFreeze: Boolean,
+    val type: String,
+    val mouvement: String,
+    val date: LocalDateTime,
+    val transactions: List<TransactionOutput>,
+    val deductions: List<InvoiceDeductionOutput>,
+    val moduleLinkers: List<InvoiceModuleLinkerOutput>
+)

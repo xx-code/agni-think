@@ -1,0 +1,102 @@
+package persistences.jbdc_model
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import domain.entities.Account
+import domain.entities.Color
+import domain.enums.AccountType
+import domain.interfaces.IAccountDetail
+import domain.value_objects.BrokingAccountDetail
+import domain.value_objects.BusinessAccountDetail
+import domain.value_objects.CheckingAccountDetail
+import domain.value_objects.CreditCardAccountDetail
+import domain.value_objects.SavingAccountDetail
+import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Column
+import org.springframework.data.relational.core.mapping.Table
+import org.springframework.stereotype.Component
+import persistences.IMapper
+import java.util.UUID
+
+@Table("accounts")
+data class JbdcAccountModel(
+    @Id
+    @get:JvmName("getIdentifier")
+    val accountId: UUID,
+    val title: String,
+    val balance: Double,
+    val type: String,
+    @Column("currency_id")
+    val currencyId: UUID?,
+    val detail: String?,
+    val color: String
+) : JdbcModel() {
+    override fun getId(): UUID {
+        return accountId
+    }
+}
+
+@Component
+class JdbcAccountModelMapper(
+    private val objectMapper: ObjectMapper
+): IMapper<JbdcAccountModel, Account> {
+    override fun toDomain(model: JbdcAccountModel): Account {
+        var detail: IAccountDetail = CheckingAccountDetail(0.0)
+
+        if (model.detail != null) {
+            val detailMap = model.detail.let {
+                objectMapper.readValue<Map<String, Any>?>(it)
+            } ?: emptyMap()
+
+
+            detail = when(AccountType.fromString(model.type)) {
+                AccountType.SAVING -> SavingAccountDetail.fromMap(detailMap)
+                AccountType.CREDIT_CARD-> CreditCardAccountDetail.fromMap(detailMap)
+                AccountType.CHECKING -> CheckingAccountDetail.fromMap(detailMap)
+                AccountType.BROKING-> BrokingAccountDetail.fromMap(detailMap)
+                AccountType.BUSINESS -> BusinessAccountDetail(0.0)
+            }
+        }
+
+        return Account(
+            id = model.id,
+            title = model.title,
+            balance = model.balance,
+            currencyId = model.currencyId,
+            detail = detail,
+            color = Color(model.color)
+        )
+    }
+
+    override fun toModel(entity: Account): JbdcAccountModel {
+        val detailJson = objectMapper.writeValueAsString(entity.detail.toMap())
+
+        return JbdcAccountModel(
+            accountId = entity.id,
+            title = entity.title,
+            type = entity.detail.getType().value,
+            balance = entity.balance,
+            currencyId = entity.currencyId,
+            detail = detailJson,
+            color = entity.color.toString()
+        )
+    }
+
+    override fun getEntityModelFieldName(): Map<String, String> = mapOf(
+        "id" to "account_id",
+        "title" to "title",
+        "type" to "type",
+        "balance" to "balance",
+        "currencyId" to "currency_id",
+        "detail" to "detail",
+        "color" to "color"
+    )
+
+    override fun getTableName(): String = "accounts"
+
+    override fun getSortField(): Set<String> {
+        return setOf("title", "balance")
+    }
+
+    override fun getModelClass(): Class<JbdcAccountModel> = JbdcAccountModel::class.java
+}

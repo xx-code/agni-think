@@ -5,8 +5,14 @@ WORKDIR /app
 # Copie les fichiers de build
 COPY apps/agni_api/gradlew ./
 COPY apps/agni_api/gradle ./gradle
-COPY apps/agni_api/build.gradle.kts ./
+COPY apps/agni_api/gradle.properties ./gradle.properties
 COPY apps/agni_api/settings.gradle.kts ./
+COPY apps/agni_api/build.gradle.kts ./
+
+# Project multi-module : build scripts de chaque module
+COPY apps/agni_api/core/build.gradle.kts ./core/build.gradle.kts
+COPY apps/agni_api/infra/build.gradle.kts ./infra/build.gradle.kts
+COPY apps/agni_api/rest_api/build.gradle.kts ./rest_api/build.gradle.kts
 
 # Donne les droits d'exécution au wrapper
 RUN chmod +x gradlew
@@ -14,10 +20,12 @@ RUN chmod +x gradlew
 # Pré-télécharge les dépendances (cache Docker)
 RUN ./gradlew dependencies --no-daemon
 
-# Copie le source
-COPY apps/agni_api/src ./src
+# Copie les sources de chaque module
+COPY apps/agni_api/core/src ./core/src
+COPY apps/agni_api/infra/src ./infra/src
+COPY apps/agni_api/rest_api/src ./rest_api/src
 
 EXPOSE 8080
 
-# Lance avec Spring DevTools activé et rechargement automatique
-CMD ["./gradlew", "bootRun", "--no-daemon", "-Dspring.devtools.restart.enabled=true"]
+# Lance le module applicatif avec Spring DevTools activé et rechargement automatique
+CMD ["./gradlew", ":rest_api:bootRun", "--no-daemon", "-Dspring.devtools.restart.enabled=true"]

@@ -1,0 +1,12 @@
+package usecases.categories.dto
+
+import java.util.UUID
+
+data class GetCategoryOutput(
+    val id: UUID,
+    val title: String,
+    val icon: String,
+    val color: String,
+    val isArchive: Boolean,
+    val isSystem: Boolean?
+)

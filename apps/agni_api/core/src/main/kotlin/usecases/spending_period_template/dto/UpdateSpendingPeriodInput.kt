@@ -1,0 +1,14 @@
+package usecases.spending_period_template.dto
+
+import adapters.dto.ScheduleRepeaterInput
+import java.time.LocalDate
+import java.util.UUID
+
+data class UpdateSpendingPeriodTemplateInput(
+    val id: UUID,
+    val startDate: LocalDate?,
+    val isActive: Boolean?,
+    val targetBudgetIds: Set<UUID>? = null,
+    val recurrence: ScheduleRepeaterInput? = null,
+    val endDate: LocalDate? = null
+)

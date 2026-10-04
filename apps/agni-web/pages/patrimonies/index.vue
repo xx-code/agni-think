@@ -152,7 +152,7 @@ async function deletePatrimony(patrimonyId: string) {
             :asset-labels="patrimonies?.assets.map(i => i.title) ?? []"
             :asset-amounts="patrimonies?.assets.map(i => i.currentBalance) ?? []"
             :liability-labels="patrimonies?.liabilities.map(i => i.title) ?? []"
-            :liability-amounts="patrimonies?.liabilities.map(i => i.amount) ?? []"
+            :liability-amounts="patrimonies?.liabilities.map(i => i.currentBalance) ?? []"
         />
 
         <div>

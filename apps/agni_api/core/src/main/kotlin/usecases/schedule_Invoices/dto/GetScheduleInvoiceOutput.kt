@@ -1,0 +1,24 @@
+package usecases.schedule_Invoices.dto
+
+import java.time.LocalDateTime
+import java.util.UUID
+
+data class ScheduleInvoiceRepeaterOutput(val periodType: String, val interval: Int)
+
+data class GetScheduleInvoiceOutput(
+    val id: UUID,
+    val name: String,
+    val accountId: UUID,
+    val categoryId: UUID,
+    val tagIds: Set<UUID>,
+    val type: String,
+    val amount: Double,
+    val isPause: Boolean,
+    val isFreeze: Boolean,
+    val dueDate: LocalDateTime,
+    val isEditable: Boolean,
+    val repeater: ScheduleInvoiceRepeaterOutput?,
+    val endDate: LocalDateTime?,
+    val freezeEndDate: LocalDateTime?,
+    val freezeRepeater: ScheduleInvoiceRepeaterOutput?
+)

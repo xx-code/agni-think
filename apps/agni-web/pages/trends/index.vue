@@ -121,7 +121,7 @@ const { data: utils } = useAsyncData('utils+all+dashboard', async () => {
   const query = { limit: 0, offset: 0, queryAll: true}
   const [categories, budgets, accounts, goals] = await Promise.all([
     ApiLinkBuilder.route<ListResponse<GetCategoryResponse>>(API_ROUTES.CATEGORIES.GET_CATEGORIES).query(query).mapper(listCategoriesResponseToListCategories).execute(),
-    ApiLinkBuilder.route(API_ROUTES.BUDGETS.GET_BUDGETS).query(budgetFilterToBudgetQueryRequest(query)).mapper(listBudgetsResponseToListBudgets).execute(),
+    ApiLinkBuilder.route(API_ROUTES.BUDGETS.GET_BUDGETS).query(budgetFilterToBudgetQueryRequest({...query, loadBalance: false})).mapper(listBudgetsResponseToListBudgets).execute(),
     ApiLinkBuilder.route<ListResponse<GetAccountResponse>>(API_ROUTES.ACCOUNTS.GET_ACCOUNTS).query({limit: 0, offset: 0, queryAll: true}).mapper(listAccountsToListAccount).execute(),
     (async () => {
       const res = await ApiLinkBuilder.route<ListResponse<GetFundResponse>>(API_ROUTES.FUNDS.GET_FUNDS).query(query as QueryFilterFundRequest).execute()

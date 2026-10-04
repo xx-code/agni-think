@@ -1,8 +1,8 @@
 import type { ListResponse } from "~/types/api";
-import type { GetAccountResponse, GetAccountWithDetailResponse } from "~/types/api/account";
+import type { GetAccountResponse, GetAccountWithDetailResponse, GetTotalBalanceAmountResponse } from "~/types/api/account";
 import type { AccountType } from "~/types/constants/account";
 import type { List } from "~/types/ui";
-import type { AccountCard, Account, AccountWithDetailType, QuickViewTransactionBalanceInfo, AccountCreditDetailType } from "~/types/ui/account";
+import type { AccountCard, Account, AccountWithDetailType, QuickViewTransactionBalanceInfo, AccountCreditDetailType, AccountTotalBalance } from "~/types/ui/account";
 
 export function accountWithDetailResponseToAccountWithDetail(data: GetAccountWithDetailResponse): AccountWithDetailType {
     return {
@@ -60,5 +60,9 @@ export function accountToAccountCard(data: Account, balanceHistory: number[]= []
 }
 
 export function accountWithDetailToQuickInvoiceViewBalanceInfo(data: AccountWithDetailType): QuickViewTransactionBalanceInfo {
+    return data
+}
+
+export function toAccountBalance(data: GetTotalBalanceAmountResponse): AccountTotalBalance {
     return data
 }

@@ -1,0 +1,22 @@
+package domain.enums
+
+import domain.exceptions.ValidationException
+
+enum class InvoiceModuleLinkerType(val value: String) {
+    FUND("Fund"),
+    SCHEDULE_INVOICE("ScheduleInvoice"),
+    PROVISION("Provision"),
+    INCOME_SOURCE("IncomeSource"),
+    TRANSFER("Transfer");
+
+    override fun toString(): String {
+        return value
+    }
+
+    companion object {
+        fun fromString(value: String): InvoiceModuleLinkerType {
+            return entries.find { it.value.equals(value, ignoreCase = true) }
+                ?: throw ValidationException.BadType("InvoiceModuleLinkerType", value)
+        }
+    }
+}

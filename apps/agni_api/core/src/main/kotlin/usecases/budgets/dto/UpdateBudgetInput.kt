@@ -1,0 +1,10 @@
+package usecases.budgets.dto
+
+import java.util.UUID
+
+data class UpdateBudgetInput(
+    val id: UUID,
+    val title: String?,
+    val target: Double?,
+    val schedule: BudgetScheduleInput?
+)

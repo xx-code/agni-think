@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { dashboardSidebarCollapse } from '#build/ui';
 import type { NavigationMenuItem } from '@nuxt/ui';
 
 const items: NavigationMenuItem[][] = [
@@ -96,11 +95,11 @@ const items: NavigationMenuItem[][] = [
                     to: '/provisions', 
                     icon: 'i-lucide-gpu' 
                 },
-                { 
-                    label: 'Pret personnel', 
-                    to: '/internal-loans', 
-                    icon: 'i-lucide-hand-coins' 
-                }
+                // { 
+                //     label: 'Pret personnel', 
+                //     to: '/internal-loans', 
+                //     icon: 'i-lucide-hand-coins' 
+                // }
             ]
         },
     ],
