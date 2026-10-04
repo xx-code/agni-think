@@ -31,5 +31,5 @@ rootProject.name = "agni_api"
 
 include(":core")
 include(":infra")
-include(":rest_api")
-include(":mcp")
+if (file("rest_api").exists()) include(":rest_api")
+if (file("mcp").exists()) include(":mcp")
