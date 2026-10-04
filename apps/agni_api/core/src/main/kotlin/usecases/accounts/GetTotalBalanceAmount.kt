@@ -90,7 +90,7 @@ class GetTotalBalanceAmount(
 
         return GetTotalBalanceAmountOutput(
             totalBalance = totalBalanceAmount,
-            totalAvailable = totalBalanceAmount - abs(freezeBalance + lockedBalance),
+            totalAvailable = totalBalanceAmount + abs(freezeBalance + lockedBalance),
             totalFreeze = freezeBalance,
             totalLock = lockedBalance,
             totalCreditUtilization = totalCreditUtilization,

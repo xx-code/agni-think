@@ -56,27 +56,82 @@ class QueryExtendBuilder<T>: IQueryExtendBuilder<T> {
         if (entityValue == null && value == null) return true
         if (entityValue == null || value == null) return false
 
-        if (entityValue is Comparable<*> && value is Comparable<*>) {
-            val a = entityValue as Comparable<Any>
-            val b = value as Comparable<Any>
-
-            return when (comparator) {
-                QueryComparator.Greater -> a > b
-                QueryComparator.GreaterOrEquals -> a >= b
-                QueryComparator.Lesser -> a < b
-                QueryComparator.LesserOrEquals -> a <= b
-                QueryComparator.Equal -> a == b
-                QueryComparator.NotEqual -> a != b
-                QueryComparator.In -> (value as? Collection<*>)?.contains(entityValue) == true
-                QueryComparator.NotIn -> (value as? Collection<*>)?.contains(entityValue) != true
-            }
+        // Convert entityValue to a Sequence or Collection if it's an Array/Collection
+        val entityAsIterable = when (entityValue) {
+            is Collection<*> -> entityValue
+            is Array<*> -> entityValue.toList()
+            is IntArray -> entityValue.toList()
+            is LongArray -> entityValue.toList()
+            else -> null
         }
 
-        // Fallback pour les égalités simples et collections
+        val valueAsCollection = when (value) {
+            is Collection<*> -> value
+            is Array<*> -> value.toList()
+            is IntArray -> value.toList()
+            is LongArray -> value.toList()
+            else -> null
+        }
+
         return when (comparator) {
-            QueryComparator.Equal -> entityValue == value
-            QueryComparator.In -> (value as? Collection<*>)?.contains(entityValue) == true
-            else -> false
+            QueryComparator.Equal -> {
+                when {
+                    // If entityValue is an arrayOfIds/collection, check if it contains `value`
+                    entityAsIterable != null -> value in entityAsIterable
+                    // Standard equality fallback
+                    else -> entityValue == value
+                }
+            }
+
+            QueryComparator.NotEqual -> {
+                when {
+                    entityAsIterable != null -> value !in entityAsIterable
+                    else -> entityValue != value
+                }
+            }
+
+            QueryComparator.In -> {
+                when {
+                    // Both entityValue and value are collections/arrays: check for intersection
+                    entityAsIterable != null && valueAsCollection != null -> {
+                        entityAsIterable.any { it in valueAsCollection }
+                    }
+                    // Only entityValue is a collection: check if any ID in entityValue equals value
+                    entityAsIterable != null -> entityAsIterable.contains(value)
+                    // Only value is a collection: standard IN check
+                    valueAsCollection != null -> valueAsCollection.contains(entityValue)
+                    else -> false
+                }
+            }
+
+            QueryComparator.NotIn -> {
+                when {
+                    entityAsIterable != null && valueAsCollection != null -> {
+                        entityAsIterable.none { it in valueAsCollection }
+                    }
+                    entityAsIterable != null -> !entityAsIterable.contains(value)
+                    valueAsCollection != null -> !valueAsCollection.contains(entityValue)
+                    else -> true
+                }
+            }
+
+            // Numerical / Comparable comparisons for single elements
+            QueryComparator.Greater,
+            QueryComparator.GreaterOrEquals,
+            QueryComparator.Lesser,
+            QueryComparator.LesserOrEquals -> {
+                if (entityValue is Comparable<*> && value is Comparable<*>) {
+                    val a = entityValue as Comparable<Any>
+                    val b = value as Comparable<Any>
+                    when (comparator) {
+                        QueryComparator.Greater -> a > b
+                        QueryComparator.GreaterOrEquals -> a >= b
+                        QueryComparator.Lesser -> a < b
+                        QueryComparator.LesserOrEquals -> a <= b
+                        else -> false
+                    }
+                } else false
+            }
         }
     }
 

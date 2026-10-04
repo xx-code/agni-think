@@ -39,7 +39,7 @@ class GetAllBudgets(
 
         val result = mutableListOf<GetBudgetOutput>()
         for (budget in budgets.items) {
-            if (!input.loadBalance)
+            if (!input.loadBalance) {
                 result.add(
                     GetBudgetOutput(
                         id = budget.id,
@@ -55,6 +55,9 @@ class GetAllBudgets(
                         }
                     )
                 )
+                continue
+            }
+
 
             val startDate = budget.scheduler.downgradeDate()
             val endDate = budget.scheduler.upgradeDate()
