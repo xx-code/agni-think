@@ -48,8 +48,8 @@ class CompleteInvoice(
 
         val balance = transactions.first().total
 
-        invoice.statusType = InvoiceStatusType.COMPLETED
-        if (invoice.movementType == InvoiceMovementType.CREDIT)
+        invoice.status = InvoiceStatusType.COMPLETED
+        if (invoice.movement == InvoiceMovementType.CREDIT)
             account.balance += balance
         else account.balance -= balance
 

@@ -44,11 +44,11 @@ class GetManyInvoices(
                     GetInvoiceOutput(
                         id = invoice.id,
                         accountId = invoice.accountId,
-                        status = invoice.statusType.value,
+                        status = invoice.status.value,
                         type = invoice.type.value,
                         subTotal = subtotal,
                         total = total,
-                        mouvement = invoice.movementType.value,
+                        mouvement = invoice.movement.value,
                         date = invoice.date,
                         isFreeze = invoice.isFreeze,
                         transactions = transactions,

@@ -13,7 +13,7 @@ class Invoice(
     id: UUID = UUID.randomUUID(),
     accountId: UUID,
     status: InvoiceStatusType,
-    movementType: InvoiceMovementType,
+    movement: InvoiceMovementType,
     type: InvoiceType,
     deductions: MutableSet<InvoiceDeduction> = mutableSetOf(),
     date: LocalDateTime = LocalDateTime.now(),
@@ -22,7 +22,7 @@ class Invoice(
     ): Entity(id = id) {
     var accountId: UUID by cleanObservable(accountId, this)
 
-    var statusType: InvoiceStatusType by cleanObservable(status, this)
+    var status: InvoiceStatusType by cleanObservable(status, this)
 
     var date by cleanObservable(date, this)
 
@@ -30,7 +30,7 @@ class Invoice(
 
     var type: InvoiceType by cleanObservable(type, this)
 
-    var movementType:InvoiceMovementType by cleanObservable(movementType, this)
+    var movement:InvoiceMovementType by cleanObservable(movement, this)
 
     var deductions by cleanObservable(deductions, this)
     

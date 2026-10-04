@@ -36,7 +36,7 @@ class GetAllInvoices(
             .addCondition("accountId", QueryComparator.In, input.accountIds)
             .addCondition("date", QueryComparator.GreaterOrEquals, input.startDate)
             .addCondition("date", QueryComparator.LesserOrEquals, input.endDate)
-            .addCondition("types", QueryComparator.In, input.types?.map { it.value }?.toSet())
+            .addCondition("type", QueryComparator.In, input.types?.map { it.value }?.toSet())
             .addCondition("isFreeze", QueryComparator.Equal, input.isFreeze)
             .addCondition("status", QueryComparator.Equal, input.status?.value)
             .addCondition("movementType", QueryComparator.Equal, input.movementType)
@@ -78,10 +78,10 @@ class GetAllInvoices(
                     GetInvoiceOutput(
                         id = invoice.id,
                         accountId = invoice.accountId,
-                        status = invoice.statusType.value,
+                        status = invoice.status.value,
                         subTotal = invoiceTransactions.subTotal,
                         total = invoiceTransactions.total,
-                        mouvement = invoice.movementType.value,
+                        mouvement = invoice.movement.value,
                         date = invoice.date,
                         isFreeze = invoice.isFreeze,
                         type = invoice.type.value,
@@ -113,10 +113,10 @@ class GetAllInvoices(
                     GetInvoiceOutput(
                         id = invoice.id,
                         accountId = invoice.accountId,
-                        status = invoice.statusType.value,
+                        status = invoice.status.value,
                         subTotal = invoiceTransactions.subTotal,
                         total = invoiceTransactions.total,
-                        mouvement = invoice.movementType.value,
+                        mouvement = invoice.movement.value,
                         date = invoice.date,
                         isFreeze = invoice.isFreeze,
                         type = invoice.type.value,
