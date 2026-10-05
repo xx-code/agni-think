@@ -67,7 +67,7 @@ export type QueryPatrimonyEvolution = {
 }
 
 // CATEGORY
-type GetSpendCategoryResponse = {
+export type GetSpendCategoryResponse = {
     categoryId: string
     title: string
     color: string
@@ -140,11 +140,11 @@ type GetSpendTagResponse = {
 }
 
 // annual outlook
-type GetSpendByCategoryOutlook = {
+export type GetSpendByCategoryOutlook = {
     categoryId: string
     spend: number
 }
-type GetAnnualOutlookResponse = {
+export type GetAnnualOutlookResponse = {
     incomeOutlook: number,
     spendOutlook: number,
     budgetOutlook: number,
@@ -158,14 +158,14 @@ type GetAnnualOutlookResponse = {
 }
 
 // budgeting rule
-type GetBudgetingRuleRequest = {
+// Analytics endpoints only read startDate + period + interval, endDate is not supported
+export type GetBudgetingRuleRequest = {
     period?: string // Year, Month, Week, Day
-    interval?: number = 0
+    interval?: number
     startDate?: string
-    endDate?: string
 }
 
-type GetBudgetingRuleResponse = {
+export type GetBudgetingRuleResponse = {
     ratioSaving: number
     ratioFixCost: number
     ratioVariableCost: number

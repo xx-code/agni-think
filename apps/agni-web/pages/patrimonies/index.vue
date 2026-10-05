@@ -150,9 +150,9 @@ async function deletePatrimony(patrimonyId: string) {
             :net-worth-dates="patrimonyEvolutions?.networthByPeriod.map(i => i.date) ?? []"
             :net-worth-evolutions="patrimonyEvolutions?.networthByPeriod.map(i => i.networth) ?? []"
             :asset-labels="patrimonies?.assets.map(i => i.title) ?? []"
-            :asset-amounts="patrimonies?.assets.map(i => i.currentBalance) ?? []"
+            :asset-amounts="patrimonies?.assets.map(i => Math.abs(i.currentBalance)) ?? []"
             :liability-labels="patrimonies?.liabilities.map(i => i.title) ?? []"
-            :liability-amounts="patrimonies?.liabilities.map(i => i.currentBalance) ?? []"
+            :liability-amounts="patrimonies?.liabilities.map(i => Math.abs(i.currentBalance)) ?? []"
         />
 
         <div>

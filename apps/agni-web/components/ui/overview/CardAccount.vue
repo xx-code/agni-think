@@ -110,7 +110,7 @@ const showNegativeIndicator = computed(() => {
             ]">{{ formatCurrency(account.balance) }}</span>
         </div>
 
-        <div class="h-20">
+        <div class="h-2">
             <LineChart 
                 :data="dataChart"
                 :options="optionsChart"
