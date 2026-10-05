@@ -8,6 +8,10 @@ export type CreateGoalRequest = {
     targetDate: string
     status: number
     type: string
+    repeater?: {
+        period: string
+        interval: number
+    }
 }
 
 export type UpdateGoalRequest = {
@@ -16,6 +20,10 @@ export type UpdateGoalRequest = {
     targetAmount?: number
     targetDate?: string
     status?: number
+    repeater?: {
+        period: string
+        interval: number
+    }
 }
 
 export type GoalResponse = {
@@ -28,6 +36,10 @@ export type GoalResponse = {
     createdDate: string
     status: number
     type: string
+    repeater?: {
+        periodType: string
+        interval: number
+    }
     evaluation: {
         currentBalance: number
         progressPercentage: number

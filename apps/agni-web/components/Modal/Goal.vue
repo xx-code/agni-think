@@ -3,6 +3,7 @@ import { reactive } from "vue";
 import { CalendarDate, getLocalTimeZone } from '@internationalized/date';
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import type { CreatedRequest } from '~/types/api';
+import type { GetInternalTypeResponse } from '~/types/api/internal';
 import type { GoalForm } from '~/types/form/goal';
 import { goalFormToCreateRequest, goalFormToUpdateRequest } from '~/mappers/goal';
 import type { GoalType } from '~/types/constants/goal';
@@ -20,12 +21,31 @@ const emit = defineEmits<{
 }>()
 const toast = useToast()
 
+const DEFAULT_REPEATER = { period: 'Day', interval: 1 }
+
 const isloading = ref(false)
 const form = reactive<Partial<GoalForm>>({
     ...initData,
     type,
     targetSourceId
 })
+
+const isRecurrence = ref(form.repeater !== undefined)
+function onChangeIsRecurrence(value: boolean) {
+    form.repeater = value ? (form.repeater ?? { ...DEFAULT_REPEATER }) : undefined
+}
+
+const { data: utils } = useAsyncData('utils+modal-goal', async () => {
+    const periodTypes = await ApiLinkBuilder
+        .route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.PERIOD_TYPE)
+        .execute()
+
+    return { periodTypes }
+})
+
+const periodTypeItems = computed(() =>
+    utils.value?.periodTypes.map(i => ({ label: i.value, value: i.id })) ?? []
+)
 
 function validate(state: Partial<GoalForm>): FormError[] {
     const errors: FormError[] = []
@@ -44,6 +64,12 @@ function validate(state: Partial<GoalForm>): FormError[] {
 
     if (!state.targetDate)
         errors.push({ name: 'targetDate', message: 'Required' })
+
+    if (state.repeater && !state.repeater.period)
+        errors.push({ name: 'period', message: 'Requis' })
+
+    if (state.repeater && !state.repeater.interval)
+        errors.push({ name: 'interval', message: 'Requis' })
 
     return errors
 }
@@ -149,6 +175,29 @@ const calendarValue = computed({
                         </template>
                     </UPopover>
                 </UFormField>
+
+                <USeparator />
+
+                <!-- Section : récurrence -->
+                <div class="space-y-4">
+                    <UFormField label="Se répète" name="isRecurrence">
+                        <USwitch v-model="isRecurrence" @update:model-value="onChangeIsRecurrence" />
+                    </UFormField>
+
+                    <template v-if="form.repeater">
+                        <UFormField label="Période" name="period">
+                            <USelect
+                                v-model="form.repeater.period"
+                                value-key="value"
+                                :items="periodTypeItems"
+                                class="w-full" />
+                        </UFormField>
+
+                        <UFormField label="Intervalle" name="interval">
+                            <UInput v-model="form.repeater.interval" type="number" :min="1" class="w-full" />
+                        </UFormField>
+                    </template>
+                </div>
 
                 <UButton label="Submit" type="submit" />
             </UForm>

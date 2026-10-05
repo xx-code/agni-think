@@ -2,6 +2,7 @@ package usecases.goals.dto
 
 import domain.enums.GoalEvaluationType
 import domain.enums.GoalStatusType
+import domain.value_objects.SchedulerRecurrence
 import java.time.LocalDate
 import java.util.UUID
 
@@ -12,5 +13,6 @@ data class CreateGoalInput(
     val targetSourceId: UUID,
     val targetDate: LocalDate,
     val status: GoalStatusType,
-    val type: GoalEvaluationType
+    val type: GoalEvaluationType,
+    val recurrence: SchedulerRecurrence? = null,
 )

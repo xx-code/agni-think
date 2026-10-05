@@ -84,7 +84,7 @@ const actionItems = computed<DropdownMenuItem[][]>(() => [
             </p>
             <div class="flex gap-2 items-center">
                 <p class="text-sm font-medium text-neutral-400 truncate">{{ category.label }} - {{ data.name }}</p>
-                <UKbd size="sm">{{ data.repeater?.interval }} x {{ data.repeater?.periodType }}</UKbd>
+                <UKbd size="sm">{{ data.repeater?.interval }} x {{ data.repeater?.period }}</UKbd>
             </div>
         </div>
 

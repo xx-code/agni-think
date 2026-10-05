@@ -61,6 +61,13 @@ function formatColorByDayGoal(dueDate: Date, status: FundGoalState) {
                 </p>
             </div> 
 
+            <p
+                v-if="goal.description"
+                class="mt-0.5 text-xs text-gray-500 truncate"
+                :title="goal.description">
+                {{ goal.description }}
+            </p>
+
             <UProgress 
                 class="mt-2"
                 :ui="{

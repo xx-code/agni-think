@@ -24,7 +24,8 @@ export function goalToGoalForm(data: Goal): GoalForm {
         targetAmount: data.targetAmount,
         targetDate: date,
         targetSourceId: data.targetSourceId,
-        type: data.type
+        type: data.type,
+        repeater: data.repeater
     }
 }
 

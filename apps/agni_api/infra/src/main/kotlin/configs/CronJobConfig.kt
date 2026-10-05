@@ -30,7 +30,9 @@ class CronJobOrchestratorEach12h(
     @Qualifier("applySpendingPeriodTemplate")
     private val applySpendingPeriodTemplate: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("makeProvisionInstallment")
-    private val makeProvisionInstallment: IUseCase<Unit, BackgroundTaskOut>
+    private val makeProvisionInstallment: IUseCase<Unit, BackgroundTaskOut>,
+    @Qualifier("syncGoal")
+    private val syncGoal: IUseCase<Unit, BackgroundTaskOut>
 ) : ApplicationRunner {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -51,6 +53,7 @@ class CronJobOrchestratorEach12h(
         executeTask("update budget due date") { updateBudgetDueDate.execute(Unit) }
         executeTask("update internal loan due date") { autoCompleteInternalLoan.execute(Unit) }
         executeTask("spending period template") { applySpendingPeriodTemplate.execute(Unit) }
+        executeTask("sync goal") { syncGoal.execute(Unit) }
     }
 
     @Scheduled(cron = "0 0 */12 * * *")

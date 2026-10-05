@@ -26,7 +26,7 @@ class GetAllGoals(
         )
         val conditionGoal = QueryExtendBuilder<Goal>()
             .addCondition("targetSourceId", QueryComparator.In, input.sourceId?.let { setOf(it) })
-            .addCondition("status", QueryComparator.Equal, input.status)
+            .addCondition("status", QueryComparator.Equal, input.status?.ordinal)
             .addCondition("type", QueryComparator.In, input.type?.let { setOf(it.value) })
         val res = goalRepo.getAll(
             query = query,

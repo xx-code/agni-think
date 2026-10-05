@@ -63,18 +63,18 @@ const { data: accountData, refresh: refreshAccounts } = useAsyncData(
         const accIds = res.items.map(account => account.id)
 
         const dateFrom = new Date()
-        dateFrom.setMonth(dateFrom.getMonth() - 7)
+        // dateFrom.setMonth(dateFrom.getMonth() - 4)
 
-        const balancesByPeriod = await Promise.all(
-            accIds.map(id =>
-                ApiLinkBuilder.route<GetBalanceResponse[]>(API_ROUTES.INVOICES.GET_BALANCES_BY_PERIOD).query({
-                    period: 'Month',
-                    interval: 1,
-                    dateFrom: dateFrom.toISOString(),
-                    accountIds: [id]
-                }).execute()
-            )
-        )
+        // const balancesByPeriod = await Promise.all(
+        //     accIds.map(id =>
+        //         ApiLinkBuilder.route<GetBalanceResponse[]>(API_ROUTES.INVOICES.GET_BALANCES_BY_PERIOD).query({
+        //             period: 'Month',
+        //             interval: 1,
+        //             dateFrom: dateFrom.toISOString(),
+        //             accountIds: [id]
+        //         }).execute()
+        //     )
+        // )
 
         isLoadingAccount.value = false
 
@@ -82,7 +82,7 @@ const { data: accountData, refresh: refreshAccounts } = useAsyncData(
             accounts: res.items.sort((a, b) => groupAndSortAccount(a, b)),
             balanceHistories: accIds.map((id, index) => ({
                 id,
-                histories: balancesByPeriod[index]?.map(i => i.balance) ?? []
+                histories: [] // balancesByPeriod[index]?.map(i => i.balance) ?? []
             }))
         }
     }
