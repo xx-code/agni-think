@@ -17,6 +17,7 @@ import type { Fund } from "~/types/ui/fund"
 import type { Goal } from "~/types/ui/goal"
 import { fundResponseToFund, fundToFundCard, fundToFundForm } from "~/mappers/fund"
 import { FUND_TYPE_LIST, FundType, getIconFundType, getLabelFundType } from '~/types/constants/fund'
+import { GoalStatus } from "~/types/constants/goal"
 
 const loadingSummary = ref(false)
 const isLoading = ref(false)
@@ -31,6 +32,7 @@ const selectedType = ref<FundType | undefined>(undefined)
 const filterGoal = reactive<GoalQueryFilterRequest>({
     offset: 0,
     limit: 3,
+    status: GoalStatus.Active.toString(),
     queryAll: false,
 })
 const funds = ref<Fund[]>([])
@@ -218,7 +220,8 @@ async function getAllFunds() {
 async function getAllGoals() {
     isLoadingGoal.value = true
     try {
-        const goalRes = await ApiLinkBuilder.route<ListResponse<GoalResponse>>(API_ROUTES.GOALS.GET_GOALS).query(filterGoal).execute()
+        const goalRes = await ApiLinkBuilder.route<ListResponse<GoalResponse>>(API_ROUTES.GOALS.GET_GOALS)
+            .query(filterGoal).execute()
         var res = {
             items: goalRes.items.map(i => goalResponseToGoal(i)),
             total: goalRes.total

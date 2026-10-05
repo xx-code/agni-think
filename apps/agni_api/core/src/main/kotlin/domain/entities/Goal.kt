@@ -5,6 +5,7 @@ import domain.enums.GoalEvaluationType
 import domain.enums.GoalStatusType
 import domain.exceptions.ValidationException
 import domain.interfaces.IGoalEvaluationStrategy
+import domain.value_objects.SchedulerRecurrence
 import java.time.LocalDate
 import java.util.UUID
 
@@ -23,6 +24,7 @@ class Goal(
     dueDate: LocalDate,
     status: GoalStatusType,
     type: GoalEvaluationType,
+    recurrence: SchedulerRecurrence? = null
 ): Entity(id) {
     var title by cleanObservable(title, this)
     var description by cleanObservable(description, this)
@@ -35,6 +37,7 @@ class Goal(
     var dueDate by cleanObservable(dueDate, this)
     var status by cleanObservable(status, this)
     var type by cleanObservable(type, this)
+    var recurrence by cleanObservable(recurrence, this)
 
     suspend fun evaluateProgress(strategy: IGoalEvaluationStrategy, context: IFinanceContext): GoalEvaluationProgress {
         val currentAmount = strategy.evaluateCurrentAmount(this, context)
@@ -49,5 +52,11 @@ class Goal(
             currentAmount,
             ((currentAmount / this.targetAmount) * 100).coerceAtMost(100.0)
         )
+    }
+
+    suspend fun isComplete(strategy: IGoalEvaluationStrategy, context: IFinanceContext, date: LocalDate = LocalDate.now()): Boolean {
+        val evalutionProgress = evaluateProgress(strategy, context)
+
+        return evalutionProgress.progressPercent == 100.0 && date >= dueDate
     }
 }

@@ -1,8 +1,11 @@
 package persistences.jbdc_model
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import domain.entities.Goal
 import domain.enums.GoalEvaluationType
 import domain.enums.GoalStatusType
+import domain.value_objects.SchedulerRecurrence
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -25,7 +28,8 @@ data class JdbcGoalModel(
     @Column("target_amount")
     val targetAmount: Double,
     val status: Int,
-    val type: String
+    val type: String,
+    val recurrence: String?,
 ) : JdbcModel() {
     override fun getId(): UUID {
         return goalId
@@ -33,8 +37,18 @@ data class JdbcGoalModel(
 }
 
 @Component
-class JdbcGoalModelMapper: IMapper<JdbcGoalModel, Goal> {
+class JdbcGoalModelMapper(
+    private val objectMapper: ObjectMapper
+): IMapper<JdbcGoalModel, Goal> {
     override fun toDomain(model: JdbcGoalModel): Goal {
+        //TODO: Centralize Code
+        val recurrenceJson = if (
+            model.recurrence == "null" || model.recurrence == "[null]" ||
+            model.recurrence.isNullOrEmpty() || model.recurrence == "{}" || model.recurrence == "[]"
+        ) { null }
+        else {  objectMapper.readValue<Map<String, Any>>(model.recurrence) }
+
+
         return Goal(
             id = model.id,
             title = model.title,
@@ -43,7 +57,8 @@ class JdbcGoalModelMapper: IMapper<JdbcGoalModel, Goal> {
             targetAmount = model.targetAmount,
             dueDate = model.dueDate,
             status = GoalStatusType.fromInt(model.status),
-            type = GoalEvaluationType.fromString(model.type)
+            type = GoalEvaluationType.fromString(model.type),
+            recurrence = recurrenceJson?.let { SchedulerRecurrence.fromMap(it) },
         )
     }
 
@@ -56,7 +71,8 @@ class JdbcGoalModelMapper: IMapper<JdbcGoalModel, Goal> {
             targetAmount = entity.targetAmount,
             dueDate = entity.dueDate,
             status = entity.status.ordinal,
-            type = entity.type.value
+            type = entity.type.value,
+            recurrence = objectMapper.writeValueAsString(entity.recurrence?.toMap()),
         )
     }
 
@@ -68,7 +84,9 @@ class JdbcGoalModelMapper: IMapper<JdbcGoalModel, Goal> {
         "targetAmount" to "target_amount",
         "dueDate" to "due_date",
         "status" to "status",
-        "type" to "type"
+        "type" to "type",
+        "recurrence.period" to "'recurrence'->>'period'",
+        "recurrence.interval" to "'recurrence'->>'interval'"
     )
 
     override fun getTableName(): String = "goals"

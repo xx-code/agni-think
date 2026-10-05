@@ -3,7 +3,7 @@ package usecases.schedule_Invoices.dto
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class ScheduleInvoiceRepeaterOutput(val periodType: String, val interval: Int)
+data class ScheduleInvoiceRepeaterOutput(val period: String, val interval: Int)
 
 data class GetScheduleInvoiceOutput(
     val id: UUID,

@@ -13,11 +13,11 @@ export type EditScheduleInvoiceType = {
     endDate?: CalendarDate
     freezeEndDate?: CalendarDate
     repeater?: {
-        periodType: string
+        period: string
         interval: number
     }
     freezeRepeater?: {
-        periodType: string
+        period: string
         interval: number
     }
 }
