@@ -2,6 +2,7 @@ package usecase_configs
 
 import adapters.FinanceContext
 import adapters.IFinanceContext
+import adapters.events.IEventRegister
 import adapters.repositories.IRepository
 import domain.entities.Category
 import domain.entities.Goal
@@ -23,6 +24,8 @@ import usecases.invoices.dto.GetBalanceOutput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import usecases.UseCase
+import usecases.dto.BackgroundTaskOut
+import usecases.goals.SyncGoal
 import java.util.UUID
 
 @Configuration
@@ -90,6 +93,19 @@ class GoalConfig {
         return UpdateGoal(
             goalRepo,
             financeContext
+        )
+    }
+
+    @Bean
+    fun syncGoal(
+        goalRepo: IRepository<Goal>,
+        financeContext: IFinanceContext,
+        eventRegister: IEventRegister,
+    ): UseCase<Unit, BackgroundTaskOut> {
+        return SyncGoal(
+            eventManager = eventRegister,
+            goalRepo = goalRepo,
+            financeContext = financeContext
         )
     }
 

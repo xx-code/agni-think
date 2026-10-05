@@ -11,13 +11,13 @@ export type GetScheduleInvoiceResponse = {
     dueDate: string
     editable: boolean
     repeater?: {
-        periodType: string
+        period: string
         interval: number
     }
     endDate?: string,
     freezeEndDate?: string
     freezeRepeater?: {
-        periodType: string
+        period: string
         interval: number
     }
 }

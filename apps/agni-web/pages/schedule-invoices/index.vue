@@ -73,7 +73,7 @@ async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: Sc
                     schedule:{
                         dueDate:  value.dueDate.toDate(getLocalTimeZone()).toISOString(),
                         repeater: {
-                            period: value.repeater?.periodType,
+                            period: value.repeater?.period,
                             interval: value.repeater?.interval
                         }
                     },
@@ -85,7 +85,7 @@ async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: Sc
                     freezeSchedule: (value.freezeEndDate && value.freezeRepeater) ? {
                         dueDate: value.freezeEndDate.toDate(getLocalTimeZone()).toISOString(),
                         repeater: {
-                            period: value.freezeRepeater.periodType,
+                            period: value.freezeRepeater.period,
                             interval: value.freezeRepeater.interval
                         } 
                     } : undefined
@@ -102,7 +102,7 @@ async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: Sc
                 schedule:{
                     dueDate:  value.dueDate.toDate(getLocalTimeZone()).toISOString(),
                     repeater: {
-                        period: value.repeater?.periodType,
+                        period: value.repeater?.period,
                         interval: value.repeater?.interval
                     }
                 },
@@ -114,7 +114,7 @@ async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: Sc
                 freezeSchedule: (value.freezeEndDate && value.freezeRepeater) ? {
                     dueDate: value.freezeEndDate.toDate(getLocalTimeZone()).toISOString(),
                     repeater: {
-                        period: value.freezeRepeater.periodType,
+                        period: value.freezeRepeater.period,
                         interval: value.freezeRepeater.interval
                     }
                 } : undefined

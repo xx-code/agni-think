@@ -1,17 +1,47 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, watchEffect } from 'vue'
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder'
 import { API_ROUTES } from '~/shared/routes'
+import { getSpendingPeriodAnalyticRange } from '~/composables/spendingPeriod'
 import { listCategoriesResponseToListCategories } from '~/mappers/category'
-import type { GetAnnualOutlookResponse } from '~/types/api/analytics'
-import type { GetBudgetingRuleRequest, GetBudgetingRuleResponse } from '~/types/api/analytics'
+import { profileResponseToProfile } from '~/mappers/profile'
+import { listSpendingPeriodsResponseToListSpendingPeriods } from '~/mappers/spending-period'
 import type { ListResponse } from '~/types/api'
+import type { GetAnnualOutlookResponse, GetBudgetingRuleRequest, GetBudgetingRuleResponse } from '~/types/api/analytics'
 import type { GetCategoryResponse } from '~/types/api/category'
+import type { GetProfileResponse } from '~/types/api/profile'
+import type { GetAllSpendingPeriodResponse } from '~/types/api/spending-period'
+import type { AllSpendingPeriod } from '~/types/ui/spending-period'
+import { getLabelSpendingPeriodType, SpendingPeriodType } from '~/types/constants/spendingPeriod'
 import { periodOptions } from '~/utils/constant'
 
+const DAY_IN_MS = 86400000
+
+// Single tenant setup, same profile id as the settings page
+const PROFILE_ID = '457ae73e-8124-4d3b-ab2b-d6a404c6b4d3'
+
 // ─── Filter Mode ──────────────────────────────────────────────────────────────
-type FilterMode = 'period' | 'range'
+type FilterMode = 'period' | 'range' | 'spendingPeriod'
+
 const filterMode = ref<FilterMode>('period')
+
+const filterModeItems = computed(() => ([
+  { label: 'Période', value: 'period' },
+  { label: 'Dates', value: 'range' },
+  { label: 'Période de dépenses', value: 'spendingPeriod' }
+] satisfies { label: string, value: FilterMode }[]).map(item => ({
+  label: item.label,
+  type: 'checkbox' as const,
+  checked: filterMode.value === item.value,
+  onSelect(e: Event) {
+    e.preventDefault()
+    filterMode.value = item.value
+  }
+})))
+
+const filterModeLabel = computed(() =>
+  filterModeItems.value.find(i => i.checked)?.label ?? 'Période'
+)
 
 // ─── Period Filter ────────────────────────────────────────────────────────────
 const periodFilter = reactive<{ period: string; interval: number }>({
@@ -26,11 +56,74 @@ const selectedPeriodLabel = computed(() =>
 // ─── Range Filter ─────────────────────────────────────────────────────────────
 const rangeFilter = reactive({ startDate: '', endDate: '' })
 
-// ─── Budgeting rule sliders ───────────────────────────────────────────────────
-const ruleConfig = reactive({ needs: 50, wants: 30, savings: 20 })
-watch(() => ruleConfig.needs + ruleConfig.wants, (sum) => {
-  ruleConfig.savings = Math.max(0, 100 - sum)
+const rangeFilterError = computed(() => {
+  if (!rangeFilter.startDate || !rangeFilter.endDate)
+    return 'Sélectionnez une date de début et de fin'
+
+  if (rangeFilter.endDate < rangeFilter.startDate)
+    return 'La date de fin doit être postérieure à la date de début'
+
+  return undefined
 })
+
+// ─── Spending Period Filter ───────────────────────────────────────────────────
+const spendingPeriodId = ref<string | undefined>(undefined)
+
+const { data: spendingPeriods } = await useAsyncData('analytics+spending-periods', async () => {
+  const res = await ApiLinkBuilder
+    .route<ListResponse<GetAllSpendingPeriodResponse>>(API_ROUTES.SPENDING_PERIOD.GET_ALL_SPENDING_PERIOD)
+    .query({
+      'queryFilter.offset': 0,
+      'queryFilter.limit': 0,
+      'queryFilter.queryAll': true,
+      'queryFilter.sortBy.by': 'start_date',
+      'queryFilter.sortBy.ascending': false
+    })
+    .mapper(listSpendingPeriodsResponseToListSpendingPeriods)
+    .execute()
+
+  return res.items
+})
+
+// A draft has no real spending behind it, so it cannot produce a meaningful rule
+const selectableSpendingPeriods = computed<AllSpendingPeriod[]>(() =>
+  (spendingPeriods.value ?? []).filter(i => i.state !== SpendingPeriodType.Draft)
+)
+
+const spendingPeriodItems = computed(() =>
+  selectableSpendingPeriods.value.map(period => ({
+    label: `${formatDate(period.startDate)} → ${formatDate(period.endDate)} · ${getLabelSpendingPeriodType(period.state)}`,
+    value: period.id
+  }))
+)
+
+const selectedSpendingPeriod = computed(() =>
+  selectableSpendingPeriods.value.find(i => i.id === spendingPeriodId.value)
+)
+
+// Default to the most recent usable period
+watchEffect(() => {
+  if (selectedSpendingPeriod.value)
+    return
+
+  spendingPeriodId.value = selectableSpendingPeriods.value[0]?.id
+})
+
+// ─── Target rule from the profile (read only) ────────────────────────────────
+// The target rule is owned by the settings page, analytics only displays it
+const { data: profile } = await useAsyncData('analytics+profile', async () => {
+  return await ApiLinkBuilder
+    .route<GetProfileResponse>(API_ROUTES.PROFILE.GET_PROFILE)
+    .params({ id: PROFILE_ID })
+    .mapper(profileResponseToProfile)
+    .execute()
+})
+
+const ruleConfig = computed(() => ({
+  needs: profile.value?.fixSpendPercentage ?? 0,
+  wants: profile.value?.varialSpendPercentage ?? 0,
+  savings: profile.value?.savingPercentage ?? 0
+}))
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const outlookData  = ref<GetAnnualOutlookResponse | null>(null)
@@ -57,14 +150,67 @@ async function loadOutlook() {
     }
 }
 
-async function loadRule() {
-    isLoadingRule.value = true
-    const req: GetBudgetingRuleRequest = filterMode.value === 'period'
-    ? { period: periodFilter.period, interval: periodFilter.interval }
-    : { startDate: rangeFilter.startDate, endDate: rangeFilter.endDate }
+// Analytics endpoints only read startDate + period + interval, so a custom range
+// is sent as a day interval starting on the first day of the range
+function toIsoStartOfDay(value: string) {
+  if (!value)
+    return undefined
 
+  const date = new Date(`${value}T00:00:00`)
+
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
+}
+
+const ruleQuery = computed<GetBudgetingRuleRequest | null>(() => {
+  if (filterMode.value === 'period')
+    return { period: periodFilter.period, interval: periodFilter.interval }
+
+  if (filterMode.value === 'range') {
+    if (rangeFilterError.value)
+      return null
+
+    const startDate = toIsoStartOfDay(rangeFilter.startDate)
+    const endDate = toIsoStartOfDay(rangeFilter.endDate)
+
+    if (!startDate || !endDate)
+      return null
+
+    const days = Math.max(1, Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / DAY_IN_MS) + 1)
+
+    return { startDate, period: 'Day', interval: days }
+  }
+
+  if (!selectedSpendingPeriod.value)
+    return null
+
+  const range = getSpendingPeriodAnalyticRange(selectedSpendingPeriod.value)
+
+  return { startDate: range.startDate, period: range.period, interval: range.interval }
+})
+
+const ruleFilterLabel = computed(() => {
+  if (filterMode.value === 'period')
+    return selectedPeriodLabel.value
+
+  if (filterMode.value === 'range')
+    return `${rangeFilter.startDate} → ${rangeFilter.endDate}`
+
+  return selectedSpendingPeriod.value
+    ? `${formatDate(selectedSpendingPeriod.value.startDate)} → ${formatDate(selectedSpendingPeriod.value.endDate)}`
+    : '—'
+})
+
+async function loadRule() {
+    const query = ruleQuery.value
+
+    if (!query) {
+      ruleData.value = null
+      return
+    }
+
+    isLoadingRule.value = true
     try { 
-        ruleData.value = await ApiLinkBuilder.route<GetBudgetingRuleResponse>(API_ROUTES.ANALYTICS.BUDGETING_RULE).query(req).execute()
+        ruleData.value = await ApiLinkBuilder.route<GetBudgetingRuleResponse>(API_ROUTES.ANALYTICS.BUDGETING_RULE).query(query).execute()
     }
     catch { 
         ruleData.value = null 
@@ -74,8 +220,7 @@ async function loadRule() {
     }
 }
 
-// Trigger on filter changes
-watch([() => filterMode.value, () => periodFilter.period, () => periodFilter.interval, () => rangeFilter.startDate, () => rangeFilter.endDate], loadRule, { immediate: true })
+watch(ruleQuery, loadRule, { immediate: true })
 onMounted(loadOutlook)
 
 // ─── Outlook computed ─────────────────────────────────────────────────────────
@@ -103,13 +248,18 @@ const topOutlookCategories = computed(() => {
 const ruleSegments = computed(() => {
   if (!ruleData.value) return []
   const d = ruleData.value
-  const total = d.income || 1
+  const target = ruleConfig.value
+
+  // How far the actual ratio went compared to the target, as a percentage
+  const targetPct = (ratio: number, goal: number) => goal > 0 ? (ratio / goal) * 100 : 0
+
   return [
     {
       label: 'Charges fixes',
       ratio: d.ratioFixCost,
       amount: d.fixCost,
-      target: ruleConfig.needs / 100,
+      target: target.needs / 100,
+      targetPct: targetPct(d.ratioFixCost, target.needs / 100),
       color: '#6366f1',
       bg: 'bg-indigo-500',
       light: 'bg-indigo-50',
@@ -121,7 +271,8 @@ const ruleSegments = computed(() => {
       label: 'Charge variable',
       ratio: d.ratioVariableCost,
       amount: d.variableCost,
-      target: ruleConfig.wants / 100,
+      target: target.wants / 100,
+      targetPct: targetPct(d.ratioVariableCost, target.wants / 100),
       color: '#f59e0b',
       bg: 'bg-amber-500',
       light: 'bg-amber-50',
@@ -133,7 +284,8 @@ const ruleSegments = computed(() => {
       label: 'Épargne',
       ratio: d.ratioSaving,
       amount: d.savingAmount,
-      target: ruleConfig.savings / 100,
+      target: target.savings / 100,
+      targetPct: targetPct(d.ratioSaving, target.savings / 100),
       color: '#10b981',
       bg: 'bg-emerald-500',
       light: 'bg-emerald-50',
@@ -157,7 +309,7 @@ const ruleBarData = computed(() => {
       },
       {
         label: 'Cible',
-        data: [ruleConfig.needs, ruleConfig.wants, ruleConfig.savings],
+        data: [ruleConfig.value.needs, ruleConfig.value.wants, ruleConfig.value.savings],
         backgroundColor: ['rgba(99,102,241,0.18)', 'rgba(245,158,11,0.18)', 'rgba(16,185,129,0.18)'],
         borderRadius: 8, borderWidth: 0,
       },
@@ -402,20 +554,13 @@ function savingStatusColor(pct: number) {
           </div>
 
           <!-- Filter toggle -->
-          <div class="flex items-center gap-2">
-            <div class="flex rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-              <button
-                :class="['px-4 py-2 text-xs font-semibold transition-colors', filterMode === 'period' ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:bg-slate-50']"
-                @click="filterMode = 'period'">
-                Période
-              </button>
-              <button
-                :class="['px-4 py-2 text-xs font-semibold transition-colors', filterMode === 'range' ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:bg-slate-50']"
-                @click="filterMode = 'range'">
-                Dates
-              </button>
-            </div>
-          </div>
+          <UDropdownMenu :items="filterModeItems">
+            <button class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-colors cursor-pointer">
+              <UIcon name="i-lucide-calendar-days" class="text-slate-400" />
+              {{ filterModeLabel }}
+              <UIcon name="i-lucide-chevron-down" class="text-slate-400 text-xs" />
+            </button>
+          </UDropdownMenu>
         </div>
       </div>
 
@@ -439,25 +584,51 @@ function savingStatusColor(pct: number) {
         </div>
 
         <!-- Range mode -->
-        <div v-else class="flex flex-wrap items-center gap-4">
-          <span class="text-xs font-semibold text-slate-500">Du :</span>
-          <input
-            v-model="rangeFilter.startDate"
-            type="date"
-            class="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 transition" />
-          <span class="text-xs font-semibold text-slate-500">au :</span>
-          <input
-            v-model="rangeFilter.endDate"
-            type="date"
-            class="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 transition" />
+        <div v-else-if="filterMode === 'range'" class="flex flex-col gap-2">
+          <div class="flex flex-wrap items-center gap-4">
+            <span class="text-xs font-semibold text-slate-500">Du :</span>
+            <input
+              v-model="rangeFilter.startDate"
+              type="date"
+              class="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 transition" />
+            <span class="text-xs font-semibold text-slate-500">au :</span>
+            <input
+              v-model="rangeFilter.endDate"
+              :min="rangeFilter.startDate || undefined"
+              type="date"
+              class="px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 transition" />
+          </div>
+          <span v-if="rangeFilterError" class="flex items-center gap-1.5 text-[11px] font-medium text-amber-600">
+            <UIcon name="i-lucide-alert-circle" class="text-xs" />
+            {{ rangeFilterError }}
+          </span>
+        </div>
+
+        <!-- Spending period mode -->
+        <div v-else class="flex flex-wrap items-center gap-3">
+          <span class="text-xs font-semibold text-slate-500 mr-1">Période de dépenses :</span>
+          <USelectMenu
+            v-if="spendingPeriodItems.length"
+            v-model="spendingPeriodId"
+            :items="spendingPeriodItems"
+            value-key="value"
+            variant="outline"
+            color="neutral"
+            class="min-w-80"
+            placeholder="Sélectionnez une période"
+          />
+          <span v-else class="text-xs text-slate-400">Aucune période de dépenses disponible</span>
         </div>
       </div>
 
-      <!-- Rule sliders -->
+      <!-- Target rule (read only, defined in settings) -->
       <div class="bg-white border border-slate-100 rounded-2xl px-5 py-4 shadow-sm mb-5">
-        <div class="flex items-center gap-2 mb-4">
-          <UIcon name="i-lucide-sliders-horizontal" class="text-slate-400 text-sm" />
-          <span class="text-xs font-semibold text-slate-600">Ajuster la règle cible</span>
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2">
+            <UIcon name="i-lucide-sliders-horizontal" class="text-slate-400 text-sm" />
+            <span class="text-xs font-semibold text-slate-600">Règle cible</span>
+          </div>
+          <span class="text-[11px] text-slate-400">Modifiable dans vos paramètres de profil</span>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <!-- Needs -->
@@ -466,8 +637,9 @@ function savingStatusColor(pct: number) {
               <span class="text-xs font-semibold text-indigo-600">Charges fixes</span>
               <span class="text-xs font-bold text-slate-700">{{ ruleConfig.needs }}%</span>
             </div>
-            <input v-model.number="ruleConfig.needs" type="range" min="0" max="100" step="5"
-              class="w-full h-1.5 rounded-full appearance-none bg-indigo-100 accent-indigo-500 cursor-pointer" />
+            <div class="w-full h-1.5 rounded-full bg-indigo-100 overflow-hidden">
+              <div class="h-full bg-indigo-500 rounded-full transition-all duration-300" :style="{ width: ruleConfig.needs + '%' }" />
+            </div>
           </div>
           <!-- Wants -->
           <div>
@@ -475,17 +647,18 @@ function savingStatusColor(pct: number) {
               <span class="text-xs font-semibold text-amber-600">Loisirs & envies</span>
               <span class="text-xs font-bold text-slate-700">{{ ruleConfig.wants }}%</span>
             </div>
-            <input v-model.number="ruleConfig.wants" type="range" min="0" max="100" step="5"
-              class="w-full h-1.5 rounded-full appearance-none bg-amber-100 accent-amber-500 cursor-pointer" />
+            <div class="w-full h-1.5 rounded-full bg-amber-100 overflow-hidden">
+              <div class="h-full bg-amber-500 rounded-full transition-all duration-300" :style="{ width: ruleConfig.wants + '%' }" />
+            </div>
           </div>
-          <!-- Savings (auto) -->
+          <!-- Savings -->
           <div>
             <div class="flex justify-between mb-1.5">
-              <span class="text-xs font-semibold text-emerald-600">Épargne (calculé)</span>
+              <span class="text-xs font-semibold text-emerald-600">Épargne</span>
               <span class="text-xs font-bold text-slate-700">{{ ruleConfig.savings }}%</span>
             </div>
             <div class="w-full h-1.5 rounded-full bg-emerald-100 overflow-hidden">
-              <div class="h-full bg-emerald-400 rounded-full transition-all duration-300" :style="{ width: ruleConfig.savings + '%' }" />
+              <div class="h-full bg-emerald-500 rounded-full transition-all duration-300" :style="{ width: ruleConfig.savings + '%' }" />
             </div>
           </div>
         </div>
@@ -514,6 +687,10 @@ function savingStatusColor(pct: number) {
             <span class="text-xs font-semibold text-slate-500">Revenu de la période</span>
           </div>
           <span class="text-xl font-bold tracking-tight text-slate-900">{{ formatCurrency(ruleData.income) }}</span>
+          <span class="ml-auto inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
+            <UIcon name="i-lucide-filter" class="text-xs" />
+            {{ ruleFilterLabel }}
+          </span>
         </div>
 
         <!-- 3 Segment cards + bar chart -->
@@ -553,14 +730,14 @@ function savingStatusColor(pct: number) {
               <div class="relative h-3 rounded-full bg-white/60 border border-white overflow-hidden shadow-inner">
                 <!-- Actual bar -->
                 <div class="absolute left-0 top-0 h-full rounded-full transition-all duration-700 opacity-90"
-                  :style="{ width: Math.min(seg.ratio * 100 / (seg.target * 100) * 100, 130) + '%', background: seg.color }" />
+                  :style="{ width: Math.min(seg.targetPct, 130) + '%', background: seg.color }" />
                 <!-- Target line -->
                 <div class="absolute top-0 h-full w-0.5 bg-white/80" style="left: 100%" />
               </div>
               <div class="h-2 rounded-full overflow-hidden"
                 :style="{ background: `${seg.color}22` }">
                 <div class="h-full rounded-full transition-all duration-700"
-                  :style="{ width: Math.min((seg.ratio / seg.target) * 100, 100) + '%', background: seg.color }" />
+                  :style="{ width: Math.min(seg.targetPct, 100) + '%', background: seg.color }" />
               </div>
             </div>
           </div>

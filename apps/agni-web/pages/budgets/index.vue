@@ -21,7 +21,7 @@ const filter = reactive<BudgetFilter>({
 
 const budgets = ref<BudgetType[]>([])
 const totalBudget = ref(0)
-const isLoading = ref(false)
+const { isLoading, start, stop } = useLoading()
 
 const { data: summary } = useAsyncData('page-budget-summary', async () => {
     isLoadingSummary.value = true
@@ -196,7 +196,7 @@ async function showMoreBudget() {
 }
 
 async function getAllBudgets() {
-    isLoading.value = true
+    start()
     try {
         var res = await ApiLinkBuilder.route(API_ROUTES.BUDGETS.GET_BUDGETS).query(budgetFilterToBudgetQueryRequest(filter)).mapper(listBudgetsResponseToListBudgets).execute()
         budgets.value.push(...res.items) 
@@ -208,7 +208,7 @@ async function getAllBudgets() {
             color: 'error'
         })
     } finally {
-        isLoading.value = false
+        stop()
     }
 }
 
@@ -316,8 +316,12 @@ watch(filter, () => {
                 />
             </TransitionGroup>
 
+            <div v-if="isLoading">
+                <LoadingIndicator />
+            </div>
+
             <div 
-                v-if="budgets.length < totalBudget"
+                v-if="!isLoading && budgets.length < totalBudget"
                 class="p-5 rounded-xl bg-gray-50 border border-dashed border-gray-300 h-full flex justify-center cursor-pointer hover:shadow-xs"
                 @click="showMoreBudget()" >
                 <div class="flex items-center my-8">
@@ -327,7 +331,7 @@ watch(filter, () => {
             </div>
 
             <UiEmptyState 
-                v-if="budgets?.length === 0 && totalBudget == 0"
+                v-if="!isLoading && budgets?.length === 0 && totalBudget == 0"
                 icon="i-lucide-target"
                 title="Aucun fond"
                 description="Commencez par créer votre premier fond"

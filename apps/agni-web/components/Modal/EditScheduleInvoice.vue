@@ -52,7 +52,7 @@ const { data: utils, status } = useAsyncData('utils+edit-invoices', async () => 
     return { categories, tags, accounts, transactionTypes, periodTypes }
 })
 
-const DEFAULT_REPEATER = { periodType: 'Day', interval: 1 }
+const DEFAULT_REPEATER = { period: 'Day', interval: 1 }
 
 const form = reactive<Partial<EditScheduleInvoiceType>>({
     accountId: scheduleInvoice?.accountId || '',
@@ -106,11 +106,11 @@ function validate(state: Partial<EditScheduleInvoiceType>): FormError[] {
     if (!dueDate.value) errors.push({ name: 'dueDate', message: 'Requis' })
     if (!state.isFreeze && !state.type) errors.push({ name: 'type', message: 'Requis' })
 
-    if (state.repeater && !state.repeater.periodType) errors.push({ name: 'period', message: 'Requis' })
+    if (state.repeater && !state.repeater.period) errors.push({ name: 'period', message: 'Requis' })
     if (state.repeater && !state.repeater.interval) errors.push({ name: 'interval', message: 'Requis' })
 
     if (state.isFreeze && !freezeEndDate.value) errors.push({ name: 'freezeEndDate', message: 'Requis' })
-    if (state.isFreeze && !state.freezeRepeater?.periodType) errors.push({ name: 'freezePeriod', message: 'Requis' })
+    if (state.isFreeze && !state.freezeRepeater?.period) errors.push({ name: 'freezePeriod', message: 'Requis' })
     if (state.isFreeze && !state.freezeRepeater?.interval) errors.push({ name: 'freezeInterval', message: 'Requis' })
 
     return errors
@@ -259,7 +259,7 @@ async function onSubmit(event: FormSubmitEvent<EditScheduleInvoiceType>) {
 
                         <UFormField label="Période de gel" name="freezePeriod">
                             <USelect
-                                v-model="form.freezeRepeater!.periodType"
+                                v-model="form.freezeRepeater!.period"
                                 value-key="value"
                                 :items="utils?.periodTypes.map(i => ({ label: i.value, value: i.id }))"
                                 class="w-full" />
@@ -282,7 +282,7 @@ async function onSubmit(event: FormSubmitEvent<EditScheduleInvoiceType>) {
                     <template v-if="form.repeater">
                         <UFormField label="Période" name="period">
                             <USelect
-                                v-model="form.repeater.periodType"
+                                v-model="form.repeater.period"
                                 value-key="value"
                                 :items="utils?.periodTypes.map(i => ({ label: i.value, value: i.id }))"
                                 class="w-full" />
