@@ -9,6 +9,7 @@ import java.util.UUID
 
 class SpendingPeriod(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     spendingPeriodTemplateId: UUID,
     startDate: LocalDate,
     endDate: LocalDate,

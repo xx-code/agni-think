@@ -1,6 +1,7 @@
 package usecases.funds
 
 import usecases.interfaces.IUseCase
+import adapters.IAuthenticateAdapter
 
 import domain.SAVING_CATEGORY_ID
 import adapters.repositories.IRepository
@@ -12,7 +13,6 @@ import domain.entities.Fund
 import usecases.dto.CreatedOutput
 import usecases.invoices.dto.CreateInvoiceInput
 import usecases.invoices.dto.TransactionInput
-import usecases.funds.dto.IncreaseSavingGoalInput
 import domain.value_objects.InvoiceModuleLinker
 import java.time.LocalDateTime
 import domain.enums.InvoiceModuleLinkerType
@@ -20,20 +20,22 @@ import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
 import domain.enums.InvoiceType
 import usecases.UseCase
+import usecases.funds.dto.IncreaseFundInput
 
 class IncreaseFund(
     private val fundRepo: IRepository<Fund>,
     private val accountRepo: IRepository<Account>,
     private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
-    unitOfWork: IUnitOfWork
-): UseCase<IncreaseSavingGoalInput, Unit>(unitOfWork) {
-    override suspend fun process(input: IncreaseSavingGoalInput) {
-        val savingGoal = fundRepo.get(input.savingGoalId) ?: throw NotFoundException.SingleEntity(input.savingGoalId, "saving_goal")
+    unitOfWork: IUnitOfWork,
+    auth: IAuthenticateAdapter
+): UseCase<IncreaseFundInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
+    override suspend fun process(input: IncreaseFundInput) {
+        val fund = fundRepo.get(input.fundId) ?: throw NotFoundException.SingleEntity(input.fundId, "fund")
 
         if (input.amount <= 0)
             throw ValidationException.SavingGoalAmountMustBeGreaterThanZero()
 
-        if (savingGoal.accountId != null && input.accountId != savingGoal.accountId)
+        if (fund.accountId != null && input.accountId != fund.accountId)
             throw ValidationException.SavingGoalAccountIdMustNotMatch()
 
         val account = accountRepo.get(input.accountId) ?: throw NotFoundException.SingleEntity(input.accountId, "account")
@@ -41,28 +43,32 @@ class IncreaseFund(
         if (input.amount > account.balance)
             throw ValidationException.SavingGoalBalanceMustBeLesserThanAmount()
 
+        if (input.amount > fund.balance)
+            throw ValidationException.FundIncreaseMustBeLesserOrEqualToFundAmount(input.amount)
+
         createInvoice.processDirect(CreateInvoiceInput(
             accountId = input.accountId,
+            userId = account.userId,
             status = InvoiceStatusType.COMPLETED,
             date = LocalDateTime.now(),
             type = InvoiceType.OTHER,
-            mouvementType = InvoiceMovementType.DEBIT,
+            movementType = InvoiceMovementType.DEBIT,
             currency = null,
             transactions = setOf(TransactionInput(
                 amount = input.amount,
                 categoryId = SAVING_CATEGORY_ID,
-                description = "Argent plan d'epargne ${savingGoal.title}",
+                description = "Argent plan d'epargne ${fund.title}",
                 tagIds = setOf(),
                 budgetIds = setOf()
             )),
             moduleSourcesLinker = listOf(InvoiceModuleLinker(
-                sourceId = savingGoal.id,
+                sourceId = fund.id,
                 module = InvoiceModuleLinkerType.FUND
             )),
             deductions = setOf()
         ))
 
-        savingGoal.balance += input.amount
-        fundRepo.update(savingGoal)
+        fund.balance += input.amount
+        fundRepo.update(fund)
     }
 }

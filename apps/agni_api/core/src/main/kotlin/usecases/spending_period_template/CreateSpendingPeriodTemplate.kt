@@ -1,6 +1,7 @@
 package usecases.spending_period_template
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
@@ -8,6 +9,7 @@ import domain.entities.Budget
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
 import domain.entities.SpendingPeriodTemplate
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.spending_period_template.dto.CreateSpendingPeriodTemplateInput
 import domain.value_objects.SchedulerRecurrence
@@ -15,8 +17,12 @@ import domain.value_objects.SchedulerRecurrence
 class CreateSpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
     private val budgetRepo: IRepository<Budget>,
-): UseCase<CreateSpendingPeriodTemplateInput, CreatedOutput>() {
+    private val userRepo: IRepository<User>,
+    auth: IAuthenticateAdapter
+): UseCase<CreateSpendingPeriodTemplateInput, CreatedOutput>(auth = auth) {
     override suspend fun process(input: CreateSpendingPeriodTemplateInput): CreatedOutput {
+        val currentUser = getCurrentUser()
+
         val conditionExistBuilder = QueryExtendBuilder<SpendingPeriodTemplate>()
             .addCondition("recurrence.period", QueryComparator.Equal, input.recurrence.period.value)
             .addCondition("recurrence.interval", QueryComparator.Equal, input.recurrence.interval)
@@ -28,6 +34,7 @@ class CreateSpendingPeriodTemplate(
             throw NotFoundException.EntitiesByOtherField(mapOf("ids" to input.targetBudgetIds.joinToString()), "budget")
 
         val newSpendingPeriodTemplate = SpendingPeriodTemplate(
+            userId = currentUser.id,
             startDate = input.startDate,
             recurrence = SchedulerRecurrence(
                 period = input.recurrence.period,

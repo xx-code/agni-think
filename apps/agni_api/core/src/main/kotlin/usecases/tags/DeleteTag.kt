@@ -1,5 +1,6 @@
 package usecases.tags
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.IChecker
 import adapters.repositories.IRepository
@@ -11,8 +12,9 @@ import usecases.tags.dto.DeleteTagInput
 
 class DeleteTag(
     private val tagRepo: IRepository<Tag>,
-    private val checker: IChecker<Tag>
-    ): UseCase<DeleteTagInput, DeleteOutput>() {
+    private val checker: IChecker<Tag>,
+    auth: IAuthenticateAdapter
+    ): UseCase<DeleteTagInput, DeleteOutput>(auth = auth) {
 
     override suspend fun process(input: DeleteTagInput): DeleteOutput {
         val tag = tagRepo.get(input.tagId) ?: throw NotFoundException.SingleEntity(input.tagId, "tag")

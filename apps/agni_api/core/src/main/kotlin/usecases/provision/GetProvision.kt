@@ -1,6 +1,7 @@
 package usecases.provision
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.Provision
@@ -10,8 +11,9 @@ import usecases.provision.dto.ProvisionInvoiceOutput
 import java.util.UUID
 
 class GetProvision(
-    private val provisionRepo: IRepository<Provision>
-    ): UseCase<UUID, GetProvisionOutput>() {
+    private val provisionRepo: IRepository<Provision>,
+    auth: IAuthenticateAdapter
+    ): UseCase<UUID, GetProvisionOutput>(auth = auth) {
     override suspend fun process(input: UUID): GetProvisionOutput {
         val provisional = provisionRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "provisionable")
 

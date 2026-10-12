@@ -7,6 +7,7 @@ import java.util.UUID
 
 class Deduction(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     title: String,
     val base: DeductionBaseType,
     val mode: DeductionModeType,

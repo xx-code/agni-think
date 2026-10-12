@@ -1,6 +1,7 @@
 package usecases.spending_period
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
@@ -13,9 +14,12 @@ import usecases.spending_period.dto.SpendingPeriodSnapShotOutput
 
 class GetAllSpendingPeriod(
     private val spendingPeriodRepo: IRepository<SpendingPeriod>,
-): UseCase<GetAllSpendingPeriodInput, ListOutput<GetAllSpendingPeriodOutput>>() {
+    auth: IAuthenticateAdapter
+): UseCase<GetAllSpendingPeriodInput, ListOutput<GetAllSpendingPeriodOutput>>(auth = auth) {
     override suspend fun process(input: GetAllSpendingPeriodInput): ListOutput<GetAllSpendingPeriodOutput> {
+        val currentUser = getCurrentUser()
         val condition = QueryExtendBuilder<SpendingPeriod>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
             .addCondition("spendingPeriodTemplateId", QueryComparator.Equal, input.spendingPeriodTemplateId)
             .addCondition("state", QueryComparator.Equal, input.state?.value)
 //            .addCondition("startDate", QueryComparator.Equal, input.startDate)

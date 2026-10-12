@@ -3,6 +3,7 @@ package domain.entities
 import kotlinx.coroutines.runBlocking
 
 import domain.exceptions.ValidationException
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -16,6 +17,7 @@ class ProfileValidationTest {
         savingPercentage: Double = 20.0,
         balanceBuffer: Double = 0.0,
     ) = Profile(
+        userId = UUID.randomUUID(),
         maxWishlistAmount = maxWishlistAmount,
         fixSpendPercentage = fixSpendPercentage,
         varialSpendPercentage = varialSpendPercentage,
@@ -64,7 +66,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `refuses a fix percentage above one hundred`() = runBlocking {
+    fun `refuses a fix percentage above one hundred`() {
         val profile = profile()
 
         assertFailsWith<ValidationException.ProfileRulePercentageMustBePositif> {
@@ -73,7 +75,7 @@ class ProfileValidationTest {
     }
 
     @Test
-    fun `refuses a negative percentage`() = runBlocking {
+    fun `refuses a negative percentage`() {
         val profile = profile()
 
         assertFailsWith<ValidationException.ProfileRulePercentageMustBePositif> {

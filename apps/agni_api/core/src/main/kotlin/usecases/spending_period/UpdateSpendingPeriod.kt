@@ -1,6 +1,7 @@
 package usecases.spending_period
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.SpendingPeriod
@@ -9,7 +10,8 @@ import domain.value_objects.SpendingPeriodItem
 
 class UpdateSpendingPeriod(
     private val spendingPeriodRepo: IRepository<SpendingPeriod>,
-): UseCase<UpdateSpendingPeriodInput, Unit>() {
+    auth: IAuthenticateAdapter
+): UseCase<UpdateSpendingPeriodInput, Unit>(auth = auth) {
     override suspend fun process(input: UpdateSpendingPeriodInput) {
         val spendPeriod = spendingPeriodRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "spending_period")
 

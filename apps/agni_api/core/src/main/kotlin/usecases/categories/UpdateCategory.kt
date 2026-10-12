@@ -1,5 +1,6 @@
 package usecases.categories
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Category
@@ -7,7 +8,7 @@ import domain.entities.Color
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
 import usecases.categories.dto.UpdateCategoryInput
-class UpdateCategory(private val categoryRepo: IRepository<Category>): UseCase<UpdateCategoryInput, Unit>() {
+class UpdateCategory(private val categoryRepo: IRepository<Category>, auth: IAuthenticateAdapter): UseCase<UpdateCategoryInput, Unit>(auth = auth) {
 
     override suspend fun process(input: UpdateCategoryInput) {
         val category = categoryRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "category")

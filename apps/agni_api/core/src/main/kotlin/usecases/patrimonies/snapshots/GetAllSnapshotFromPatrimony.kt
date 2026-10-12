@@ -1,6 +1,7 @@
 package usecases.patrimonies.snapshots
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import domain.SAVING_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
@@ -35,10 +36,12 @@ class GetAllSnapshotFromPatrimony(
     private val provisionRepo: IRepository<Provision>,
     private val invoiceRepo: IRepository<Invoice>,
     private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
-    private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
-): UseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>>() {
+    private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>,
+    auth: IAuthenticateAdapter
+): UseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>>(auth = auth) {
 
     override suspend fun process(input: GetAllSnapshotPatrimonyInput): ListOutput<GetSnapshotPatrimonyOutput> {
+        val currentUser = getCurrentUser()
         when (input.sourcePatrimonyType) {
             SourcePatrimonyType.PATRIMONY -> {
                 input.query.sortBy.by = "date"
@@ -69,6 +72,7 @@ class GetAllSnapshotFromPatrimony(
 
                 val savingBalancesByDate = getBalanceByPeriod.processDirect(
                     GetBalancesByPeriodInput(
+                        userId = currentUser.id,
                         period = PeriodType.MONTH,
                         interval = numMonth.toInt(),
                         dateFrom = date,

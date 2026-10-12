@@ -20,6 +20,7 @@ data class JdbcSpendingPeriodModel(
     @Id
     @get:JvmName("getIdentifier")
     val spendingPeriodId: UUID,
+    val userId: UUID,
     @Column("spending_period_template_id")
     val spendingPeriodTemplateId: UUID,
     @Column("start_date")
@@ -62,6 +63,7 @@ class JdbcSpendingPeriodMapper(
 
         val entity = SpendingPeriod(
             id = model.spendingPeriodId,
+            userId = model.userId,
             spendingPeriodTemplateId = model.spendingPeriodTemplateId,
             startDate = model.startDate,
             endDate = model.endDate,
@@ -84,6 +86,7 @@ class JdbcSpendingPeriodMapper(
     override fun toModel(entity: SpendingPeriod): JdbcSpendingPeriodModel {
         return JdbcSpendingPeriodModel(
             spendingPeriodId = entity.id,
+            userId = entity.userId,
             spendingPeriodTemplateId = entity.spendingPeriodTemplateId,
             startDate = entity.startDate,
             endDate = entity.endDate,
@@ -102,6 +105,7 @@ class JdbcSpendingPeriodMapper(
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "spending_period_id",
+        "userId" to "user_id",
         "spendingPeriodTemplateId" to "spending_period_template_id",
         "freeAmount" to "free_amount",
         "closeBalance" to "close_balance",

@@ -14,6 +14,7 @@ data class JdbcTagModel(
     @Id
     @get:JvmName("getIdentifier")
     val tagId: UUID,
+    val userId: UUID?,
 
     val value: String,
     val color: String,
@@ -32,6 +33,7 @@ class JdbcTagModelMapper: IMapper<JdbcTagModel, Tag> {
     override fun toDomain(model: JdbcTagModel): Tag {
         val tag = Tag(
             id = model.tagId,
+            userId = model.userId,
             value = model.value,
             color = if (!model.color.isBlank()) Color(model.color) else Color("#FFF"),
             isSystem = model.isSystem,
@@ -45,6 +47,7 @@ class JdbcTagModelMapper: IMapper<JdbcTagModel, Tag> {
     override fun toModel(entity: Tag): JdbcTagModel {
         return JdbcTagModel (
             tagId = entity.id,
+            userId = entity.userId,
             value = entity.value,
             color = entity.color.toString(),
             isSystem = entity.isSystem,
@@ -56,6 +59,7 @@ class JdbcTagModelMapper: IMapper<JdbcTagModel, Tag> {
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "tag_id",
+        "userId" to "user_id",
         "value" to "value",
         "color" to "color",
         "isSystem" to "is_system",

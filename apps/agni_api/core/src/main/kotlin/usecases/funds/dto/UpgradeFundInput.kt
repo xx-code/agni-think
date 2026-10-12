@@ -2,14 +2,14 @@ package usecases.funds.dto
 
 import java.util.UUID
 
-data class DecreaseSavingGoalInput(
-    val savingGoalId: UUID,
+data class DecreaseFundInput(
+    val fundId: UUID,
     val accountId: UUID,
     val amount: Double
 )
 
-data class IncreaseSavingGoalInput(
-    val savingGoalId: UUID,
+data class IncreaseFundInput(
+    val fundId: UUID,
     val accountId: UUID,
     val amount: Double
 )

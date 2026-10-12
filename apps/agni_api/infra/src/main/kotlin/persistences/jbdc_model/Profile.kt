@@ -14,6 +14,8 @@ data class JdbcProfileModel(
     @get:JvmName("getIdentifier")
     val profileId: UUID,
 
+    val userId: UUID,
+
     @Column("max_wishlist_amount")
     val maxWishlistAmount: Double,
 
@@ -37,6 +39,7 @@ class JdbcProfileMapper: IMapper<JdbcProfileModel, Profile> {
     override fun toDomain(model: JdbcProfileModel): Profile {
         return Profile(
             id = model.id,
+            userId = model.userId,
             maxWishlistAmount = model.maxWishlistAmount,
             fixSpendPercentage = model.fixSpendPercentage,
             varialSpendPercentage = model.varialSpendPercentage,
@@ -48,6 +51,7 @@ class JdbcProfileMapper: IMapper<JdbcProfileModel, Profile> {
     override fun toModel(entity: Profile): JdbcProfileModel {
         return JdbcProfileModel(
             profileId = entity.id,
+            userId = entity.userId,
             maxWishlistAmount = entity.maxWishlistAmount,
             fixSpendPercentage = entity.fixSpendPercentage,
             varialSpendPercentage = entity.varialSpendPercentage,
@@ -58,6 +62,7 @@ class JdbcProfileMapper: IMapper<JdbcProfileModel, Profile> {
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "profile_id",
+        "userId" to "user_id",
         "maxWishlistAmount" to "max_wishlist_amount",
         "fixSpendPercentage" to "fix_spend_percentage",
         "varialSpendPercentage" to "varial_spend_percentage",

@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.AccountSnapshotBalanceInput
 import adapters.events.contents.CreateEmbeddingInvoiceEventContent
 import adapters.events.EventType
@@ -8,10 +9,11 @@ import adapters.repositories.IAccountBalanceSnapshotRepository
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import domain.entities.Deduction
-import domain.exceptions.NotFoundException
-import domain.exceptions.ValidationException
 import domain.entities.Invoice
 import domain.entities.Transaction
+import domain.entities.User
+import domain.exceptions.NotFoundException
+import domain.exceptions.ValidationException
 import domain.enums.DeductionBaseType
 import domain.enums.DeductionModeType
 import domain.enums.InvoiceMovementType
@@ -26,14 +28,20 @@ import java.util.UUID
 
 // TODO: Refactoring
 class CreateInvoice(
+    private val userRepo: IRepository<User>,
     private val invoiceRepo: IRepository<Invoice>,
     private val invoiceDependencies: InvoiceDependencies,
     private val snapshotAccountBalanceRepo: IAccountBalanceSnapshotRepository,
     private val eventRegister: IEventRegister,
     unitOfWork: IUnitOfWork,
-): UseCase<CreateInvoiceInput, CreatedOutput>(unitOfWork) {
+): UseCase<CreateInvoiceInput, CreatedOutput>(unitOfWork = unitOfWork) {
     override suspend fun process(input: CreateInvoiceInput): CreatedOutput {
+        userRepo.get(input.userId) ?: throw NotFoundException.SingleEntity(input.userId, "user")
+
         val account = invoiceDependencies.accountRepo.get(input.accountId) ?: throw NotFoundException.SingleEntity(input.accountId, "invoice")
+
+        if (account.userId != input.userId)
+            throw NotFoundException.SingleEntity(input.accountId, "account")
 
         if (input.transactions.isEmpty())
             throw ValidationException.TransactionsMustNotBeEmpty()
@@ -55,9 +63,10 @@ class CreateInvoice(
 
         val newInvoice = Invoice(
             id = if(usePersistentId) input.persistentInvoiceId else UUID.randomUUID(),
+            userId = input.userId,
             accountId = input.accountId,
             status = input.status,
-            movement = input.mouvementType,
+            movement = input.movementType,
             type = input.type,
             deductions = input.deductions.map { InvoiceDeduction(it.deductionId, it.amount) }.toMutableSet(),
             date = input.date,
@@ -115,7 +124,7 @@ class CreateInvoice(
         }
 
         if (input.status == InvoiceStatusType.COMPLETED) {
-            if (input.mouvementType == InvoiceMovementType.CREDIT) account.balance += total
+            if (input.movementType == InvoiceMovementType.CREDIT) account.balance += total
             else account.balance -= total
 
             invoiceDependencies.accountRepo.update(account)

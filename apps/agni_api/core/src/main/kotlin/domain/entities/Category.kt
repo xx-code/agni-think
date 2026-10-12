@@ -8,6 +8,7 @@ class Category(
     title: String,
     icon: String,
     color: Color,
+    val userId: UUID? = null,
     isSystem: Boolean = false,
     isArchived: Boolean = false
 ): Entity(id = id) {

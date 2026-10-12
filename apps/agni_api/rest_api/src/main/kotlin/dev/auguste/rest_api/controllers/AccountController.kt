@@ -12,6 +12,8 @@ import usecases.accounts.dto.GetAccountWithDetailOutput
 import usecases.accounts.dto.UpdateAccountInput
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -22,10 +24,10 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import usecases.dto.CreatedOutput
 import usecases.accounts.dto.CreateAccountInput
+import usecases.accounts.dto.GetAllAccountInput
 import usecases.accounts.dto.GetTotalBalanceAmountOutput
 import usecases.interfaces.IUseCase
 import java.util.UUID
-import kotlin.getOrThrow
 
 @RestController
 @RequestMapping("/v2/accounts")
@@ -33,9 +35,9 @@ class AccountController(
     private val createAccountUseCase: IUseCase<CreateAccountInput, CreatedOutput>,
     private val updateAccountUseCase: IUseCase<UpdateAccountInput, Unit>,
     private val getAccountUseCase: IUseCase<UUID, GetAccountOutput>,
-    private val getAllAccountUseCase: IUseCase<QueryFilter, ListOutput<GetAccountOutput>>,
+    private val getAllAccountUseCase: IUseCase<GetAllAccountInput, ListOutput<GetAccountOutput>>,
     private val getAccountWithDetailUseCase: IUseCase<UUID, GetAccountWithDetailOutput>,
-    private val getAllAccountWithDetailUseCase: IUseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>>,
+    private val getAllAccountWithDetailUseCase: IUseCase<GetAllAccountInput, ListOutput<GetAccountWithDetailOutput>>,
     private val deleteAccountUseCase: IUseCase<DeleteAccountInput, Unit>,
     private val getTotalBalanceUseCase: IUseCase<Unit, GetTotalBalanceAmountOutput>
 ) {
@@ -43,9 +45,9 @@ class AccountController(
     @GetMapping
     suspend fun getAccounts(queryFilter: QueryFilter, withDetail: Boolean = false): ResponseEntity<ListOutput<*>> {
         val res = if (withDetail)  {
-            getAllAccountWithDetailUseCase.execute(queryFilter)
+            getAllAccountWithDetailUseCase.execute(GetAllAccountInput(queryFilter))
         } else {
-            getAllAccountUseCase.execute(queryFilter)
+            getAllAccountUseCase.execute(GetAllAccountInput(queryFilter))
         }
 
         return ResponseEntity.ok(res.getOrThrow())

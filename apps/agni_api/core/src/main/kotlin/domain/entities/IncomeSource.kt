@@ -14,6 +14,7 @@ import domain.exceptions.ValidationException
 
 class IncomeSource(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     title: String,
     type: IncomeSourceType,
     payFrequency: IncomeSourceFrequencyType,

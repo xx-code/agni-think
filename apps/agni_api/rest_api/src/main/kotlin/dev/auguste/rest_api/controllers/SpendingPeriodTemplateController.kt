@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import usecases.spending_period_template.dto.GetAllSpendingPeriodTemplateInput
 import java.util.UUID
 
 @RestController
@@ -30,7 +31,7 @@ class SpendingPeriodTemplateController(
     val createSpendingPeriodTemplateUc: IUseCase<CreateSpendingPeriodTemplateInput, CreatedOutput>,
     val updateSpendingPeriodTemplateUc: IUseCase<UpdateSpendingPeriodTemplateInput, Unit>,
     val getSpendingPeriodTemplateUc: IUseCase<UUID, GetSpendingPeriodTemplateOutput>,
-    val getAllSpendingPeriodTemplateUc: IUseCase<QueryFilter, ListOutput<GetSpendingPeriodTemplateOutput>>,
+    val getAllSpendingPeriodTemplateUc: IUseCase<GetAllSpendingPeriodTemplateInput, ListOutput<GetSpendingPeriodTemplateOutput>>,
     @Qualifier("deleteSpendingPeriodTemplate") val deleteSpendingPeriodTemplateUc: IUseCase<UUID, Unit>
 ) {
 
@@ -63,7 +64,7 @@ class SpendingPeriodTemplateController(
     @GetMapping
     suspend fun getAllSpendingPeriodTemplates(query: QueryFilter) : ResponseEntity<ListOutput<GetSpendingPeriodTemplateOutput>> {
         return ResponseEntity.ok(getAllSpendingPeriodTemplateUc.execute(
-            query
+            GetAllSpendingPeriodTemplateInput(query)
         ).getOrThrow())
     }
 }

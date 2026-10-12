@@ -1,6 +1,7 @@
 package usecases.provision
 
 import usecases.interfaces.IUseCase
+import adapters.IAuthenticateAdapter
 
 import adapters.dto.QueryFilter
 import adapters.dto.ScheduleRepeaterInput
@@ -27,12 +28,13 @@ import domain.enums.ScheduleInvoiceModuleLinkerType
 import usecases.UseCase
 
 class UpdateProvision(
-    unitOfWork: IUnitOfWork,
     private val provisionRepo: IRepository<Provision>,
     private val fundRepo: IRepository<Fund>,
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
     private val updateScheduleInvoice: IUseCase<UpdateScheduleInvoiceInput, Unit>,
-): UseCase<UpdateProvisionInput, Unit>(unitOfWork) {
+    unitOfWork: IUnitOfWork,
+    auth: IAuthenticateAdapter,
+): UseCase<UpdateProvisionInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
     override suspend fun process(input: UpdateProvisionInput) {
         val provision = provisionRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "provision")
 

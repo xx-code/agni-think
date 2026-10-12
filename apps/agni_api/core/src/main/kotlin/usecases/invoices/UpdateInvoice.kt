@@ -2,12 +2,12 @@ package usecases.invoices
 
 import usecases.interfaces.IUseCase
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
-import domain.entities.InternalLoan
 import domain.entities.Invoice
 import facades.InvoiceDependencies
 import usecases.dto.CreatedOutput
@@ -29,26 +29,13 @@ class UpdateInvoice(
     private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
     private val deleteInvoice: IUseCase<DeleteInvoiceInput, Unit>,
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
-    unitOfWork: IUnitOfWork
-): UseCase<UpdateInvoiceInput, Unit>(unitOfWork) {
+    unitOfWork: IUnitOfWork,
+    auth: IAuthenticateAdapter
+): UseCase<UpdateInvoiceInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
     override suspend fun process(
         input: UpdateInvoiceInput
     ) {
         val invoice = invoiceRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "invoice")
-
-        val conditionInternalLoan = QueryExtendBuilder<InternalLoan>()
-            .addCondition("invoiceId", QueryComparator.Equal, input.id)
-        val internalLoans = invoiceDependencies.internalLoanRepo.getAll(QueryFilter(queryAll = true), conditionInternalLoan)
-        if (internalLoans.items.isNotEmpty()) {
-            throw ValidationException.InternalLoanLinkCantBeDelete()
-        }
-
-        val conditionInternalLoanReturn = QueryExtendBuilder<InternalLoan>()
-            .addCondition("trackRefunds", QueryComparator.In, invoice.id)
-        val internalLoanRefunds = invoiceDependencies.internalLoanRepo.getAll(QueryFilter(queryAll = true), conditionInternalLoanReturn)
-        if (internalLoanRefunds.items.isNotEmpty()) {
-            throw ValidationException.InternalLoanLinkCantBeDelete()
-        }
 
         if (input.accountId != null) {
             if (invoiceDependencies.accountRepo.get(input.accountId) == null)
@@ -108,10 +95,11 @@ class UpdateInvoice(
                 status = invoice.status,
                 date = invoice.date,
                 type = invoice.type,
-                mouvementType = invoice.movement,
+                movementType = invoice.movement,
                 currency = null,
                 isFreeze = invoice.isFreeze,
                 transactions = finalTransactions,
+                userId = invoice.userId,
                 deductions = invoice.deductions.map { InvoiceDeductionInput(
                     it.deductionId, it.amount
                 ) }.toSet()

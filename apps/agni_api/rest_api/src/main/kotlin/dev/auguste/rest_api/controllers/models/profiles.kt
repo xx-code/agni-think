@@ -55,7 +55,7 @@ fun mapApiCreateProfileToCreateProfile(input: ApiCreateProfileModel) : CreatePro
 fun mapApiUpdateProfileToUpdateProfile(id: UUID, input: ApiUpdateProfileModel) : UpdateProfileInput {
 
     return UpdateProfileInput(
-        id = tempPrivateProfileKey,
+        id = id,
         maxWishlistAmount = input.maxWishlistAmount,
         fixSpendPercentage = input.fixSpendPercentage,
         varialSpendPercentage = input.varialSpendPercentage,

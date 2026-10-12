@@ -12,11 +12,11 @@ import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
 import usecases.funds.dto.CreateFundInput
-import usecases.funds.dto.DecreaseSavingGoalInput
+import usecases.funds.dto.DecreaseFundInput
 import usecases.funds.dto.DeleteFundInput
 import usecases.funds.dto.GetAllFundInput
 import usecases.funds.dto.GetSavingGoalOutput
-import usecases.funds.dto.IncreaseSavingGoalInput
+import usecases.funds.dto.IncreaseFundInput
 import usecases.funds.dto.UpdateFundInput
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -37,8 +37,8 @@ class FundController (
     private val deleteSavingGoalUseCase: IUseCase<DeleteFundInput, Unit>,
     private val getSavingGoalUseCase: IUseCase<UUID, GetSavingGoalOutput>,
     private val getAllSavingGoalUseCase: IUseCase<GetAllFundInput, ListOutput<GetSavingGoalOutput>>,
-    private val increaseSavingGoalUseCase: IUseCase<IncreaseSavingGoalInput, Unit>,
-    private val decreaseSavingGoalUseCase: IUseCase<DecreaseSavingGoalInput, Unit>,
+    private val increaseSavingGoalUseCase: IUseCase<IncreaseFundInput, Unit>,
+    private val decreaseSavingGoalUseCase: IUseCase<DecreaseFundInput, Unit>,
 ){
 
     @PostMapping
@@ -80,8 +80,8 @@ class FundController (
     @PutMapping("/{id}/increase")
     suspend fun increaseSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpgradeSavingGoalModel): ResponseEntity<Unit> {
         return ResponseEntity.ok(increaseSavingGoalUseCase.execute(
-            IncreaseSavingGoalInput(
-                savingGoalId = id,
+            IncreaseFundInput(
+                fundId = id,
                 accountId = request.accountId,
                 amount = request.amount
             )
@@ -91,8 +91,8 @@ class FundController (
     @PutMapping("/{id}/decrease")
     suspend fun decreaseSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpgradeSavingGoalModel): ResponseEntity<Unit> {
         return ResponseEntity.ok(decreaseSavingGoalUseCase.execute(
-            DecreaseSavingGoalInput(
-                savingGoalId = id,
+            DecreaseFundInput(
+                fundId = id,
                 accountId = request.accountId,
                 amount = request.amount
             )

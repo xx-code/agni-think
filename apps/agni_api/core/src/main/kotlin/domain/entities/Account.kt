@@ -6,6 +6,7 @@ import java.util.UUID
 
 class Account(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     title: String,
     balance: Double,
     detail: IAccountDetail,

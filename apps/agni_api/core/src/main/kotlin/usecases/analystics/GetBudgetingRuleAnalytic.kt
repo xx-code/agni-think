@@ -1,5 +1,8 @@
 package usecases.analystics
 
+import adapters.IAuthenticateAdapter
+import adapters.repositories.IRepository
+import domain.entities.User
 import usecases.UseCase
 import domain.utils.LocalDateTimeRange
 import usecases.analystics.dto.GetBudgetingRuleAnalyticInput
@@ -13,8 +16,11 @@ import domain.enums.InvoiceType
 class GetBudgetingRuleAnalytic(
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     private val getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
-): UseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput>() {
+    auth: IAuthenticateAdapter,
+): UseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput>(auth = auth) {
     override suspend fun process(input: GetBudgetingRuleAnalyticInput): GetBudgetingRuleAnalyticOutput {
+        val currentUser = getCurrentUser()
+
         val range = if (input.startDate != null && input.endDate != null) {
             LocalDateTimeRange(input.startDate, input.endDate)
         } else {
@@ -22,17 +28,20 @@ class GetBudgetingRuleAnalytic(
         }
 
         val periodBalance = getBalance.processDirect(GetBalanceInput(
+            userId = currentUser.id,
             startDate = range.start,
             endDate = range.end,
         ))
 
         val fixedCostBalance = getBalance.processDirect(GetBalanceInput(
+            userId = currentUser.id,
             types = setOf(InvoiceType.FIXED_COST),
             startDate = range.start,
             endDate = range.end,
         ))
 
         val variableCostBalance = getBalance.processDirect(GetBalanceInput(
+            userId = currentUser.id,
             types = setOf(InvoiceType.VARIABLE_COST),
             startDate = range.start,
             endDate = range.end

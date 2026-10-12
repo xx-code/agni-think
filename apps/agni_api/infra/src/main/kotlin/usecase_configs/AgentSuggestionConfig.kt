@@ -1,7 +1,9 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.entities.AgentSuggestion
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.agent_suggestions.AddSuggestion
@@ -22,23 +24,27 @@ class AgentSuggestionConfig {
     @Bean
     fun addAgentSuggestion(
         agentSuggestionRepo: IRepository<AgentSuggestion>,
+        auth: IAuthenticateAdapter
     ): UseCase<AddSuggestionInput, CreatedOutput> {
         return AddSuggestion(
-            agentSuggestionRepo
+            agentSuggestionRepo,
+            auth = auth
         )
     }
 
     @Bean
     fun confirmAgentSuggestion(
         agentSuggestionRepo: IRepository<AgentSuggestion>,
+        auth: IAuthenticateAdapter
     ): UseCase<ConfirmSuggestionInput, Unit> {
-        return ConfirmSuggestion(agentSuggestionRepo)
+        return ConfirmSuggestion(agentSuggestionRepo, auth = auth)
     }
 
     @Bean
     fun getAllAgentSuggestions(
         agentSuggestionRepo: IRepository<AgentSuggestion>,
+        auth: IAuthenticateAdapter
     ): UseCase<GetAllSuggestionInput, ListOutput<GetSuggestionOutput>> {
-        return GetAllSuggestions(agentSuggestionRepo)
+        return GetAllSuggestions(agentSuggestionRepo, auth = auth)
     }
 }

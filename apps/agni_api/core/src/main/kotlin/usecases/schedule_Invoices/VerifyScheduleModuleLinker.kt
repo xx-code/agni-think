@@ -1,6 +1,7 @@
 package usecases.schedule_Invoices
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.IncomeSource
@@ -13,7 +14,8 @@ class VerifyScheduleModuleLinker(
     private val incomeSourceRepo: IRepository<IncomeSource>,
     private val fundSourceRepo: IRepository<Fund>,
     private val provisionRepo: IRepository<Provision>,
-): UseCase<ScheduleInvoiceModuleLinker, Unit>() {
+    auth: IAuthenticateAdapter
+): UseCase<ScheduleInvoiceModuleLinker, Unit>(auth = auth) {
     override suspend fun process(input: ScheduleInvoiceModuleLinker) {
         when (input.module) {
             ScheduleInvoiceModuleLinkerType.FUND -> {

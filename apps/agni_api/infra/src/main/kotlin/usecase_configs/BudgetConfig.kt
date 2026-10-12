@@ -1,8 +1,10 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.events.IEventRegister
 import adapters.repositories.IRepository
 import domain.entities.Budget
+import domain.entities.User
 import usecases.dto.BackgroundTaskOut
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
@@ -31,27 +33,33 @@ class BudgetConfig {
     @Bean
     fun createBudget(
         budgetRepo: IRepository<Budget>,
+        auth: IAuthenticateAdapter
     ) : UseCase<CreateBudgetInput, CreatedOutput> {
         return CreateBudget(
-            budgetRepo = budgetRepo
+            budgetRepo = budgetRepo,
+            auth = auth
         )
     }
     
     @Bean 
     fun updateBudget(
         budgetRepo : IRepository<Budget>,
+        auth: IAuthenticateAdapter
     ) : UseCase<UpdateBudgetInput, Unit> {
         return UpdateBudget(
-            budgetRepo = budgetRepo
+            budgetRepo = budgetRepo,
+            auth = auth
         )
     }
     
     @Bean
     fun deleteBudget(
         budgetRepo : IRepository<Budget>,
+        auth: IAuthenticateAdapter
     ) : UseCase<DeleteBudgetInput, Unit> {
         return DeleteBudget(
             budgetRepo = budgetRepo,
+            auth = auth
         )
     }
     
@@ -59,10 +67,12 @@ class BudgetConfig {
     fun getBudget(
         budgetRepo : IRepository<Budget>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
+        auth: IAuthenticateAdapter
     ) : UseCase<UUID, GetBudgetOutput> {
         return GetBudget(
             budgetRepo = budgetRepo,
-            getBalance = getBalance
+            getBalance = getBalance,
+            auth = auth
         )
     }
     
@@ -70,10 +80,12 @@ class BudgetConfig {
     fun getAllBudgets(
         budgetRepo : IRepository<Budget>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
+        auth: IAuthenticateAdapter
     ) : UseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>> {
         return GetAllBudgets(
             budgetRepo = budgetRepo,
-            getBalance = getBalance
+            getBalance = getBalance,
+            auth = auth
         )
     }
 

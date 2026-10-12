@@ -1,8 +1,11 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.IChecker
+import adapters.readers.IGetAllCategoryReader
 import adapters.repositories.IRepository
 import domain.entities.Category
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.dto.DeleteOutput
 import usecases.dto.ListOutput
@@ -27,48 +30,58 @@ class CategoryConfig {
 
     @Bean
     fun createCategory(
-        categoryRepository: IRepository<Category>
-    ): UseCase<CreateCategoryInput, CreatedOutput> {
+        categoryRepository: IRepository<Category>,
+        auth: IAuthenticateAdapter
+        ): UseCase<CreateCategoryInput, CreatedOutput> {
         return CreateCategory(
-            categoryRepo = categoryRepository
+            categoryRepo = categoryRepository,
+            auth = auth
         )
     }
 
     @Bean
     fun deleteCategory(
         categoryRepository: IRepository<Category>,
-        checker: IChecker<Category>
+        checker: IChecker<Category>,
+        auth: IAuthenticateAdapter
     ): UseCase<DeleteCategoryInput, DeleteOutput> {
         return DeleteCategory(
             categoryRepo = categoryRepository,
-             checker
+             checker,
+            auth = auth
         )
     }
 
     @Bean
     fun getAllCategories(
-        categoryRepository: IRepository<Category>
+        categoryRepository: IGetAllCategoryReader,
+        auth: IAuthenticateAdapter
     ): UseCase<GetAllCategoryInput, ListOutput<GetCategoryOutput>> {
        return GetAllCategory(
-           categoryRepo = categoryRepository
+           categoryRepo = categoryRepository,
+           auth = auth
        )
     }
 
     @Bean
     fun getCategory(
-        categoryRepository: IRepository<Category>
+        categoryRepository: IRepository<Category>,
+        auth: IAuthenticateAdapter
     ): UseCase<UUID, GetCategoryOutput> {
         return GetCategory(
-            categoryRepo = categoryRepository
+            categoryRepo = categoryRepository,
+            auth = auth
         )
     }
 
     @Bean
     fun updateCategory(
-        categoryRepository: IRepository<Category>
+        categoryRepository: IRepository<Category>,
+        auth: IAuthenticateAdapter
     ): UseCase<UpdateCategoryInput, Unit> {
         return UpdateCategory(
-            categoryRepo = categoryRepository
+            categoryRepo = categoryRepository,
+            auth = auth
         )
     }
 }

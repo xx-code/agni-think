@@ -1,8 +1,11 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.IChecker
+import adapters.readers.IGetAllTagReader
 import adapters.repositories.IRepository
 import domain.entities.Tag
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.dto.DeleteOutput
 import usecases.dto.ListOutput
@@ -27,48 +30,58 @@ class TagConfig {
 
     @Bean
     fun createTag(
-       tagRepository: IRepository<Tag>
+        tagRepository: IRepository<Tag>,
+        auth: IAuthenticateAdapter
     ): UseCase<CreateTagInput, CreatedOutput> {
         return CreateTag(
             tagRepo = tagRepository,
+            auth = auth
         )
     }
 
     @Bean
     fun getTag(
-        tagRepository: IRepository<Tag>
+        tagRepository: IRepository<Tag>,
+        auth: IAuthenticateAdapter
     ): UseCase<UUID, GetTagOutput> {
         return GetTag(
-            tagRepo = tagRepository
+            tagRepo = tagRepository,
+            auth = auth
         )
     }
 
     @Bean
     fun deleteTag(
         tagRepository: IRepository<Tag>,
-        checker: IChecker<Tag>
+        checker: IChecker<Tag>,
+        auth: IAuthenticateAdapter
     ): UseCase<DeleteTagInput, DeleteOutput> {
         return DeleteTag(
             tagRepo = tagRepository,
-            checker = checker
+            checker = checker,
+            auth = auth
         )
     }
 
     @Bean
     fun getAllTags(
-        tagRepository: IRepository<Tag>
+        tagRepository: IGetAllTagReader,
+        auth: IAuthenticateAdapter
     ): UseCase<GetAllTagInput, ListOutput<GetTagOutput>> {
         return GetAllTags(
-            tagRepo = tagRepository
+            tagRepo = tagRepository,
+            auth = auth
         )
     }
 
     @Bean
     fun updateTag(
-        tagRepository: IRepository<Tag>
+        tagRepository: IRepository<Tag>,
+        auth: IAuthenticateAdapter
     ): UseCase<UpdateTagInput, Unit> {
         return UpdateTag(
             tagRepo = tagRepository,
+            auth = auth
         )
     }
 }

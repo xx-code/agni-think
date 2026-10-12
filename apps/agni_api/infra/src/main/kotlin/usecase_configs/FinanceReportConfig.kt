@@ -1,5 +1,6 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.FinanceReport
@@ -23,31 +24,36 @@ class FinanceReportConfig {
 
     @Bean
     fun createFinanceReport(
-        financeRepo: IRepository<FinanceReport>
+        financeRepo: IRepository<FinanceReport>,
+        auth: IAuthenticateAdapter,
     ): UseCase<CreateFinanceReportInput, CreatedOutput> {
-        return CreateFinanceReport(financeRepo)
+        return CreateFinanceReport(financeRepo, auth)
     }
 
     @Bean
     fun getFinanceReport(
-        financeReportRepo: IRepository<FinanceReport>
+        financeReportRepo: IRepository<FinanceReport>,
+        auth: IAuthenticateAdapter,
     ): UseCase<GetFinanceReportInput, GetFinanceReportOutput> {
-        return GetFinanceReport(financeReportRepo)
+        return GetFinanceReport(financeReportRepo, auth)
     }
 
     @Bean
     fun getAllFinanceReport(
-        financeReportRepo: IRepository<FinanceReport>
+        financeReportRepo: IRepository<FinanceReport>,
+        auth: IAuthenticateAdapter,
     ): UseCase<QueryFilter, ListOutput<GetFinanceReportOutput>> {
         return GetAllFinanceReport(
-            financeReportRepo
+            financeReportRepo,
+            auth
         )
     }
 
     @Bean
     fun deleteFinanceReport(
-        financeReportRepo: IRepository<FinanceReport>
+        financeReportRepo: IRepository<FinanceReport>,
+        auth: IAuthenticateAdapter,
     ): UseCase<DeleteFinanceReportInput, Unit> {
-        return DeleteFinanceReport(financeReportRepo)
+        return DeleteFinanceReport(financeReportRepo, auth)
     }
 }

@@ -1,5 +1,6 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.Currency
@@ -25,46 +26,56 @@ class CurrencyConfig {
 
     @Bean
     fun createCurrency(
-       currencyRepo: IRepository<Currency>
+       currencyRepo: IRepository<Currency>,
+       auth: IAuthenticateAdapter
     ): UseCase<CreateCurrencyInput, CreatedOutput> {
         return CreateCurrency(
-            currencyRepo = currencyRepo
+            currencyRepo = currencyRepo,
+            auth = auth,
         )
     }
 
     @Bean
     fun deleteCurrency(
-        currencyRepo: IRepository<Currency>
+        currencyRepo: IRepository<Currency>,
+        auth: IAuthenticateAdapter
     ): UseCase<DeleteCurrencyInput, Unit> {
         return DeleteCurrency(
-            currencyRepo = currencyRepo
+            currencyRepo = currencyRepo,
+            auth = auth,
         )
     }
 
     @Bean
     fun getCurrency(
-        currencyRepo: IRepository<Currency>
+        currencyRepo: IRepository<Currency>,
+        auth: IAuthenticateAdapter
     ): UseCase<UUID, GetCurrencyOutput> {
         return GetCurrency(
-            currencyRepo = currencyRepo
+            currencyRepo = currencyRepo,
+            auth = auth,
         )
     }
 
     @Bean
     fun getAllCurrencies(
-        currencyRepo: IRepository<Currency>
+        currencyRepo: IRepository<Currency>,
+        auth: IAuthenticateAdapter
     ): UseCase<QueryFilter, ListOutput<GetCurrencyOutput>> {
         return GetAllCurrencies(
-            currencyRepo = currencyRepo
+            currencyRepo = currencyRepo,
+            auth = auth,
         )
     }
 
     @Bean
     fun updateCurrency(
-        currencyRepo: IRepository<Currency>
+        currencyRepo: IRepository<Currency>,
+        auth: IAuthenticateAdapter
     ): UseCase<UpdateCurrencyInput, Unit> {
         return UpdateCurrency(
-            currencyRepo = currencyRepo
+            currencyRepo = currencyRepo,
+            auth = auth,
         )
     }
 }

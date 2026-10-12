@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 
 import domain.exceptions.ValidationException
 import java.time.LocalDate
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -18,6 +19,7 @@ class SpendingPeriodTemplateValidationTest {
 
     private fun template(startDate: LocalDate = start, endDate: LocalDate? = end, isActive: Boolean = true) =
         SpendingPeriodTemplate(
+            userId = UUID.randomUUID(),
             startDate = startDate,
             recurrence = monthlyScheduler().repeater!!,
             isActive = isActive,
@@ -48,7 +50,7 @@ class SpendingPeriodTemplateValidationTest {
     }
 
     @Test
-    fun `refuses moving the start date after the end date`() = runBlocking {
+    fun `refuses moving the start date after the end date`() {
         val template = template()
 
         assertFailsWith<ValidationException.SpendingPeriodTemplateStartDateMustBeLesserThanEndDate> {
@@ -57,7 +59,7 @@ class SpendingPeriodTemplateValidationTest {
     }
 
     @Test
-    fun `refuses an end date on or before the start date`() = runBlocking {
+    fun `refuses an end date on or before the start date`() {
         val template = template()
 
         val error = assertFailsWith<ValidationException.SpendingPeriodTemplateEndDateMustBeGreaterThanStartDate> {

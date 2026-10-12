@@ -1,18 +1,25 @@
 package usecases.schedule_Invoices
 
 import usecases.UseCase
-import adapters.dto.QueryFilter
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.ScheduleInvoice
 import usecases.dto.ListOutput
+import usecases.schedule_Invoices.dto.GetAllScheduleInvoiceInput
 import usecases.schedule_Invoices.dto.GetScheduleInvoiceOutput
 import usecases.schedule_Invoices.dto.ScheduleInvoiceRepeaterOutput
 
 class GetAllScheduleInvoice(
-    private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>
-): UseCase<QueryFilter, ListOutput<GetScheduleInvoiceOutput>>() {
-    override suspend fun process(input: QueryFilter): ListOutput<GetScheduleInvoiceOutput> {
-        val scheduleInvoices = scheduleInvoiceRepo.getAll(input)
+    private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+    auth: IAuthenticateAdapter
+): UseCase<GetAllScheduleInvoiceInput, ListOutput<GetScheduleInvoiceOutput>>(auth = auth) {
+    override suspend fun process(input: GetAllScheduleInvoiceInput): ListOutput<GetScheduleInvoiceOutput> {
+        val currentUser = getCurrentUser()
+        val condition = QueryExtendBuilder<ScheduleInvoice>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val scheduleInvoices = scheduleInvoiceRepo.getAll(input.queryFilter, condition)
 
         return ListOutput(
             items = scheduleInvoices.items.map {

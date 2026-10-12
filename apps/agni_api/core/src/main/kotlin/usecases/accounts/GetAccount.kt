@@ -1,5 +1,6 @@
 package usecases.accounts
 
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.exceptions.NotFoundException
@@ -8,7 +9,10 @@ import usecases.accounts.dto.GetAccountOutput
 import usecases.interfaces.IUseCase
 import java.util.UUID
 
-class GetAccount(private val accountRepo: IRepository<Account>): UseCase<UUID, GetAccountOutput>(){
+class GetAccount(
+    private val accountRepo: IRepository<Account>,
+    auth: IAuthenticateAdapter
+    ): UseCase<UUID, GetAccountOutput>(auth = auth) {
 
     override suspend fun process(input: UUID): GetAccountOutput {
         val account = accountRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "account")

@@ -18,7 +18,7 @@ class GoalStatusTypeTest {
     }
 
     @Test
-    fun `fromInt throws for out of range values`() = runBlocking {
+    fun `fromInt throws for out of range values`() {
         assertFailsWith<ValidationException.BadType> { GoalStatusType.fromInt(-1) }
         assertFailsWith<ValidationException.BadType> { GoalStatusType.fromInt(3) }
         assertFailsWith<ValidationException.BadType> { GoalStatusType.fromInt(10) }

@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.ValidationException
@@ -14,8 +15,9 @@ import java.util.UUID
 
 class GetManyInvoices(
     private val invoiceRepo: IRepository<Invoice>,
-    private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>
-): UseCase<Set<UUID>, List<GetInvoiceOutput>>() {
+    private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+    auth: IAuthenticateAdapter
+): UseCase<Set<UUID>, List<GetInvoiceOutput>>(auth=auth) {
     override suspend fun process(input: Set<UUID>): List<GetInvoiceOutput> {
         val invoices = invoiceRepo.getManyByIds(input)
 

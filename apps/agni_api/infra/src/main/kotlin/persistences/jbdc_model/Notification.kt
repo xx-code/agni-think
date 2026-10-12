@@ -14,6 +14,7 @@ data class JdbcNotificationModel(
     @Id
     @get:JvmName("getIdentifier")
     val notificationId: UUID,
+    val userId: UUID,
 
     val title: String,
 
@@ -34,6 +35,7 @@ class JdbcNotificationModelMapper: IMapper<JdbcNotificationModel, Notification> 
     override fun toDomain(model: JdbcNotificationModel): Notification {
         return Notification(
             id = model.id,
+            userId = model.userId,
             title = model.title,
             content = model.content,
             dateTime = model.date,
@@ -44,6 +46,7 @@ class JdbcNotificationModelMapper: IMapper<JdbcNotificationModel, Notification> 
     override fun toModel(entity: Notification): JdbcNotificationModel {
         return JdbcNotificationModel(
             notificationId = entity.id,
+            userId = entity.userId,
             title = entity.title,
             content = entity.content,
             isRead = entity.isRead,
@@ -53,6 +56,7 @@ class JdbcNotificationModelMapper: IMapper<JdbcNotificationModel, Notification> 
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "notification_id",
+        "userId" to "user_id",
         "title" to "title",
         "content" to "content",
         "dateTime" to "date",

@@ -6,6 +6,7 @@ import java.util.UUID
 
 class AgentSuggestion(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     val agentId: String,
     val agentName: String,
     title: String,

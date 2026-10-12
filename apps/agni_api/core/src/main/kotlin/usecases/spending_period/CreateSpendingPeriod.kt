@@ -1,6 +1,7 @@
 package usecases.spending_period
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.SpendingPeriod
@@ -15,7 +16,8 @@ import kotlin.collections.map
 class CreateSpendingPeriod(
     private val spendingPeriodRepo: IRepository<SpendingPeriod>,
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
-): UseCase<CreateSpendingPeriodInput, CreatedOutput>() {
+    auth: IAuthenticateAdapter
+): UseCase<CreateSpendingPeriodInput, CreatedOutput>(auth = auth) {
     override suspend fun process(input: CreateSpendingPeriodInput): CreatedOutput {
         val template = spendingPeriodTemplateRepo.get(input.spendingPeriodTemplateId) ?: throw NotFoundException.SingleEntity(input.spendingPeriodTemplateId, "spending_period_template")
 
@@ -25,6 +27,7 @@ class CreateSpendingPeriod(
         )
 
         val newSpendingPeriod = SpendingPeriod(
+            userId = template.userId,
             spendingPeriodTemplateId = input.spendingPeriodTemplateId,
             startDate = template.startDate,
             endDate = scheduler.upgradeDate().toLocalDate(),

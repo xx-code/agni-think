@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import adapters.IAuthenticateAdapter
 import usecases.interfaces.IUseCase
 
 import usecases.UseCase
@@ -13,6 +14,7 @@ import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.entities.Invoice
+import domain.entities.Notification
 import domain.enums.InvoiceStatusType
 import usecases.dto.BackgroundTaskOut
 import usecases.invoices.dto.DeleteInvoiceInput
@@ -41,7 +43,8 @@ class RemoveFreezeInvoice(
                 eventRegister.notify(EventType.NOTIFICATION, NotificationEventContent(
                     "Transaction degeler",
                     "Transaction ${account?.title} a une transaction geler",
-                    NotificationType.Success
+                    NotificationType.Success,
+                    userId = invoiceItem.userId
                 ))
             }
 
@@ -51,7 +54,8 @@ class RemoveFreezeInvoice(
             eventRegister.notify(EventType.NOTIFICATION, NotificationEventContent(
                 "Error While degele invoice",
                 "Error: ${error.message}",
-                NotificationType.Error
+                NotificationType.Error,
+                userId = Notification.SYSTEM_USER_ID
             ))
 
             return BackgroundTaskOut(error.localizedMessage)

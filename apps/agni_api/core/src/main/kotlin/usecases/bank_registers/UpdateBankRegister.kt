@@ -1,6 +1,7 @@
 package usecases.bank_registers
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.BankRegister
@@ -11,7 +12,8 @@ import domain.value_objects.AccountLinked
 class UpdateBankRegister(
     private val bankRegisterRepo: IRepository<BankRegister>,
     private val accountRepo: IRepository<Account>,
-): UseCase<UpdateBankRegisterInput, Unit>() {
+    auth: IAuthenticateAdapter
+): UseCase<UpdateBankRegisterInput, Unit>(auth = auth) {
     override suspend fun process(input: UpdateBankRegisterInput) {
         val bankRegister = bankRegisterRepo.get(input.bankRegisterId) ?: throw NotFoundException.SingleEntity(input.bankRegisterId, "bank_register")
 

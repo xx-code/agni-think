@@ -15,13 +15,10 @@ data class LocalDateTimeRange(
             val now = LocalDateTime.now()
 
             val startDate = when (period) {
-                PeriodType.MONTH -> now.minusMonths(interval.toLong())
-                    .with(TemporalAdjusters.firstDayOfMonth())
-                PeriodType.WEEK -> now.minusWeeks(interval.toLong())
-                    .with(DayOfWeek.MONDAY)
-                PeriodType.YEAR -> now.minusYears(interval.toLong())
-                    .with(TemporalAdjusters.firstDayOfYear())
-                PeriodType.DAY -> now.minusDays(interval.toLong())
+                PeriodType.MONTH -> now.with(TemporalAdjusters.firstDayOfMonth())
+                PeriodType.WEEK -> now.with(DayOfWeek.MONDAY)
+                PeriodType.YEAR -> now.with(TemporalAdjusters.firstDayOfYear())
+                PeriodType.DAY -> now
             }.with(LocalTime.MIN) // Force 00:00:00
 
             val endDate = if (interval == 0) {

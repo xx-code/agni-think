@@ -85,7 +85,7 @@ data class ApiCreateInvoiceModel(
     val date: LocalDateTime,
     @field:NotNull(message = "The invoice type cannot be null")
     val type: String,
-    @field:NotNull(message = "The invoice mouvement cannot be null")
+    @field:NotNull(message = "The invoice movement cannot be null")
     val mouvement: String,
     val currencyId: UUID?,
     val transactions: Set<ApiTransactionModel>,
@@ -118,13 +118,14 @@ data class ApiCreateFreezeInvoiceModel(
     val status: String
 )
 
-fun mapApiCreateInvoice(model: ApiCreateInvoiceModel): CreateInvoiceInput {
+fun mapApiCreateInvoice(userId: UUID, model: ApiCreateInvoiceModel): CreateInvoiceInput {
     return CreateInvoiceInput(
         accountId = model.accountId,
+        userId = userId,
         status = InvoiceStatusType.fromString(model.status)  ,
         date = model.date,
         type = InvoiceType.fromString(model.type),
-        mouvementType = InvoiceMovementType.fromString(model.mouvement) ,
+        movementType = InvoiceMovementType.fromString(model.mouvement) ,
         currency = model.currencyId,
         transactions = model.transactions.map {
             TransactionInput(
@@ -171,21 +172,23 @@ fun mapApiUpdateInvoice(id: UUID, model: ApiUpdateInvoiceModel): UpdateInvoiceIn
     )
 }
 
-fun mapApiTransfer(model: ApiTransferInvoiceModel): TransferInvoiceInput {
+fun mapApiTransfer(userId: UUID, model: ApiTransferInvoiceModel): TransferInvoiceInput {
     return TransferInvoiceInput(
         accountIdFrom = model.accountIdFrom,
         accountIdTo = model.accountIdTo,
         date = model.date,
+        userId = userId,
         amount = model.amount
     )
 }
 
-fun mapApiCreateFreezeInvoice(model: ApiCreateFreezeInvoiceModel) : CreateFreezeInvoiceInput {
+fun mapApiCreateFreezeInvoice(userId: UUID, model: ApiCreateFreezeInvoiceModel) : CreateFreezeInvoiceInput {
     return CreateFreezeInvoiceInput(
         accountId = model.accountId,
         endDate = model.endDate,
         title = model.title,
         amount = model.amount,
+        userId = userId,
         status = InvoiceStatusType.fromString(model.status)
     )
 }

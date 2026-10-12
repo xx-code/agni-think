@@ -1,13 +1,14 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.Currency
-import domain.entities.InternalLoan
 import domain.entities.Fund
 import domain.entities.Profile
 import domain.entities.ScheduleInvoice
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.accounts.CreateAccount
@@ -30,6 +31,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import usecases.UseCase
 import usecases.accounts.GetTotalBalanceAmount
+import usecases.accounts.dto.GetAllAccountInput
 import usecases.accounts.dto.GetTotalBalanceAmountOutput
 import usecases.analystics.dto.ForcastSpendingInput
 import usecases.analystics.dto.ForcastSpendingOutput
@@ -41,38 +43,46 @@ class AccountConfig {
     @Bean
     fun createAccount(
         accountRepo: IRepository<Account>,
-        currencyRepo: IRepository<Currency>
+        currencyRepo: IRepository<Currency>,
+        auth: IAuthenticateAdapter
     ): UseCase<CreateAccountInput, CreatedOutput> {
         return CreateAccount(
             accountRepository = accountRepo,
-            currencyRepository = currencyRepo
+            currencyRepository = currencyRepo,
+            auth = auth
         )
     }
 
     @Bean
     fun updateAccount(
-        accountRepo: IRepository<Account>
+        accountRepo: IRepository<Account>,
+        auth: IAuthenticateAdapter
     ): UseCase<UpdateAccountInput, Unit> {
         return UpdateAccount(
-            accountRepo = accountRepo
+            accountRepo = accountRepo,
+            auth = auth
         )
     }
 
     @Bean
     fun getAccount(
         accountRepo: IRepository<Account>,
+        auth: IAuthenticateAdapter
     ): UseCase<UUID, GetAccountOutput> {
         return GetAccount(
-            accountRepo = accountRepo
+            accountRepo = accountRepo,
+            auth = auth
         )
     }
 
     @Bean
     fun getAllAccounts(
-        accountRepo: IRepository<Account>
-    ): UseCase<QueryFilter, ListOutput<GetAccountOutput>> {
+        accountRepo: IRepository<Account>,
+        auth: IAuthenticateAdapter
+    ): UseCase<GetAllAccountInput, ListOutput<GetAccountOutput>> {
         return GetAllAccounts(
-            accountRepo = accountRepo
+            accountRepo = accountRepo,
+            auth = auth
         )
     }
 
@@ -80,16 +90,14 @@ class AccountConfig {
     fun getAccountWithDetail(
         accountRepo: IRepository<Account>,
         fundRepo: IRepository<Fund>,
-        internalLoanRepo: IRepository<InternalLoan>,
-        getInvoice: UseCase<UUID, GetInvoiceOutput>,
-        getBalance: UseCase<GetBalanceInput, GetBalanceOutput>
+        getBalance: UseCase<GetBalanceInput, GetBalanceOutput>,
+        auth: IAuthenticateAdapter
     ): UseCase<UUID, GetAccountWithDetailOutput> {
         return GetAccountWithDetail(
             accountRepo = accountRepo,
             fundRepo = fundRepo,
-            internalLoanRepo = internalLoanRepo,
-            getInvoice = getInvoice,
-            getBalance = getBalance
+            getBalance = getBalance,
+            auth = auth
         )
     }
 
@@ -97,15 +105,13 @@ class AccountConfig {
     fun getAllAccountsWithDetail(
         accountRepo: IRepository<Account>,
         fundRepo: IRepository<Fund>,
-        internalLoanRepo: IRepository<InternalLoan>,
-        getInvoice: UseCase<UUID, GetInvoiceOutput>,
-        getBalance: UseCase<GetBalanceInput, GetBalanceOutput>
-    ) : UseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>> {
+        getBalance: UseCase<GetBalanceInput, GetBalanceOutput>,
+        auth: IAuthenticateAdapter
+    ) : UseCase<GetAllAccountInput, ListOutput<GetAccountWithDetailOutput>> {
         return GetAllAccountWithDetail(
             accountRepo = accountRepo,
             fundRepo = fundRepo,
-            internalLoanRepo = internalLoanRepo,
-            getInvoice = getInvoice,
+            auth = auth,
             getBalance = getBalance
         )
     }
@@ -113,9 +119,11 @@ class AccountConfig {
     @Bean
     fun deleteAccount(
         accountRepo: IRepository<Account>,
+        auth: IAuthenticateAdapter
     ) : UseCase<DeleteAccountInput, Unit> {
        return DeleteAccount(
-           accountRepo = accountRepo
+           accountRepo = accountRepo,
+           auth = auth
        )
     }
 
@@ -126,15 +134,17 @@ class AccountConfig {
         profileRepo: IRepository<Profile>,
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         getBalance: UseCase<GetBalanceInput, GetBalanceOutput>,
-        forcastSpending: UseCase<ForcastSpendingInput, ForcastSpendingOutput>
+        forcastSpending: UseCase<ForcastSpendingInput, ForcastSpendingOutput>,
+        auth: IAuthenticateAdapter
     ) : UseCase<Unit, GetTotalBalanceAmountOutput> {
         return GetTotalBalanceAmount(
             accountRepo = accountRepo,
             fundRepo = fundRepo,
-            profile = profileRepo,
+            profileRepo = profileRepo,
             scheduleInvoiceRepo = scheduleInvoiceRepo,
             getBalance = getBalance,
-            forcastSpending = forcastSpending
+            forcastSpending = forcastSpending,
+            auth = auth,
         )
     }
 }

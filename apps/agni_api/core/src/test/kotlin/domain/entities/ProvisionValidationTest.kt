@@ -54,6 +54,7 @@ private fun buildProvision(
     id: UUID = UUID.randomUUID()
 ): Provision {
     return Provision(
+        userId = UUID.randomUUID(),
         id = id,
         title = title,
         costHT = costHT,
@@ -186,7 +187,7 @@ class ProvisionTest {
     }
 
     @Test
-    fun `reject zero or negative costHT`() = runBlocking {
+    fun `reject zero or negative costHT`() {
         val provision = buildProvision()
 
         assertThrows(ValidationException::class.java) {
@@ -199,7 +200,7 @@ class ProvisionTest {
     }
 
     @Test
-    fun `reject zero or negative costTTC`() = runBlocking {
+    fun `reject zero or negative costTTC`() {
         val provision = buildProvision()
 
         assertThrows(ValidationException::class.java) {
@@ -221,7 +222,7 @@ class ProvisionTest {
     }
 
     @Test
-    fun `reject negative interest loan`() = runBlocking {
+    fun `reject negative interest loan`() {
         val provision = buildProvision()
 
         val exception = assertThrows(ValidationException::class.java) {
@@ -241,7 +242,7 @@ class ProvisionTest {
     }
 
     @Test
-    fun `reject loan month equal to zero for loan provision`() = runBlocking {
+    fun `reject loan month equal to zero for loan provision`() {
         val provision = buildProvision(type = ProvisionType.DEPRECIATE_LOAN)
 
         val exception = assertThrows(ValidationException::class.java) {
@@ -252,7 +253,7 @@ class ProvisionTest {
     }
 
     @Test
-    fun `reject negative loan month`() = runBlocking {
+    fun `reject negative loan month`() {
         val provision = buildProvision(type = ProvisionType.DEPRECIATE_LOAN)
 
         assertThrows(ValidationException::class.java) {
@@ -261,7 +262,7 @@ class ProvisionTest {
     }
 
     @Test
-    fun `reject positive loan month on non loan provision`() = runBlocking {
+    fun `reject positive loan month on non loan provision`() {
         val provision = buildProvision(type = ProvisionType.DEPRECIATE)
 
         assertThrows(ValidationException::class.java) {
@@ -274,7 +275,7 @@ class ProvisionTest {
     // ---------------------------------------------------------------
 
     @Test
-    fun `accept payment info for loan provision`() = runBlocking {
+    fun `accept payment info for loan provision`() {
         val provision = buildProvision(type = ProvisionType.DEPRECIATE_LOAN)
         val payment = buildPayment()
 
@@ -293,7 +294,7 @@ class ProvisionTest {
     }
 
     @Test
-    fun `reject null payment info assignment`() = runBlocking {
+    fun `reject null payment info assignment`() {
         val provision = buildProvision(type = ProvisionType.DEPRECIATE_LOAN)
 
         assertThrows(ValidationException::class.java) {
@@ -302,7 +303,7 @@ class ProvisionTest {
     }
 
     @Test
-    fun `reject payment info on non loan provision`() = runBlocking {
+    fun `reject payment info on non loan provision`() {
         val provision = buildProvision(type = ProvisionType.DEPRECIATE)
 
         val exception = assertThrows(ValidationException::class.java) {

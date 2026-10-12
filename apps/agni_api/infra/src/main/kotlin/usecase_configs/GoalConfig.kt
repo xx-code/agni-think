@@ -1,12 +1,14 @@
 package usecase_configs
 
 import adapters.FinanceContext
+import adapters.IAuthenticateAdapter
 import adapters.IFinanceContext
 import adapters.events.IEventRegister
 import adapters.repositories.IRepository
 import domain.entities.Category
 import domain.entities.Goal
 import domain.entities.Fund
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.goals.CreateGoal
@@ -35,23 +37,27 @@ class GoalConfig {
     fun financeContext(
         fundRepo: IRepository<Fund>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-        categoryRepo: IRepository<Category>
+        categoryRepo: IRepository<Category>,
+        auth: IAuthenticateAdapter
     ): IFinanceContext {
         return FinanceContext(
             fundRepo = fundRepo,
             getBalance = getBalance,
-            categoryRepo = categoryRepo
+            categoryRepo = categoryRepo,
+            auth = auth
         )
     }
 
     @Bean
     fun createGoal(
         goalRepo: IRepository<Goal>,
-        financeContext: IFinanceContext
+        financeContext: IFinanceContext,
+        auth: IAuthenticateAdapter
     ): UseCase<CreateGoalInput, CreatedOutput> {
         return CreateGoal(
             goalRepo = goalRepo,
-            financeContext = financeContext
+            financeContext = financeContext,
+            auth = auth
         )
     }
 
@@ -59,40 +65,48 @@ class GoalConfig {
     fun getGoal(
         goalRepo: IRepository<Goal>,
         financeContext: IFinanceContext,
+        auth: IAuthenticateAdapter
     ): UseCase<UUID, GetGoalOutput> {
         return GetGoal(
             goalRepo = goalRepo,
-            financeContext = financeContext
+            financeContext = financeContext,
+            auth = auth
         )
     }
 
     @Bean fun getAllGoal(
         goalRepo: IRepository<Goal>,
         financeContext: IFinanceContext,
+        auth: IAuthenticateAdapter
     ): UseCase<GetAllGoalInput, ListOutput<GetGoalOutput>> {
         return GetAllGoals(
             goalRepo = goalRepo,
-            financeContext = financeContext
+            financeContext = financeContext,
+            auth = auth
         )
     }
 
     @Bean
     fun deleteGoal(
-        goalRepo: IRepository<Goal>
+        goalRepo: IRepository<Goal>,
+        auth: IAuthenticateAdapter
     ): UseCase<UUID, Unit> {
         return DeleteGoal(
-            goalRepo
+            goalRepo,
+            auth
         )
     }
 
     @Bean
     fun updateGoal(
         goalRepo: IRepository<Goal>,
-        financeContext: IFinanceContext
+        financeContext: IFinanceContext,
+        auth: IAuthenticateAdapter
     ): UseCase<UpdateGoalInput, Unit> {
         return UpdateGoal(
             goalRepo,
-            financeContext
+            financeContext,
+            auth
         )
     }
 

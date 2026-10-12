@@ -25,8 +25,6 @@ class CronJobOrchestratorEach12h(
     private val removeFreezeInvoice: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("updateDueBudget")
     private val updateBudgetDueDate: IUseCase<Unit, BackgroundTaskOut>,
-    @Qualifier("autoCompleteInternalLoan")
-    private val autoCompleteInternalLoan: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("applySpendingPeriodTemplate")
     private val applySpendingPeriodTemplate: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("makeProvisionInstallment")
@@ -51,7 +49,6 @@ class CronJobOrchestratorEach12h(
         executeTask("schedule invoice") { applyScheduleInvoiceUseCase.execute(Unit) }
         executeTask("remove freeze invoice") { removeFreezeInvoice.execute(Unit) }
         executeTask("update budget due date") { updateBudgetDueDate.execute(Unit) }
-        executeTask("update internal loan due date") { autoCompleteInternalLoan.execute(Unit) }
         executeTask("spending period template") { applySpendingPeriodTemplate.execute(Unit) }
         executeTask("sync goal") { syncGoal.execute(Unit) }
     }

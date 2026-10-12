@@ -1,5 +1,6 @@
 package usecases.deductions
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Deduction
@@ -7,7 +8,7 @@ import usecases.deductions.dto.GetDeductionOutput
 import domain.exceptions.NotFoundException
 import java.util.UUID
 
-class GetDeduction(private val deductionRepo: IRepository<Deduction>): UseCase<UUID, GetDeductionOutput>() {
+class GetDeduction(private val deductionRepo: IRepository<Deduction>, auth: IAuthenticateAdapter): UseCase<UUID, GetDeductionOutput>(auth = auth) {
     override suspend fun process(input: UUID): GetDeductionOutput {
         val deduction = deductionRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "deduction")
 

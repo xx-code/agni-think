@@ -12,6 +12,7 @@ import adapters.events.listeners.ICreateInvoiceEventListener
 import adapters.repositories.IRepository
 import domain.entities.Budget
 import domain.entities.Category
+import domain.entities.Notification
 import domain.entities.Tag
 import usecases.dto.BackgroundTaskOut
 import usecases.interfaces.IUseCase
@@ -76,7 +77,8 @@ class CreateInvoiceEmbedding(
                 NotificationEventContent(
                     title = "Fail to create embedding invoice",
                     message = "Invoice was failed to create embedding invoice: ${err.message}",
-                    type = NotificationType.Error
+                    type = NotificationType.Error,
+                    userId = Notification.SYSTEM_USER_ID,
                 )
             )
 

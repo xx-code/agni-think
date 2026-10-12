@@ -1,6 +1,7 @@
 package usecase_configs
 
 import adapters.IEmbeddingService
+import adapters.IAuthenticateAdapter
 import adapters.events.IEventRegister
 import adapters.events.listeners.ICreateExternalTransactionListener
 import adapters.events.listeners.ICreateInvoiceEventListener
@@ -16,10 +17,10 @@ import domain.entities.Budget
 import domain.entities.Category
 import domain.entities.Deduction
 import domain.entities.ExternalTransaction
-import domain.entities.InternalLoan
 import domain.entities.Invoice
 import domain.entities.Tag
 import domain.entities.Transaction
+import domain.entities.User
 import facades.InvoiceDependencies
 import usecases.dto.BackgroundTaskOut
 import usecases.dto.CreatedOutput
@@ -97,30 +98,30 @@ class InvoiceConfig {
         invoiceRepo: IRepository<Invoice>,
         accountRepo: IRepository<Account>,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
-        internalLoanRepo: IRepository<InternalLoan>,
         unitOfWork: IUnitOfWork,
         eventRegister: IEventRegister,
         snapshotBalanceAccountRepo: IAccountBalanceSnapshotRepository,
+        auth: IAuthenticateAdapter,
         ): UseCase<CompleteInvoiceInput, Unit> {
         return CompleteInvoice(
             invoiceRepo = invoiceRepo,
             getInvoiceTransactions = getInvoiceTransactions,
             accountRepo = accountRepo,
             unitOfWork = unitOfWork,
-            internalLoanRepo = internalLoanRepo,
             eventRegister = eventRegister,
             snapshotAccountBalanceRepo = snapshotBalanceAccountRepo,
+            auth = auth,
         )
     }
 
     @Bean
     fun createFreezeInvoice(
         unitOfWork: IUnitOfWork,
-        createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>
+        createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
     ): UseCase<CreateFreezeInvoiceInput, CreatedOutput> {
         return CreateFreezeInvoice(
             createInvoice = createInvoice,
-            unitOfWork = unitOfWork
+            unitOfWork = unitOfWork,
         )
     }
 
@@ -131,12 +132,14 @@ class InvoiceConfig {
         unitOfWork: IUnitOfWork,
         eventRegister: IEventRegister,
         snapshotBalanceAccountRepo: IAccountBalanceSnapshotRepository,
+        userRepo: IRepository<User>,
     ): UseCase<CreateInvoiceInput, CreatedOutput> {
         return CreateInvoice(
             invoiceRepo = invoiceRepo,
             invoiceDependencies = invoiceDependencies,
             unitOfWork = unitOfWork,
             eventRegister = eventRegister,
+            userRepo = userRepo,
             snapshotAccountBalanceRepo = snapshotBalanceAccountRepo,
         )
     }
@@ -147,10 +150,10 @@ class InvoiceConfig {
         transactionRepo: IRepository<Transaction>,
         accountRepo: IRepository<Account>,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
-        internalLoanRepo: IRepository<InternalLoan>,
         unitOfWork: IUnitOfWork,
         eventRegister: IEventRegister,
         snapshotBalanceAccountRepo: IAccountBalanceSnapshotRepository,
+        auth: IAuthenticateAdapter,
     ): UseCase<DeleteInvoiceInput, Unit> {
         return DeleteInvoice(
             invoiceRepo = invoiceRepo,
@@ -158,9 +161,9 @@ class InvoiceConfig {
             accountRepo = accountRepo,
             getInvoiceTransactions = getInvoiceTransactions,
             unitOfWork = unitOfWork,
-            internalLoanRepo = internalLoanRepo,
             eventRegister = eventRegister,
             snapshotAccountBalanceRepo = snapshotBalanceAccountRepo,
+            auth = auth,
         )
     }
 
@@ -170,12 +173,14 @@ class InvoiceConfig {
         deductionRepo: IRepository<Deduction>,
         invoiceTransactionCountReader: IInvoiceTransactionReader,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+        auth: IAuthenticateAdapter,
     ): UseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>> {
         return GetAllInvoices(
             invoiceRepo = invoiceRepo,
             deductionRepo = deductionRepo,
             invoiceTransactionReader = invoiceTransactionCountReader,
-            getInvoiceTransactions = getInvoiceTransactions
+            getInvoiceTransactions = getInvoiceTransactions,
+            auth = auth
         )
     }
 
@@ -183,9 +188,11 @@ class InvoiceConfig {
     fun getInvoice(
         invoiceRepo: IRepository<Invoice>,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+        auth: IAuthenticateAdapter,
     ): UseCase<UUID, GetInvoiceOutput> {
         return GetInvoice(
             invoiceRepo = invoiceRepo,
+            auth = auth,
             getInvoiceTransactions = getInvoiceTransactions
         )
     }
@@ -194,9 +201,11 @@ class InvoiceConfig {
     fun getManyInvoice(
         invoiceRepo: IRepository<Invoice>,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+        auth: IAuthenticateAdapter,
     ): UseCase<Set<UUID>, List<GetInvoiceOutput>> {
         return GetManyInvoices(
             invoiceRepo = invoiceRepo,
+            auth = auth,
             getInvoiceTransactions = getInvoiceTransactions
         )
     }
@@ -205,8 +214,10 @@ class InvoiceConfig {
     fun getBalance(
         invoiceRepo: IRepository<Invoice>,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+        userRepo: IRepository<User>,
     ): UseCase<GetBalanceInput, GetBalanceOutput> {
         return GetBalance(
+            userRepo = userRepo,
             invoiceRepo = invoiceRepo,
             getInvoiceTransactions = getInvoiceTransactions
         )
@@ -241,11 +252,13 @@ class InvoiceConfig {
         invoiceRepo: IRepository<Invoice>,
         accountRepo: IRepository<Account>,
         transactionRepo: IRepository<Transaction>,
+        userRepo: IRepository<User>,
         unitOfWork: IUnitOfWork,
-        snapshotRepository: IAccountBalanceSnapshotRepository
+        snapshotRepository: IAccountBalanceSnapshotRepository,
     ): UseCase<TransferInvoiceInput, Unit> {
         return TransferInvoice(
             invoiceRepo = invoiceRepo,
+            userRepo = userRepo,
             accountRepo = accountRepo,
             transactionRepo = transactionRepo,
             unitOfWork = unitOfWork,
@@ -275,7 +288,8 @@ class InvoiceConfig {
         createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
         deleteInvoice: IUseCase<DeleteInvoiceInput, Unit>,
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
-        unitOfWork: IUnitOfWork
+        unitOfWork: IUnitOfWork,
+        auth: IAuthenticateAdapter,
     ): UseCase<UpdateInvoiceInput, Unit> {
         return UpdateInvoice(
             invoiceRepo = invoiceRepo,
@@ -283,7 +297,8 @@ class InvoiceConfig {
             createInvoice = createInvoice,
             deleteInvoice = deleteInvoice,
             getInvoiceTransactions = getInvoiceTransactions,
-            unitOfWork = unitOfWork
+            unitOfWork = unitOfWork,
+            auth = auth
         )
     }
 
@@ -325,8 +340,10 @@ class InvoiceConfig {
     fun addExternalTransactions(
         externalTransactionRepo: IRepository<ExternalTransaction>,
         eventRegister: IEventRegister,
+        auth: IAuthenticateAdapter,
     ): UseCase<AddExternalTransactionInput, CreatedOutput> {
         return AddExternalTransaction(
+            auth = auth,
             externalTransactionRepo = externalTransactionRepo,
             eventRegister = eventRegister,
         )
@@ -334,10 +351,12 @@ class InvoiceConfig {
     @Bean
     fun addManyExternalTransactions(
         externalTransactionRepo: IRepository<ExternalTransaction>,
+        auth: IAuthenticateAdapter,
         eventRegister: IEventRegister,
     ): UseCase<List<AddExternalTransactionInput>, List<CreatedOutput>> {
         return AddManyExternalTransactions(
             externalTransRepo = externalTransactionRepo,
+            auth = auth,
             eventRegister = eventRegister,
         )
     }
@@ -345,9 +364,11 @@ class InvoiceConfig {
     @Bean
     fun getAllExternalTransactions(
         externalTransactionRepo: IRepository<ExternalTransaction>,
+        auth: IAuthenticateAdapter,
     ): UseCase<GetAllExternalTransactionInput, ListOutput<GetExternalTransactionOutput>> {
         return GetAllExternalTransaction(
-            externalTransactionRepo = externalTransactionRepo
+            externalTransactionRepo = externalTransactionRepo,
+            auth = auth
         )
     }
 
@@ -355,8 +376,9 @@ class InvoiceConfig {
     fun treatAnExternalTransactions(
         externalTransactionRepo: IRepository<ExternalTransaction>,
         eventRegister: IEventRegister,
+        auth: IAuthenticateAdapter,
     ): UseCase<TreatAnExternalTransactionInput, Unit> {
-        return TreatAnExternalTransaction(externalTransactionRepo, eventRegister)
+        return TreatAnExternalTransaction(externalTransactionRepo, eventRegister, auth)
     }
 
     @Bean
@@ -367,7 +389,6 @@ class InvoiceConfig {
         tagRepo: IRepository<Tag>,
         categoryRepo: IRepository<Category>,
         budgetRepo: IRepository<Budget>,
-        internalLoaRepository: IRepository<InternalLoan>,
     ): InvoiceDependencies {
         return InvoiceDependencies(
             transactionRepo = transactionRepo,
@@ -376,7 +397,6 @@ class InvoiceConfig {
             tagRepo = tagRepo,
             accountRepo = accountRepo,
             deductionRepo = deductionRepo,
-            internalLoanRepo =  internalLoaRepository
         )
     }
 

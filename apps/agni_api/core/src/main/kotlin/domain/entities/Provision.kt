@@ -15,6 +15,7 @@ import kotlin.math.pow
 
 class Provision(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     title: String,
     costHT: Double,
     costTTC: Double,

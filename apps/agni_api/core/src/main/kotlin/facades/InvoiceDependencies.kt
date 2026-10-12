@@ -5,7 +5,6 @@ import domain.entities.Account
 import domain.entities.Budget
 import domain.entities.Category
 import domain.entities.Deduction
-import domain.entities.InternalLoan
 import domain.entities.Tag
 import domain.entities.Transaction
 
@@ -15,6 +14,5 @@ class InvoiceDependencies(
     val budgetRepo: IRepository<Budget>,
     val tagRepo: IRepository<Tag>,
     val accountRepo: IRepository<Account>,
-    val deductionRepo: IRepository<Deduction>,
-    val internalLoanRepo: IRepository<InternalLoan>
+    val deductionRepo: IRepository<Deduction>
 )

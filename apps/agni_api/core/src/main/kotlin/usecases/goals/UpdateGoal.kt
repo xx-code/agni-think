@@ -1,6 +1,7 @@
 package usecases.goals
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.IFinanceContext
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
@@ -9,8 +10,9 @@ import domain.factories.GoalEvaluationStrategyFactory
 import usecases.goals.dto.UpdateGoalInput
 class UpdateGoal(
     private val goalRepo: IRepository<Goal>,
-    private val financeContext: IFinanceContext
-): UseCase<UpdateGoalInput, Unit>() {
+    private val financeContext: IFinanceContext,
+    auth: IAuthenticateAdapter
+): UseCase<UpdateGoalInput, Unit>(auth = auth) {
     override suspend fun process(input: UpdateGoalInput) {
         val goal = goalRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "goal")
 

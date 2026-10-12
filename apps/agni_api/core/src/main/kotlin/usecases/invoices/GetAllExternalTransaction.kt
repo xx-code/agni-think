@@ -1,6 +1,7 @@
 package usecases.invoices
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
@@ -11,9 +12,12 @@ import usecases.invoices.dto.GetExternalTransactionOutput
 
 class GetAllExternalTransaction(
     private val externalTransactionRepo: IRepository<ExternalTransaction>,
-): UseCase<GetAllExternalTransactionInput, ListOutput<GetExternalTransactionOutput>>() {
+    auth: IAuthenticateAdapter
+): UseCase<GetAllExternalTransactionInput, ListOutput<GetExternalTransactionOutput>>(auth = auth) {
     override suspend fun process(input: GetAllExternalTransactionInput): ListOutput<GetExternalTransactionOutput> {
+        val currentUser = getCurrentUser()
         val conditionExternalTransaction = QueryExtendBuilder<ExternalTransaction>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
             .addCondition("isTreated", QueryComparator.Equal, input.isTreated)
         val externalTransactions = externalTransactionRepo.getAll(input.query, conditionExternalTransaction)
 

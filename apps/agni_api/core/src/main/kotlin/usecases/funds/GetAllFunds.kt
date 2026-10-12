@@ -1,6 +1,7 @@
 package usecases.funds
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
 import adapters.repositories.IRepository
@@ -15,8 +16,10 @@ import usecases.funds.dto.GetSavingGoalOutput
 
 class GetAllFunds(
     private val fundRepo: IRepository<Fund>,
-    private val goalRepo: IRepository<Goal>): UseCase<GetAllFundInput, ListOutput<GetSavingGoalOutput>>() {
+    private val goalRepo: IRepository<Goal>,
+    auth: IAuthenticateAdapter): UseCase<GetAllFundInput, ListOutput<GetSavingGoalOutput>>(auth = auth) {
     override suspend fun process(input: GetAllFundInput): ListOutput<GetSavingGoalOutput> {
+        val currentUser = getCurrentUser()
         val query = QueryFilter(
             offset = input.queryFilter.offset,
             limit = input.queryFilter.limit,
@@ -24,6 +27,7 @@ class GetAllFunds(
             sortBy = QuerySortBy("updated_at", false),
         )
         val condition = QueryExtendBuilder<Fund>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
         if (input.type != null)
             condition.addCondition("type", QueryComparator.Equal, input.type.value)
 

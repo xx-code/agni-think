@@ -17,6 +17,7 @@ data class GoalEvaluationProgress(
 
 class Goal(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     title: String,
     description: String,
     targetSourceId: UUID,

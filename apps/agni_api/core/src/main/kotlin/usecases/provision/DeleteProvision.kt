@@ -1,6 +1,7 @@
 package usecases.provision
 
 import usecases.interfaces.IUseCase
+import adapters.IAuthenticateAdapter
 
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
@@ -19,8 +20,9 @@ class DeleteProvision(
     private val provisionRepo: IRepository<Provision>,
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
     private val deleteScheduleInvoice: IUseCase<DeleteScheduleInvoiceInput, Unit>,
-    unitOfWork: IUnitOfWork
-): UseCase<DeleteProvisionInput, Unit>(unitOfWork) {
+    unitOfWork: IUnitOfWork,
+    auth: IAuthenticateAdapter
+): UseCase<DeleteProvisionInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
     override suspend fun process(input: DeleteProvisionInput) {
         val provision = provisionRepo.get(input.provisionableId)
             ?: throw NotFoundException.SingleEntity(input.provisionableId, "provisionable")

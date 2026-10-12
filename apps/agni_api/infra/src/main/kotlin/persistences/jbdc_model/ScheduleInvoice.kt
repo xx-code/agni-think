@@ -19,6 +19,7 @@ data class JdbcScheduleInvoiceModel(
     @Id
     @get:JvmName("getIdentifier")
     val scheduleTransactionId: UUID,
+    val userId: UUID,
 
     @Column("account_id")
     val accountId: UUID,
@@ -99,6 +100,7 @@ class JdbcScheduleInvoiceMapper(
 
         return ScheduleInvoice(
             id = model.id,
+            userId = model.userId,
             title = model.name,
             accountId = model.accountId,
             type = InvoiceType.fromString(model.type),
@@ -117,6 +119,7 @@ class JdbcScheduleInvoiceMapper(
     override fun toModel(entity: ScheduleInvoice): JdbcScheduleInvoiceModel {
         return JdbcScheduleInvoiceModel(
             scheduleTransactionId = entity.id,
+            userId = entity.userId,
             accountId = entity.accountId,
             categoryId = entity.categoryId,
             amount = entity.amount,
@@ -134,6 +137,7 @@ class JdbcScheduleInvoiceMapper(
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "schedule_transaction_id",
+        "userId" to "user_id",
         "accountId" to "account_id",
         "categoryId" to "category_id",
         "amount" to "amount",

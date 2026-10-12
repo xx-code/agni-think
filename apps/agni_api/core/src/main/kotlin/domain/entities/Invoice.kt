@@ -11,6 +11,7 @@ import domain.enums.InvoiceType
 
 class Invoice(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     accountId: UUID,
     status: InvoiceStatusType,
     movement: InvoiceMovementType,

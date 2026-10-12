@@ -1,6 +1,7 @@
 package usecases.spending_period_template
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.dto.ScheduleRepeaterOutput
 import adapters.repositories.IRepository
 import domain.entities.Budget
@@ -13,7 +14,8 @@ import java.util.UUID
 class GetSpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
     private val budgetRepo: IRepository<Budget>,
-): UseCase<UUID, GetSpendingPeriodTemplateOutput>(){
+    auth: IAuthenticateAdapter
+): UseCase<UUID, GetSpendingPeriodTemplateOutput>(auth = auth){
     override suspend fun process(input: UUID): GetSpendingPeriodTemplateOutput {
         val spendPeriodTemplate = spendingPeriodTemplateRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "spending_period_template")
         val budgets = budgetRepo.getManyByIds(spendPeriodTemplate.targetBudgetIds)

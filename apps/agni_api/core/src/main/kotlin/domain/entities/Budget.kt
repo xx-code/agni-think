@@ -8,6 +8,7 @@ import java.util.UUID
 
 class Budget(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     title: String,
     target: Double,
     scheduler: Scheduler,

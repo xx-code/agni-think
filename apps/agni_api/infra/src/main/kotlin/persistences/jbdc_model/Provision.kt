@@ -20,6 +20,7 @@ data class JdbcProvisionModel(
     @Id
     @get:JvmName("getIdentifier")
     val provisionId: UUID,
+    val userId: UUID,
 
     val title: String,
 
@@ -90,6 +91,7 @@ class JdbcProvisionMapper(
 
         return Provision(
             id = model.id,
+            userId = model.userId,
             title = model.title,
             costHT = model.costHt,
             costTTC = model.costTtc,
@@ -110,6 +112,7 @@ class JdbcProvisionMapper(
     override fun toModel(entity: Provision): JdbcProvisionModel {
         return JdbcProvisionModel(
             provisionId = entity.id,
+            userId = entity.userId,
             title = entity.title,
             costHt = entity.costHT,
             costTtc = entity.costTTC,
@@ -133,6 +136,7 @@ class JdbcProvisionMapper(
 
     override fun getEntityModelFieldName(): Map<String, String> = mutableMapOf(
         "id" to "provision_id",
+        "userId" to "user_id",
         "title" to "title",
         "costHT" to "cost_ht",
         "costTTC" to "cost_ttc",

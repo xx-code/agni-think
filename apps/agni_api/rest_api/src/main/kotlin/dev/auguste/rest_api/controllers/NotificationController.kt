@@ -20,13 +20,14 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import usecases.notifications.dto.GetAllNotificationInput
 import java.util.UUID
 
 @RestController
 @RequestMapping("/v2/notifications")
 class NotificationController(
     private val pushNotificationUseCase: PushNotification,
-    private val getAllNotificationsUseCase: IUseCase<QueryFilter, ListOutput<GetNotificationOutput>>,
+    private val getAllNotificationsUseCase: IUseCase<GetAllNotificationInput, ListOutput<GetNotificationOutput>>,
     @Qualifier("togglePushNotification") private val toggleReadNotification: IUseCase<UUID, Unit>,
     private val deleteNotification: IUseCase<DeleteNotificationInput, Unit>
 ) {
@@ -41,7 +42,7 @@ class NotificationController(
     @GetMapping
     suspend fun getAllNotifications(query: QueryFilter) : ResponseEntity<ListOutput<GetNotificationOutput>> {
         return ResponseEntity.ok(getAllNotificationsUseCase.execute(
-            query
+            GetAllNotificationInput(query)
         ).getOrThrow())
     }
 
