@@ -48,7 +48,8 @@ class GetAllPatrimonies(
         val patrimonies = patrimonyRepo.getAll(input.queryFilter, conditionPatrimony)
 
         val conditionProvision = QueryExtendBuilder<Provision>()
-        conditionProvision.addCondition("isPatrimony", QueryComparator.Equal, true)
+            .addCondition("isPatrimony", QueryComparator.Equal, true)
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
         val provisions = provisionRepo.getAll(QueryFilter.queryAll(), conditionProvision)
 
         val conditionSnapShot = QueryExtendBuilder<PatrimonySnapshot>()
