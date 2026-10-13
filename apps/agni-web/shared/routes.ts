@@ -1,6 +1,36 @@
 import type { ApiRouteDefinition } from "~/types/shared/routes";
 
 export const API_ROUTES = {
+    AUTH: {
+        LOGIN: {
+            serverPath: '/api/auth/login',
+            apiPath: '/public/auth/login',
+            method: 'POST',
+            public: true,
+            session: 'create'
+        },
+        LOGOUT: {
+            serverPath: "/api/auth/logout",
+            apiPath: "/public/auth/logout",
+            method: "GET",
+            public: true,
+            session: 'destroy'
+        }, 
+        CALLBACK: {
+            serverPath: "/api/auth/callback",
+            apiPath: "/public/auth/callback",
+            method: "POST",
+            public: true,
+            session: 'create-oidc'
+        }
+    },
+    USER: {
+        CURRENT_USER: {
+            serverPath: '/api/users/me',
+            apiPath: '/users/me',
+            method: 'GET',
+        }
+    },
     ACCOUNTS: {
         CREATE_ACCOUNT: {
             serverPath: '/api/accounts',
@@ -704,8 +734,8 @@ export const API_ROUTES = {
 
     PROFILE: {
         GET_PROFILE: {
-            serverPath: '/api/profiles/:id',
-            apiPath: '/profiles/:id',
+            serverPath: '/api/profiles/me',
+            apiPath: '/profiles/me',
             method: 'GET'
         },
         UPDATE_PROFILE: {

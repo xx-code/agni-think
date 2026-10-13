@@ -1,5 +1,6 @@
 package dev.auguste.rest_api.controllers
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
@@ -13,6 +14,9 @@ import domain.entities.User
 import io.jsonwebtoken.Jwts
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -22,10 +26,11 @@ import java.util.Date
 import javax.crypto.spec.SecretKeySpec
 
 @RestController
-@RequestMapping("/public/auth")
+@RequestMapping("/v2/public/auth")
 class AuthController(
     private val userRepo: IRepository<User>,
     private val profileRepo: IRepository<Profile>,
+    private  val auth: IAuthenticateAdapter,
     private val unitOfWork: IUnitOfWork,
     @Value("\${agni.local.secret-key:my-default-very-secret-local-key-change-me}")
     private val secretKey: String
@@ -70,5 +75,27 @@ class AuthController(
                 tokenType = "Bearer"
             )
         )
+    }
+
+
+    @GetMapping("logout")
+    suspend fun logout(): ResponseEntity<Void> {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val jwt = authentication?.principal as? Jwt
+
+        if (jwt != null) {
+            val subject = jwt.subject
+            val expiresAt = jwt.expiresAt
+        }
+
+        SecurityContextHolder.clearContext()
+
+        return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("callback")
+    suspend fun callback(): ResponseEntity<Void> {
+        auth.getCurrentUser()
+        return ResponseEntity.ok().build()
     }
 }

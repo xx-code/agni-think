@@ -36,7 +36,7 @@ class ProfileController(
     }
 
     @GetMapping("/me")
-    suspend fun getUserProfile(@PathVariable id: UUID): ResponseEntity<GetProfileOutput> {
+    suspend fun getUserProfile(): ResponseEntity<GetProfileOutput> {
         return ResponseEntity.ok(getProfileUseCase.execute(Unit).getOrThrow())
     }
 

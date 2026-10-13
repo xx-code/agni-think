@@ -19,8 +19,12 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator
+import org.springframework.security.oauth2.core.OAuth2TokenValidator
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.JwtDecoders
+import org.springframework.security.oauth2.jwt.JwtValidators
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.web.SecurityFilterChain
@@ -28,31 +32,100 @@ import org.springframework.stereotype.Component
 import java.util.UUID
 import javax.crypto.spec.SecretKeySpec
 
+class JwtAudienceValidator(private val audience: String) : OAuth2TokenValidator<Jwt> {
+    override fun validate(jwt: Jwt): org.springframework.security.oauth2.core.OAuth2TokenValidatorResult {
+        val audiences = jwt.audience
+        if (audiences.contains(audience)) {
+            return org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success()
+        }
+        return org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.failure(
+            org.springframework.security.oauth2.core.OAuth2Error("invalid_token", "The required audience is missing", null)
+        )
+    }
+}
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-class SecurityConfig {
+@ConditionalOnProperty(
+    name = ["agni.local.auth"],
+    havingValue = "false",
+    matchIfMissing = true
+)
+class OidcSecurityConfig(
+    @Value("\${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+    private val issuerUri: String,
+    @Value("\${agni.auth0.audience}")
+    private val audience: String
+) {
 
     @Bean
-    fun securityFilterChain(
-        http: HttpSecurity,
-        jwtDecoder: ObjectProvider<JwtDecoder>
-    ): SecurityFilterChain {
+    fun securityFilterChain(http: HttpSecurity, jwtDecoder: JwtDecoder): SecurityFilterChain {
         http
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/public/**", "/", "/health").permitAll()
+                    .requestMatchers("/v2/public/**", "/", "/health").permitAll()
+                    .anyRequest().authenticated()
+            }
+        return http.build()
+    }
+
+    @Bean
+    fun jwtDecoder(): JwtDecoder {
+        val jwtDecoder = JwtDecoders.fromIssuerLocation(issuerUri) as NimbusJwtDecoder
+
+        val withIssuer: OAuth2TokenValidator<Jwt> = JwtValidators.createDefaultWithIssuer(issuerUri)
+        val withAudience: OAuth2TokenValidator<Jwt> = JwtAudienceValidator(audience)
+
+        jwtDecoder.setJwtValidator(DelegatingOAuth2TokenValidator(withIssuer, withAudience))
+
+        return jwtDecoder
+    }
+}
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+@ConditionalOnProperty(
+    name = ["agni.local.auth"],
+    havingValue = "true"
+)
+class LocalSecurityConfig(
+    @Value("\${agni.local.secret-key:my-default-very-secret-local-key-change-me}")
+    private val secretKey: String
+) {
+
+    @Bean
+    fun securityFilterChain(http: HttpSecurity, jwtDecoder: ObjectProvider<JwtDecoder>): SecurityFilterChain {
+        http
+            .csrf { it.disable() }
+            .authorizeHttpRequests { auth ->
+                auth
+                    .requestMatchers("/v2/public/**", "/", "/health").permitAll()
                     .anyRequest().authenticated()
             }
 
         jwtDecoder.ifAvailable?.let { decoder ->
+
             http.oauth2ResourceServer { oauth ->
+
                 oauth.jwt { it.decoder(decoder) }
+
             }
+
         }
 
         return http.build()
+    }
+
+    @Bean
+    fun jwtDecoder(): JwtDecoder {
+
+        val key = SecretKeySpec(secretKey.toByteArray(), "HmacSHA256")
+
+        return NimbusJwtDecoder.withSecretKey(key).build()
+
     }
 }
 
@@ -93,9 +166,10 @@ class OAuth2Adapter(
             ?: jwt.getClaimAsString("username")
             ?: jwt.getClaimAsString("nickname")
             ?: jwt.getClaimAsString("name")
+            ?: jwt.getClaimAsString("agni-api/name")
             ?: "user"
 
-        val email = jwt.getClaimAsString("email") ?: syntheticEmail(externalId)
+        val email = jwt.getClaimAsString("agni-api/email") ?: syntheticEmail(externalId)
 
         val newUser = User(
             externalUserId = externalId,
@@ -129,23 +203,5 @@ class OAuth2Adapter(
             .take(60)
             .ifBlank { UUID.randomUUID().toString().replace("-", "") }
         return "$local@oauth.local"
-    }
-}
-
-
-@Configuration
-@ConditionalOnProperty(
-    name = ["agni.local.auth"],
-    havingValue = "true",
-    matchIfMissing = false
-)
-class LocalJwtConfig(
-    @Value("\${agni.local.secret-key:my-default-very-secret-local-key-change-me}")
-    private val secretKey: String
-) {
-    @Bean
-    fun jwtDecoder(): JwtDecoder {
-        val key = SecretKeySpec(secretKey.toByteArray(), "HmacSHA256")
-        return NimbusJwtDecoder.withSecretKey(key).build()
     }
 }
