@@ -76,7 +76,6 @@ export default defineNitroPlugin((nitroApp) => {
                             ? { authorization: `Bearer ${token}` }
                             : undefined,
                     })
-                    console.log(result)
 
                     if (getResponseStatus(event) === 401) {
                         deleteCookie(event, TOKEN_COOKIE, COOKIE_OPTIONS)
