@@ -34,7 +34,6 @@ data class JdbcScheduleInvoiceModel(
     @Column("is_pause")
     val isPause: Boolean,
 
-    @Column("is_freeze")
     val isFreeze: Boolean,
 
     val scheduler: String,

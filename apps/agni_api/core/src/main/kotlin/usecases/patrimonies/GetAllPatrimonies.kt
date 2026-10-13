@@ -98,7 +98,9 @@ class GetAllPatrimonies(
             ))
         }
 
-        val savingGoals = fundRepo.getAll(QueryFilter(0, 0, true))
+        val conditionFund = QueryExtendBuilder<Fund>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val savingGoals = fundRepo.getAll(QueryFilter.queryAll(), conditionFund)
         val savingGoalAmount = savingGoals.items.sumOf { it.balance }
         val balancesByPeriodSavingGoal = getBalanceByPeriod.processDirect(
             GetBalancesByPeriodInput(

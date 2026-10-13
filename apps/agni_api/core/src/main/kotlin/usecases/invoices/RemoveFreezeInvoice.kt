@@ -29,10 +29,10 @@ class RemoveFreezeInvoice(
     override suspend fun process(input: Unit): BackgroundTaskOut {
         try {
             val condition = QueryExtendBuilder<Invoice>()
-                .addCondition("is", QueryComparator.Equal, InvoiceStatusType.COMPLETED.value)
-                .addCondition("date", QueryComparator.GreaterOrEquals, LocalDate.now())
+                .addCondition("isFreeze", QueryComparator.Equal, true)
+                .addCondition("date", QueryComparator.LesserOrEquals, LocalDate.now())
             val freezeInvoice = invoiceRepo.getAll(
-                query = QueryFilter(0, 0, true),
+                query = QueryFilter.queryAll(),
                 queryExtend = condition
             )
 

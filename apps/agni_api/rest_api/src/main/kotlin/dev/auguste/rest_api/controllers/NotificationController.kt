@@ -1,5 +1,6 @@
 package dev.auguste.rest_api.controllers
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import dev.auguste.rest_api.controllers.models.ApiPushNotificationInput
 import dev.auguste.rest_api.controllers.models.mapApiPushNotification
@@ -29,13 +30,15 @@ class NotificationController(
     private val pushNotificationUseCase: PushNotification,
     private val getAllNotificationsUseCase: IUseCase<GetAllNotificationInput, ListOutput<GetNotificationOutput>>,
     @Qualifier("togglePushNotification") private val toggleReadNotification: IUseCase<UUID, Unit>,
-    private val deleteNotification: IUseCase<DeleteNotificationInput, Unit>
+    private val deleteNotification: IUseCase<DeleteNotificationInput, Unit>,
+    private val auth: IAuthenticateAdapter,
 ) {
 
     @PostMapping
     suspend fun pushNotification(@Valid @RequestBody request: ApiPushNotificationInput) : ResponseEntity<CreatedOutput> {
+        val userId = auth.getCurrentUser().id
         return ResponseEntity.ok(pushNotificationUseCase.execute(
-            mapApiPushNotification(request)
+            mapApiPushNotification(userId, request)
         ).getOrThrow())
     }
 

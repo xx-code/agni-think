@@ -16,10 +16,9 @@ class PushNotification(
     private var event: NotificationEventContent? = null
 
     override suspend fun process(input: PushNotificationInput): CreatedOutput {
-        val currentUser = getCurrentUser()
 
         val newNotification = Notification(
-            userId = currentUser.id,
+            userId = input.userId,
             title = input.title,
             content = input.content
         )
@@ -32,6 +31,7 @@ class PushNotification(
     override suspend fun update() {
         event?.let {
             process(PushNotificationInput(
+                userId = it.userId,
                 title = it.title,
                 content = it.message
             ))

@@ -1,5 +1,6 @@
 package facades
 
+import adapters.repositories.IAccountBalanceSnapshotRepository
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.Budget
@@ -26,5 +27,6 @@ data class DataSeederDependencies(
     val provisionRepo: IRepository<Provision>,
     val fundRepo: IRepository<Fund>,
     val incomeSourceRepo: IRepository<IncomeSource>,
-    val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>
+    val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
+    val snapshotRepository: IAccountBalanceSnapshotRepository
 )

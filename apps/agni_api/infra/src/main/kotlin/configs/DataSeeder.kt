@@ -1,5 +1,6 @@
 package configs
 
+import adapters.dto.AccountSnapshotBalanceInput
 import adapters.dto.ScheduleRepeaterInput
 import adapters.repositories.IUnitOfWork
 import domain.SAVING_CATEGORY_ID
@@ -36,7 +37,7 @@ class DataSeeder(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
     private val uow: IUnitOfWork
 ) {
-    private suspend fun reset(userId: UUID) {
+    suspend fun reset(userId: UUID) {
         // 1. Suppression des transactions liées aux factures de l'utilisateur
         jdbcTemplate.jdbcTemplate.update(
             """
@@ -128,13 +129,13 @@ class DataSeeder(
             dep.accountRepo.create(savingAccount)
 
             // 2. Ref Category
-            val catIncome = Category(title = "Revenus", icon = "briefcase", color = Color("#22c55e"), userId = userId)
-            val catHousing = Category(title = "Logement", icon = "home", color = Color("#3b82f6"), userId = userId)
-            val catUtilities = Category(title = "Services & Factures", icon = "zap", color = Color("#eab308"), userId = userId)
-            val catGroceries = Category(title = "Alimentation", icon = "shopping-cart", color = Color("#ec4899"), userId = userId)
-            val catLeisure = Category(title = "Loisirs & Sorties", icon = "film", color = Color("#8b5cf6"), userId = userId)
-            val catTransport = Category(title = "Transports", icon = "truck", color = Color("#06b6d4"), userId = userId)
-            val catSavings = Category(title = "Épargne", icon = "piggy-bank", color = Color("#10b981"), userId = userId)
+            val catIncome = Category(title = "Revenus", icon = "i-lucide-briefcase", color = Color("#22c55e"), userId = userId)
+            val catHousing = Category(title = "Logement", icon = "i-lucide-home", color = Color("#3b82f6"), userId = userId)
+            val catUtilities = Category(title = "Services & Factures", icon = "i-lucide-zap", color = Color("#eab308"), userId = userId)
+            val catGroceries = Category(title = "Alimentation", icon = "i-lucide-shopping-cart", color = Color("#ec4899"), userId = userId)
+            val catLeisure = Category(title = "Loisirs & Sorties", icon = "i-lucide-film", color = Color("#8b5cf6"), userId = userId)
+            val catTransport = Category(title = "Transports", icon = "i-lucide-truck", color = Color("#06b6d4"), userId = userId)
+            val catSavings = Category(title = "Épargne", icon = "i-lucide-piggy-bank", color = Color("#10b981"), userId = userId)
 
             listOf(catIncome, catHousing, catUtilities, catGroceries, catLeisure, catTransport, catSavings).forEach {
                 dep.categoryRepo.create(it)
@@ -192,13 +193,14 @@ class DataSeeder(
                 accountId = null
             )
             dep.fundRepo.create(emergencyFund)
+            val dateSave = LocalDateTime.now()
             val invSave = Invoice(
                 userId = userId,
-                accountId = mainAccount.id,
+                accountId = savingAccount.id,
                 status = InvoiceStatusType.COMPLETED,
                 movement = InvoiceMovementType.DEBIT,
                 type = InvoiceType.OTHER,
-                date = LocalDateTime.now(),
+                date = dateSave,
                 moduleLinkers = mutableListOf(InvoiceModuleLinker(emergencyFund.id, InvoiceModuleLinkerType.FUND)),
             )
             dep.invoiceRepo.create(invSave)
@@ -209,6 +211,12 @@ class DataSeeder(
                 description =" Argent plan d'epargne ${emergencyFund.title}"
             ))
             dep.fundRepo.create(amortizationFund)
+            val savAcc = dep.accountRepo.get(savingAccount.id)
+            if (savAcc != null) {
+                savAcc.balance -= 5000.0
+                dep.accountRepo.update(savAcc)
+                dep.snapshotRepository.makeSnapshot(AccountSnapshotBalanceInput(userId, savAcc.id, savAcc.balance, dateSave))
+            }
 
             // 6. Creation IncomeSource Source de Revenu (IncomeSource)
             val incomeSource = IncomeSource(
@@ -334,6 +342,12 @@ class DataSeeder(
                         tagIds = mutableSetOf(tagSalary.id, tagRecurring.id),
                         description = "Salaire Mensuel Net"
                     ))
+                    val acc = dep.accountRepo.get(mainAccount.id)
+                    if (acc != null) {
+                        acc.balance += 4000.0
+                        dep.accountRepo.update(acc)
+                        dep.snapshotRepository.makeSnapshot(AccountSnapshotBalanceInput(userId, acc.id, acc.balance, dateInc))
+                    }
                 }
 
                 // Loyer (1er du mois)
@@ -355,6 +369,12 @@ class DataSeeder(
                         tagIds = mutableSetOf(tagEssential.id, tagRecurring.id),
                         description = "Loyer Appartement"
                     ))
+                    val acc = dep.accountRepo.get(mainAccount.id)
+                    if (acc != null) {
+                        acc.balance -= 1300.0
+                        dep.accountRepo.update(acc)
+                        dep.snapshotRepository.makeSnapshot(AccountSnapshotBalanceInput(userId, acc.id, acc.balance, dateInc))
+                    }
                 }
 
                 // Électricité (2 du mois)
@@ -376,6 +396,12 @@ class DataSeeder(
                         tagIds = mutableSetOf(tagEssential.id, tagRecurring.id),
                         description = "Hydro-Québec / Électricité"
                     ))
+                    val acc = dep.accountRepo.get(mainAccount.id)
+                    if (acc != null) {
+                        acc.balance -= 120.0
+                        dep.accountRepo.update(acc)
+                        dep.snapshotRepository.makeSnapshot(AccountSnapshotBalanceInput(userId, acc.id, acc.balance, dateUtil))
+                    }
                 }
 
                 // Épicerie (3 du mois)
@@ -398,6 +424,12 @@ class DataSeeder(
                         budgetIds = mutableSetOf(budgetGroceries.id),
                         description = "Supermarché Metro"
                     ))
+                    val acc = dep.accountRepo.get(mainAccount.id)
+                    if (acc != null) {
+                        acc.balance -= 145.50
+                        dep.accountRepo.update(acc)
+                        dep.snapshotRepository.makeSnapshot(AccountSnapshotBalanceInput(userId, acc.id, acc.balance, dateGroceries))
+                    }
                 }
 
                 // Loisirs / Restaurant (7 du mois)
@@ -420,6 +452,12 @@ class DataSeeder(
                         budgetIds = mutableSetOf(budgetLeisure.id),
                         description = "Restaurant Sortie Amis"
                     ))
+                    val acc = dep.accountRepo.get(mainAccount.id)
+                    if (acc != null) {
+                        acc.balance -= 75.0
+                        dep.accountRepo.update(acc)
+                        dep.snapshotRepository.makeSnapshot(AccountSnapshotBalanceInput(userId, acc.id, acc.balance, dateLeisure))
+                    }
                 }
 
                 currentMonthDate = currentMonthDate.plusMonths(1)

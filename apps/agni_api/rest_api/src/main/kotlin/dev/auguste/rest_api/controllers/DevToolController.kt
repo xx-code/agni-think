@@ -25,4 +25,11 @@ class DevToolController(
         dataSeeder.seed(user.id)
         return ResponseEntity.ok("Application reset and populated successfully !")
     }
+
+    @PostMapping("/reset")
+    suspend fun reset(): ResponseEntity<String> {
+        val user = auth.getCurrentUser()
+        dataSeeder.reset(user.id)
+        return ResponseEntity.ok("Application reset successfully !")
+    }
 }

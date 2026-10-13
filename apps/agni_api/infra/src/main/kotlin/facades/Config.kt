@@ -1,5 +1,6 @@
 package facades
 
+import adapters.repositories.IAccountBalanceSnapshotRepository
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.Budget
@@ -15,6 +16,7 @@ import domain.entities.Tag
 import domain.entities.Transaction
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import sun.tools.jconsole.ProxyClient
 
 @Configuration
 class FacadesConfig {
@@ -32,7 +34,8 @@ class FacadesConfig {
         provisionRepo: IRepository<Provision>,
         fundRepo: IRepository<Fund>,
         incomeSourceRepo: IRepository<IncomeSource>,
-        spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>
+        spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
+        accountBalanceSnapshotRepo: IAccountBalanceSnapshotRepository
     ): DataSeederDependencies {
         return DataSeederDependencies(
             accountRepo = accountRepo,
@@ -46,7 +49,8 @@ class FacadesConfig {
             provisionRepo = provisionRepo,
             fundRepo = fundRepo,
             incomeSourceRepo = incomeSourceRepo,
-            spendingPeriodTemplateRepo = spendingPeriodTemplateRepo
+            spendingPeriodTemplateRepo = spendingPeriodTemplateRepo,
+            snapshotRepository = accountBalanceSnapshotRepo,
         )
     }
 }
