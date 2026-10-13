@@ -56,7 +56,7 @@ class CompleteInvoice(
         invoiceRepo.update(invoice)
         accountRepo.update(account)
         snapshotAccountBalanceRepo.makeSnapshot(
-            AccountSnapshotBalanceInput(account.id, account.balance, LocalDateTime.now())
+            AccountSnapshotBalanceInput(account.userId, account.id, account.balance, LocalDateTime.now())
         )
 
 

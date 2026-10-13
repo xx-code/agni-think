@@ -100,8 +100,8 @@ class TransferInvoice(
 
         snapshotAccountBalanceRepo.makeManySnapshots(
             listOf(
-                AccountSnapshotBalanceInput(accountFrom.id, accountFrom.balance, LocalDateTime.now()),
-                AccountSnapshotBalanceInput(accountTo.id, accountTo.balance, LocalDateTime.now())
+                AccountSnapshotBalanceInput(accountFrom.userId,accountFrom.id, accountFrom.balance, LocalDateTime.now()),
+                AccountSnapshotBalanceInput(accountTo.userId,accountTo.id, accountTo.balance, LocalDateTime.now())
             )
         )
     }

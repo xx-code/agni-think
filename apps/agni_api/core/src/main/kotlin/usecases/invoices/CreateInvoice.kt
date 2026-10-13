@@ -130,7 +130,7 @@ class CreateInvoice(
             invoiceDependencies.accountRepo.update(account)
 
             snapshotAccountBalanceRepo.makeSnapshot(
-                AccountSnapshotBalanceInput(account.id, account.balance, LocalDateTime.now())
+                AccountSnapshotBalanceInput(account.userId, account.id, account.balance, LocalDateTime.now())
             )
         }
 

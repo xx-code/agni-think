@@ -13,6 +13,7 @@ import javax.sql.DataSource
         "dev.auguste.rest_api",
         "persistences",
         "usecase_configs",
+        "facades",
         "configs"
     ]
 )
