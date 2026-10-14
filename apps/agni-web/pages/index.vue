@@ -276,8 +276,8 @@ function goalStatusBadge(goal: FundCardGoal) {
     }
     const daysLeft = getDaysRemaining(goal.dueDate);
     const expectedProgress = 100;
-    if (goal.percentage < expectedProgress - 15) {
-        return { label: `${daysLeft} j · en retard`, class: 'bg-amber-100 text-amber-700', progressColor: 'bg-amber-500' };
+    if (goal.percentage < expectedProgress - 15 && daysLeft < 7) {
+        return { label: `dans ${daysLeft} j`, class: 'bg-amber-100 text-amber-700', progressColor: 'bg-amber-500' };
     }
     return { label: `${daysLeft} j`, class: 'bg-gray-100 text-gray-600', progressColor: 'bg-primary-500' };
 }
