@@ -3,6 +3,8 @@ import { UserManager, WebStorageStateStore } from "oidc-client-ts"
 export default defineNuxtPlugin(() => {
     const cfg = useRuntimeConfig().public
 
+    console.log(cfg)
+
     const mgr = new UserManager({
         authority: cfg.oidcAuthority,
         client_id: cfg.oidcClientId,
