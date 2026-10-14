@@ -82,6 +82,9 @@ export default defineNitroPlugin((nitroApp) => {
                     }
                     return result 
                 } catch (err: any) {
+                    if (err?.statusCode === 401)
+                        deleteCookie(event, TOKEN_COOKIE, COOKIE_OPTIONS)
+
                     throw createError({
                         statusCode: err?.statusCode || 500,
                         statusMessage: err?.statusMessage || "Backend Request Failed",

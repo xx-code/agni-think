@@ -46,7 +46,6 @@ export const useAuth = () => {
     }
 
     async function isAuthenticatedLocal(verify = false): Promise<boolean> {
-        if (user.value && !verify) return true
         return (await fetchCurrentUserLocal()) !== null
     }
 
