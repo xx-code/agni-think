@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import usecases.deductions.dto.GetAllDeductionInput
 import java.util.UUID
 
 @RestController
@@ -31,7 +32,7 @@ class DeductionController(
     val updateDeductionUseCase: IUseCase<UpdateDeductionInput, Unit>,
     val deleteDeductionUseCase: IUseCase<DeleteDeductionInput, Unit>,
     val getDeductionUseCase: IUseCase<UUID, GetDeductionOutput>,
-    val getAllDeductionUseCase: IUseCase<QueryFilter, ListOutput<GetDeductionOutput>>
+    val getAllDeductionUseCase: IUseCase<GetAllDeductionInput, ListOutput<GetDeductionOutput>>
 ) {
 
     @PostMapping
@@ -65,7 +66,7 @@ class DeductionController(
     @GetMapping
     suspend fun getAllDeduction(query: QueryFilter) : ResponseEntity<ListOutput<GetDeductionOutput>> {
         return ResponseEntity.ok(getAllDeductionUseCase.execute(
-            query
+            GetAllDeductionInput(query)
         ).getOrThrow())
     }
 }

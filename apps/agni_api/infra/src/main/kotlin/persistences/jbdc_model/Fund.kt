@@ -16,6 +16,7 @@ data class JdbcFundModel(
     @Id
     @get:JvmName("getIdentifier")
     val fundId: UUID,
+    val userId: UUID,
     val title: String,
     val target: Double,
     val balance: Double,
@@ -40,6 +41,7 @@ class JdbcFundMapper(
     override fun toDomain(model: JdbcFundModel): Fund {
         return Fund(
             id = model.id,
+            userId = model.userId,
             title = model.title,
             description = model.description,
             target = model.target,
@@ -52,6 +54,7 @@ class JdbcFundMapper(
     override fun toModel(entity: Fund): JdbcFundModel {
         return JdbcFundModel(
             fundId = entity.id,
+            userId = entity.userId,
             title = entity.title,
             target = entity.target,
             balance = entity.balance,
@@ -65,6 +68,7 @@ class JdbcFundMapper(
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "fund_id",
+        "userId" to "user_id",
         "title" to "title",
         "target" to "target",
         "balance" to "balance",

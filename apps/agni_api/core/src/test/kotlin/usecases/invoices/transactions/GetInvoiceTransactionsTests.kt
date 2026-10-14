@@ -48,40 +48,46 @@ class GetInvoiceTransactionsTests {
 
     private val fixedDate = LocalDateTime.of(2024, 1, 15, 0, 0)
     private val categoryId = UUID.randomUUID()
+    private val userId = UUID.randomUUID()
 
     private val deduction1 = Deduction(
         title = "deduction 1",
         base = DeductionBaseType.SUBTOTAL,
         mode = DeductionModeType.RATE,
         description = "deduction 1",
+        userId = userId,
     )
     private val deduction2 = Deduction(
         title = "deduction 2",
         base = DeductionBaseType.SUBTOTAL,
         mode = DeductionModeType.RATE,
         description = "deduction 2",
+        userId = userId,
     )
 
     private val deduction3 = Deduction(
         title = "deduction 3",
         base = DeductionBaseType.SUBTOTAL,
         mode = DeductionModeType.FLAT,
+        userId = userId,
         description = "deduction 3",
     )
 
     private val invoice1 = Invoice(
+        userId = userId,
         accountId = UUID.randomUUID(),
         status = InvoiceStatusType.COMPLETED,
-        movementType = InvoiceMovementType.DEBIT,
+        movement = InvoiceMovementType.DEBIT,
         type = InvoiceType.VARIABLE_COST,
         date = fixedDate,
         isFreeze = false
     )
 
     private val invoice2 = Invoice(
+        userId = userId,
         accountId = UUID.randomUUID(),
         status = InvoiceStatusType.COMPLETED,
-        movementType = InvoiceMovementType.DEBIT,
+        movement = InvoiceMovementType.DEBIT,
         type = InvoiceType.VARIABLE_COST,
         date = fixedDate,
         deductions = mutableSetOf(
@@ -92,9 +98,10 @@ class GetInvoiceTransactionsTests {
     )
 
     private val invoice3 = Invoice(
+        userId = userId,
         accountId = UUID.randomUUID(),
         status = InvoiceStatusType.COMPLETED,
-        movementType = InvoiceMovementType.DEBIT,
+        movement = InvoiceMovementType.DEBIT,
         type = InvoiceType.VARIABLE_COST,
         date = fixedDate,
         deductions = mutableSetOf(
@@ -140,7 +147,7 @@ class GetInvoiceTransactionsTests {
     @Test
     @DisplayName("Retourne les transactions filtrées par categoryId avec déductions appliquées")
     fun shouldReturnFilteredTransactionsWithDeductions() = runBlocking {
-        val res = useCase.execAsync(
+        val res = useCase.execute(
             GetInvoiceTransactionsInput(
                 invoiceIds = setOf(invoice1.id, invoice2.id),
                 categoryIds = setOf(categoryId),
@@ -150,7 +157,7 @@ class GetInvoiceTransactionsTests {
                 maxAmount = null,
                 doRemoveSpecialCategory = null,
             )
-        )
+        ).getOrThrow()
 
         assertEquals(2, res.size, "Doit retourner une entrée par invoice")
 
@@ -181,7 +188,7 @@ class GetInvoiceTransactionsTests {
         every { transactionRepo.getAll(any(), anyNullable()) }
             .returns(RepoList(listOf(transInvoice3), 1))
 
-        val res = useCase.execAsync(
+        val res = useCase.execute(
             GetInvoiceTransactionsInput(
                 invoiceIds = setOf(invoice3.id),
                 categoryIds = setOf(categoryId),
@@ -191,7 +198,7 @@ class GetInvoiceTransactionsTests {
                 maxAmount = null,
                 doRemoveSpecialCategory = null,
             )
-        )
+        ).getOrThrow()
 
         assertEquals(1, res.size, "Doit retourner une entrée par invoice")
 

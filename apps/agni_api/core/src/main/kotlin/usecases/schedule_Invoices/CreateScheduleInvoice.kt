@@ -1,12 +1,14 @@
 package usecases.schedule_Invoices
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import domain.FREEZE_CATEGORY_ID
 import adapters.repositories.IRepository
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.ScheduleInvoice
+import domain.entities.User
 import domain.enums.InvoiceType
 import usecases.dto.CreatedOutput
 import facades.InvoiceDependencies
@@ -19,9 +21,12 @@ import domain.value_objects.SchedulerRecurrence
 class CreateScheduleInvoice(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
     private val invoiceDependencies: InvoiceDependencies,
-    private val verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>
-): UseCase<CreateScheduleInvoiceInput, CreatedOutput>() {
+    private val verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>,
+    auth: IAuthenticateAdapter
+): UseCase<CreateScheduleInvoiceInput, CreatedOutput>(auth = auth) {
     override suspend fun process(input: CreateScheduleInvoiceInput): CreatedOutput {
+        val currentUser = getCurrentUser()
+
         if (scheduleInvoiceRepo.existsByName(input.description))
             throw AlreadyExistException.EntitiesByField(mapOf("name" to input.description), "schedule_invoice")
 
@@ -58,6 +63,7 @@ class CreateScheduleInvoice(
             verifyScheduleModuleLinker.processDirect(input.moduleLinker)
 
         val newScheduleInvoice = ScheduleInvoice(
+            userId = currentUser.id,
             accountId = input.accountId,
             amount = input.amount,
             title = input.description,

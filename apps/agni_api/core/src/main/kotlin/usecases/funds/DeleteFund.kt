@@ -1,6 +1,7 @@
 package usecases.funds
 
 import usecases.interfaces.IUseCase
+import adapters.IAuthenticateAdapter
 
 import domain.SAVING_CATEGORY_ID
 import adapters.repositories.IRepository
@@ -27,47 +28,49 @@ class DeleteFund(
     private val accountRepo: IRepository<Account>,
     private val goalRepo: IRepository<Goal>,
     private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
-    unitOfWork: IUnitOfWork
-): UseCase<DeleteFundInput, Unit>(unitOfWork) {
+    unitOfWork: IUnitOfWork,
+    auth: IAuthenticateAdapter
+): UseCase<DeleteFundInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
     override suspend fun process(input: DeleteFundInput) {
-        val savingGoal = fundRepo.get(input.savingGoalId) ?: throw NotFoundException.SingleEntity(input.savingGoalId, "saving_goal")
+        val fund = fundRepo.get(input.fundId) ?: throw NotFoundException.SingleEntity(input.fundId, "saving_goal")
 
-        if (savingGoal.balance == 0.0) {
-            fundRepo.delete(input.savingGoalId)
+        if (fund.balance == 0.0) {
+            fundRepo.delete(input.fundId)
             return
         }
 
-        if (input.accountId == null && savingGoal.accountId == null)
+        if (input.accountId == null && fund.accountId == null)
             throw ValidationException.SavingGoalAccountIdMustNotBeNull()
 
-        val accountId = if (savingGoal.accountId == null) {
+        val accountId = if (fund.accountId == null) {
             input.accountId!!
         } else {
-            savingGoal.accountId!!
+            fund.accountId!!
         }
 
         accountRepo.get(accountId) ?: throw NotFoundException.SingleEntity(accountId, "account")
 
         createInvoice.processDirect(CreateInvoiceInput(
+            userId = fund.userId,
             accountId = accountId,
             status = InvoiceStatusType.COMPLETED,
             date = LocalDateTime.now(),
             type = InvoiceType.OTHER,
-            mouvementType = InvoiceMovementType.CREDIT,
+            movementType = InvoiceMovementType.CREDIT,
             currency = null,
             transactions = setOf(TransactionInput(
-                amount = savingGoal.balance,
+                amount = fund.balance,
                 categoryId = SAVING_CATEGORY_ID,
-                description = "Argent plan d'epargne ${savingGoal.title}",
+                description = "Argent plan d'epargne ${fund.title}",
                 tagIds = setOf(),
                 budgetIds = setOf()
             )),
             deductions = setOf()
         ))
 
-        fundRepo.delete(input.savingGoalId)
+        fundRepo.delete(input.fundId)
         val conditionGoal = QueryExtendBuilder<Goal>()
-            .addCondition("targetSourceId", QueryComparator.Equal, input.savingGoalId)
+            .addCondition("targetSourceId", QueryComparator.Equal, input.fundId)
         goalRepo.deleteManyBy(conditionGoal)
     }
 }

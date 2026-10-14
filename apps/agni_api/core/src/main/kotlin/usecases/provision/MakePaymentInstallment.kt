@@ -13,8 +13,9 @@ import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Provision
 import domain.entities.Fund
+import domain.entities.Notification
 import usecases.dto.BackgroundTaskOut
-import usecases.funds.dto.DecreaseSavingGoalInput
+import usecases.funds.dto.DecreaseFundInput
 import java.time.LocalDate
 import kotlin.Throwable
 import domain.enums.ProvisionType
@@ -23,7 +24,7 @@ import usecases.UseCase
 class MakePaymentInstallment(
     private val provisionRepo: IRepository<Provision>,
     private val fundRepo: IRepository<Fund>,
-    private val decreaseFund: IUseCase<DecreaseSavingGoalInput, Unit>,
+    private val decreaseFund: IUseCase<DecreaseFundInput, Unit>,
     private val eventManager: IEventRegister,
     unitOfWork: IUnitOfWork,
 ): UseCase<Unit, BackgroundTaskOut>(unitOfWork) {
@@ -54,8 +55,8 @@ class MakePaymentInstallment(
                 provisionRepo.update(provision)
 
                 decreaseFund.processDirect(
-                    DecreaseSavingGoalInput(
-                        savingGoalId = fund.id,
+                    DecreaseFundInput(
+                        fundId = fund.id,
                         accountId = payment.accountId,
                         amount = payment.paymentAmount
                     )
@@ -68,6 +69,7 @@ class MakePaymentInstallment(
                 "Provision !Error",
                 "Error while Make installment provision ${error.message}",
                 type = NotificationType.Error,
+                userId = Notification.SYSTEM_USER_ID,
             ))
 
             return BackgroundTaskOut(error.localizedMessage)

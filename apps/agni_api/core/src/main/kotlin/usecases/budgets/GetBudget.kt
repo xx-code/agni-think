@@ -1,5 +1,6 @@
 package usecases.budgets
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.dto.ScheduleRepeaterOutput
 import adapters.repositories.IRepository
@@ -14,8 +15,9 @@ import java.util.UUID
 
 class GetBudget(
     private val budgetRepo: IRepository<Budget>,
-    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
-): UseCase<UUID, GetBudgetOutput>() {
+    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
+    auth: IAuthenticateAdapter
+): UseCase<UUID, GetBudgetOutput>(auth = auth) {
     override suspend fun process(input: UUID): GetBudgetOutput {
         val budget = budgetRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "budget")
 
@@ -23,6 +25,7 @@ class GetBudget(
         val endDate = budget.scheduler.upgradeDate()
 
         val resultBalance = getBalance.processDirect(GetBalanceInput(
+            userId = budget.userId,
             budgetIds = setOf(budget.id),
             types = setOf(InvoiceType.FIXED_COST, InvoiceType.VARIABLE_COST, InvoiceType.OTHER),
             startDate = startDate,

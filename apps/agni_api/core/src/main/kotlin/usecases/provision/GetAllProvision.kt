@@ -1,27 +1,35 @@
 package usecases.provision
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
 import adapters.repositories.IRepository
+import adapters.repositories.QueryExtendBuilder
+import adapters.repositories.QueryComparator
 import domain.entities.Provision
 import usecases.dto.ListOutput
+import usecases.provision.dto.GetAllProvisionInput
 import usecases.provision.dto.GetProvisionOutput
 import usecases.provision.dto.ProvisionDepreciateCriteriaOutput
 import usecases.provision.dto.ProvisionInvoiceOutput
 
 class GetAllProvision(
-    private val provisionRepo: IRepository<Provision>
-): UseCase<QueryFilter, ListOutput<GetProvisionOutput>>() {
-    override suspend fun process(input: QueryFilter): ListOutput<GetProvisionOutput> {
+    private val provisionRepo: IRepository<Provision>,
+    auth: IAuthenticateAdapter
+): UseCase<GetAllProvisionInput, ListOutput<GetProvisionOutput>>(auth = auth) {
+    override suspend fun process(input: GetAllProvisionInput): ListOutput<GetProvisionOutput> {
+        val currentUser = getCurrentUser()
         val query = QueryFilter(
-            offset = input.offset,
-            limit = input.limit,
+            offset = input.queryFilter.offset,
+            limit = input.queryFilter.limit,
             sortBy = QuerySortBy(
                 by = "updated_at",
             )
         )
-        val provisions =  provisionRepo.getAll(query)
+        val condition = QueryExtendBuilder<Provision>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val provisions =  provisionRepo.getAll(query, condition)
 
         return ListOutput(
             items = provisions.items.map { provisional ->

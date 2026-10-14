@@ -1,5 +1,6 @@
 package usecases.accounts
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Account
@@ -7,7 +8,9 @@ import domain.entities.Color
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
 import usecases.accounts.dto.UpdateAccountInput
-class UpdateAccount(private val accountRepo: IRepository<Account>): UseCase<UpdateAccountInput, Unit>() {
+class UpdateAccount(
+    private val accountRepo: IRepository<Account>,
+    auth: IAuthenticateAdapter): UseCase<UpdateAccountInput, Unit>(auth = auth) {
 
     override suspend fun process(input: UpdateAccountInput) {
         val account = accountRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "account")

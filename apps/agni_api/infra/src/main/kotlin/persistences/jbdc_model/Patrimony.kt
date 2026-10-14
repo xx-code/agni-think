@@ -16,6 +16,7 @@ data class JdbcPatrimonyModel(
     @Id
     @get:JvmName("getIdentifier")
     val patrimonyId: UUID,
+    val userId: UUID,
 
     val title: String,
 
@@ -41,6 +42,7 @@ class JdbcPatrimonyModelMapper(
 
         return Patrimony(
             id = model.id,
+            userId = model.userId,
             title = model.title,
             amount = model.amount,
             accountIds = accountIds.toMutableSet(),
@@ -51,6 +53,7 @@ class JdbcPatrimonyModelMapper(
     override fun toModel(entity: Patrimony): JdbcPatrimonyModel {
         return JdbcPatrimonyModel(
             patrimonyId = entity.id,
+            userId = entity.userId,
             title = entity.title,
             amount = entity.amount,
             accountIds = objectMapper.writeValueAsString(entity.accountIds.map { it.toString() }),
@@ -60,6 +63,7 @@ class JdbcPatrimonyModelMapper(
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "patrimony_id",
+        "userId" to "user_id",
         "title" to "title",
         "type" to "type",
         "amount" to "amount",

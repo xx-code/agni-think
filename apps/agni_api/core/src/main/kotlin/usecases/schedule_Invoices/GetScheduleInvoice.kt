@@ -1,6 +1,7 @@
 package usecases.schedule_Invoices
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.ScheduleInvoice
@@ -9,8 +10,9 @@ import usecases.schedule_Invoices.dto.ScheduleInvoiceRepeaterOutput
 import java.util.UUID
 
 class GetScheduleInvoice(
-    private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>
-): UseCase<UUID, GetScheduleInvoiceOutput>() {
+    private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+    auth: IAuthenticateAdapter
+): UseCase<UUID, GetScheduleInvoiceOutput>(auth = auth) {
 
     override suspend fun process(input: UUID): GetScheduleInvoiceOutput {
         val scheduleInvoice = scheduleInvoiceRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "schedule_invoice")

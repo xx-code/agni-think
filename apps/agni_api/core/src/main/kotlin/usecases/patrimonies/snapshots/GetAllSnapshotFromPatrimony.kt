@@ -1,6 +1,7 @@
 package usecases.patrimonies.snapshots
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import domain.SAVING_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
@@ -35,10 +36,12 @@ class GetAllSnapshotFromPatrimony(
     private val provisionRepo: IRepository<Provision>,
     private val invoiceRepo: IRepository<Invoice>,
     private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
-    private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
-): UseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>>() {
+    private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>,
+    auth: IAuthenticateAdapter
+): UseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>>(auth = auth) {
 
     override suspend fun process(input: GetAllSnapshotPatrimonyInput): ListOutput<GetSnapshotPatrimonyOutput> {
+        val currentUser = getCurrentUser()
         when (input.sourcePatrimonyType) {
             SourcePatrimonyType.PATRIMONY -> {
                 input.query.sortBy.by = "date"
@@ -61,44 +64,47 @@ class GetAllSnapshotFromPatrimony(
             }
             SourcePatrimonyType.FUND -> {
                 val numMonth: Long = 6
-                val currentSavingGoalBalance = fundRepo.getAll(QueryFilter.queryAll()).items.sumOf { it.balance }
-                val date = LocalDateTime.now().minusMonths(numMonth).with(TemporalAdjusters.firstDayOfMonth())
+
+                val startDate = LocalDateTime.now().minusMonths(numMonth).with(TemporalAdjusters.firstDayOfMonth())
+
                 val periodBuckets = (0 until numMonth).map { step ->
-                    date.plusMonths(step).with(TemporalAdjusters.firstDayOfMonth())
+                    startDate.plusMonths(step).with(TemporalAdjusters.firstDayOfMonth())
                 }
 
                 val savingBalancesByDate = getBalanceByPeriod.processDirect(
                     GetBalancesByPeriodInput(
+                        userId = currentUser.id,
                         period = PeriodType.MONTH,
                         interval = numMonth.toInt(),
-                        dateFrom = date,
+                        dateFrom = startDate,
                         categoryIds = setOf(SAVING_CATEGORY_ID),
                         status = InvoiceStatusType.COMPLETED
                     )
                 ).associateBy { it.date }
 
-                // Compute total change from start date to current date
-                var cumulativeBalance = currentSavingGoalBalance
-
-                // Build period-by-period accumulated balance list
-                val savingGoalBalancesPerPeriod = periodBuckets.sortedByDescending { it }.map { bucketDate ->
-                    val savingIn = savingBalancesByDate[bucketDate.toLocalDate()]?.spend ?: 0.0
-                    val savingOut = savingBalancesByDate[bucketDate.toLocalDate()]?.income ?: 0.0
-
+                var runningBalance = 0.0
+                val chronologicalBalances = periodBuckets.map { bucketDate ->
+                    val record = savingBalancesByDate[bucketDate.toLocalDate()]
+                    val savingIn = record?.spend ?: 0.0
+                    val savingOut = record?.income ?: 0.0
                     val delta = savingIn - savingOut
 
-                    cumulativeBalance -= delta
-                    bucketDate to cumulativeBalance
-                }.toMap()
+                    runningBalance += delta
+                    bucketDate to runningBalance
+                }
+
+                val savingGoalBalancesPerPeriod = chronologicalBalances.sortedByDescending { it.first }.toMap()
 
                 return ListOutput(
-                    items = savingGoalBalancesPerPeriod.map { GetSnapshotPatrimonyOutput(
-                        id = UUID.randomUUID(),
-                        patrimonyId = UUID.randomUUID(),
-                        balance = it.value,
-                        date = it.key.toLocalDate(),
-                        status = PatrimonySnapshotStatusType.COMPLETED.value
-                    ) },
+                    items = savingGoalBalancesPerPeriod.map {
+                        GetSnapshotPatrimonyOutput(
+                            id = UUID.randomUUID(),
+                            patrimonyId = UUID.randomUUID(),
+                            balance = it.value,
+                            date = it.key.toLocalDate(),
+                            status = PatrimonySnapshotStatusType.COMPLETED.value
+                        )
+                    },
                     total = savingGoalBalancesPerPeriod.size.toLong()
                 )
             }

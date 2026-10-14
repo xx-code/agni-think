@@ -21,6 +21,7 @@ data class JdbcInvoiceModel(
     @Id
     @get:JvmName("getIdentifier")
     val invoiceId: UUID,
+    val userId: UUID,
 
     @Column("account_id")
     val accountId: UUID,
@@ -51,6 +52,7 @@ class JdbcInvoiceModelMapper(
 
         return Invoice(
             id = model.id,
+            userId = model.userId,
             accountId = model.accountId,
             status = InvoiceStatusType.fromString(model.status),
             movement = InvoiceMovementType.fromString(model.movement),
@@ -65,6 +67,7 @@ class JdbcInvoiceModelMapper(
     override fun toModel(entity: Invoice): JdbcInvoiceModel {
         return JdbcInvoiceModel(
             invoiceId = entity.id,
+            userId = entity.userId,
             accountId = entity.accountId,
             status = entity.status.value,
             type = entity.type.value,
@@ -78,6 +81,7 @@ class JdbcInvoiceModelMapper(
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "invoice_id",
+        "userId" to "user_id",
         "accountId" to "account_id",
         "status" to "status",
         "type" to "type",

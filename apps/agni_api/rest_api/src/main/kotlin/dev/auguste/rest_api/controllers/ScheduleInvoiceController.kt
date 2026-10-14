@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import usecases.schedule_Invoices.dto.GetAllScheduleInvoiceInput
 import java.util.UUID
 
 @RestController
@@ -31,7 +32,7 @@ class ScheduleInvoiceController (
     private val updateScheduleInvoiceUseCase: IUseCase<UpdateScheduleInvoiceInput, Unit>,
     private val deleteScheduleInvoiceUseCase: IUseCase<DeleteScheduleInvoiceInput, Unit>,
     private val getScheduleInvoiceUseCase: IUseCase<UUID, GetScheduleInvoiceOutput>,
-    private val getAllScheduleInvoiceUseCase: IUseCase<QueryFilter, ListOutput<GetScheduleInvoiceOutput>>
+    private val getAllScheduleInvoiceUseCase: IUseCase<GetAllScheduleInvoiceInput, ListOutput<GetScheduleInvoiceOutput>>
 ){
 
     @PostMapping
@@ -65,7 +66,7 @@ class ScheduleInvoiceController (
     @GetMapping
     suspend fun getAllScheduleInvoice(query: QueryFilter): ResponseEntity<ListOutput<GetScheduleInvoiceOutput>> {
         return ResponseEntity.ok(getAllScheduleInvoiceUseCase.execute(
-            query
+            GetAllScheduleInvoiceInput(query)
         ).getOrThrow())
     }
 }

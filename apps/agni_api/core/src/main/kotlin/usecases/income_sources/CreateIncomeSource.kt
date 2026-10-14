@@ -1,12 +1,17 @@
 package usecases.income_sources
 
+import adapters.IAuthenticateAdapter
 import usecases.interfaces.IUseCase
 
 import adapters.dto.ScheduleRepeaterInput
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
+import adapters.repositories.QueryComparator
+import adapters.repositories.QueryExtendBuilder
 import domain.entities.Account
+import domain.entities.Budget
 import domain.entities.IncomeSource
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.income_sources.dto.CreateIncomeSourceInput
 import domain.exceptions.AlreadyExistException
@@ -26,9 +31,14 @@ class CreateIncomeSource(
     private val accountRepo: IRepository<Account>,
     private val createScheduleInvoice: IUseCase<CreateScheduleInvoiceInput, CreatedOutput>,
     unitOfWork: IUnitOfWork,
-): UseCase<CreateIncomeSourceInput, CreatedOutput>(unitOfWork) {
+    auth: IAuthenticateAdapter
+): UseCase<CreateIncomeSourceInput, CreatedOutput>(unitOfWork = unitOfWork, auth = auth) {
     override suspend fun process(input: CreateIncomeSourceInput): CreatedOutput {
-        if (incomeSourceRepo.existsByName(input.title))
+        val currentUser = getCurrentUser()
+
+        val condition = QueryExtendBuilder<IncomeSource>()
+            .addCondition("title", QueryComparator.Equal, input.title)
+        if (incomeSourceRepo.exist(condition))
             throw AlreadyExistException.EntitiesByField(mapOf("name" to input.title), "income_source")
 
         if (input.linkedAccountId != null) {
@@ -40,6 +50,7 @@ class CreateIncomeSource(
             throw ValidationException.InvalidReliabilityLevel(input.reliabilityLevel)
 
         val newIncomeSource = IncomeSource(
+            userId = currentUser.id,
             title = input.title,
             type = input.type,
             payFrequency = input.payFrequencyType,

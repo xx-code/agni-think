@@ -18,6 +18,7 @@ class ScheduleInvoiceValidationTest {
         isFreeze: Boolean = false,
         freezeScheduler: Scheduler? = null,
     ) = ScheduleInvoice(
+        userId = UUID.randomUUID(),
         title = "Rent",
         accountId = UUID.randomUUID(),
         type = InvoiceType.FIXED_COST,
@@ -73,7 +74,7 @@ class ScheduleInvoiceValidationTest {
     }
 
     @Test
-    fun `refuses clearing the freeze scheduler`() = runBlocking {
+    fun `refuses clearing the freeze scheduler`() {
         val invoice = scheduleInvoice(isFreeze = true, freezeScheduler = monthlyScheduler())
 
         assertFailsWith<ValidationException.ScheduleFreezeInvoiceMustHaveAScheduler> {
@@ -92,7 +93,7 @@ class ScheduleInvoiceValidationTest {
     }
 
     @Test
-    fun `reading the freeze end date of an unfrozen invoice is refused`() = runBlocking {
+    fun `reading the freeze end date of an unfrozen invoice is refused`() {
         val invoice = scheduleInvoice(isFreeze = false)
 
         assertFailsWith<ValidationException.ScheduleFreezeInvoiceMustHaveAScheduler> {

@@ -14,6 +14,7 @@ data class JdbcDeductionModel(
     @Id
     @get:JvmName("getIdentifier")
     val deductionId: UUID,
+    val userId: UUID,
 
     val title: String,
 
@@ -31,6 +32,7 @@ class JdbcDeductionModelMapper: IMapper<JdbcDeductionModel, Deduction> {
     override fun toDomain(model: JdbcDeductionModel): Deduction {
         return Deduction(
             id = model.id,
+            userId = model.userId,
             title = model.title,
             base = DeductionBaseType.fromString(model.base),
             mode = DeductionModeType.fromString(model.mode),
@@ -41,6 +43,7 @@ class JdbcDeductionModelMapper: IMapper<JdbcDeductionModel, Deduction> {
     override fun toModel(entity: Deduction): JdbcDeductionModel {
         return JdbcDeductionModel(
             deductionId = entity.id,
+            userId = entity.userId,
             title = entity.title,
             description = entity.description,
             base = entity.base.value,
@@ -50,6 +53,7 @@ class JdbcDeductionModelMapper: IMapper<JdbcDeductionModel, Deduction> {
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "deduction_id",
+        "userId" to "user_id",
         "title" to "title",
         "description" to "description",
         "base" to "base",

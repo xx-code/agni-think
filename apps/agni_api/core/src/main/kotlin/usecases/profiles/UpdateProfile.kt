@@ -1,5 +1,6 @@
 package usecases.profiles
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
@@ -7,8 +8,9 @@ import domain.entities.Profile
 import usecases.profiles.dto.UpdateProfileInput
 
 class UpdateProfile(
-    private val profileRepo: IRepository<Profile>
-): UseCase<UpdateProfileInput, Unit>() {
+    private val profileRepo: IRepository<Profile>,
+    auth: IAuthenticateAdapter
+): UseCase<UpdateProfileInput, Unit>(auth=auth) {
     override suspend fun process(input: UpdateProfileInput) {
         val profile = profileRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "profile")
 

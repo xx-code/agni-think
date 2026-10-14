@@ -1,15 +1,20 @@
 package usecases.analystics
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.dto.FundSummaryOutput
 import adapters.readers.IFundSummaryReader
+import adapters.repositories.IRepository
+import domain.entities.User
 import usecases.analystics.dto.FundSummaryInput
 
-data class GetFundTotalSummary(
+class GetFundTotalSummary(
     private val fundSummaryReader: IFundSummaryReader,
-): UseCase<FundSummaryInput, FundSummaryOutput>() {
+    auth: IAuthenticateAdapter,
+): UseCase<FundSummaryInput, FundSummaryOutput>(auth = auth) {
     override suspend fun process(input: FundSummaryInput): FundSummaryOutput {
-        val res = fundSummaryReader.getSummary(input.type)
+        val currentUser = getCurrentUser()
+        val res = fundSummaryReader.getSummary(currentUser.id, input.type)
 
         return res
     }

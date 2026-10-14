@@ -13,6 +13,7 @@ data class JdbcFinancePrincipleModel(
     @Id
     @get:JvmName("getIdentifier")
     val financePrincipleId: UUID,
+    val userId: UUID,
 
     val name: String,
     val description: String,
@@ -32,6 +33,7 @@ class JdbcFinancePrincipleMapper: IMapper<JdbcFinancePrincipleModel, FinancePrin
         return FinancePrinciple(
             id = model.id,
             name = model.name,
+            userId = model.userId,
             description = model.description,
             strictness = model.strictness,
             targetType = PrincipleType.fromString(model.targetType),
@@ -42,6 +44,7 @@ class JdbcFinancePrincipleMapper: IMapper<JdbcFinancePrincipleModel, FinancePrin
     override fun toModel(entity: FinancePrinciple): JdbcFinancePrincipleModel {
         return JdbcFinancePrincipleModel(
             financePrincipleId = entity.id,
+            userId = entity.userId,
             name = entity.name,
             description = entity.description,
             strictness = entity.strictness,
@@ -52,6 +55,7 @@ class JdbcFinancePrincipleMapper: IMapper<JdbcFinancePrincipleModel, FinancePrin
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "finance_principle_id",
+        "userId" to "user_id",
         "name" to "name",
         "description" to "description",
         "targetType" to "target_type",

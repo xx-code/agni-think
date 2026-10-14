@@ -1,10 +1,12 @@
 package usecases.analystics
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
+import adapters.repositories.QueryCondition
 import domain.entities.Account
 import domain.entities.Budget
 import domain.exceptions.NotFoundException
@@ -13,6 +15,7 @@ import domain.entities.Profile
 import domain.entities.Provision
 import domain.entities.Fund
 import domain.entities.ScheduleInvoice
+import domain.entities.User
 import usecases.analystics.dto.ForcastSpendingInput
 import usecases.analystics.dto.ForcastSpendingOutput
 import usecases.analystics.dto.SavingAdditionalIncomeInput
@@ -37,11 +40,15 @@ class ForcastSpending(
     private val profileRepo: IRepository<Profile>,
     private val provisionRepo: IRepository<Provision>,
     private val fundRepo: IRepository<Fund>,
-    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
-): UseCase<ForcastSpendingInput, ForcastSpendingOutput>() {
+    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
+    auth: IAuthenticateAdapter
+): UseCase<ForcastSpendingInput, ForcastSpendingOutput>(auth = auth) {
     override suspend fun process(input: ForcastSpendingInput): ForcastSpendingOutput {
+        val currentUser = getCurrentUser()
         var currentBalance = 0.0
-        val accounts = accountRepo.getAll(QueryFilter.queryAll())
+        val accountCondition = QueryExtendBuilder<Account>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val accounts = accountRepo.getAll(QueryFilter.queryAll(), accountCondition)
         currentBalance = input.overrideAccountsBalance ?: getCurrentBalance(accounts.items)
 
         val budgets = budgetRepo.getManyByIds(input.budgetIds.toSet())
@@ -50,6 +57,7 @@ class ForcastSpending(
         val totalBudgetExpense = budgetExpenses.sumOf { it.remaining }
 
         val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
             .addCondition("isPause", QueryComparator.Equal, false)
             .addCondition("scheduler.date", QueryComparator.LesserOrEquals, input.endDate.atStartOfDay())
         val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
@@ -67,14 +75,18 @@ class ForcastSpending(
         val variableExpense = getScheduleTotal(scheduleInvoices.items, fundsById, provisionsById, InvoiceType.VARIABLE_COST, input.startDate, input.endDate)
 
         val freezeBalanceToRemove = getBalance.processDirect(GetBalanceInput(
+            userId = currentUser.id,
             isFreeze = true,
             startDate = input.startDate.atStartOfDay(),
             endDate = input.endDate.atStartOfDay()
         ))
         val freezeExpense = getPlanFreezeExpense(scheduleInvoices.items, input.startDate, input.endDate)
 
-        val profiles = profileRepo.getAll(QueryFilter.queryAll())
-        var savingRate = profiles.items.first().savingPercentage ?: 0.0
+        val condition  = QueryExtendBuilder<Profile>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val profile = profileRepo.getAll(QueryFilter.queryAll(), condition).items.firstOrNull()
+            ?: throw NotFoundException.SingleEntity(currentUser.id, "profile")
+        var savingRate = profile.savingPercentage
         if (input.savingRate != null)
             savingRate = input.savingRate
 
@@ -224,6 +236,7 @@ class ForcastSpending(
                     continue
                 }
                 val spend = getBalance.processDirect(GetBalanceInput(
+                    userId = budget.userId,
                     startDate = startDate.atStartOfDay(),
                     endDate = endDate.atStartOfDay(),
                     budgetIds = setOf(budget.id)

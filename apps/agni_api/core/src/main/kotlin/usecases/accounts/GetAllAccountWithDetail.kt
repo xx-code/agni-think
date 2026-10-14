@@ -1,15 +1,16 @@
 package usecases.accounts
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Account
-import domain.entities.InternalLoan
 import domain.entities.Fund
 import usecases.dto.ListOutput
 import usecases.accounts.dto.GetAccountWithDetailOutput
+import usecases.accounts.dto.GetAllAccountInput
 import usecases.accounts.dto.mapperAccountDetailOutput
 import usecases.interfaces.IUseCase
 import usecases.invoices.dto.GetBalanceInput
@@ -20,13 +21,14 @@ import java.util.UUID
 class GetAllAccountWithDetail(
     private val accountRepo: IRepository<Account>,
     private val fundRepo: IRepository<Fund>,
-    private val internalLoanRepo: IRepository<InternalLoan>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    private val getInvoice: IUseCase<UUID, GetInvoiceOutput>
-): UseCase<QueryFilter, ListOutput<GetAccountWithDetailOutput>>(){
+    auth: IAuthenticateAdapter,
+): UseCase<GetAllAccountInput, ListOutput<GetAccountWithDetailOutput>>(auth = auth) {
 
-    override suspend fun process(input: QueryFilter): ListOutput<GetAccountWithDetailOutput> {
-        val accounts = accountRepo.getAll(input)
+    override suspend fun process(input: GetAllAccountInput): ListOutput<GetAccountWithDetailOutput> {
+        val condition = QueryExtendBuilder<Account>()
+            .addCondition("userId", QueryComparator.Equal, getCurrentUser().id)
+        val accounts = accountRepo.getAll(input.queryFilter, condition)
         val results = mutableListOf<GetAccountWithDetailOutput>()
 
         val conditionFund = QueryExtendBuilder<Fund>()
@@ -35,18 +37,10 @@ class GetAllAccountWithDetail(
             QueryFilter(0,0, true), conditionFund)
 
         for(account in accounts.items) {
-            val conditionInternalLoad = QueryExtendBuilder<InternalLoan>()
-                .addCondition("fundSourceId", QueryComparator.Equal, account.id)
-            val internalLoans = internalLoanRepo.getAll(QueryFilter(queryAll = true), conditionInternalLoad)
-            var currentLoanBalance = 0.0
-            if (internalLoans.items.isNotEmpty()) {
-                internalLoans.items.forEach { internalLoanItem ->
-                    currentLoanBalance += getInvoice.processDirect(internalLoanItem.invoiceId).total
-                }
-            }
-            val lockedBalance = funds.items.filter { it.accountId == account.id }.sumOf { it.balance } + currentLoanBalance
+            val lockedBalance = funds.items.filter { it.accountId == account.id }.sumOf { it.balance }
             val freezeBalance = getBalance.processDirect(GetBalanceInput(
                 accountIds = setOf(account.id),
+                userId = account.userId,
                 isFreeze = true
             )).balance
 

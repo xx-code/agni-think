@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import usecases.provision.dto.GetAllProvisionInput
 import java.util.UUID
 
 @RestController
@@ -31,7 +32,7 @@ class ProvisionController (
     val updateProvisionUseCase: IUseCase<UpdateProvisionInput, Unit>,
     val deleteProvisionUseCase: IUseCase<DeleteProvisionInput, Unit>,
     val getProvisionUseCase: IUseCase<UUID, GetProvisionOutput>,
-    val getAllProvisionUseCase: IUseCase<QueryFilter, ListOutput<GetProvisionOutput>>
+    val getAllProvisionUseCase: IUseCase<GetAllProvisionInput, ListOutput<GetProvisionOutput>>
 ) {
     @PostMapping
     suspend fun createProvision(@Valid @RequestBody request: ApiCreateProvisionModel) : ResponseEntity<CreatedOutput> {
@@ -64,7 +65,7 @@ class ProvisionController (
     @GetMapping
     suspend fun getAllProvisions(query: QueryFilter) : ResponseEntity<ListOutput<GetProvisionOutput>> {
         return ResponseEntity.ok(getAllProvisionUseCase.execute(
-            query
+            GetAllProvisionInput(query)
         ).getOrThrow())
     }
 }

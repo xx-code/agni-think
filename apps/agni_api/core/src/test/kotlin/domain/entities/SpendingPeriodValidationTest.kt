@@ -16,6 +16,7 @@ class SpendingPeriodValidationTest {
     private val end = LocalDate.of(2026, 1, 31)
 
     private fun spendingPeriod(startDate: LocalDate = start, endDate: LocalDate = end) = SpendingPeriod(
+        userId = UUID.randomUUID(),
         spendingPeriodTemplateId = UUID.randomUUID(),
         startDate = startDate,
         endDate = endDate,
@@ -48,7 +49,7 @@ class SpendingPeriodValidationTest {
     }
 
     @Test
-    fun `refuses moving the start date after the end date`() = runBlocking {
+    fun `refuses moving the start date after the end date`() {
         val period = spendingPeriod()
 
         assertFailsWith<ValidationException.SpendingPeriodStartDateMustBeLesserThanEndDate> {
@@ -69,7 +70,7 @@ class SpendingPeriodValidationTest {
     }
 
     @Test
-    fun `refuses moving the end date before the start date`() = runBlocking {
+    fun `refuses moving the end date before the start date`() {
         val period = spendingPeriod()
 
         assertFailsWith<ValidationException.SpendingPeriodEndDateMustBeGreaterThanStartDate> {

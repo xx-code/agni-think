@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.events.EventType
 import adapters.events.IEventRegister
@@ -12,8 +13,9 @@ import usecases.invoices.dto.TreatAnExternalTransactionInput
 
 class TreatAnExternalTransaction(
     private val externalTransactionRepo: IRepository<ExternalTransaction>,
-    private val eventRegister: IEventRegister
-): UseCase<TreatAnExternalTransactionInput, Unit>() {
+    private val eventRegister: IEventRegister,
+    auth: IAuthenticateAdapter
+): UseCase<TreatAnExternalTransactionInput, Unit>(auth=auth) {
     override suspend fun process(input: TreatAnExternalTransactionInput) {
         val externalTransaction = externalTransactionRepo.get(input.transactionId) ?: throw NotFoundException.SingleEntity(input.transactionId, "external_transaction")
         if (externalTransaction.isTreated)

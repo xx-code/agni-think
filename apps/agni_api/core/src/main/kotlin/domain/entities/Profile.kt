@@ -7,6 +7,7 @@ import java.util.UUID
 
 class Profile(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     maxWishlistAmount: Double = 0.0,
     fixSpendPercentage: Double = 0.0,
     varialSpendPercentage: Double = 0.0,

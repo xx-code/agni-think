@@ -1,8 +1,10 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import domain.entities.FinancePrinciple
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.finance_principles.CreateFinancePrinciple
@@ -18,6 +20,7 @@ import usecases.interfaces.IUseCase
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import usecases.UseCase
+import usecases.finance_principles.dto.GetAllFinancePrincipleInput
 import java.util.UUID
 
 @Configuration
@@ -25,36 +28,41 @@ class FinancePrincipleConfig {
 
     @Bean
     fun createFinancePrinciple(
-        financePrincipeRepo: IRepository<FinancePrinciple>
+        financePrincipeRepo: IRepository<FinancePrinciple>,
+        auth: IAuthenticateAdapter
     ): UseCase<CreateFinancePrincipleInput, CreatedOutput> {
-        return CreateFinancePrinciple(financePrincipeRepo)
+        return CreateFinancePrinciple(financePrincipleRepo = financePrincipeRepo, auth = auth)
     }
 
     @Bean
     fun updateFinancePrinciple(
-        financePrincipeRepo: IRepository<FinancePrinciple>
+        financePrincipeRepo: IRepository<FinancePrinciple>,
+        auth: IAuthenticateAdapter
     ): UseCase<UpdateFinancePrincipleInput, Unit> {
-        return UpdateFinancePrinciple(financePrincipeRepo)
+        return UpdateFinancePrinciple(financePrincipleRepo = financePrincipeRepo, auth = auth)
     }
 
     @Bean
     fun deleteFinancePrinciple(
-        financePrincipeRepo: IRepository<FinancePrinciple>
+        financePrincipeRepo: IRepository<FinancePrinciple>,
+        auth: IAuthenticateAdapter
     ): UseCase<DeleteFinancePrincipleInput, Unit> {
-        return DeleteFinancePrinciple(financePrincipeRepo)
+        return DeleteFinancePrinciple(financePrincipleRepo = financePrincipeRepo, auth = auth)
     }
 
     @Bean
     fun getFinancePrinciple(
-        financePrincipeRepo: IRepository<FinancePrinciple>
+        financePrincipeRepo: IRepository<FinancePrinciple>,
+        auth: IAuthenticateAdapter
     ): UseCase<UUID, GetFinancePrincipleOutput> {
-        return GetFinancePrinciple(financePrincipeRepo)
+        return GetFinancePrinciple(financePrincipleRepo = financePrincipeRepo, auth = auth)
     }
 
     @Bean
     fun getAllFinancePrinciple(
-        financePrincipeRepo: IRepository<FinancePrinciple>
-    ): UseCase<QueryFilter, ListOutput<GetFinancePrincipleOutput>> {
-        return GetAllFinancePrinciple(financePrincipeRepo)
+        financePrincipeRepo: IRepository<FinancePrinciple>,
+        auth: IAuthenticateAdapter
+    ): UseCase<GetAllFinancePrincipleInput, ListOutput<GetFinancePrincipleOutput>> {
+        return GetAllFinancePrinciple(financePrincipleRepo = financePrincipeRepo, auth = auth)
     }
 }

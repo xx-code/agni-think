@@ -6,6 +6,7 @@ import domain.enums.IncomeSourceFrequencyType
 import domain.enums.IncomeSourceType
 import domain.exceptions.ValidationException
 import java.time.LocalDate
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -25,6 +26,7 @@ class IncomeSourceValidationTest {
         endDate: LocalDate? = this.endDate,
     ) = IncomeSource(
         title = "Salary",
+        userId = UUID.randomUUID(),
         type = IncomeSourceType.SALARY,
         payFrequency = IncomeSourceFrequencyType.MONTHLY,
         reliabilityLevel = reliabilityLevel,
@@ -47,7 +49,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `refuses a reliability outside one to one hundred`() = runBlocking {
+    fun `refuses a reliability outside one to one hundred`() {
         val source = incomeSource()
 
         val tooLow = assertFailsWith<ValidationException.IncomeSourceReliabilityLevelInvalid> {
@@ -84,14 +86,14 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `refuses a negative tax rate`() = runBlocking {
+    fun `refuses a negative tax rate`() {
         val source = incomeSource()
 
         assertFailsWith<ValidationException.IncomeSourceTaxRateInvalid> { source.taxRate = -0.5 }
     }
 
     @Test
-    fun `refuses an other rate that would push the total above one hundred`() = runBlocking {
+    fun `refuses an other rate that would push the total above one hundred`() {
         val source = incomeSource(taxRate = 80.0, otherRate = 10.0)
 
         assertFailsWith<ValidationException.IncomeSourceOtherRateInvalid> { source.otherRate = 30.0 }
@@ -163,7 +165,7 @@ class IncomeSourceValidationTest {
     }
 
     @Test
-    fun `refuses an end date set before the start date`() = runBlocking {
+    fun `refuses an end date set before the start date`() {
         val source = incomeSource()
 
         assertFailsWith<ValidationException.IncomeSourceEndDateMustGreaterThanStartDate> {

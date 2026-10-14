@@ -1,5 +1,6 @@
 package usecases.tags
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Tag
@@ -7,7 +8,7 @@ import domain.exceptions.NotFoundException
 import usecases.tags.dto.GetTagOutput
 import java.util.UUID
 
-class GetTag(private val tagRepo: IRepository<Tag>): UseCase<UUID, GetTagOutput>() {
+class GetTag(private val tagRepo: IRepository<Tag>, auth: IAuthenticateAdapter): UseCase<UUID, GetTagOutput>(auth = auth) {
 
     override suspend fun process(input: UUID): GetTagOutput {
         val tag = tagRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "tag")

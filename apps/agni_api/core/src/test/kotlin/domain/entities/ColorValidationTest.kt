@@ -34,12 +34,12 @@ class ColorValidationTest {
     }
 
     @Test
-    fun `refuses non hexadecimal characters`() = runBlocking {
+    fun `refuses non hexadecimal characters`()  {
         assertFailsWith<ValidationException.InvalidColor> { Color("#GGGGGG") }
     }
 
     @Test
-    fun `refuses a truncated hex value`() = runBlocking {
+    fun `refuses a truncated hex value`()  {
         assertFailsWith<ValidationException.InvalidColor> { Color("#12345") }
     }
 

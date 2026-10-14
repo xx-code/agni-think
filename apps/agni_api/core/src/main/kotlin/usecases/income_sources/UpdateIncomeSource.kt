@@ -1,5 +1,6 @@
 package usecases.income_sources
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.dto.ScheduleRepeaterInput
 import adapters.repositories.IRepository
@@ -26,8 +27,9 @@ class UpdateIncomeSource(
     private val accountRepo: IRepository<Account>,
     private val updateScheduleInvoice: IUseCase<UpdateScheduleInvoiceInput, Unit>,
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-    unitOfWork: IUnitOfWork
-): UseCase<UpdateIncomeSourceInput, Unit>(unitOfWork) {
+    unitOfWork: IUnitOfWork,
+    auth: IAuthenticateAdapter
+): UseCase<UpdateIncomeSourceInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
     override suspend fun process(input: UpdateIncomeSourceInput) {
         val incomeSource = incomeSourceRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "income_source")
 

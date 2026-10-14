@@ -1,11 +1,13 @@
 package usecases.invoices
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.AccountSnapshotBalanceInput
 import adapters.repositories.IAccountBalanceSnapshotRepository
 import domain.TRANSFERT_CATEGORY_ID
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import domain.entities.Account
+import domain.entities.User
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.Invoice
@@ -21,15 +23,21 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class TransferInvoice(
+    private val userRepo: IRepository<User>,
     private val invoiceRepo: IRepository<Invoice>,
     private val accountRepo: IRepository<Account>,
     private val transactionRepo: IRepository<Transaction>,
     private val snapshotAccountBalanceRepo: IAccountBalanceSnapshotRepository,
-    unitOfWork: IUnitOfWork
-): UseCase<TransferInvoiceInput, Unit>(unitOfWork) {
+    unitOfWork: IUnitOfWork,
+): UseCase<TransferInvoiceInput, Unit>(unitOfWork = unitOfWork) {
     override suspend fun process(input: TransferInvoiceInput) {
+        userRepo.get(input.userId) ?: throw NotFoundException.SingleEntity(input.userId, "user")
+
         val accountFrom = accountRepo.get(input.accountIdFrom) ?: throw NotFoundException.SingleEntity(input.accountIdFrom, "account")
         val accountTo = accountRepo.get(input.accountIdTo) ?: throw NotFoundException.SingleEntity(input.accountIdTo, "account")
+
+        if (accountFrom.userId != input.userId || accountTo.userId != input.userId)
+            throw NotFoundException.SingleEntity(input.accountIdFrom, "account")
 
         if (input.amount < 0)
             throw ValidationException.AmountMustBeNonNegative()
@@ -44,6 +52,7 @@ class TransferInvoice(
 
         val invoiceFrom = Invoice(
             id=invoiceFromId,
+            userId = input.userId,
             accountId = accountFrom.id,
             status = InvoiceStatusType.COMPLETED,
             date = input.date,
@@ -54,6 +63,7 @@ class TransferInvoice(
 
         val invoiceTo = Invoice(
             id=invoiceToId,
+            userId = input.userId,
             accountId = accountTo.id,
             status = InvoiceStatusType.COMPLETED,
             date = input.date,
@@ -90,8 +100,8 @@ class TransferInvoice(
 
         snapshotAccountBalanceRepo.makeManySnapshots(
             listOf(
-                AccountSnapshotBalanceInput(accountFrom.id, accountFrom.balance, LocalDateTime.now()),
-                AccountSnapshotBalanceInput(accountTo.id, accountTo.balance, LocalDateTime.now())
+                AccountSnapshotBalanceInput(accountFrom.userId,accountFrom.id, accountFrom.balance, LocalDateTime.now()),
+                AccountSnapshotBalanceInput(accountTo.userId,accountTo.id, accountTo.balance, LocalDateTime.now())
             )
         )
     }

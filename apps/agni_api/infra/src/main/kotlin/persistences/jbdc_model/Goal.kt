@@ -19,6 +19,7 @@ data class JdbcGoalModel(
     @Id
     @get:JvmName("getIdentifier")
     val goalId: UUID,
+    val userId: UUID,
     val title: String,
     @Column("source_id")
     val sourceId: UUID,
@@ -51,6 +52,7 @@ class JdbcGoalModelMapper(
 
         return Goal(
             id = model.id,
+            userId = model.userId,
             title = model.title,
             description = model.description,
             targetSourceId = model.sourceId,
@@ -65,6 +67,7 @@ class JdbcGoalModelMapper(
     override fun toModel(entity: Goal): JdbcGoalModel {
         return JdbcGoalModel(
             goalId = entity.id,
+            userId = entity.userId,
             title = entity.title,
             sourceId = entity.targetSourceId,
             description = entity.description,
@@ -78,6 +81,7 @@ class JdbcGoalModelMapper(
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "goal_id",
+        "userId" to "user_id",
         "title" to "title",
         "description" to "description",
         "targetSourceId" to "source_id",

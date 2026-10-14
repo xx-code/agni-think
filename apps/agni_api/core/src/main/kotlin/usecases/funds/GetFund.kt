@@ -1,6 +1,7 @@
 package usecases.funds
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
@@ -14,11 +15,12 @@ import java.util.UUID
 
 class GetFund(
     private val fundRepo: IRepository<Fund>,
-    private val goalRepo: IRepository<Goal>
-    ): UseCase<UUID, GetSavingGoalOutput>() {
+    private val goalRepo: IRepository<Goal>,
+    auth: IAuthenticateAdapter
+    ): UseCase<UUID, GetSavingGoalOutput>(auth = auth) {
 
     override suspend fun process(input: UUID): GetSavingGoalOutput {
-        val fund = fundRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "saving_goal")
+        val fund = fundRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "fund")
         val conditionGoal = QueryExtendBuilder<Goal>()
             .addCondition("targetSourceId", QueryComparator.Equal, fund.id)
         val goals = goalRepo.getAll(QueryFilter.queryAll(), conditionGoal)

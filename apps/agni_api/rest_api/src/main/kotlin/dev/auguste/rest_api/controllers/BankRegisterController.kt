@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import usecases.bank_registers.dto.GetAllBankRegisterInput
 import java.util.UUID
 
 @RestController
@@ -29,7 +30,7 @@ import java.util.UUID
 class BankRegisterController(
     private val createBankRegister: IUseCase<CreateBankRegisterInput, CreatedOutput>,
     private val updateBankRegister: IUseCase<UpdateBankRegisterInput, Unit>,
-    private val getAllBankRegisters: IUseCase<QueryFilter, ListOutput<GetBankRegisterOutput>>,
+    private val getAllBankRegisters: IUseCase<GetAllBankRegisterInput, ListOutput<GetBankRegisterOutput>>,
     private val getBankRegisterByAccess: IUseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput>
     ) {
     @PostMapping
@@ -49,13 +50,13 @@ class BankRegisterController(
     @GetMapping("/agent-level")
     suspend fun getAllBankRegisterAgentLevel(query: QueryFilter): ResponseEntity<ListOutput<GetBankRegisterOutput>> {
         return ResponseEntity.ok(
-            getAllBankRegisters.execute(query).getOrThrow()
+            getAllBankRegisters.execute(GetAllBankRegisterInput(query)).getOrThrow()
         )
     }
 
     @GetMapping
     suspend fun getAllBankRegister(query: QueryFilter): ResponseEntity<ListOutput<ApiSecureBankRegisterOutput>> {
-        val result = getAllBankRegisters.execute(query).getOrThrow()
+        val result = getAllBankRegisters.execute(GetAllBankRegisterInput(query)).getOrThrow()
         return ResponseEntity.ok(
             ListOutput(
                 items= result.items.map { mapBankRegisterToSecure(it) },

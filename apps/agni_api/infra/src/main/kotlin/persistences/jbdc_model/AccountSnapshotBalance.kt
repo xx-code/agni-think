@@ -10,6 +10,7 @@ data class JdbcAccountSnapshotBalance(
     @Id
     @get:JvmName("getIdentifier")
     val accountSnapshotBalanceId: UUID,
+    val userId: UUID,
     val accountId: UUID,
     val balance: Double,
     val date: LocalDateTime,

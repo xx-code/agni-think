@@ -1,6 +1,7 @@
 package usecases.goals
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.IFinanceContext
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
@@ -16,8 +17,10 @@ import usecases.goals.dto.GetGoalOutput
 class GetAllGoals(
     private val goalRepo: IRepository<Goal>,
     private val financeContext: IFinanceContext,
-): UseCase<GetAllGoalInput, ListOutput<GetGoalOutput>>(){
+    auth: IAuthenticateAdapter,
+): UseCase<GetAllGoalInput, ListOutput<GetGoalOutput>>(auth = auth){
     override suspend fun process(input: GetAllGoalInput): ListOutput<GetGoalOutput> {
+        val currentUser = getCurrentUser()
         val query = QueryFilter(
             offset = input.queryFilter.offset,
             limit =  input.queryFilter.limit,
@@ -25,6 +28,7 @@ class GetAllGoals(
             sortBy = QuerySortBy("due_date", true)
         )
         val conditionGoal = QueryExtendBuilder<Goal>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
             .addCondition("targetSourceId", QueryComparator.In, input.sourceId?.let { setOf(it) })
             .addCondition("status", QueryComparator.Equal, input.status?.ordinal)
             .addCondition("type", QueryComparator.In, input.type?.let { setOf(it.value) })

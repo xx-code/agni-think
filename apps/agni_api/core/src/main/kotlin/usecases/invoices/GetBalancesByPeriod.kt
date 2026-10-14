@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import domain.exceptions.ValidationException
 import domain.enums.PeriodType
@@ -11,7 +12,7 @@ import usecases.invoices.dto.GetBalancesByPeriodInput
 import java.time.LocalDateTime
 
 class GetBalancesByPeriod(
-    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
+    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
 ): UseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>() {
     override suspend fun process(input: GetBalancesByPeriodInput): List<GetBalanceByPeriodOutput> {
         val results = mutableListOf<GetBalanceByPeriodOutput>()
@@ -31,6 +32,7 @@ class GetBalancesByPeriod(
             }
 
             val resBalance = getBalance.processDirect(GetBalanceInput(
+                userId = input.userId,
                 startDate = current,
                 endDate = next,
                 categoryIds = input.categoryIds,
@@ -42,7 +44,7 @@ class GetBalancesByPeriod(
                 minAmount = input.minAmount,
                 maxAmount = input.maxAmount,
                 budgetIds = input.budgetIds,
-                movement = input.mouvement,
+                movement = input.movement,
                 removeSystemCategory = input.removeSystemCategory
             ))
 

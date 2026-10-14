@@ -1,5 +1,6 @@
 package usecases.analytics
 
+import adapters.IAuthenticateAdapter
 import io.mockk.coVerify
 
 import io.mockk.coEvery
@@ -15,6 +16,7 @@ import domain.entities.Fund
 import domain.entities.Profile
 import domain.entities.Provision
 import domain.entities.ScheduleInvoice
+import domain.entities.User
 import domain.enums.AccountType
 import domain.enums.ContributionAccountType
 import domain.enums.InvoiceType
@@ -60,9 +62,11 @@ class ForcastSpendingTest {
     private val profileRepo = mockk<IRepository<Profile>>(relaxed = true)
     private val provisionRepo = mockk<IRepository<Provision>>(relaxed = true)
     private val fundRepo = mockk<IRepository<Fund>>(relaxed = true)
+    private val auth = mockk<IAuthenticateAdapter>(relaxed = true)
     private val getBalance = mockk<IUseCase<GetBalanceInput, GetBalanceOutput>>(relaxed = true)
 
     private val forcastSpending = ForcastSpending(
+        auth = auth,
         scheduleInvoiceRepo = scheduleInvoiceRepo,
         accountRepo = accountRepo,
         budgetRepo = budgetRepo,
@@ -81,14 +85,15 @@ class ForcastSpendingTest {
 
     private fun stubProfile(savingRate: Double) {
         every { profileRepo.getAll(any()) } returns RepoList(
-            items = listOf(Profile(savingPercentage = savingRate)),
+            items = listOf(Profile(savingPercentage = savingRate, userId=UUID.randomUUID())),
             total = 1L
         )
     }
 
-    private fun account(balance: Double, type: AccountType, id: UUID = UUID.randomUUID()): Account {
+    private fun account(balance: Double, type: AccountType, userId: UUID = UUID.randomUUID(), id: UUID = UUID.randomUUID()): Account {
         return Account(
             id = id,
+            userId = id,
             title = "Account",
             balance = balance,
             color = Color("#fff"),
@@ -134,6 +139,7 @@ class ForcastSpendingTest {
     ): ScheduleInvoice {
         return ScheduleInvoice(
             title = "invoice",
+            userId = UUID.randomUUID(),
             accountId = UUID.randomUUID(),
             type = type,
             amount = amount,
@@ -159,7 +165,7 @@ class ForcastSpendingTest {
         stubNoScheduleInvoices()
         stubProfile(10.0)
 
-        val result = forcastSpending.execAsync(
+        val result = forcastSpending.execute(
             emptyInput().copy(overrideAccountsBalance = 100.0, savingRate = 10.0)
         )
 
@@ -212,9 +218,9 @@ class ForcastSpendingTest {
             scheduleInvoice(InvoiceType.OTHER, 999.0)
         )
 
-        val result = forcastSpending.execAsync(
+        val result = forcastSpending.execute(
             emptyInput().copy(overrideAccountsBalance = 500.0, savingRate = 10.0)
-        )
+        ).getOrThrow()
 
         assertEquals(1000.0, result.expectedIncome)
         assertEquals(200.0, result.expectedFixExpense)
@@ -234,6 +240,7 @@ class ForcastSpendingTest {
         stubScheduleInvoices(
             ScheduleInvoice(
                 title = "weekly income",
+                userId = UUID.randomUUID(),
                 accountId = UUID.randomUUID(),
                 type = InvoiceType.INCOME,
                 amount = 100.0,
@@ -248,9 +255,9 @@ class ForcastSpendingTest {
             )
         )
 
-        val result = forcastSpending.execAsync(
+        val result = forcastSpending.execute(
             emptyInput().copy(overrideAccountsBalance = 0.0, savingRate = 0.0)
-        )
+        ).getOrThrow()
 
         assertEquals(300.0, result.expectedIncome)
         assertEquals(300.0, result.totalExpectedIncome)
@@ -279,9 +286,9 @@ class ForcastSpendingTest {
             )
         )
 
-        val result = forcastSpending.execAsync(
+        val result = forcastSpending.execute(
             emptyInput().copy(overrideAccountsBalance = 1000.0, savingRate = 0.0)
-        )
+        ).getOrThrow()
 
         assertEquals(400.0, result.expectedVariableExpense)
         assertEquals(300.0, result.expectedPlanFreezeExpense)
@@ -301,24 +308,26 @@ class ForcastSpendingTest {
             id = aId,
             title = "a",
             target = 1000.0,
+            userId = UUID.randomUUID(),
             scheduler = Scheduler(LocalDateTime.of(2026, Month.AUGUST, 20, 0, 0))
         )
         val b = Budget(
             id = bId,
             title = "b",
             target = 500.0,
+            userId = UUID.randomUUID(),
             scheduler = Scheduler(LocalDateTime.of(2026, Month.AUGUST, 20, 0, 0))
         )
 
         every { budgetRepo.getManyByIds(any()) } returns listOf(a, b)
 
-        val result = forcastSpending.execAsync(
+        val result = forcastSpending.execute(
             emptyInput().copy(
                 overrideAccountsBalance = 0.0,
                 savingRate = 0.0,
                 budgetIds = listOf(aId, bId)
             )
-        )
+        ).getOrThrow()
 
         // `remaining = target - abs(spend)`, et `spend` vient de `getBalance` (0 par defaut ici) :
         // le solde courant n'est plus lu via `getBudget`.
@@ -333,9 +342,9 @@ class ForcastSpendingTest {
         stubProfile(20.0)
         stubScheduleInvoices(scheduleInvoice(InvoiceType.INCOME, 1000.0))
 
-        val result = forcastSpending.execAsync(
+        val result = forcastSpending.execute(
             emptyInput().copy(overrideAccountsBalance = 0.0, savingRate = null)
-        )
+        ).getOrThrow()
 
         assertEquals(200.0, result.expectedSaving)
         assertEquals(200.0, result.totalExpectedExpense)
@@ -348,9 +357,9 @@ class ForcastSpendingTest {
         stubProfile(80.0)
         stubScheduleInvoices(scheduleInvoice(InvoiceType.INCOME, 1000.0))
 
-        val result = forcastSpending.execAsync(
+        val result = forcastSpending.execute(
             emptyInput().copy(overrideAccountsBalance = 0.0, savingRate = 25.0)
-        )
+        ).getOrThrow()
 
         assertEquals(250.0, result.expectedSaving)
     }
@@ -361,7 +370,7 @@ class ForcastSpendingTest {
         stubNoScheduleInvoices()
         stubProfile(0.0)
 
-        val result = forcastSpending.execAsync(
+        val result = forcastSpending.execute(
             emptyInput().copy(
                 overrideAccountsBalance = 1000.0,
                 savingRate = 0.0,
@@ -371,7 +380,7 @@ class ForcastSpendingTest {
                     WantItemOutput("c", 800.0)
                 )
             )
-        )
+        ).getOrThrow()
 
         assertEquals(1000.0, result.remainAmount)
         assertEquals(listOf(WantItemOutput("a", 200.0), WantItemOutput("b", 300.0)), result.itemsApproved)
@@ -384,7 +393,7 @@ class ForcastSpendingTest {
         stubNoScheduleInvoices()
         stubProfile(0.0)
 
-        val result = forcastSpending.execAsync(
+        val result = forcastSpending.execute(
             emptyInput().copy(
                 overrideAccountsBalance = 1000.0,
                 savingRate = 20.0,
@@ -393,7 +402,7 @@ class ForcastSpendingTest {
                     WantItemOutput("small", 100.0)
                 )
             )
-        )
+        ).getOrThrow()
 
         assertEquals(1000.0, result.remainAmount)
         assertEquals(listOf(WantItemOutput("small", 100.0)), result.itemsApproved)
@@ -408,13 +417,13 @@ class ForcastSpendingTest {
         val savingId = UUID.randomUUID()
         stubAccountList(listOf(account(balance = 1000.0, type = AccountType.SAVING, id = savingId)))
 
-        val result = forcastSpending.execAsync(
+        val result = forcastSpending.execute(
             emptyInput().copy(
                 overrideAccountsBalance = 500.0,
                 savingRate = 0.0,
                 savingAdditionalIncome = listOf(SavingAdditionalIncomeInput(savingId, 200.0))
             )
-        )
+        ).getOrThrow()
 
         assertEquals(0.0, result.expectedIncome)
         assertEquals(700.0, result.totalExpectedIncome)
@@ -430,13 +439,13 @@ class ForcastSpendingTest {
         stubAccountList(listOf(account(balance = 300.0, type = AccountType.SAVING, id = savingId)))
         stubScheduleInvoices(scheduleInvoice(InvoiceType.INCOME, 500.0))
 
-        val result = forcastSpending.execAsync(
+        val result = forcastSpending.execute(
             emptyInput().copy(
                 overrideAccountsBalance = 0.0,
                 savingRate = 10.0,
                 savingAdditionalIncome = listOf(SavingAdditionalIncomeInput(savingId, 100.0))
             )
-        )
+        ).getOrThrow()
 
         assertEquals(500.0, result.expectedIncome)
         assertEquals(600.0, result.totalExpectedIncome)
@@ -446,7 +455,7 @@ class ForcastSpendingTest {
     }
 
     @Test
-    fun `throws when additional saving account is not a saving account`() = runBlocking {
+    fun `throws when additional saving account is not a saving account`() {
         stubNoBudgets()
         stubNoScheduleInvoices()
         stubProfile(0.0)
@@ -454,36 +463,41 @@ class ForcastSpendingTest {
         stubAccountList(listOf(account(balance = 1000.0, type = AccountType.CHECKING, id = checkingId)))
 
         assertThrows(NotFoundException::class.java) {
-            forcastSpending.execAsync(
-                emptyInput().copy(
-                    overrideAccountsBalance = 0.0,
-                    savingRate = 0.0,
-                    savingAdditionalIncome = listOf(SavingAdditionalIncomeInput(checkingId, 200.0))
+            runBlocking {
+                forcastSpending.execute(
+                    emptyInput().copy(
+                        overrideAccountsBalance = 0.0,
+                        savingRate = 0.0,
+                        savingAdditionalIncome = listOf(SavingAdditionalIncomeInput(checkingId, 200.0))
+                    )
                 )
-            )
+            }
         }
     }
 
     @Test
-    fun `throws when additional saving account does not exist`() = runBlocking {
+    fun `throws when additional saving account does not exist`() {
         stubNoBudgets()
         stubNoScheduleInvoices()
         stubProfile(0.0)
         stubAccountList(listOf())
 
         assertThrows(NotFoundException::class.java) {
-            forcastSpending.execAsync(
-                emptyInput().copy(
-                    overrideAccountsBalance = 0.0,
-                    savingRate = 0.0,
-                    savingAdditionalIncome = listOf(SavingAdditionalIncomeInput(UUID.randomUUID(), 200.0))
+            runBlocking {
+                forcastSpending.execute(
+                    emptyInput().copy(
+                        overrideAccountsBalance = 0.0,
+                        savingRate = 0.0,
+                        savingAdditionalIncome = listOf(SavingAdditionalIncomeInput(UUID.randomUUID(), 200.0))
+                    )
                 )
-            )
+            }
+
         }
     }
 
     @Test
-    fun `throws when additional saving amount exceeds the saving account balance`() = runBlocking {
+    fun `throws when additional saving amount exceeds the saving account balance`() {
         stubNoBudgets()
         stubNoScheduleInvoices()
         stubProfile(0.0)
@@ -491,13 +505,15 @@ class ForcastSpendingTest {
         stubAccountList(listOf(account(balance = 100.0, type = AccountType.SAVING, id = savingId)))
 
         assertThrows(ValidationException::class.java) {
-            forcastSpending.execAsync(
-                emptyInput().copy(
-                    overrideAccountsBalance = 0.0,
-                    savingRate = 0.0,
-                    savingAdditionalIncome = listOf(SavingAdditionalIncomeInput(savingId, 200.0))
+            runBlocking {
+                forcastSpending.execute(
+                    emptyInput().copy(
+                        overrideAccountsBalance = 0.0,
+                        savingRate = 0.0,
+                        savingAdditionalIncome = listOf(SavingAdditionalIncomeInput(savingId, 200.0))
+                    )
                 )
-            )
+            }
         }
     }
 }

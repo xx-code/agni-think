@@ -1,6 +1,7 @@
 package usecases.notifications
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.events.listeners.INotificationEventListener
 import adapters.events.contents.NotificationEventContent
 import adapters.repositories.IRepository
@@ -8,11 +9,16 @@ import domain.entities.Notification
 import usecases.dto.CreatedOutput
 import usecases.notifications.dto.PushNotificationInput
 
-class PushNotification(private val notificationRepo: IRepository<Notification>): UseCase<PushNotificationInput, CreatedOutput>(), INotificationEventListener {
+class PushNotification(
+    private val notificationRepo: IRepository<Notification>,
+    auth: IAuthenticateAdapter
+): UseCase<PushNotificationInput, CreatedOutput>(auth = auth), INotificationEventListener {
     private var event: NotificationEventContent? = null
 
     override suspend fun process(input: PushNotificationInput): CreatedOutput {
+
         val newNotification = Notification(
+            userId = input.userId,
             title = input.title,
             content = input.content
         )
@@ -25,6 +31,7 @@ class PushNotification(private val notificationRepo: IRepository<Notification>):
     override suspend fun update() {
         event?.let {
             process(PushNotificationInput(
+                userId = it.userId,
                 title = it.title,
                 content = it.message
             ))

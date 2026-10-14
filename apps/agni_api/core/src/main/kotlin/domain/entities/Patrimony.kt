@@ -6,6 +6,7 @@ import java.util.UUID
 
 class Patrimony(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     title: String,
     amount: Double,
     accountIds: MutableSet<UUID> = mutableSetOf(),

@@ -1,6 +1,7 @@
 package usecases.patrimonies.snapshots
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
 import domain.entities.Patrimony
@@ -10,8 +11,9 @@ import usecases.patrimonies.snapshots.dto.AddSnapshotToPatrimonyInput
 
 class AddSnapshotToPatrimony(
     private val patrimonyRepo: IRepository<Patrimony>,
-    private val snapshotPatrimonyRepo: IRepository<PatrimonySnapshot>
-): UseCase<AddSnapshotToPatrimonyInput, CreatedOutput>() {
+    private val snapshotPatrimonyRepo: IRepository<PatrimonySnapshot>,
+    auth: IAuthenticateAdapter
+): UseCase<AddSnapshotToPatrimonyInput, CreatedOutput>(auth = auth) {
 
     override suspend fun process(input: AddSnapshotToPatrimonyInput): CreatedOutput {
         patrimonyRepo.get(input.patrimonyId) ?: throw NotFoundException.SingleEntity(input.patrimonyId, "patrimony")

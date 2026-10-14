@@ -1,5 +1,6 @@
 package usecases.analystics
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import domain.SAVING_CATEGORY_ID
 import adapters.dto.QueryFilter
@@ -7,9 +8,12 @@ import adapters.dto.QuerySortBy
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
+import adapters.repositories.QueryCondition
+import domain.entities.Account
 import domain.entities.Patrimony
 import domain.entities.PatrimonySnapshot
 import domain.entities.Fund
+import domain.entities.User
 import usecases.analystics.dto.GetPatrimonyEvolutionInput
 import usecases.analystics.dto.GetPatrimonyEvolutionOutput
 import usecases.analystics.dto.NetWorthPeriodOutput
@@ -30,11 +34,16 @@ class GetPatrimonyEvolution(
     private val patrimonyRepo: IRepository<Patrimony>,
     private val patrimonySnapshotRepo: IRepository<PatrimonySnapshot>,
     private val fundRepo: IRepository<Fund>,
-    private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
-): UseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput>() {
+    private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
+    auth: IAuthenticateAdapter
+): UseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput>(auth = auth) {
 
     override suspend fun process(input: GetPatrimonyEvolutionInput): GetPatrimonyEvolutionOutput {
-        val patrimonies = patrimonyRepo.getAll(QueryFilter.queryAll())
+        val currentUser = getCurrentUser()
+
+        val condition = QueryExtendBuilder<Patrimony>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val patrimonies = patrimonyRepo.getAll(QueryFilter.queryAll(), condition)
         val patrimonyIds = patrimonies.items.map { it.id }.toSet()
 
         val conditionSnapshot = QueryExtendBuilder<PatrimonySnapshot>()
@@ -60,6 +69,7 @@ class GetPatrimonyEvolution(
             // Get balance history calculated from transactions if needed for fallback
             val balancesByPeriod = getBalanceByPeriod.processDirect(
                 GetBalancesByPeriodInput(
+                    userId = currentUser.id,
                     period = input.periodType,
                     interval = input.interval,
                     dateFrom = date,
@@ -100,12 +110,10 @@ class GetPatrimonyEvolution(
                 patrimonyAssetBreakdown[patrimony.id] = evolutionPoints
         }
 
-        // 4. Get actual total balance today
-        val currentSavingGoalBalance = fundRepo.getAll(QueryFilter.queryAll()).items.sumOf { it.balance }
-
         // Fetch periodic savings activity
         val savingBalancesByDate = getBalanceByPeriod.processDirect(
             GetBalancesByPeriodInput(
+                userId = currentUser.id,
                 period = input.periodType,
                 interval = input.interval,
                 dateFrom = date,
@@ -114,19 +122,21 @@ class GetPatrimonyEvolution(
             )
         ).associateBy { it.date }
 
-        // Compute total change from start date to current date
-        var cumulativeBalance = currentSavingGoalBalance
-
-        // Build period-by-period accumulated balance list
-        val savingGoalBalancesPerPeriod = periodBuckets.sortedByDescending { it }.map { bucketDate ->
-            val savingIn = savingBalancesByDate[bucketDate]?.spend ?: 0.0
-            val savingOut = savingBalancesByDate[bucketDate]?.income ?: 0.0
+        // 1. Simulate forward chronologically (oldest to newest) to build running balances
+        var cumulativeBalance = 0.0
+        val chronologicalBalances = periodBuckets.map { bucketDate ->
+            val record = savingBalancesByDate[bucketDate]
+            val savingIn = record?.spend ?: 0.0
+            val savingOut = record?.income ?: 0.0
 
             val delta = savingIn - savingOut
+            cumulativeBalance += delta
 
-            cumulativeBalance -= delta
             bucketDate to cumulativeBalance
-        }.toMap()
+        }
+
+        // 2. Sort from most recent to oldest for the final result map
+        val savingGoalBalancesPerPeriod = chronologicalBalances.sortedByDescending { it.first }.toMap()
 
         // 5. Aggregate overall net worth per period
         val aggregatedTotals = periodBuckets.mapIndexed { index, bucketDate ->

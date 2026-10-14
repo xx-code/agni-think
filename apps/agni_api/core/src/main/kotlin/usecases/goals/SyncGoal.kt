@@ -10,6 +10,7 @@ import adapters.repositories.IRepository
 import adapters.repositories.QueryComparator
 import adapters.repositories.QueryExtendBuilder
 import domain.entities.Goal
+import domain.entities.Notification
 import domain.enums.GoalStatusType
 import domain.factories.GoalEvaluationStrategyFactory
 import domain.value_objects.Scheduler
@@ -61,6 +62,7 @@ class SyncGoal(
                             title = notificationTitle,
                             message = notificationMessage,
                             type = NotificationType.Success,
+                            userId = goal.userId,
                         )
                     )
                 }
@@ -74,6 +76,7 @@ class SyncGoal(
                     "Sync Goal  !Error",
                     "Error while Sync Goal: ${error.message}",
                     type = NotificationType.Error,
+                    userId = Notification.SYSTEM_USER_ID,
                 )
             )
 

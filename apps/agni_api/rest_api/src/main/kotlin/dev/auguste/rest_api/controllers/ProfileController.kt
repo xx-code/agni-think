@@ -27,7 +27,7 @@ import java.util.UUID
 class ProfileController(
     val createProfileUseCase: IUseCase<CreateProfileInput, CreatedOutput>,
     val updateProfileUseCase: IUseCase<UpdateProfileInput, Unit>,
-    val getProfileUseCase: IUseCase<UUID, GetProfileOutput>
+    val getProfileUseCase: IUseCase<Unit, GetProfileOutput>
 ) {
 
     @PostMapping
@@ -35,9 +35,9 @@ class ProfileController(
         return ResponseEntity.ok(createProfileUseCase.execute(mapApiCreateProfileToCreateProfile(request)).getOrThrow())
     }
 
-    @GetMapping("/{id}")
-    suspend fun getProfile(@PathVariable id: UUID): ResponseEntity<GetProfileOutput> {
-        return ResponseEntity.ok(getProfileUseCase.execute(tempPrivateProfileKey).getOrThrow())
+    @GetMapping("/me")
+    suspend fun getUserProfile(): ResponseEntity<GetProfileOutput> {
+        return ResponseEntity.ok(getProfileUseCase.execute(Unit).getOrThrow())
     }
 
     @PutMapping("/{id}")

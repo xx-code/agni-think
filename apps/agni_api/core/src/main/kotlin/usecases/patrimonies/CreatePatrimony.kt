@@ -1,10 +1,12 @@
 package usecases.patrimonies
 
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import domain.entities.Account
 import domain.entities.Patrimony
 import domain.entities.PatrimonySnapshot
+import domain.entities.User
 import domain.enums.PatrimonySnapshotStatusType
 import usecases.dto.CreatedOutput
 import domain.exceptions.AlreadyExistException
@@ -17,9 +19,12 @@ class CreatePatrimony(
     private val patrimonyRepo: IRepository<Patrimony>,
     private val accountRepo: IRepository<Account>,
     private val snapshotRepo: IRepository<PatrimonySnapshot>,
-    unitOfWork: IUnitOfWork): UseCase<CreatePatrimonyInput, CreatedOutput>(unitOfWork) {
+    unitOfWork: IUnitOfWork,
+    auth: IAuthenticateAdapter): UseCase<CreatePatrimonyInput, CreatedOutput>(unitOfWork = unitOfWork, auth = auth) {
 
     override suspend fun process(input: CreatePatrimonyInput): CreatedOutput {
+        val currentUser = getCurrentUser()
+
         if (patrimonyRepo.existsByName(input.title))
             throw AlreadyExistException.EntitiesByField(mapOf("name" to input.title), "patrimony")
 
@@ -28,6 +33,7 @@ class CreatePatrimony(
                 throw NotFoundException.EntitiesByOtherField(mapOf("ids" to input.accountIds.joinToString()), "account")
 
         val newPatrimony = Patrimony(
+            userId = currentUser.id,
             title = input.title,
             amount = input.amount,
             accountIds = input.accountIds.toMutableSet(),

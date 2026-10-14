@@ -1,12 +1,15 @@
 package usecases.currencies
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Currency
 import domain.exceptions.AlreadyExistException
 import usecases.dto.CreatedOutput
 import usecases.currencies.dto.CreateCurrencyInput
-class CreateCurrency(private val currencyRepo: IRepository<Currency>): UseCase<CreateCurrencyInput, CreatedOutput>() {
+class CreateCurrency(
+    private val currencyRepo: IRepository<Currency>,
+    auth: IAuthenticateAdapter): UseCase<CreateCurrencyInput, CreatedOutput>(auth = auth) {
 
     override suspend fun process(input: CreateCurrencyInput): CreatedOutput {
         if (currencyRepo.existsByName(input.name))

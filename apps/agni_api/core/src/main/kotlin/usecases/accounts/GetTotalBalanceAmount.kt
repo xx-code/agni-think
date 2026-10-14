@@ -1,5 +1,6 @@
 package usecases.accounts
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryComparator
@@ -8,8 +9,10 @@ import domain.entities.Account
 import domain.entities.Fund
 import domain.entities.Profile
 import domain.entities.ScheduleInvoice
+import domain.entities.User
 import domain.enums.AccountType
 import domain.enums.InvoiceType
+import domain.exceptions.NotFoundException
 import usecases.UseCase
 import usecases.accounts.dto.GetBufferInfoOutput
 import usecases.accounts.dto.GetTotalBalanceAmountOutput
@@ -26,27 +29,21 @@ import kotlin.math.abs
 class GetTotalBalanceAmount(
     private val accountRepo: IRepository<Account>,
     private val fundRepo: IRepository<Fund>,
-    private val profile: IRepository<Profile>,
+    private val profileRepo: IRepository<Profile>,
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
     private val getBalance: UseCase<GetBalanceInput, GetBalanceOutput>,
     private val forcastSpending: UseCase<ForcastSpendingInput, ForcastSpendingOutput>,
-): UseCase<Unit, GetTotalBalanceAmountOutput>() {
+    auth: IAuthenticateAdapter,
+): UseCase<Unit, GetTotalBalanceAmountOutput>(auth = auth) {
     override suspend fun process(input: Unit): GetTotalBalanceAmountOutput {
-        val profile = profile.getAll(QueryFilter.queryAll()).items.firstOrNull() ?: return GetTotalBalanceAmountOutput(
-            totalBalance = 0.0,
-            totalAvailable = 0.0,
-            totalFreeze = 0.0,
-            totalLock = 0.0,
-            totalCreditUtilization = 0.0,
-            buffer = GetBufferInfoOutput(
-                baseBufferAmount = 0.0,
-                currentBalanceBuffer = 0.0,
-                projectedBuffer = 0.0,
-                projectedBufferByBalance = 0.0,
-            )
-        )
+        val currentUser = getCurrentUser()
+        val condition  = QueryExtendBuilder<Profile>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val profile = profileRepo.getAll(QueryFilter.queryAll(), condition).items.firstOrNull()
+            ?: throw NotFoundException.SingleEntity(currentUser.id, "profile")
 
         val conditionAccount = QueryExtendBuilder<Account>()
+            .addCondition("userId", QueryComparator.Equal, profile.userId)
             .addCondition("type", QueryComparator.In,
                 listOf(AccountType.CHECKING, AccountType.BUSINESS, AccountType.CREDIT_CARD)
             )
@@ -61,6 +58,7 @@ class GetTotalBalanceAmount(
 
         val freezeBalance = abs(getBalance.processDirect(GetBalanceInput(
             accountIds = accountIds.toSet(),
+            userId = currentUser.id,
             isFreeze = true
         )).balance)
 

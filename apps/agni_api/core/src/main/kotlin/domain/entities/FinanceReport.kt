@@ -6,6 +6,7 @@ import java.util.UUID
 
 class FinanceReport(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID = UUID.randomUUID(),
     title: String,
     description: String,
     date: LocalDate = LocalDate.now(),

@@ -1,6 +1,7 @@
 package usecases.spending_period_template
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
@@ -14,7 +15,8 @@ import domain.value_objects.SchedulerRecurrence
 class UpdateSpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
     private val budgetRepo: IRepository<Budget>,
-): UseCase<UpdateSpendingPeriodTemplateInput, Unit>() {
+    auth: IAuthenticateAdapter
+): UseCase<UpdateSpendingPeriodTemplateInput, Unit>(auth = auth) {
     override suspend fun process(input: UpdateSpendingPeriodTemplateInput) {
         val spendPeriodTemplate = spendingPeriodTemplateRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "spending_period_template")
 

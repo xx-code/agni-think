@@ -12,7 +12,6 @@ import domain.entities.FinancePrinciple
 import domain.entities.FinanceReport
 import domain.entities.Goal
 import domain.entities.IncomeSource
-import domain.entities.InternalLoan
 import domain.entities.Invoice
 import domain.entities.Notification
 import domain.entities.Patrimony
@@ -25,6 +24,7 @@ import domain.entities.SpendingPeriod
 import domain.entities.SpendingPeriodTemplate
 import domain.entities.Tag
 import domain.entities.Transaction
+import domain.entities.User
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import persistences.jbdc_model.JbdcAccountModel
@@ -41,7 +41,6 @@ import persistences.jbdc_model.JdbcFinanceReportModel
 import persistences.jbdc_model.JdbcFundModel
 import persistences.jbdc_model.JdbcGoalModel
 import persistences.jbdc_model.JdbcIncomeSourceModel
-import persistences.jbdc_model.JdbcInternalLoanModal
 import persistences.jbdc_model.JdbcInvoiceModel
 import persistences.jbdc_model.JdbcNotificationModel
 import persistences.jbdc_model.JdbcPatrimonyModel
@@ -53,6 +52,7 @@ import persistences.jbdc_model.JdbcSpendingPeriodModel
 import persistences.jbdc_model.JdbcSpendingPeriodTemplateModel
 import persistences.jbdc_model.JdbcTagModel
 import persistences.jbdc_model.JdbcTransactionModel
+import persistences.jbdc_model.JdbcUserModel
 import java.util.UUID
 
 // Account
@@ -270,17 +270,6 @@ class FinanceReportRepository(
 ): JdbcRepository<JdbcFinanceReportModel, FinanceReport>(storage, financeReportModelMapper, queryAdapter)
 
 @Repository
-interface InternalLoanStorage: GenericStorage<JdbcInternalLoanModal, UUID>
-
-@Component
-class InternalLoanRepository(
-    storage: InternalLoanStorage,
-    internalLoanMapper: IMapper<JdbcInternalLoanModal, InternalLoan>,
-    queryAdapter: JdbcQueryAdapter,
-): JdbcRepository<JdbcInternalLoanModal, InternalLoan>(storage, internalLoanMapper, queryAdapter)
-
-
-@Repository
 interface GoalStorage: GenericStorage<JdbcGoalModel, UUID>
 
 @Component
@@ -322,3 +311,13 @@ class SpendingPeriodRepository(
 
 @Repository
 interface AccountSnapshotStorage: GenericStorage<JdbcAccountSnapshotBalance, UUID>
+
+@Repository
+interface UserStorage: GenericStorage<JdbcUserModel, UUID>
+
+@Component
+class UserRepository(
+    storage: UserStorage,
+    mapper: IMapper<JdbcUserModel, User>,
+    queryAdapter: JdbcQueryAdapter
+): JdbcRepository<JdbcUserModel, User>(storage, mapper, queryAdapter)

@@ -1,21 +1,29 @@
 package usecases.spending_period_template
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.dto.ScheduleRepeaterOutput
 import adapters.repositories.IRepository
+import adapters.repositories.QueryComparator
+import adapters.repositories.QueryExtendBuilder
 import domain.entities.Budget
 import domain.entities.SpendingPeriodTemplate
 import usecases.dto.ListOutput
+import usecases.spending_period_template.dto.GetAllSpendingPeriodTemplateInput
 import usecases.spending_period_template.dto.GetSpendingPeriodTemplateBudgetOutput
 import usecases.spending_period_template.dto.GetSpendingPeriodTemplateOutput
 
 class GetAllSpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
     private val budgetRepo: IRepository<Budget>,
-): UseCase<QueryFilter, ListOutput<GetSpendingPeriodTemplateOutput>>() {
-    override suspend fun process(input: QueryFilter): ListOutput<GetSpendingPeriodTemplateOutput> {
-        val spendingPeriodTemplate = spendingPeriodTemplateRepo.getAll(input)
+    auth: IAuthenticateAdapter
+): UseCase<GetAllSpendingPeriodTemplateInput, ListOutput<GetSpendingPeriodTemplateOutput>>(auth = auth) {
+    override suspend fun process(input: GetAllSpendingPeriodTemplateInput): ListOutput<GetSpendingPeriodTemplateOutput> {
+        val currentUser = getCurrentUser()
+        val condition = QueryExtendBuilder<SpendingPeriodTemplate>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val spendingPeriodTemplate = spendingPeriodTemplateRepo.getAll(input.queryFilter, condition)
 
         val budgets = budgetRepo.getManyByIds(spendingPeriodTemplate.items.flatMap { it.targetBudgetIds }.toSet())
 

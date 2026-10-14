@@ -72,6 +72,7 @@ class AccountSnapshotBalanceRepository(
 
     private fun AccountSnapshotBalanceInput.toModel() = JdbcAccountSnapshotBalance(
         accountSnapshotBalanceId = UUID.randomUUID(),
+        userId = userId,
         accountId = accountId,
         balance = balance,
         date = date

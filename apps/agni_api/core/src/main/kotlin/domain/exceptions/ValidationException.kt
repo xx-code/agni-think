@@ -95,6 +95,8 @@ sealed class ValidationException(errorKey: String, metadata: Map<String, Any>) :
 
     class InvalidColor(color: String) : ValidationException("INVALID_COLOR", mapOf("color" to color))
 
+    class InvalidEmail(email: String) : ValidationException("INVALID_EMAIL", mapOf("email" to email))
+
     class ProvisionDepreciateLoanInterestPositif(interest: Double) :
         ValidationException("PROVISION_DEPRECIATE_INTEREST_POSITIF", mapOf("interest" to interest))
 
@@ -162,6 +164,11 @@ sealed class ValidationException(errorKey: String, metadata: Map<String, Any>) :
 
     class SavingGoalAccountIdMustNotBeNull :
         ValidationException("SAVING_GOAL_ACCOUNT_ID_MUST_NOT_BE_NULL", mapOf())
+
+    class FundIncreaseMustBeLesserOrEqualToFundAmount(amount: Double) :
+        ValidationException("FUND_INCREASE_MUST_BE_LESSER_OR_EQUAL_TO_FUND_AMOUNT", mapOf("amount" to amount))
+
+    // --- Schedule Invoice ---
 
     class ScheduleInvoiceAccountNotFound : ValidationException("SCHEDULE_INVOICE_ACCOUNT_NOT_FOUND", mapOf())
 
@@ -262,4 +269,13 @@ sealed class ValidationException(errorKey: String, metadata: Map<String, Any>) :
 
     class TransactionAmountMustBeGreaterThanZero(amount: Double) :
         ValidationException("TRANSACTION_AMOUNT_MUST_BE_GREATER_THAN_ZERO", mapOf("amount" to amount))
+
+
+    // --- Tag ---
+    class UserCannotCreateSystemTag:
+        ValidationException("USER_CANNOT_CREATE_SYSTEM_TAG", mapOf())
+
+    // --- Category --
+    class UserCannotCreateSystemCategory:
+        ValidationException("USER_CANNOT_CREATE_SYSTEM_CATEGORY", mapOf())
 }

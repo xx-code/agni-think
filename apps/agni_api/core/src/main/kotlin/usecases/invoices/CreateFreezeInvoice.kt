@@ -2,6 +2,7 @@ package usecases.invoices
 
 import usecases.interfaces.IUseCase
 
+import adapters.IAuthenticateAdapter
 import domain.FREEZE_CATEGORY_ID
 import adapters.repositories.IUnitOfWork
 import domain.enums.InvoiceMovementType
@@ -14,16 +15,17 @@ import usecases.invoices.dto.TransactionInput
 
 class CreateFreezeInvoice(
     unitOfWork: IUnitOfWork,
-    private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
-) : UseCase<CreateFreezeInvoiceInput, CreatedOutput>(unitOfWork) {
+    private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>
+) : UseCase<CreateFreezeInvoiceInput, CreatedOutput>(unitOfWork = unitOfWork) {
 
     override suspend fun process(input: CreateFreezeInvoiceInput): CreatedOutput {
         return createInvoice.processDirect(CreateInvoiceInput(
+            userId = input.userId,
             accountId = input.accountId,
             status = input.status,
             date = input.endDate,
             type = InvoiceType.OTHER,
-            mouvementType = InvoiceMovementType.DEBIT,
+            movementType = InvoiceMovementType.DEBIT,
             currency = null,
             isFreeze = true,
             transactions = setOf(

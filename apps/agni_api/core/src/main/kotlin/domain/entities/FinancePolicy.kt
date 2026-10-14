@@ -7,6 +7,7 @@ import java.util.UUID
 
 class FinancePolicy (
     id: UUID,
+    val userId: UUID,
     private val riskTolerance: FinancePolicyRiskLevelType,
     private val priorityRule: PriorityRuleLevelType,
     private val impulseDelayDays: Int,

@@ -1,5 +1,6 @@
 package usecases.invoices
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
@@ -15,8 +16,9 @@ import java.util.UUID
 
 class GetInvoice(
     private val invoiceRepo: IRepository<Invoice>,
-    private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>
-): UseCase<UUID, GetInvoiceOutput>() {
+    private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+    auth: IAuthenticateAdapter
+): UseCase<UUID, GetInvoiceOutput>(auth=auth) {
     override suspend fun process(input: UUID): GetInvoiceOutput {
         val invoice = invoiceRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "invoice")
 

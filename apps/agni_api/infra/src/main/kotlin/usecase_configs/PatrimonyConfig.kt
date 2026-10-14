@@ -1,5 +1,6 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
@@ -9,6 +10,7 @@ import domain.entities.Patrimony
 import domain.entities.PatrimonySnapshot
 import domain.entities.Provision
 import domain.entities.Fund
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
@@ -37,6 +39,7 @@ import usecases.patrimonies.snapshots.dto.UpdateSnapshotFromPatrimonyInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import usecases.UseCase
+import usecases.patrimonies.dto.GetAllPatrimonyInput
 import java.util.UUID
 
 @Configuration
@@ -47,13 +50,15 @@ class PatrimonyConfig {
         patrimonyRepo: IRepository<Patrimony>,
         accountRepo: IRepository<Account>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
-        unitOfWork: IUnitOfWork
+        unitOfWork: IUnitOfWork,
+        auth: IAuthenticateAdapter
     ): UseCase<CreatePatrimonyInput, CreatedOutput> {
         return CreatePatrimony(
             patrimonyRepo = patrimonyRepo,
             accountRepo = accountRepo,
             snapshotRepo = snapshotRepo,
-            unitOfWork = unitOfWork
+            unitOfWork = unitOfWork,
+            auth = auth
         )
     }
 
@@ -61,12 +66,14 @@ class PatrimonyConfig {
     fun deletePatrimony(
         patrimonyRepo: IRepository<Patrimony>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
-        unitOfWork: IUnitOfWork
+        unitOfWork: IUnitOfWork,
+        auth: IAuthenticateAdapter
     ): UseCase<DeletePatrimonyInput, Unit> {
         return DeletePatrimony(
             patrimonyRepo = patrimonyRepo,
             patrimonySnapshotRepo = snapshotRepo,
-            unitOfWork = unitOfWork
+            unitOfWork = unitOfWork,
+            auth = auth
         )
     }
 
@@ -79,8 +86,9 @@ class PatrimonyConfig {
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
         provisionRepo: IRepository<Provision>,
         invoiceRepo: IRepository<Invoice>,
-        getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
-    ): UseCase<QueryFilter, ListOutput<GetPatrimonyOutput>> {
+        getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>,
+        auth: IAuthenticateAdapter
+    ): UseCase<GetAllPatrimonyInput, ListOutput<GetPatrimonyOutput>> {
         return GetAllPatrimonies(
             patrimonyRepo = patrimonyRepo,
             accountRepo = accountRepo,
@@ -90,6 +98,7 @@ class PatrimonyConfig {
             provisionRepo = provisionRepo,
             invoiceRepo = invoiceRepo,
             getManyInvoices = getManyInvoices,
+            auth = auth,
         )
     }
 
@@ -102,7 +111,8 @@ class PatrimonyConfig {
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
         provisionRepo: IRepository<Provision>,
         invoiceRepo: IRepository<Invoice>,
-        getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
+        getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>,
+        auth: IAuthenticateAdapter
     ): UseCase<GetPatrimonyInput, GetPatrimonyOutput> {
         return GetPatrimony(
             patrimonyRepo = patrimonyRepo,
@@ -112,7 +122,8 @@ class PatrimonyConfig {
             getBalancesByPeriod = getBalanceByPeriod,
             provisionRepo = provisionRepo,
             invoiceRepo = invoiceRepo,
-            getManyInvoices = getManyInvoices
+            getManyInvoices = getManyInvoices,
+            auth = auth
         )
     }
 
@@ -120,10 +131,12 @@ class PatrimonyConfig {
     fun updatePatrimony(
         patrimonyRepo: IRepository<Patrimony>,
         accountRepo: IRepository<Account>,
+        auth: IAuthenticateAdapter
     ): UseCase<UpdatePatrimonyInput, Unit> {
         return UpdatePatrimony(
             patrimonyRepo = patrimonyRepo,
             accountRepo = accountRepo,
+            auth = auth,
         )
     }
 
@@ -131,28 +144,34 @@ class PatrimonyConfig {
     fun addSnapshotToPatrimonies(
        patrimonyRepo: IRepository<Patrimony>,
        snapshotRepo: IRepository<PatrimonySnapshot>,
+       auth: IAuthenticateAdapter
     ) : UseCase<AddSnapshotToPatrimonyInput, CreatedOutput> {
         return AddSnapshotToPatrimony(
             patrimonyRepo = patrimonyRepo,
             snapshotPatrimonyRepo = snapshotRepo,
+            auth = auth,
         )
     }
 
     @Bean
     fun removeSnapshotFromPatrimonies(
-        snapshotRepo: IRepository<PatrimonySnapshot>
+        snapshotRepo: IRepository<PatrimonySnapshot>,
+        auth: IAuthenticateAdapter
     ) : UseCase<RemoveSnapshotFromPatrimonyInput, Unit> {
         return RemoveSnapshotFromPatrimony(
-            snapshotRepo = snapshotRepo
+            snapshotRepo = snapshotRepo,
+            auth = auth
         )
     }
 
     @Bean
     fun updateSnapshotFromPatrimonies(
-        snapshotRepo: IRepository<PatrimonySnapshot>
+        snapshotRepo: IRepository<PatrimonySnapshot>,
+        auth: IAuthenticateAdapter
     ) : UseCase<UpdateSnapshotFromPatrimonyInput, Unit> {
         return UpdateSnapshotFromPatrimony(
-            snapshotRepo = snapshotRepo
+            snapshotRepo = snapshotRepo,
+            auth = auth
         )
     }
 
@@ -163,7 +182,8 @@ class PatrimonyConfig {
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
         provisionRepo: IRepository<Provision>,
         invoiceRepo: IRepository<Invoice>,
-        getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
+        getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>,
+        auth: IAuthenticateAdapter
     ) : UseCase<GetAllSnapshotPatrimonyInput, ListOutput<GetSnapshotPatrimonyOutput>> {
         return GetAllSnapshotFromPatrimony(
             snapshotPatrimonyRepo = snapshotRepo,
@@ -171,7 +191,8 @@ class PatrimonyConfig {
             getBalanceByPeriod = getBalanceByPeriod,
             provisionRepo = provisionRepo,
             invoiceRepo = invoiceRepo,
-            getManyInvoices = getManyInvoices
+            getManyInvoices = getManyInvoices,
+            auth = auth
         )
     }
 }

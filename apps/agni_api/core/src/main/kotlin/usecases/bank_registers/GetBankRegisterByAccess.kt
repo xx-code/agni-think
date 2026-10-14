@@ -1,6 +1,7 @@
 package usecases.bank_registers
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
@@ -15,7 +16,8 @@ import usecases.bank_registers.dto.GetBankRegisterOutput
 class GetBankRegisterByAccess(
     private val bankRegisterRepo: IRepository<BankRegister>,
     private val accountRepo: IRepository<Account>,
-): UseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput>() {
+    auth: IAuthenticateAdapter
+): UseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput>(auth = auth) {
     override suspend fun process(input: GetBankRegisterByAccessCodeInput): GetBankRegisterOutput {
         val condition = QueryExtendBuilder<BankRegister>()
 
