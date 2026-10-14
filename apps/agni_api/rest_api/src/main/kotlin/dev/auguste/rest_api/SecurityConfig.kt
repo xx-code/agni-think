@@ -60,14 +60,21 @@ class OidcSecurityConfig(
 ) {
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity, jwtDecoder: JwtDecoder): SecurityFilterChain {
+    fun securityFilterChain(http: HttpSecurity, jwtDecoder: ObjectProvider<JwtDecoder>): SecurityFilterChain {
         http
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/v2/public/**", "/", "/health").permitAll()
+                    .requestMatchers("/v2/public/**",  "/", "/health").permitAll()
                     .anyRequest().authenticated()
             }
+
+        jwtDecoder.ifAvailable?.let { decoder ->
+            http.oauth2ResourceServer { oauth ->
+                oauth.jwt { it.decoder(decoder) }
+            }
+        }
+
         return http.build()
     }
 

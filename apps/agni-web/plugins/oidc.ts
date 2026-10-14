@@ -4,10 +4,10 @@ export default defineNuxtPlugin(() => {
     const cfg = useRuntimeConfig().public
 
     const mgr = new UserManager({
-        authority: cfg.oidcAuthority,
-        client_id: cfg.oidcClientId,
-        redirect_uri: cfg.oidcRedirectUri,
-        post_logout_redirect_uri: cfg.oidcPostLogoutRedirectUri,
+        authority: cfg.authority,
+        client_id: cfg.clientId,
+        redirect_uri: cfg.redirectUri,
+        post_logout_redirect_uri: cfg.postLogoutRedirectUri,
         response_type: 'code',
         scope: cfg.oidcScope,
         loadUserInfo: true,

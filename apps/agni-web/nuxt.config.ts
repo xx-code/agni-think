@@ -20,11 +20,11 @@ export default defineNuxtConfig({
       env: process.env.NODE_ENV,
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080/v2',
       apiAgent: process.env.NUXT_PUBLIC_API_AGENT || 'http://localhost:8000',
-      oidcAuthority: process.env.NUXT_PUBLIC_AUTHORITY,
-      oidcClientId: process.env.NUXT_PUBLIC_CLIENT_ID,
-      oidcAudience: process.env.NUXT_PUBLIC_AUDIENCE,
-      oidcRedirectUri: process.env.NUXT_PUBLIC_REDIRECT_URI,
-      oidcPostLogoutRedirectUri: process.env.NUXT_POST_LOGOUT_REDIRECT_URI,
+      authority: process.env.NUXT_PUBLIC_AUTHORITY || '',
+      clientId: process.env.NUXT_PUBLIC_CLIENT_ID || '',
+      audience: process.env.NUXT_PUBLIC_AUDIENCE || '',
+      redirectUri: process.env.NUXT_PUBLIC_REDIRECT_URI || '',
+      postLogoutRedirectUri: process.env.NUXT_PUBLIC_POST_LOGOUT_REDIRECT_URI || '',
       oidcScope: 'openid profile email offline_access',
       isLocalAuth: process.env.NUXT_PUBLIC_IS_LOCAL_AUTH || false
     } 

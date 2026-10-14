@@ -55,9 +55,9 @@ export const useAuth = () => {
     async function loginOidc(lang: string = "en") {
         try {
             await $oidc.signinRedirect({
-                redirect_uri: config.oidcRedirectUri,
+                redirect_uri: config.redirectUri,
                 extraQueryParams: {
-                    audience: (config.oidcAudience as string)
+                    audience: (config.audience as string)
                 }
             })
         } catch (error) {
