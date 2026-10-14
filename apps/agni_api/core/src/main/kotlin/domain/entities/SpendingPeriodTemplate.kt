@@ -7,6 +7,7 @@ import java.util.UUID
 
 class SpendingPeriodTemplate(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     startDate: LocalDate,
     recurrence: SchedulerRecurrence,
     targetBudgetIds: Set<UUID> = setOf(),

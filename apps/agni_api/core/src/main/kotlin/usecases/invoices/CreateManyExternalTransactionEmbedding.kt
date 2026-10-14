@@ -12,6 +12,7 @@ import adapters.events.listeners.ICreateManyExternalTransactionListener
 import adapters.repositories.IRepository
 import domain.exceptions.ValidationException
 import domain.entities.ExternalTransaction
+import domain.entities.Notification
 import usecases.dto.BackgroundTaskOut
 import java.util.UUID
 
@@ -52,7 +53,8 @@ class CreateManyExternalTransactionEmbedding(
                 NotificationEventContent(
                     title = "Fail to create multiple  external embdedding transaction",
                     message = "External was failed to create embedding invoice: ${err.message}",
-                    type = NotificationType.Error
+                    type = NotificationType.Error,
+                    userId = Notification.SYSTEM_USER_ID,
                 )
             )
             return BackgroundTaskOut("Error while creating External Transaction embedding. ${err.localizedMessage}")

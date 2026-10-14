@@ -1,6 +1,7 @@
 package usecases.patrimonies
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.Patrimony
@@ -9,7 +10,8 @@ import usecases.patrimonies.dto.UpdatePatrimonyInput
 
 class UpdatePatrimony(
     private val patrimonyRepo: IRepository<Patrimony>,
-    private val accountRepo: IRepository<Account>): UseCase<UpdatePatrimonyInput, Unit>() {
+    private val accountRepo: IRepository<Account>,
+    auth: IAuthenticateAdapter): UseCase<UpdatePatrimonyInput, Unit>(auth = auth) {
     override suspend fun process(input: UpdatePatrimonyInput) {
         val patrimony = patrimonyRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "patrimony")
 

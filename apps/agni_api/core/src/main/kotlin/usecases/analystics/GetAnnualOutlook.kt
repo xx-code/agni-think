@@ -1,5 +1,6 @@
 package usecases.analystics
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
@@ -7,6 +8,7 @@ import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Category
 import domain.entities.ScheduleInvoice
+import domain.entities.User
 import domain.enums.InvoiceType
 import domain.enums.PeriodType
 import usecases.dto.ListOutput
@@ -22,6 +24,7 @@ import domain.value_objects.SchedulerRecurrence
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
+import java.util.UUID
 import kotlin.collections.filter
 
 class GetAnnualOutlook(
@@ -30,14 +33,18 @@ class GetAnnualOutlook(
     private val getBudgets: IUseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     private val getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
-): UseCase<Unit, GetAnnualOutlookOutput>() {
+    auth: IAuthenticateAdapter,
+): UseCase<Unit, GetAnnualOutlookOutput>(auth = auth) {
     override suspend fun process(input: Unit): GetAnnualOutlookOutput {
+        val currentUser = getCurrentUser()
         val conditionScheduleInvoice = QueryExtendBuilder<ScheduleInvoice>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
             .addCondition("scheduler.date", QueryComparator.Greater, LocalDateTime.now())
 
         val scheduleInvoices = scheduleRepo.getAll(QueryFilter(0, 0, true), conditionScheduleInvoice)
         val currentDateTime = LocalDateTime.now()
         val currentBalance = getBalance.processDirect(GetBalanceInput(
+            userId = currentUser.id,
             startDate = currentDateTime.with(TemporalAdjusters.firstDayOfYear()),
             endDate = currentDateTime
         ))
@@ -46,7 +53,7 @@ class GetAnnualOutlook(
         val incomeOutlook = nextIncome + currentBalance.income
 
         val nextSpend = getFutureOutlook(scheduleInvoices.items.filter { it.type != InvoiceType.INCOME && !it.isPause && !it.isFreeze })
-        val (currentBudgetOutlook, targetBudgetOutlook) = getBudgetBalances()
+        val (currentBudgetOutlook, targetBudgetOutlook) = getBudgetBalances(currentUser.id)
         val remindBudget = if (currentBudgetOutlook > targetBudgetOutlook) 0.0 else (targetBudgetOutlook - currentBudgetOutlook)
 
         val spendOutlook = nextSpend + remindBudget + currentBalance.spend
@@ -58,9 +65,10 @@ class GetAnnualOutlook(
         ))
 
         val conditionCategory = QueryExtendBuilder<Category>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
             .addCondition("isSystem", QueryComparator.Equal, false)
         val categories = categoryRepo.getAll(QueryFilter(0, 0, true), conditionCategory)
-        val currentSpendByCategories = getCurrentBalanceByCategory(categories.items)
+        val currentSpendByCategories = getCurrentBalanceByCategory(currentUser.id, categories.items)
         val spendByCategoryOutlook = addFutureSpendByCategory(currentSpendByCategories, scheduleInvoices.items)
 
         return GetAnnualOutlookOutput(
@@ -78,12 +86,13 @@ class GetAnnualOutlook(
     }
 
 
-    private suspend fun getBudgetBalances(): Pair<Double, Double> {
+    private suspend fun getBudgetBalances(userId: UUID): Pair<Double, Double> {
         val budgets = getBudgets.processDirect(GetAllBudgetInput(query = QueryFilter.queryAll())).items
 
 
         val now = LocalDateTime.now()
         val totalCurrentAmount = getBalance.processDirect(GetBalanceInput(
+            userId = userId,
             startDate = now.with(TemporalAdjusters.firstDayOfYear()),
             status = null,
             endDate = now,
@@ -118,7 +127,7 @@ class GetAnnualOutlook(
         }
     }
 
-    private suspend fun getCurrentBalanceByCategory(categories: List<Category>): List<SpendByCategoryOutlook> {
+    private suspend fun getCurrentBalanceByCategory(userId: UUID, categories: List<Category>): List<SpendByCategoryOutlook> {
         val spends = mutableListOf<SpendByCategoryOutlook>()
         val endDate = LocalDateTime.now()
         val startDate = endDate.with(TemporalAdjusters.firstDayOfYear())
@@ -126,6 +135,7 @@ class GetAnnualOutlook(
         // TODO: Optimization multiple call here
         categories.forEach {
             val balance = getBalance.processDirect(GetBalanceInput(
+                userId = userId,
                 startDate = startDate,
                 endDate = endDate,
                 status = null,

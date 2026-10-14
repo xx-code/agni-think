@@ -27,7 +27,8 @@ interface IFinanceContext {
 class FinanceContext(
     private val fundRepo: IRepository<Fund>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    private val categoryRepo: IRepository<Category>
+    private val categoryRepo: IRepository<Category>,
+    private val auth: IAuthenticateAdapter
 ): IFinanceContext {
     override suspend fun getFund(id: UUID): FinanceContextFund
     {
@@ -46,6 +47,7 @@ class FinanceContext(
     override suspend fun getCategoryTotal(id: UUID, startDate: LocalDate, endDate: LocalDate): Double {
         val balance = getBalance.processDirect(
             GetBalanceInput(
+                userId = auth.getCurrentUser().id,
                 categoryIds = setOf(id),
                 startDate = startDate.atStartOfDay(),
                 endDate = endDate.atStartOfDay()

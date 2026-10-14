@@ -16,6 +16,7 @@ data class JdbcBankRegisterModel(
     @Id
     @get:JvmName("getIdentifier")
     val bankRegisterId: UUID,
+    val userId: UUID,
     val institutionId: String,
     val accessCode: String,
     val title: String,
@@ -41,6 +42,7 @@ class JdbcBankRegisterModelMapper(
 
         return BankRegister(
             id = model.bankRegisterId,
+            userId = model.userId,
             institutionId = model.institutionId,
             accessCode = model.accessCode,
             title = model.title,
@@ -53,6 +55,7 @@ class JdbcBankRegisterModelMapper(
     override fun toModel(entity: BankRegister): JdbcBankRegisterModel {
         return JdbcBankRegisterModel(
             bankRegisterId = entity.id,
+            userId = entity.userId,
             title = entity.title,
             institutionId = entity.institutionId,
             accessCode = entity.accessCode,
@@ -64,6 +67,7 @@ class JdbcBankRegisterModelMapper(
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "bankRegisterId" to "bank_register_id",
+        "userId" to "user_id",
         "institutionId" to "institution_id",
         "accessCode" to "access_code",
         "title" to "title",

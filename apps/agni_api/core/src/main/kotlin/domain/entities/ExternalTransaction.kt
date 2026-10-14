@@ -6,6 +6,7 @@ import java.util.UUID
 
 class ExternalTransaction(
     id: UUID = UUID.randomUUID(),
+    val userId : UUID,
     val transactionId: String,
     accountId: String,
     amount: Double,

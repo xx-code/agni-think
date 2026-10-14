@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 
 import domain.enums.PrincipleType
 import domain.exceptions.ValidationException
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -11,6 +12,7 @@ import kotlin.test.assertFailsWith
 class FinancePrincipleValidationTest {
 
     private fun principle(strictness: Int = 5) = FinancePrinciple(
+        userId = UUID.randomUUID(),
         name = "Keep an emergency fund",
         description = "Six months of expenses",
         targetType = PrincipleType.EMERGENCY_FUND,

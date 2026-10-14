@@ -3,6 +3,7 @@ package dev.auguste.rest_api.controllers.models
 import usecases.invoices.dto.AddExternalTransactionInput
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDateTime
+import java.util.UUID
 
 data class ApiAppExternalTransactionModel(
     val transactionId: String,

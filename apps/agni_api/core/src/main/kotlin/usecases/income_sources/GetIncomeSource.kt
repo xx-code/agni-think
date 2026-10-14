@@ -1,5 +1,6 @@
 package usecases.income_sources
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
@@ -9,7 +10,8 @@ import java.util.UUID
 
 class GetIncomeSource(
     private val incomeSourceRepo: IRepository<IncomeSource>,
-): UseCase<UUID, GetIncomeSourceOutput>() {
+    auth: IAuthenticateAdapter
+): UseCase<UUID, GetIncomeSourceOutput>(auth = auth) {
     override suspend fun process(input: UUID): GetIncomeSourceOutput {
         val incomeSource = incomeSourceRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "income_source")
 

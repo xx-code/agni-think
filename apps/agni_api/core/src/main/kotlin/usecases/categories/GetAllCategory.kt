@@ -1,5 +1,7 @@
 package usecases.categories
 
+import adapters.IAuthenticateAdapter
+import adapters.readers.IGetAllCategoryReader
 import usecases.UseCase
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
@@ -8,9 +10,10 @@ import domain.entities.Category
 import usecases.dto.ListOutput
 import usecases.categories.dto.GetAllCategoryInput
 import usecases.categories.dto.GetCategoryOutput
-class GetAllCategory(private val categoryRepo: IRepository<Category>): UseCase<GetAllCategoryInput, ListOutput<GetCategoryOutput>>() {
+class GetAllCategory(private val categoryRepo: IGetAllCategoryReader, auth: IAuthenticateAdapter): UseCase<GetAllCategoryInput, ListOutput<GetCategoryOutput>>(auth = auth) {
 
     override suspend fun process(input: GetAllCategoryInput): ListOutput<GetCategoryOutput> {
+        val currentUser = getCurrentUser()
         val condition = QueryExtendBuilder<Category>()
 
         if (input.isSystem != null)
@@ -19,8 +22,9 @@ class GetAllCategory(private val categoryRepo: IRepository<Category>): UseCase<G
         if (input.isArchived != null)
             condition.addCondition("isArchived", QueryComparator.Equal, input.isArchived)
 
-        val categories = categoryRepo.getAll(
+        val categories = categoryRepo.read(
             query = input.query,
+            currentUser.id,
             condition
         )
 

@@ -16,7 +16,7 @@ class GoalEvaluationTypeTest {
     }
 
     @Test
-    fun `fromString throws for unknown value`() = runBlocking {
+    fun `fromString throws for unknown value`() {
         assertFailsWith<ValidationException.BadType> {
             GoalEvaluationType.fromString("Unknown")
         }

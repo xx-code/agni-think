@@ -15,6 +15,7 @@ data class JdbcCategoryModel(
     @Id
     @get:JvmName("getIdentifier")
     val categoryId: UUID,
+    val userId: UUID?,
 
     val title: String,
 
@@ -40,6 +41,7 @@ class JdbcCategoryModelMapper: IMapper<JdbcCategoryModel, Category> {
     override fun toDomain(model: JdbcCategoryModel): Category {
         val category = Category(
             id = model.categoryId,
+            userId = model.userId,
             title = model.title,
             icon = model.iconId,
             isSystem = model.isSystem,
@@ -53,6 +55,7 @@ class JdbcCategoryModelMapper: IMapper<JdbcCategoryModel, Category> {
     override fun toModel(entity: Category): JdbcCategoryModel {
         return JdbcCategoryModel(
             categoryId = entity.id,
+            userId = entity.userId,
             title = entity.title,
             color = entity.color.toString(),
             iconId = entity.icon,
@@ -65,6 +68,7 @@ class JdbcCategoryModelMapper: IMapper<JdbcCategoryModel, Category> {
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "category_id",
+        "userId" to "user_id",
         "title" to "title",
         "color" to "color",
         "icon" to "icon_id",

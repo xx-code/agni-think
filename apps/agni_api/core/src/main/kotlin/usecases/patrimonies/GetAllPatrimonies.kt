@@ -1,6 +1,7 @@
 package usecases.patrimonies
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import domain.SAVING_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
@@ -18,6 +19,7 @@ import usecases.interfaces.IUseCase
 import usecases.invoices.dto.GetBalanceByPeriodOutput
 import usecases.invoices.dto.GetBalancesByPeriodInput
 import usecases.invoices.dto.GetInvoiceOutput
+import usecases.patrimonies.dto.GetAllPatrimonyInput
 import usecases.patrimonies.dto.GetPatrimonyOutput
 import usecases.patrimonies.dto.SourcePatrimonyType
 import java.time.LocalDateTime
@@ -36,13 +38,18 @@ class GetAllPatrimonies(
     private val provisionRepo: IRepository<Provision>,
     private val invoiceRepo: IRepository<Invoice>,
     private val getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
-    private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>): UseCase<QueryFilter, ListOutput<GetPatrimonyOutput>>() {
+    private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>,
+    auth: IAuthenticateAdapter): UseCase<GetAllPatrimonyInput, ListOutput<GetPatrimonyOutput>>(auth = auth) {
 
-    override suspend fun process(input: QueryFilter): ListOutput<GetPatrimonyOutput> {
-        val patrimonies = patrimonyRepo.getAll(input)
+    override suspend fun process(input: GetAllPatrimonyInput): ListOutput<GetPatrimonyOutput> {
+        val currentUser = getCurrentUser()
+        val conditionPatrimony = QueryExtendBuilder<Patrimony>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val patrimonies = patrimonyRepo.getAll(input.queryFilter, conditionPatrimony)
 
         val conditionProvision = QueryExtendBuilder<Provision>()
-        conditionProvision.addCondition("isPatrimony", QueryComparator.Equal, true)
+            .addCondition("isPatrimony", QueryComparator.Equal, true)
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
         val provisions = provisionRepo.getAll(QueryFilter.queryAll(), conditionProvision)
 
         val conditionSnapShot = QueryExtendBuilder<PatrimonySnapshot>()
@@ -57,6 +64,7 @@ class GetAllPatrimonies(
         for (patrimony in patrimonies.items) {
             val patrimonyAccounts = accounts.filter { patrimony.accountIds.contains(it.id) }
             val balancesByPeriod = getBalanceByPeriod.processDirect(GetBalancesByPeriodInput(
+                userId = currentUser.id,
                 period = PeriodType.MONTH,
                 interval = 1,
                 dateFrom = startDate,
@@ -90,10 +98,13 @@ class GetAllPatrimonies(
             ))
         }
 
-        val savingGoals = fundRepo.getAll(QueryFilter(0, 0, true))
+        val conditionFund = QueryExtendBuilder<Fund>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val savingGoals = fundRepo.getAll(QueryFilter.queryAll(), conditionFund)
         val savingGoalAmount = savingGoals.items.sumOf { it.balance }
         val balancesByPeriodSavingGoal = getBalanceByPeriod.processDirect(
             GetBalancesByPeriodInput(
+                userId = currentUser.id,
                 period = PeriodType.MONTH,
                 interval = 1,
                 dateFrom = startDate,

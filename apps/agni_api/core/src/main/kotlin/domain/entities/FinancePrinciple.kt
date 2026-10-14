@@ -7,6 +7,7 @@ import java.util.UUID
 
 class FinancePrinciple(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     name: String,
     description: String,
     targetType: PrincipleType,

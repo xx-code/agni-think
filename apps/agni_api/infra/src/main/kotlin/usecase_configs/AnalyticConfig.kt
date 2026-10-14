@@ -1,8 +1,10 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.FundSummaryOutput
-import adapters.dto.QueryFilter
 import adapters.readers.IFundSummaryReader
+import adapters.readers.IGetAllCategoryReader
+import adapters.readers.IGetAllTagReader
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.Budget
@@ -15,7 +17,7 @@ import domain.entities.Profile
 import domain.entities.Provision
 import domain.entities.Fund
 import domain.entities.ScheduleInvoice
-import domain.entities.Tag
+import domain.entities.User
 import org.springframework.context.annotation.Bean
 import usecases.dto.ListOutput
 import usecases.analystics.ForcastSpending
@@ -63,6 +65,7 @@ import org.springframework.context.annotation.Configuration
 import persistences.AccountRepository
 import usecases.UseCase
 import usecases.analystics.dto.FundSummaryInput
+import usecases.patrimonies.dto.GetAllPatrimonyInput
 
 
 @Configuration
@@ -72,32 +75,38 @@ class AnalyticConfig {
     fun getSavingBalance(
         accountRepository: AccountRepository,
         getBalance: UseCase<GetBalanceInput, GetBalanceOutput>,
+        auth: IAuthenticateAdapter
     ): UseCase<GetSavingBalanceInput, Double> {
         return GetSavingBalance(
             accountRepo = accountRepository,
-            getBalance = getBalance
+            getBalance = getBalance,
+            auth = auth,
         )
     }
 
     @Bean
     fun getSpendCategoryAnalytic(
-        categoryRepo: IRepository<Category>,
+        categoryRepo: IGetAllCategoryReader,
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
+        auth: IAuthenticateAdapter
     ) : UseCase<GetSpendByCategoryInput, ListOutput<GetSpendByCategoryOutput>> {
         return GetSpendByCategoryAnalytic(
             categoryRepo = categoryRepo,
-            getBalanceByPeriod = getBalanceByPeriod
+            getBalanceByPeriod = getBalanceByPeriod,
+            auth = auth
         )
     }
 
     @Bean
     fun getSpendTagAnalytic(
-        tagRepo: IRepository<Tag>,
+        tagRepo: IGetAllTagReader,
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
+        auth: IAuthenticateAdapter
     ) : UseCase<GetSpendByTagInput, ListOutput<GetSpendByTagOutput>> {
         return GetSpendByTagAnalytic(
             tagRepo = tagRepo,
-            getBalanceByPeriod = getBalanceByPeriod
+            getBalanceByPeriod = getBalanceByPeriod,
+            auth = auth
         )
     }
 
@@ -105,10 +114,12 @@ class AnalyticConfig {
     fun getSavingAnalytic(
         accountRepo: IRepository<Account>,
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
+        auth: IAuthenticateAdapter
     ) : UseCase<GetSavingAnalyticInput, GetSavingAnalyticOutput> {
         return GetSavingAnalytic(
             accountRepo = accountRepo,
-            getBalanceByPeriod = getBalanceByPeriod
+            getBalanceByPeriod = getBalanceByPeriod,
+            auth = auth
         )
     }
 
@@ -116,9 +127,11 @@ class AnalyticConfig {
         accountRepo: IRepository<Account>,
         principleRepo: IRepository<FinancePrinciple>,
         incomeSourceRepo: IRepository<IncomeSource>,
-        scheduleInvoice: IRepository<ScheduleInvoice>
+        scheduleInvoice: IRepository<ScheduleInvoice>,
+        auth: IAuthenticateAdapter
     ) : UseCase<Unit, GetFinanceProfileOutput> {
         return GetFinanceProfile(
+            auth=auth,
             accountRepo = accountRepo,
             principleRepo = principleRepo,
             incomeSourceRepo = incomeSourceRepo,
@@ -129,10 +142,12 @@ class AnalyticConfig {
     @Bean fun getBudgetingRule(
         getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
+        auth: IAuthenticateAdapter
     ) : UseCase<GetBudgetingRuleAnalyticInput, GetBudgetingRuleAnalyticOutput> {
         return GetBudgetingRuleAnalytic(
             getSavingBalance = getSavingBalance,
-            getBalance = getBalance
+            getBalance = getBalance,
+            auth = auth
         )
     }
 
@@ -142,38 +157,45 @@ class AnalyticConfig {
         categoryRepo: IRepository<Category>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
         getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
-        getBudgets: IUseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>>
+        getBudgets: IUseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>>,
+        auth: IAuthenticateAdapter
     ) : UseCase<Unit, GetAnnualOutlookOutput>{
         return GetAnnualOutlook(
             scheduleRepo = scheduleInvoiceRepo,
             categoryRepo = categoryRepo,
             getBalance = getBalance,
             getBudgets = getBudgets,
-            getSavingBalance = getSavingBalance
+            getSavingBalance = getSavingBalance,
+            auth = auth
         )
     }
 
     @Bean fun getFundSummary(
-        fundSummaryReader: IFundSummaryReader
+        fundSummaryReader: IFundSummaryReader,
+        auth: IAuthenticateAdapter
     ) : IUseCase<FundSummaryInput, FundSummaryOutput> {
-        return GetFundTotalSummary(fundSummaryReader)
+        return GetFundTotalSummary(fundSummaryReader, auth)
     }
 
     @Bean fun getBudgetTotalSummary(
         repoBudget: IRepository<Budget>,
         getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
+        auth: IAuthenticateAdapter
     ) : UseCase<Unit, GetBudgetTotalSummaryOutput> {
         return GetBudgetTotalSummary(
+            auth = auth,
             repoBudget = repoBudget,
             getBalance = getBalance
         )
     }
 
     @Bean fun getPatrimonySummary(
-        getAllPatrimonies: IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>>
+        auth: IAuthenticateAdapter,
+        getAllPatrimonies: IUseCase<GetAllPatrimonyInput, ListOutput<GetPatrimonyOutput>>
     ) : IUseCase<Unit, GetPatrimonySummaryOutput> {
         return GetPatrimonySummary(
             getAllPatrimonies = getAllPatrimonies,
+            auth = auth
         )
     }
 
@@ -183,6 +205,7 @@ class AnalyticConfig {
         patrimonyRepo: IRepository<Patrimony>,
         snapshotRepo: IRepository<PatrimonySnapshot>,
         fundRepo: IRepository<Fund>,
+        auth: IAuthenticateAdapter,
         getBalanceByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>
     ): UseCase<GetPatrimonyEvolutionInput, GetPatrimonyEvolutionOutput> {
         return GetPatrimonyEvolution(
@@ -190,25 +213,29 @@ class AnalyticConfig {
             patrimonySnapshotRepo = snapshotRepo,
             getBalanceByPeriod = getBalanceByPeriod,
             fundRepo = fundRepo,
+            auth = auth
         )
     }
 
     @Bean
     fun getProvisionSummary(
+        auth: IAuthenticateAdapter,
         provisionRepo: IRepository<Provision> ) : IUseCase<Unit, GetProvisionSummaryOutput>
     {
-        return GetProvisionSummary(provisionRepo)
+        return GetProvisionSummary(provisionRepo, auth)
     }
 
     @Bean fun getScheduleInvoiceSummary(
+        auth: IAuthenticateAdapter,
         invoiceSummaryRepo: IRepository<ScheduleInvoice>
     ) : UseCase<Unit, GetScheduleInvoiceSummaryOutput> {
-        return GetScheduleInvoiceSummary(invoiceSummaryRepo)
+        return GetScheduleInvoiceSummary(invoiceSummaryRepo, auth)
     }
 
     @Bean
     fun forcastSpending(
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+        auth: IAuthenticateAdapter,
         accountRepo: IRepository<Account>,
         budgetRepo: IRepository<Budget>,
         profileRepo: IRepository<Profile>,
@@ -224,6 +251,7 @@ class AnalyticConfig {
             getBalance = getBalance,
             provisionRepo = provisionRepo,
             fundRepo = fundRepo,
+            auth = auth
         )
     }
 }

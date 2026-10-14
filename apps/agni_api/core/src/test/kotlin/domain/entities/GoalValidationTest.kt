@@ -21,7 +21,7 @@ class FinanceContextMock(
     var balanceByCategories: MutableMap<UUID, Double>,
     var netWorth: Double
 ): IFinanceContext {
-    override fun getFund(id: UUID): FinanceContextFund {
+    override suspend fun getFund(id: UUID): FinanceContextFund {
         return FinanceContextFund(
             id = id,
             balance = funds.getValue(id),
@@ -29,11 +29,11 @@ class FinanceContextMock(
         )
     }
 
-    override fun verifyFundExists(id: UUID) {
+    override suspend fun verifyFundExists(id: UUID) {
         println("verify funds $id")
     }
 
-    override fun getCategoryTotal(
+    override suspend fun getCategoryTotal(
         id: UUID,
         startDate: LocalDate,
         endDate: LocalDate
@@ -41,11 +41,11 @@ class FinanceContextMock(
         return balanceByCategories.getValue(id)
     }
 
-    override fun verifyCategoryExists(id: UUID) {
+    override suspend fun verifyCategoryExists(id: UUID) {
         println("verify category $id")
     }
 
-    override fun getNetWorthTotal(): Double {
+    override suspend fun getNetWorthTotal(): Double {
         return netWorth
     }
 }
@@ -57,6 +57,7 @@ class GoalValidationTest {
         val fundId = UUID.randomUUID()
         val fundGoal = Goal(
             UUID.randomUUID(),
+            userId = UUID.randomUUID(),
             "Fund Pipe",
             "Fond pour le pipe",
             fundId,
@@ -85,6 +86,7 @@ class GoalValidationTest {
         val categoryId = UUID.randomUUID()
         val categoryGoal = Goal(
             UUID.randomUUID(),
+            userId = UUID.randomUUID(),
             "Dépenses restaurant",
             "Limiter les dépenses restaurant",
             categoryId,
@@ -112,6 +114,7 @@ class GoalValidationTest {
         val fundId = UUID.randomUUID()
         val fundGoal = Goal(
             UUID.randomUUID(),
+            userId = UUID.randomUUID(),
             "Fond d'urgence",
             "Fond pour les urgences",
             fundId,
@@ -139,6 +142,7 @@ class GoalValidationTest {
         val fundId = UUID.randomUUID()
         val fundGoal = Goal(
             UUID.randomUUID(),
+            userId = UUID.randomUUID(),
             "Fond",
             "",
             fundId,
@@ -168,7 +172,7 @@ class GoalValidationTest {
     }
 
     @Test
-    fun `factory throws when no strategy is registered for the type`() = runBlocking {
+    fun `factory throws when no strategy is registered for the type`()  {
         assertThrows(ValidationException::class.java) {
             GoalEvaluationStrategyFactory.getStrategy(GoalEvaluationType.PATRIMONY)
         }

@@ -1,19 +1,22 @@
 package usecases.analystics
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.dto.QueryFilter
 import domain.enums.PatrimonyType
 import usecases.dto.ListOutput
 import usecases.analystics.dto.GetPatrimonySummaryOutput
 import usecases.interfaces.IUseCase
+import usecases.patrimonies.dto.GetAllPatrimonyInput
 import usecases.patrimonies.dto.GetPatrimonyOutput
 import kotlin.math.abs
 
 class GetPatrimonySummary(
-    private val getAllPatrimonies: IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>>
-): UseCase<Unit, GetPatrimonySummaryOutput>() {
+    private val getAllPatrimonies: IUseCase<GetAllPatrimonyInput, ListOutput<GetPatrimonyOutput>>,
+    auth: IAuthenticateAdapter
+): UseCase<Unit, GetPatrimonySummaryOutput>(auth = auth) {
     override suspend fun process(input: Unit): GetPatrimonySummaryOutput {
-        val patrimonies = getAllPatrimonies.processDirect(QueryFilter.queryAll())
+        val patrimonies = getAllPatrimonies.processDirect(GetAllPatrimonyInput(QueryFilter.queryAll()))
 
         val totalAsset = patrimonies.items
                 .filter { PatrimonyType.fromString(it.type) == PatrimonyType.ASSET }

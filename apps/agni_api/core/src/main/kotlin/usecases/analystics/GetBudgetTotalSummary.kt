@@ -1,8 +1,11 @@
 package usecases.analystics
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
+import adapters.repositories.QueryComparator
+import adapters.repositories.QueryExtendBuilder
 import domain.entities.Budget
 import domain.enums.InvoiceType
 import usecases.analystics.dto.GetBudgetTotalSummaryOutput
@@ -12,10 +15,14 @@ import usecases.invoices.dto.GetBalanceOutput
 
 class GetBudgetTotalSummary(
     private val repoBudget: IRepository<Budget>,
-    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
-): UseCase<Unit, GetBudgetTotalSummaryOutput>() {
+    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
+    auth: IAuthenticateAdapter
+): UseCase<Unit, GetBudgetTotalSummaryOutput>(auth = auth) {
     override suspend fun process(input: Unit): GetBudgetTotalSummaryOutput {
-        val budgets = repoBudget.getAll(QueryFilter.queryAll())
+        val currentUser = getCurrentUser()
+        val condition = QueryExtendBuilder<Budget>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val budgets = repoBudget.getAll(QueryFilter.queryAll(), condition)
         val budgetRepeat = budgets.items.filter { it.scheduler.repeater != null}
         val budgetNoRepeat = budgets.items.filter { it.scheduler.repeater == null}
 
@@ -39,6 +46,7 @@ class GetBudgetTotalSummary(
             ?.scheduler?.upgradeDate()
 
         val balanceRepeatOut = getBalance.processDirect(GetBalanceInput(
+            userId = currentUser.id,
             budgetIds = idsRepeat.toSet(),
             types = setOf(InvoiceType.FIXED_COST, InvoiceType.VARIABLE_COST, InvoiceType.OTHER),
             startDate = minStartDateRepeat,
@@ -46,6 +54,7 @@ class GetBudgetTotalSummary(
         ))
 
         val balanceNoRepeatOut = getBalance.processDirect(GetBalanceInput(
+            userId = currentUser.id,
             budgetIds = idsNoRepeat.toSet(),
             types = setOf(InvoiceType.FIXED_COST, InvoiceType.VARIABLE_COST, InvoiceType.OTHER),
             startDate = minStartDateNoRepeat,

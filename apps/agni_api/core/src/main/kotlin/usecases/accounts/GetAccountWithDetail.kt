@@ -1,12 +1,12 @@
 package usecases.accounts
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Account
-import domain.entities.InternalLoan
 import domain.entities.Fund
 import usecases.accounts.dto.GetAccountWithDetailOutput
 import usecases.accounts.dto.mapperAccountDetailOutput
@@ -20,22 +20,13 @@ import domain.exceptions.NotFoundException
 class GetAccountWithDetail(
     private val accountRepo: IRepository<Account>,
     private val fundRepo: IRepository<Fund>,
-    private val internalLoanRepo: IRepository<InternalLoan>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
-    private val getInvoice: IUseCase<UUID, GetInvoiceOutput>
-): UseCase<UUID, GetAccountWithDetailOutput>() {
+    auth: IAuthenticateAdapter
+): UseCase<UUID, GetAccountWithDetailOutput>(auth = auth) {
     override suspend fun process(input: UUID): GetAccountWithDetailOutput {
         val account = accountRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "account")
 
-        val conditionInternalLoad = QueryExtendBuilder<InternalLoan>()
-            .addCondition("fundSourceId", QueryComparator.Equal, input)
-        val internalLoans = internalLoanRepo.getAll(QueryFilter(queryAll = true), conditionInternalLoad)
         var currentLoanBalance = 0.0
-        if (internalLoans.items.isNotEmpty()) {
-            internalLoans.items.forEach { internalLoanItem ->
-                currentLoanBalance += getInvoice.processDirect(internalLoanItem.invoiceId).total
-            }
-        }
 
         val conditionFund = QueryExtendBuilder<Fund>()
             .addCondition("accountId", QueryComparator.Equal, input)
@@ -45,6 +36,7 @@ class GetAccountWithDetail(
         val lockedBalance = funds.items.sumOf { it.balance } + currentLoanBalance
 
         val freezeBalance = getBalance.processDirect(GetBalanceInput(
+            userId = account.userId,
             accountIds = setOf(account.id),
             isFreeze = true
         )).balance

@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import usecases.finance_principles.dto.GetAllFinancePrincipleInput
 import java.util.UUID
 
 @RestController
@@ -30,7 +31,7 @@ class FinancePrincipleController (
     val updateFinancePrinciple: IUseCase<UpdateFinancePrincipleInput, Unit>,
     val deleteFinancePrinciple: IUseCase<DeleteFinancePrincipleInput, Unit>,
     val getFinancePrinciple: IUseCase<UUID, GetFinancePrincipleOutput>,
-    val getAllFinancePrinciple: IUseCase<QueryFilter, ListOutput<GetFinancePrincipleOutput>>
+    val getAllFinancePrinciple: IUseCase<GetAllFinancePrincipleInput, ListOutput<GetFinancePrincipleOutput>>
 ){
 
     @PostMapping
@@ -55,6 +56,6 @@ class FinancePrincipleController (
 
     @GetMapping
     suspend fun getAllFinancePrinciple(query: QueryFilter): ResponseEntity<ListOutput<GetFinancePrincipleOutput>> {
-        return ResponseEntity.ok(getAllFinancePrinciple.execute(query).getOrThrow())
+        return ResponseEntity.ok(getAllFinancePrinciple.execute(GetAllFinancePrincipleInput(query)).getOrThrow())
     }
 }

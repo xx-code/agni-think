@@ -1,5 +1,6 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.events.IEventRegister
 import adapters.repositories.IRepository
@@ -8,6 +9,7 @@ import domain.entities.IncomeSource
 import domain.entities.Provision
 import domain.entities.Fund
 import domain.entities.ScheduleInvoice
+import domain.entities.User
 import facades.InvoiceDependencies
 import usecases.dto.BackgroundTaskOut
 import usecases.dto.CreatedOutput
@@ -30,6 +32,7 @@ import domain.value_objects.ScheduleInvoiceModuleLinker
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import usecases.UseCase
+import usecases.schedule_Invoices.dto.GetAllScheduleInvoiceInput
 import java.util.UUID
 
 @Configuration
@@ -57,11 +60,13 @@ class ScheduleInvoiceConfig {
         provisionRepo: IRepository<Provision>,
         incomeSourceRepo: IRepository<IncomeSource>,
         fundsSourceRepo: IRepository<Fund>,
+        auth: IAuthenticateAdapter
         ): UseCase<ScheduleInvoiceModuleLinker, Unit> {
         return VerifyScheduleModuleLinker(
             incomeSourceRepo = incomeSourceRepo,
             fundSourceRepo = fundsSourceRepo,
             provisionRepo = provisionRepo,
+            auth = auth,
         )
     }
 
@@ -70,38 +75,46 @@ class ScheduleInvoiceConfig {
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         invoiceDependencies: InvoiceDependencies,
         verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>,
+        auth: IAuthenticateAdapter
     ): UseCase<CreateScheduleInvoiceInput, CreatedOutput> {
         return CreateScheduleInvoice(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
             invoiceDependencies = invoiceDependencies,
             verifyScheduleModuleLinker = verifyScheduleModuleLinker,
+            auth = auth,
         )
     }
 
     @Bean
     fun deleteScheduleInvoice(
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+        auth: IAuthenticateAdapter
     ): UseCase<DeleteScheduleInvoiceInput, Unit> {
         return DeleteScheduleInvoice(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
+            auth = auth
         )
     }
 
     @Bean
     fun getAllScheduleInvoice(
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
-    ): UseCase<QueryFilter, ListOutput<GetScheduleInvoiceOutput>> {
+        auth: IAuthenticateAdapter
+    ): UseCase<GetAllScheduleInvoiceInput, ListOutput<GetScheduleInvoiceOutput>> {
         return GetAllScheduleInvoice(
-            scheduleInvoiceRepo = scheduleInvoiceRepo
+            scheduleInvoiceRepo = scheduleInvoiceRepo,
+            auth = auth
         )
     }
 
     @Bean
     fun getScheduleInvoice(
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+        auth: IAuthenticateAdapter
     ): UseCase<UUID, GetScheduleInvoiceOutput> {
        return GetScheduleInvoice(
-           scheduleInvoiceRepo = scheduleInvoiceRepo
+           scheduleInvoiceRepo = scheduleInvoiceRepo,
+           auth = auth
        ) 
     }
 
@@ -110,11 +123,13 @@ class ScheduleInvoiceConfig {
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         invoiceDependencies: InvoiceDependencies,
         verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>,
+        auth: IAuthenticateAdapter
     ): UseCase<UpdateScheduleInvoiceInput, Unit> {
         return UpdateScheduleInvoice(
             scheduleInvoiceRepo = scheduleInvoiceRepo,
             invoiceDependencies = invoiceDependencies,
-            verifyScheduleModuleLinker = verifyScheduleModuleLinker
+            verifyScheduleModuleLinker = verifyScheduleModuleLinker,
+            auth = auth
         )
     }
 }

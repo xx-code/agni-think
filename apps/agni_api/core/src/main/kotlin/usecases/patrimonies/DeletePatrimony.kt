@@ -1,5 +1,6 @@
 package usecases.patrimonies
 
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.dto.QueryFilter
@@ -14,7 +15,8 @@ import usecases.patrimonies.dto.DeletePatrimonyInput
 class DeletePatrimony(
     private val patrimonyRepo: IRepository<Patrimony>,
     private val patrimonySnapshotRepo: IRepository<PatrimonySnapshot>,
-    unitOfWork: IUnitOfWork): UseCase<DeletePatrimonyInput, Unit>(unitOfWork) {
+    unitOfWork: IUnitOfWork,
+    auth: IAuthenticateAdapter): UseCase<DeletePatrimonyInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
 
     override suspend fun process(input: DeletePatrimonyInput) {
         patrimonyRepo.get(input.patrimonyId) ?: throw NotFoundException.SingleEntity(input.patrimonyId, "patrimony")

@@ -1,6 +1,7 @@
 package usecases.goals
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.IFinanceContext
 import adapters.repositories.IRepository
 import domain.exceptions.NotFoundException
@@ -12,8 +13,9 @@ import java.util.UUID
 
 class GetGoal(
     private val goalRepo: IRepository<Goal>,
-    private val financeContext: IFinanceContext
-): UseCase<UUID, GetGoalOutput>() {
+    private val financeContext: IFinanceContext,
+    auth: IAuthenticateAdapter
+): UseCase<UUID, GetGoalOutput>(auth = auth) {
     override suspend fun process(input: UUID): GetGoalOutput {
         val goal = goalRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "goal")
 

@@ -13,6 +13,7 @@ data class JdbcFinanceReportModel(
     @Id
     @get:JvmName("getIdentifier")
     val financeReportId: UUID,
+    val userId: UUID,
     val title: String,
     val description: String,
     val date: LocalDate
@@ -27,6 +28,7 @@ class JdbcFinanceReportModelMapper: IMapper<JdbcFinanceReportModel, FinanceRepor
     override fun toDomain(model: JdbcFinanceReportModel): FinanceReport {
         return FinanceReport(
             id = model.id,
+            userId = model.userId,
             title = model.title,
             description = model.description,
             date = model.date
@@ -36,6 +38,7 @@ class JdbcFinanceReportModelMapper: IMapper<JdbcFinanceReportModel, FinanceRepor
     override fun toModel(entity: FinanceReport): JdbcFinanceReportModel {
         return JdbcFinanceReportModel(
             financeReportId = entity.id,
+            userId = entity.userId,
             title = entity.title,
             description = entity.description,
             date = entity.date
@@ -44,6 +47,7 @@ class JdbcFinanceReportModelMapper: IMapper<JdbcFinanceReportModel, FinanceRepor
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "finance_report_id",
+        "userId" to "user_id",
         "title" to "title",
         "description" to "description",
         "date" to "date"

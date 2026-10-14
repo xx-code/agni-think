@@ -1,6 +1,7 @@
 package usecases.funds
 
 import usecases.interfaces.IUseCase
+import adapters.IAuthenticateAdapter
 
 import domain.SAVING_CATEGORY_ID
 import adapters.repositories.IRepository
@@ -12,7 +13,6 @@ import domain.entities.Fund
 import usecases.dto.CreatedOutput
 import usecases.invoices.dto.CreateInvoiceInput
 import usecases.invoices.dto.TransactionInput
-import usecases.funds.dto.DecreaseSavingGoalInput
 import domain.value_objects.InvoiceModuleLinker
 import java.time.LocalDateTime
 import domain.enums.InvoiceModuleLinkerType
@@ -20,24 +20,26 @@ import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
 import domain.enums.InvoiceType
 import usecases.UseCase
+import usecases.funds.dto.DecreaseFundInput
 
 class DecreaseFund(
     private val fundRepo: IRepository<Fund>,
     private val accountRepo: IRepository<Account>,
     private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
-    unitOfWork: IUnitOfWork
-): UseCase<DecreaseSavingGoalInput, Unit>(unitOfWork) {
+    unitOfWork: IUnitOfWork,
+    auth: IAuthenticateAdapter
+): UseCase<DecreaseFundInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
 
-    override suspend fun process(input: DecreaseSavingGoalInput) {
-        val savingGoal = fundRepo.get(input.savingGoalId) ?: throw NotFoundException.SingleEntity(input.savingGoalId, "saving_goal")
+    override suspend fun process(input: DecreaseFundInput) {
+        val fund = fundRepo.get(input.fundId) ?: throw NotFoundException.SingleEntity(input.fundId, "fund")
 
         if (input.amount <= 0)
             throw ValidationException.SavingGoalAmountMustBeGreaterThanZero()
 
-        if (savingGoal.balance < input.amount)
+        if (fund.balance <= input.amount)
             throw ValidationException.SavingGoalBalanceMustBeGreaterThanAmount()
 
-        if (savingGoal.accountId != null && input.accountId != savingGoal.accountId)
+        if (fund.accountId != null && input.accountId != fund.accountId)
             throw ValidationException.SavingGoalAccountIdMustNotMatch()
 
 
@@ -46,27 +48,28 @@ class DecreaseFund(
             throw ValidationException.SavingGoalBalanceMustBeGreaterThanAmount()
 
         createInvoice.processDirect(CreateInvoiceInput(
+            userId = account.userId,
             accountId = input.accountId,
             status = InvoiceStatusType.COMPLETED,
             date = LocalDateTime.now(),
             type = InvoiceType.OTHER,
-            mouvementType = InvoiceMovementType.CREDIT,
+            movementType = InvoiceMovementType.CREDIT,
             currency = null,
             transactions = setOf(TransactionInput(
                 amount = input.amount,
                 categoryId = SAVING_CATEGORY_ID,
-                description = "Argent plan d'epargne ${savingGoal.title}",
+                description = "Argent plan d'epargne ${fund.title}",
                 tagIds = setOf(),
                 budgetIds = setOf()
             )),
             moduleSourcesLinker = listOf(InvoiceModuleLinker(
-                sourceId = savingGoal.id,
+                sourceId = fund.id,
                 module = InvoiceModuleLinkerType.FUND
             )),
             deductions = setOf()
         ))
 
-        savingGoal.balance -= input.amount
-        fundRepo.update(savingGoal)
+        fund.balance -= input.amount
+        fundRepo.update(fund)
     }
 }

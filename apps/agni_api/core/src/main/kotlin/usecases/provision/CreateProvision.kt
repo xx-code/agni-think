@@ -1,6 +1,7 @@
 package usecases.provision
 
 import usecases.interfaces.IUseCase
+import adapters.IAuthenticateAdapter
 
 import adapters.dto.ScheduleRepeaterInput
 import adapters.repositories.IRepository
@@ -10,6 +11,7 @@ import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.Provision
 import domain.entities.Fund
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.provision.dto.CreateProvisionInput
 import usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
@@ -29,8 +31,11 @@ class CreateProvision(
     private val fundRepo: IRepository<Fund>,
     private val createScheduleInvoice: IUseCase<CreateScheduleInvoiceInput, CreatedOutput>,
     unitOfWork: IUnitOfWork,
-): UseCase<CreateProvisionInput, CreatedOutput>(unitOfWork) {
+    auth: IAuthenticateAdapter,
+): UseCase<CreateProvisionInput, CreatedOutput>(unitOfWork = unitOfWork, auth = auth) {
     override suspend fun process(input: CreateProvisionInput): CreatedOutput {
+        val currentUser = getCurrentUser()
+
         if (provisionRepo.existsByName(input.title))
             throw AlreadyExistException.EntitiesByField(mapOf("name" to input.title), "provisionable")
 
@@ -41,6 +46,7 @@ class CreateProvision(
         }
 
         val provision = Provision(
+            userId = currentUser.id,
             title = input.title,
             costHT = input.costHT,
             costTTC = input.costTTC,

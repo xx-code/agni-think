@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 
 import domain.enums.FundType
 import domain.exceptions.ValidationException
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -11,6 +12,7 @@ import kotlin.test.assertFailsWith
 class FundValidationTest {
 
     private fun fund(target: Double = 3_000.0) = Fund(
+        userId = UUID.randomUUID(),
         title = "Emergency fund",
         description = "Six months of expenses",
         target = target,

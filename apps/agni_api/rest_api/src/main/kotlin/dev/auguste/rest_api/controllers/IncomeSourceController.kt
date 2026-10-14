@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import usecases.income_sources.dto.GetAllIncomeSourceInput
 import java.util.UUID
 
 @RestController
@@ -30,7 +31,7 @@ class IncomeSourceController(
     private val updateIncomeSource: IUseCase<UpdateIncomeSourceInput, Unit>,
     private val deleteIncomeSource: IUseCase<DeleteIncomeSourceInput, Unit>,
     private val getIncomeSource: IUseCase<UUID, GetIncomeSourceOutput>,
-    private val getAllIncomeSource: IUseCase<QueryFilter, ListOutput<GetIncomeSourceOutput>>
+    private val getAllIncomeSource: IUseCase<GetAllIncomeSourceInput, ListOutput<GetIncomeSourceOutput>>
 ) {
 
     @PostMapping
@@ -63,6 +64,6 @@ class IncomeSourceController(
 
     @GetMapping
     suspend fun getAllIncomeSource(query: QueryFilter): ResponseEntity<ListOutput<GetIncomeSourceOutput>> {
-        return ResponseEntity.ok(getAllIncomeSource.execute(query).getOrThrow())
+        return ResponseEntity.ok(getAllIncomeSource.execute(GetAllIncomeSourceInput(query)).getOrThrow())
     }
 }

@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 
 import domain.enums.AgentSuggestionStatusType
 import domain.exceptions.ValidationException
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -11,6 +12,7 @@ import kotlin.test.assertFailsWith
 class AgentSuggestionValidationTest {
 
     private fun suggestion(confidenceScore: Double = 80.0) = AgentSuggestion(
+        userId = UUID.randomUUID(),
         agentId = "agent-1",
         agentName = "Budgeter",
         title = "Cut subscriptions",

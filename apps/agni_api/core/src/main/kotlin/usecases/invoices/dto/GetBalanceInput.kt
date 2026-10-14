@@ -7,6 +7,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class GetBalanceInput(
+    val userId: UUID,
     val accountIds: Set<UUID>? = null,
     val status: InvoiceStatusType? = InvoiceStatusType.COMPLETED,
     val startDate: LocalDateTime? = null,

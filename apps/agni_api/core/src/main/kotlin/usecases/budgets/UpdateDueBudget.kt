@@ -10,6 +10,7 @@ import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Budget
+import domain.entities.Notification
 import usecases.dto.BackgroundTaskOut
 import domain.value_objects.Scheduler
 import java.time.LocalDateTime
@@ -43,13 +44,15 @@ class UpdateDueBudget(
                         EventType.NOTIFICATION, NotificationEventContent(
                         "Budget archived",
                         "Budget ${budget.title} a ete archive",
-                            type = NotificationType.Success
+                            type = NotificationType.Success,
+                            userId = budget.userId
                     ))
                 } else {
                     eventRegister.notify(EventType.NOTIFICATION, NotificationEventContent(
                         "Mise a jour budget",
                         "Budget ${budget.title} a ete mis a jour",
-                        NotificationType.Success
+                        NotificationType.Success,
+                        userId = budget.userId
                     ))
                 }
 
@@ -60,7 +63,8 @@ class UpdateDueBudget(
             eventRegister.notify(EventType.NOTIFICATION, NotificationEventContent(
                 "Error While update budget",
                 "Error: ${error.message}",
-                NotificationType.Error
+                NotificationType.Error,
+                userId = Notification.SYSTEM_USER_ID
             ))
 
             return BackgroundTaskOut("Error while update budget: ${error.localizedMessage}")

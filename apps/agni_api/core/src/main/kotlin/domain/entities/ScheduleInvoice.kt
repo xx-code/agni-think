@@ -11,6 +11,7 @@ import java.util.UUID
 
 class ScheduleInvoice(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     title: String,
     accountId: UUID,
     type: InvoiceType,

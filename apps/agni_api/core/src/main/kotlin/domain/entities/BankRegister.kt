@@ -5,6 +5,7 @@ import java.util.UUID
 
 class BankRegister(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     institutionId: String,
     title: String,
     accessCode: String,

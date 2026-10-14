@@ -1,5 +1,6 @@
 package usecases.budgets
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Budget
@@ -10,8 +11,9 @@ import domain.value_objects.Scheduler
 import domain.value_objects.SchedulerRecurrence
 
 class UpdateBudget(
-    private val budgetRepo: IRepository<Budget>
-): UseCase<UpdateBudgetInput, Unit>() {
+    private val budgetRepo: IRepository<Budget>,
+    auth: IAuthenticateAdapter
+): UseCase<UpdateBudgetInput, Unit>(auth = auth) {
     override suspend fun process(input: UpdateBudgetInput) {
         val budget = budgetRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "budget")
 

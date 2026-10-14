@@ -8,13 +8,14 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class GetBalancesByPeriodInput(
+    val userId: UUID,
     val period: PeriodType,
     val interval: Int,
     val dateFrom: LocalDateTime,
     val status: InvoiceStatusType? = InvoiceStatusType.COMPLETED,
     val dateTo: LocalDateTime? = null,
     val accountIds: Set<UUID>? = null,
-    val mouvement: InvoiceMovementType? = null,
+    val movement: InvoiceMovementType? = null,
     val types: Set<InvoiceType>? = null,
     val isFreeze: Boolean? = null,
     val categoryIds: Set<UUID>? = null,

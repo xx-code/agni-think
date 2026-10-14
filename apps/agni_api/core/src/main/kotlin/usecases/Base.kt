@@ -1,27 +1,44 @@
 package usecases
 
-import adapters.repositories.IRepository
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IUnitOfWork
+import domain.entities.User
 import domain.exceptions.BaseException
+import domain.exceptions.UnAuthorizeException
 import domain.exceptions.UnExpectedException
 import usecases.dto.Result
 import usecases.interfaces.IUseCase
 
 abstract class UseCase<Tin, Tout>(
-    protected val unitOfWork: IUnitOfWork? = null
+    protected val unitOfWork: IUnitOfWork? = null,
+    protected val auth: IAuthenticateAdapter? = null
 ): IUseCase<Tin, Tout> {
     /**
      * Entry point executing the use case within a unified `try-catch` wrapper.
      * Automatically dispatches to [IUnitOfWork] if provided.
      */
     final override suspend fun execute(input: Tin): Result<Tout> {
+
         return safeExecute {
+            if (auth != null) {
+                if (!auth.isAuthenticate())
+                    throw UnAuthorizeException.UserUnAuthorizedException()
+            }
+
             if (unitOfWork != null) {
                 unitOfWork.execute { process(input) }
             } else {
                 process(input)
             }
         }
+    }
+
+    suspend fun getCurrentUser(): User {
+        if (auth == null)
+            throw UnAuthorizeException.UserUnAuthorizedException()
+
+        val user = auth.getCurrentUser()
+        return user
     }
 
     /**

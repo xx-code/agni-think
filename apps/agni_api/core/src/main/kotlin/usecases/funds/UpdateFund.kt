@@ -1,6 +1,7 @@
 package usecases.funds
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.exceptions.AlreadyExistException
@@ -11,8 +12,9 @@ import domain.enums.FundType
 
 class UpdateFund(
     private val fundRepo: IRepository<Fund>,
-    private val accountRepo: IRepository<Account>
-): UseCase<UpdateFundInput, Unit>() {
+    private val accountRepo: IRepository<Account>,
+    auth: IAuthenticateAdapter
+): UseCase<UpdateFundInput, Unit>(auth = auth) {
 
     override suspend fun process(input: UpdateFundInput) {
         val savingGoal = fundRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "saving_goal")

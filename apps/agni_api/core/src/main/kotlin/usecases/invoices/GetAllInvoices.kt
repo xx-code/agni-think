@@ -3,6 +3,7 @@ package usecases.invoices
 import usecases.interfaces.IUseCase
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.readers.IInvoiceTransactionReader
 import adapters.repositories.IQueryExtendBuilder
@@ -12,6 +13,7 @@ import adapters.repositories.QueryComparator
 import domain.entities.Deduction
 import domain.entities.Invoice
 import domain.entities.Transaction
+import domain.entities.User
 import usecases.dto.ListOutput
 import usecases.invoices.dto.GetAllInvoiceInput
 import usecases.invoices.dto.GetInvoiceOutput
@@ -26,13 +28,17 @@ class GetAllInvoices(
     private val invoiceRepo: IRepository<Invoice>,
     private val deductionRepo: IRepository<Deduction>,
     private val invoiceTransactionReader: IInvoiceTransactionReader,
-    private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>
-): UseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>>() {
+    private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+    auth: IAuthenticateAdapter
+): UseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>>(auth = auth) {
 
     override suspend fun process(input: GetAllInvoiceInput ): ListOutput<GetInvoiceOutput> {
+        val currentUser = getCurrentUser()
+
         input.queryFilter.sortBy.by = "date"
 
         val conditionInvoice = QueryExtendBuilder<Invoice>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
             .addCondition("accountId", QueryComparator.In, input.accountIds)
             .addCondition("date", QueryComparator.GreaterOrEquals, input.startDate)
             .addCondition("date", QueryComparator.LesserOrEquals, input.endDate)

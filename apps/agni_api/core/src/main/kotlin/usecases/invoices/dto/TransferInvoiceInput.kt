@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class TransferInvoiceInput(
+    val userId: UUID,
     val accountIdFrom: UUID,
     val accountIdTo: UUID,
     val date: LocalDateTime,

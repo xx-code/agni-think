@@ -15,6 +15,7 @@ data class JdbcIncomeSourceModel(
     @Id
     @get:JvmName("getIdentifier")
     val incomeSourceId: UUID,
+    val userId: UUID,
 
     val name: String,
     val type: String,
@@ -36,6 +37,7 @@ class JdbcIncomeSourceMapper: IMapper<JdbcIncomeSourceModel, IncomeSource> {
     override fun toDomain(model: JdbcIncomeSourceModel): IncomeSource {
         return IncomeSource(
             id = model.id,
+            userId = model.userId,
             title = model.name,
             type = IncomeSourceType.fromString(model.type),
             payFrequency = IncomeSourceFrequencyType.fromString(model.payFrequency),
@@ -52,6 +54,7 @@ class JdbcIncomeSourceMapper: IMapper<JdbcIncomeSourceModel, IncomeSource> {
     override fun toModel(entity: IncomeSource): JdbcIncomeSourceModel {
         return JdbcIncomeSourceModel(
             incomeSourceId = entity.id,
+            userId = entity.userId,
             name = entity.title,
             type = entity.type.value,
             payFrequency = entity.payFrequency.value,
@@ -67,6 +70,7 @@ class JdbcIncomeSourceMapper: IMapper<JdbcIncomeSourceModel, IncomeSource> {
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "income_source_id",
+        "userId" to "user_id",
         "title" to "name",
         "type" to "type",
         "payFrequency" to "pay_frequency",

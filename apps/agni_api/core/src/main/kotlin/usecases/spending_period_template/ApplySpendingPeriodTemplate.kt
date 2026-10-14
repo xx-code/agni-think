@@ -12,6 +12,7 @@ import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Profile
+import domain.entities.Notification
 import domain.entities.SpendingPeriod
 import domain.entities.SpendingPeriodTemplate
 import domain.enums.SpendingPeriodStateType
@@ -66,6 +67,7 @@ class ApplySpendingPeriodTemplate(
 
                     val forecastRes = forecastSpendingPeriod.processDirect(
                         input = ForcastSpendingPeriodInput(
+                            userId = spendingPeriodTemp.userId,
                             startDate = spendingPeriodTemp.startDate,
                             endDate = updateDate,
                             budgetIds = spendingPeriodTemp.targetBudgetIds.toList(),
@@ -75,6 +77,7 @@ class ApplySpendingPeriodTemplate(
 
 
                     spendingPeriodRepo.create(SpendingPeriod(
+                        userId = spendingPeriodTemp.userId,
                         spendingPeriodTemplateId = spendingPeriodTemp.id,
                         startDate = spendingPeriodTemp.startDate,
                         endDate = updateDate,
@@ -101,7 +104,8 @@ class ApplySpendingPeriodTemplate(
                         EventType.NOTIFICATION, NotificationEventContent(
                             "Periode de depense",
                             "Debut de period de depense de ${scheduler.date} - ${scheduler.upgradeDate()}",
-                            type = NotificationType.Success
+                            type = NotificationType.Success,
+                            userId = spendingPeriodTemp.userId,
                         )
                     )
                 }
@@ -114,6 +118,7 @@ class ApplySpendingPeriodTemplate(
                     "Spending Period Factory Error",
                     "Error while applying schedule in voice ${error.message}",
                     type = NotificationType.Error,
+                    userId = Notification.SYSTEM_USER_ID,
                 )
             )
 

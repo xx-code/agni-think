@@ -1,5 +1,6 @@
 package usecases.currencies
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.entities.Currency
@@ -7,7 +8,9 @@ import usecases.currencies.dto.GetCurrencyOutput
 import domain.exceptions.NotFoundException
 import java.util.UUID
 
-class GetCurrency(private val currencyRepo: IRepository<Currency>): UseCase<UUID, GetCurrencyOutput>() {
+class GetCurrency(
+    private val currencyRepo: IRepository<Currency>,
+    auth: IAuthenticateAdapter): UseCase<UUID, GetCurrencyOutput>(auth=auth) {
     override suspend fun process(input: UUID): GetCurrencyOutput {
         val currency = currencyRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "currency")
 

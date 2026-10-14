@@ -1,11 +1,13 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import domain.entities.Account
 import domain.entities.IncomeSource
 import domain.entities.ScheduleInvoice
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.income_sources.CreateIncomeSource
@@ -24,6 +26,7 @@ import usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import usecases.UseCase
+import usecases.income_sources.dto.GetAllIncomeSourceInput
 import java.util.UUID
 
 @Configuration
@@ -34,13 +37,15 @@ class IncomeSourceConfig {
         incomeSourceRepo: IRepository<IncomeSource>,
         accountRepo: IRepository<Account>,
         createScheduleInvoice: IUseCase<CreateScheduleInvoiceInput, CreatedOutput>,
-        unitOfWork: IUnitOfWork
+        unitOfWork: IUnitOfWork,
+        auth: IAuthenticateAdapter
     ) : UseCase<CreateIncomeSourceInput, CreatedOutput> {
         return CreateIncomeSource(
             incomeSourceRepo = incomeSourceRepo,
             accountRepo = accountRepo,
             createScheduleInvoice = createScheduleInvoice,
-            unitOfWork = unitOfWork
+            unitOfWork = unitOfWork,
+            auth = auth
         )
     }
 
@@ -50,14 +55,16 @@ class IncomeSourceConfig {
         accountRepo: IRepository<Account>,
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         updateScheduleInvoice: IUseCase<UpdateScheduleInvoiceInput, Unit>,
-        unitOfWork: IUnitOfWork
+        unitOfWork: IUnitOfWork,
+        auth: IAuthenticateAdapter
     ) : UseCase<UpdateIncomeSourceInput, Unit> {
         return UpdateIncomeSource(
-            incomeSourceRepo,
-            accountRepo,
-            updateScheduleInvoice,
-            scheduleInvoiceRepo,
-            unitOfWork
+            incomeSourceRepo = incomeSourceRepo,
+            accountRepo = accountRepo,
+            updateScheduleInvoice = updateScheduleInvoice,
+            scheduleInvoiceRepo = scheduleInvoiceRepo,
+            unitOfWork = unitOfWork,
+            auth = auth
         )
     }
 
@@ -66,31 +73,37 @@ class IncomeSourceConfig {
         incomeSourceRepo: IRepository<IncomeSource>,
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         deleteScheduleInvoice: IUseCase<DeleteScheduleInvoiceInput, Unit>,
-        unitOfWork: IUnitOfWork
+        unitOfWork: IUnitOfWork,
+        auth: IAuthenticateAdapter
     ) : UseCase<DeleteIncomeSourceInput, Unit> {
         return DeleteIncomeSource(
-            incomeSourceRepo,
-            scheduleInvoiceRepo,
-            deleteScheduleInvoice,
-            unitOfWork
+            incomeSourceRepo = incomeSourceRepo,
+            scheduleInvoiceRepo = scheduleInvoiceRepo,
+            deleteScheduleInvoice = deleteScheduleInvoice,
+            unitOfWork = unitOfWork,
+            auth = auth
         )
     }
 
     @Bean
     fun getIncomeSource(
         incomeSourceRepo: IRepository<IncomeSource>,
+        auth: IAuthenticateAdapter
     ) : UseCase<UUID, GetIncomeSourceOutput> {
         return GetIncomeSource(
-            incomeSourceRepo
+            incomeSourceRepo = incomeSourceRepo,
+            auth = auth
         )
     }
 
     @Bean
     fun getAllIncomeSource(
         incomeSourceRepo: IRepository<IncomeSource>,
-    ) : UseCase<QueryFilter, ListOutput<GetIncomeSourceOutput>> {
+        auth: IAuthenticateAdapter
+    ) : UseCase<GetAllIncomeSourceInput, ListOutput<GetIncomeSourceOutput>> {
         return GetAllIncomeSource(
-            incomeSourceRepo
+            incomeSourceRepo = incomeSourceRepo,
+            auth = auth
         )
     }
 }

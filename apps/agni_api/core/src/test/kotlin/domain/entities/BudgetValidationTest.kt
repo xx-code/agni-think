@@ -3,6 +3,7 @@ package domain.entities
 import kotlinx.coroutines.runBlocking
 
 import domain.exceptions.ValidationException
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -10,6 +11,7 @@ import kotlin.test.assertFailsWith
 class BudgetValidationTest {
 
     private fun budget(target: Double = 500.0) = Budget(
+        userId = UUID.randomUUID(),
         title = "Groceries",
         target = target,
         scheduler = monthlyScheduler(),

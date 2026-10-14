@@ -1,7 +1,9 @@
 package usecase_configs
 
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.entities.Profile
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.interfaces.IUseCase
 import usecases.profiles.CreateProfile
@@ -20,27 +22,33 @@ class ProfileConfig {
 
     @Bean
     fun createProfile(
-        profileRepo: IRepository<Profile>
+        profileRepo: IRepository<Profile>,
+        auth: IAuthenticateAdapter
     ): UseCase<CreateProfileInput, CreatedOutput> {
         return CreateProfile(
+            auth = auth,
             profileRepo = profileRepo
         )
     }
 
     @Bean
     fun updateProfile(
-        profileRepo: IRepository<Profile>
+        profileRepo: IRepository<Profile>,
+        auth: IAuthenticateAdapter
     ): UseCase<UpdateProfileInput, Unit> {
         return UpdateProfile(
-            profileRepo = profileRepo
+            profileRepo = profileRepo,
+            auth = auth
         )
     }
 
     @Bean
     fun getProfile(
-        profileRepo: IRepository<Profile>
-    ): UseCase<UUID, GetProfileOutput> {
+        profileRepo: IRepository<Profile>,
+        auth: IAuthenticateAdapter
+    ): UseCase<Unit, GetProfileOutput> {
         return GetProfile(
+            auth = auth,
             profileRepo = profileRepo
         )
     }

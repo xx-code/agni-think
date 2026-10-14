@@ -1,6 +1,7 @@
 package usecases.patrimonies
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import domain.SAVING_CATEGORY_ID
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
@@ -37,14 +38,17 @@ class GetPatrimony(
     private val provisionRepo: IRepository<Provision>,
     private val invoiceRepo: IRepository<Invoice>,
     private val getBalancesByPeriod: IUseCase<GetBalancesByPeriodInput, List<GetBalanceByPeriodOutput>>,
-    private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>
-): UseCase<GetPatrimonyInput, GetPatrimonyOutput>() {
+    private val getManyInvoices: IUseCase<Set<UUID>, List<GetInvoiceOutput>>,
+    auth: IAuthenticateAdapter
+): UseCase<GetPatrimonyInput, GetPatrimonyOutput>(auth = auth) {
 
     override suspend fun process(input: GetPatrimonyInput): GetPatrimonyOutput {
+        val currentUser = getCurrentUser()
         when(input.sourceType) {
             SourcePatrimonyType.PROVISION -> {
                 val provision = provisionRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "provisionable")
                 val conditionInvoice = QueryExtendBuilder<Invoice>()
+                    .addCondition("userId", QueryComparator.Equal, currentUser.id)
                     .addCondition(
                         "moduleLinkers.module",
                         QueryComparator.Equal,
@@ -98,30 +102,35 @@ class GetPatrimony(
                 )
             }
             SourcePatrimonyType.FUND -> {
-                val savingGoals = fundRepo.getAll(QueryFilter(0, 0, true))
-                val savingGoalAmount = savingGoals.items.sumOf { it.balance }
                 val balancesByPeriodSavingGoal = getBalancesByPeriod.processDirect(
                     GetBalancesByPeriodInput(
+                        userId = currentUser.id,
                         period = PeriodType.MONTH,
-                        interval = 1,
+                        interval = 2,
                         dateFrom = LocalDateTime.now().minusMonths(1).with(TemporalAdjusters.firstDayOfMonth()),
                         categoryIds = setOf(SAVING_CATEGORY_ID),
                         status = InvoiceStatusType.COMPLETED
                     )
-                )
+                ).associateBy { it.date }
 
-                val passSavingGoalTransactionBalance = if (balancesByPeriodSavingGoal.size > 1) {
-                    balancesByPeriodSavingGoal.first().spend - balancesByPeriodSavingGoal.first().income
-                } else 0.0
+                val pastDate = LocalDateTime.now().minusMonths(1).with(TemporalAdjusters.firstDayOfMonth()).toLocalDate()
+                val currentDate = LocalDateTime.now().with(TemporalAdjusters.firstDayOfMonth()).toLocalDate()
 
-                val passSavingGoalBalance = savingGoalAmount - passSavingGoalTransactionBalance
+                val pastRecord = balancesByPeriodSavingGoal[pastDate]
+                val pastDelta = (pastRecord?.spend ?: 0.0) - (pastRecord?.income ?: 0.0)
+
+                val currentRecord = balancesByPeriodSavingGoal[currentDate]
+                val currentDelta = (currentRecord?.spend ?: 0.0) - (currentRecord?.income ?: 0.0)
+
+                val passSavingGoalBalance = pastDelta
+                val savingGoalAmount = passSavingGoalBalance + currentDelta
 
                 return GetPatrimonyOutput(
                     id = UUID.randomUUID(),
                     title = "Fond d'épargne",
                     amount = savingGoalAmount,
                     currentBalance = savingGoalAmount,
-                    pastBalance = if (passSavingGoalBalance > 0) passSavingGoalBalance else 0.0,
+                    pastBalance = passSavingGoalBalance,
                     type = PatrimonyType.ASSET.value,
                     accountIds = listOf(),
                     sourceType = SourcePatrimonyType.FUND.value
@@ -140,6 +149,7 @@ class GetPatrimony(
                 val accounts = accountRepo.getManyByIds(patrimony.accountIds)
                 val balancesByPeriod = getBalancesByPeriod.processDirect(
                     GetBalancesByPeriodInput(
+                        userId = currentUser.id,
                         period = PeriodType.MONTH,
                         interval = 1,
                         dateFrom = LocalDateTime.now().minusMonths(1).with(TemporalAdjusters.firstDayOfMonth()),

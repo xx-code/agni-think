@@ -6,6 +6,7 @@ import java.util.UUID
 
 class AgentSuggestion(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     val agentId: String,
     val agentName: String,
     title: String,
@@ -21,4 +22,28 @@ class AgentSuggestion(
         ValidationException.AgentSuggestionInvalidConfidenceScore(it)
     }
     var status by cleanObservable(status, this)
+
+    companion object {
+        fun mock(
+            id: UUID = UUID.randomUUID(),
+            userId: UUID = UUID.randomUUID(),
+            agentId: String = "agent-00",
+            agentName: String = "agent",
+            title: String = "title",
+            description: String = "description",
+            confidenceScore: Double = 100.0,
+            status: AgentSuggestionStatusType = AgentSuggestionStatusType.PENDING,
+        ): AgentSuggestion {
+            return AgentSuggestion(
+                id = id,
+                userId = userId,
+                agentId = agentId,
+                agentName = agentName,
+                title = title,
+                description = description,
+                confidenceScore = confidenceScore,
+                status = status,
+            )
+        }
+    }
 }

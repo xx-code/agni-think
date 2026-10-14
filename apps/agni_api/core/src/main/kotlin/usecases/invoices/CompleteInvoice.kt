@@ -3,6 +3,7 @@ package usecases.invoices
 import adapters.dto.AccountSnapshotBalanceInput
 import usecases.interfaces.IUseCase
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.events.EventType
 import adapters.events.IEventRegister
@@ -14,7 +15,6 @@ import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Account
 import domain.exceptions.NotFoundException
-import domain.entities.InternalLoan
 import domain.entities.Invoice
 import usecases.invoices.dto.CompleteInvoiceInput
 import usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
@@ -28,11 +28,11 @@ class CompleteInvoice(
     private val invoiceRepo: IRepository<Invoice>,
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
     private val accountRepo: IRepository<Account>,
-    private val internalLoanRepo: IRepository<InternalLoan>,
     private val snapshotAccountBalanceRepo: IAccountBalanceSnapshotRepository,
+    private val eventRegister: IEventRegister,
     unitOfWork: IUnitOfWork,
-    private val eventRegister: IEventRegister
-): UseCase<CompleteInvoiceInput, Unit>(unitOfWork) {
+    auth: IAuthenticateAdapter
+): UseCase<CompleteInvoiceInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
     override suspend fun process(input: CompleteInvoiceInput) {
         val invoice = invoiceRepo.get(input.invoiceId) ?: throw NotFoundException.SingleEntity(input.invoiceId, "invoice")
         val account = accountRepo.get(invoice.accountId) ?: throw NotFoundException.SingleEntity(invoice.accountId, "account")
@@ -56,7 +56,7 @@ class CompleteInvoice(
         invoiceRepo.update(invoice)
         accountRepo.update(account)
         snapshotAccountBalanceRepo.makeSnapshot(
-            AccountSnapshotBalanceInput(account.id, account.balance, LocalDateTime.now())
+            AccountSnapshotBalanceInput(account.userId, account.id, account.balance, LocalDateTime.now())
         )
 
 

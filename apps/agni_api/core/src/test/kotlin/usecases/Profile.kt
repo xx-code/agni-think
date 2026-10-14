@@ -1,5 +1,6 @@
 package usecases
 
+import adapters.IAuthenticateAdapter
 import kotlinx.coroutines.runBlocking
 
 import adapters.repositories.IRepository
@@ -31,18 +32,21 @@ private fun buildProfile(
         maxWishlistAmount = maxWishlistAmount,
         fixSpendPercentage = fixSpendPercentage,
         varialSpendPercentage = varialSpendPercentage,
+        userId = UUID.randomUUID(),
         savingPercentage = savingPercentage
     )
 }
 
 private fun mockProfileRepo(): IRepository<Profile> = mockk(relaxed = true)
+private fun auth(): IAuthenticateAdapter = mockk(relaxed = true)
 
 class CreateProfileTests {
 
     @Test
     fun `create profile from input and return its id`() = runBlocking {
         val repo = mockProfileRepo()
-        val useCase = CreateProfile(repo)
+        val auth = auth()
+        val useCase = CreateProfile(repo, auth)
         val input = CreateProfileInput(
             maxWishlistAmount = 1000.0,
             fixSpendPercentage = 50.0,
@@ -72,6 +76,7 @@ class GetProfileTests {
     fun `return mapped output for an existing profile`() = runBlocking {
         val repo = mockProfileRepo()
         val profileId = UUID.randomUUID()
+        val auth = auth()
         val profile = buildProfile(
             id = profileId,
             maxWishlistAmount = 800.0,
@@ -80,9 +85,9 @@ class GetProfileTests {
             savingPercentage = 15.0
         )
         every { repo.get(profileId) } returns profile
-        val useCase = GetProfile(repo)
+        val useCase = GetProfile(repo, auth)
 
-        val result = useCase.execute(profileId).getOrThrow()
+        val result = useCase.execute(Unit).getOrThrow()
 
         assertEquals(800.0, result.maxWishlistAmount)
         assertEquals(60.0, result.fixSpendPercentage)
@@ -91,14 +96,15 @@ class GetProfileTests {
     }
 
     @Test
-    fun `throw when profile does not exist`() = runBlocking {
+    fun `throw when profile does not exist`() {
         val repo = mockProfileRepo()
+        val auth = auth()
         val missingId = UUID.randomUUID()
         every { repo.get(missingId) } returns null
-        val useCase = GetProfile(repo)
+        val useCase = GetProfile(repo, auth)
 
         assertThrows(NotFoundException::class.java) {
-            useCase.execute(missingId).getOrThrow()
+            runBlocking { useCase.execute(Unit) }.getOrThrow()
         }
     }
 }
@@ -108,11 +114,12 @@ class UpdateProfileTests {
     @Test
     fun `update provided fields and persist`() = runBlocking {
         val repo = mockProfileRepo()
+        val auth = auth()
         val profileId = UUID.randomUUID()
         every { repo.get(profileId) } returns buildProfile(id = profileId)
-        val useCase = UpdateProfile(repo)
+        val useCase = UpdateProfile(repo, auth)
 
-        useCase.execAsync(
+        useCase.execute(
             UpdateProfileInput(
                 id = profileId,
                 maxWishlistAmount = 2000.0,
@@ -137,11 +144,12 @@ class UpdateProfileTests {
     @Test
     fun `update all fields`() = runBlocking {
         val repo = mockProfileRepo()
+        val auth = auth()
         val profileId = UUID.randomUUID()
         every { repo.get(profileId) } returns buildProfile(id = profileId)
-        val useCase = UpdateProfile(repo)
+        val useCase = UpdateProfile(repo, auth)
 
-        useCase.execAsync(
+        useCase.execute(
             UpdateProfileInput(
                 id = profileId,
                 maxWishlistAmount = 100.0,
@@ -164,9 +172,10 @@ class UpdateProfileTests {
     @Test
     fun `not persist when no field is provided`() = runBlocking {
         val repo = mockProfileRepo()
+        val auth = auth()
         val profileId = UUID.randomUUID()
         every { repo.get(profileId) } returns buildProfile(id = profileId)
-        val useCase = UpdateProfile(repo)
+        val useCase = UpdateProfile(repo, auth)
 
         useCase.execute(UpdateProfileInput(id = profileId)).getOrThrow()
 
@@ -176,9 +185,10 @@ class UpdateProfileTests {
     @Test
     fun `not persist when provided value equals current value`() = runBlocking {
         val repo = mockProfileRepo()
+        val auth = auth()
         val profileId = UUID.randomUUID()
         every { repo.get(profileId) } returns buildProfile(id = profileId, fixSpendPercentage = 50.0)
-        val useCase = UpdateProfile(repo)
+        val useCase = UpdateProfile(repo, auth)
 
         useCase.execute(UpdateProfileInput(id = profileId, fixSpendPercentage = 50.0)).getOrThrow()
 
@@ -186,14 +196,17 @@ class UpdateProfileTests {
     }
 
     @Test
-    fun `throw when profile does not exist`() = runBlocking {
+    fun `throw when profile does not exist`() {
         val repo = mockProfileRepo()
+        val auth = auth()
         val missingId = UUID.randomUUID()
         every { repo.get(missingId) } returns null
-        val useCase = UpdateProfile(repo)
+        val useCase = UpdateProfile(repo, auth)
 
         assertThrows(NotFoundException::class.java) {
-            useCase.execute(UpdateProfileInput(id = missingId, savingPercentage = 10.0)).getOrThrow()
+            runBlocking {
+                useCase.execute(UpdateProfileInput(id = missingId, savingPercentage = 10.0)).getOrThrow()
+            }
         }
 
         verify(exactly = 0) { repo.update(any()) }

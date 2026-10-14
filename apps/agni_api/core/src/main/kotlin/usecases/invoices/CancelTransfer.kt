@@ -13,6 +13,7 @@ import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.Invoice
 import domain.entities.Transaction
+import domain.entities.User
 import domain.enums.InvoiceModuleLinkerType
 import usecases.UseCase
 import usecases.invoices.dto.DeleteInvoiceInput

@@ -1,5 +1,6 @@
 package usecases.finance_principles
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.repositories.IRepository
 import domain.exceptions.AlreadyExistException
@@ -8,8 +9,9 @@ import domain.exceptions.ValidationException
 import domain.entities.FinancePrinciple
 import usecases.finance_principles.dto.UpdateFinancePrincipleInput
 class UpdateFinancePrinciple(
-    private val financePrincipleRepo: IRepository<FinancePrinciple>
-): UseCase<UpdateFinancePrincipleInput, Unit>() {
+    private val financePrincipleRepo: IRepository<FinancePrinciple>,
+    auth: IAuthenticateAdapter
+): UseCase<UpdateFinancePrincipleInput, Unit>(auth = auth) {
     override suspend fun process(input: UpdateFinancePrincipleInput) {
         val financePrinciple = financePrincipleRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "finance_principle")
 

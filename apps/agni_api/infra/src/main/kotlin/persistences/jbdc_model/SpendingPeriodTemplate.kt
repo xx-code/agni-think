@@ -18,6 +18,7 @@ data class JdbcSpendingPeriodTemplateModel(
     @Id
     @get:JvmName("getIdentifier")
     val spendingPeriodTemplateId: UUID,
+    val userId: UUID,
     @Column("is_active")
     val isActive: Boolean,
     @Column("start_date")
@@ -53,6 +54,7 @@ class JdbcSpendingPeriodTemplateMapper(
 
         val entity = SpendingPeriodTemplate(
             id = model.spendingPeriodTemplateId,
+            userId = model.userId,
             startDate = model.startDate,
             recurrence = SchedulerRecurrence.fromMap(recurrenceJson),
             isActive = model.isActive,
@@ -73,12 +75,14 @@ class JdbcSpendingPeriodTemplateMapper(
             createdDate = entity.createdAt,
             updatedDate = entity.updatedAt,
             targetBudgetIds = objectMapper.writeValueAsString(entity.targetBudgetIds.map { it.toString() }),
+            userId = entity.userId,
             endDate = entity.endDate
         )
     }
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "spending_period_template_id",
+        "userId" to "user_id",
         "isActive" to "is_active",
         "startDate" to "start_date",
         "recurrence.period" to "recurrence->>'period'",

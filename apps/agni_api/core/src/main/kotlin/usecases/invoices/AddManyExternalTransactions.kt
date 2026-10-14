@@ -1,6 +1,7 @@
 package usecases.invoices
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.events.EventType
 import adapters.events.IEventRegister
@@ -8,18 +9,25 @@ import adapters.events.contents.CreateManyEmbeddingExternalTransEventContent
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
+import domain.entities.Account
+import domain.entities.BankRegister
 import domain.entities.ExternalTransaction
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import domain.exceptions.ValidationException
 import usecases.invoices.dto.AddExternalTransactionInput
 
 class AddManyExternalTransactions(
     private val externalTransRepo: IRepository<ExternalTransaction>,
-    private val eventRegister: IEventRegister
-): UseCase<List<AddExternalTransactionInput>, List<CreatedOutput>>() {
+    private val eventRegister: IEventRegister,
+    auth: IAuthenticateAdapter
+): UseCase<List<AddExternalTransactionInput>, List<CreatedOutput>>(auth = auth) {
     override suspend fun process(input: List<AddExternalTransactionInput>): List<CreatedOutput>  {
+        val currentUser = getCurrentUser()
+
         var newExternalTransactions = input.map {
             ExternalTransaction(
+                userId = currentUser.id,
                 accountId = it.accountId,
                 transactionId = it.transactionId,
                 amount = it.amount,

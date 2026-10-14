@@ -12,6 +12,7 @@ import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.ScheduleInvoice
+import domain.entities.Notification
 import domain.enums.InvoiceModuleLinkerType
 import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
@@ -56,6 +57,7 @@ class ApplyScheduleInvoice(
                 if (scheduleInvoice.isFreeze) {
                     createFreezeInvoice.processDirect(CreateFreezeInvoiceInput(
                         title = scheduleInvoice.title,
+                        userId = scheduleInvoice.userId,
                         accountId = scheduleInvoice.accountId,
                         endDate = date,
                         amount = scheduleInvoice.amount,
@@ -88,10 +90,11 @@ class ApplyScheduleInvoice(
 
                     createInvoice.processDirect(CreateInvoiceInput(
                         accountId = scheduleInvoice.accountId,
+                        userId = scheduleInvoice.userId,
                         status = InvoiceStatusType.PENDING,
                         date = date,
                         type = scheduleInvoice.type,
-                        mouvementType = movement,
+                        movementType = movement,
                         currency = null,
                         transactions = setOf(
                             TransactionInput(
@@ -133,6 +136,7 @@ class ApplyScheduleInvoice(
                     "Schedule Invoice",
                     "La transaction ${scheduleInvoice.isFreeze.let { "gele" }} ${scheduleInvoice.title} at ${scheduleInvoice.amount}",
                     type = NotificationType.Success,
+                    userId = scheduleInvoice.userId,
                 ))
             }
 
@@ -142,6 +146,7 @@ class ApplyScheduleInvoice(
                 "Schedule Invoice !Error",
                 "Error while applying schedule in voice ${error.message}",
                 type = NotificationType.Error,
+                userId = Notification.SYSTEM_USER_ID,
             ))
 
             return BackgroundTaskOut(error.localizedMessage)

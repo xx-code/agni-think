@@ -17,6 +17,7 @@ data class JdbcBudgetModel(
     @Id
     @get:JvmName("getIdentifier")
     val budgetId: UUID,
+    val userId: UUID,
 
     val title: String,
 
@@ -45,6 +46,7 @@ class JdbcBudgetModelMapper(
 
         return Budget(
             id = model.id,
+            userId = model.userId,
             title = model.title,
             target = model.target,
             scheduler = Scheduler.fromMap(schedulerJson),
@@ -57,6 +59,7 @@ class JdbcBudgetModelMapper(
     override fun toModel(entity: Budget): JdbcBudgetModel {
         return JdbcBudgetModel(
             budgetId = entity.id,
+            userId = entity.userId,
             title = entity.title,
             target = entity.target,
             scheduler = objectMapper.writeValueAsString(entity.scheduler.toMap()),
@@ -68,6 +71,7 @@ class JdbcBudgetModelMapper(
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "budget_id",
+        "userId" to "user_id",
         "title" to "title",
         "target" to "target",
         "scheduler" to "scheduler",

@@ -1,5 +1,6 @@
 package dev.auguste.rest_api.controllers
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import dev.auguste.rest_api.controllers.models.ApiCreateFreezeInvoiceModel
 import dev.auguste.rest_api.controllers.models.ApiCreateInvoiceModel
@@ -15,6 +16,7 @@ import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
 import domain.enums.InvoiceType
 import domain.enums.PeriodType
+import domain.exceptions.UnAuthorizeException
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.interfaces.IUseCase
@@ -58,13 +60,15 @@ class InvoiceController(
     private val createFreezeInvoiceUseCase: IUseCase<CreateFreezeInvoiceInput, CreatedOutput>,
     private val completeInvoiceUseCase: IUseCase<CompleteInvoiceInput, Unit>,
     @Qualifier("cancelTransferInvoice")
-    private val cancelTransfer: IUseCase<UUID, Unit>
+    private val cancelTransfer: IUseCase<UUID, Unit>,
+    private val auth: IAuthenticateAdapter
 ) {
 
     @PostMapping
     suspend fun createInvoice(@Valid @RequestBody request: ApiCreateInvoiceModel) : ResponseEntity<CreatedOutput> {
+        val currentUser = auth.getCurrentUser()
         return ResponseEntity.ok(createInvoiceUseCase.execute(
-            mapApiCreateInvoice(request)
+            mapApiCreateInvoice(currentUser.id, request),
         ).getOrThrow())
     }
 
@@ -119,8 +123,10 @@ class InvoiceController(
 
     @GetMapping("/balances")
     suspend fun getBalance(query: ApiQueryInvoice) : ResponseEntity<GetBalanceOutput> {
+        val currentUser = auth.getCurrentUser()
         return ResponseEntity.ok(getBalanceUseCase.execute(
             GetBalanceInput(
+                userId = currentUser.id,
                 startDate = query.startDate,
                 endDate = query.endDate,
                 accountIds = query.accountIds,
@@ -139,8 +145,10 @@ class InvoiceController(
 
     @GetMapping("/balances-by-period")
     suspend fun getBalancesByPeriod(query: ApiQueryBalanceByPeriod) : ResponseEntity<List<GetBalanceByPeriodOutput>> {
+        val currentUser = auth.getCurrentUser()
         return ResponseEntity.ok(getBalanceByPeriodUseCase.execute(
             GetBalancesByPeriodInput(
+                userId = currentUser.id,
                 period = PeriodType.fromString(query.period),
                 interval = query.interval,
                 dateFrom = query.dateFrom,
@@ -149,7 +157,7 @@ class InvoiceController(
                 status = query.status?.let { InvoiceStatusType.fromString(query.status) }  ,
                 types = query.types?.let {  query.types.map { InvoiceType.fromString(it) }.toSet() },
                 isFreeze = query.isFreeze,
-                mouvement = query.mouvement?.let { InvoiceMovementType.fromString(query.mouvement) },
+                movement = query.mouvement?.let { InvoiceMovementType.fromString(query.mouvement) },
                 categoryIds = query.categoryIds,
                 tagIds = query.tagIds,
                 budgetIds = query.budgetIds,
@@ -161,15 +169,17 @@ class InvoiceController(
 
     @PostMapping("create-freeze")
     suspend fun createFreezeInvoice(@Valid @RequestBody request: ApiCreateFreezeInvoiceModel) : ResponseEntity<CreatedOutput> {
+        val currentUser = auth.getCurrentUser()
         return ResponseEntity.ok(createFreezeInvoiceUseCase.execute(
-            mapApiCreateFreezeInvoice(request)
+            mapApiCreateFreezeInvoice(currentUser.id, request),
         ).getOrThrow())
     }
 
     @PostMapping("transfer")
     suspend fun transferInvoice(@Valid @RequestBody request: ApiTransferInvoiceModel) : ResponseEntity<Unit> {
+        val currentUser = auth.getCurrentUser()
         return ResponseEntity.ok(transferInvoiceUseCase.execute(
-            mapApiTransfer(request)
+            mapApiTransfer(currentUser.id, request)
         ).getOrThrow())
     }
 

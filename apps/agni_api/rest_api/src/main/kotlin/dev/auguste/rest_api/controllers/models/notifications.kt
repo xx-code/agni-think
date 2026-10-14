@@ -2,6 +2,7 @@ package dev.auguste.rest_api.controllers.models
 
 import usecases.notifications.dto.PushNotificationInput
 import jakarta.validation.constraints.NotEmpty
+import java.util.UUID
 
 data class ApiPushNotificationInput(
     @field:NotEmpty(message = "The title cannot be empty")
@@ -10,6 +11,6 @@ data class ApiPushNotificationInput(
     val content: String
 )
 
-fun mapApiPushNotification(model: ApiPushNotificationInput): PushNotificationInput {
-    return PushNotificationInput(model.title, model.content)
+fun mapApiPushNotification(userId: UUID, model: ApiPushNotificationInput): PushNotificationInput {
+    return PushNotificationInput(userId, model.title, model.content)
 }

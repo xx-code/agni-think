@@ -23,6 +23,7 @@ data class JbdcAccountModel(
     @Id
     @get:JvmName("getIdentifier")
     val accountId: UUID,
+    val userId: UUID,
     val title: String,
     val balance: Double,
     val type: String,
@@ -60,6 +61,7 @@ class JdbcAccountModelMapper(
 
         return Account(
             id = model.id,
+            userId = model.userId,
             title = model.title,
             balance = model.balance,
             currencyId = model.currencyId,
@@ -73,6 +75,7 @@ class JdbcAccountModelMapper(
 
         return JbdcAccountModel(
             accountId = entity.id,
+            userId = entity.userId,
             title = entity.title,
             type = entity.detail.getType().value,
             balance = entity.balance,
@@ -84,6 +87,7 @@ class JdbcAccountModelMapper(
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "account_id",
+        "userId" to "user_id",
         "title" to "title",
         "type" to "type",
         "balance" to "balance",

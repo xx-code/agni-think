@@ -6,6 +6,7 @@ import java.util.UUID
 
 class Fund(
     id: UUID = UUID.randomUUID(),
+    val userId: UUID,
     title: String,
     description: String,
     target: Double,

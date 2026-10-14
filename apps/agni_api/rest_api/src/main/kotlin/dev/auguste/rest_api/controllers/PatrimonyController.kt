@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import usecases.patrimonies.dto.GetAllPatrimonyInput
 import java.util.UUID
 
 @RestController
@@ -42,7 +43,7 @@ class PatrimonyController(
     private val updatePatrimonyUseCase: IUseCase<UpdatePatrimonyInput, Unit>,
     private val deletePatrimonyUseCase: IUseCase<DeletePatrimonyInput, Unit>,
     private val getPatrimonyUseCase: IUseCase<GetPatrimonyInput, GetPatrimonyOutput>,
-    private val getAllPatrimoniesUseCase: IUseCase<QueryFilter, ListOutput<GetPatrimonyOutput>>,
+    private val getAllPatrimoniesUseCase: IUseCase<GetAllPatrimonyInput, ListOutput<GetPatrimonyOutput>>,
     private val addSnapshotToPatrimonyUseCase: IUseCase<AddSnapshotToPatrimonyInput, CreatedOutput>,
     private val removeSnapshotFromPatrimonyUseCase: IUseCase<RemoveSnapshotFromPatrimonyInput, Unit>,
     private val updateSnapshotFromPatrimonyUseCase: IUseCase<UpdateSnapshotFromPatrimonyInput, Unit>,
@@ -86,7 +87,7 @@ class PatrimonyController(
     @GetMapping
     suspend fun getAllPatrimonies(query: QueryFilter) : ResponseEntity<ListOutput<GetPatrimonyOutput>> {
         return ResponseEntity.ok(getAllPatrimoniesUseCase.execute(
-            query
+            GetAllPatrimonyInput(query)
         ).getOrThrow())
     }
 

@@ -1,5 +1,6 @@
 package usecases.budgets
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.dto.QuerySortBy
@@ -18,9 +19,11 @@ import usecases.invoices.dto.GetBalanceOutput
 
 class GetAllBudgets(
     private val budgetRepo: IRepository<Budget>,
-    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>
-): UseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>>() {
+    private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
+    auth: IAuthenticateAdapter
+): UseCase<GetAllBudgetInput, ListOutput<GetBudgetOutput>>(auth = auth) {
     override suspend fun process(input: GetAllBudgetInput): ListOutput<GetBudgetOutput> {
+        val userId = getCurrentUser().id
         val query = QueryFilter(
             offset = input.query.offset,
             limit = input.query.limit,
@@ -29,6 +32,7 @@ class GetAllBudgets(
         )
 
         val conditionBudget = QueryExtendBuilder<Budget>()
+            conditionBudget.addCondition("userId", QueryComparator.Equal, userId)
         if (input.periodTypes != null)
             conditionBudget.addCondition("scheduler.repeater", QueryComparator.In, input.periodTypes.map { it.value }.toSet())
 
@@ -63,6 +67,7 @@ class GetAllBudgets(
             val endDate = budget.scheduler.upgradeDate()
 
             val resultBalance = getBalance.processDirect(GetBalanceInput(
+                userId = userId,
                 budgetIds = setOf(budget.id),
                 types = setOf(InvoiceType.FIXED_COST, InvoiceType.VARIABLE_COST, InvoiceType.OTHER),
                 startDate = startDate,

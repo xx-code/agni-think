@@ -1,5 +1,6 @@
 package usecases.income_sources
 
+import adapters.IAuthenticateAdapter
 import usecases.interfaces.IUseCase
 
 import adapters.dto.QueryFilter
@@ -19,8 +20,9 @@ class DeleteIncomeSource(
     private val incomeSourceRepo: IRepository<IncomeSource>,
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
     private val deleteScheduleInvoice: IUseCase<DeleteScheduleInvoiceInput, Unit>,
-    unitOfWork: IUnitOfWork
-): UseCase<DeleteIncomeSourceInput, Unit>(unitOfWork) {
+    unitOfWork: IUnitOfWork,
+    auth: IAuthenticateAdapter
+): UseCase<DeleteIncomeSourceInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
     override suspend fun process(input: DeleteIncomeSourceInput) {
         val incomeSource = incomeSourceRepo.get(input.incomeSourceId) ?: throw NotFoundException.SingleEntity(input.incomeSourceId, "income_source")
         incomeSourceRepo.delete(input.incomeSourceId)

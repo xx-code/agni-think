@@ -14,6 +14,7 @@ data class JdbcAgentSuggestionModel(
     @Id
     @get:JvmName("getIdentifier")
     val agentSuggestionId: UUID,
+    val userId: UUID,
     @Column("agent_id")
     val agentId: String,
     @Column("agent_name")
@@ -39,6 +40,7 @@ class JdbcAgentSuggestionModelMapper: IMapper<JdbcAgentSuggestionModel, AgentSug
             title = model.title,
             description = model.description,
             confidenceScore = model.confidenceScore,
+            userId = model.userId,
             status = AgentSuggestionStatusType.fromString(model.status)
         )
     }
@@ -51,12 +53,14 @@ class JdbcAgentSuggestionModelMapper: IMapper<JdbcAgentSuggestionModel, AgentSug
             agentName = entity.agentName,
             description = entity.description,
             confidenceScore = entity.confidenceScore,
+            userId = entity.userId,
             status = entity.status.toString()
         )
     }
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "agent_suggestion_id",
+        "userId" to "user_id",
         "agentId" to "agent_id",
         "agentName" to "agent_name",
         "title" to "title",

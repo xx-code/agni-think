@@ -1,12 +1,16 @@
 package usecases.analystics
 
+import adapters.IAuthenticateAdapter
 import usecases.UseCase
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
+import adapters.repositories.QueryComparator
+import adapters.repositories.QueryExtendBuilder
 import domain.entities.Account
 import domain.entities.FinancePrinciple
 import domain.entities.IncomeSource
 import domain.entities.ScheduleInvoice
+import domain.entities.User
 import domain.roundTo
 import usecases.analystics.dto.AccountInfoOutput
 import usecases.analystics.dto.ComingRevenueOutput
@@ -28,13 +32,27 @@ class GetFinanceProfile(
     private val accountRepo: IRepository<Account>,
     private val principleRepo: IRepository<FinancePrinciple>,
     private val incomeSourceRepo: IRepository<IncomeSource>,
-    private val scheduleInvoice: IRepository<ScheduleInvoice>
-): UseCase<Unit, GetFinanceProfileOutput>() {
+    private val scheduleInvoice: IRepository<ScheduleInvoice>,
+    auth: IAuthenticateAdapter
+): UseCase<Unit, GetFinanceProfileOutput>(auth = auth) {
     override suspend fun process(input: Unit): GetFinanceProfileOutput {
-        val accounts = accountRepo.getAll(QueryFilter.queryAll())
-        val principles = principleRepo.getAll(QueryFilter.queryAll())
-        val incomes = incomeSourceRepo.getAll(QueryFilter.queryAll())
-        val scheduleInvoices = scheduleInvoice.getAll(QueryFilter.queryAll())
+        val currentUser = getCurrentUser()
+
+        val accountCondition = QueryExtendBuilder<Account>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val accounts = accountRepo.getAll(QueryFilter.queryAll(), accountCondition)
+
+        val principeCondition = QueryExtendBuilder<FinancePrinciple>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val principles = principleRepo.getAll(QueryFilter.queryAll(), principeCondition)
+
+        val incomeSourceCondition = QueryExtendBuilder<IncomeSource>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val incomes = incomeSourceRepo.getAll(QueryFilter.queryAll(), incomeSourceCondition)
+
+        val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val scheduleInvoices = scheduleInvoice.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
 
         return GetFinanceProfileOutput(
             currentBalanceTotalWithFreeze = accounts.items.sumOf { it.balance },

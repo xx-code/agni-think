@@ -3,6 +3,7 @@ package usecases.spending_period
 import usecases.interfaces.IUseCase
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
@@ -37,9 +38,12 @@ class ForcastSpendingPeriod(
     private val fundRepo: IRepository<Fund>,
     private val getBalance: IUseCase<GetBalanceInput, GetBalanceOutput>,
     private val getSavingBalance: IUseCase<GetSavingBalanceInput, Double>,
-    private val getInvoices: IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>>
-): UseCase<ForcastSpendingPeriodInput, ForcastSpendingPeriodOutput>() {
+    private val getInvoices: IUseCase<GetAllInvoiceInput, ListOutput<GetInvoiceOutput>>,
+    auth: IAuthenticateAdapter
+): UseCase<ForcastSpendingPeriodInput, ForcastSpendingPeriodOutput>(auth = auth) {
     override suspend fun process(input: ForcastSpendingPeriodInput): ForcastSpendingPeriodOutput {
+        val currentUser = getCurrentUser()
+
         val budgets = budgetRepo.getManyByIds(input.budgetIds.toSet())
 
         val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
@@ -55,6 +59,7 @@ class ForcastSpendingPeriod(
         ))
 
         val currentBalance = getBalance.processDirect(GetBalanceInput(
+            userId = currentUser.id,
             startDate = input.startDate.atStartOfDay(),
             endDate = input.endDate.atStartOfDay(),
             removeSystemCategory = true
@@ -85,7 +90,9 @@ class ForcastSpendingPeriod(
         val variableExpenses = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.VARIABLE_COST, invoices.items, fundsById, provisionsById, input.startDate, input.endDate)
         val totalVariableExpenses = variableExpenses.sumOf { it.amount }
 
-        val profiles = profileRepo.getAll(QueryFilter.queryAll())
+        val profileCondition = QueryExtendBuilder<Profile>()
+            .addCondition("userId", QueryComparator.Equal, currentUser.id)
+        val profiles = profileRepo.getAll(QueryFilter.queryAll(), profileCondition)
         var savingRate = profiles.items.firstOrNull()?.savingPercentage ?: 0.0
         if (input.savingRate != null)
             savingRate = input.savingRate

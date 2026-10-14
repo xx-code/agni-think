@@ -14,6 +14,7 @@ data class JdbcExternalTransactionModel(
     @Id
     @get:JvmName("getIdentifier")
     val externalTransactionId: UUID,
+    val userId: UUID,
     @Column("transaction_id")
     val transactionId: String,
     @Column("account_id")
@@ -40,6 +41,7 @@ class JdbcExternalTransactionModelMapper: IMapper<JdbcExternalTransactionModel, 
     override fun toDomain(model: JdbcExternalTransactionModel): ExternalTransaction {
         return ExternalTransaction(
             id = model.id,
+            userId = model.userId,
             transactionId = model.transactionId,
             accountId = model.accountId,
             amount = model.amount,
@@ -54,6 +56,7 @@ class JdbcExternalTransactionModelMapper: IMapper<JdbcExternalTransactionModel, 
     override fun toModel(entity: ExternalTransaction): JdbcExternalTransactionModel {
         return JdbcExternalTransactionModel(
             externalTransactionId = entity.id,
+            userId = entity.userId,
             accountId = entity.accountId,
             transactionId = entity.transactionId,
             amount = entity.amount,
@@ -67,6 +70,7 @@ class JdbcExternalTransactionModelMapper: IMapper<JdbcExternalTransactionModel, 
 
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "external_transaction_id",
+        "userId" to "user_id",
         "transactionId" to "transaction_id",
         "accountId" to "account_id",
         "amount" to "amount",

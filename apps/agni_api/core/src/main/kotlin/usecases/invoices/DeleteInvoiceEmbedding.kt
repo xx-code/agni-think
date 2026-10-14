@@ -8,6 +8,7 @@ import adapters.events.IEventRegister
 import adapters.events.contents.DeleteEmbeddingInvoiceEventContent
 import adapters.events.contents.NotificationEventContent
 import adapters.events.contents.NotificationType
+import domain.entities.Notification
 import usecases.dto.BackgroundTaskOut
 import java.util.UUID
 
@@ -29,7 +30,8 @@ class DeleteInvoiceEmbedding(
                 NotificationEventContent(
                     title = "Fail to delete embedding invoice",
                     message = "Invoice was failed to create embedding invoice: ${err.message}",
-                    type = NotificationType.Error
+                    type = NotificationType.Error,
+                    userId = Notification.SYSTEM_USER_ID,
                 )
             )
 

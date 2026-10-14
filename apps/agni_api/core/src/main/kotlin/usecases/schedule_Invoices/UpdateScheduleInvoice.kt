@@ -1,6 +1,7 @@
 package usecases.schedule_Invoices
 
 import usecases.UseCase
+import adapters.IAuthenticateAdapter
 import adapters.repositories.IRepository
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
@@ -16,8 +17,9 @@ import domain.value_objects.SchedulerRecurrence
 class UpdateScheduleInvoice(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
     private val invoiceDependencies: InvoiceDependencies,
-    private val verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>
-): UseCase<UpdateScheduleInvoiceInput, Unit>() {
+    private val verifyScheduleModuleLinker: IUseCase<ScheduleInvoiceModuleLinker, Unit>,
+    auth: IAuthenticateAdapter
+): UseCase<UpdateScheduleInvoiceInput, Unit>(auth = auth) {
 
     override suspend fun process(input: UpdateScheduleInvoiceInput) {
         val scheduleInvoice = scheduleInvoiceRepo.get(input.id) ?: throw NotFoundException.SingleEntity(input.id, "schedule_invoice")
