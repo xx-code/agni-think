@@ -57,7 +57,7 @@ export const useAuth = () => {
             await $oidc.signinRedirect({
                 redirect_uri: config.redirectUri,
                 extraQueryParams: {
-                    audience: (config.oidcAudience as string)
+                    audience: (config.audience as string)
                 }
             })
         } catch (error) {
