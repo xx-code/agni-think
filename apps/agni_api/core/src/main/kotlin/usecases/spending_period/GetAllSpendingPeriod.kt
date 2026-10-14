@@ -35,10 +35,7 @@ class GetAllSpendingPeriod(
                     spendingPeriodTemplateId = it.spendingPeriodTemplateId,
                     startDate = it.startDate,
                     endDate = it.endDate,
-                    freeAmount = it.freeAmount,
                     savingRateTarget = it.savingRateTarget,
-                    totalExpectedIncome = it.totalExpectedIncome,
-                    totalExpectedExpenses = it.totalExpectedExpenses,
                     state = it.state,
                     snapshot = SpendingPeriodSnapShotOutput(
                         income = it.snapshot.income,
@@ -47,12 +44,7 @@ class GetAllSpendingPeriod(
                         budgetExpenses = it.snapshot.budgetExpenses,
                         saving = it.snapshot.saving
                     ),
-                    wantSpendingItems = it.wantSpendingItems.map { item ->
-                        SpendingPeriodItemOutput(
-                            description = item.description,
-                            amount = item.amount
-                        )
-                    }
+                    wishlistItems = listOf(),
                 )
             },
             total = spendingPeriods.total

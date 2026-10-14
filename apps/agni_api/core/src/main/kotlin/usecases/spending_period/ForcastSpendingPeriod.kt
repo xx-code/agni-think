@@ -46,10 +46,7 @@ class ForcastSpendingPeriod(
 
         val budgets = budgetRepo.getManyByIds(input.budgetIds.toSet())
 
-        val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
-            .addCondition("isPause", QueryComparator.Equal, false)
-            .addCondition("scheduler.date", QueryComparator.LesserOrEquals, input.endDate.atStartOfDay())
-        val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
+        val scheduleInvoices = scheduleInvoiceRepo.getManyByIds(input.scheduleInvoiceIds)
 
         val invoices = getInvoices.processDirect(GetAllInvoiceInput(
             startDate = input.startDate.atStartOfDay(),
@@ -75,7 +72,7 @@ class ForcastSpendingPeriod(
         val totalBudgetBalance = budgetExpenses.sumOf { it.balance }
 
 
-        val provisionIds = scheduleInvoices.items.filter { it.moduleLinker?.module == ScheduleInvoiceModuleLinkerType.PROVISION  }.mapNotNull { it.moduleLinker?.sourceId }
+        val provisionIds = scheduleInvoices.filter { it.moduleLinker?.module == ScheduleInvoiceModuleLinkerType.PROVISION  }.mapNotNull { it.moduleLinker?.sourceId }
         val provisions = provisionRepo.getManyByIds(provisionIds.toSet()).filter { it.paymentInfo != null && it.paymentInfo!!.endDate >= LocalDate.now() }
         val fundIds = provisions.mapNotNull { it.fundAmortizationId }
         val funds = fundRepo.getManyByIds(fundIds.toSet())
@@ -83,11 +80,11 @@ class ForcastSpendingPeriod(
         val provisionsById = provisions.associateBy { it.id }
         val fundsById = funds.associateBy { it.id }
 
-        val incomes = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.INCOME, invoices.items, fundsById, provisionsById, input.startDate, input.endDate)
+        val incomes = getForcastScheduleInvoice(scheduleInvoices, InvoiceType.INCOME, invoices.items, fundsById, provisionsById, input.startDate, input.endDate)
         val totalIncome = incomes.sumOf { it.amount }
-        val fixExpenses = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.FIXED_COST, invoices.items, fundsById, provisionsById, input.startDate, input.endDate)
+        val fixExpenses = getForcastScheduleInvoice(scheduleInvoices, InvoiceType.FIXED_COST, invoices.items, fundsById, provisionsById, input.startDate, input.endDate)
         val totalFixedExpenses = fixExpenses.sumOf { it.amount }
-        val variableExpenses = getForcastScheduleInvoice(scheduleInvoices.items, InvoiceType.VARIABLE_COST, invoices.items, fundsById, provisionsById, input.startDate, input.endDate)
+        val variableExpenses = getForcastScheduleInvoice(scheduleInvoices, InvoiceType.VARIABLE_COST, invoices.items, fundsById, provisionsById, input.startDate, input.endDate)
         val totalVariableExpenses = variableExpenses.sumOf { it.amount }
 
         val profileCondition = QueryExtendBuilder<Profile>()
@@ -131,7 +128,10 @@ class ForcastSpendingPeriod(
     ): List<ForcastSpendingAchieveItemOutput> {
         var scheduleInvoices = scheduleInvoices.filter { it.type == invoiceType }
         scheduleInvoices = scheduleInvoices.filter {
-            scheduleInvoice -> scheduleInvoice.scheduler.upgradeDate(startDate.atStartOfDay()) >= startDate.atStartOfDay()
+            scheduleInvoice -> (
+                scheduleInvoice.scheduler.upgradeDate(startDate.atStartOfDay()) >= startDate.atStartOfDay() &&
+                    scheduleInvoice.scheduler.downgradeDate(endDate.atStartOfDay()) <= endDate.atStartOfDay()
+                    )
         }
 
         val filterInvoices = invoices.filter { it.type == InvoiceType.INCOME.value && it.moduleLinkers.find { linker -> linker.module == InvoiceModuleLinkerType.SCHEDULE_INVOICE.value } != null }
@@ -140,6 +140,8 @@ class ForcastSpendingPeriod(
             var scheduleStartDate = schedule.scheduler.date
             if (scheduleStartDate < startDate.atStartOfDay())
                 scheduleStartDate = schedule.scheduler.upgradeDate(startDate.atStartOfDay())
+
+            val isSchedulePass = scheduleStartDate > endDate.atStartOfDay()
 
             val occurrence = schedule.scheduler.repeater?.computeOccurrences(scheduleStartDate.toLocalDate(), endDate) ?: 1
             val invoice = filterInvoices.filter { schedule.id == it.moduleLinkers.first({ linker -> linker.module == InvoiceModuleLinkerType.SCHEDULE_INVOICE.value }).sourceId  }
@@ -170,11 +172,14 @@ class ForcastSpendingPeriod(
                 }
             }
 
+            val isAchieved = currentAmount >= adjustedAmount
+
             ForcastSpendingAchieveItemOutput(
                 description = schedule.title,
                 amount = adjustedAmount,
                 validAmount = invoice.sumOf { it.total },
-                isAchieved =  currentAmount >= adjustedAmount ,
+                isAchieved =  isAchieved,
+                isClosed = !isAchieved && isSchedulePass,
             )
         }
     }

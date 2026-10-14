@@ -13,13 +13,13 @@ class SpendingPeriod(
     spendingPeriodTemplateId: UUID,
     startDate: LocalDate,
     endDate: LocalDate,
-    closeBalance: Double = 0.0,
-    freeAmount: Double,
     savingRateTarget: Double,
-    totalExpectedIncome: Double,
-    totalExpectedExpenses: Double,
+    scheduleIncomesSelected: Set<UUID>,
+    scheduleExpensesSelected: Set<UUID>,
+    budgetsSelected: Set<UUID>,
+    closeBalance: Double = 0.0,
+    wishlistItemSelected: Set<UUID>,
     state: SpendingPeriodStateType,
-    wantSpendingItems: List<SpendingPeriodItem>,
     snapshot: SnapshotForcastSpendingPeriod
 ): Entity(id) {
     var spendingPeriodTemplateId by cleanObservable(spendingPeriodTemplateId, this)
@@ -33,12 +33,13 @@ class SpendingPeriod(
     }) {
         ValidationException.SpendingPeriodEndDateMustBeGreaterThanStartDate(this.startDate, it)
     }
-    var freeAmount by cleanObservable(freeAmount, this)
     var savingRateTarget by cleanObservable(savingRateTarget, this)
-    var totalExpectedIncome by cleanObservable(totalExpectedIncome, this)
-    var totalExpectedExpenses by cleanObservable(totalExpectedExpenses, this)
     var state by cleanObservable(state, this)
-    var wantSpendingItems by cleanObservable(wantSpendingItems, this)
+
+    var scheduleIncomesSelected by cleanObservable(scheduleIncomesSelected, this)
+    var scheduleExpensesSelected by cleanObservable(scheduleExpensesSelected, this)
+    var budgetsSelected by cleanObservable(budgetsSelected, this)
+    var wishlistItemSelected by cleanObservable(wishlistItemSelected, this)
     var snapshot by cleanObservable(snapshot, this)
     var closedBalance by cleanObservable(closeBalance, this)
 }

@@ -28,7 +28,6 @@ import java.time.LocalDate
 class ApplySpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
     private val spendingPeriodRepo: IRepository<SpendingPeriod>,
-    private val forecastSpendingPeriod: IUseCase<ForcastSpendingPeriodInput, ForcastSpendingPeriodOutput>,
     private val profileRepo: IRepository<Profile>,
     unitOfWork: IUnitOfWork,
     private val eventRegister: IEventRegister,
@@ -65,28 +64,19 @@ class ApplySpendingPeriodTemplate(
                     val profiles = profileRepo.getAll(QueryFilter.queryAll())
                     val savingRate = profiles.items.firstOrNull()?.savingPercentage ?: 0.0
 
-                    val forecastRes = forecastSpendingPeriod.processDirect(
-                        input = ForcastSpendingPeriodInput(
-                            userId = spendingPeriodTemp.userId,
-                            startDate = spendingPeriodTemp.startDate,
-                            endDate = updateDate,
-                            budgetIds = spendingPeriodTemp.targetBudgetIds.toList(),
-                            savingRate = savingRate,
-                        )
-                    )
-
 
                     spendingPeriodRepo.create(SpendingPeriod(
                         userId = spendingPeriodTemp.userId,
                         spendingPeriodTemplateId = spendingPeriodTemp.id,
                         startDate = spendingPeriodTemp.startDate,
                         endDate = updateDate,
-                        freeAmount = forecastRes.expectedRemainAmount,
                         savingRateTarget = savingRate,
-                        totalExpectedIncome = forecastRes.totalExpectedIncome,
-                        totalExpectedExpenses = forecastRes.totalExpectedExpense,
                         state = SpendingPeriodStateType.DRAFT,
-                        wantSpendingItems = listOf(),
+                        scheduleIncomesSelected = setOf(),
+                        scheduleExpensesSelected = setOf(),
+                        budgetsSelected = spendingPeriodTemp.targetBudgetIds,
+                        closeBalance = 0.0,
+                        wishlistItemSelected = setOf(),
                         snapshot = SnapshotForcastSpendingPeriod(
                             income = 0.0,
                             fixExpenses = 0.0,

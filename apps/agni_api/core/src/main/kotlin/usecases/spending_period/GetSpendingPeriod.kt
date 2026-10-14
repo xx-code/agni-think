@@ -18,13 +18,11 @@ import java.util.UUID
 
 class GetSpendingPeriod(
     private val spendingPeriodRepo: IRepository<SpendingPeriod>,
-    private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
     private val forcastSpendingPeriod: IUseCase<ForcastSpendingPeriodInput, ForcastSpendingPeriodOutput>,
     auth: IAuthenticateAdapter
 ): UseCase<UUID, GetSpendingPeriodOutput>(auth = auth) {
     override suspend fun process(input: UUID): GetSpendingPeriodOutput {
         val spendPeriod = spendingPeriodRepo.get(input) ?: throw NotFoundException.SingleEntity(input, "spending_period")
-        val spendingPeriodTemplate = spendingPeriodTemplateRepo.get(spendPeriod.spendingPeriodTemplateId) ?: throw NotFoundException.SingleEntity(spendPeriod.spendingPeriodTemplateId, "spending_period_template")
 
         var forcast: ForcastSpendingPeriodOutput? = null
         if (spendPeriod.state != SpendingPeriodStateType.COMPLETE) {
@@ -32,8 +30,9 @@ class GetSpendingPeriod(
                 userId = spendPeriod.userId,
                 startDate = spendPeriod.startDate,
                 endDate = spendPeriod.endDate,
-                budgetIds = spendingPeriodTemplate.targetBudgetIds.toList(),
-                savingRate = spendPeriod.savingRateTarget
+                budgetIds = spendPeriod.budgetsSelected,
+                savingRate = spendPeriod.savingRateTarget,
+                scheduleInvoiceIds = spendPeriod.scheduleExpensesSelected + spendPeriod.scheduleExpensesSelected
             ))
         }
 
@@ -43,10 +42,10 @@ class GetSpendingPeriod(
             spendingPeriodTemplateId = spendPeriod.spendingPeriodTemplateId,
             startDate = spendPeriod.startDate,
             endDate = spendPeriod.endDate,
-            freeAmount = spendPeriod.freeAmount,
+            freeAmount = forcast?.expectedRemainAmount ?: spendPeriod.closedBalance,
             savingRateTarget = spendPeriod.savingRateTarget,
-            totalExpectedIncome = spendPeriod.totalExpectedIncome,
-            totalExpectedExpenses = spendPeriod.totalExpectedExpenses,
+            totalExpectedIncome = forcast?.totalExpectedIncome ?: spendPeriod.snapshot.income,
+            totalExpectedExpenses = forcast?.totalExpectedExpense ?: (spendPeriod.snapshot.variableExpenses + spendPeriod.snapshot.fixExpenses),
             state = spendPeriod.state,
             forcast = forcast,
             snapshot = SpendingPeriodSnapShotOutput(
@@ -56,12 +55,7 @@ class GetSpendingPeriod(
                 budgetExpenses = spendPeriod.snapshot.budgetExpenses,
                 saving = spendPeriod.snapshot.saving
             ),
-            wantSpendingItems = spendPeriod.wantSpendingItems.map {
-                SpendingPeriodItemOutput(
-                    description = it.description,
-                    amount = it.amount
-                )
-            },
+            wishlistItems = listOf(),
         )
     }
 }

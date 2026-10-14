@@ -8,10 +8,10 @@ data class CreateSpendingPeriodInput(
     val spendingPeriodTemplateId: UUID,
     val startDate: LocalDate,
     val endDate: LocalDate,
-    val freeAmount: Double,
     val savingRateTarget: Double,
-    val totalExpectedIncome: Double,
-    val totalExpectedExpenses: Double,
     val state: SpendingPeriodStateType,
-    val wantSpendingItems: List<SpendingPeriodItemInput>
+    val scheduleIncomesSelected: Set<UUID>,
+    val scheduleExpensesSelected: Set<UUID>,
+    val budgetsSelected: Set<UUID>,
+    val wishlistItemSelected: Set<UUID>
 )

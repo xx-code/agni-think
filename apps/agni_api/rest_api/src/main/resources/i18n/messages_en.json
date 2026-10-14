@@ -114,5 +114,7 @@
   "TRANSACTION_AMOUNT_MUST_BE_GREATER_THAN_ZERO": "The transaction amount {{amount}} must be greater than zero",
   "TRANSACTION_NOT_FOUND": "The transaction with id {{id}} is not found",
   "UNKNOWN_EXCEPTION": "An unexpected error occurred: {{error}}",
-  "VALIDATION_ERROR": "Validation failed: {{reason}}"
+  "VALIDATION_ERROR": "Validation failed: {{reason}}",
+  "SPENDING_PERIOD_INCOME_MUST_BE_ONLY_SCHEDULE_INCOME": "You can only select schedule income for spending period incomes",
+  "SPENDING_PERIOD_INCOME_MUST_BE_ONLY_SCHEDULE_EXPENSE": "You can only select schedule expense for spending period expense"
 }

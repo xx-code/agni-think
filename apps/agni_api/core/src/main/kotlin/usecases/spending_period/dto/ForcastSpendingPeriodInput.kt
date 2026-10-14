@@ -7,6 +7,7 @@ data class ForcastSpendingPeriodInput(
     val userId: UUID,
     val startDate: LocalDate,
     val endDate: LocalDate,
-    val budgetIds: List<UUID>,
+    val scheduleInvoiceIds: Set<UUID>,
+    val budgetIds: Set<UUID>,
     val savingRate: Double?
 )

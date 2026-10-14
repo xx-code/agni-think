@@ -11,44 +11,29 @@ import jakarta.validation.constraints.NotNull
 import java.time.LocalDate
 import java.util.UUID
 
-data class ApiSpendingPeriodItemModel(
-    @field:NotBlank("Item description must be defined")
-    val description: String,
-    @field:NotNull("Item amount must be defined")
-    @field:Min(0, "Item amount must be greater than or equal to 0")
-    val amount: Double
-)
 
 data class ApiCreateSpendingPeriodModel(
     @field:NotNull("Spending period template id must be defined")
     val spendingPeriodTemplateId: UUID,
-    @field:NotNull("Suggestion amount must be defined")
-    @field:Min(0, "Suggestion amount must be greater than or equal to 0")
-    val freeAmount: Double,
     @field:NotNull("Savings target must be defined")
     @field:Min(0, "Savings target must be greater than or equal to 0")
     val savingRateTarget: Double,
-    @field:NotNull("Total expected income must be defined")
-    @field:Min(0, "Total expected income must be greater than or equal to 0")
-    val totalExpectedIncome: Double,
-    @field:NotNull("Total expected expenses must be defined")
-    @field:Min(0, "Total expected expenses must be greater than or equal to 0")
-    val totalExpectedExpenses: Double,
     @field:NotNull("State must be defined")
     val state: String,
-    @field:Valid
-    val wantSpendingItems: List<ApiSpendingPeriodItemModel>
+    val scheduleIncomeSelectedIds: Set<UUID>,
+    val scheduleExpenseSelectedIds: Set<UUID>,
+    val budgetsSelectedIds: Set<UUID>,
+    val wishlistSelectedIds: Set<UUID>
 )
 
 data class ApiUpdateSpendingPeriodModel(
     val spendingPeriodTemplateId: UUID?,
-    val freeAmount: Double?,
     val savingRateTarget: Double?,
-    val totalExpectedIncome: Double?,
-    val totalExpectedExpenses: Double?,
     val state: String?,
-    @field:Valid
-    val wantSpendingItems: List<ApiSpendingPeriodItemModel>?
+    val scheduleIncomeSelectedIds: Set<UUID>?,
+    val scheduleExpenseSelectedIds: Set<UUID>?,
+    val budgetsSelectedIds: Set<UUID>?,
+    val wishlistSelectedIds: Set<UUID>?
 )
 
 fun mapApiCreateSpendingPeriodToSpendingPeriod(request: ApiCreateSpendingPeriodModel): CreateSpendingPeriodInput {
@@ -56,17 +41,12 @@ fun mapApiCreateSpendingPeriodToSpendingPeriod(request: ApiCreateSpendingPeriodM
         spendingPeriodTemplateId = request.spendingPeriodTemplateId,
         startDate = LocalDate.now(),
         endDate = LocalDate.now(),
-        freeAmount = request.freeAmount,
         savingRateTarget = request.savingRateTarget,
-        totalExpectedIncome = request.totalExpectedIncome,
-        totalExpectedExpenses = request.totalExpectedExpenses,
         state = SpendingPeriodStateType.fromString(request.state),
-        wantSpendingItems = request.wantSpendingItems.map {
-            SpendingPeriodItemInput(
-                description = it.description,
-                amount = it.amount
-            )
-        }
+        scheduleIncomesSelected = request.scheduleIncomeSelectedIds,
+        scheduleExpensesSelected = request.scheduleExpenseSelectedIds,
+        budgetsSelected = request.budgetsSelectedIds,
+        wishlistItemSelected = request.wishlistSelectedIds
     )
 }
 
@@ -74,16 +54,11 @@ fun mapApiUpdateSpendingPeriodToSpendingPeriod(id: UUID, request: ApiUpdateSpend
     return UpdateSpendingPeriodInput(
         id = id,
         spendingPeriodTemplateId = request.spendingPeriodTemplateId,
-        freeAmount = request.freeAmount,
         savingRateTarget = request.savingRateTarget,
         state = request.state?.let { SpendingPeriodStateType.fromString(it) },
-        totalExpectedIncome = request.totalExpectedIncome,
-        totalExpectedExpenses = request.totalExpectedExpenses,
-        wantSpendingItems = request.wantSpendingItems?.map {
-            SpendingPeriodItemInput(
-                description = it.description,
-                amount = it.amount
-            )
-        }
+        budgetsSelected = request.budgetsSelectedIds,
+        scheduleExpensesSelected = request.scheduleExpenseSelectedIds,
+        scheduleIncomesSelected = request.scheduleIncomeSelectedIds,
+        wishlistItemSelected = request.wishlistSelectedIds,
     )
 }
