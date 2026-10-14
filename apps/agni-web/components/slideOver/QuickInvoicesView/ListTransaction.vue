@@ -87,7 +87,17 @@ function getTypeColor(type: string) {
             v-for="invoice in invoices" 
             :key="invoice.id">
             <div class="w-3 h-3 rounded-2xl" :style="{ backgroundColor: invoice.color }"/>    
-            <UIcon :name="invoice.icon" />
+            <div class="flex ">
+                <div
+                    v-for="(icon, idx) in invoice.icons"
+                    :key="icon.name + idx"
+                    class="flex items-center justify-center rounded-full ring-2 ring-white dark:ring-neutral-900"
+                    :class="{ '-ml-2': idx > 0 }"
+                    :style="{ background: withAlpha(icon.color), width: '26px', height: '26px' }"
+                >
+                    <UIcon :name="icon.name" class="text-sm" :style="{ color: icon.color }" />
+                </div>
+            </div>
             
             <div class="flex flex-1 items-center justify-between">
                 <div class="">
