@@ -29,6 +29,8 @@ import domain.enums.InvoiceModuleLinkerType
 import domain.enums.InvoiceStatusType
 import domain.enums.InvoiceType
 import domain.enums.ScheduleInvoiceModuleLinkerType
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 class ForcastSpendingPeriod(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
@@ -172,7 +174,11 @@ class ForcastSpendingPeriod(
                 }
             }
 
-            val isAchieved = currentAmount >= adjustedAmount
+            val adjustedAmountRounded = BigDecimal(adjustedAmount)
+                .setScale(2, RoundingMode.HALF_UP)
+                .toDouble()
+
+            val isAchieved = currentAmount >= adjustedAmountRounded
 
             ForcastSpendingAchieveItemOutput(
                 description = schedule.title,
