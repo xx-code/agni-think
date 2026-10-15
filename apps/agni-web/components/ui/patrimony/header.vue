@@ -12,8 +12,18 @@ function computeEvolution(totalAmount: number, amount: number) {
     return (amount/totalAmount) * 100
 }
 
-const percentageAsset = computed(() => computeEvolution(totalAsset + Math.abs(totalLiability), totalAsset)) 
-const percentageLiability = computed(() => computeEvolution(totalAsset + Math.abs(totalLiability), totalLiability)) 
+const percentageAsset = computed(() => {
+    if (totalAsset == 0 && totalLiability == 0)
+        return 50
+
+    return  computeEvolution(totalAsset + Math.abs(totalLiability), totalAsset)
+}) 
+const percentageLiability =  computed(() => {
+    if (totalAsset == 0 && totalLiability == 0)
+        return 50
+
+    return computeEvolution(totalAsset + Math.abs(totalLiability), totalLiability)
+}) 
 
 </script>
 

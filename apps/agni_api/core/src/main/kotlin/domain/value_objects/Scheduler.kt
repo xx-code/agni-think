@@ -34,14 +34,13 @@ data class Scheduler(var date: LocalDateTime, val repeater: SchedulerRecurrence?
         return next
     }
 
-    fun downgradeDate(): LocalDateTime? {
+    fun downgradeDate(toDate: LocalDateTime = LocalDateTime.now()): LocalDateTime {
         if (repeater == null)
-            return null
+            return date
 
-        val now = LocalDateTime.now()
         var next = date
 
-        while (next.isAfter(now)) {
+        while (next.isAfter(toDate)) {
             next = when(repeater.period) {
                 PeriodType.YEAR -> next.minusYears(repeater.interval.toLong())
                 PeriodType.MONTH -> next.minusMonths(repeater.interval.toLong())

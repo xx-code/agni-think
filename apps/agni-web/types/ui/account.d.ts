@@ -53,7 +53,7 @@ export type AccountCard = {
 
 export type SlideQuickViewTransactionType = {
     id: string
-    icon: string
+    icons: {name: string, color: string}[]
     color: string
     category: string
     description: string

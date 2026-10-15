@@ -16,13 +16,36 @@ import useConfirmModal from '~/composables/modal/useConfirmModal.ts';
 
 
 function formatInvoiceToSlideItem(invoice: InvoiceType): SlideQuickViewTransactionType {
+
+    // TODO: REfactor centralize if 3 
+    const getInvoicesIcon = () => {
+        if (invoice.transactions.length === 0)
+            return [{ name: 'i-lucide-file-question-mark', color: '#b2bac4' }]
+
+        const seen = new Set<string>()
+        const icons: { name: string, color: string }[] = []
+
+        for (const t of invoice.transactions) {
+            const key = `${t.category.icon}__${t.category.color}`
+            if (!seen.has(key)) {
+                seen.add(key)
+                icons.push({ name: t.category.icon, color: t.category.color })
+            }
+        }
+
+        if (icons.length > 3)
+            return [...icons.slice(0, 2), { name: 'i-lucide-plus', color: '#b2bac4' }]
+
+        return icons
+    } 
+
     return {
         id: invoice.id,
         date: invoice.date,
         status: invoice.status,
         category: invoice.transactions.length > 0 ? invoice.transactions[0]!.category.title : '',
         color: invoice.transactions.length > 0 ? invoice.transactions[0]!.category.color : '',
-        icon: invoice.transactions.length > 0 ? invoice.transactions[0]!.category.icon : '', 
+        icons: getInvoicesIcon(), 
         type: invoice.type,
         subTotal: invoice.subTotal,
         description: invoice.transactions.length > 0 ? invoice.transactions[0]!.description : '',

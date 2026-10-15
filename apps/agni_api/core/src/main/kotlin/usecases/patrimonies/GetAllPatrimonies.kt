@@ -190,24 +190,7 @@ class GetAllPatrimonies(
             val lastMonthInvoiceAmount = detailInvoices.filter { it.date <= previousMonthStart } .sumOf { it.total }
 
             val totalCost = provision.calculateTotalCost()
-
-            val passAsset = provision.calculateResidualValue(previousMonthStart.toLocalDate())
             val passLiability = totalCost - (lastMonthInvoiceAmount + notRegisterAmount)
-
-            results.add(
-                GetPatrimonyOutput(
-                    id = provision.id,
-                    title = provision.title,
-                    accountIds = provision.paymentInfo
-                        ?.let { listOf(it.accountId) }
-                        ?: listOf(),
-                    amount = 0.0,
-                    currentBalance = currentResidual,
-                    pastBalance = passAsset,
-                    type = PatrimonyType.ASSET.value,
-                    sourceType = SourcePatrimonyType.PROVISION.value
-                )
-            )
 
             results.add(
                 GetPatrimonyOutput(

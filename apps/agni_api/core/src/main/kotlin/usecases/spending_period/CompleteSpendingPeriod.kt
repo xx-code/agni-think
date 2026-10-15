@@ -30,8 +30,9 @@ class CompleteSpendingPeriod(
             userId = spendPeriod.userId,
             startDate = spendPeriod.startDate,
             endDate = spendPeriod.endDate,
-            budgetIds = spendingPeriodTemplate.targetBudgetIds.toList(),
-            savingRate = spendPeriod.savingRateTarget
+            budgetIds = spendingPeriodTemplate.targetBudgetIds,
+            savingRate = spendPeriod.savingRateTarget,
+            scheduleInvoiceIds = spendPeriod.scheduleIncomesSelected + spendPeriod.scheduleExpensesSelected,
         ))
 
         spendPeriod.closedBalance = forcast.currentRemainAmount

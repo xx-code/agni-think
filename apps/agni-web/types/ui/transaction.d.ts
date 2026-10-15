@@ -42,7 +42,7 @@ export type TransactionDeductionType = {
     amount: number
 }
 
-export type InvoiceType = Omit<GetInvoiceResponse, 'date' | 'freeze', | 'moduleLinkers'> & {
+export type InvoiceType = Omit<GetInvoiceResponse, 'date' | 'freeze' | 'moduleLinkers'> & {
     date: Date
     isFreeze: boolean
     moduleLinkers: InvoiceModuleLinker[]

@@ -43,36 +43,42 @@ class SpendingPeriodConfig {
     fun createSpendingPeriod(
         spendingPeriodRepo: IRepository<SpendingPeriod>,
         spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
+        budgetRepo: IRepository<Budget>,
+        scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         auth: IAuthenticateAdapter
     ): UseCase<CreateSpendingPeriodInput, CreatedOutput> {
         return CreateSpendingPeriod(
             spendingPeriodRepo = spendingPeriodRepo,
             spendingPeriodTemplateRepo = spendingPeriodTemplateRepo,
-            auth = auth
+            auth = auth,
+            scheduleInvoiceRepo = scheduleInvoiceRepo,
+            budgetRepo = budgetRepo
         )
     }
 
     @Bean
     fun updateSpendingPeriod(
         spendingPeriodRepo: IRepository<SpendingPeriod>,
+        scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+        budgetRepo: IRepository<Budget>,
         auth: IAuthenticateAdapter
     ): UseCase<UpdateSpendingPeriodInput, Unit> {
         return UpdateSpendingPeriod(
             spendingPeriodRepo = spendingPeriodRepo,
-            auth = auth
+            auth = auth,
+            scheduleInvoiceRepo = scheduleInvoiceRepo,
+            budgetRepo = budgetRepo
         )
     }
 
     @Bean
     fun getSpendingPeriod(
         spendingPeriodRepo: IRepository<SpendingPeriod>,
-        spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
         forcastSpendingPeriod: IUseCase<ForcastSpendingPeriodInput, ForcastSpendingPeriodOutput>,
         auth: IAuthenticateAdapter
     ): UseCase<UUID, GetSpendingPeriodOutput> {
         return GetSpendingPeriod(
             spendingPeriodRepo = spendingPeriodRepo,
-            spendingPeriodTemplateRepo = spendingPeriodTemplateRepo,
             forcastSpendingPeriod = forcastSpendingPeriod,
             auth = auth
         )

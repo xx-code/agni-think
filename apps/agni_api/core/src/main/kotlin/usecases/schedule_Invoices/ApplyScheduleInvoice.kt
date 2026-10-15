@@ -110,7 +110,7 @@ class ApplyScheduleInvoice(
                     ))
                 }
 
-                if (scheduleInvoice.scheduler.repeater == null || (scheduleInvoice.endDate != null && scheduleInvoice.endDate!!.toLocalDate() >= LocalDate.now())) {
+                if (scheduleInvoice.scheduler.repeater == null || (scheduleInvoice.endDate != null && scheduleInvoice.endDate!!.toLocalDate() < LocalDate.now())) {
                     scheduleInvoiceRepo.delete(scheduleInvoice.id)
                 }
                 else {

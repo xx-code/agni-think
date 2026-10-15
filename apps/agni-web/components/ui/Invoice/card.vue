@@ -85,10 +85,6 @@ function getRecordTypeColor(type?: string) {
     return type?.toLowerCase() === 'credit' ? '#10b981' : '#ef4444'
 }
 
-function withAlpha(hex: string, alpha = '22') {
-    return `${hex}${alpha}`
-}
-
 const invoiceDescription = computed(() => {
     if (data.transactions.length === 0) return '---'
     if (data.transactions.length === 1) return data.transactions[0]?.description

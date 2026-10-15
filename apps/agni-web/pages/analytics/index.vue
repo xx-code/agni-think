@@ -5,15 +5,15 @@ import { API_ROUTES } from '~/shared/routes'
 import { getSpendingPeriodAnalyticRange } from '~/composables/spendingPeriod'
 import { listCategoriesResponseToListCategories } from '~/mappers/category'
 import { profileResponseToProfile } from '~/mappers/profile'
-import { listSpendingPeriodsResponseToListSpendingPeriods } from '~/mappers/spending-period'
 import type { ListResponse } from '~/types/api'
 import type { GetAnnualOutlookResponse, GetBudgetingRuleRequest, GetBudgetingRuleResponse } from '~/types/api/analytics'
 import type { GetCategoryResponse } from '~/types/api/category'
 import type { GetProfileResponse } from '~/types/api/profile'
 import type { GetAllSpendingPeriodResponse } from '~/types/api/spending-period'
 import type { AllSpendingPeriod } from '~/types/ui/spending-period'
-import { getLabelSpendingPeriodType, SpendingPeriodType } from '~/types/constants/spendingPeriod'
 import { periodOptions } from '~/utils/constant'
+import { toListSpendingPeriods } from '~/mappers/spending-period'
+import { getLabelSpendingPeriodStateType, SpendingPeriodStateType } from '~/types/constants/spendingPeriod'
 
 const DAY_IN_MS = 86400000
 
@@ -79,7 +79,7 @@ const { data: spendingPeriods } = await useAsyncData('analytics+spending-periods
       'queryFilter.sortBy.by': 'start_date',
       'queryFilter.sortBy.ascending': false
     })
-    .mapper(listSpendingPeriodsResponseToListSpendingPeriods)
+    .mapper(toListSpendingPeriods)
     .execute()
 
   return res.items
@@ -87,12 +87,12 @@ const { data: spendingPeriods } = await useAsyncData('analytics+spending-periods
 
 // A draft has no real spending behind it, so it cannot produce a meaningful rule
 const selectableSpendingPeriods = computed<AllSpendingPeriod[]>(() =>
-  (spendingPeriods.value ?? []).filter(i => i.state !== SpendingPeriodType.Draft)
+  (spendingPeriods.value ?? []).filter(i => i.state !== SpendingPeriodStateType.Draft)
 )
 
 const spendingPeriodItems = computed(() =>
   selectableSpendingPeriods.value.map(period => ({
-    label: `${formatDate(period.startDate)} → ${formatDate(period.endDate)} · ${getLabelSpendingPeriodType(period.state)}`,
+    label: `${formatDate(period.startDate)} → ${formatDate(period.endDate)} · ${getLabelSpendingPeriodStateType(period.state)}`,
     value: period.id
   }))
 )
