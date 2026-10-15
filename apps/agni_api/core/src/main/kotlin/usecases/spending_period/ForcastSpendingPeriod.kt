@@ -161,7 +161,7 @@ class ForcastSpendingPeriod(
                     } else {
                         val installmentCount =
                             payment.scheduler.repeater
-                                ?.computeOccurrences(scheduleStartDate.toLocalDate(), endDate)
+                                ?.computeOccurrences(startDate, endDate)
                                 ?: occurrence
 
                         val payable = installmentCount * payment.paymentAmount
