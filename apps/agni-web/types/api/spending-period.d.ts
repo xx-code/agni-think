@@ -10,7 +10,8 @@ export type ForcastSpendingAchieveItemResponse = {
     description: string
     amount: number
     validAmount: number
-    isAchieved: boolean
+    achieved: boolean
+    closed: boolean
 }
 
 export type GetForcastSpendingPeriodResponse = {
@@ -36,8 +37,6 @@ export type GetSpendingPeriodItemResponse = {
     amount: number
 }
 
-// The backend serializes the state with the enum name, the update endpoint expects the enum value
-export type GetSpendingPeriodStateResponse = 'DRAFT' | 'TO_REVIEW' | 'IN_PROGRESS' | 'COMPLETE'
 
 export type GetSpendingPeriodResponse = {
     id: string
@@ -48,13 +47,16 @@ export type GetSpendingPeriodResponse = {
     savingRateTarget: number
     totalExpectedIncome: number
     totalExpectedExpenses: number
-    state: GetSpendingPeriodStateResponse
-    wantSpendingItems: GetSpendingPeriodItemResponse[]
+    state: string
+    wishlistItems: string[]
+    scheduleIncomesSelected: string[]
+    scheduleExpensesSelected: string[]
+    budgetsSelected: string[]
     snapshot: GetSpendingPeriodSnapshotResponse 
     forcast?: GetForcastSpendingPeriodResponse | null
 }
 
-export type GetAllSpendingPeriodResponse = Omit<GetSpendingPeriodResponse, 'forcast'>
+export type GetAllSpendingPeriodResponse = Omit<GetSpendingPeriodResponse, 'totalExpectedExpenses' | 'totalExpectedIncome'  | 'forcast'>
 
 export type UpdateSpendingPeriodItemRequest = {
     description: string
@@ -63,10 +65,10 @@ export type UpdateSpendingPeriodItemRequest = {
 
 export type UpdateSpendingPeriodRequest = {
     spendingPeriodTemplateId?: string
-    freeAmount?: number
     savingRateTarget?: number
-    totalExpectedIncome?: number
-    totalExpectedExpenses?: number
+    scheduleIncomesSelected?: string[]
+    scheduleExpensesSelected?: string[]
+    budgetsSelected?: string[]
+    wishlistItemSelected?: string[]
     state?: string
-    wantSpendingItems?: UpdateSpendingPeriodItemRequest[]
 }

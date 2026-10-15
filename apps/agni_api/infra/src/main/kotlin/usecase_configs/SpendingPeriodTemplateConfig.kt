@@ -39,13 +39,11 @@ class SpendingPeriodTemplateConfig {
     fun createSpendingPeriodTemplate(
         spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
         budgetRepo: IRepository<Budget>,
-        userRepo: IRepository<User>,
         auth: IAuthenticateAdapter
     ): UseCase<CreateSpendingPeriodTemplateInput, CreatedOutput> {
         return CreateSpendingPeriodTemplate(
             spendingPeriodTemplateRepo = spendingPeriodTemplateRepo,
             budgetRepo = budgetRepo,
-            userRepo = userRepo,
             auth = auth
         )
     }
@@ -105,14 +103,12 @@ class SpendingPeriodTemplateConfig {
         spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
         spendingPeriodRepo: IRepository<SpendingPeriod>,
         profileRepo: IRepository<Profile>,
-        foreCastSpending: IUseCase<ForcastSpendingPeriodInput, ForcastSpendingPeriodOutput>,
         eventRegister: IEventRegister,
         unitOfWork: IUnitOfWork,
     ): UseCase<Unit, BackgroundTaskOut> {
         return ApplySpendingPeriodTemplate(
             spendingPeriodTemplateRepo = spendingPeriodTemplateRepo,
             spendingPeriodRepo = spendingPeriodRepo,
-            forecastSpendingPeriod = foreCastSpending,
             profileRepo = profileRepo,
             unitOfWork = unitOfWork,
             eventRegister = eventRegister,

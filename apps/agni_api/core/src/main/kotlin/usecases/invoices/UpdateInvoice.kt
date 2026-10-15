@@ -102,7 +102,8 @@ class UpdateInvoice(
                 userId = invoice.userId,
                 deductions = invoice.deductions.map { InvoiceDeductionInput(
                     it.deductionId, it.amount
-                ) }.toSet()
+                ) }.toSet(),
+                moduleSourcesLinker = invoice.moduleLinkers
             ))
 
         }

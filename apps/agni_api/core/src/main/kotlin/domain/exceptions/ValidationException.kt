@@ -253,6 +253,9 @@ sealed class ValidationException(errorKey: String, metadata: Map<String, Any>) :
         mapOf("startDate" to startDate, "endDate" to endDate),
     )
 
+    class SpendingPeriodIncomeMustBeOnlyScheduleIncome: ValidationException("SPENDING_PERIOD_INCOME_MUST_BE_ONLY_SCHEDULE_INCOME", emptyMap())
+    class SpendingPeriodIncomeMustBeOnlyScheduleExpense(): ValidationException("SPENDING_PERIOD_INCOME_MUST_BE_ONLY_SCHEDULE_EXPENSE", emptyMap())
+
     // --- Spending period template ---
 
     class SpendingPeriodTemplateStartDateMustBeLesserThanEndDate(startDate: LocalDate, endDate: LocalDate?):

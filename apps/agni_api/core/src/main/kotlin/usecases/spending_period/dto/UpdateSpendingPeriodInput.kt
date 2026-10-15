@@ -9,10 +9,10 @@ data class UpdateSpendingPeriodInput(
     val spendingPeriodTemplateId: UUID? = null,
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
-    val freeAmount: Double? = null,
     val savingRateTarget: Double? = null,
     val state: SpendingPeriodStateType? = null,
-    val totalExpectedIncome: Double? = null,
-    val totalExpectedExpenses: Double? = null,
-    val wantSpendingItems: List<SpendingPeriodItemInput>? = null
+    val scheduleIncomesSelected: Set<UUID>? = null,
+    val scheduleExpensesSelected: Set<UUID>? = null,
+    val budgetsSelected: Set<UUID>? = null,
+    val wishlistItemSelected: Set<UUID>? = null,
 )

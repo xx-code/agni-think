@@ -1,26 +1,40 @@
 import type { SpendingPeriodType } from "../constants/spendingPeriod"
-import type { ForcastSpendingAchieveItemResponse, GetForcastSpendingPeriodResponse, GetSpendingPeriodResponse, GetSpendingPeriodSnapshotResponse, GetSpendingPeriodItemResponse } from "../api/spending-period"
+import type { ForcastSpendingAchieveItemResponse, GetForcastSpendingPeriodResponse, GetSpendingPeriodResponse, GetSpendingPeriodSnapshotResponse, GetSpendingPeriodItemResponse, GetAllSpendingPeriodResponse } from "../api/spending-period"
 
-export type SpendingPeriodSnapshot = GetSpendingPeriodSnapshotResponse
+export interface SpendingPeriodSnapshot extends GetSpendingPeriodSnapshotResponse {}
 
-export type ForcastSpendingAchieveItem = ForcastSpendingAchieveItemResponse
+type ForcastSpendingAchieveItemAddon = Omit<ForcastSpendingAchieveItemResponse, 'archieved' | 'closed'> & {
+    isArchieved: boolean
+    isClosed: boolean
+}
+export interface ForcastSpendingAchieveItem extends ForcastSpendingAchieveItemAddon {}
 
-export type ForcastSpendingPeriod = GetForcastSpendingPeriodResponse
+type ForcaseSpendingAddon = Omit<GetForcastSpendingPeriodResponse, | 'incomeItems' | 'fixExpenseItems' | 
+'variableExpenseItems' | 'achievedWishedItems'> & {
+    incomeItems: ForcastSpendingAchieveItem[]
+    fixExpenseItems: ForcastSpendingAchieveItem[]
+    variableExpenseItems: ForcastSpendingAchieveItem[]
+    achievedWishedItems: ForcastSpendingAchieveItem[]
+}
+export interface ForcastSpendingPeriod extends ForcaseSpendingAddon {}
 
-export type SpendingPeriodItem = GetSpendingPeriodItemResponse
+export interface SpendingPeriodItem extends GetSpendingPeriodItemResponse {}
 
-export type SpendingPeriod = Omit<GetSpendingPeriodResponse, 'startDate' | 'endDate' | 'state'> & {
+
+type GetSpendingPeriod = Omit<GetSpendingPeriodResponse, 'startDate' | 'endDate' | 'state' |'forcast' >& {
     startDate: Date
     endDate: Date
     state: SpendingPeriodType
+    forcast?: ForcastSpendingPeriod
 }
+export interface SpendingPeriod extends GetSpendingPeriod {}
 
-export type AllSpendingPeriod = Omit<SpendingPeriod, 'forcast'>
+export interface AllSpendingPeriod extends Omit<SpendingPeriod, 'totalExpectedExpenses' | 'totalExpectedIncome' | 'forcast'> {}
 
-export type EditSpendingPeriodType = {
-    freeAmount: number
+export interface FormSpendingPeriod  extends Omit{
     savingRateTarget: number
-    totalExpectedIncome: number
-    totalExpectedExpenses: number
-    wantSpendingItems: SpendingPeriodItem[]
+    scheduleIncomesSelected: string[]
+    scheduleExpensesSelected: string[]
+    budgetsSelected: string[]
+    wishlistItemSelected: string[]
 }

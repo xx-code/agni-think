@@ -2,11 +2,15 @@
 import type { FormError, FormSubmitEvent } from '@nuxt/ui';
 import { API_ROUTES } from '~/shared/routes';
 import type { UpdateSpendingPeriodRequest } from '~/types/api/spending-period';
-import { SpendingPeriodType } from '~/types/constants/spendingPeriod';
-import type { EditSpendingPeriodType, SpendingPeriod } from '~/types/ui/spending-period';
+import { SpendingPeriodStateType } from '~/types/constants/spendingPeriod';
+import type { BudgetType } from '~/types/ui/budget';
+import type { ScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
+import type { FormSpendingPeriod, SpendingPeriod } from '~/types/ui/spending-period';
 
 const { period } = defineProps<{
     period: SpendingPeriod
+    budgets: BudgetType[]
+    scheduleInvoices: ScheduleInvoiceType[]
 }>();
 
 const emit = defineEmits<{
@@ -16,53 +20,36 @@ const emit = defineEmits<{
 const toast = useToast()
 const isLoading = ref(false)
 
-const form = reactive<EditSpendingPeriodType>({
-    freeAmount: period.freeAmount,
+const form = reactive<FormSpendingPeriod>({
     savingRateTarget: period.savingRateTarget,
-    totalExpectedIncome: period.totalExpectedIncome,
-    totalExpectedExpenses: period.totalExpectedExpenses,
-    wantSpendingItems: period.wantSpendingItems.map(i => ({ ...i }))
+    scheduleIncomesSelected: period.scheduleIncomesSelected ?? [],
+    scheduleExpensesSelected: period.scheduleExpensesSelected ?? [],
+    wishlistItemSelected: period.wishlistItems ?? [],
+    budgetsSelected: period.budgetsSelected ?? []
 })
 
 function validate(): FormError[] {
     const errors = []
 
-    // if (form.freeAmount < 0) errors.push({ name: 'freeAmount', message: 'Le montant libre doit etre positif' })
     if (form.savingRateTarget < 0 || form.savingRateTarget > 100)
         errors.push({ name: 'savingRateTarget', message: 'Le taux doit etre entre 0 et 100' })
-    if (form.totalExpectedIncome < 0) errors.push({ name: 'totalExpectedIncome', message: 'Le revenu doit etre positif' })
-    if (form.totalExpectedExpenses < 0) errors.push({ name: 'totalExpectedExpenses', message: 'La depense doit etre positive' })
-
-    form.wantSpendingItems.forEach((item, index) => {
-        if (!item.description) errors.push({ name: `wantSpendingItems.${index}.description`, message: 'Required' })
-        if (item.amount < 0) errors.push({ name: `wantSpendingItems.${index}.amount`, message: 'Le montant doit etre positif' })
-    })
 
     return errors
 }
 
-function addWantSpendingItem() {
-    form.wantSpendingItems.push({ description: '', amount: 0 })
-}
-
-function removeWantSpendingItem(index: number) {
-    form.wantSpendingItems.splice(index, 1)
-}
 
 async function onSubmit(event: FormSubmitEvent<typeof form>) {
     const data = event.data
 
     const body: UpdateSpendingPeriodRequest = {
-        freeAmount: data.freeAmount,
         savingRateTarget: data.savingRateTarget,
-        totalExpectedIncome: data.totalExpectedIncome,
-        totalExpectedExpenses: data.totalExpectedExpenses,
-        state: SpendingPeriodType.InProgress,
-        wantSpendingItems: data.wantSpendingItems.map(i => ({
-            description: i.description,
-            amount: i.amount
-        }))
+        scheduleExpensesSelected: data.scheduleExpensesSelected,
+        scheduleIncomesSelected: data.scheduleIncomesSelected,
+        state: SpendingPeriodStateType.InProgress,
+        wishlistItemSelected: data.wishlistItemSelected 
     }
+
+
 
     try {
         isLoading.value = true
@@ -97,25 +84,38 @@ async function onSubmit(event: FormSubmitEvent<typeof form>) {
         <template #body>
             <UForm :validate="validate" :state="form" @submit="onSubmit" class="space-y-4">
                 <div class="grid grid-cols-2 gap-3">
-                    <UFormField label="Revenus attendus" name="totalExpectedIncome">
-                        <UInput
-                            type="number"
-                            step="0.01"
-                            v-model="form.totalExpectedIncome" />
+                    <UFormField label="Revenus attendus" name="scheduleIncomesSelected">
+                        <UInputMenu 
+                            multiple
+                            :items="scheduleInvoices.filter(i => i.type === 'Income').map(i => ({ label: i.name, value: i.id}))"
+                            value-key="value"
+                            v-model="form.scheduleIncomesSelected" 
+                        />
                     </UFormField>
 
-                    <UFormField label="Depenses attendues" name="totalExpectedExpenses">
-                        <UInput
-                            type="number"
-                            step="0.01"
-                            v-model="form.totalExpectedExpenses" />
+                    <UFormField label="Depenses attendues" name="scheduleExpensesSelected">
+                        <UInputMenu 
+                            multiple
+                            :items="scheduleInvoices.filter(i => i.type !== 'Income').map(i => ({ label: i.name, value: i.id}))"
+                            value-key="value"
+                            v-model="form.scheduleExpensesSelected" 
+                        />
                     </UFormField>
 
-                    <UFormField label="Montant libre" name="freeAmount">
-                        <UInput
-                            type="number"
-                            step="0.01"
-                            v-model="form.freeAmount" />
+                    <UFormField label="Selectionnez les budgets" name="budgetsSelected">
+                        <UInputMenu 
+                            multiple
+                            :items="budgets.map(i => ({ label: i.title, value: i.id}))"
+                            value-key="value"
+                            v-model="form.budgetsSelected"
+                        />
+                    </UFormField>
+
+                    <UFormField label="Achats souhaites" name="wishtlistItems">
+                        <UInputMenu 
+                            multiple
+                            v-model="form.wishlistItemSelected"
+                        />
                     </UFormField>
 
                     <UFormField label="Taux d'epargne cible (%)" name="savingRateTarget">
@@ -126,42 +126,6 @@ async function onSubmit(event: FormSubmitEvent<typeof form>) {
                             v-model="form.savingRateTarget" />
                     </UFormField>
                 </div>
-
-                <UFormField label="Achats souhaites" name="wantSpendingItems">
-                    <div class="w-full space-y-2">
-                        <div
-                            v-for="(item, index) in form.wantSpendingItems"
-                            :key="index"
-                            class="flex items-center gap-2">
-                            <UInput
-                                class="flex-1"
-                                placeholder="Description"
-                                v-model="item.description" />
-                            <UInput
-                                class="w-32"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                v-model="item.amount" />
-                            <UButton
-                                icon="i-lucide-trash-2"
-                                color="error"
-                                variant="ghost"
-                                @click="removeWantSpendingItem(index)"
-                            />
-                        </div>
-
-                        <UButton
-                            type="button"
-                            size="xs"
-                            variant="soft"
-                            color="neutral"
-                            icon="i-lucide-plus"
-                            label="Ajouter un achat"
-                            @click="addWantSpendingItem"
-                        />
-                    </div>
-                </UFormField>
 
                 <UFormField>
                     <div class="flex justify-end w-full">

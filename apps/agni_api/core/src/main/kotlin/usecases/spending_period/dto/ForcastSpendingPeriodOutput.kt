@@ -4,7 +4,8 @@ data class ForcastSpendingAchieveItemOutput(
     val description: String,
     val amount: Double,
     val validAmount: Double,
-    val isAchieved: Boolean
+    val isAchieved: Boolean,
+    val isClosed: Boolean
 )
 
 data class ForcastSpendingPeriodOutput(

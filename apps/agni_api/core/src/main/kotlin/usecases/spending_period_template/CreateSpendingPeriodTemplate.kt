@@ -17,7 +17,6 @@ import domain.value_objects.SchedulerRecurrence
 class CreateSpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
     private val budgetRepo: IRepository<Budget>,
-    private val userRepo: IRepository<User>,
     auth: IAuthenticateAdapter
 ): UseCase<CreateSpendingPeriodTemplateInput, CreatedOutput>(auth = auth) {
     override suspend fun process(input: CreateSpendingPeriodTemplateInput): CreatedOutput {
