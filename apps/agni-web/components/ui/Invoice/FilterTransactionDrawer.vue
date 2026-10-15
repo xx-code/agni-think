@@ -25,7 +25,7 @@ const { data: utils, status } = useAsyncData('utils+edit-invoices', async () => 
             .execute(),
         ApiLinkBuilder
             .route(API_ROUTES.BUDGETS.GET_BUDGETS)
-            .query(budgetFilterToBudgetQueryRequest(query))
+            .query(budgetFilterToBudgetQueryRequest({...query, loadBalance: false}))
             .mapper(listBudgetsResponseToListBudgets)
             .execute(),
         ApiLinkBuilder

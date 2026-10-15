@@ -3,7 +3,7 @@ import { API_ROUTES } from '~/shared/routes'
 import type { ListResponse } from '~/types/api'
 import type { GetAllSpendingPeriodResponse, GetSpendingPeriodResponse } from '~/types/api/spending-period'
 import { isInProgressSpendingPeriodStateType } from '~/types/constants/spendingPeriod'
-import type { SpendingPeriod } from '~/types/ui/spending-period'
+import type { AllSpendingPeriod, SpendingPeriod } from '~/types/ui/spending-period'
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder'
 
 export type SpendingPeriodAnalyticRange = {
@@ -43,7 +43,7 @@ export function useInProgressSpendingPeriod() {
 
 // Analytic endpoints only support startDate, so the interval covers the whole spending period
 // to get a single bucket from its start date up to now
-export function getSpendingPeriodAnalyticRange(period?: SpendingPeriod): SpendingPeriodAnalyticRange {
+export function getSpendingPeriodAnalyticRange(period?: SpendingPeriod | AllSpendingPeriod): SpendingPeriodAnalyticRange {
     if (period) {
         const now = new Date()
         const effectiveEnd = period.endDate.getTime() < now.getTime() ? period.endDate : now
