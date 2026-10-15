@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { toSpendingPeriod } from '~/mappers/spending-period';
 import { API_ROUTES } from '~/shared/routes';
 import type { GetSpendingPeriodResponse } from '~/types/api/spending-period';
-import { SpendingPeriodType, getClassSpendingPeriodType, getLabelSpendingPeriodType, isInProgressSpendingPeriodType } from '~/types/constants/spendingPeriod';
-import { spendingPeriodResponseToSpendingPeriod } from '~/mappers/spending-period';
+import { getClassSpendingPeriodStateType, getLabelSpendingPeriodStateType, isInProgressSpendingPeriodStateType, SpendingPeriodStateType } from '~/types/constants/spendingPeriod';
 
 const { id } = defineProps<{
     id: string
@@ -20,12 +20,12 @@ const { data: period, refresh } = useAsyncData(`spending-period-${id}`, async ()
     return await ApiLinkBuilder
         .route<GetSpendingPeriodResponse>(API_ROUTES.SPENDING_PERIOD.GET_SPENDING_PERIOD)
         .params({ id })
-        .mapper(spendingPeriodResponseToSpendingPeriod)
+        .mapper(toSpendingPeriod)
         .execute()
 })
 
-const isReview = computed(() => period.value !== undefined && isInProgressSpendingPeriodType(period.value.state))
-const isComplete = computed(() => period.value?.state === SpendingPeriodType.Complete)
+const isReview = computed(() => period.value !== undefined && isInProgressSpendingPeriodStateType(period.value.state))
+const isComplete = computed(() => period.value?.state === SpendingPeriodStateType.Complete)
 
 async function completePeriod() {
     try {
@@ -59,10 +59,10 @@ async function completePeriod() {
                         v-if="period"
                         :class="[
                             'px-2.5 py-0.5 font-medium text-[0.70rem] rounded-full',
-                            getClassSpendingPeriodType(period.state)
+                            getClassSpendingPeriodStateType(period.state)
                         ]"
                     >
-                        {{ getLabelSpendingPeriodType(period.state) }}
+                        {{ getLabelSpendingPeriodStateType(period.state) }}
                     </span>
                     <UButton
                         icon="i-lucide-x"

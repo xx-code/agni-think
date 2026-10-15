@@ -1,45 +1,37 @@
 import type { ListResponse } from "~/types/api";
-import type { GetAllSpendingPeriodResponse, GetSpendingPeriodResponse, GetSpendingPeriodStateResponse } from "~/types/api/spending-period";
-import { SpendingPeriodType } from "~/types/constants/spendingPeriod";
+import type { GetAllSpendingPeriodResponse, GetSpendingPeriodResponse } from "~/types/api/spending-period";
+import type { SpendingPeriodStateType } from "~/types/constants/spendingPeriod";
 import type { List } from "~/types/ui";
 import type { AllSpendingPeriod, SpendingPeriod } from "~/types/ui/spending-period";
 
-export function spendingPeriodStateResponseToState(data: GetSpendingPeriodStateResponse): SpendingPeriodType {
-    const state = data.toLowerCase().replace('_', '')
-
-    if (state === SpendingPeriodType.ToReview.toLowerCase())
-        return SpendingPeriodType.ToReview
-
-    if (state === SpendingPeriodType.InProgress.toLowerCase())
-        return SpendingPeriodType.InProgress
-
-    if (state === SpendingPeriodType.Complete.toLowerCase())
-        return SpendingPeriodType.Complete
-
-    return SpendingPeriodType.Draft
-}
-
-export function spendingPeriodResponseToSpendingPeriod(data: GetSpendingPeriodResponse): SpendingPeriod {
+export function toSpendingPeriod(data: GetSpendingPeriodResponse): SpendingPeriod {
     return {
         ...data,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
-        state: spendingPeriodStateResponseToState(data.state)
+        state: data.state as SpendingPeriodStateType,
+        forcast: data.forcast ? {
+            ...data.forcast, 
+            incomeItems: data.forcast.incomeItems.map(i => ({...i, isArchieved: i.achieved, isClosed: i.closed})),
+            fixExpenseItems: data.forcast.fixExpenseItems.map(i => ({...i, isArchieved: i.achieved, isClosed: i.closed})),
+            variableExpenseItems: data.forcast.variableExpenseItems.map(i => ({...i, isArchieved: i.achieved, isClosed: i.closed})),
+            achievedWishedItems: data.forcast.achievedWishedItems.map(i => ({...i, isArchieved: i.achieved, isClosed: i.closed})),
+        } : undefined
     }
 }
 
-function getAllSpendingPeriodResponseToAllSpendingPeriod(data: GetAllSpendingPeriodResponse): AllSpendingPeriod {
+function toAllSpendingPeriod(data: GetAllSpendingPeriodResponse): AllSpendingPeriod {
     return {
         ...data,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
-        state: spendingPeriodStateResponseToState(data.state)
+        state: data.state as SpendingPeriodStateType
     }
 }
 
-export function listSpendingPeriodsResponseToListSpendingPeriods(data: ListResponse<GetAllSpendingPeriodResponse>): List<AllSpendingPeriod> {
+export function toListSpendingPeriods(data: ListResponse<GetAllSpendingPeriodResponse>): List<AllSpendingPeriod> {
     return {
-        items: data.items.map(i => getAllSpendingPeriodResponseToAllSpendingPeriod(i)),
+        items: data.items.map(i => toAllSpendingPeriod(i)),
         total: data.total
     }
 }

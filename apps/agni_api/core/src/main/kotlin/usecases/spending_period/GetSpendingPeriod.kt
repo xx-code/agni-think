@@ -32,7 +32,7 @@ class GetSpendingPeriod(
                 endDate = spendPeriod.endDate,
                 budgetIds = spendPeriod.budgetsSelected,
                 savingRate = spendPeriod.savingRateTarget,
-                scheduleInvoiceIds = spendPeriod.scheduleExpensesSelected + spendPeriod.scheduleExpensesSelected
+                scheduleInvoiceIds = spendPeriod.scheduleIncomesSelected + spendPeriod.scheduleExpensesSelected
             ))
         }
 
@@ -45,7 +45,8 @@ class GetSpendingPeriod(
             freeAmount = forcast?.expectedRemainAmount ?: spendPeriod.closedBalance,
             savingRateTarget = spendPeriod.savingRateTarget,
             totalExpectedIncome = forcast?.totalExpectedIncome ?: spendPeriod.snapshot.income,
-            totalExpectedExpenses = forcast?.totalExpectedExpense ?: (spendPeriod.snapshot.variableExpenses + spendPeriod.snapshot.fixExpenses),
+            totalExpectedExpenses = forcast?.totalExpectedExpense
+                ?: (spendPeriod.snapshot.variableExpenses + spendPeriod.snapshot.fixExpenses),
             state = spendPeriod.state,
             forcast = forcast,
             snapshot = SpendingPeriodSnapShotOutput(
@@ -55,7 +56,10 @@ class GetSpendingPeriod(
                 budgetExpenses = spendPeriod.snapshot.budgetExpenses,
                 saving = spendPeriod.snapshot.saving
             ),
-            wishlistItems = listOf(),
+            wishlistItems = setOf(),
+            scheduleIncomesSelected = spendPeriod.scheduleIncomesSelected,
+            scheduleExpensesSelected = spendPeriod.scheduleExpensesSelected,
+            budgetsSelected = spendPeriod.budgetsSelected
         )
     }
 }

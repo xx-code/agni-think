@@ -35,15 +35,15 @@ const { period } = defineProps<{
             </div>
         </div>
 
-        <div v-if="period.wantSpendingItems.length > 0" class="space-y-2">
+        <div v-if="period.wishlistItems.length > 0" class="space-y-2">
             <h3 class="text-sm font-medium text-gray-500">Achats souhaites</h3>
-            <div
-                v-for="(item, index) in period.wantSpendingItems"
+            <!-- <div
+                v-for="(item, index) in period.wishlistItems"
                 :key="index"
                 class="flex items-center justify-between text-sm border-b border-gray-50 last:border-b-0 py-1.5">
                 <span class="text-gray-700">{{ item.description }}</span>
                 <span class="font-medium text-gray-800">{{ formatCurrency(item.amount) }}</span>
-            </div>
+            </div> -->
         </div>
     </div>
 </template>

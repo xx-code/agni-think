@@ -143,7 +143,7 @@ class ForcastSpendingPeriod(
 
             val isSchedulePass = scheduleStartDate > endDate.atStartOfDay()
 
-            val occurrence = schedule.scheduler.repeater?.computeOccurrences(scheduleStartDate.toLocalDate(), endDate) ?: 1
+            val occurrence = schedule.scheduler.repeater?.computeOccurrences(startDate, endDate) ?: 1
             val invoice = filterInvoices.filter { schedule.id == it.moduleLinkers.first({ linker -> linker.module == InvoiceModuleLinkerType.SCHEDULE_INVOICE.value }).sourceId  }
             val currentAmount = invoice.sumOf { it.total }
 

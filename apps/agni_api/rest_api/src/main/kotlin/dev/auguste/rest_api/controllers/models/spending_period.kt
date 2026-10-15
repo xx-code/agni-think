@@ -30,10 +30,10 @@ data class ApiUpdateSpendingPeriodModel(
     val spendingPeriodTemplateId: UUID?,
     val savingRateTarget: Double?,
     val state: String?,
-    val scheduleIncomeSelectedIds: Set<UUID>?,
-    val scheduleExpenseSelectedIds: Set<UUID>?,
-    val budgetsSelectedIds: Set<UUID>?,
-    val wishlistSelectedIds: Set<UUID>?
+    val scheduleIncomesSelected: Set<UUID>?,
+    val scheduleExpensesSelected: Set<UUID>?,
+    val budgetsSelected: Set<UUID>?,
+    val wishlistSelected: Set<UUID>?
 )
 
 fun mapApiCreateSpendingPeriodToSpendingPeriod(request: ApiCreateSpendingPeriodModel): CreateSpendingPeriodInput {
@@ -56,9 +56,9 @@ fun mapApiUpdateSpendingPeriodToSpendingPeriod(id: UUID, request: ApiUpdateSpend
         spendingPeriodTemplateId = request.spendingPeriodTemplateId,
         savingRateTarget = request.savingRateTarget,
         state = request.state?.let { SpendingPeriodStateType.fromString(it) },
-        budgetsSelected = request.budgetsSelectedIds,
-        scheduleExpensesSelected = request.scheduleExpenseSelectedIds,
-        scheduleIncomesSelected = request.scheduleIncomeSelectedIds,
-        wishlistItemSelected = request.wishlistSelectedIds,
+        budgetsSelected = request.budgetsSelected,
+        scheduleExpensesSelected = request.scheduleExpensesSelected,
+        scheduleIncomesSelected = request.scheduleIncomesSelected,
+        wishlistItemSelected = request.wishlistSelected,
     )
 }

@@ -36,6 +36,7 @@ class GetAllSpendingPeriod(
                     startDate = it.startDate,
                     endDate = it.endDate,
                     savingRateTarget = it.savingRateTarget,
+                    freeAmount = it.closedBalance,
                     state = it.state,
                     snapshot = SpendingPeriodSnapShotOutput(
                         income = it.snapshot.income,

@@ -2,11 +2,11 @@
 import { SlideOverSpendingPeriod } from "#components"
 import { useSpendingPeriodModal } from '~/composables/modal/spendingPeriod'
 import useConfirmModal from '~/composables/modal/useConfirmModal'
-import { listSpendingPeriodsResponseToListSpendingPeriods, spendingPeriodResponseToSpendingPeriod } from '~/mappers/spending-period'
+import { toListSpendingPeriods, toSpendingPeriod } from "~/mappers/spending-period"
 import { API_ROUTES } from '~/shared/routes'
 import type { ListResponse } from '~/types/api'
 import type { GetAllSpendingPeriodResponse, GetSpendingPeriodResponse } from '~/types/api/spending-period'
-import { SpendingPeriodType, getClassSpendingPeriodType, getLabelSpendingPeriodType, isInProgressSpendingPeriodType } from '~/types/constants/spendingPeriod'
+import {  getClassSpendingPeriodStateType, getLabelSpendingPeriodStateType, isInProgressSpendingPeriodStateType, SpendingPeriodStateType, } from '~/types/constants/spendingPeriod'
 import type { AllSpendingPeriod, SpendingPeriod } from '~/types/ui/spending-period'
 
 const toast = useToast()
@@ -21,19 +21,18 @@ const isLoading = ref(false)
 const isLoadingInProgress = ref(false)
 const completingId = ref<string | undefined>(undefined)
 const deletingId = ref<string | undefined>(undefined)
-const selectedState = ref<SpendingPeriodType | undefined>(SpendingPeriodType.Complete)
+const selectedState = ref<SpendingPeriodStateType | undefined>(SpendingPeriodStateType.Complete)
 const inProgressPeriod = ref<SpendingPeriod | undefined>(undefined)
 
-// In progress periods come first, then drafts, then completed ones
-const stateOrder = [SpendingPeriodType.InProgress, SpendingPeriodType.ToReview, SpendingPeriodType.Draft, SpendingPeriodType.Complete]
+const stateOrder = [SpendingPeriodStateType.InProgress, SpendingPeriodStateType.ToReview, SpendingPeriodStateType.Draft, SpendingPeriodStateType.Complete]
 
 const sortedPeriods = computed(() => {
     return Object.assign([] as AllSpendingPeriod[], periods.value).sort((a, b) => stateOrder.indexOf(a.state) - stateOrder.indexOf(b.state))
 })
 
 const stateFilters = computed(() => {
-    const states = [SpendingPeriodType.Draft, SpendingPeriodType.ToReview, SpendingPeriodType.Complete].map(state => ({
-        label: getLabelSpendingPeriodType(state),
+    const states = [SpendingPeriodStateType.Draft, SpendingPeriodStateType.ToReview, SpendingPeriodStateType.Complete].map(state => ({
+        label: getLabelSpendingPeriodStateType(state),
         value: state,
         count: periods.value.filter(i => i.state === state).length
     })) 
@@ -58,7 +57,7 @@ const displayedPeriods = computed(() => {
 })
 
 async function getInProgressPeriod() {
-    const period = sortedPeriods.value.find(i => isInProgressSpendingPeriodType(i.state))
+    const period = sortedPeriods.value.find(i => isInProgressSpendingPeriodStateType(i.state))
 
     if (!period) {
         inProgressPeriod.value = undefined
@@ -70,7 +69,7 @@ async function getInProgressPeriod() {
         inProgressPeriod.value = await ApiLinkBuilder
             .route<GetSpendingPeriodResponse>(API_ROUTES.SPENDING_PERIOD.GET_SPENDING_PERIOD)
             .params({ id: period.id })
-            .mapper(spendingPeriodResponseToSpendingPeriod)
+            .mapper(toSpendingPeriod)
             .execute()
     } catch {
         inProgressPeriod.value = undefined
@@ -91,7 +90,7 @@ async function getAllSpendingPeriods() {
                 'queryFilter.sortBy.by': 'start_date',
                 'queryFilter.sortBy.ascending': false
             })
-            .mapper(listSpendingPeriodsResponseToListSpendingPeriods)
+            .mapper(toListSpendingPeriods)
             .execute()
 
         periods.value = res.items
@@ -220,19 +219,26 @@ await useAsyncData('page-spending-periods', async () => {
                     <h2 class="text-lg font-semibold text-gray-900">Periode en cours</h2>
                     <span :class="[
                         'px-2.5 py-0.5 font-medium text-[0.70rem] rounded-full',
-                        getClassSpendingPeriodType(inProgressPeriod.state)
+                        getClassSpendingPeriodStateType(inProgressPeriod.state)
                     ]">
-                        {{ getLabelSpendingPeriodType(inProgressPeriod.state) }}
+                        {{ getLabelSpendingPeriodStateType(inProgressPeriod.state) }}
                     </span>
                 </div>
 
                 <div class="flex items-center gap-2">
                     <UButton
-                        v-if="inProgressPeriod.state === SpendingPeriodType.ToReview"
+                        v-if="inProgressPeriod.state === SpendingPeriodStateType.ToReview"
                         icon="i-lucide-check"
                         label="Terminer la periode"
                         :loading="completingId === inProgressPeriod.id"
                         @click="onCompletePeriod(inProgressPeriod.id)"
+                    />
+
+                    <UButton
+                        icon="i-lucide-check"
+                        label="Mettre a jour la periode"
+                        :loading="completingId === inProgressPeriod.id"
+                        @click="onUpdatePeriod(inProgressPeriod.id)"
                     />
 
                     <UButton

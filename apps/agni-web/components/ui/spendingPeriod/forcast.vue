@@ -51,8 +51,16 @@ const itemSections = computed(() => {
     ]
 })
 
-function isAchieved(item: ForcastSpendingAchieveItem): boolean {
-    return item.isAchieved
+function achieveState(item: ForcastSpendingAchieveItem): {
+    icon: string, color: string
+} {
+    if (item.isClosed)
+        return { icon: 'i-lucide-circle-x', color: 'text-red-500'}
+
+    if (item.isArchieved)
+        return { icon: 'i-lucide-circle-check', color: 'text-green-500'}
+
+    return { icon: 'i-lucide-circle', color: 'text-gray-300' } 
 }
 </script>
 
@@ -119,10 +127,10 @@ function isAchieved(item: ForcastSpendingAchieveItem): boolean {
                 class="flex items-center justify-between text-sm border-b border-gray-50 last:border-b-0 py-1.5">
                 <div class="flex items-center gap-2 min-w-0">
                     <UIcon
-                        :name="isAchieved(item) ? 'i-lucide-circle-check' : 'i-lucide-circle'"
+                        :name="achieveState(item).icon"
                         :class="[
                             'w-4 h-4 shrink-0',
-                            isAchieved(item) ? 'text-emerald-500' : 'text-gray-300'
+                            achieveState(item).color
                         ]"
                     />
                     <span class="text-gray-700 truncate">{{ item.description }}</span>

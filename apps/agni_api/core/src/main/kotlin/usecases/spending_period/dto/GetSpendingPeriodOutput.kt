@@ -22,7 +22,10 @@ data class GetSpendingPeriodOutput(
     val totalExpectedIncome: Double,
     val totalExpectedExpenses: Double,
     val state: SpendingPeriodStateType,
-    val wishlistItems: List<SpendingPeriodItemOutput>,
+    val wishlistItems: Set<UUID>,
+    val scheduleIncomesSelected: Set<UUID>,
+    val scheduleExpensesSelected: Set<UUID>,
+    val budgetsSelected: Set<UUID>,
     val snapshot: SpendingPeriodSnapShotOutput,
     val forcast: ForcastSpendingPeriodOutput?
 )
@@ -33,6 +36,7 @@ data class GetAllSpendingPeriodOutput(
     val startDate: LocalDate,
     val endDate: LocalDate,
     val savingRateTarget: Double,
+    val freeAmount: Double,
     val state: SpendingPeriodStateType,
     val snapshot: SpendingPeriodSnapShotOutput,
     val wishlistItems: List<SpendingPeriodItemOutput>,

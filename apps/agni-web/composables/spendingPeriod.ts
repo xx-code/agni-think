@@ -1,8 +1,8 @@
-import { listSpendingPeriodsResponseToListSpendingPeriods, spendingPeriodResponseToSpendingPeriod } from '~/mappers/spending-period'
+import { toListSpendingPeriods, toSpendingPeriod } from '~/mappers/spending-period'
 import { API_ROUTES } from '~/shared/routes'
 import type { ListResponse } from '~/types/api'
 import type { GetAllSpendingPeriodResponse, GetSpendingPeriodResponse } from '~/types/api/spending-period'
-import { isInProgressSpendingPeriodType } from '~/types/constants/spendingPeriod'
+import { isInProgressSpendingPeriodStateType } from '~/types/constants/spendingPeriod'
 import type { SpendingPeriod } from '~/types/ui/spending-period'
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder'
 
@@ -25,10 +25,10 @@ export function useInProgressSpendingPeriod() {
                 'queryFilter.sortBy.by': 'start_date',
                 'queryFilter.sortBy.ascending': false
             })
-            .mapper(listSpendingPeriodsResponseToListSpendingPeriods)
+            .mapper(toListSpendingPeriods)
             .execute()
 
-        const inProgress = list.items.find(i => isInProgressSpendingPeriodType(i.state))
+        const inProgress = list.items.find(i => isInProgressSpendingPeriodStateType(i.state))
 
         if (!inProgress)
             return undefined
@@ -36,7 +36,7 @@ export function useInProgressSpendingPeriod() {
         return await ApiLinkBuilder
             .route<GetSpendingPeriodResponse>(API_ROUTES.SPENDING_PERIOD.GET_SPENDING_PERIOD)
             .params({ id: inProgress.id })
-            .mapper(spendingPeriodResponseToSpendingPeriod)
+            .mapper(toSpendingPeriod)
             .execute()
     })
 }

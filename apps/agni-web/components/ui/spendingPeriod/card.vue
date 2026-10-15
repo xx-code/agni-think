@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SpendingPeriodType, getClassSpendingPeriodType, getLabelSpendingPeriodType, isInProgressSpendingPeriodType } from '~/types/constants/spendingPeriod';
+import { getClassSpendingPeriodStateType, getLabelSpendingPeriodStateType, isInProgressSpendingPeriodStateType, SpendingPeriodStateType } from '~/types/constants/spendingPeriod';
 import type { AllSpendingPeriod } from '~/types/ui/spending-period';
 
 const { period } = defineProps<{
@@ -12,9 +12,13 @@ const emit = defineEmits<{
     complete: [id: string]
 }>()
 
+
+const expense = computed(() => period.snapshot.fixExpenses + period.snapshot.variableExpenses + period.snapshot.saving + period.snapshot.budgetExpenses)
+
 const expenseRatio = computed(() => {
-    return roundNumber(computePercentage(period.totalExpectedIncome, period.totalExpectedExpenses, false))
+    return roundNumber(computePercentage(period.snapshot.income, (expense.value), false))
 })
+
 
 function getBarColor(percent: number): string {
     if (percent >= 100) return 'bg-red-400'
@@ -48,9 +52,9 @@ function getStatusColor(percent: number): string {
             <!-- State badge -->
             <span
                 class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-                :class="getClassSpendingPeriodType(period.state)"
+                :class="getClassSpendingPeriodStateType(period.state)"
             >
-                {{ getLabelSpendingPeriodType(period.state) }}
+                {{ getLabelSpendingPeriodStateType(period.state) }}
             </span>
         </div>
 
@@ -73,17 +77,17 @@ function getStatusColor(percent: number): string {
         <div class="grid grid-cols-3 gap-2 pt-2 border-t border-gray-50">
             <div class="text-center">
                 <p class="text-xs text-gray-400 mb-0.5">Revenus</p>
-                <p class="text-sm font-semibold text-gray-700">{{ formatCurrency(period.totalExpectedIncome) }}</p>
+                <p class="text-sm font-semibold text-gray-700">{{ formatCurrency(period.snapshot.income) }}</p>
             </div>
             <div class="text-center border-x border-gray-100">
                 <p class="text-xs text-gray-400 mb-0.5">Dépenses</p>
                 <p class="text-sm font-bold" :class="getStatusColor(expenseRatio)">
-                    {{ formatCurrency(period.totalExpectedExpenses) }}
+                    {{ formatCurrency(expense) }}
                 </p>
             </div>
             <div class="text-center">
                 <p class="text-xs text-gray-400 mb-0.5">Montant libre</p>
-                <p class="text-sm font-semibold text-gray-700">{{ formatCurrency(period.freeAmount) }}</p>
+                <p class="text-sm font-semibold text-gray-700">{{ formatCurrency((period.freeAmount)) }}</p>
             </div>
         </div>
 
@@ -91,11 +95,11 @@ function getStatusColor(percent: number): string {
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-1.5 text-xs text-gray-400">
                 <UIcon name="i-lucide-target" class="w-3.5 h-3.5" />
-                <span>{{ period.savingRateTarget }}% d'épargne · {{ period.wantSpendingItems.length }} achats</span>
+                <span>{{ period.savingRateTarget }}% d'épargne · {{ period.wishlistItems.length }} achats</span>
             </div>
             <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <UButton
-                    v-if="period.state === SpendingPeriodType.Draft"
+                    v-if="period.state === SpendingPeriodStateType.Draft"
                     variant="ghost"
                     color="neutral"
                     icon="i-lucide-pencil"
@@ -103,7 +107,7 @@ function getStatusColor(percent: number): string {
                     @click="emit('update', period.id)"
                 />
                 <UButton
-                    v-if="isInProgressSpendingPeriodType(period.state)"
+                    v-if="isInProgressSpendingPeriodStateType(period.state)"
                     variant="ghost"
                     color="success"
                     icon="i-lucide-check"
