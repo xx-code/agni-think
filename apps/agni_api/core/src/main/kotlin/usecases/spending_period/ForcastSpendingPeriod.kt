@@ -134,7 +134,7 @@ class ForcastSpendingPeriod(
                     )
         }
 
-        val filterInvoices = invoices.filter { it.type == InvoiceType.INCOME.value && it.moduleLinkers.find { linker -> linker.module == InvoiceModuleLinkerType.SCHEDULE_INVOICE.value } != null }
+        val filterInvoices = invoices.filter { it.moduleLinkers.find { linker -> linker.module == InvoiceModuleLinkerType.SCHEDULE_INVOICE.value } != null }
 
         return scheduleInvoices.map { schedule ->
             var scheduleStartDate = schedule.scheduler.date
