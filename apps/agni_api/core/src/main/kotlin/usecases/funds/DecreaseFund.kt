@@ -10,6 +10,7 @@ import domain.entities.Account
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.Fund
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.invoices.dto.CreateInvoiceInput
 import usecases.invoices.dto.TransactionInput
@@ -21,16 +22,20 @@ import domain.enums.InvoiceStatusType
 import domain.enums.InvoiceType
 import usecases.UseCase
 import usecases.funds.dto.DecreaseFundInput
+import usecases.invoices.dto.UpdateInvoiceInput
 
 class DecreaseFund(
     private val fundRepo: IRepository<Fund>,
     private val accountRepo: IRepository<Account>,
     private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
+    private val updateFundScheduleInvoice: IUseCase<Fund, Unit>,
+    private val userRepo: IRepository<User>,
     unitOfWork: IUnitOfWork,
-    auth: IAuthenticateAdapter
-): UseCase<DecreaseFundInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
+): UseCase<DecreaseFundInput, Unit>(unitOfWork = unitOfWork) {
 
     override suspend fun process(input: DecreaseFundInput) {
+        userRepo.get(input.userId) ?: throw NotFoundException.SingleEntity(input.userId, "user")
+
         val fund = fundRepo.get(input.fundId) ?: throw NotFoundException.SingleEntity(input.fundId, "fund")
 
         if (input.amount <= 0)
@@ -71,5 +76,7 @@ class DecreaseFund(
 
         fund.balance -= input.amount
         fundRepo.update(fund)
+
+        updateFundScheduleInvoice.processDirect(fund)
     }
 }

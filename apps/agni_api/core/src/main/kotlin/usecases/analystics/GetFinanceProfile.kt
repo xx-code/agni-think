@@ -105,7 +105,7 @@ class GetFinanceProfile(
     private fun formatComingRevenue(scheduleInvoices: List<ScheduleInvoice>) : List<ComingRevenueOutput> {
         val comingRevenueOutputs = mutableListOf<ComingRevenueOutput>()
 
-        scheduleInvoices.filter { it.type == InvoiceType.INCOME }.forEach { scheduleInvoice ->
+        scheduleInvoices.filter { it.invoiceType == InvoiceType.INCOME }.forEach { scheduleInvoice ->
             comingRevenueOutputs.add(
                 ComingRevenueOutput(
                     title = scheduleInvoice.title,
@@ -122,7 +122,7 @@ class GetFinanceProfile(
     private fun formatComingSpend(scheduleInvoices: List<ScheduleInvoice>) : List<ComingSpendingOutput> {
         val comingSpendOutputs = mutableListOf<ComingSpendingOutput>()
 
-        scheduleInvoices.filter { it.type != InvoiceType.INCOME }.forEach { scheduleInvoice ->
+        scheduleInvoices.filter { it.invoiceType != InvoiceType.INCOME }.forEach { scheduleInvoice ->
             ComingSpendingOutput(
                 title = scheduleInvoice.title,
                 amount = scheduleInvoice.amount,

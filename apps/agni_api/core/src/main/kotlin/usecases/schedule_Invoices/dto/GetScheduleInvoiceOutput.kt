@@ -1,5 +1,6 @@
 package usecases.schedule_Invoices.dto
 
+import domain.enums.InvoiceType
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -12,9 +13,9 @@ data class GetScheduleInvoiceOutput(
     val categoryId: UUID,
     val tagIds: Set<UUID>,
     val type: String,
+    val invoiceType: String,
     val amount: Double,
     val isPause: Boolean,
-    val isFreeze: Boolean,
     val dueDate: LocalDateTime,
     val isEditable: Boolean,
     val repeater: ScheduleInvoiceRepeaterOutput?,

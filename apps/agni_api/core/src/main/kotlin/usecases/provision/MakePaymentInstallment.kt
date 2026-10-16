@@ -58,7 +58,8 @@ class MakePaymentInstallment(
                     DecreaseFundInput(
                         fundId = fund.id,
                         accountId = payment.accountId,
-                        amount = payment.paymentAmount
+                        amount = payment.paymentAmount,
+                        userId = fund.userId,
                     )
                 )
             }

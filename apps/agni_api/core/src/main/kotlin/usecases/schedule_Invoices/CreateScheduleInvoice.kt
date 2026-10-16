@@ -4,12 +4,15 @@ import usecases.UseCase
 import adapters.IAuthenticateAdapter
 import domain.FREEZE_CATEGORY_ID
 import adapters.repositories.IRepository
+import domain.SAVING_CATEGORY_ID
+import domain.UNKNOWN_CATEGORY_ID
 import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.ScheduleInvoice
 import domain.entities.User
 import domain.enums.InvoiceType
+import domain.enums.ScheduleInvoiceType
 import usecases.dto.CreatedOutput
 import facades.InvoiceDependencies
 import usecases.interfaces.IUseCase
@@ -33,27 +36,21 @@ class CreateScheduleInvoice(
         if (invoiceDependencies.accountRepo.get(input.accountId) == null)
             throw ValidationException.ScheduleInvoiceAccountNotFound()
 
-        if (input.isFreeze == false && input.categoryId == null)
+        if (input.categoryId == null && input.type == ScheduleInvoiceType.STANDARD)
             throw ValidationException.ScheduleInvoiceCategoryIdMustBeDefined()
 
-        if (input.isFreeze == false && input.type == null)
+        if (input.invoiceType == null && input.type == ScheduleInvoiceType.STANDARD)
             throw ValidationException.ScheduleInvoiceTypeNotDefined(input.type.toString())
 
-        if (input.isFreeze == false && input.categoryId != null && invoiceDependencies.categoryRepo.get(input.categoryId) == null)
-            throw NotFoundException.SingleEntity(input.categoryId, "category")
-
-        if (input.isFreeze == false && input.tagIds.isNotEmpty()) {
-            if (invoiceDependencies.tagRepo.getManyByIds(input.tagIds).size != input.tagIds.size)
-                throw NotFoundException.EntitiesByOtherField(mapOf("ids" to input.tagIds.joinToString()), "tag")
+        if (input.categoryId != null) {
+            if (invoiceDependencies.categoryRepo.get(input.categoryId) == null)
+                throw NotFoundException.SingleEntity(input.categoryId, "category")
         }
 
-        var categoryId = FREEZE_CATEGORY_ID
-        if (input.categoryId != null)
-            categoryId = input.categoryId
-
-        var type = InvoiceType.OTHER
-        if (input.type != null)
-            type = input.type
+        if (input.tagIds.isNotEmpty() && input.type == ScheduleInvoiceType.STANDARD) {
+            if (invoiceDependencies.tagRepo.getManyByIds(input.tagIds).size != input.tagIds.size)
+                throw NotFoundException.EntitiesByOtherField(mapOf("ids" to  input.tagIds.joinToString()), "tag")
+        }
 
         var repeater: SchedulerRecurrence? = null
         if (input.schedule.repeater != null)
@@ -62,15 +59,20 @@ class CreateScheduleInvoice(
         if (input.moduleLinker != null)
             verifyScheduleModuleLinker.processDirect(input.moduleLinker)
 
+
         val newScheduleInvoice = ScheduleInvoice(
             userId = currentUser.id,
             accountId = input.accountId,
             amount = input.amount,
             title = input.description,
-            isFreeze = input.isFreeze?.let { input.isFreeze } ?: false,
+            type = input.type,
+            invoiceType = input.invoiceType ?: InvoiceType.OTHER,
             isPause = false,
-            categoryId = categoryId,
-            type = type,
+            categoryId = input.categoryId ?: when(input.type) {
+                ScheduleInvoiceType.SAVING -> SAVING_CATEGORY_ID
+                ScheduleInvoiceType.FREEZE -> FREEZE_CATEGORY_ID
+                else -> UNKNOWN_CATEGORY_ID
+            } ,
             scheduler = Scheduler(
                 repeater = repeater,
                 date = input.schedule.dueDate
@@ -83,6 +85,7 @@ class CreateScheduleInvoice(
                 date = it.dueDate
             ) }
         )
+
 
         scheduleInvoiceRepo.create(newScheduleInvoice)
 

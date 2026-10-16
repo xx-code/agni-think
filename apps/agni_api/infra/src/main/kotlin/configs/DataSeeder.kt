@@ -21,6 +21,7 @@ import domain.enums.InvoiceType
 import domain.enums.PeriodType
 import domain.enums.ProvisionType
 import domain.enums.ScheduleInvoiceModuleLinkerType
+import domain.enums.ScheduleInvoiceType
 import domain.value_objects.CheckingAccountDetail
 import domain.value_objects.InvoiceModuleLinker
 import domain.value_objects.ProvisionDepreciateCriteria
@@ -269,7 +270,7 @@ class DataSeeder(
                 userId = userId,
                 title = "Loyer Appartement (Planifié)",
                 accountId = mainAccount.id,
-                type = InvoiceType.FIXED_COST,
+                invoiceType = InvoiceType.FIXED_COST,
                 amount = 1300.0,
                 scheduler = Scheduler(
                     date = LocalDateTime.now().withDayOfMonth(1).plusMonths(1),
@@ -278,14 +279,15 @@ class DataSeeder(
                 categoryId = catHousing.id,
                 moduleLinker = null,
                 freezeScheduler = null,
-                tagIds = mutableSetOf(tagEssential.id, tagRecurring.id)
+                tagIds = mutableSetOf(tagEssential.id, tagRecurring.id),
+                type = ScheduleInvoiceType.STANDARD,
             )
             dep.scheduleInvoiceRepo.create(scheduleRent)
             val scheduleIncome = ScheduleInvoice(
                 userId = userId,
                 title = incomeSource.title,
                 accountId = incomeSource.linkedAccountId!!,
-                type = InvoiceType.INCOME,
+                invoiceType = InvoiceType.INCOME,
                 amount = incomeSource.getEstimateNextNetAmount(),
                 scheduler = Scheduler(
                     date = incomeSource.getEstimateNextDate().atStartOfDay(),
@@ -306,7 +308,7 @@ class DataSeeder(
                 moduleLinker = ScheduleInvoiceModuleLinker(incomeSource.id, ScheduleInvoiceModuleLinkerType.INCOME_SOURCE),
                 freezeScheduler = null,
                 isPause = false,
-                isFreeze = false,
+                type = ScheduleInvoiceType.STANDARD,
                 endDate = incomeSource.endDate?.atStartOfDay()
             )
             dep.scheduleInvoiceRepo.create(scheduleIncome)

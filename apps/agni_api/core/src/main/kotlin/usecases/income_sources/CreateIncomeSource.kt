@@ -21,6 +21,7 @@ import domain.enums.IncomeSourceFrequencyType
 import domain.enums.InvoiceType
 import domain.enums.PeriodType
 import domain.enums.ScheduleInvoiceModuleLinkerType
+import domain.enums.ScheduleInvoiceType
 import usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
 import usecases.schedule_Invoices.dto.SchedulerInvoiceInput
 import domain.value_objects.ScheduleInvoiceModuleLinker
@@ -72,26 +73,29 @@ class CreateIncomeSource(
                 description = newIncomeSource.title,
                 categoryId = input.invoiceIncomeCategoryId,
                 tagIds = setOf(),
-                type = InvoiceType.INCOME,
+                invoiceType = InvoiceType.INCOME,
                 schedule = SchedulerInvoiceInput(
                     dueDate = newIncomeSource.getEstimateNextDate().atStartOfDay(),
                     repeater = ScheduleRepeaterInput(
-                        period = when(newIncomeSource.payFrequency) {
+                        period = when (newIncomeSource.payFrequency) {
                             IncomeSourceFrequencyType.BIWEEKLY -> PeriodType.WEEK
                             IncomeSourceFrequencyType.MONTHLY -> PeriodType.MONTH
                             IncomeSourceFrequencyType.YEARLY -> PeriodType.YEAR
                             else -> PeriodType.MONTH
                         },
-                        interval = when(newIncomeSource.payFrequency) {
+                        interval = when (newIncomeSource.payFrequency) {
                             IncomeSourceFrequencyType.BIWEEKLY -> 2
                             else -> 1
                         }
                     )
                 ),
-                isFreeze = false,
                 freezeSchedule = null,
-                moduleLinker = ScheduleInvoiceModuleLinker(newIncomeSource.id, ScheduleInvoiceModuleLinkerType.INCOME_SOURCE),
-                endDate = input.endDate?.atStartOfDay()
+                moduleLinker = ScheduleInvoiceModuleLinker(
+                    newIncomeSource.id,
+                    ScheduleInvoiceModuleLinkerType.INCOME_SOURCE
+                ),
+                endDate = input.endDate?.atStartOfDay(),
+                type = ScheduleInvoiceType.STANDARD
             ))
         }
 

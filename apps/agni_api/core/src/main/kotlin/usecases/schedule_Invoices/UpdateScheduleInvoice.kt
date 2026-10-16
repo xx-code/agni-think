@@ -7,6 +7,7 @@ import domain.exceptions.AlreadyExistException
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.ScheduleInvoice
+import domain.enums.ScheduleInvoiceType
 import facades.InvoiceDependencies
 import usecases.interfaces.IUseCase
 import usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
@@ -41,25 +42,31 @@ class UpdateScheduleInvoice(
             scheduleInvoice.accountId = input.accountId
         }
 
-        if (!scheduleInvoice.isFreeze && input.categoryId != null) {
+
+        if (input.type != null) {
+            scheduleInvoice.type = input.type
+        }
+
+        if (input.categoryId != null && scheduleInvoice.type == ScheduleInvoiceType.STANDARD ) {
             if (invoiceDependencies.categoryRepo.get(input.categoryId) == null)
                 throw NotFoundException.SingleEntity(input.categoryId, "category")
 
             scheduleInvoice.categoryId = input.categoryId
         }
 
-        if (!scheduleInvoice.isFreeze && input.type != null) {
-            scheduleInvoice.type = input.type
+
+        if (input.invoiceType != null) {
+            scheduleInvoice.invoiceType = input.invoiceType
         }
 
-        if (!scheduleInvoice.isFreeze && input.tagIds != null) {
+        if (input.tagIds != null) {
             if (invoiceDependencies.tagRepo.getManyByIds(input.tagIds).size != input.tagIds.size)
-                throw NotFoundException.EntitiesByOtherField(mapOf("ids" to input.tagIds.joinToString()), "tag")
+                throw NotFoundException.EntitiesByOtherField(mapOf("ids" to  input.tagIds.joinToString()), "tag")
+
+            scheduleInvoice.tagIds = input.tagIds.toMutableSet()
         }
 
         if (input.amount != null) {
-            if (input.amount < 0)
-                throw ValidationException.ScheduleInvoiceAmountMustBeGreaterThanZero()
             scheduleInvoice.amount = input.amount
         }
 
@@ -93,6 +100,7 @@ class UpdateScheduleInvoice(
             )
             scheduleInvoice.freezeScheduler = newFreezeScheduler
         }
+
 
         if (scheduleInvoice.hasChanged())
             scheduleInvoiceRepo.update(scheduleInvoice)

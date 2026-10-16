@@ -114,6 +114,9 @@ sealed class ValidationException(errorKey: String, metadata: Map<String, Any>) :
     class ScheduleFreezeInvoiceMustHaveAScheduler :
         ValidationException("SCHEDULE_FREEZE_INVOICE_SCHEDULER_INVALID", mapOf())
 
+    class ScheduleSavingInvoiceMustHaveFundId:
+        ValidationException("SCHEDULE_SAVING_INVOICE_MUST_HAVE_FUND", mapOf())
+
     class ProfileMaxWishlistAmountMustBePositif :
         ValidationException("PROFILE_MAX_WISHLIST_MUST_BE_POSITIF", mapOf())
 
@@ -148,8 +151,8 @@ sealed class ValidationException(errorKey: String, metadata: Map<String, Any>) :
     class AmountMustBeNonNegative : ValidationException("AMOUNT_MUST_BE_NON_NEGATIVE", mapOf())
 
     // -- Fund
-    class SavingGoalAmortizationFundMustNotHaveAccount :
-        ValidationException("SAVING_GOAL_AMORTIZATION_FUND_MUST_NOT_HAVE_ACCOUNT", mapOf())
+    class SavingGoalAmortizationMustNotHaveAccount :
+        ValidationException("SAVING_GOAL_AMORTIZATION_MUST_NOT_HAVE_ACCOUNT", mapOf())
 
     class SavingGoalAmountMustBeGreaterThanZero :
         ValidationException("SAVING_GOAL_AMOUNT_MUST_BE_GREATER_THAN_ZERO", mapOf())
@@ -205,6 +208,25 @@ sealed class ValidationException(errorKey: String, metadata: Map<String, Any>) :
 
     class FundTargetAmountMustGreaterThanZero(target: Double) :
         ValidationException("FUND_TARGET_AMOUNT_MUST_BE_GREATER_THAN_ZERO", mapOf("target" to target))
+
+    class FundMustHaveAccountIdForThisType(type: String) :
+        ValidationException("SINKING_FUND_MUST_HAVE_ACCOUNT_ID_FOR_SPECIFIC_TYPE", mapOf("type" to type))
+
+
+    class SinkingFundMustSetupDetail:
+        ValidationException("SINKING_FUND_MUST_SETUP_DETAIL", mapOf())
+
+    class FundNumberOfContributionMustBeGreateThanZero:
+        ValidationException("FUND_NUMBER_OF_CONTRIBUTION_MUST_BE_GREATER_THAN_ZERO", mapOf())
+
+    class SinkingFundMustHaveAnEndingDateOrNumberOfContribution:
+        ValidationException("SINKING_FUND_MUST_HAVE_AN_ENDING_DATE_OR_CONTRIBUTION", mapOf())
+
+    class CompleteInvoiceFundInvalidNotFund:
+        ValidationException("COMPLETE_INVOICE_FUND_INVALID_NOT_FOUND", mapOf())
+
+    class FundMustHaveTargetForThisType:
+        ValidationException("FUND_MUST_HAVE_TARGET", mapOf())
 
     // --- Goal ---
 

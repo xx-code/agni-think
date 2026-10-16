@@ -10,6 +10,7 @@ import domain.entities.Account
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.Fund
+import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.invoices.dto.CreateInvoiceInput
 import usecases.invoices.dto.TransactionInput
@@ -26,10 +27,13 @@ class IncreaseFund(
     private val fundRepo: IRepository<Fund>,
     private val accountRepo: IRepository<Account>,
     private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
-    unitOfWork: IUnitOfWork,
-    auth: IAuthenticateAdapter
-): UseCase<IncreaseFundInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
+    private val updateFundScheduleInvoice: IUseCase<Fund, Unit>,
+    private val userRepo: IRepository<User>,
+    unitOfWork: IUnitOfWork
+): UseCase<IncreaseFundInput, Unit>(unitOfWork = unitOfWork) {
     override suspend fun process(input: IncreaseFundInput) {
+        userRepo.get(input.userId) ?: throw NotFoundException.SingleEntity(input.userId, "user")
+
         val fund = fundRepo.get(input.fundId) ?: throw NotFoundException.SingleEntity(input.fundId, "fund")
 
         if (input.amount <= 0)
@@ -70,5 +74,7 @@ class IncreaseFund(
 
         fund.balance += input.amount
         fundRepo.update(fund)
+
+        updateFundScheduleInvoice.processDirect(fund)
     }
 }

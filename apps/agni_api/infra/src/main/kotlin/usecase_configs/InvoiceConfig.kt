@@ -69,6 +69,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import usecases.UseCase
+import usecases.funds.dto.IncreaseFundInput
+import usecases.invoices.CompleteInvoiceFund
 import java.util.UUID
 
 @Configuration
@@ -427,6 +429,25 @@ class InvoiceConfig {
             externalTransactionRepo = externalTransRepo,
             embeddingService = embeddingService,
             collectionName=collectionName
+        )
+    }
+
+    @Bean
+    fun completeInvoiceFund(
+        invoiceRepo: IRepository<Invoice>,
+        getInvoiceTransferInvoice: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
+        increaseFund: IUseCase<IncreaseFundInput, Unit>,
+        deleteInvoice: IUseCase<DeleteInvoiceInput, Unit>,
+        auth: IAuthenticateAdapter,
+        uow: IUnitOfWork
+    ): UseCase<UUID, Unit> {
+        return CompleteInvoiceFund(
+            invoiceRepo = invoiceRepo,
+            getInvoiceTransactions = getInvoiceTransferInvoice,
+            increaseFund = increaseFund,
+            deleteInvoice = deleteInvoice,
+            auth = auth,
+            uow = uow
         )
     }
 }

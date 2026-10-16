@@ -11,6 +11,7 @@ import domain.entities.ScheduleInvoice
 import domain.entities.User
 import domain.enums.InvoiceType
 import domain.enums.PeriodType
+import domain.enums.ScheduleInvoiceType
 import usecases.dto.ListOutput
 import usecases.analystics.dto.GetAnnualOutlookOutput
 import usecases.analystics.dto.GetSavingBalanceInput
@@ -49,10 +50,10 @@ class GetAnnualOutlook(
             endDate = currentDateTime
         ))
 
-        val nextIncome = getFutureOutlook(scheduleInvoices.items.filter { it.type == InvoiceType.INCOME })
+        val nextIncome = getFutureOutlook(scheduleInvoices.items.filter { it.invoiceType == InvoiceType.INCOME })
         val incomeOutlook = nextIncome + currentBalance.income
 
-        val nextSpend = getFutureOutlook(scheduleInvoices.items.filter { it.type != InvoiceType.INCOME && !it.isPause && !it.isFreeze })
+        val nextSpend = getFutureOutlook(scheduleInvoices.items.filter { it.invoiceType != InvoiceType.INCOME && !it.isPause && it.type != ScheduleInvoiceType.FREEZE })
         val (currentBudgetOutlook, targetBudgetOutlook) = getBudgetBalances(currentUser.id)
         val remindBudget = if (currentBudgetOutlook > targetBudgetOutlook) 0.0 else (targetBudgetOutlook - currentBudgetOutlook)
 

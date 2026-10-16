@@ -2,6 +2,7 @@ package usecases.funds
 
 import usecases.interfaces.IUseCase
 import adapters.IAuthenticateAdapter
+import adapters.dto.QueryFilter
 
 import domain.SAVING_CATEGORY_ID
 import adapters.repositories.IRepository
@@ -13,6 +14,7 @@ import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.Goal
 import domain.entities.Fund
+import domain.entities.ScheduleInvoice
 import usecases.dto.CreatedOutput
 import usecases.invoices.dto.CreateInvoiceInput
 import usecases.invoices.dto.TransactionInput
@@ -21,13 +23,17 @@ import java.time.LocalDateTime
 import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
 import domain.enums.InvoiceType
+import domain.enums.ScheduleInvoiceModuleLinkerType
 import usecases.UseCase
+import usecases.schedule_Invoices.dto.DeleteScheduleInvoiceInput
 
 class DeleteFund(
     private val fundRepo: IRepository<Fund>,
     private val accountRepo: IRepository<Account>,
     private val goalRepo: IRepository<Goal>,
     private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
+    private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+    private val deleteScheduleInvoice: IUseCase<DeleteScheduleInvoiceInput, Unit>,
     unitOfWork: IUnitOfWork,
     auth: IAuthenticateAdapter
 ): UseCase<DeleteFundInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
@@ -69,8 +75,22 @@ class DeleteFund(
         ))
 
         fundRepo.delete(input.fundId)
+
+        // Delete goal
         val conditionGoal = QueryExtendBuilder<Goal>()
             .addCondition("targetSourceId", QueryComparator.Equal, input.fundId)
         goalRepo.deleteManyBy(conditionGoal)
+
+        // Delete schedule Saving
+        val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
+            .addCondition("moduleLinker.sourceId", QueryComparator.Equal, fund.id)
+            .addCondition("moduleLinker.module", QueryComparator.Equal, ScheduleInvoiceModuleLinkerType.FUND.value)
+        val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
+        for (scheduleInvoice in scheduleInvoices.items) {
+            deleteScheduleInvoice.processDirect(DeleteScheduleInvoiceInput(
+                scheduleInvoiceId = scheduleInvoice.id,
+                passContextEdit = true
+            ))
+        }
     }
 }

@@ -32,6 +32,7 @@ import domain.enums.AccountType
 import domain.enums.InvoiceType
 import domain.enums.PeriodType
 import domain.enums.ScheduleInvoiceModuleLinkerType
+import domain.enums.ScheduleInvoiceType
 
 class ForcastSpending(
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
@@ -164,7 +165,7 @@ class ForcastSpending(
 
     private fun getScheduleTotal(scheduleInvoices: List<ScheduleInvoice>, fundsById: Map<UUID, Fund>, provisionsById: Map<UUID, Provision>, invoiceType: InvoiceType, startDate: LocalDate, endDate: LocalDate): Double {
         var total = 0.0
-        var scheduleInvoices = scheduleInvoices.filter { it.type == invoiceType }
+        var scheduleInvoices = scheduleInvoices.filter { it.invoiceType == invoiceType }
         scheduleInvoices = scheduleInvoices.filter {
             scheduleInvoice -> scheduleInvoice.scheduler.upgradeDate(startDate.atStartOfDay()) >= startDate.atStartOfDay()
         }
@@ -205,7 +206,7 @@ class ForcastSpending(
 
     private fun getPlanFreezeExpense(scheduleInvoices: List<ScheduleInvoice>, startDate: LocalDate, endDate: LocalDate): Double {
         var total = 0.0
-        for (schedule in scheduleInvoices.filter { it.isFreeze && it.getFreezeEndDate() > endDate } ) {
+        for (schedule in scheduleInvoices.filter { it.type == ScheduleInvoiceType.FREEZE && it.getFreezeEndDate() > endDate } ) {
             val occurrence = schedule.scheduler.repeater?.computeOccurrences(startDate, endDate) ?: 1
             total += schedule.amount * occurrence
         }
