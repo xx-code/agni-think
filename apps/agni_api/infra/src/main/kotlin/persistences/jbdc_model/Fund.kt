@@ -1,8 +1,10 @@
 package persistences.jbdc_model
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import domain.entities.Fund
 import domain.enums.FundType
+import domain.value_objects.SinkingFundDetail
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -24,6 +26,10 @@ data class JdbcFundModel(
     val type: String,
     @Column("account_id")
     val accountId: UUID?,
+
+    @Column("sinking_fund_detail")
+    val sinkingFundDetail: String?,
+
     @Column("created_at")
     val createdAt: LocalDateTime,
     @Column("updated_at")
@@ -34,20 +40,28 @@ data class JdbcFundModel(
     }
 }
 
+
 @Component
 class JdbcFundMapper(
     private val objectMapper: ObjectMapper
 ): IMapper<JdbcFundModel, Fund> {
     override fun toDomain(model: JdbcFundModel): Fund {
+        val sinkingFundDetailJson = if (
+            model.sinkingFundDetail == "null" || model.sinkingFundDetail == "[null]" ||
+            model.sinkingFundDetail.isNullOrEmpty() || model.sinkingFundDetail == "{}" || model.sinkingFundDetail == "[]"
+        ) { null }
+        else { objectMapper.readValue<Map<String, Any>>(model.sinkingFundDetail) }
+
         return Fund(
-            id = model.id,
+            id = model.fundId,
             userId = model.userId,
             title = model.title,
             description = model.description,
             target = model.target,
             balance = model.balance,
             type = FundType.fromString(model.type),
-            accountId = model.accountId
+            accountId = model.accountId,
+            sinkingFundDetail = sinkingFundDetailJson?.let { SinkingFundDetail.fromMap(it) }
         )
     }
 
@@ -61,8 +75,9 @@ class JdbcFundMapper(
             description = entity.description,
             accountId = entity.accountId,
             type = entity.type.value,
+            sinkingFundDetail = objectMapper.writeValueAsString(entity.sinkingFundDetail?.toMap()),
             createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt
+            updatedAt = entity.updatedAt,
         )
     }
 
@@ -75,6 +90,20 @@ class JdbcFundMapper(
         "description" to "description",
         "accountId" to "account_id",
         "type" to "type",
+
+        "sinkingFundDetail.startDate" to "sinking_fund_detail->>'start_date'",
+        "sinkingFundDetail.numberOfContributions" to "sinking_fund_detail->>'number_of_contributions'",
+
+        "sinkingFundDetail.contributionRecurrence" to "sinking_fund_detail->>'contribution_recurrence'",
+        "sinkingFundDetail.contributionRecurrence.period" to "sinking_fund_detail->>'contribution_recurrence'->>'period'",
+        "sinkingFundDetail.contributionRecurrence.interval" to "sinking_fund_detail->>'contribution_recurrence'->>'interval'",
+
+        "sinkingFundDetail.fundRecurrence" to "sinking_fund_detail->>'fund_recurrence'",
+        "sinkingFundDetail.fundRecurrence.date" to "sinking_fund_detail->>'fund_recurrence'->>'due_date'",
+        "sinkingFundDetail.fundRecurrence.repeater" to "sinking_fund_detail->>'fund_recurrence'->>'repeater'",
+        "sinkingFundDetail.fundRecurrence.repeater.period" to "sinking_fund_detail->>'fund_recurrence'->>'repeater'->>'period'",
+        "sinkingFundDetail.fundRecurrence.repeater.interval" to "sinking_fund_detail->>'fund_recurrence'->>'repeater'->>'interval'",
+
         "createdAt" to "created_at",
         "updatedAt" to "updated_at"
     )

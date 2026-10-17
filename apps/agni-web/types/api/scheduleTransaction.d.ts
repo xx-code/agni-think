@@ -5,9 +5,9 @@ export type GetScheduleInvoiceResponse = {
     categoryId: string
     tagIds: string[]
     type: string
+    invoiceType: string
     amount: number
-    isPause: boolean
-    freeze: boolean
+    pause: boolean
     dueDate: string
     editable: boolean
     repeater?: {
@@ -29,8 +29,8 @@ export type CreateScheduleInvoiceRequest = {
     categoryId?: string
     description: string 
     tagIds: string[]
-    type?: string
-    isFreeze: boolean
+    invoiceType?: string
+    type: string
     schedule: {
         repeater?: {
             period: string
@@ -55,6 +55,7 @@ export type UpdateScheduleInvoiceRequest = {
     categoryId?: string
     tagIds?: string[]
     type?: string
+    invoiceType?: string
     isPause?: boolean
     schedule?: {
         repeater?: {

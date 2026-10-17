@@ -17,6 +17,7 @@ import domain.entities.Budget
 import domain.entities.Category
 import domain.entities.Deduction
 import domain.entities.ExternalTransaction
+import domain.entities.Fund
 import domain.entities.Invoice
 import domain.entities.Tag
 import domain.entities.Transaction
@@ -69,6 +70,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import usecases.UseCase
+import usecases.funds.dto.IncreaseFundInput
 import java.util.UUID
 
 @Configuration
@@ -100,6 +102,8 @@ class InvoiceConfig {
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
         unitOfWork: IUnitOfWork,
         eventRegister: IEventRegister,
+        increaseFund: IUseCase<IncreaseFundInput, Unit>,
+        deleteInvoice: IUseCase<DeleteInvoiceInput, Unit>,
         snapshotBalanceAccountRepo: IAccountBalanceSnapshotRepository,
         auth: IAuthenticateAdapter,
         ): UseCase<CompleteInvoiceInput, Unit> {
@@ -111,6 +115,8 @@ class InvoiceConfig {
             eventRegister = eventRegister,
             snapshotAccountBalanceRepo = snapshotBalanceAccountRepo,
             auth = auth,
+            increaseFund = increaseFund,
+            deleteInvoice = deleteInvoice,
         )
     }
 
@@ -152,6 +158,8 @@ class InvoiceConfig {
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
         unitOfWork: IUnitOfWork,
         eventRegister: IEventRegister,
+        fundRepo: IRepository<Fund>,
+        updateFundScheduleInvoice: IUseCase<Fund, Unit>,
         snapshotBalanceAccountRepo: IAccountBalanceSnapshotRepository,
         auth: IAuthenticateAdapter,
     ): UseCase<DeleteInvoiceInput, Unit> {
@@ -164,6 +172,8 @@ class InvoiceConfig {
             eventRegister = eventRegister,
             snapshotAccountBalanceRepo = snapshotBalanceAccountRepo,
             auth = auth,
+            fundRepo = fundRepo,
+            updateFundScheduleInvoice = updateFundScheduleInvoice
         )
     }
 

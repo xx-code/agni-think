@@ -116,5 +116,14 @@
   "UNKNOWN_EXCEPTION": "An unexpected error occurred: {{error}}",
   "VALIDATION_ERROR": "Validation failed: {{reason}}",
   "SPENDING_PERIOD_INCOME_MUST_BE_ONLY_SCHEDULE_INCOME": "You can only select schedule income for spending period incomes",
-  "SPENDING_PERIOD_INCOME_MUST_BE_ONLY_SCHEDULE_EXPENSE": "You can only select schedule expense for spending period expense"
+  "SPENDING_PERIOD_INCOME_MUST_BE_ONLY_SCHEDULE_EXPENSE": "You can only select schedule expense for spending period expense",
+  "SCHEDULE_SAVING_INVOICE_MUST_HAVE_FUND": "The scheduled saving invoice must have a fund.",
+  "SAVING_GOAL_AMORTIZATION_MUST_NOT_HAVE_ACCOUNT": "The saving goal amortization must not have an account.",
+  "SINKING_FUND_MUST_HAVE_ACCOUNT_ID_FOR_SPECIFIC_TYPE": "The sinking fund must have an account ID for the specific type: {{type}}",
+  "SINKING_FUND_MUST_SETUP_DETAIL": "The sinking fund must set up details.",
+  "FUND_NUMBER_OF_CONTRIBUTION_MUST_BE_GREATER_THAN_ZERO": "The fund number of contributions must be greater than zero.",
+  "COMPLETE_INVOICE_FUND_INVALID_NOT_FOUND": "The complete invoice fund is invalid or not found.",
+  "FUND_MUST_HAVE_TARGET": "The fund must have a target.",
+  "CANNOT_DELETE_FUND_WITH_INVOICE_IN_PENDING": "You cannot dlete fund with invoice in pending",
+  "INVOICE_ALREADY_COMPLETE": "Invoice already complete"
 }

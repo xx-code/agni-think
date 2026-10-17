@@ -30,7 +30,7 @@ class UpdateSpendingPeriod(
             if (input.scheduleIncomesSelected.size != scheduleIncomes.size)
                 throw NotFoundException.EntitiesByOtherField(mapOf("ids" to input.scheduleIncomesSelected.joinToString()), "schedule_invoice")
 
-            if (scheduleIncomes.any {it.type != InvoiceType.INCOME })
+            if (scheduleIncomes.any {it.invoiceType != InvoiceType.INCOME })
                 throw ValidationException.SpendingPeriodIncomeMustBeOnlyScheduleIncome()
             spendPeriod.scheduleIncomesSelected = it
         }
@@ -40,7 +40,7 @@ class UpdateSpendingPeriod(
             if (input.scheduleExpensesSelected.size != scheduleExpenses.size)
                 throw NotFoundException.EntitiesByOtherField(mapOf("ids" to input.scheduleExpensesSelected.joinToString()), "schedule_invoice")
 
-            if (scheduleExpenses.any {it.type == InvoiceType.INCOME })
+            if (scheduleExpenses.any {it.invoiceType == InvoiceType.INCOME })
                 throw ValidationException.SpendingPeriodIncomeMustBeOnlyScheduleExpense()
 
             spendPeriod.scheduleExpensesSelected = it

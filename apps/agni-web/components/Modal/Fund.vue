@@ -5,9 +5,10 @@ import type { CreatedRequest, ListResponse } from '~/types/api';
 import type { GetAccountResponse } from '~/types/api/account';
 import { listAccountsToListAccount } from '~/mappers/account';
 import type { FundForm } from '~/types/form/fund';
-import { fundFormToCreateFundRequest, fundFormToUpdateFundRequest } from "~/mappers/fund";
+import { toCreateFundRequest, toUpdateFundRequest } from "~/mappers/fund";
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
+import { FundType } from '~/types/constants/fund';
 
 const { fundId, initData } = defineProps<{
     fundId?: string
@@ -31,14 +32,24 @@ function validate(state: Partial<FundForm>): FormError[] {
         errors.push({name: 'title', message: 'Vous devez ajouter un titre'})
 
     if (!state.target) 
-        errors.push({name: 'targetAmount', message: 'Require'})
+        errors.push({name: 'target', message: 'Require'})
 
     if (state.target && state.target <= 0)
-        errors.push({name: 'targetAmount', message: 'La somme d\'argent doit etre superieux a zero'})
+        errors.push({name: 'target', message: 'La somme d\'argent doit etre superieux a zero'})
 
     if (!state.type) 
         errors.push({name: 'type', message: 'Require'})
+    if (state.type === FundType.SinkingFund) {
+        if (!state.accountId) errors.push({name: 'accountId', message: 'Requis'})
+        if (!state.sinkingFundDetail?.startDate) errors.push({name: 'startDate', message: 'Requis'})
 
+        const detail = state.sinkingFundDetail
+        const hasContributions = !!detail && detail.numberOfContributions >= 1
+        const hasEndDate = !!detail?.scheduler?.date
+        if (!hasContributions && !hasEndDate) {
+            errors.push({name: 'numberOfContributions', message: 'Requis'})
+        }
+    }
     return errors
 }
 
@@ -65,12 +76,12 @@ async function onSubmit(event: FormSubmitEvent<FundForm>) {
             await ApiLinkBuilder
                 .route(API_ROUTES.FUNDS.UPDATE_FUND)
                 .params({ id: fundId })
-                .body(fundFormToUpdateFundRequest(data))
+                .body(toUpdateFundRequest(data))
                 .execute()
         } else {
             const res = await ApiLinkBuilder
                 .route<CreatedRequest>(API_ROUTES.FUNDS.CREATE_FUND)
-                .body(fundFormToCreateFundRequest(data))
+                .body(toCreateFundRequest(data))
                 .execute()
             id = res.newId
         } 

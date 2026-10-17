@@ -1,8 +1,11 @@
 package domain.entities
 
+import domain.enums.FundType
 import domain.exceptions.ValidationException
 
 import domain.enums.InvoiceType
+import domain.enums.ScheduleInvoiceModuleLinkerType
+import domain.enums.ScheduleInvoiceType
 import domain.value_objects.ScheduleInvoiceModuleLinker
 import domain.value_objects.Scheduler
 import java.time.LocalDate
@@ -14,14 +17,14 @@ class ScheduleInvoice(
     val userId: UUID,
     title: String,
     accountId: UUID,
-    type: InvoiceType,
+    type: ScheduleInvoiceType,
     amount: Double,
     scheduler: Scheduler,
     categoryId: UUID,
+    invoiceType: InvoiceType,
     moduleLinker: ScheduleInvoiceModuleLinker?,
     freezeScheduler: Scheduler?,
     isPause: Boolean = false,
-    isFreeze: Boolean = false,
     tagIds: MutableSet<UUID> = mutableSetOf(),
     endDate: LocalDateTime? = null
 ): Entity(id = id) {
@@ -44,22 +47,26 @@ class ScheduleInvoice(
 
     var isPause: Boolean by cleanObservable(isPause, this)
 
-    var isFreeze: Boolean by cleanObservable(isFreeze, this)
-
     var tagIds: MutableSet<UUID> by cleanObservable(tagIds, this)
 
     var endDate by cleanObservable(endDate, this)
 
     var freezeScheduler: Scheduler? by cleanObservable(freezeScheduler, this, {
-        it != null && this.isFreeze
+        it != null && this.type == ScheduleInvoiceType.FREEZE
     }) {
         ValidationException.ScheduleFreezeInvoiceMustHaveAScheduler()
     }
 
-    var moduleLinker by cleanObservable(moduleLinker, this)
+    var moduleLinker by cleanObservable(moduleLinker, this, {
+        this.type != ScheduleInvoiceType.SAVING || (it != null && it.module == ScheduleInvoiceModuleLinkerType.FUND)
+    }, {
+        ValidationException.ScheduleSavingInvoiceMustHaveFundId()
+    })
+
+    var invoiceType by cleanObservable(invoiceType, this)
 
     fun getFreezeEndDate(): LocalDate {
-        if (!isFreeze)
+        if (type != ScheduleInvoiceType.FREEZE)
             throw ValidationException.ScheduleFreezeInvoiceMustHaveAScheduler()
 
         if (freezeScheduler == null)

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
-import { fundResponseToFund } from '~/mappers/fund';
+import { toFund } from '~/mappers/fund';
 import { goalResponseToGoal } from '~/mappers/goal';
-import { fundCardContextToFundGoalCards } from '~/mappers/fund';
+import { toFundGoalCards } from '~/mappers/fund';
 import { goalToGoalForm } from '~/mappers/goal';
 import type { ListResponse } from '~/types/api';
 import type { GetFundResponse, QueryFilterFundRequest } from '~/types/api/fund';
@@ -29,7 +29,7 @@ const { data:fund, refresh } = useAsyncData(`fundContext+${fundId}${(new Date())
     isLoading.value = true
 
     const [resFund, resGoals] = await Promise.all([
-        ApiLinkBuilder.route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND).params({id: fundId}).mapper(fundResponseToFund).execute(),
+        ApiLinkBuilder.route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND).params({id: fundId}).mapper(toFund).execute(),
         (async () => {
             const raw = await ApiLinkBuilder.route<ListResponse<GoalResponse>>(API_ROUTES.GOALS.GET_GOALS).query({ limit: 0, offset: 4, queryAll: true, sourceId: fundId } as GoalQueryFilterRequest).execute()
             return {
@@ -136,7 +136,7 @@ async function onClickDeleteGoal(id: string) {
 
                     <div class="flex flex-col gap-2">
                         <UiFundCardGoal 
-                            v-for="goal in fundCardContextToFundGoalCards(fund)"
+                            v-for="goal in toFundGoalCards(fund)"
                             :key="goal.id"
                             :goal="goal"
                             @delete="(id: string) => onClickDeleteGoal(id)"

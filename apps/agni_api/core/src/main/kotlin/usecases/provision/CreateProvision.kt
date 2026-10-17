@@ -24,6 +24,7 @@ import domain.enums.FundType
 import domain.enums.InvoiceType
 import domain.enums.ProvisionType
 import domain.enums.ScheduleInvoiceModuleLinkerType
+import domain.enums.ScheduleInvoiceType
 import usecases.UseCase
 
 class CreateProvision(
@@ -99,7 +100,7 @@ class CreateProvision(
                 description = provision.title,
                 categoryId = provision.paymentInfo!!.categoryId,
                 tagIds = provision.paymentInfo!!.tagIds,
-                type = InvoiceType.FIXED_COST,
+                invoiceType = InvoiceType.FIXED_COST,
                 schedule = SchedulerInvoiceInput(
                     dueDate = provision.paymentInfo!!.scheduler.date,
                     repeater = provision.paymentInfo!!.scheduler.repeater?.let {
@@ -109,13 +110,13 @@ class CreateProvision(
                         )
                     }
                 ),
-                isFreeze = false,
                 freezeSchedule = null,
                 moduleLinker = ScheduleInvoiceModuleLinker(
                     provision.id,
                     ScheduleInvoiceModuleLinkerType.PROVISION,
                 ),
-                endDate = provision.paymentInfo!!.endDate.atStartOfDay()
+                endDate = provision.paymentInfo!!.endDate.atStartOfDay(),
+                type = ScheduleInvoiceType.STANDARD
             ))
         }
 

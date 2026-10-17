@@ -1,12 +1,11 @@
 package dev.auguste.rest_api.controllers
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
-import dev.auguste.rest_api.controllers.models.ApiCreateSavingGoalModel
-import dev.auguste.rest_api.controllers.models.ApiDeleteSavingGoalModel
-import dev.auguste.rest_api.controllers.models.ApiUpdateSavingGoalModel
-import dev.auguste.rest_api.controllers.models.ApiUpgradeSavingGoalModel
-import dev.auguste.rest_api.controllers.models.mapApiCreateSavingGoal
-import dev.auguste.rest_api.controllers.models.mapApiUpdateSavingGoal
+import dev.auguste.rest_api.controllers.models.ApiCreateFundModel
+import dev.auguste.rest_api.controllers.models.ApiDeleteFundModel
+import dev.auguste.rest_api.controllers.models.ApiUpdateFundModel
+import dev.auguste.rest_api.controllers.models.ApiUpgradeFundModel
 import domain.enums.FundType
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
@@ -15,7 +14,7 @@ import usecases.funds.dto.CreateFundInput
 import usecases.funds.dto.DecreaseFundInput
 import usecases.funds.dto.DeleteFundInput
 import usecases.funds.dto.GetAllFundInput
-import usecases.funds.dto.GetSavingGoalOutput
+import usecases.funds.dto.GetFundOutput
 import usecases.funds.dto.IncreaseFundInput
 import usecases.funds.dto.UpdateFundInput
 import jakarta.validation.Valid
@@ -35,42 +34,43 @@ class FundController (
     private val createSavingGoalUseCase: IUseCase<CreateFundInput, CreatedOutput>,
     private val updateSavingGoalUseCase: IUseCase<UpdateFundInput, Unit>,
     private val deleteSavingGoalUseCase: IUseCase<DeleteFundInput, Unit>,
-    private val getSavingGoalUseCase: IUseCase<UUID, GetSavingGoalOutput>,
-    private val getAllSavingGoalUseCase: IUseCase<GetAllFundInput, ListOutput<GetSavingGoalOutput>>,
+    private val getSavingGoalUseCase: IUseCase<UUID, GetFundOutput>,
+    private val getAllSavingGoalUseCase: IUseCase<GetAllFundInput, ListOutput<GetFundOutput>>,
     private val increaseSavingGoalUseCase: IUseCase<IncreaseFundInput, Unit>,
     private val decreaseSavingGoalUseCase: IUseCase<DecreaseFundInput, Unit>,
+    private val auth: IAuthenticateAdapter
 ){
 
     @PostMapping
-    suspend fun createSavingGoal(@Valid @RequestBody request: ApiCreateSavingGoalModel): ResponseEntity<CreatedOutput> {
+    suspend fun createSavingGoal(@Valid @RequestBody request: ApiCreateFundModel): ResponseEntity<CreatedOutput> {
         return ResponseEntity.ok(createSavingGoalUseCase.execute(
-            mapApiCreateSavingGoal(request)
+            request.toCreateFundInput()
         ).getOrThrow())
     }
 
     @PutMapping("/{id}")
-    suspend fun updateSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateSavingGoalModel): ResponseEntity<Unit> {
+    suspend fun updateSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpdateFundModel): ResponseEntity<Unit> {
         return ResponseEntity.ok(updateSavingGoalUseCase.execute(
-            mapApiUpdateSavingGoal(id, request)
+            request.toUpdateFundInput(id)
         ).getOrThrow())
     }
 
     @PutMapping("/{id}/remove")
-    suspend fun deleteSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiDeleteSavingGoalModel): ResponseEntity<Unit> {
+    suspend fun deleteSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiDeleteFundModel): ResponseEntity<Unit> {
         return ResponseEntity.ok(deleteSavingGoalUseCase.execute(
             DeleteFundInput(id, request.accountId)
         ).getOrThrow())
     }
 
     @GetMapping("/{id}")
-    suspend fun getSavingGoal(@PathVariable id: UUID): ResponseEntity<GetSavingGoalOutput> {
+    suspend fun getSavingGoal(@PathVariable id: UUID): ResponseEntity<GetFundOutput> {
         return ResponseEntity.ok(getSavingGoalUseCase.execute(
             id
         ).getOrThrow())
     }
 
     @GetMapping
-    suspend fun getAllSavingGoal(query: QueryFilter, type: String? = null): ResponseEntity<ListOutput<GetSavingGoalOutput>> {
+    suspend fun getAllSavingGoal(query: QueryFilter, type: String? = null): ResponseEntity<ListOutput<GetFundOutput>> {
         return ResponseEntity.ok(getAllSavingGoalUseCase.execute(GetAllFundInput(
             query,
             if (!type.isNullOrEmpty()) FundType.fromString(type) else null
@@ -78,10 +78,12 @@ class FundController (
     }
 
     @PutMapping("/{id}/increase")
-    suspend fun increaseSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpgradeSavingGoalModel): ResponseEntity<Unit> {
+    suspend fun increaseSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpgradeFundModel): ResponseEntity<Unit> {
+        val currentUser = auth.getCurrentUser()
         return ResponseEntity.ok(increaseSavingGoalUseCase.execute(
             IncreaseFundInput(
                 fundId = id,
+                userId = currentUser.id,
                 accountId = request.accountId,
                 amount = request.amount
             )
@@ -89,10 +91,12 @@ class FundController (
     }
 
     @PutMapping("/{id}/decrease")
-    suspend fun decreaseSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpgradeSavingGoalModel): ResponseEntity<Unit> {
+    suspend fun decreaseSavingGoal(@PathVariable id: UUID, @Valid @RequestBody request: ApiUpgradeFundModel): ResponseEntity<Unit> {
+        val currentUser = auth.getCurrentUser()
         return ResponseEntity.ok(decreaseSavingGoalUseCase.execute(
             DecreaseFundInput(
                 fundId = id,
+                userId = currentUser.id,
                 accountId = request.accountId,
                 amount = request.amount
             )

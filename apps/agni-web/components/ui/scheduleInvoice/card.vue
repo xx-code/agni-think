@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { CategoryType } from '~/types/ui/category';
-import type { ScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
+import type { ScheduleInvoice } from '~/types/ui/scheduleTransaction';
 
 const props = defineProps<{
-    data: ScheduleInvoiceType
+    data: ScheduleInvoice
     categories: CategoryType[]
 }>()
 
@@ -99,7 +99,7 @@ const actionItems = computed<DropdownMenuItem[][]>(() => [
 
         <p
             class="font-semibold tabular-nums"
-            :class="data.type.toLowerCase() === 'income' ? 'text-emerald-500' : 'text-red-500'"
+            :class="(data.invoiceType?.toLowerCase() === 'income') ? 'text-emerald-500' : 'text-red-500'"
         >
             {{ formatCurrency(data.amount) }}
         </p>

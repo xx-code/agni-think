@@ -116,5 +116,14 @@
   "UNKNOWN_EXCEPTION": "Une erreur inattendue est survenue : {{error}}",
   "VALIDATION_ERROR": "La validation a échoué : {{reason}}",
   "SPENDING_PERIOD_INCOME_MUST_BE_ONLY_SCHEDULE_INCOME": "Vous ne pouvez sélectionner que des revenus récurrents pour les revenus de la période de dépense",
-  "SPENDING_PERIOD_INCOME_MUST_BE_ONLY_SCHEDULE_EXPENSE": "Vous ne pouvez sélectionner que des dépenses récurrentes pour les dépenses de la période de dépense"
+  "SPENDING_PERIOD_INCOME_MUST_BE_ONLY_SCHEDULE_EXPENSE": "Vous ne pouvez sélectionner que des dépenses récurrentes pour les dépenses de la période de dépense",
+  "SCHEDULE_SAVING_INVOICE_MUST_HAVE_FUND": "La facture d'épargne programmée doit être associée à un fonds.",
+  "SAVING_GOAL_AMORTIZATION_MUST_NOT_HAVE_ACCOUNT": "L'amortissement de l'objectif d'épargne ne doit pas comporter de compte.",
+  "SINKING_FUND_MUST_HAVE_ACCOUNT_ID_FOR_SPECIFIC_TYPE": "Le fonds d'amortissement (sinking fund) doit posséder un identifiant de compte pour le type spécifique : {{type}}",
+  "SINKING_FUND_MUST_SETUP_DETAIL": "Les détails du fonds d'amortissement (sinking fund) doivent être configurés.",
+  "FUND_NUMBER_OF_CONTRIBUTION_MUST_BE_GREATER_THAN_ZERO": "Le nombre de contributions du fonds doit être supérieur à zéro.",
+  "COMPLETE_INVOICE_FUND_INVALID_NOT_FOUND": "Le fonds de la facture complète est invalide ou introuvable.",
+  "FUND_MUST_HAVE_TARGET": "Le fonds doit définir une cible ou un objectif.",
+  "CANNOT_DELETE_FUND_WITH_INVOICE_IN_PENDING": "Vous ne pouvez pas supprimer un fond qui a une facture en attend",
+  "INVOICE_ALREADY_COMPLETE": "Facture est deja complete"
 }

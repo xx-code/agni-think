@@ -13,8 +13,12 @@ import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Profile
 import domain.entities.Notification
+import domain.entities.ScheduleInvoice
 import domain.entities.SpendingPeriod
 import domain.entities.SpendingPeriodTemplate
+import domain.enums.InvoiceStatusType
+import domain.enums.InvoiceType
+import domain.enums.ScheduleInvoiceType
 import domain.enums.SpendingPeriodStateType
 import usecases.dto.BackgroundTaskOut
 import usecases.spending_period.dto.ForcastSpendingPeriodInput
@@ -24,10 +28,12 @@ import domain.value_objects.SchedulerRecurrence
 import domain.value_objects.SnapshotForcastSpendingPeriod
 import usecases.UseCase
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class ApplySpendingPeriodTemplate(
     private val spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
     private val spendingPeriodRepo: IRepository<SpendingPeriod>,
+    private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
     private val profileRepo: IRepository<Profile>,
     unitOfWork: IUnitOfWork,
     private val eventRegister: IEventRegister,
@@ -64,6 +70,12 @@ class ApplySpendingPeriodTemplate(
                     val profiles = profileRepo.getAll(QueryFilter.queryAll())
                     val savingRate = profiles.items.firstOrNull()?.savingPercentage ?: 0.0
 
+                    val conditionScheduler = QueryExtendBuilder<ScheduleInvoice>()
+                        .addCondition("isPause", QueryComparator.Equal, false)
+                        .addCondition("scheduler.date", QueryComparator.GreaterOrEquals, spendingPeriodTemp.startDate)
+                        .addCondition("scheduler.date", QueryComparator.LesserOrEquals, spendingPeriodTemp.endDate)
+                    val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), conditionScheduler)
+
 
                     spendingPeriodRepo.create(SpendingPeriod(
                         userId = spendingPeriodTemp.userId,
@@ -72,8 +84,8 @@ class ApplySpendingPeriodTemplate(
                         endDate = updateDate,
                         savingRateTarget = savingRate,
                         state = SpendingPeriodStateType.DRAFT,
-                        scheduleIncomesSelected = setOf(),
-                        scheduleExpensesSelected = setOf(),
+                        scheduleIncomesSelected = scheduleInvoices.items.filter { it.invoiceType == InvoiceType.INCOME }.map { it.id }.toSet(),
+                        scheduleExpensesSelected = scheduleInvoices.items.filter { it.invoiceType != InvoiceType.INCOME }.map { it.id }.toSet(),
                         budgetsSelected = spendingPeriodTemp.targetBudgetIds,
                         closeBalance = 0.0,
                         wishlistItemSelected = setOf(),
