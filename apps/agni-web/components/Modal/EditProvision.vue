@@ -19,7 +19,7 @@ import type { EditProvision, Provision } from '~/types/ui/provision';
 import type { CreateProvisionRequest, UpdateProvisionRequest } from "~/types/api/provision";
 import type { GetFundResponse, QueryFilterFundRequest } from "~/types/api/fund";
 import { FundType } from "~/types/constants/fund";
-import { listFundResponseTolistFund } from "~/mappers/fund";
+import { tolistFund } from "~/mappers/fund";
 
 
 const { provision } = defineProps<{
@@ -58,7 +58,7 @@ const { data: utils } = useAsyncData('provision-utils', async () => {
         ApiLinkBuilder.route<GetInternalTypeResponse[]>(API_ROUTES.INTERNALS.PERIOD_TYPE).execute(),
         ApiLinkBuilder.route<ListResponse<GetFundResponse>>(API_ROUTES.FUNDS.GET_FUNDS)
             .query({ queryAll: true, offset:0, limit: 1, type: FundType.Amortization} as QueryFilterFundRequest)
-            .mapper(listFundResponseTolistFund)
+            .mapper(tolistFund)
             .execute()
     ])
     isLoading.value = false

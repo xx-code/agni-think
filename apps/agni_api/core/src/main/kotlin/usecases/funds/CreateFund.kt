@@ -84,7 +84,9 @@ class CreateFund(
                 ),
                 freezeScheduler = null,
                 isPause = false,
-                endDate = sinkingFundDetail.fundSchedule?.date
+                endDate = sinkingFundDetail.fundSchedule?.repeater.let {
+                    sinkingFundDetail.fundSchedule?.date
+                }
             ))
         }
 

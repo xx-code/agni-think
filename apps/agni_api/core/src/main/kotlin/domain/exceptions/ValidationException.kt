@@ -38,6 +38,8 @@ sealed class ValidationException(errorKey: String, metadata: Map<String, Any>) :
 
     class TreatedTransactionAlreadyTreated : ValidationException("TRANSACTION_ALREADY_TREATED", mapOf())
 
+    class CannotCompleteInvoiceAlreadyComplete: ValidationException("INVOICE_ALREADY_COMPLETE", mapOf())
+
     class InternalLoanAllPendingMustBeReady : ValidationException("INTERNAL_LOAN_ALL_MUST_NOT_READ", mapOf())
 
     class InternalLoanAccountNotAllowForCollateral :
@@ -170,6 +172,9 @@ sealed class ValidationException(errorKey: String, metadata: Map<String, Any>) :
 
     class FundIncreaseMustBeLesserOrEqualToFundAmount(amount: Double) :
         ValidationException("FUND_INCREASE_MUST_BE_LESSER_OR_EQUAL_TO_FUND_AMOUNT", mapOf("amount" to amount))
+
+    class CantDeleteFundWithInvoiceInPending:
+        ValidationException("CANNOT_DELETE_FUND_WITH_INVOICE_IN_PENDING", mapOf())
 
     // --- Schedule Invoice ---
 

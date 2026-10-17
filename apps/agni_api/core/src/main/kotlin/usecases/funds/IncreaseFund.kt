@@ -47,7 +47,7 @@ class IncreaseFund(
         if (input.amount > account.balance)
             throw ValidationException.SavingGoalBalanceMustBeLesserThanAmount()
 
-        if (input.amount > fund.balance)
+        if (input.amount > (fund.target - fund.balance))
             throw ValidationException.FundIncreaseMustBeLesserOrEqualToFundAmount(input.amount)
 
         createInvoice.processDirect(CreateInvoiceInput(

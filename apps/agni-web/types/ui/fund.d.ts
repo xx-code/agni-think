@@ -1,5 +1,5 @@
 import type { CalendarDate } from "@internationalized/date"
-import type { GetFundResponse } from "../api/fund"
+import type { GetFundResponse, SinkFundRequest } from "../api/fund"
 import type { FundType } from "../constants/fund"
 
 export type EditFund = {
@@ -8,10 +8,27 @@ export type EditFund = {
     type: string
     description: string
     target: number
+    sinkingDetail?: SinkFundRequest
 }
 
-export type Fund = Omit<GetFundResponse, 'type'> & {
+export type Fund = Omit<GetFundResponse, 'type' | 'sinkingFundDetail'> & {
     type: FundType
+    sinkingFundDetail?: {
+        numberOfContributions: number
+        startDate: Date
+        contributionRecurrence: {
+            interval: number
+            period: string
+        }
+        fundScheduler?: {
+            date: Date
+            repeater?: {
+                interval: number
+                period: string
+            }
+        }
+        isClosed: boolean
+    }
 }
 
 export type FundCard = Fund & { goalSummary?: { numberGoal: number, nextDueDate: Date }  }

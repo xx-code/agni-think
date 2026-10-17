@@ -56,13 +56,18 @@ class UpdateFund(
             }
         }
 
+        if (input.sinkingFundDetail != null) {
+            fund.sinkingFundDetail = input.sinkingFundDetail
+        }
+
         if (input.type != null && input.type != fund.type ) {
             fund.type = input.type
             if (input.type == FundType.AMORTIZATION)
                 fund.accountId = null
 
-            if (input.type != FundType.SINKING_FUND)
+            if (fund.type != FundType.SINKING_FUND){
                 fund.sinkingFundDetail = null
+            }
         }
 
         if (fund.hasChanged()) {
@@ -108,7 +113,9 @@ class UpdateFund(
                         ),
                         freezeScheduler = null,
                         isPause = false,
-                        endDate = sinkingFundDetail.fundSchedule?.date
+                        endDate = sinkingFundDetail.fundSchedule?.repeater.let {
+                            sinkingFundDetail.fundSchedule?.date
+                        }
                     ))
                 } else {
                     val existSchedule = scheduleInvoices.items.first()
@@ -120,7 +127,9 @@ class UpdateFund(
                     existSchedule.title = fund.title + "-" + "Contribution"
                     existSchedule.accountId = fund.accountId!!
                     existSchedule.amount = (target / numberOfPay)
-                    existSchedule.endDate = sinkingFundDetail.fundSchedule?.date
+                    existSchedule.endDate = sinkingFundDetail.fundSchedule?.repeater.let {
+                        sinkingFundDetail.fundSchedule?.date
+                    }
                     existSchedule.scheduler = Scheduler(
                         date = startDate,
                         repeater = sinkingFundDetail.contributionRecurrence

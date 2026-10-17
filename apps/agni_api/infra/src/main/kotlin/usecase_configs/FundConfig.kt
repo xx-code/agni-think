@@ -7,6 +7,7 @@ import adapters.repositories.IUnitOfWork
 import domain.entities.Account
 import domain.entities.Goal
 import domain.entities.Fund
+import domain.entities.Invoice
 import domain.entities.ScheduleInvoice
 import domain.entities.User
 import usecases.dto.CreatedOutput
@@ -129,6 +130,7 @@ class FundConfig {
         createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
         scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
         deleteScheduleInvoice: IUseCase<DeleteScheduleInvoiceInput, Unit>,
+        invoiceRepo: IRepository<Invoice>,
         unitOfWork: IUnitOfWork,
         auth: IAuthenticateAdapter,
    ): UseCase<DeleteFundInput, Unit> {
@@ -139,6 +141,7 @@ class FundConfig {
            unitOfWork = unitOfWork,
            goalRepo = goalRepo,
            auth = auth,
+           invoiceRepo = invoiceRepo,
            scheduleInvoiceRepo = scheduleInvoiceRepo,
            deleteScheduleInvoice = deleteScheduleInvoice
        )

@@ -123,5 +123,7 @@
   "SINKING_FUND_MUST_SETUP_DETAIL": "The sinking fund must set up details.",
   "FUND_NUMBER_OF_CONTRIBUTION_MUST_BE_GREATER_THAN_ZERO": "The fund number of contributions must be greater than zero.",
   "COMPLETE_INVOICE_FUND_INVALID_NOT_FOUND": "The complete invoice fund is invalid or not found.",
-  "FUND_MUST_HAVE_TARGET": "The fund must have a target."
+  "FUND_MUST_HAVE_TARGET": "The fund must have a target.",
+  "CANNOT_DELETE_FUND_WITH_INVOICE_IN_PENDING": "You cannot dlete fund with invoice in pending",
+  "INVOICE_ALREADY_COMPLETE": "Invoice already complete"
 }

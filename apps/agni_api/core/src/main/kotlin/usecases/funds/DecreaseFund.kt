@@ -41,7 +41,7 @@ class DecreaseFund(
         if (input.amount <= 0)
             throw ValidationException.SavingGoalAmountMustBeGreaterThanZero()
 
-        if (fund.balance <= input.amount)
+        if (fund.balance < input.amount)
             throw ValidationException.SavingGoalBalanceMustBeGreaterThanAmount()
 
         if (fund.accountId != null && input.accountId != fund.accountId)
@@ -49,8 +49,6 @@ class DecreaseFund(
 
 
         val account = accountRepo.get(input.accountId) ?: throw NotFoundException.SingleEntity(input.accountId, "account")
-        if (account.balance < input.amount)
-            throw ValidationException.SavingGoalBalanceMustBeGreaterThanAmount()
 
         createInvoice.processDirect(CreateInvoiceInput(
             userId = account.userId,

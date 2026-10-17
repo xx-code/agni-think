@@ -8,12 +8,19 @@ data class SinkingFundDetail(
     val contributionRecurrence: SchedulerRecurrence,
     val fundSchedule: Scheduler?
 ): IValueObject {
-    override fun toMap(): Map<String, Any> = mapOf(
-        "start_date" to startDate.toString(),
-        "number_of_contributions" to numberOfContributions,
-        "contribution_recurrence" to contributionRecurrence.toMap(),
-        "fund_schedule" to fundSchedule?.toMap() as Any,
-    )
+    override fun toMap(): Map<String, Any> {
+        val map = mutableMapOf(
+            "start_date" to startDate.toString(),
+            "number_of_contributions" to numberOfContributions,
+            "contribution_recurrence" to contributionRecurrence.toMap(),
+        )
+
+        if (fundSchedule != null) {
+            map["fund_schedule"] = fundSchedule.toMap()
+        }
+
+        return map
+    }
 
     companion object {
         fun fromMap(map: Map<String, Any>?): SinkingFundDetail? {

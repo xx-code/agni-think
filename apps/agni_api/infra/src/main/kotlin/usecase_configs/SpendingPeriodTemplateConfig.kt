@@ -7,6 +7,7 @@ import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import domain.entities.Budget
 import domain.entities.Profile
+import domain.entities.ScheduleInvoice
 import domain.entities.SpendingPeriod
 
 import domain.entities.SpendingPeriodTemplate
@@ -103,6 +104,7 @@ class SpendingPeriodTemplateConfig {
         spendingPeriodTemplateRepo: IRepository<SpendingPeriodTemplate>,
         spendingPeriodRepo: IRepository<SpendingPeriod>,
         profileRepo: IRepository<Profile>,
+        scheduleInvoicesRepo: IRepository<ScheduleInvoice>,
         eventRegister: IEventRegister,
         unitOfWork: IUnitOfWork,
     ): UseCase<Unit, BackgroundTaskOut> {
@@ -111,6 +113,7 @@ class SpendingPeriodTemplateConfig {
             spendingPeriodRepo = spendingPeriodRepo,
             profileRepo = profileRepo,
             unitOfWork = unitOfWork,
+            scheduleInvoiceRepo = scheduleInvoicesRepo,
             eventRegister = eventRegister,
         )
     }

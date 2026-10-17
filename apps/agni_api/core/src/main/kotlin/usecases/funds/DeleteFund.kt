@@ -8,13 +8,16 @@ import domain.SAVING_CATEGORY_ID
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryComparator
+import adapters.repositories.QueryCondition
 import adapters.repositories.QueryExtendBuilder
 import domain.entities.Account
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.Goal
 import domain.entities.Fund
+import domain.entities.Invoice
 import domain.entities.ScheduleInvoice
+import domain.enums.InvoiceModuleLinkerType
 import usecases.dto.CreatedOutput
 import usecases.invoices.dto.CreateInvoiceInput
 import usecases.invoices.dto.TransactionInput
@@ -33,17 +36,13 @@ class DeleteFund(
     private val goalRepo: IRepository<Goal>,
     private val createInvoice: IUseCase<CreateInvoiceInput, CreatedOutput>,
     private val scheduleInvoiceRepo: IRepository<ScheduleInvoice>,
+    private val invoiceRepo: IRepository<Invoice>,
     private val deleteScheduleInvoice: IUseCase<DeleteScheduleInvoiceInput, Unit>,
     unitOfWork: IUnitOfWork,
     auth: IAuthenticateAdapter
 ): UseCase<DeleteFundInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
     override suspend fun process(input: DeleteFundInput) {
         val fund = fundRepo.get(input.fundId) ?: throw NotFoundException.SingleEntity(input.fundId, "saving_goal")
-
-        if (fund.balance == 0.0) {
-            fundRepo.delete(input.fundId)
-            return
-        }
 
         if (input.accountId == null && fund.accountId == null)
             throw ValidationException.SavingGoalAccountIdMustNotBeNull()
@@ -56,25 +55,35 @@ class DeleteFund(
 
         accountRepo.get(accountId) ?: throw NotFoundException.SingleEntity(accountId, "account")
 
-        createInvoice.processDirect(CreateInvoiceInput(
-            userId = fund.userId,
-            accountId = accountId,
-            status = InvoiceStatusType.COMPLETED,
-            date = LocalDateTime.now(),
-            type = InvoiceType.OTHER,
-            movementType = InvoiceMovementType.CREDIT,
-            currency = null,
-            transactions = setOf(TransactionInput(
-                amount = fund.balance,
-                categoryId = SAVING_CATEGORY_ID,
-                description = "Argent plan d'epargne ${fund.title}",
-                tagIds = setOf(),
-                budgetIds = setOf()
-            )),
-            deductions = setOf()
-        ))
+        if (fund.balance > 0) {
+            createInvoice.processDirect(CreateInvoiceInput(
+                userId = fund.userId,
+                accountId = accountId,
+                status = InvoiceStatusType.COMPLETED,
+                date = LocalDateTime.now(),
+                type = InvoiceType.OTHER,
+                movementType = InvoiceMovementType.CREDIT,
+                currency = null,
+                transactions = setOf(TransactionInput(
+                    amount = fund.balance,
+                    categoryId = SAVING_CATEGORY_ID,
+                    description = "Argent plan d'epargne ${fund.title}",
+                    tagIds = setOf(),
+                    budgetIds = setOf()
+                )),
+                deductions = setOf()
+            ))
+        }
 
-        fundRepo.delete(input.fundId)
+        // Block delete fund if any invoice in pending
+        val conditionInvoice = QueryExtendBuilder<Invoice>()
+            .addCondition("moduleLinkers.sourceId", QueryComparator.Equal, input.fundId)
+            .addCondition("moduleLinkers.module", QueryComparator.Equal, InvoiceModuleLinkerType.FUND)
+            .addCondition("status", QueryComparator.Equal, InvoiceStatusType.PENDING)
+        val invoices = invoiceRepo.getAll(QueryFilter.queryAll(), conditionInvoice )
+        if (invoices.items.isNotEmpty())
+            throw ValidationException.CantDeleteFundWithInvoiceInPending()
+
 
         // Delete goal
         val conditionGoal = QueryExtendBuilder<Goal>()
@@ -83,7 +92,7 @@ class DeleteFund(
 
         // Delete schedule Saving
         val scheduleInvoiceCondition = QueryExtendBuilder<ScheduleInvoice>()
-            .addCondition("moduleLinker.sourceId", QueryComparator.Equal, fund.id)
+            .addCondition("moduleLinker.sourceId", QueryComparator.Equal, input.fundId)
             .addCondition("moduleLinker.module", QueryComparator.Equal, ScheduleInvoiceModuleLinkerType.FUND.value)
         val scheduleInvoices = scheduleInvoiceRepo.getAll(QueryFilter.queryAll(), scheduleInvoiceCondition)
         for (scheduleInvoice in scheduleInvoices.items) {
@@ -92,5 +101,8 @@ class DeleteFund(
                 passContextEdit = true
             ))
         }
+
+
+        fundRepo.delete(input.fundId)
     }
 }

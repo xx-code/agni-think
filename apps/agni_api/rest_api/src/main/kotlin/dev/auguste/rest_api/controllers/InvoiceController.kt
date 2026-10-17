@@ -61,8 +61,6 @@ class InvoiceController(
     private val completeInvoiceUseCase: IUseCase<CompleteInvoiceInput, Unit>,
     @Qualifier("cancelTransferInvoice")
     private val cancelTransfer: IUseCase<UUID, Unit>,
-    @Qualifier("completeInvoiceFund")
-    private val completeInvoiceFund: IUseCase<UUID, Unit>,
     private val auth: IAuthenticateAdapter
 ) {
 
@@ -190,8 +188,4 @@ class InvoiceController(
         return ResponseEntity.ok(cancelTransfer.execute(id).getOrThrow())
     }
 
-    @PostMapping("{id}/completed-fund")
-    suspend fun completedFund(@PathVariable id: UUID) : ResponseEntity<Unit> {
-        return ResponseEntity.ok(completeInvoiceFund.execute(id).getOrThrow())
-    }
 }

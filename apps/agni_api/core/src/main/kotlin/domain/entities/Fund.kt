@@ -39,7 +39,7 @@ class Fund(
 
     var type by cleanObservable(type, this)
     var sinkingFundDetail by cleanObservable(sinkingFundDetail, this, {
-        it != null && type == FundType.SINKING_FUND
+        it != null && type == FundType.SINKING_FUND || type != FundType.SINKING_FUND
     }, {
         ValidationException.SinkingFundMustSetupDetail()
     })

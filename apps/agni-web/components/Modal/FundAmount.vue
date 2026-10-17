@@ -24,7 +24,7 @@ const toast = useToast()
 
 const schema = z.object({
     accountId: z.string().nonempty("Vous devez selectionner un compte crediteur ou debiteur"),
-    amount: z.number().min(1, "Vous devez credit ou debiter une somme superieux a zero") 
+    amount: z.number().min(0, "Vous devez credit ou debiter une somme superieux a zero") 
 })
 
 const form = reactive({

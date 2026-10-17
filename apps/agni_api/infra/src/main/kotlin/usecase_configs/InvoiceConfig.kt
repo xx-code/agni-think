@@ -17,6 +17,7 @@ import domain.entities.Budget
 import domain.entities.Category
 import domain.entities.Deduction
 import domain.entities.ExternalTransaction
+import domain.entities.Fund
 import domain.entities.Invoice
 import domain.entities.Tag
 import domain.entities.Transaction
@@ -70,7 +71,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import usecases.UseCase
 import usecases.funds.dto.IncreaseFundInput
-import usecases.invoices.CompleteInvoiceFund
 import java.util.UUID
 
 @Configuration
@@ -102,6 +102,8 @@ class InvoiceConfig {
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
         unitOfWork: IUnitOfWork,
         eventRegister: IEventRegister,
+        increaseFund: IUseCase<IncreaseFundInput, Unit>,
+        deleteInvoice: IUseCase<DeleteInvoiceInput, Unit>,
         snapshotBalanceAccountRepo: IAccountBalanceSnapshotRepository,
         auth: IAuthenticateAdapter,
         ): UseCase<CompleteInvoiceInput, Unit> {
@@ -113,6 +115,8 @@ class InvoiceConfig {
             eventRegister = eventRegister,
             snapshotAccountBalanceRepo = snapshotBalanceAccountRepo,
             auth = auth,
+            increaseFund = increaseFund,
+            deleteInvoice = deleteInvoice,
         )
     }
 
@@ -154,6 +158,8 @@ class InvoiceConfig {
         getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
         unitOfWork: IUnitOfWork,
         eventRegister: IEventRegister,
+        fundRepo: IRepository<Fund>,
+        updateFundScheduleInvoice: IUseCase<Fund, Unit>,
         snapshotBalanceAccountRepo: IAccountBalanceSnapshotRepository,
         auth: IAuthenticateAdapter,
     ): UseCase<DeleteInvoiceInput, Unit> {
@@ -166,6 +172,8 @@ class InvoiceConfig {
             eventRegister = eventRegister,
             snapshotAccountBalanceRepo = snapshotBalanceAccountRepo,
             auth = auth,
+            fundRepo = fundRepo,
+            updateFundScheduleInvoice = updateFundScheduleInvoice
         )
     }
 
@@ -429,25 +437,6 @@ class InvoiceConfig {
             externalTransactionRepo = externalTransRepo,
             embeddingService = embeddingService,
             collectionName=collectionName
-        )
-    }
-
-    @Bean
-    fun completeInvoiceFund(
-        invoiceRepo: IRepository<Invoice>,
-        getInvoiceTransferInvoice: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
-        increaseFund: IUseCase<IncreaseFundInput, Unit>,
-        deleteInvoice: IUseCase<DeleteInvoiceInput, Unit>,
-        auth: IAuthenticateAdapter,
-        uow: IUnitOfWork
-    ): UseCase<UUID, Unit> {
-        return CompleteInvoiceFund(
-            invoiceRepo = invoiceRepo,
-            getInvoiceTransactions = getInvoiceTransferInvoice,
-            increaseFund = increaseFund,
-            deleteInvoice = deleteInvoice,
-            auth = auth,
-            uow = uow
         )
     }
 }

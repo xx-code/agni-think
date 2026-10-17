@@ -123,5 +123,7 @@
   "SINKING_FUND_MUST_SETUP_DETAIL": "Les détails du fonds d'amortissement (sinking fund) doivent être configurés.",
   "FUND_NUMBER_OF_CONTRIBUTION_MUST_BE_GREATER_THAN_ZERO": "Le nombre de contributions du fonds doit être supérieur à zéro.",
   "COMPLETE_INVOICE_FUND_INVALID_NOT_FOUND": "Le fonds de la facture complète est invalide ou introuvable.",
-  "FUND_MUST_HAVE_TARGET": "Le fonds doit définir une cible ou un objectif."
+  "FUND_MUST_HAVE_TARGET": "Le fonds doit définir une cible ou un objectif.",
+  "CANNOT_DELETE_FUND_WITH_INVOICE_IN_PENDING": "Vous ne pouvez pas supprimer un fond qui a une facture en attend",
+  "INVOICE_ALREADY_COMPLETE": "Facture est deja complete"
 }

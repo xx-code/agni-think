@@ -15,7 +15,7 @@ import type { GoalQueryFilterRequest, GoalResponse } from '~/types/api/goal'
 import type { GetFundTotalSummary } from '~/types/api/analytics'
 import type { Fund } from "~/types/ui/fund"
 import type { Goal } from "~/types/ui/goal"
-import { fundResponseToFund, fundToFundCard, fundToFundForm } from "~/mappers/fund"
+import { toFund, toFundCard, toFundForm } from "~/mappers/fund"
 import { FUND_TYPE_LIST, FundType, getIconFundType, getLabelFundType } from '~/types/constants/fund'
 import { GoalStatus } from "~/types/constants/goal"
 
@@ -71,7 +71,7 @@ const modalFund = overlay.create(ModalFund)
 const modalAmountFund = overlay.create(ModalFundAmount)
 
 async function updateFundList(id: string) {
-    const fund = await ApiLinkBuilder.route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND).params({id}).mapper(fundResponseToFund).execute()
+    const fund = await ApiLinkBuilder.route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND).params({id}).mapper(toFund).execute()
     const index = funds.value.findIndex(i => i.id == id)
     if (index >= 0 ) {
         funds.value[index] = fund
@@ -88,12 +88,12 @@ async function updateGoalList() {
 async function openModalFund(goalId?: string) {
     let fund: Fund | undefined = undefined
     if (goalId) {
-        fund = await ApiLinkBuilder.route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND).params({id: goalId}).mapper(fundResponseToFund).execute()
+        fund = await ApiLinkBuilder.route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND).params({id: goalId}).mapper(toFund).execute()
     }
 
     modalFund.open({
         fundId: fund?.id,
-        initData: fund ? fundToFundForm(fund) : undefined,
+        initData: fund ? toFundForm(fund) : undefined,
         onClose: async (returnId) => {
             if (returnId) {
                 updateGoalList()
@@ -105,7 +105,7 @@ async function openModalFund(goalId?: string) {
 
 async function openModalFundAmount (isIncrease: boolean, fundId: string) {
     try {
-        let fund = await ApiLinkBuilder.route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND).params({id: fundId}).mapper(fundResponseToFund).execute()
+        let fund = await ApiLinkBuilder.route<GetFundResponse>(API_ROUTES.FUNDS.GET_FUND).params({id: fundId}).mapper(toFund).execute()
         
         modalAmountFund.open({
             isIncrease: isIncrease,
@@ -201,7 +201,7 @@ async function getAllFunds() {
         }
         const raw = await ApiLinkBuilder.route<ListResponse<GetFundResponse>>(API_ROUTES.FUNDS.GET_FUNDS).query(query).execute()
         var res = {
-            items: raw.items.map(data => fundResponseToFund(data)),
+            items: raw.items.map(data => toFund(data)),
             total: raw.total
         }
         funds.value.push(...res.items) 
@@ -321,7 +321,7 @@ watch(filterGoal, () => {
             <UiFundCard 
                 v-for="fund in funds" 
                 :key="fund.id"
-                :fund="fundToFundCard(fund)"
+                :fund="toFundCard(fund)"
                 @add-goal=""
                 @refresh="refreshed =>  {
                     if (refreshed) {

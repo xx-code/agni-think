@@ -10,7 +10,7 @@ import type { CreatedRequest, ListResponse, QueryFilterRequest } from '~/types/a
 import type { GetCategoryResponse } from '~/types/api/category';
 import type { CreateScheduleInvoiceRequest, GetScheduleInvoiceResponse, UpdateScheduleInvoiceRequest } from '~/types/api/scheduleTransaction';
 import type { GetTagResponse } from '~/types/api/tag';
-import type { EditScheduleInvoiceType, ScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
+import type { EditScheduleInvoice, ScheduleInvoice } from '~/types/ui/scheduleTransaction';
 import type { GetScheduleInvoiceSummaryResponse } from '~/types/api/analytics';
 import { scheduleInvoiceSummaryResponseToScheduleInvoiceSummary } from '~/mappers/analytics';
 import useLazyInifinteScroll from '~/composables/ui/useLazyInfiniteScroll';
@@ -40,7 +40,7 @@ const { data: utils } = useAsyncData('utils+schedule-invoices', async () => {
     }
 })
 
-const { data, query, loadData, loading, hasMore, totalData, reset, removeData, updateData } = useLazyInifinteScroll<QueryFilterRequest, GetScheduleInvoiceResponse, ScheduleInvoiceType>(
+const { data, query, loadData, loading, hasMore, totalData, reset, removeData, updateData } = useLazyInifinteScroll<QueryFilterRequest, GetScheduleInvoiceResponse, ScheduleInvoice>(
     API_ROUTES.SCHEDULE_INVOICES.GET_SCHEDULE_INVOICES,
     API_ROUTES.SCHEDULE_INVOICES.GET_SCHEDULE_INVOICE,
     listScheduleInvoicesResponseToListScheduleInvoices,
@@ -61,7 +61,7 @@ async function togglePauseSchedule(id:string, isPause: boolean) {
 }
 
 
-async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: ScheduleInvoiceType) {
+async function onSubmitTransaction(value: EditScheduleInvoice, oldValue?: ScheduleInvoice) {
     try {
         if (oldValue) {
             const index = data.value.findIndex(i => i.id === oldValue.id) 
@@ -81,6 +81,7 @@ async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: Sc
                     name: value.name,
                     tagIds: value.tagIds,
                     type: value.type,
+                    invoiceType: value.invoiceType,
                     endDate: value.endDate?.toDate(getLocalTimeZone()).toISOString(),
                     freezeSchedule: (value.freezeEndDate && value.freezeRepeater) ? {
                         dueDate: value.freezeEndDate.toDate(getLocalTimeZone()).toISOString(),
@@ -98,7 +99,6 @@ async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: Sc
                 accountId: value.accountId,
                 amount: value.amount,
                 categoryId: value.categoryId,
-                isFreeze: value.isFreeze,
                 schedule:{
                     dueDate:  value.dueDate.toDate(getLocalTimeZone()).toISOString(),
                     repeater: {
@@ -110,6 +110,7 @@ async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: Sc
                 name: value.name,
                 tagIds: value.tagIds,
                 type: value.type,
+                invoiceType: value.invoiceType,
                 endDate: value.endDate?.toDate(getLocalTimeZone()).toISOString(),
                 freezeSchedule: (value.freezeEndDate && value.freezeRepeater) ? {
                     dueDate: value.freezeEndDate.toDate(getLocalTimeZone()).toISOString(),
@@ -132,7 +133,7 @@ async function onSubmitTransaction(value: EditScheduleInvoiceType, oldValue?: Sc
 }
 
 async function openInvoice(id?: string) {
-    let scheduleInvoice:ScheduleInvoiceType|undefined;
+    let scheduleInvoice:ScheduleInvoice|undefined;
     if (id)
         scheduleInvoice = await ApiLinkBuilder.route<GetScheduleInvoiceResponse>(API_ROUTES.SCHEDULE_INVOICES.GET_SCHEDULE_INVOICE).params({id}).mapper(scheduleInvoiceResponseToScheduleInvoice).execute();
 

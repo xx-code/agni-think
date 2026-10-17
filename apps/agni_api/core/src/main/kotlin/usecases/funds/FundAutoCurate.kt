@@ -19,6 +19,8 @@ import usecases.UseCase
 import usecases.dto.BackgroundTaskOut
 import usecases.funds.dto.DecreaseFundInput
 import usecases.interfaces.IUseCase
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDateTime
 
 class FundAutoCurate(
@@ -35,15 +37,16 @@ class FundAutoCurate(
         val sinkingFunds = funds.items.filter { it.sinkingFundDetail != null }
 
         for (fund in sinkingFunds) {
+            val fundBalance = BigDecimal(fund.balance)
+                .setScale(2, RoundingMode.HALF_UP)
+                .toDouble()
+
+            val fundTarget = BigDecimal(fund.target)
+                .setScale(2, RoundingMode.HALF_UP)
+                .toDouble()
+
             val sinkingFundDetail = fund.sinkingFundDetail!!
             if (sinkingFundDetail.fundSchedule != null &&  sinkingFundDetail.fundSchedule.date <= LocalDateTime.now() && fund.accountId != null) {
-                decreaseFund.processDirect(DecreaseFundInput(
-                    userId = fund.userId,
-                    fund.id,
-                    amount = fund.balance,
-                    accountId = fund.accountId!!
-                ))
-
                 if (sinkingFundDetail.fundSchedule.repeater != null) {
                     fund.sinkingFundDetail = SinkingFundDetail(
                         startDate = sinkingFundDetail.fundSchedule.date.toLocalDate(),
@@ -55,6 +58,15 @@ class FundAutoCurate(
                         )
                     )
                     fundRepo.update(fund)
+
+                    if (fund.balance > 0 )
+                        decreaseFund.processDirect(DecreaseFundInput(
+                            userId = fund.userId,
+                            fund.id,
+                            amount = fund.balance,
+                            accountId = fund.accountId!!
+                        ))
+
                 }
 
                 eventRegister.notify(
@@ -65,7 +77,7 @@ class FundAutoCurate(
                         userId = fund.userId,
                     )
                 )
-            } else if (fund.balance == fund.target && sinkingFundDetail.fundSchedule == null) {
+            } else if (fundBalance == fundTarget && sinkingFundDetail.fundSchedule == null) {
                 val conditionScheduleInvoice = QueryExtendBuilder<ScheduleInvoice>()
                     .addCondition("moduleLinker.sourceId", QueryComparator.Equal, fund.id)
                     .addCondition("moduleLinker.module", QueryComparator.Equal, ScheduleInvoiceModuleLinkerType.FUND.value)
