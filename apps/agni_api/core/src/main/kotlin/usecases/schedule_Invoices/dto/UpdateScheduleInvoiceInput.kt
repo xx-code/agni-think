@@ -1,6 +1,7 @@
 package usecases.schedule_Invoices.dto
 
 import domain.enums.InvoiceType
+import domain.enums.ScheduleInvoiceType
 import domain.value_objects.ScheduleInvoiceModuleLinker
 import java.time.LocalDateTime
 import java.util.UUID
@@ -12,7 +13,8 @@ data class UpdateScheduleInvoiceInput(
     val amount: Double? = null,
     val categoryId: UUID? = null,
     val tagIds: Set<UUID>? = null,
-    val type: InvoiceType? = null,
+    val type: ScheduleInvoiceType? = null,
+    val invoiceType: InvoiceType? = null,
     val isPause: Boolean? = null,
     val schedule: SchedulerInvoiceInput? = null,
     val freezeSchedule: SchedulerInvoiceInput? = null,

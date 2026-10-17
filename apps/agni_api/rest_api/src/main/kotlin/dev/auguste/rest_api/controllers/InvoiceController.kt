@@ -187,4 +187,5 @@ class InvoiceController(
     suspend fun cancelTransfer(@PathVariable id: UUID) : ResponseEntity<Unit> {
         return ResponseEntity.ok(cancelTransfer.execute(id).getOrThrow())
     }
+
 }

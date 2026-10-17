@@ -4,13 +4,13 @@ import { API_ROUTES } from '~/shared/routes';
 import type { UpdateSpendingPeriodRequest } from '~/types/api/spending-period';
 import { SpendingPeriodStateType } from '~/types/constants/spendingPeriod';
 import type { BudgetType } from '~/types/ui/budget';
-import type { ScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
+import type { ScheduleInvoice } from '~/types/ui/scheduleTransaction';
 import type { FormSpendingPeriod, SpendingPeriod } from '~/types/ui/spending-period';
 
 const { period } = defineProps<{
     period: SpendingPeriod
     budgets: BudgetType[]
-    scheduleInvoices: ScheduleInvoiceType[]
+    scheduleInvoices: ScheduleInvoice[]
 }>();
 
 const emit = defineEmits<{

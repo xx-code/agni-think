@@ -1,19 +1,53 @@
 import type { QueryFilterRequest } from "."
 import type { FundType } from "../constants/fund"
 
+export type SinkingFundDetailResponse = {
+    numberOfContributions: number
+    startDate: string
+    contributionRecurrence: {
+        interval: number
+        period: string
+    }
+    fundScheduler?: {
+        date: string
+        repeater?: {
+            interval: number
+            period: string   
+        }
+    }
+    isClosed: boolean
+}
+
 export type GetFundResponse = {
     id: string,
     title: string,
     description: string,
     target: number,
     balance: number
-    type: FundType
+    type: string
     accountId?: string
     goals: {
         id: string,
         title: string,
         dueDate: string
     }[]
+    sinkingFundDetail?: SinkingFundDetailResponse | null
+}
+
+export type SinkFundRequest = {
+    startDate: string
+    numberOfContributions: number
+    contributionRecurrence: {
+        interval: number
+        period: string
+    }  
+    scheduler?: {
+        date: string
+        repeater?: {
+            interval: number
+            period: string   
+        }
+    }
 }
 
 export type CreateFundRequest = {
@@ -22,6 +56,7 @@ export type CreateFundRequest = {
     accountId?: string
     description: string
     type: FundType
+    sinkingFundDetail?: SinkFundRequest
 }
 
 export type UpdateFundRequest = {
@@ -30,6 +65,7 @@ export type UpdateFundRequest = {
     accountId?: string
     description?: string
     type?: FundType
+    sinkingFundDetail?: SinkFundRequest
 }
 
 export type UpgradeFundRequest = {

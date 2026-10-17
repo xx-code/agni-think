@@ -2,7 +2,7 @@
 import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
 import { reactive, shallowRef } from "vue";
 import type { FormError, FormSubmitEvent } from '#ui/types';
-import type { EditScheduleInvoiceType, ScheduleInvoiceType } from '~/types/ui/scheduleTransaction';
+import type { EditScheduleInvoice, ScheduleInvoice } from '~/types/ui/scheduleTransaction';
 import type { ListResponse } from '~/types/api';
 import type { GetCategoryResponse } from '~/types/api/category';
 import type { GetTagResponse } from '~/types/api/tag';
@@ -13,12 +13,13 @@ import { listTagsResponseToListTags } from '~/mappers/tag';
 import { listAccountsToListAccount } from '~/mappers/account';
 import { ApiLinkBuilder } from '~/utils/ApiLinkBuilder';
 import { API_ROUTES } from '~/shared/routes';
+import { ScheduleInvoiceType } from '~/types/constants/scheduleInvoice';
 
 const { scheduleInvoice } = defineProps<{
-    scheduleInvoice?: ScheduleInvoiceType
+    scheduleInvoice?: ScheduleInvoice
 }>();
 const emit = defineEmits<{
-    (e: 'submit', value: EditScheduleInvoiceType, oldValue?: ScheduleInvoiceType): void
+    (e: 'submit', value: EditScheduleInvoice, oldValue?: ScheduleInvoice): void
     (e: 'close', close: boolean): void
 }>();
 
@@ -54,7 +55,7 @@ const { data: utils, status } = useAsyncData('utils+edit-invoices', async () => 
 
 const DEFAULT_REPEATER = { period: 'Day', interval: 1 }
 
-const form = reactive<Partial<EditScheduleInvoiceType>>({
+const form = reactive<Partial<EditScheduleInvoice>>({
     accountId: scheduleInvoice?.accountId || '',
     categoryId: scheduleInvoice?.categoryId || '',
     name: scheduleInvoice?.name || '',
@@ -62,7 +63,8 @@ const form = reactive<Partial<EditScheduleInvoiceType>>({
     amount: scheduleInvoice?.amount || 0,
     repeater: scheduleInvoice?.repeater,
     freezeRepeater: scheduleInvoice?.freezeRepeater,
-    type: scheduleInvoice?.type,
+    type: scheduleInvoice?.type || ScheduleInvoiceType.Standard,
+    invoiceType: scheduleInvoice?.invoiceType,
     isFreeze: scheduleInvoice?.isFreeze ?? false
 })
 
@@ -75,10 +77,9 @@ function onChangeIsRecurrence(value: boolean) {
 function onChangeIsFreeze(value: boolean) {
     form.freezeRepeater = value ? (scheduleInvoice?.freezeRepeater ?? { ...DEFAULT_REPEATER }) : undefined
     if (value) {
-        // Champs sans rapport avec une transaction gelée — on les vide plutôt que de les
+        // Champs sans rapport avec une transaction gelée : on les vide plutôt que de les
         // laisser désactivés-mais-remplis, pour éviter d'envoyer des valeurs fantômes au submit.
         form.categoryId = ''
-        form.type = undefined
         form.tagIds = []
     }
 }
@@ -96,7 +97,7 @@ const freezeEndDate = shallowRef(toCalendarDate(scheduleInvoice?.freezeEndDate ?
 
 const df = new DateFormatter('fr-CA', { dateStyle: 'medium' });
 
-function validate(state: Partial<EditScheduleInvoiceType>): FormError[] {
+function validate(state: Partial<EditScheduleInvoice>): FormError[] {
     const errors: FormError[] = []
 
     if (!state.name) errors.push({ name: 'name', message: 'Requis' })
@@ -104,7 +105,7 @@ function validate(state: Partial<EditScheduleInvoiceType>): FormError[] {
     if (!state.isFreeze && !state.categoryId) errors.push({ name: 'categoryId', message: 'Requis' })
     if (!state.amount) errors.push({ name: 'amount', message: 'Requis' })
     if (!dueDate.value) errors.push({ name: 'dueDate', message: 'Requis' })
-    if (!state.isFreeze && !state.type) errors.push({ name: 'type', message: 'Requis' })
+    if (!state.isFreeze && !state.invoiceType) errors.push({ name: 'invoiceType', message: 'Requis' })
 
     if (state.repeater && !state.repeater.period) errors.push({ name: 'period', message: 'Requis' })
     if (state.repeater && !state.repeater.interval) errors.push({ name: 'interval', message: 'Requis' })
@@ -124,7 +125,8 @@ function resetForm() {
     form.amount = 0
     form.repeater = undefined
     form.freezeRepeater = undefined
-    form.type = undefined
+    form.type = ScheduleInvoiceType.Standard
+    form.invoiceType = undefined
     form.isFreeze = false
 
     isRecurrence.value = false
@@ -134,7 +136,7 @@ function resetForm() {
     freezeEndDate.value = toCalendarDate(new Date())
 }
 
-async function onSubmit(event: FormSubmitEvent<EditScheduleInvoiceType>) {
+async function onSubmit(event: FormSubmitEvent<EditScheduleInvoice>) {
     const data = event.data;
     isSubmitting.value = true
     try {
@@ -144,7 +146,8 @@ async function onSubmit(event: FormSubmitEvent<EditScheduleInvoiceType>) {
             categoryId: !data.isFreeze ? data.categoryId! : undefined,
             name: data.name!,
             tagIds: data.tagIds!,
-            type: !data.isFreeze ? data.type! : undefined,
+            type: data.isFreeze ? ScheduleInvoiceType.Freeze : ScheduleInvoiceType.Standard,
+            invoiceType: !data.isFreeze ? data.invoiceType! : undefined,
             isFreeze: data.isFreeze,
             dueDate: dueDate.value,
             repeater: form.repeater,
@@ -153,9 +156,6 @@ async function onSubmit(event: FormSubmitEvent<EditScheduleInvoiceType>) {
             endDate: haveToStop.value ? endDate.value : undefined
         }, scheduleInvoice)
 
-        // Note : si le parent démonte/remonte cette modale à chaque ouverture (v-if + :key),
-        // ce reset est redondant — un nouveau montage repart déjà de zéro. Il ne sert que si
-        // l'instance reste vivante entre deux ouvertures.
         resetForm()
         emit('close', true);
     } finally {
@@ -175,9 +175,9 @@ async function onSubmit(event: FormSubmitEvent<EditScheduleInvoiceType>) {
                         <USwitch v-model="form.isFreeze" @update:model-value="onChangeIsFreeze" />
                     </UFormField>
 
-                    <UFormField v-if="!form.isFreeze" label="Type de transaction" name="type">
+                    <UFormField v-if="!form.isFreeze" label="Type de transaction" name="invoiceType">
                         <USelect
-                            v-model="form.type"
+                            v-model="form.invoiceType"
                             value-key="value"
                             :loading="status === 'pending'"
                             :items="utils?.transactionTypes.map(i => ({ label: i.value, value: i.id }))"

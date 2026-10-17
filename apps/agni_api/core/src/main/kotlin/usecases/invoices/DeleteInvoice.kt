@@ -15,15 +15,18 @@ import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
 import domain.entities.Account
+import domain.entities.Fund
 import domain.exceptions.NotFoundException
 import domain.exceptions.ValidationException
 import domain.entities.Invoice
 import domain.entities.Transaction
+import domain.enums.InvoiceModuleLinkerType
 import usecases.invoices.dto.DeleteInvoiceInput
 import usecases.invoices.transactions.dto.GetInvoiceTransactionsInput
 import usecases.invoices.transactions.dto.GetInvoiceTransactionsOutput
 import domain.enums.InvoiceMovementType
 import domain.enums.InvoiceStatusType
+import domain.value_objects.InvoiceModuleLinker
 import usecases.UseCase
 import java.time.LocalDateTime
 
@@ -34,6 +37,8 @@ class DeleteInvoice(
     private val getInvoiceTransactions: IUseCase<GetInvoiceTransactionsInput, List<GetInvoiceTransactionsOutput>>,
     private val snapshotAccountBalanceRepo: IAccountBalanceSnapshotRepository,
     private val eventRegister: IEventRegister,
+    private val fundRepo: IRepository<Fund>,
+    private val updateFundScheduleInvoice: IUseCase<Fund, Unit>,
     unitOfWork: IUnitOfWork,
     auth: IAuthenticateAdapter
 ): UseCase<DeleteInvoiceInput, Unit>(unitOfWork = unitOfWork, auth = auth) {
@@ -59,6 +64,26 @@ class DeleteInvoice(
         transactionRepo.deleteManyByIds(transactionIds)
 
         invoiceRepo.delete(input.invoiceId)
+
+
+        if (input.checkSinkingFund) {
+            val fundIds = invoice.moduleLinkers.filter { it.module == InvoiceModuleLinkerType.FUND }.map { it.sourceId }
+            if (fundIds.isNotEmpty()) {
+                val funds = fundRepo.getManyByIds(fundIds.toSet())
+                for (fund in funds) {
+                    if (invoice.status == InvoiceStatusType.COMPLETED) {
+                        if (invoice.movement == InvoiceMovementType.CREDIT)
+                            fund.balance += invoiceTransactions.first().total
+                        else
+                            fund.balance -= invoiceTransactions.first().total
+
+                        fundRepo.update(fund)
+                    }
+
+                    updateFundScheduleInvoice.execute(fund)
+                }
+            }
+        }
 
         if (invoice.status == InvoiceStatusType.COMPLETED) {
             if (invoice.movement == InvoiceMovementType.CREDIT)

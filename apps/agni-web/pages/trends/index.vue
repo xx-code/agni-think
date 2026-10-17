@@ -7,7 +7,7 @@ import { API_ROUTES } from '~/shared/routes'
 import { savingAnalyticResponseToSavingAnalytic } from '~/mappers/analytics'
 import { budgetFilterToBudgetQueryRequest, listBudgetsResponseToListBudgets } from '~/mappers/budget'
 import { listCategoriesResponseToListCategories } from '~/mappers/category'
-import { fundResponseToFund } from '~/mappers/fund'
+import { toFund } from '~/mappers/fund'
 import { listInvoicesResponseToListInvoices } from '~/mappers/invoice'
 import type { ListResponse } from '~/types/api'
 import type { GetSavingAnalysticRequest, GetSavingAnalysticResponse, GetSpendCategoryRequest, GetSpendCategoryResponse } from '~/types/api/analytics'
@@ -126,7 +126,7 @@ const { data: utils } = useAsyncData('utils+all+dashboard', async () => {
     (async () => {
       const res = await ApiLinkBuilder.route<ListResponse<GetFundResponse>>(API_ROUTES.FUNDS.GET_FUNDS).query(query as QueryFilterFundRequest).execute()
       return {
-        items: res.items.map(data => fundResponseToFund(data)),
+        items: res.items.map(data => toFund(data)),
         total: res.total
       }
     })()

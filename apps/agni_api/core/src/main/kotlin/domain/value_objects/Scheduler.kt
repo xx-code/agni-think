@@ -6,6 +6,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 
+// TODO: Analyse impact if I remove repeater
 data class Scheduler(var date: LocalDateTime, val repeater: SchedulerRecurrence? = null) {
     fun isDueDate(): Boolean {
         val now = LocalDateTime.now()

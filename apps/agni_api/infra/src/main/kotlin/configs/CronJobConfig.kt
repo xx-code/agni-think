@@ -4,6 +4,7 @@ import usecases.dto.BackgroundTaskOut
 import usecases.dto.Result
 import usecases.interfaces.IUseCase
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.ApplicationArguments
@@ -11,6 +12,7 @@ import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import usecases.funds.FundAutoCurate
 
 @Service
 @ConditionalOnProperty(
@@ -30,10 +32,13 @@ class CronJobOrchestratorEach12h(
     @Qualifier("makeProvisionInstallment")
     private val makeProvisionInstallment: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("syncGoal")
-    private val syncGoal: IUseCase<Unit, BackgroundTaskOut>
+    private val syncGoal: IUseCase<Unit, BackgroundTaskOut>,
+    @Qualifier("fundAutoCurate")
+    private val fundAutoCurate: IUseCase<Unit, BackgroundTaskOut>,
 ) : ApplicationRunner {
 
     private val logger = LoggerFactory.getLogger(javaClass)
+    private val mutex = Mutex()
 
     private suspend fun executeTask(taskName: String, action: suspend () -> Result<BackgroundTaskOut>) {
         try {
@@ -45,12 +50,22 @@ class CronJobOrchestratorEach12h(
     }
 
     private suspend fun executeAll() {
-        executeTask("provision make installment fund") { makeProvisionInstallment.execute(Unit) }
-        executeTask("schedule invoice") { applyScheduleInvoiceUseCase.execute(Unit) }
-        executeTask("remove freeze invoice") { removeFreezeInvoice.execute(Unit) }
-        executeTask("update budget due date") { updateBudgetDueDate.execute(Unit) }
-        executeTask("spending period template") { applySpendingPeriodTemplate.execute(Unit) }
-        executeTask("sync goal") { syncGoal.execute(Unit) }
+        if (!mutex.tryLock()) {
+            logger.warn("[!] Previous cron execution is still running. Skipping this execution to avoid overlap.")
+        }
+
+        try {
+            logger.info("[*] Starting batch tasks execution...")
+            executeTask("provision make installment fund") { makeProvisionInstallment.execute(Unit) }
+            executeTask("schedule invoice") { applyScheduleInvoiceUseCase.execute(Unit) }
+            executeTask("remove freeze invoice") { removeFreezeInvoice.execute(Unit) }
+            executeTask("update budget due date") { updateBudgetDueDate.execute(Unit) }
+            executeTask("spending period template") { applySpendingPeriodTemplate.execute(Unit) }
+            executeTask("sync goal") { syncGoal.execute(Unit) }
+            executeTask("auto fund curate") { fundAutoCurate.execute(Unit) }
+        } finally {
+            mutex.unlock()
+        }
     }
 
     @Scheduled(cron = "0 0 */12 * * *")

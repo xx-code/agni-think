@@ -1,32 +1,125 @@
 import type { ListResponse } from "~/types/api";
-import type { UpdateAccountRequest } from "~/types/api/account";
-import type { CreateFundRequest, GetFundResponse } from "~/types/api/fund";
+
+import type { CreateFundRequest, GetFundResponse, UpdateFundRequest } from "~/types/api/fund";
 import type { FundForm } from "~/types/form/fund";
 import type { List } from "~/types/ui";
 import type { Fund, FundCard, FundCardGoal, FundContext, FundGoalState } from "~/types/ui/fund";
 
-export function fundFormToCreateFundRequest(form: FundForm): CreateFundRequest {
-    return form
+export function toCreateFundRequest(form: FundForm): CreateFundRequest | UpdateFundRequest {
+    const { sinkingFundDetail, ...rest } = form as any
+    let transformed = { ...rest }
+    if (sinkingFundDetail) {
+        transformed = {
+            ...rest,
+            sinkingFundDetail: {
+                startDate: sinkingFundDetail.startDate,
+                numberOfContributions: Number(sinkingFundDetail.numberOfContributions),
+                contributionRecurrence: {
+                    period: sinkingFundDetail.contributionRecurrence.period,
+                    interval: Number(sinkingFundDetail.contributionRecurrence.interval)
+                },
+                scheduler: sinkingFundDetail.scheduler ? {
+                    date: sinkingFundDetail.scheduler.date,
+                    repeater: sinkingFundDetail.scheduler.repeater ? {
+                        period: sinkingFundDetail.scheduler.repeater.period,
+                        interval: Number(sinkingFundDetail.scheduler.repeater.interval)
+                    } : undefined
+                } : undefined
+            }
+        }
+    }
+    return transformed as CreateFundRequest
 } 
 
-export function fundFormToUpdateFundRequest(form: FundForm): UpdateAccountRequest {
-    return form
+export function toUpdateFundRequest(form: FundForm): UpdateFundRequest {
+    const { sinkingFundDetail, ...rest } = form as any
+    let transformed = { ...rest }
+    if (sinkingFundDetail) {
+        transformed = {
+            ...rest,
+            sinkingFundDetail: {
+                startDate: sinkingFundDetail.startDate,
+                numberOfContributions: Number(sinkingFundDetail.numberOfContributions),
+                contributionRecurrence: {
+                    period: sinkingFundDetail.contributionRecurrence.period,
+                    interval: Number(sinkingFundDetail.contributionRecurrence.interval)
+                },
+                scheduler: sinkingFundDetail.scheduler ? {
+                    date: sinkingFundDetail.scheduler.date,
+                    repeater: sinkingFundDetail.scheduler.repeater ? {
+                        period: sinkingFundDetail.scheduler.repeater.period,
+                        interval: Number(sinkingFundDetail.scheduler.repeater.interval)
+                    } : undefined
+                } : undefined
+            }
+        }
+    }
+    return transformed as UpdateFundRequest
 }
 
-export function fundToFundForm(data: Fund): FundForm {
-    return data
+export function toFundForm(data: Fund): FundForm {
+    return {
+        title: data.title,
+        description: data.description,
+        target: data.target,
+        accountId: data.accountId,
+        type: data.type,
+        sinkingFundDetail: data.sinkingFundDetail ? {
+            startDate: data.sinkingFundDetail.startDate instanceof Date ? data.sinkingFundDetail.startDate.toISOString() : data.sinkingFundDetail.startDate,
+            numberOfContributions: data.sinkingFundDetail.numberOfContributions,
+            contributionRecurrence: {
+                period: data.sinkingFundDetail.contributionRecurrence.period,
+                interval: data.sinkingFundDetail.contributionRecurrence.interval
+            },
+            scheduler: data.sinkingFundDetail.fundScheduler ? {
+                date: data.sinkingFundDetail.fundScheduler.date instanceof Date ? data.sinkingFundDetail.fundScheduler.date.toISOString() : data.sinkingFundDetail.fundScheduler.date,
+                repeater: data.sinkingFundDetail.fundScheduler.repeater ? {
+                    period: data.sinkingFundDetail.fundScheduler.repeater.period,
+                    interval: data.sinkingFundDetail.fundScheduler.repeater.interval
+                } : undefined
+            } : undefined
+        } : undefined
+    }
 }
 
-export function fundResponseToFund(api: GetFundResponse): Fund {
-    return api
+export function toFund(api: GetFundResponse): Fund {
+    return {
+        id: api.id,
+        title: api.title,
+        description: api.description,
+        target: api.target,
+        balance: api.balance,
+        type: api.type as any,
+        accountId: api.accountId,
+        goals: api.goals,
+        sinkingFundDetail: api.sinkingFundDetail ? {
+            numberOfContributions: api.sinkingFundDetail.numberOfContributions,
+            startDate: new Date(api.sinkingFundDetail.startDate),
+            contributionRecurrence: {
+                period: api.sinkingFundDetail.contributionRecurrence.period,
+                interval: api.sinkingFundDetail.contributionRecurrence.interval
+            },
+            fundScheduler: api.sinkingFundDetail.fundScheduler ? {
+                date: new Date(api.sinkingFundDetail.fundScheduler.date),
+                repeater: api.sinkingFundDetail.fundScheduler.repeater ? {
+                    period: api.sinkingFundDetail.fundScheduler.repeater.period,
+                    interval: api.sinkingFundDetail.fundScheduler.repeater.interval
+                } : undefined
+            } : undefined,
+            isClosed: api.sinkingFundDetail.isClosed
+        } : undefined
+    }
 }
 
-export function listFundResponseTolistFund(api: ListResponse<GetFundResponse>): List<Fund> {
-    return api
+export function tolistFund(api: ListResponse<GetFundResponse>): List<Fund> {
+    return {
+        total: api.total,
+        items: api.items.map(toFund)
+    }
 }
 
-export function fundToFundCard(data: Fund): FundCard {
-    const goals = Object.assign([] as Fund['goals'], data.goals)
+export function toFundCard(data: Fund): FundCard {
+    const goals = Object.assign([] as Fund["goals"], data.goals)
     goals.sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime() )
     return {
         ...data, 
@@ -37,7 +130,8 @@ export function fundToFundCard(data: Fund): FundCard {
     }
 }
 
-export function fundCardContextToFundGoalCards(data: FundContext): FundCardGoal[] {
+
+export function toFundGoalCards(data: FundContext): FundCardGoal[] {
     const determineStatus = (dueDate: Date, percentage: number) : FundGoalState => {
         if (getDaysRemaining(dueDate) >= 0 && percentage == 100)
             return 'ACHIEVED'

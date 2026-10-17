@@ -210,11 +210,20 @@ async function valid(id: string) {
             updateData(index, id)
         } 
     } catch(err: any) {
-        toast.add({
-            title: 'Error Freeze',
-            description: err?.message,
-            color: 'error'
-        });
+        if (err.status == 404) {
+            const index = data.value.findIndex(i => i.id === id)
+            if (index >= 0) {
+                await ApiLinkBuilder.route(API_ROUTES.INVOICES.DELETE_INVOICE).params({id}).execute()
+                removeData(index)
+                refresh()
+            }
+        } else {
+            toast.add({
+                title: 'Error Freeze',
+                description: err?.message,
+                color: 'error'
+            });
+        } 
     } finally {
         stop()
     }

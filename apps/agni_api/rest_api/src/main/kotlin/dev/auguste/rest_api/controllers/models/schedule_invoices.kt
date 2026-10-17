@@ -3,6 +3,7 @@ package dev.auguste.rest_api.controllers.models
 import adapters.dto.ScheduleRepeaterInput
 import domain.enums.InvoiceType
 import domain.enums.PeriodType
+import domain.enums.ScheduleInvoiceType
 import usecases.schedule_Invoices.dto.CreateScheduleInvoiceInput
 import usecases.schedule_Invoices.dto.SchedulerInvoiceInput
 import usecases.schedule_Invoices.dto.UpdateScheduleInvoiceInput
@@ -27,10 +28,10 @@ data class ApiCreateScheduleInvoiceModel(
     val amount: Double,
     @field:NotEmpty( "description must not be empty")
     val description: String,
-    val isFreeze: Boolean?,
+    val type: String,
     val categoryId: UUID?,
     val tagIds: Set<UUID>,
-    val type: String?,
+    val invoiceType: String?,
     @field:NotNull("schedule must be defined")
     val schedule: ApiScheduleInvoiceModel,
     val freezeSchedule: ApiScheduleInvoiceModel?,
@@ -44,6 +45,7 @@ data class ApiUpdateScheduleInvoiceModel(
     val description: String?,
     val categoryId: UUID?,
     val tagIds: Set<UUID>,
+    val invoiceType: String?,
     val type: String?,
     val isPause: Boolean?,
     val schedule: ApiScheduleInvoiceModel?,
@@ -56,11 +58,11 @@ fun mapApiCreateScheduleInvoice(model: ApiCreateScheduleInvoiceModel): CreateSch
         accountId = model.accountId,
         amount = model.amount,
         description = model.description,
-        isFreeze = model.isFreeze,
+        type = ScheduleInvoiceType.fromString(model.type),
         categoryId = model.categoryId,
         tagIds = model.tagIds,
-        type = model.type?.let {
-            InvoiceType.fromString(model.type)
+        invoiceType = model.invoiceType?.let {
+            InvoiceType.fromString(it)
        },
         schedule = SchedulerInvoiceInput(
             dueDate = model.schedule.dueDate,
@@ -94,7 +96,8 @@ fun mapApiUpdateScheduleInvoice(id: UUID, model: ApiUpdateScheduleInvoiceModel):
         amount = model.amount,
         categoryId = model.categoryId,
         tagIds = model.tagIds,
-        type = model.type?.let { InvoiceType.fromString(model.type) },
+        invoiceType = model.invoiceType?.let { InvoiceType.fromString(it) },
+        type = model.type?.let { ScheduleInvoiceType.fromString(it) },
         isPause = model.isPause,
         schedule = model.schedule?.let {
             SchedulerInvoiceInput(

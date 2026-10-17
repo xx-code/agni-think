@@ -28,10 +28,10 @@ class GetAllScheduleInvoice(
                     name = it.title,
                     accountId = it.accountId,
                     categoryId = it.categoryId,
-                    isFreeze = it.isFreeze,
+                    type = it.type.value,
+                    invoiceType = it.invoiceType.value,
                     isPause = it.isPause,
                     tagIds = it.tagIds,
-                    type = it.type.value,
                     amount = it.amount,
                     dueDate = it.scheduler.date,
                     repeater = it.scheduler.repeater?.let { repeater ->

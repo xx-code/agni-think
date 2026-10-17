@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import domain.entities.ScheduleInvoice
 import domain.enums.InvoiceType
+import domain.enums.ScheduleInvoiceType
 import domain.value_objects.ScheduleInvoiceModuleLinker
 import domain.value_objects.Scheduler
 import org.springframework.data.annotation.Id
@@ -30,11 +31,12 @@ data class JdbcScheduleInvoiceModel(
     val amount: Double,
     val name: String,
     val type: String,
+    val invoiceType: String, // add
 
     @Column("is_pause")
     val isPause: Boolean,
 
-    val isFreeze: Boolean,
+    // val isFreeze: Boolean,
 
     val scheduler: String,
 
@@ -102,12 +104,12 @@ class JdbcScheduleInvoiceMapper(
             userId = model.userId,
             title = model.name,
             accountId = model.accountId,
-            type = InvoiceType.fromString(model.type),
+            type = ScheduleInvoiceType.fromString(model.type),
+            invoiceType = InvoiceType.fromString(model.invoiceType),
             amount = model.amount,
             scheduler = Scheduler.fromMap(schedulerJson),
             categoryId = model.categoryId,
             isPause = model.isPause,
-            isFreeze = model.isFreeze,
             tagIds =  tagIdsSet.toMutableSet(),
             endDate = model.endDate,
             moduleLinker = moduleLinkerJson.let { ScheduleInvoiceModuleLinker.fromMap(it) },
@@ -124,8 +126,8 @@ class JdbcScheduleInvoiceMapper(
             amount = entity.amount,
             name = entity.title,
             type = entity.type.value,
+            invoiceType = entity.invoiceType.value,
             isPause = entity.isPause,
-            isFreeze = entity.isFreeze,
             scheduler = objectMapper.writeValueAsString(entity.scheduler.toMap()),
             tagIds = objectMapper.writeValueAsString(entity.tagIds.map { it.toString() }) ,
             endDate = entity.endDate,
@@ -142,8 +144,8 @@ class JdbcScheduleInvoiceMapper(
         "amount" to "amount",
         "title" to "name",
         "type" to "type",
+        "invoiceType" to "invoice_type",
         "isPause" to "is_pause",
-        "isFreeze" to "is_freeze",
         "tagIds" to "jsonb_scalar_array:tag_ids",
         "endDate" to "end_date",
 

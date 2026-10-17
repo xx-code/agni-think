@@ -1,12 +1,13 @@
 import type { CalendarDate } from "@internationalized/date"
 import type { GetScheduleInvoiceResponse } from "../api/scheduleTransaction"
 
-export type EditScheduleInvoiceType = {
+export type EditScheduleInvoice = {
     name: string
     accountId: string
     categoryId?: string
     tagIds: string[]
-    type?: string
+    type: string
+    invoiceType?: string
     amount: number
     isFreeze: boolean
     dueDate: CalendarDate
@@ -22,7 +23,7 @@ export type EditScheduleInvoiceType = {
     }
 }
 
-export type TableScheduleInvoiceType = {
+export type TableScheduleInvoice = {
     id: string
     name: string
     category: {
@@ -47,9 +48,10 @@ export type TableScheduleInvoiceType = {
     dueDate: Date
 }
 
-export type ScheduleInvoiceType = Omit<GetScheduleInvoiceResponse, 'dueDate' | 'endDate' | 'freezeEndDate' | 'freeze' | 'editable'> & {
+export type ScheduleInvoice = Omit<GetScheduleInvoiceResponse, 'dueDate' | 'endDate' | 'freezeEndDate' | 'editable' | 'pause'> & {
     dueDate: Date
     endDate?: Date
+    isPause: boolean
     freezeEndDate?: Date
     isFreeze: boolean
     isEditable: boolean

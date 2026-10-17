@@ -128,7 +128,7 @@ class ForcastSpendingPeriod(
         provisionsById: Map<UUID, Provision>,
         startDate: LocalDate, endDate: LocalDate,
     ): List<ForcastSpendingAchieveItemOutput> {
-        var scheduleInvoices = scheduleInvoices.filter { it.type == invoiceType }
+        var scheduleInvoices = scheduleInvoices.filter { it.invoiceType == invoiceType }
         scheduleInvoices = scheduleInvoices.filter {
             scheduleInvoice -> (
                 scheduleInvoice.scheduler.upgradeDate(startDate.atStartOfDay()) >= startDate.atStartOfDay() &&
