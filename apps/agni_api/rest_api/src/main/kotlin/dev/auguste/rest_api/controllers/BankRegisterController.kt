@@ -1,9 +1,14 @@
 package dev.auguste.rest_api.controllers
 
+import adapters.IAuthenticateAdapter
 import adapters.dto.QueryFilter
+import configs.PlaidAuth
 import dev.auguste.rest_api.controllers.models.ApiCreateBankRegisterModel
 import dev.auguste.rest_api.controllers.models.ApiSecureBankRegisterOutput
 import dev.auguste.rest_api.controllers.models.ApiUpdateBankRegisterModel
+import dev.auguste.rest_api.controllers.models.PlaidAccessCodeRequest
+import dev.auguste.rest_api.controllers.models.PlaidAccessCodeResponse
+import dev.auguste.rest_api.controllers.models.PlaidExchangePublicTokenResponse
 import dev.auguste.rest_api.controllers.models.mapApiCreateBankRegister
 import dev.auguste.rest_api.controllers.models.mapApiUpdateBankRegister
 import dev.auguste.rest_api.controllers.models.mapBankRegisterToSecure
@@ -28,11 +33,27 @@ import java.util.UUID
 @RestController
 @RequestMapping("/v2/bank-registers")
 class BankRegisterController(
+    private val plaidAuth: PlaidAuth,
     private val createBankRegister: IUseCase<CreateBankRegisterInput, CreatedOutput>,
     private val updateBankRegister: IUseCase<UpdateBankRegisterInput, Unit>,
     private val getAllBankRegisters: IUseCase<GetAllBankRegisterInput, ListOutput<GetBankRegisterOutput>>,
-    private val getBankRegisterByAccess: IUseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput>
-    ) {
+    private val getBankRegisterByAccess: IUseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput>,
+    private val auth: IAuthenticateAdapter) {
+
+    @PostMapping("/create-bank-linker")
+    suspend fun createBankLinker(): ResponseEntity<PlaidExchangePublicTokenResponse> {
+        val currentUser = auth.getCurrentUser()
+        val token = plaidAuth.createLinkToken(currentUser.id).getOrThrow()
+        return ResponseEntity.ok(PlaidExchangePublicTokenResponse(token))
+    }
+
+    @PostMapping("/exchange-public-token")
+    suspend fun exchangePublicToken(@RequestBody request: PlaidAccessCodeRequest): ResponseEntity<PlaidAccessCodeResponse> {
+        auth.getCurrentUser()
+        val accessCode = plaidAuth.tokenExchangeRequest(publicToken = request.publicToken).getOrThrow()
+        return ResponseEntity.ok(PlaidAccessCodeResponse(accessCode))
+    }
+
     @PostMapping
     suspend fun createBankRegister(@RequestBody input: ApiCreateBankRegisterModel): ResponseEntity<CreatedOutput> {
         return ResponseEntity.ok(

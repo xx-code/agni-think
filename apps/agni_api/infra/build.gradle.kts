@@ -20,6 +20,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.postgresql:postgresql:${rootProject.extra["postgresqlVersion"]}")
+    implementation("com.plaid:plaid-java:47.0.0")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.junit.jupiter:junit-jupiter")

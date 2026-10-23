@@ -32,3 +32,14 @@ export type GetBankRegisterResponse = {
     }[]
 }
 
+export type ExchangePublicTokenResponse ={
+    publicToken: string
+}
+
+export type PlaidAccessCodeRequest = {
+    publicToken: string
+}
+
+export type PlaidAccessCodeResponse = {
+    accessCode: string
+}
