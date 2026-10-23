@@ -12,6 +12,7 @@ import dev.auguste.rest_api.controllers.models.PlaidExchangePublicTokenResponse
 import dev.auguste.rest_api.controllers.models.mapApiCreateBankRegister
 import dev.auguste.rest_api.controllers.models.mapApiUpdateBankRegister
 import dev.auguste.rest_api.controllers.models.mapBankRegisterToSecure
+import org.springframework.beans.factory.annotation.Qualifier
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
 import usecases.bank_registers.dto.CreateBankRegisterInput
@@ -27,7 +28,9 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import usecases.bank_registers.SyncBankTransactionByBankRegister
 import usecases.bank_registers.dto.GetAllBankRegisterInput
+import usecases.bank_registers.dto.SyncBankTransactionInput
 import java.util.UUID
 
 @RestController
@@ -38,7 +41,11 @@ class BankRegisterController(
     private val updateBankRegister: IUseCase<UpdateBankRegisterInput, Unit>,
     private val getAllBankRegisters: IUseCase<GetAllBankRegisterInput, ListOutput<GetBankRegisterOutput>>,
     private val getBankRegisterByAccess: IUseCase<GetBankRegisterByAccessCodeInput, GetBankRegisterOutput>,
-    private val auth: IAuthenticateAdapter) {
+    private val syncBankTransaction: IUseCase<SyncBankTransactionInput, Unit>,
+    @Qualifier("syncBankTransactionsByBankRegister")
+    private val syncBankTransactionByBankRegister: IUseCase<UUID, Unit>,
+    private val auth: IAuthenticateAdapter,
+) {
 
     @PostMapping("/create-bank-linker")
     suspend fun createBankLinker(): ResponseEntity<PlaidExchangePublicTokenResponse> {
@@ -68,13 +75,6 @@ class BankRegisterController(
         )
     }
 
-    @GetMapping("/agent-level")
-    suspend fun getAllBankRegisterAgentLevel(query: QueryFilter): ResponseEntity<ListOutput<GetBankRegisterOutput>> {
-        return ResponseEntity.ok(
-            getAllBankRegisters.execute(GetAllBankRegisterInput(query)).getOrThrow()
-        )
-    }
-
     @GetMapping
     suspend fun getAllBankRegister(query: QueryFilter): ResponseEntity<ListOutput<ApiSecureBankRegisterOutput>> {
         val result = getAllBankRegisters.execute(GetAllBankRegisterInput(query)).getOrThrow()
@@ -93,5 +93,16 @@ class BankRegisterController(
                 institutionId = institutionId
             )).getOrThrow()
         )
+    }
+
+    @PostMapping("sync-bank-transactions")
+    suspend fun syncBankTransactions(): ResponseEntity<Unit> {
+        val currentUser = auth.getCurrentUser()
+        return ResponseEntity.ok(syncBankTransaction.execute(SyncBankTransactionInput(currentUser.id)).getOrThrow())
+    }
+
+    @PostMapping("{id}/sync-bank-transactions")
+    suspend fun syncBankTransactionsByBankRegister(@PathVariable id: UUID): ResponseEntity<Unit> {
+        return ResponseEntity.ok(syncBankTransactionByBankRegister.execute(id).getOrThrow())
     }
 }

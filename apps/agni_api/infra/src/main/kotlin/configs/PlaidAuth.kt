@@ -2,12 +2,10 @@ package configs
 
 import com.google.gson.Gson
 import com.plaid.client.ApiClient
-import com.plaid.client.ApiClient.Production
 import com.plaid.client.model.CountryCode
 import com.plaid.client.model.ItemPublicTokenExchangeRequest
 import com.plaid.client.model.LinkTokenCreateRequest
 import com.plaid.client.model.LinkTokenCreateRequestUser
-import com.plaid.client.model.LinkTokenCreateResponse
 import com.plaid.client.model.PlaidError
 import com.plaid.client.model.Products
 import com.plaid.client.request.PlaidApi
@@ -26,14 +24,33 @@ class PlaidAuth(
 ) {
     private val plaidClient: PlaidApi
 
+    /**
+     * Helper to safely extract and throw Plaid API errors.
+     */
+     fun handlePlaidError(response: retrofit2.Response<*>): Nothing {
+        val errorBodyStr = response.errorBody()?.string()
+        try {
+            val gson = Gson()
+            val error = gson.fromJson(errorBodyStr, PlaidError::class.java)
+            throw UnExpectedException("Plaid Error Code ${error.errorCode}; detail: ${error.errorMessage}")
+        } catch (e: Exception) {
+            if (e is UnExpectedException) throw e
+            throw UnExpectedException("Failed converting Plaid API Response Error Body: $errorBodyStr")
+        }
+    }
+
     init {
         val apiKey = mapOf(
             "clientId" to clientId,
             "secret" to secret
         )
-        val plaidApiClient = ApiClient(apiKey)
-        plaidApiClient.setPlaidAdapter(if (isSandBox)  ApiClient.Sandbox else ApiClient.Production )
-        plaidClient = plaidApiClient.createService(PlaidApi::class.java)
+        val client = ApiClient(apiKey)
+        client.setPlaidAdapter(if (isSandBox)  ApiClient.Sandbox else ApiClient.Production )
+        plaidClient = client.createService(PlaidApi::class.java)
+    }
+
+    fun getClient(): PlaidApi {
+        return plaidClient
     }
 
     fun createLinkToken(userId: UUID): Result<String> {

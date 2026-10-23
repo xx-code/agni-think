@@ -117,8 +117,10 @@ async function syncBank() {
     try {
         start()
         await ApiLinkBuilder
-            .route(API_ROUTES.BANK.SYNC_TRANSACTION)
+            .route(API_ROUTES.BANK_REGISTERS.SYNC_BANK_TRANSACTIONS)
             .execute()
+        
+        // Use AI here
         
         reset()
         Object.assign(query, { status: "Pending", offset: 0})

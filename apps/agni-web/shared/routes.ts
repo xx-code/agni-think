@@ -242,6 +242,16 @@ export const API_ROUTES = {
             serverPath: '/api/bank-registers/exchange-public-token',
             apiPath: '/bank-registers/exchange-public-token',
             method: 'POST'
+        },
+        SYNC_BANK_TRANSACTIONS: {
+            serverPath: '/api/bank-registers/sync-bank-transactions',
+            apiPath: '/bank-registers/sync-bank-transactions',
+            method: 'POST'
+        },
+        SYNC_BANK_TRANSACTIONS_BY_BANK_REGISTER: {
+            serverPath: '/api/bank-registers/:id/sync-bank-transactions',
+            apiPath: '/bank-registers/:id/sync-bank-transactions',
+            method: 'POST'
         }
     },
 
