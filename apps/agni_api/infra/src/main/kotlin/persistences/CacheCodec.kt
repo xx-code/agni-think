@@ -174,6 +174,7 @@ class UserCacheCodec : ICacheCodec<User> {
         "externalUserId" to e.externalUserId,
         "username" to e.username,
         "email" to e.email.toString(),
+        "apiToken" to e.apiToken,
     )
 
     override fun decode(m: Map<String, Any?>): User {
@@ -182,6 +183,7 @@ class UserCacheCodec : ICacheCodec<User> {
             externalUserId = m["externalUserId"] as String,
             username = m["username"] as String,
             email = Email(m["email"] as String),
+            apiToken = m["apiToken"] as String,
         )
     }
 }

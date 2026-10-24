@@ -18,6 +18,7 @@ data class JdbcUserModel(
     val externalId: String,
     val username: String,
     val email: String,
+    val apiToken: String,
     var createdAt: LocalDateTime,
     var updatedAt: LocalDateTime,
 ) : JdbcModel() {
@@ -33,7 +34,8 @@ class JdbcUserModelMapper: IMapper<JdbcUserModel, User> {
             id = model.userId,
             externalUserId = model.externalId,
             username = model.username,
-            email = Email(model.email)
+            email = Email(model.email),
+            apiToken = model.apiToken,
         )
 
         user.initDate(model.createdAt, model.updatedAt)
@@ -47,6 +49,7 @@ class JdbcUserModelMapper: IMapper<JdbcUserModel, User> {
             externalId = entity.externalUserId,
             username = entity.username,
             email = entity.email.toString(),
+            apiToken = entity.apiToken,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
         )
@@ -55,6 +58,7 @@ class JdbcUserModelMapper: IMapper<JdbcUserModel, User> {
     override fun getEntityModelFieldName(): Map<String, String> = mapOf(
         "id" to "user_id",
         "userId" to "user_id",
+        "apiToken" to "api_token",
         "externalUserId" to "external_id",
         "username" to "username",
         "email" to "email",
