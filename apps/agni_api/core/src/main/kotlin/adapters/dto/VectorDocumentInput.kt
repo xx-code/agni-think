@@ -1,6 +1,8 @@
 package adapters.dto
 
+import java.util.UUID
+
 data class VectorDocumentInput(
-    val id: String,
+    val id: UUID,
     val document: String
 )
