@@ -1,8 +1,7 @@
 package usecases.invoices
 
 import usecases.UseCase
-import adapters.EmbeddingDocument
-import adapters.IEmbeddingService
+import adapters.dto.VectorDocumentInput
 import adapters.events.contents.CreateEmbeddingInvoiceEventContent
 import adapters.events.EventType
 import adapters.events.IEventRegister
@@ -10,6 +9,7 @@ import adapters.events.contents.NotificationEventContent
 import adapters.events.contents.NotificationType
 import adapters.events.listeners.ICreateInvoiceEventListener
 import adapters.repositories.IRepository
+import adapters.repositories.IVectorRepository
 import domain.entities.Budget
 import domain.entities.Category
 import domain.entities.Notification
@@ -26,7 +26,7 @@ class CreateInvoiceEmbedding(
     private val budgetRepo: IRepository<Budget>,
     private val tagsRepo: IRepository<Tag>,
     private val getInvoice: IUseCase<UUID, GetInvoiceOutput>,
-    private val embeddingService: IEmbeddingService,
+    private val vectorRepo: IVectorRepository,
     private val invoiceCollectionName: String
 ): UseCase<UUID, BackgroundTaskOut>(), ICreateInvoiceEventListener {
     private var event: CreateEmbeddingInvoiceEventContent? = null
@@ -68,7 +68,7 @@ class CreateInvoiceEmbedding(
                     "Total: ${"%.2f".format(invoice.total)}, Subtotal: ${"%.2f".format(invoice.subTotal)}. " +
                     "Lines: \n$transactionStr"
 
-            embeddingService.addEmbeddingDocument(invoiceCollectionName,listOf(EmbeddingDocument(invoice.id, document)))
+            vectorRepo.addDocuments(invoiceCollectionName,listOf(VectorDocumentInput(invoice.id, document)))
 
             return BackgroundTaskOut("Embedding invoice created")
         } catch (err: Exception) {

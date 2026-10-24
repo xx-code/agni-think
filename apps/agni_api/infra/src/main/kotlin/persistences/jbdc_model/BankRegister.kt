@@ -36,9 +36,7 @@ class JdbcBankRegisterModelMapper(
     private val objectMapper: ObjectMapper
 ): IMapper<JdbcBankRegisterModel, BankRegister> {
     override fun toDomain(model: JdbcBankRegisterModel): BankRegister {
-        val accountsLinkedJson = objectMapper.readValue(model.accountsLinked, Array<String>::class.java).map {
-            objectMapper.readValue<Map<String, Any>>(it)
-        }.toSet()
+        val accountsLinkedJson: Set<Map<String, Any>> = objectMapper.readValue<List<Map<String, Any>>>(model.accountsLinked).toSet()
 
         return BankRegister(
             id = model.bankRegisterId,
@@ -61,7 +59,7 @@ class JdbcBankRegisterModelMapper(
             accessCode = entity.accessCode,
             cursor = entity.cursor,
             isActive = entity.isActive,
-            accountsLinked = objectMapper.writeValueAsString(entity.accountsLinked.map { objectMapper.writeValueAsString(it.toMap()) })
+            accountsLinked = objectMapper.writeValueAsString(entity.accountsLinked.map { it.toMap() })
         )
     }
 
@@ -73,7 +71,10 @@ class JdbcBankRegisterModelMapper(
         "title" to "title",
         "cursor" to "cursor",
         "isActive" to "is_active",
-        "accountsLinked" to "accounts_linked"
+        "accountsLinked" to "accounts_linked",
+        "accountsLinked.accountId" to  "accounts_linked.accountId",
+        "accountsLinked.bankAccountId" to "accounts_linked.bankAccountId",
+        "accountsLinked.bankName" to "accounts_linked.bankName"
     )
 
     override fun getTableName(): String = "bank_registers"

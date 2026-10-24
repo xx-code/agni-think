@@ -1,10 +1,13 @@
 package usecase_configs
 
 import adapters.IAuthenticateAdapter
+import adapters.IBankingHandlerAdapter
 import adapters.dto.QueryFilter
+import adapters.events.IEventRegister
 import adapters.repositories.IRepository
 import domain.entities.Account
 import domain.entities.BankRegister
+import domain.entities.ExternalTransaction
 import domain.entities.User
 import usecases.dto.CreatedOutput
 import usecases.dto.ListOutput
@@ -22,7 +25,13 @@ import usecases.interfaces.IUseCase
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import usecases.UseCase
+import usecases.bank_registers.SyncBankTransaction
+import usecases.bank_registers.SyncBankTransactionByBankRegister
+import usecases.bank_registers.SyncBankTransactionTask
 import usecases.bank_registers.dto.GetAllBankRegisterInput
+import usecases.bank_registers.dto.SyncBankTransactionInput
+import usecases.dto.BackgroundTaskOut
+import java.util.UUID
 
 @Configuration
 class BankRegisterConfig {
@@ -80,5 +89,40 @@ class BankRegisterConfig {
         auth: IAuthenticateAdapter
     ) : UseCase<UpdateBankRegisterInput, Unit> {
         return UpdateBankRegister(bankRegisterRepo, accountRepo, auth = auth)
+    }
+
+    @Bean
+    fun syncBankTransactions(
+        bankRegisterRepo: IRepository<BankRegister>,
+        bankingHandlerAdapter: IBankingHandlerAdapter,
+    ): UseCase<SyncBankTransactionInput, Unit> {
+        return SyncBankTransaction(
+            bankRegisterRepo = bankRegisterRepo,
+            bankingHandlerAdapter = bankingHandlerAdapter,
+        )
+    }
+
+    @Bean
+    fun syncBankTransactionsByBankRegister(
+        bankRegisterRepo: IRepository<BankRegister>,
+        bankingHandlerAdapter: IBankingHandlerAdapter,
+        auth: IAuthenticateAdapter
+    ): UseCase<UUID, Unit> {
+        return SyncBankTransactionByBankRegister(
+            bankRegisterRepo = bankRegisterRepo,
+            bankingHandlerAdapter = bankingHandlerAdapter,
+            auth = auth
+        )
+    }
+
+    @Bean
+    fun syncBankTransactionsTask(
+        syncBankTransaction: IUseCase<SyncBankTransactionInput, Unit>,
+        eventRegister: IEventRegister
+    ): UseCase<Unit, BackgroundTaskOut> {
+        return SyncBankTransactionTask(
+            syncBankTransactions = syncBankTransaction,
+            eventRegister = eventRegister
+        )
     }
 }
