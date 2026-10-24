@@ -28,35 +28,70 @@ class CacheRepositoryConfig {
 
     // ---- Reference data (rarely changes): long TTL ----
 
-//    @Bean @Primary
-//    fun cachedCurrencyRepository(jdbc: CurrencyRepository, cache: ICacheStore): IRepository<Currency> =
-//        cached(jdbc, cache, Currency::class.java, LONG_TTL)
-//
-//    @Bean @Primary
-//    fun cachedCategoryRepository(jdbc: CategoryRepository, cache: ICacheStore): IRepository<Category> =
-//        cached(jdbc, cache, Category::class.java, LONG_TTL)
-//
-//    @Bean @Primary
-//    fun cachedTagRepository(jdbc: TagRepository, cache: ICacheStore): IRepository<Tag> =
-//        cached(jdbc, cache, Tag::class.java, LONG_TTL)
-//
-//    @Bean @Primary
-//    fun cachedFinancePrincipleRepository(jdbc: FinancePrincipleRepository, cache: ICacheStore): IRepository<FinancePrinciple> =
-//        cached(jdbc, cache, FinancePrinciple::class.java, LONG_TTL)
-//
-//    @Bean @Primary
-//    fun cachedSpendingPeriodTemplateRepository(jdbc: SpendingPeriodTemplateRepository, cache: ICacheStore): IRepository<SpendingPeriodTemplate> =
-//        cached(jdbc, cache, SpendingPeriodTemplate::class.java, LONG_TTL)
-//
-//    // ---- Regular data: default TTL ----
-//
-//    @Bean @Primary
-//    fun cachedUserRepository(jdbc: UserRepository, cache: ICacheStore): IRepository<User> =
-//        cached(jdbc, cache, User::class.java,DEFAULT_TTL)
-//
-//    @Bean @Primary
-//    fun cachedProfileRepository(jdbc: ProfileRepository, cache: ICacheStore): IRepository<Profile> =
-//        cached(jdbc, cache, Profile::class.java,DEFAULT_TTL)
+    @Bean
+    @Primary
+    fun cachedCurrencyRepository(
+        jdbc: CurrencyRepository,
+        codec: CurrencyCacheCodec,
+        cache: ICacheStore
+    ): IRepository<Currency> =
+        cached(jdbc, cache, codec, Currency::class.java, LONG_TTL)
+
+    @Bean
+    @Primary
+    fun cachedCategoryRepository(
+        jdbc: CategoryRepository,
+        codec: CategoryCacheCodec,
+        cache: ICacheStore
+    ): IRepository<Category> =
+        cached(jdbc, cache, codec, Category::class.java, LONG_TTL)
+
+    @Bean
+    @Primary
+    fun cachedTagRepository(
+        jdbc: TagRepository,
+        codec: TagCacheCodec,
+        cache: ICacheStore
+    ): IRepository<Tag> =
+        cached(jdbc, cache, codec, Tag::class.java, LONG_TTL)
+
+    @Bean
+    @Primary
+    fun cachedFinancePrincipleRepository(
+        jdbc: FinancePrincipleRepository,
+        codec: FinancePrincipleCacheCodec,
+        cache: ICacheStore
+    ): IRepository<FinancePrinciple> =
+        cached(jdbc, cache, codec, FinancePrinciple::class.java, LONG_TTL)
+
+    @Bean
+    @Primary
+    fun cachedSpendingPeriodTemplateRepository(
+        jdbc: SpendingPeriodTemplateRepository,
+        codec: SpendingPeriodTemplateCacheCodec,
+        cache: ICacheStore
+    ): IRepository<SpendingPeriodTemplate> =
+        cached(jdbc, cache, codec, SpendingPeriodTemplate::class.java, LONG_TTL)
+
+    // ---- Regular data: default TTL ----
+
+    @Bean
+    @Primary
+    fun cachedUserRepository(
+        jdbc: UserRepository,
+        codec: UserCacheCodec,
+        cache: ICacheStore
+    ): IRepository<User> =
+        cached(jdbc, cache, codec, User::class.java, LONG_TTL)
+
+    @Bean
+    @Primary
+    fun cachedProfileRepository(
+        jdbc: ProfileRepository,
+        codec: ProfileCacheCodec,
+        cache: ICacheStore
+    ): IRepository<Profile> =
+        cached(jdbc, cache, codec, Profile::class.java, LONG_TTL)
 //
 //    @Bean @Primary
 //    fun cachedDeductionRepository(jdbc: DeductionRepository, cache: ICacheStore): IRepository<Deduction> =
@@ -113,10 +148,10 @@ class CacheRepositoryConfig {
 //    fun cachedInvoiceRepository(jdbc: InvoiceRepository, cache: ICacheStore): IRepository<Invoice> =
 //        cached(jdbc, cache, Invoice::class.java, VOLATILE_TTL)
 
-    @Bean @Primary
-    fun cachedAccountRepository(jdbc: AccountRepository, codec: AccountCacheCodec, cache: ICacheStore): IRepository<Account> =
-        cached(jdbc, cache, codec, Account::class.java, VOLATILE_TTL)
-
+//    @Bean @Primary
+//    fun cachedAccountRepository(jdbc: AccountRepository, codec: AccountCacheCodec, cache: ICacheStore): IRepository<Account> =
+//        cached(jdbc, cache, codec, Account::class.java, VOLATILE_TTL)
+//
 //    @Bean @Primary
 //    fun cachedTransactionRepository(jdbc: TransactionRepository, cache: ICacheStore): IRepository<Transaction> =
 //        cached(jdbc, cache, Transaction::class.java, VOLATILE_TTL)
