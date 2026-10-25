@@ -6,6 +6,7 @@ import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
 import adapters.repositories.QueryComparator
 import adapters.repositories.QueryExtendBuilder
+import dev.auguste.rest_api.ApiKeyGenerator
 import dev.auguste.rest_api.controllers.models.ApiAuthLoginModel
 import dev.auguste.rest_api.controllers.models.ApiAuthTokenModel
 import domain.entities.Email
@@ -47,6 +48,7 @@ class AuthController(
             val newUser = User(
                 externalUserId = request.externalId,
                 username = request.username,
+                apiToken = ApiKeyGenerator.generateApiToken(),
                 email = Email(request.email),
             )
 

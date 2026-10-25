@@ -29,10 +29,16 @@ import domain.value_objects.SavingAccountDetail
 import domain.value_objects.ScheduleInvoiceModuleLinker
 import domain.value_objects.Scheduler
 import domain.value_objects.SchedulerRecurrence
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 
 @Component
+@ConditionalOnProperty(
+    name = ["agni.startup.enabled"],
+    havingValue = "true",
+    matchIfMissing = true
+)
 class DataSeeder(
     private val dep: DataSeederDependencies,
     private val jdbcTemplate: NamedParameterJdbcTemplate,
