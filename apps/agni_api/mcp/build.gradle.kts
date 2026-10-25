@@ -43,7 +43,11 @@ dependencyManagement {
 kotlin {
     jvmToolchain(21)
     compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+        freeCompilerArgs.addAll(
+            "-Xjsr305=strict",
+            "-Xannotation-default-target=param-property",
+            "-java-parameters",
+        )
     }
 }
 
