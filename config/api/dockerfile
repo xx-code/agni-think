@@ -8,7 +8,6 @@ COPY apps/agni_api/gradle.properties ./gradle.properties
 COPY apps/agni_api/settings.gradle.kts ./
 COPY apps/agni_api/build.gradle.kts ./
 
-
 COPY apps/agni_api/core/build.gradle.kts ./core/build.gradle.kts
 COPY apps/agni_api/infra/build.gradle.kts ./infra/build.gradle.kts
 COPY apps/agni_api/rest_api/build.gradle.kts ./rest_api/build.gradle.kts
@@ -22,16 +21,15 @@ COPY apps/agni_api/core/src ./core/src
 COPY apps/agni_api/infra/src ./infra/src
 COPY apps/agni_api/rest_api/src ./rest_api/src
 
-# bootJar est produit par le module :rest_api (et non plus a la racine)
+# bootJar est produit par le module :rest_api
 RUN ./gradlew :rest_api:bootJar --no-daemon -x test
 
-FROM eclipse-temurin:21-jre-alpine AS runtime
+# glibc-based runtime (required by ONNX Runtime native library)
+FROM eclipse-temurin:21-jre AS runtime
 
 WORKDIR /app
 
-RUN apk add --no-cache libstdc++
-
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN groupadd --system spring && useradd --system --gid spring --no-create-home spring
 
 COPY --from=builder --chown=spring:spring /app/rest_api/build/libs/*.jar app.jar
 
