@@ -8,6 +8,18 @@ import usecases.bank_registers.dto.UpdateBankRegisterInput
 import jakarta.validation.constraints.NotEmpty
 import java.util.UUID
 
+data class PlaidExchangePublicTokenResponse(
+    val publicToken: String,
+)
+
+data class PlaidAccessCodeRequest(
+    val publicToken: String,
+)
+
+data class PlaidAccessCodeResponse(
+    val accessCode: String,
+)
+
 data class ApiAccountLinkerModel(
     val accountId: UUID? = null,
     val bankName: String,

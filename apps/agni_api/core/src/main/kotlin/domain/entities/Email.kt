@@ -1,8 +1,13 @@
 package domain.entities
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonValue
 import domain.exceptions.ValidationException
 
-data class Email(private val email: String) {
+data class Email @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
+    private val email: String
+) {
+    @get:JsonValue
     val normalizedValue: String = email.trim()
 
     init {

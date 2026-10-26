@@ -1,4 +1,4 @@
-import type { GetBankRegisterResponse } from "../api/bank-register"
+import type { GetBankRegisterResponse, PlaidAccessCodeResponse } from "../api/bank-register"
 
 export type EditBankLinker = {
     title: string
@@ -25,3 +25,5 @@ export type BankRegisterType = Omit<GetBankRegisterResponse, 'isActive' | 'bankR
     isActive: boolean
     accounts: BankRegisterAccount[]
 }
+
+export interface PlaidAccessCode extends PlaidAccessCodeResponse {}

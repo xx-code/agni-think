@@ -1,27 +1,27 @@
 package usecases.invoices
 
 import usecases.UseCase
-import adapters.IEmbeddingService
 import adapters.events.EventType
 import adapters.events.listeners.IDeleteInvoiceEventListener
 import adapters.events.IEventRegister
 import adapters.events.contents.DeleteEmbeddingInvoiceEventContent
 import adapters.events.contents.NotificationEventContent
 import adapters.events.contents.NotificationType
+import adapters.repositories.IVectorRepository
 import domain.entities.Notification
 import usecases.dto.BackgroundTaskOut
 import java.util.UUID
 
 class DeleteInvoiceEmbedding(
     private val eventRegister: IEventRegister,
-    private val embeddingService: IEmbeddingService,
+    private val vectorRepo: IVectorRepository,
     private val invoiceCollectionName: String
 ): UseCase<UUID, BackgroundTaskOut>(), IDeleteInvoiceEventListener {
     private var event: DeleteEmbeddingInvoiceEventContent? = null
 
     override suspend fun process(input: UUID): BackgroundTaskOut {
         try {
-            embeddingService.deleteEmbeddingDocument(invoiceCollectionName, input)
+            vectorRepo.removeDocument(input.toString(), invoiceCollectionName)
 
             return BackgroundTaskOut("Embedding invoice created")
         } catch (err: Exception) {

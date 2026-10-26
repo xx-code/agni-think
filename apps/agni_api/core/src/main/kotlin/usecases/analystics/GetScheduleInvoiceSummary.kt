@@ -6,6 +6,7 @@ import adapters.dto.QueryFilter
 import adapters.repositories.IRepository
 import adapters.repositories.QueryComparator
 import adapters.repositories.QueryExtendBuilder
+import domain.SAVING_CATEGORY_ID
 import domain.entities.ScheduleInvoice
 import usecases.analystics.dto.GetScheduleInvoiceSummaryOutput
 class GetScheduleInvoiceSummary(
@@ -22,6 +23,8 @@ class GetScheduleInvoiceSummary(
             totalPlan = scheduleInvoices.total.toInt(),
             totalActives = scheduleInvoices.items.filter { !it.isPause }.size,
             totalPause = scheduleInvoices.items.filter { it.isPause }.size,
+            totalAmountSchedule = scheduleInvoices.items.filter { it.categoryId != SAVING_CATEGORY_ID }.sumOf { it.amount },
+            totalAmountContribution = scheduleInvoices.items.filter { it.categoryId == SAVING_CATEGORY_ID }.sumOf { it.amount },
             totalAmountActive = scheduleInvoices.items.filter { !it.isPause }.sumOf { it.amount },
         )
     }

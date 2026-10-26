@@ -16,7 +16,7 @@ allprojects {
 // version divergente (c'etait le cas du BOM Spring Boot).
 extra["springBootVersion"] = "4.0.2"
 extra["mockkVersion"] = "1.14.9"
-extra["postgresqlVersion"] = "42.7.9"
+extra["postgresqlVersion"] = "42.7.14"
 extra["kotlinCoroutinesVersion"] = "1.11.0"
 
 // La racine n'applique aucun plugin JVM : elle n'a donc pas de taches `classes` /

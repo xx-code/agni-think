@@ -101,7 +101,7 @@ function getTypeColor(type: string) {
             
             <div class="flex flex-1 items-center justify-between">
                 <div class="">
-                    <p class="font-semibold">{{ invoice.description }}</p>
+                    <p class="text-primary">{{ invoice.description }}</p>
                     <p class="text-xs">{{ formatDate(invoice.date)  }} · {{ invoice.status }}</p>
                 </div>
 

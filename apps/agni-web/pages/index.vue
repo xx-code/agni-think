@@ -4,7 +4,7 @@ import { getSpendingPeriodAnalyticRange, useInProgressSpendingPeriod } from '~/c
 import type { Account, AccountWithDetailType, EditAccount } from "~/types/ui/account";
 import { getLocalTimeZone } from "@internationalized/date";
 import { ModalEditAccount, SlideOverQuickInvoicesView } from "#components";
-import { accountWithDetailResponseToAccountWithDetail, accountWithDetailToAccountCard, listAccountsResponseToListAccountWithDetail, toAccountBalance } from "~/mappers/account";
+import { accountWithDetailResponseToAccountWithDetail, listAccountsResponseToListAccountWithDetail, toAccountBalance } from "~/mappers/account";
 import { savingAnalyticResponseToSavingAnalytic } from "~/mappers/analytics";
 import { goalResponseToGoal, goalToFundGoalCards } from "~/mappers/goal";
 import { AccountType, getOrderAccountType } from "~/types/constants/account";
@@ -88,7 +88,7 @@ const { data: accountData, refresh: refreshAccounts } = useAsyncData(
     }
 )
 
-const { data: inProgressSpendingPeriod } = await useInProgressSpendingPeriod()
+const { data: inProgressSpendingPeriod } = useInProgressSpendingPeriod()
 
 const analyticRange = computed(() => getSpendingPeriodAnalyticRange(inProgressSpendingPeriod.value))
 
@@ -299,79 +299,64 @@ function goalStatusBadge(goal: FundCardGoal) {
             @click-button="openAccountModal()"
         />
 
-        <UiOverviewAccountSummary 
-            v-if="!isLoadingBalance"
-            :indicator-balance-buffer="balanceBufferIndicator"
-            :total-balance="dataTotalBalance?.totalBalance ?? 0"
-            :disponible="dataTotalBalance?.totalAvailable ?? 0"
-            :freeze="dataTotalBalance?.totalFreeze ?? 0"
-            :lock="dataTotalBalance?.totalLock ?? 0"
-        />
-        <LoadingIndicator v-else />
+        
 
         <div class="grid md:grid-cols-2 grid-cols-1 gap-5">
             <div>
-                <h1 class="text-lg text-gray-500 font-bold mb-5">Comptes</h1>
-                <div class="grid grid-cols-2 gap-5" v-if="!isLoadingAccount">
-                    <UiOverviewCardAccount 
-                        v-for="account in accountData?.accounts"
-                        :key="account.id"
-                        :account="accountWithDetailToAccountCard(account, accountData?.balanceHistories.find(el => el.id === account.id)?.histories ?? [])"
-                        @click="() => openTransactionViews(account.id)"
-                        @update="() => openAccountModal(account.id)"
-                        @delete="() => onDeleteAccount(account.id)"
-                    />
-                </div> 
+                <UiOverviewAccountSummary 
+                    v-if="!isLoadingBalance"
+                    :indicator-balance-buffer="balanceBufferIndicator"
+                    :total-balance="dataTotalBalance?.totalBalance ?? 0"
+                    :disponible="dataTotalBalance?.totalAvailable ?? 0"
+                    :freeze="dataTotalBalance?.totalFreeze ?? 0"
+                    :lock="dataTotalBalance?.totalLock ?? 0"
+                    :credit-usage="dataTotalBalance?.totalCreditUtilization ?? 0"
+                />
                 <LoadingIndicator v-else />
+
+                <UiOverviewAccounts 
+                    class="mt-5"
+                    :accounts="accountData?.accounts ?? []"
+                    @open="id => openTransactionViews(id)"
+                    @update="id => openAccountModal(id)"
+                    @delete="id => onDeleteAccount(id)"
+                />
             </div>
+            
             
             <div class="flex flex-col gap-4">
                 <UiOverviewSpendingPeriodRemain />
 
-                <div v-if="!isKpiLoading" class="grid grid-cols-2">
-                    <div>
-                        <h4 class="text-gray-500 font-semibold">
+                <div v-if="!isKpiLoading" class="grid grid-cols-2 gap-4">
+                    <div class="bg-neutral-100 p-4 rounded-3xl">
+                        <h4 class="text-neutral-400">
                             {{ analyticRange.isSpendingPeriod ? 'Cashflow de la periode' : 'Cashflow ce mois' }}
                         </h4>
                         <h1 
                             :class="[
-                                'font-semibold text-2xl p-2',
-                                (kpi?.cashflow ?? 0) > 0 ? 'text-green-600' : 'text-red-600'
+                                'text-xl p-2',
+                                (kpi?.cashflow ?? 0) > 0 ? 'text-primary' : 'text-danger'
                             ]">
                             <span>{{ (kpi?.cashflow ?? 0) > 0 ? '+' : '' }}</span>
                             {{ formatCurrency(kpi?.cashflow ?? 0) }}
                         </h1>
                     </div>
 
-                    <div>
-                        <h4 class="text-gray-500 font-semibold">
+                    <div class="bg-neutral-100 p-4 rounded-3xl">
+                        <h4 class="text-neutral-400">
                             Taux d'épargne
                         </h4>
-                        <h1 class="font-semibold text-2xl p-2">{{ roundNumber(kpi?.savingRate ?? 0) }}%</h1>
+                        <h1 class="text-primary text-xl p-2">{{ roundNumber(kpi?.savingRate ?? 0) }}%</h1>
                     </div>
                 </div>
 
                 <LoadingIndicator v-else />
 
-                <div>
-                    <div v-if="!isLoadingAccount">
-                        <h4 class="text-gray-500 font-semibold">
-                            Total credit utilisation
-                        </h4>
-                        <h1 :class="[
-                            'font-semibold text-2xl p-2',
-                            (dataTotalBalance?.totalCreditUtilization ?? 0) <= 30 ? 'text-green-600' : 'text-red-600'
-                        ]">{{ roundNumber(dataTotalBalance?.totalCreditUtilization ?? 0) }}%</h1>
-                    </div>
-
-                    <LoadingIndicator v-else />
-                </div>
-
                 <div class="flex flex-col gap-2">
-                    <h1 class="font-bold">
+                    <h1 class="text-primary text-lg font-bold">
                         {{ analyticRange.isSpendingPeriod ? 'Top dépenses de la periode' : 'Top dépenses' }}
                     </h1>
-                    <div v-if="!isLoadingTopSpend" class="flex flex-col gap-2">
+                    <div v-if="!isLoadingTopSpend" class="flex flex-col gap-2 bg-neutral-100 rounded-3xl p-5">
                         <div 
                             v-for="catSpend in topSpendByCategories" 
                             :key="catSpend.categoryId"
@@ -380,7 +365,7 @@ function goalStatusBadge(goal: FundCardGoal) {
                                 <UIcon :style="{color: catSpend.color}" :name="catSpend.icon" />
                                 <span class="ml-1">{{ catSpend.title }}</span>
                             </div>
-                            <span class="font-semibold">{{ formatCurrency(catSpend.spend) }}</span>
+                            <span class="text-primary">{{ formatCurrency(catSpend.spend) }}</span>
                         </div>
                     </div>
                     <div class="flex justify-center p-4" v-else-if="!isLoadingTopSpend && topSpendByCategories?.length == 0">
@@ -393,8 +378,11 @@ function goalStatusBadge(goal: FundCardGoal) {
                 </div>
 
                 <div class="flex flex-col gap-3">
+                    <h1 class="text-primary text-lg font-bold">
+                        Top but
+                    </h1>
                     <div v-if="!isLoadingGoal">
-                        <div v-if="goals?.length" class="flex flex-col gap-4">
+                        <div v-if="goals?.length" class="flex flex-col gap-4 bg-neutral-100 p-5 rounded-3xl">
                             <div v-for="goal in goals" :key="goal.id" class="flex flex-col gap-1.5">
 
                                 <div class="flex items-center justify-between">

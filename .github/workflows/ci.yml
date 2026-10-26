@@ -20,7 +20,6 @@ jobs:
           filters: |
             frontend: ['apps/agni-web/**', 'config/frontend/**']
             api:      ['apps/agni_api/**', 'config/api/**']
-            agent:    ['apps/agni-ai/**',  'config/agent/**']
 
   test-frontend:
     needs: changes
@@ -62,14 +61,3 @@ jobs:
         run: |
           echo "Exécution des tests API..."
           # Remplace par ta commande (ex: cd apps/agni_api && ./gradlew test)
-
-  test-agent:
-    needs: changes
-    if: needs.changes.outputs.agent == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run Agent Tests
-        run: |
-          echo "Exécution des tests Agent AI..."
-          # Remplace par ta commande (ex: cd apps/agni-ai && pytest)

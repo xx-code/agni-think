@@ -1,8 +1,7 @@
 package usecases.invoices
 
 import usecases.UseCase
-import adapters.EmbeddingDocument
-import adapters.IEmbeddingService
+import adapters.dto.VectorDocumentInput
 import adapters.events.EventType
 import adapters.events.IEventRegister
 import adapters.events.contents.CreateEmbeddingExternalTransEventContent
@@ -10,6 +9,7 @@ import adapters.events.contents.NotificationEventContent
 import adapters.events.contents.NotificationType
 import adapters.events.listeners.ICreateExternalTransactionListener
 import adapters.repositories.IRepository
+import adapters.repositories.IVectorRepository
 import domain.exceptions.NotFoundException
 import domain.entities.ExternalTransaction
 import domain.entities.Notification
@@ -18,7 +18,7 @@ import java.util.UUID
 
 class CreateExternalTransaction(
     private val externalTransactionRepo: IRepository<ExternalTransaction>,
-    private val embeddingService: IEmbeddingService,
+    private val vectorRepo: IVectorRepository,
     private val eventRegister: IEventRegister,
     private val collectionExternalTransactionName: String,
 ): UseCase<UUID, BackgroundTaskOut>(), ICreateExternalTransactionListener  {
@@ -37,7 +37,7 @@ class CreateExternalTransaction(
                 categoryDetail=${trans.categoryDetail};
             """.trimIndent()
 
-            embeddingService.addEmbeddingDocument(collectionExternalTransactionName,listOf(EmbeddingDocument(trans.id, docTrans)))
+            vectorRepo.addDocuments(collectionExternalTransactionName,listOf(VectorDocumentInput(trans.id, docTrans)))
 
             return BackgroundTaskOut("External Transaction ${trans.id} added")
         } catch(err: Exception) {

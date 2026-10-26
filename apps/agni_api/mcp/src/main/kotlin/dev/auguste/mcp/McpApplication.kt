@@ -7,6 +7,7 @@ import org.springframework.boot.runApplication
     scanBasePackages = [
         "dev.auguste.mcp",
         "persistences",
+        "adapters",
         "usecase_configs",
         "configs"
     ]

@@ -1,8 +1,7 @@
 package usecases.invoices
 
 import usecases.UseCase
-import adapters.EmbeddingDocument
-import adapters.IEmbeddingService
+import adapters.dto.VectorDocumentInput
 import adapters.events.EventType
 import adapters.events.IEventRegister
 import adapters.events.contents.CreateManyEmbeddingExternalTransEventContent
@@ -10,6 +9,7 @@ import adapters.events.contents.NotificationEventContent
 import adapters.events.contents.NotificationType
 import adapters.events.listeners.ICreateManyExternalTransactionListener
 import adapters.repositories.IRepository
+import adapters.repositories.IVectorRepository
 import domain.exceptions.ValidationException
 import domain.entities.ExternalTransaction
 import domain.entities.Notification
@@ -18,7 +18,7 @@ import java.util.UUID
 
 class CreateManyExternalTransactionEmbedding(
     private val externalTransactionRepo: IRepository<ExternalTransaction>,
-    private val embeddingService: IEmbeddingService,
+    private val vectorRepo: IVectorRepository,
     private val eventRegister: IEventRegister,
     private val collectionName: String
 ): UseCase<List<UUID>, BackgroundTaskOut>(), ICreateManyExternalTransactionListener{
@@ -31,8 +31,8 @@ class CreateManyExternalTransactionEmbedding(
                 throw ValidationException.SomeExternalTransactionsNotFound()
 
             val documents = transactions.map { trans ->
-                EmbeddingDocument(
-                    id = trans.id,
+                VectorDocumentInput(
+                    id = trans . id,
                     document = """
                         accountId=${trans.accountId};
                         amount=${trans.amount};
@@ -44,7 +44,7 @@ class CreateManyExternalTransactionEmbedding(
                 )
             }
 
-            embeddingService.addEmbeddingDocument(collectionName, documents)
+            vectorRepo.addDocuments(collectionName, documents)
 
             return BackgroundTaskOut("External Transaction [${transactions.map { it.id }}] added")
         } catch(err: Exception) {

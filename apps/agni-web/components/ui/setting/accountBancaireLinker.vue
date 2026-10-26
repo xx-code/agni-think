@@ -69,10 +69,12 @@ const accountOptions = computed(() => {
 const { isReady, createLink, config } = useBankLinker(refresh)
 const { open } = usePlaidLink(config)
 
-async function forceInitTransaction() {
+async function forceInitTransaction(id: string) {
     try {
         start()
-        await ApiLinkBuilder.route(API_ROUTES.BANK.INIT_TRANSACTION).execute()
+        await ApiLinkBuilder.route(API_ROUTES.BANK_REGISTERS.SYNC_BANK_TRANSACTIONS_BY_BANK_REGISTER)
+        .params({ id })
+        .execute()
         toast.add({
             title: "Transaction initialiser",
             color: 'success'
@@ -135,7 +137,7 @@ async function onChangeLinkedAccount(registerId: string, bankAccountId: string, 
     try {
         start()
         await persistAccounts(registerId, register.accounts)
-        await ApiLinkBuilder.route(API_ROUTES.BANK.INIT_TRANSACTION).execute()
+        await ApiLinkBuilder.route(API_ROUTES.BANK_REGISTERS.SYNC_BANK_TRANSACTIONS).execute()
         await refresh()
     } catch (err: any) {
         register.accounts[index]!.accountId = previous
@@ -178,7 +180,7 @@ const columns: TableColumn<BankRow>[] = [
         accessorKey: 'id',
         header: '',
         cell: ({ row }) => h('div', { class: 'flex items-center gap-2' }, [
-            h(UButton, { onClick: forceInitTransaction }, "Force Initializaiton transactions")
+            h(UButton, { onClick: () => { forceInitTransaction(row.original.id) }  }, "Force Initializaiton transactions")
         ])
     },
 ]

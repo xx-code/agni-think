@@ -29,6 +29,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.stereotype.Component
+import java.security.SecureRandom
+import java.util.Base64
 import java.util.UUID
 import javax.crypto.spec.SecretKeySpec
 
@@ -65,7 +67,13 @@ class OidcSecurityConfig(
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/v2/public/**",  "/", "/health").permitAll()
+                    .requestMatchers(
+                        "/v2/public/**",
+                        "/",
+                        "/health",
+                        "/actuator/health",
+                        "/actuator/health/**"
+                    ).permitAll()
                     .anyRequest().authenticated()
             }
 
@@ -109,7 +117,13 @@ class LocalSecurityConfig(
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/v2/public/**", "/", "/health").permitAll()
+                    .requestMatchers(
+                        "/v2/public/**",
+                        "/",
+                        "/health",
+                        "/actuator/health",
+                        "/actuator/health/**"
+                    ).permitAll()
                     .anyRequest().authenticated()
             }
 
@@ -181,6 +195,7 @@ class OAuth2Adapter(
         val newUser = User(
             externalUserId = externalId,
             username = username,
+            apiToken = ApiKeyGenerator.generateApiToken(),
             email = Email(email),
         )
 
@@ -210,5 +225,16 @@ class OAuth2Adapter(
             .take(60)
             .ifBlank { UUID.randomUUID().toString().replace("-", "") }
         return "$local@oauth.local"
+    }
+}
+
+sealed class ApiKeyGenerator {
+    companion object {
+        fun generateApiToken(): String {
+            val secureRandom = SecureRandom()
+            val bytes = ByteArray(32) // 256 bits of randomness
+            secureRandom.nextBytes(bytes)
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+        }
     }
 }

@@ -2,6 +2,8 @@ package usecases.schedule_Invoices
 
 import usecases.UseCase
 import adapters.IAuthenticateAdapter
+import adapters.dto.QueryFilter
+import adapters.dto.QuerySortBy
 import adapters.repositories.IRepository
 import adapters.repositories.QueryExtendBuilder
 import adapters.repositories.QueryComparator
@@ -19,7 +21,15 @@ class GetAllScheduleInvoice(
         val currentUser = getCurrentUser()
         val condition = QueryExtendBuilder<ScheduleInvoice>()
             .addCondition("userId", QueryComparator.Equal, currentUser.id)
-        val scheduleInvoices = scheduleInvoiceRepo.getAll(input.queryFilter, condition)
+        val query = QueryFilter(
+            offset = input.queryFilter.offset,
+            limit = input.queryFilter.limit,
+            sortBy = QuerySortBy(
+                "scheduler->>'due_date'",
+                ascending = true
+            )
+        )
+        val scheduleInvoices = scheduleInvoiceRepo.getAll(query, condition)
 
         return ListOutput(
             items = scheduleInvoices.items.map {
