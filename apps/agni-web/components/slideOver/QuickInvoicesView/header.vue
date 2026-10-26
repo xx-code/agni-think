@@ -20,12 +20,12 @@ const emit = defineEmits<{
 <template>
     <div class="space-y-2">
         <div v-if="accountInfo" class="flex justify-between items-center">
-            <h3 class="font-semibold text-neutral-500">{{ getLabelAccountType(accountInfo.type) }} · {{ accountInfo.title }}</h3>
+            <h3 class="font-semibold text-primary">{{ getLabelAccountType(accountInfo.type) }} · {{ accountInfo.title }}</h3>
             <h3>CAD</h3>
         </div>
 
         <div v-if="accountInfo">
-            <p class="font-semibold text-4xl">
+            <p class="font-semibold text-primary text-4xl">
                 {{ roundNumber(accountInfo.balance) }}
             </p>
         </div>

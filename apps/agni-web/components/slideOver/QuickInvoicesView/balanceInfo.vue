@@ -22,7 +22,7 @@ function isBufferValid(buffer: number, balance: number): boolean {
 
 <template>
     <div>
-        <div class="flex items-center flex-wrap gap-2 font-semibold text-sm">
+        <div class="flex items-center flex-wrap gap-2 text-xs text-neutral-500">
             <div class="flex items-center">
                 <Icon name="i-lucide-circle-check" class="text-green-500" />
                 <span class="ml-1">Disponible</span>
@@ -42,7 +42,7 @@ function isBufferValid(buffer: number, balance: number): boolean {
             </div>
         </div>
 
-        <div v-if="accountInfo.type === AccountType.CreditCard && accountInfo.detail?.detailForCreditCard" class="text-sm mt-2">
+        <div v-if="accountInfo.type === AccountType.CreditCard && accountInfo.detail?.detailForCreditCard" class="mt-2 text-xs text-neutral-500">
             <span class="text-sm text-gray-400">
                 Prochaine facture: {{ formatDate(accountInfo.detail?.detailForCreditCard?.nextInvoicePayment) }}
             </span>
@@ -61,7 +61,7 @@ function isBufferValid(buffer: number, balance: number): boolean {
             </div>
         </div>
 
-        <div v-else-if="accountInfo.type === AccountType.Checking" class="text-sm mt-2">
+        <div v-else-if="accountInfo.type === AccountType.Checking" class="text-xs text-neutral-500 mt-2">
             <div class="flex items-center gap-1">
                 <div class="flex items-center">
                     <Icon 

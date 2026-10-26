@@ -20,6 +20,11 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.postgresql:postgresql:${rootProject.extra["postgresqlVersion"]}")
+    implementation("com.plaid:plaid-java:47.0.0")
+    implementation("io.qdrant:client:1.20.0")
+    implementation("dev.langchain4j:langchain4j-embeddings-bge-small-en-v15:1.22.0-beta32")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis:4.2.0-RC1")
+
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.junit.jupiter:junit-jupiter")

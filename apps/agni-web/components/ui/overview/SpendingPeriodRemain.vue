@@ -24,15 +24,20 @@ const remainStatus = computed(() => {
 <template>
     <div class="space-y-1">
         <div class="flex items-center justify-between">
-            <h4 class="text-gray-500 font-semibold">Reste de la periode</h4>
+            <h4 class="text-lg text-primary font-bold">Reste de la periode</h4>
 
-            <span
-                v-if="daysRemaining !== undefined"
-                class="px-2 py-0.5 rounded-full text-[11px] font-medium"
-                :class="daysRemaining > 0 ? 'bg-gray-100 text-gray-600' : 'bg-red-100 text-red-700'"
-            >
-                {{ daysRemaining > 0 ? `${daysRemaining} j restants` : 'Periode terminee' }}
-            </span>
+            <div v-if="period" class="text-[11px]">
+                <span>{{ formatDate(period.startDate) }} - {{ formatDate(period.endDate) }}</span>
+                <span
+                    v-if="daysRemaining !== undefined"
+                    class="px-2 py-0.5 rounded-full  font-medium"
+                    :class="daysRemaining > 0 ? ' text-gray-600' : 'text-danger'"
+                >
+
+                    {{ daysRemaining > 0 ? `${daysRemaining} j restants` : 'Periode terminee' }}
+                </span>
+            </div>
+            
         </div>
 
         <div v-if="status === 'pending'" class="flex justify-center p-4">
@@ -44,21 +49,20 @@ const remainStatus = computed(() => {
             Aucune periode en cours
         </div>
 
-        <div v-else class="grid grid-cols-2">
-            <div>
-                <h4 class="text-gray-500 font-semibold">Reste total</h4>
-                <h1 class="font-semibold text-2xl p-2">{{ formatCurrency(expectedRemain) }}</h1>
+        <div v-else class="grid grid-cols-2 gap-4">
+            <div class="bg-neutral-100 rounded-3xl p-4">
+                <h4 class="text-neutral-400">Reste total</h4>
+                <h1 class="text-xl text-primary p-2">{{ formatCurrency(expectedRemain) }}</h1>
             </div>
 
-            <div>
-                <h4 class="text-gray-500 font-semibold">Reste actuel</h4>
-                <h1 :class="['font-semibold text-2xl p-2', remainStatus]">{{ formatCurrency(currentRemain) }}</h1>
+            <div class="bg-neutral-100 rounded-3xl p-4">
+                <h4 class="text-neutral-400">Reste actuel</h4>
+                <h1 :class="['text-xl p-2', remainStatus]">{{ formatCurrency(currentRemain) }}</h1>
             </div>
         </div>
 
-        <div v-if="period" class="flex items-center justify-between text-xs text-gray-500 px-2">
-            <span>{{ formatDate(period.startDate) }} - {{ formatDate(period.endDate) }}</span>
-            <NuxtLink to="/spending-periods" class="font-semibold text-primary-500 hover:underline">
+        <div v-if="period" class="flex items-center justify-end text-xs text-gray-500 px-2">
+            <NuxtLink to="/spending-periods" class="text-neutral-500 hover:underline mt-1">
                 Voir la periode
             </NuxtLink>
         </div>

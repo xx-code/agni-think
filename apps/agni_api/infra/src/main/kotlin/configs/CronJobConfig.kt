@@ -12,6 +12,7 @@ import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import usecases.bank_registers.dto.SyncBankTransactionInput
 import usecases.funds.FundAutoCurate
 
 @Service
@@ -35,6 +36,8 @@ class CronJobOrchestratorEach12h(
     private val syncGoal: IUseCase<Unit, BackgroundTaskOut>,
     @Qualifier("fundAutoCurate")
     private val fundAutoCurate: IUseCase<Unit, BackgroundTaskOut>,
+    @Qualifier("syncBankTransactionsTask")
+    private val syncBankTransactionsTask: IUseCase<Unit, BackgroundTaskOut>,
 ) : ApplicationRunner {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -67,11 +70,22 @@ class CronJobOrchestratorEach12h(
             mutex.unlock()
         }
     }
+    private suspend fun executeAll3h() {
+        executeTask("Sync data plaid") {syncBankTransactionsTask.execute(Unit)}
+    }
 
     @Scheduled(cron = "0 0 */12 * * *")
-    fun schedule() {
+    fun schedule12h() {
         logger.info("[SCHEDULE] Running 12-hour cron schedule")
         runBlocking { executeAll() }
+    }
+
+    @Scheduled(cron = "0 0 */3 * * *")
+    fun schedule3h() {
+        logger.info("[SCHEDULE] Running 3-hour cron schedule")
+        runBlocking {
+            executeAll3h()
+        }
     }
 
     override fun run(args: ApplicationArguments) {

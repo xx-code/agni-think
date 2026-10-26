@@ -1,8 +1,13 @@
 package domain.entities
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonValue
 import domain.exceptions.ValidationException
 
-data class Color(private val value: String) {
+data class Color @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
+    private val value: String
+) {
+    @get:JsonValue
     val formattedValue: String = value.trim().uppercase()
 
     init {

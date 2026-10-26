@@ -107,6 +107,8 @@ export type GetScheduleInvoiceSummaryResponse = {
     totalPlan: number,
     totalActives: number,
     totalPause: number
+    totalAmountSchedule: number
+    totalAmountContribution: number
     totalAmountActive: number
 }
 

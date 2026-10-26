@@ -1,6 +1,5 @@
 package usecase_configs
 
-import adapters.IEmbeddingService
 import adapters.IAuthenticateAdapter
 import adapters.events.IEventRegister
 import adapters.events.listeners.ICreateExternalTransactionListener
@@ -11,6 +10,7 @@ import adapters.readers.IInvoiceTransactionReader
 import adapters.repositories.IAccountBalanceSnapshotRepository
 import adapters.repositories.IRepository
 import adapters.repositories.IUnitOfWork
+import adapters.repositories.IVectorRepository
 import usecases.invoices.DeleteInvoiceEmbedding
 import domain.entities.Account
 import domain.entities.Budget
@@ -319,7 +319,7 @@ class InvoiceConfig {
         budgetRepo: IRepository<Budget>,
         tagRepo: IRepository<Tag>,
         getInvoice: IUseCase<UUID, GetInvoiceOutput>,
-        embeddingService: IEmbeddingService,
+        vectorRepo: IVectorRepository,
         @Value("\${embedding.collection.invoice}") collectionName: String
     ) : ICreateInvoiceEventListener {
         return CreateInvoiceEmbedding(
@@ -328,7 +328,7 @@ class InvoiceConfig {
             budgetRepo = budgetRepo,
             tagsRepo = tagRepo,
             getInvoice = getInvoice,
-            embeddingService = embeddingService,
+            vectorRepo = vectorRepo,
             collectionName
         )
     }
@@ -336,12 +336,12 @@ class InvoiceConfig {
     @Bean
     fun deleteEmbeddingInvoice(
         eventRegister: IEventRegister,
-        embeddingService: IEmbeddingService,
+        vectorRepo: IVectorRepository,
         @Value("\${embedding.collection.invoice}") collectionName: String
     ) : IDeleteInvoiceEventListener {
         return DeleteInvoiceEmbedding(
             eventRegister = eventRegister,
-            embeddingService = embeddingService,
+            vectorRepo = vectorRepo,
             collectionName
         )
     }
@@ -414,12 +414,12 @@ class InvoiceConfig {
     fun createEmbeddingExternalTransactions(
         eventRegister: IEventRegister,
         externalTransRepo: IRepository<ExternalTransaction>,
-        embeddingService: IEmbeddingService,
+        vectorRepo: IVectorRepository,
         @Value("\${embedding.collection.external-transaction}") collectionName: String
     ) : ICreateExternalTransactionListener {
         return CreateExternalTransaction(
             externalTransRepo,
-            embeddingService,
+            vectorRepo,
             eventRegister,
             collectionName
         )
@@ -429,13 +429,13 @@ class InvoiceConfig {
     fun createManyEmbeddingExternalTransactions(
         eventRegister: IEventRegister,
         externalTransRepo: IRepository<ExternalTransaction>,
-        embeddingService: IEmbeddingService,
+        vectorRepo: IVectorRepository,
         @Value("\${embedding.collection.external-transaction}") collectionName: String
     ) : ICreateManyExternalTransactionListener {
         return CreateManyExternalTransactionEmbedding(
             eventRegister = eventRegister,
             externalTransactionRepo = externalTransRepo,
-            embeddingService = embeddingService,
+            vectorRepo = vectorRepo,
             collectionName=collectionName
         )
     }

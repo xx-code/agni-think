@@ -5,6 +5,7 @@ const props = defineProps<{
     indicatorBalanceBuffer?: TotalBalanceBufferIndicator
     totalBalance: number
     disponible: number
+    creditUsage: number
     freeze: number
     lock: number
 }>()
@@ -53,10 +54,10 @@ const bufferDifference = computed(() => {
 </script>
 
 <template>
-    <div class="flex flex-col gap-3 p-5">
+    <div class="flex flex-col gap-3">
         <div>
             <div class="flex items-center gap-1.5">
-                <h6 class="text-gray-500 font-bold text-sm">Balance totale</h6>
+                <h6 class="text-gray-500 text-sm">Solde total</h6>
 
                 <UPopover v-if="indicatorBalanceBuffer" :content="{ side: 'bottom' }">
                     <UIcon :name="bufferStyle.icon" class="w-4 h-4 cursor-help" :class="bufferStyle.text" />
@@ -89,10 +90,10 @@ const bufferDifference = computed(() => {
                     </template>
                 </UPopover>
             </div>
-            <h1 class="text-3xl font-semibold">{{ formatCurrency(totalBalance) }}</h1>
+            <h1 class="text-3xl font-semibold text-primary">{{ formatCurrency(totalBalance) }}</h1>
         </div>
         
-        <div class="flex flex-wrap gap-2 font-semibold text-sm">
+        <div class="flex flex-wrap gap-2 text-xs text-neutral-400">
             <div class="flex items-center">
                 <Icon name="i-lucide-circle-check" class="text-green-500" />
                 <span class="ml-1">Disponible</span>
@@ -109,6 +110,12 @@ const bufferDifference = computed(() => {
                 <Icon name="i-lucide-lock-keyhole" class="text-gray-500" />
                 <span class="ml-1">Verrouillé</span>
                 <span class="ml-1">{{ formatCurrency(lock) }}</span>
+            </div>
+
+            <div class="flex items-center">
+                <Icon name="i-lucide-lock-keyhole" class="text-gray-500" />
+                <span class="ml-1">Credit utilisation</span>
+                <span class="ml-1">{{ creditUsage }} %</span>
             </div>
         </div>
     </div>

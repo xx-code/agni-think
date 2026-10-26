@@ -185,7 +185,6 @@ export const API_ROUTES = {
             serverPath: '/api/bank/exchange-token',
             apiPath: '/exchange-public-token',
             method: 'POST',
-            backend: 'agent'
         },
         INIT_TRANSACTION: {
             serverPath: '/api/bank/init-transaction',
@@ -233,6 +232,26 @@ export const API_ROUTES = {
             serverPath: '/api/bank-registers/:id',
             apiPath: '/bank-registers/:id',
             method: 'PUT'
+        },
+        CREATE_BANK_LINKER: {
+            serverPath: '/api/bank-registers/create-bank-linker',
+            apiPath: '/bank-registers/create-bank-linker',
+            method: 'POST'
+        },
+        EXCHANGE_PUBLIC_TOKEN: {
+            serverPath: '/api/bank-registers/exchange-public-token',
+            apiPath: '/bank-registers/exchange-public-token',
+            method: 'POST'
+        },
+        SYNC_BANK_TRANSACTIONS: {
+            serverPath: '/api/bank-registers/sync-bank-transactions',
+            apiPath: '/bank-registers/sync-bank-transactions',
+            method: 'POST'
+        },
+        SYNC_BANK_TRANSACTIONS_BY_BANK_REGISTER: {
+            serverPath: '/api/bank-registers/:id/sync-bank-transactions',
+            apiPath: '/bank-registers/:id/sync-bank-transactions',
+            method: 'POST'
         }
     },
 

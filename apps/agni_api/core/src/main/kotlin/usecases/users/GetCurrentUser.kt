@@ -12,7 +12,8 @@ class GetCurrentUser(
         return GetUserOutput(
             userId = user.id,
             userName = user.username,
-            email = user.email.toString()
+            email = user.email.toString(),
+            apiToken = user.apiToken
         )
     }
 }

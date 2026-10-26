@@ -37,7 +37,7 @@ export function listAccountsToListAccount(data: ListResponse<GetAccountResponse>
     }
 }
 
-export function accountWithDetailToAccountCard(data: AccountWithDetailType, balanceHistory: number[]= []): AccountCard {
+export function toAccountCard(data: AccountWithDetailType, balanceHistory: number[]= []): AccountCard {
     return {
         id: data.id,
         title: data.title,
