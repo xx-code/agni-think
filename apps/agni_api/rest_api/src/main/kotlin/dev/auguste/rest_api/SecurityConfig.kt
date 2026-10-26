@@ -67,7 +67,13 @@ class OidcSecurityConfig(
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/v2/public/**",  "/", "/health").permitAll()
+                    .requestMatchers(
+                        "/v2/public/**",
+                        "/",
+                        "/health",
+                        "/actuator/health",
+                        "/actuator/health/**"
+                    ).permitAll()
                     .anyRequest().authenticated()
             }
 
@@ -111,7 +117,13 @@ class LocalSecurityConfig(
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/v2/public/**", "/", "/health").permitAll()
+                    .requestMatchers(
+                        "/v2/public/**",
+                        "/",
+                        "/health",
+                        "/actuator/health",
+                        "/actuator/health/**"
+                    ).permitAll()
                     .anyRequest().authenticated()
             }
 

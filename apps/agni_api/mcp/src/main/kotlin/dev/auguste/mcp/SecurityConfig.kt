@@ -50,7 +50,13 @@ class SecurityConfig(
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/public/**", "/", "/health").permitAll()
+                    .requestMatchers(
+                        "/public/**",
+                        "/",
+                        "/health",
+                        "/actuator/health",
+                        "/actuator/health/**"
+                    ).permitAll()
                     .anyRequest().authenticated()
             }
 
