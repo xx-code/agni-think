@@ -29,6 +29,8 @@ FROM eclipse-temurin:21-jre-alpine AS runtime
 
 WORKDIR /app
 
+RUN apk add --no-cache libstdc++
+
 RUN addgroup -S spring && adduser -S spring -G spring
 
 COPY --from=builder --chown=spring:spring /app/rest_api/build/libs/*.jar app.jar
