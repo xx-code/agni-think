@@ -164,7 +164,7 @@ class JdbcScheduleInvoiceMapper(
     override fun getTableName(): String = "schedule_transactions"
 
     override fun getSortField(): Set<String> {
-        return setOf()
+        return setOf("scheduler->>'due_date'")
     }
 
     override fun getModelClass(): Class<JdbcScheduleInvoiceModel> = JdbcScheduleInvoiceModel::class.java

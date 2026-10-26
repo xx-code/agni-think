@@ -183,33 +183,24 @@ useInfiniteScroll(
 
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <UiBannerAccountant 
-                title="Total Planifié"
-                :amount="utils?.scheduleInvoiceSummary.totalPlan ?? 0"
-                :is-money="false"
-                :icon="{ name: 'i-lucide-calendar-clock', backgroundColor: 'rgba(59, 130, 246, 0.1)', fontColor: '#3b82f6' }"
-            />
-
-            <UiBannerAccountant 
                 title="Total montant active planifié"
                 :amount="utils?.scheduleInvoiceSummary.totalAmountActive ?? 0"
                 :icon="{ name: 'i-lucide-shield-check', backgroundColor: 'rgba(168, 85, 247, 0.1)', fontColor: '#a855f7' }"
-            />
+            /> 
 
             <UiBannerAccountant 
-                title="Actives"
-                :amount="utils?.scheduleInvoiceSummary.totalActives ?? 0"
-                :is-money="false"
-                :icon="{ name: 'i-lucide-play-circle', backgroundColor: 'rgba(16, 185, 129, 0.1)', fontColor: '#10b981' }"
-            />
-
-            <UiBannerAccountant 
-                title="En Pause"
-                :amount="utils?.scheduleInvoiceSummary.totalPause ?? 0 "
-                :is-money="false"
+                title="Total montant planifier"
+                :amount="utils?.scheduleInvoiceSummary.totalAmountSchedule ?? 0 "
+                :is-money="true"
                 :icon="{ name: 'i-lucide-pause-circle', backgroundColor: 'rgb(255, 115, 4, 0.1)', fontColor: '#ff7304' }"
             />
-        </div>
 
+            <UiBannerAccountant 
+                title="Total montant de contributions"
+                :amount="utils?.scheduleInvoiceSummary.totalAmountContribution ?? 0"
+                :icon="{ name: 'i-lucide-play-circle', backgroundColor: 'rgba(16, 185, 129, 0.1)', fontColor: '#10b981' }"
+            />
+        </div>
 
         <div class="flex flex-col gap-4" >
             <UiScheduleInvoiceCard 
