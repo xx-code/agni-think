@@ -9,7 +9,8 @@ import org.springframework.boot.runApplication
         "persistences",
         "adapters",
         "usecase_configs",
-        "configs"
+        "configs",
+        "utils.healths"
     ]
 )
 class McpApplication
