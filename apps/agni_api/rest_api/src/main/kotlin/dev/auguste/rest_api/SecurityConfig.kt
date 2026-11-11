@@ -71,6 +71,7 @@ class OidcSecurityConfig(
                         "/v2/public/**",
                         "/",
                         "/health",
+                        "/health/**",
                         "/actuator/health",
                         "/actuator/health/**"
                     ).permitAll()
@@ -121,6 +122,8 @@ class LocalSecurityConfig(
                         "/v2/public/**",
                         "/",
                         "/health",
+                        "/health",
+                        "/health/**",
                         "/actuator/health",
                         "/actuator/health/**"
                     ).permitAll()

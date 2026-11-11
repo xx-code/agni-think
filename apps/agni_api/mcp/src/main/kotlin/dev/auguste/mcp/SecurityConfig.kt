@@ -54,6 +54,7 @@ class SecurityConfig(
                         "/public/**",
                         "/",
                         "/health",
+                        "/health/**",
                         "/actuator/health",
                         "/actuator/health/**"
                     ).permitAll()

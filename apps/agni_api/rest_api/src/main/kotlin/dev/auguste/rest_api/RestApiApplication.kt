@@ -15,7 +15,8 @@ import javax.sql.DataSource
         "usecase_configs",
         "adapters",
         "facades",
-        "configs"
+        "configs",
+        "utils.healths"
     ]
 )
 @EnableScheduling
