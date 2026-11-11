@@ -905,5 +905,25 @@ export const API_ROUTES = {
             apiPath: '/spending-periods',
             method: 'GET'
         },
-    } 
+    },
+    HEALTH: {
+        INDEX: {
+            serverPath: '/api/health',
+            apiPath: '/health',
+            method: 'GET',
+            public: true
+        },
+        LIVENESS: {
+            serverPath: '/api/health/liveness',
+            apiPath: '/health/liveness',
+            method: 'GET',
+            public: true
+        },
+        READY: {
+            serverPath: '/api/health/ready',
+            apiPath: '/health/ready',
+            method: 'GET',
+            public: true
+        }
+    }
 } satisfies Record<string, Record<string, ApiRouteDefinition>>

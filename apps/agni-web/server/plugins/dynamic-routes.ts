@@ -30,7 +30,7 @@ export default defineNitroPlugin((nitroApp) => {
                         targetPath = targetPath.replace(`:${paramKey}`, params[`${paramKey}`] as string)
                     })
 
-                    const targetUrl = withQuery(`${apiBase}${targetPath}`, query)
+                    let targetUrl = withQuery(`${apiBase}${targetPath}`, query)
                     const token = getCookie(event, TOKEN_COOKIE)
 
                     if (config.session === 'create-oidc') {
@@ -71,6 +71,11 @@ export default defineNitroPlugin((nitroApp) => {
                         return sendNoContent(event)
                     }
 
+                    if (targetUrl.includes("health")) {
+                        targetUrl = targetUrl.replace("/v2", "")
+                    }
+
+                    console.log(targetUrl)
                     const result = await proxyRequest(event, targetUrl, {
                         headers: !config.public && token
                             ? { authorization: `Bearer ${token}` }
