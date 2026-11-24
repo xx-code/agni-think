@@ -1,107 +1,117 @@
-name: CD (Build & Deploy)
+name: CD (Release & Deploy)
 
 on:
-  push:
-    branches: [main, dev]
-    tags: ['v*']
   workflow_dispatch:
+    inputs:
+      bump:
+        description: Type de version
+        type: choice
+        options: [patch, minor, major]
+        default: patch
 
 permissions:
-  contents: read
+  contents: write
   packages: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 env:
   REGISTRY: ghcr.io/xx-code
+  COMPONENTS: agni-frontend agni-backend agni-backend-mcp
 
 jobs:
-  deploy:
+  release:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-
-      - id: filter
-        uses: dorny/paths-filter@v3
         with:
-          filters: |
-            frontend: ['apps/agni-web/**', 'config/frontend/**']
-            backend:      ['apps/agni_api/**', 'config/api/**']
+          fetch-depth: 0
 
-      - id: vars
+      - name: Compute next version
+        id: ver
         run: |
-          echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-          if [ "$GITHUB_REF_NAME" = "dev" ]; then
-            echo "env=dev"     >> "$GITHUB_OUTPUT"
-            echo "overlay=demo" >> "$GITHUB_OUTPUT"
-          else
-            echo "env=main"    >> "$GITHUB_OUTPUT"
-            echo "overlay=prod" >> "$GITHUB_OUTPUT"
-          fi
+          LAST=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
+          LAST=${LAST:-v0.0.0}
+          IFS=. read -r MA MI PA <<< "${LAST#v}"
+          case "${{ inputs.bump }}" in
+            major) MA=$((MA+1)); MI=0; PA=0 ;;
+            minor) MI=$((MI+1)); PA=0 ;;
+            patch) PA=$((PA+1)) ;;
+          esac
+          echo "version=$MA.$MI.$PA" >> "$GITHUB_OUTPUT"
+          echo "sha_short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Login GHCR
-        uses: docker/login-action@v3
+      - name: Fail if tag already exists
+        run: |
+          if git rev-parse "v${{ steps.ver.outputs.version }}" >/dev/null 2>&1; then
+            echo "Tag already exists"; exit 1
+          fi 
+
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # --- Builds sélectifs par module ---
-      - name: Build Frontend
-        if: steps.filter.outputs.frontend == 'true'
+      - name: Retag the 3 images with the version
         run: |
-          IMG=${{ env.REGISTRY }}/agni-frontend
-          docker build -f config/frontend/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:${{ steps.vars.outputs.env }}-${{ steps.vars.outputs.sha_short }} .
-          docker push --all-tags $IMG
-
-      - name: Build backend
-        if: steps.filter.outputs.backend == 'true'
-        run: |
-          IMG=${{ env.REGISTRY }}/agni-backend
-          docker build -f config/api/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:${{ steps.vars.outputs.env }}-${{ steps.vars.outputs.sha_short }} .
-          docker push --all-tags $IMG
-          IMG=${{ env.REGISTRY }}/agni-backend-mcp
-          docker build -f config/mcp/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:${{ steps.vars.outputs.env }}-${{ steps.vars.outputs.sha_short }} .
-          docker push --all-tags $IMG
-
-      - name: Ensure sha tags
-        if: github.ref_type == 'branch'
-        run: |
-          SHA=${{ steps.vars.outputs.env }}-${{ steps.vars.outputs.sha_short }}
-          for comp in agni-frontend agni-backend agni-backend-mcp; do
-            IMG=${{ env.REGISTRY }}/$comp
-            docker manifest inspect $IMG:$SHA >/dev/null 2>&1 && continue
-            if docker manifest inspect $IMG:${{ steps.vars.outputs.env }} >/dev/null 2>&1; then
-              docker pull $IMG:${{ steps.vars.outputs.env }}
-              docker tag $IMG:${{ steps.vars.outputs.env }} $IMG:$SHA
-            else
-              case $comp in
-                agni-frontend)   docker build -f config/frontend/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:$SHA . ;;
-                agni-backend)    docker build -f config/api/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:$SHA . ;;
-                agni-backend-mcp) docker build -f config/mcp/Dockerfile -t $IMG:${{ steps.vars.outputs.env }} -t $IMG:$SHA . ;;
-              esac
-            fi
-            docker push --all-tags $IMG
+          V=${{ steps.ver.outputs.version }}
+          S=sha-${{ steps.ver.outputs.sha_short }}
+          for c in $COMPONENTS; do
+            docker buildx imagetools inspect $REGISTRY/$c:$S >/dev/null
+            docker buildx imagetools create -t $REGISTRY/$c:$V $REGISTRY/$c:$S
           done
 
-      - name: Release version tag
-        if: github.ref_type == 'tag'
+      - name: Git tag + GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          for comp in agni-frontend agni-backend agni-backend-mcp; do
-            IMG=${{ env.REGISTRY }}/$comp
-            docker pull $IMG:main
-            docker tag $IMG:main $IMG:${{ github.ref_name }}
-            docker push $IMG:${{ github.ref_name }}
-          done
+          V=v${{ steps.ver.outputs.version }}
+          git tag $V
+          git push origin $V
+          gh release create $V --generate-notes
 
-      - name: Update homelab overlay (GitOps auto-deploy)
-        if: github.ref_type == 'branch'
+  deploy-demo:
+    needs: release
+    runs-on: ubuntu-latest
+    environment: demo
+    concurrency: { group: homelab-bump, cancel-in-progress: false }
+    steps:
+      - name: Bump demo overlay
         run: |
-          git clone https://${{ secrets.HOMELAB_GITHUB_TOKEN }}@github.com/xx-code/homelab.git homelab
+          V=${{ needs.release.outputs.version }}
+          git clone https://x-access-token:${{ secrets.HOMELAB_GITHUB_TOKEN }}@github.com/xx-code/homelab.git homelab
           cd homelab
           git config user.name "ci-bot"
           git config user.email "ci-bot@users.noreply.github.com"
-          ENV=${{ steps.vars.outputs.env }} SHA=${{ steps.vars.outputs.env }}-${{ steps.vars.outputs.sha_short }}
-          sed -i "s|newTag: $ENV-.*|newTag: $SHA|" k8s/apps/agni/overlays/${{ steps.vars.outputs.overlay }}/kustomization.yaml
+          sed -i "s|newTag: .*|newTag: $V|" k8s/apps/agni/overlays/demo/kustomization.yaml
           git diff --quiet || {
-            git commit -am "chore(deploy): bump agni $ENV sha-${{ steps.vars.outputs.sha_short }}"
+            git commit -am "chore(deploy): agni demo v$V"
+            git pull --rebase origin main
+            git push origin main
+          }
+
+  deploy-prod:
+    needs: [release, deploy-demo]
+    runs-on: ubuntu-latest
+    environment: prod        # approbation requise (voir ci-dessous)
+    concurrency: { group: homelab-bump, cancel-in-progress: false }
+    steps:
+      - name: Bump prod overlay
+        run: |
+          V=${{ needs.release.outputs.version }}
+          git clone https://x-access-token:${{ secrets.HOMELAB_GITHUB_TOKEN }}@github.com/xx-code/homelab.git homelab
+          cd homelab
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
+          sed -i "s|newTag: .*|newTag: $V|" k8s/apps/agni/overlays/prod/kustomization.yaml
+          git diff --quiet || {
+            git commit -am "chore(deploy): agni prod v$V"
+            git pull --rebase origin main
             git push origin main
           }
