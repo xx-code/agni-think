@@ -1,56 +1,32 @@
-name: CD (Release & Deploy)
+name: CD (Build images)
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      bump:
-        description: Type de version
-        type: choice
-        options: [patch, minor, major]
-        default: patch
 
 permissions:
-  contents: write
+  contents: read
   packages: write
 
 concurrency:
-  group: release
+  group: cd-main
   cancel-in-progress: false
 
 env:
   REGISTRY: ghcr.io/xx-code
-  COMPONENTS: agni-frontend agni-backend agni-backend-mcp
 
 jobs:
-  release:
-    if: github.ref == 'refs/heads/main'
+  build:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.ver.outputs.version }}
+    strategy:
+      matrix:
+        include:
+          - { image: agni-frontend,    dockerfile: config/frontend/Dockerfile }
+          - { image: agni-backend,     dockerfile: config/api/Dockerfile }
+          - { image: agni-backend-mcp, dockerfile: config/mcp/Dockerfile }
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Compute next version
-        id: ver
-        run: |
-          LAST=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
-          LAST=${LAST:-v0.0.0}
-          IFS=. read -r MA MI PA <<< "${LAST#v}"
-          case "${{ inputs.bump }}" in
-            major) MA=$((MA+1)); MI=0; PA=0 ;;
-            minor) MI=$((MI+1)); PA=0 ;;
-            patch) PA=$((PA+1)) ;;
-          esac
-          echo "version=$MA.$MI.$PA" >> "$GITHUB_OUTPUT"
-          echo "sha_short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Fail if tag already exists
-        run: |
-          if git rev-parse "v${{ steps.ver.outputs.version }}" >/dev/null 2>&1; then
-            echo "Tag already exists"; exit 1
-          fi 
 
       - uses: docker/login-action@v3
         with:
@@ -58,60 +34,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Retag the 3 images with the version
-        run: |
-          V=${{ steps.ver.outputs.version }}
-          S=sha-${{ steps.ver.outputs.sha_short }}
-          for c in $COMPONENTS; do
-            docker buildx imagetools inspect $REGISTRY/$c:$S >/dev/null
-            docker buildx imagetools create -t $REGISTRY/$c:$V $REGISTRY/$c:$S
-          done
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Git tag + GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          V=v${{ steps.ver.outputs.version }}
-          git tag $V
-          git push origin $V
-          gh release create $V --generate-notes
-
-  deploy-demo:
-    needs: release
-    runs-on: ubuntu-latest
-    environment: demo
-    concurrency: { group: homelab-bump, cancel-in-progress: false }
-    steps:
-      - name: Bump demo overlay
-        run: |
-          V=${{ needs.release.outputs.version }}
-          git clone https://x-access-token:${{ secrets.HOMELAB_GITHUB_TOKEN }}@github.com/xx-code/homelab.git homelab
-          cd homelab
-          git config user.name "ci-bot"
-          git config user.email "ci-bot@users.noreply.github.com"
-          sed -i "s|newTag: .*|newTag: $V|" k8s/apps/agni/overlays/demo/kustomization.yaml
-          git diff --quiet || {
-            git commit -am "chore(deploy): agni demo v$V"
-            git pull --rebase origin main
-            git push origin main
-          }
-
-  deploy-prod:
-    needs: [release, deploy-demo]
-    runs-on: ubuntu-latest
-    environment: prod        # approbation requise (voir ci-dessous)
-    concurrency: { group: homelab-bump, cancel-in-progress: false }
-    steps:
-      - name: Bump prod overlay
-        run: |
-          V=${{ needs.release.outputs.version }}
-          git clone https://x-access-token:${{ secrets.HOMELAB_GITHUB_TOKEN }}@github.com/xx-code/homelab.git homelab
-          cd homelab
-          git config user.name "ci-bot"
-          git config user.email "ci-bot@users.noreply.github.com"
-          sed -i "s|newTag: .*|newTag: $V|" k8s/apps/agni/overlays/prod/kustomization.yaml
-          git diff --quiet || {
-            git commit -am "chore(deploy): agni prod v$V"
-            git pull --rebase origin main
-            git push origin main
-          }
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ matrix.image }}:sha-${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
