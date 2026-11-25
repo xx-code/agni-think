@@ -44,7 +44,6 @@ jobs:
             patch) PA=$((PA+1)) ;;
           esac
           echo "version=$MA.$MI.$PA" >> "$GITHUB_OUTPUT"
-          echo "sha_short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Fail if tag already exists
         run: |
@@ -61,7 +60,7 @@ jobs:
       - name: Retag the 3 images with the version
         run: |
           V=${{ steps.ver.outputs.version }}
-          S=sha-${{ steps.ver.outputs.sha_short }}
+          S=sha-${{ github.sha }}
           for c in $COMPONENTS; do
             docker buildx imagetools inspect $REGISTRY/$c:$S >/dev/null
             docker buildx imagetools create -t $REGISTRY/$c:$V $REGISTRY/$c:$S
